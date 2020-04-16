@@ -2484,10 +2484,10 @@ class MonthParameter(KeywordParameter1D):
     to the current simulation time step:
 
     >>> wg2z.feb
-    1.0
+    2.0
     >>> wg2z.feb = 4.0
     >>> wg2z
-    wg2z(jan=3.0, feb=8.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+    wg2z(jan=3.0, feb=4.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
     ENTRYNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',

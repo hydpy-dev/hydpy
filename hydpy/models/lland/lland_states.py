@@ -81,11 +81,8 @@ class WAeS(lland_sequences.State1DSequence):
 
 
 class ESnow(lland_sequences.State1DSequence):
-    """Energieinhalt der Schneedecke bezogen auf 0°C (energy content of the
-    snow layer with respect to 0°C) [MJ/m²].
-
-    |ESnow| nimmt NaN-Werte an, wenn keine Schneedecke vorhanden ist (the value
-    of |ESnow| is NaN if there is no snow layer)."""
+    """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
+    energy content of the snow layer with respect to 0°C) [MJ/m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
 
 
@@ -93,8 +90,7 @@ class TauS(lland_sequences.State1DSequence):
     """Dimensionsloses Alter der Schneedecke (dimensionless age of the snow
     layer) [-].
 
-    Ist keine Schneedecke vorhanden, wird das dimensionslose Alter auf 0
-    gesetzt (If there is no snow layer the dimensionless age is set to 0).
+    If there is no snow-layer, the value of |TauS| is |numpy.nan|.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
@@ -131,7 +127,8 @@ class BoWa(lland_sequences.State1DSequence):
 #     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 #
 #     def trim(self, lower=None, upper=None):
-#         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
+#         """Trim values in accordance with :math:`WAeS \\leq PWMax
+#         \\cdot WATS`.
 #
 #         >>> from hydpy.models.lland import *
 #         >>> parameterstep('1d')
@@ -150,12 +147,13 @@ class BoWa(lland_sequences.State1DSequence):
 
 
 # class STInz(lland_sequences.State1DSequence):
-#     """Wasseräquivalent Trockenschnee des Schnee-Interzeptionsspeichers [mm]"""
+#     """Wasseräquivalent Trockenschnee des Schnee-Interzeptionsspeichers [mm].
+#     """
 #     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 #
 #     def trim(self, lower=None, upper=None):
-#         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`,
-#         or at least in accordance with if :math:`WATS \\geq 0`.
+#         """Trim values in accordance with :math:`WAeS \\leq PWMax
+#         \\cdot WATS`, or at least in accordance with if :math:`WATS \\geq 0`.
 #
 #         >>> from hydpy.models.lland import *
 #         >>> parameterstep('1d')

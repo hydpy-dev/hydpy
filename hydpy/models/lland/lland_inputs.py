@@ -18,7 +18,7 @@ class TemL(sequencetools.InputSequence):
 
 
 class SunshineDuration(sequencetools.InputSequence):
-    """Sonnenscheindauer [h]."""
+    """Sonnenscheindauer (sunshine duration) [h]."""
     NDIM, NUMERIC = 0, False
 
 
@@ -33,7 +33,7 @@ class RelativeHumidity(sequencetools.InputSequence):
 
 
 class WindSpeed(sequencetools.InputSequence):
-    """Wind speed [m/s]."""
+    """Windgeschwindigkeit (wind speed) [m/s]."""
     NDIM, NUMERIC = 0, False
 
 
@@ -43,5 +43,5 @@ class PET(sequencetools.InputSequence):
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
-    """Luftdruck (atmospheric pressure) [hPa]."""
+    """Luftdruck (atmospheric pressure) [kPa]."""
     NDIM, NUMERIC = 0, False

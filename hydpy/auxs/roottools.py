@@ -80,19 +80,19 @@ class Pegasus(modeltools.Submodel):
         ...     simulationstep('1d')
         ...     parameterstep('1d')
         >>> nhru(1)
+        >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fratm(1.28)
         >>> ktschnee(0.432)
-        >>> derived.seconds.update()
+        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
         >>> states.waes.values = 1.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.netshortwaveradiation = 1.0
-        >>> aides.dailysunshineduration = 10.0
-        >>> aides.dailypossiblesunshineduration = 12.0
+        >>> fluxes.netshortwaveradiationsnow = 1.0
+        >>> fluxes.dailysunshineduration = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = -2.0
 
         Method |lland_model.Return_TempSSurface_V1| finds the following

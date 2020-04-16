@@ -7,7 +7,7 @@
 from hydpy.core import sequencetools
 
 
-class SN_Ratio(sequencetools.AideSequence):
+class SNRatio(sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
     NDIM, NUMERIC = 1, False
 
@@ -19,8 +19,3 @@ class TempS(sequencetools.AideSequence):
     surfaces.
     """
     NDIM, NUMERIC = 1, False
-
-
-class DailyGlobalRadiation(sequencetools.AideSequence):
-    """ToDo Daily global Radiation [MJ/m²]."""
-    NDIM, NUMERIC = 0, False

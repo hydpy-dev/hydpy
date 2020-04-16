@@ -125,7 +125,7 @@ class Options:
     """True/False flag for raising an error when trying to load an input
     time series not spanning the whole initialisation period or containing
     |numpy.nan| values."""
-    
+
     dirverbose = _Option(False, None)
     """A True/False flag for letting the autocompletion textbox include
     all members of an object or only the most relevant ones.  So far, this

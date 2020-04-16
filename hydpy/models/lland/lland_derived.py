@@ -11,6 +11,7 @@ from hydpy.core import objecttools
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_parameters
+from hydpy.models.lland.lland_constants import LAUBW, MISCHW, NADELW
 
 
 class MOY(parametertools.MOYParameter):
@@ -23,6 +24,14 @@ class DOY(parametertools.DOYParameter):
 
 class Seconds(parametertools.SecondsParameter):
     """The length of the actual simulation step size in seconds [s]."""
+
+
+class Hours(parametertools.HoursParameter):
+    """The length of the actual simulation step size in hours [h]."""
+
+
+class Days(parametertools.DaysParameter):
+    """The length of the actual simulation step size in days [d]."""
 
 
 class SCT(parametertools.SCTParameter):
@@ -57,15 +66,20 @@ class NmbLogEntries(parametertools.Parameter):
         ...     print(seq)
         wet0([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
-        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan)
+        loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                   nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
+        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                               nan, nan, nan, nan)
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
         loggedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                               nan, nan, nan, nan)
+        loggedwindspeed2m(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                          nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                          nan, nan)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -81,7 +95,7 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
 
             >>> del pub.timegrids
         """
-        nmb = '1d'/hydpy.pub.timegrids.stepsize
+        nmb = '1d'/self.simulationstep
         if nmb % 1:
             raise ValueError(
                 f'The value of parameter {objecttools.elementphrase(self)} '
@@ -221,31 +235,28 @@ class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        lland_control.BoWa2Z,
-    )
     FIXEDPARAMETERS = (
+        lland_fixed.BoWa2Z,
         lland_fixed.RSchmelz,
     )
 
     def update(self):
         """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
 
-            Basic equation:
+        Basic equation:
 
-               :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
+           :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
-        >>> bowa2z(80.0)
         >>> derived.heatoffusion.update()
         >>> derived.heatoffusion
         heatoffusion(26.72)
         """
-        self.value = \
-            self.subpars.pars.fixed.rschmelz*self.subpars.pars.control.bowa2z
+        fixed = self.subpars.pars.fixed
+        self.value = fixed.rschmelz*fixed.bowa2z
 
 
 # class F1SIRate(lland_parameters.LanduseMonthParameter):
@@ -283,6 +294,55 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 #         """
 #         con = self.subpars.pars.control
 #         self.value = con.p1sirate + con.p2sirate*con.lai
+
+
+class Fr(lland_parameters.LanduseMonthParameter):
+    """Reduktionsfaktor für Strahlung (reduction factor for short- and long
+    wave radiation) [-]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.LAI,
+        lland_control.P1Strahl,
+        lland_control.P2Strahl,
+    )
+
+    def update(self):
+        """Update |Fr| based on |LAI|, |P1Strahl| and |P2Strahl|.
+
+        Basic equation for forests:
+          :math:`Fr = P1Strahl - P2Strahl \\cdot LAI`
+
+        Note that |Fr| is one for all other land use classes than |LAUBW|,
+        |MISCHW|, and |NADELW|,  and that we do not trim |Fr| to prevent
+        negative values for large leaf area index values:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> p1strahl(0.5)
+        >>> p2strahl(0.1)
+        >>> lai.acker_jan = 1.0
+        >>> lai.laubw_feb = 3.0
+        >>> lai.mischw_mar = 5.0
+        >>> lai.nadelw_apr = 7.0
+        >>> derived.fr.update()
+        >>> from hydpy import round_
+        >>> round_(derived.fr.acker_jan)
+        1.0
+        >>> round_(derived.fr.laubw_feb)
+        0.2
+        >>> round_(derived.fr.mischw_mar)
+        0.0
+        >>> round_(derived.fr.nadelw_apr)
+        -0.2
+        """
+        con = self.subpars.pars.control
+        values = self.values
+        for idx, lais in enumerate(con.lai.values):
+            if idx+1 in (LAUBW, MISCHW, NADELW):
+                values[idx, :] = con.p1strahl-con.p2strahl*lais
+            else:
+                values[idx, :] = 1.
 
 
 class KB(parametertools.Parameter):

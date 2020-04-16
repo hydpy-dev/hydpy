@@ -31,8 +31,13 @@ class WET0(sequencetools.LogSequence):
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
-class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
-    """Logged possible sunshine duration [h]."""
+class LoggedTemL(sequencetools.LogSequence):
+    """Logged air temperature [°C]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedRelativeHumidity(sequencetools.LogSequence):
+    """Logged relative humidity [%]."""
     NDIM, NUMERIC = 1, False
 
 
@@ -46,6 +51,6 @@ class LoggedGlobalRadiation(sequencetools.LogSequence):
     NDIM, NUMERIC = 1, False
 
 
-class LoggedExtraterrestrialRadiation(sequencetools.LogSequence):
-    """Logged extraterrestrial radiation [h]."""
+class LoggedWindSpeed2m(sequencetools.LogSequence):
+    """Logged wind speed [m/s]."""
     NDIM, NUMERIC = 1, False

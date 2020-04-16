@@ -22,770 +22,12 @@ from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_logs
 from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
-from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE, VERS, NADELW
+from hydpy.models.lland.lland_constants import \
+    WASSER, FLUSS, SEE, VERS, LAUBW, MISCHW, NADELW
 
 
-class Calc_NKor_V1(modeltools.Method):
-    """Adjust the given precipitation value.
-
-    Basic equation:
-      :math:`NKor = KG \\cdot Nied`
-
-    Example:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> kg(0.8, 1.0, 1.2)
-        >>> inputs.nied = 10.0
-        >>> model.calc_nkor_v1()
-        >>> fluxes.nkor
-        nkor(8.0, 10.0, 12.0)
-    """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KG,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.Nied,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.NKor,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nhru):
-            flu.nkor[k] = con.kg[k]*inp.nied
-
-
-class Calc_TKor_V1(modeltools.Method):
-    """Adjust the given air temperature value.
-
-    Basic equation:
-      :math:`TKor = KT + TemL`
-
-    Example:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> kt(-2.0, 0.0, 2.0)
-        >>> inputs.teml(1.)
-        >>> model.calc_tkor_v1()
-        >>> fluxes.tkor
-        tkor(-1.0, 1.0, 3.0)
-    """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KT,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.TemL,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.TKor,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nhru):
-            flu.tkor[k] = con.kt[k]+inp.teml
-
-
-class Calc_PsychrometricConstant_V1(modeltools.Method):
-    """Calculate the psychrometric constant.
-
-    Basic equation (`Allen`_, equation 8):
-      :math:`PsychrometricConstant =
-      6.65 \\cdot 10^{-4} \\cdot AtmosphericPressure`
-
-    Example:
-
-        The following calculation agrees with example 2 of `Allen`_:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(1)
-        >>> inputs.atmosphericpressure(81.8)
-        >>> model.calc_psychrometricconstant_v1()
-        >>> fluxes.psychrometricconstant
-        psychrometricconstant(0.054397)
-    """
-
-    REQUIREDSEQUENCES = (
-        lland_inputs.AtmosphericPressure,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.PsychrometricConstant,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.psychrometricconstant = 6.65e-4*inp.atmosphericpressure
-
-
-class Return_AdjustedWindSpeed_V1(modeltools.Method):
-    """Adjust and return the measured wind speed to the given defined
-    height above the ground.
-
-    Basic equation (`Allen`_ equation 47, modified for higher precision):
-      :math:`WindSpeed \\cdot
-      \\frac{ln((newheight-d)/z_0)}{ln((MeasuringHeightWindSpeed-d)/z_0)}` \n
-
-      :math:`d = 2 / 3 \\cdot 0.12` \n
-
-      :math:`z_0 = 0.123 \\cdot 0.12`
-
-    Example:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(1)
-        >>> measuringheightwindspeed(10.0)
-        >>> inputs.windspeed = 5.0
-        >>> from hydpy import round_
-        >>> round_(model.return_adjustedwindspeed_v1(2.0))
-        3.738763
-        >>> round_(model.return_adjustedwindspeed_v1(0.5))
-        2.571532
-        """
-    CONTROLPARAMETERS = (
-        lland_control.MeasuringHeightWindSpeed,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.WindSpeed,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model, newheight: float) -> float:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        d_d = 2./3.*.12
-        d_z0 = .123*.12
-        return (inp.windspeed *
-                (modelutils.log((newheight-d_d)/d_z0) /
-                 modelutils.log((con.measuringheightwindspeed-d_d)/d_z0)))
-
-
-class Calc_WindSpeed2m_V1(modeltools.Method):
-    """Adjust the measured wind speed to a height of 2 meters above the ground.
-
-    Method |Calc_WindSpeed2m_V1| uses method |Return_AdjustedWindSpeed_V1|
-    to adjust the wind speed of all hydrological response units.
-
-    Example:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(1)
-        >>> measuringheightwindspeed(10.0)
-        >>> inputs.windspeed = 5.0
-        >>> model.calc_windspeed2m_v1()
-        >>> fluxes.windspeed2m
-        windspeed2m(3.738763)
-    """
-    SUBMETHODS = (
-        Return_AdjustedWindSpeed_V1,
-    )
-    CONTROLPARAMETERS = (
-        lland_control.MeasuringHeightWindSpeed,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.WindSpeed,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.WindSpeed2m,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        flu.windspeed2m = model.return_adjustedwindspeed_v1(2.)
-
-
-class Calc_WindSpeed10m_V1(modeltools.Method):
-    """Adjust the measured wind speed to a height of 10 meters above the ground.
-
-    Method |Calc_WindSpeed10m_V1| uses method |Return_AdjustedWindSpeed_V1|
-    to adjust the wind speed of all hydrological response units.
-
-    Example:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(1)
-        >>> measuringheightwindspeed(3.0)
-        >>> inputs.windspeed = 5.0
-        >>> model.calc_windspeed10m_v1()
-        >>> fluxes.windspeed10m
-        windspeed10m(6.15649)
-    """
-    SUBMETHODS = (
-        Return_AdjustedWindSpeed_V1,
-    )
-    CONTROLPARAMETERS = (
-        lland_control.MeasuringHeightWindSpeed,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.WindSpeed,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.WindSpeed10m,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        flu.windspeed10m = model.return_adjustedwindspeed_v1(10.)
-
-
-class Calc_EarthSunDistance_V1(modeltools.Method):
-    # noinspection PyUnresolvedReferences
-    """Calculate the relative inverse distance between the earth and the sun.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation (`Allen`_, equation 23):
-      :math:`EarthSunDistance = 1 + 0.033 \\cdot cos(
-      2 \\cdot \\pi / 366 \\cdot (DOY + 1)`
-
-    Note that this equation differs a little from the one given by `Allen`_.
-    The following examples show that |Calc_EarthSunDistance_V1| calculates
-    the same distance value for a specific "day" (e.g. the 1st March) both
-    for leap years and non-leap years.  Hence, there is a tiny "jump"
-    between the 28th February and the 1st March for non-leap years.
-
-    Examples:
-
-        We define an initialisation period covering both a leap year (2000)
-        and a non-leap year (2001):
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
-        >>> derived.doy.update()
-
-        The following convenience function applies method
-        |Calc_EarthSunDistance_V1| for the given dates and prints the results:
-
-        >>> def test(*dates):
-        ...     for date in dates:
-        ...         model.idx_sim = pub.timegrids.init[date]
-        ...         model.calc_earthsundistance_v1()
-        ...         print(date, end=': ')
-        ...         round_(fluxes.earthsundistance.value)
-
-        The results are identical for both years:
-
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-07-01', '2000-12-31')
-        2000-01-01: 1.032995
-        2000-02-28: 1.017471
-        2000-02-29: 1.016988
-        2000-03-01: 1.0165
-        2000-07-01: 0.967
-        2000-12-31: 1.033
-
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-07-01', '2001-12-31')
-        2001-01-01: 1.032995
-        2001-02-28: 1.017471
-        2001-03-01: 1.0165
-        2001-07-01: 0.967
-        2001-12-31: 1.033
-
-        The following calculation agrees with example 8 of `Allen`_:
-
-        >>> derived.doy(246)
-        >>> model.idx_sim = 0
-        >>> model.calc_earthsundistance_v1()
-        >>> fluxes.earthsundistance
-        earthsundistance(0.984993)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-    DERIVEDPARAMETERS = (
-        lland_derived.DOY,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.EarthSunDistance,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.earthsundistance = 1.+0.033*modelutils.cos(
-            2.*fix.pi/366.*(der.doy[model.idx_sim]+1.))
-
-
-class Calc_SolarDeclination_V1(modeltools.Method):
-    # noinspection PyUnresolvedReferences
-    """Calculate the solar declination.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation (`Allen`_, equation 24):
-      :math:`SolarDeclination = 0.409 \\cdot sin(
-      2 \\cdot \\pi / 366 \\cdot (DOY + 1) - 1.39)`
-
-    Note that this equation actually differs from the one given by
-    `Allen`_ a little, due to reasons explained in the documentation
-    on method |Calc_EarthSunDistance_V1|.
-
-    Examples:
-
-        We define an initialisation period covering both a leap year (2000)
-        and a non-leap year (2001):
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
-        >>> derived.doy.update()
-
-        The following convenience function applies method
-        |Calc_SolarDeclination_V1| for the given dates and prints the results:
-
-        >>> def test(*dates):
-        ...     for date in dates:
-        ...         model.idx_sim = pub.timegrids.init[date]
-        ...         model.calc_solardeclination_v1()
-        ...         print(date, end=': ')
-        ...         round_(fluxes.solardeclination.value)
-
-        The results are identical for both years:
-
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-12-31')
-        2000-01-01: -0.401012
-        2000-02-28: -0.150618
-        2000-02-29: -0.144069
-        2000-03-01: -0.137476
-        2000-12-31: -0.402334
-
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-12-31')
-        2001-01-01: -0.401012
-        2001-02-28: -0.150618
-        2001-03-01: -0.137476
-        2001-12-31: -0.402334
-
-        The following calculation agrees with example 8 of `Allen`_:
-
-        >>> derived.doy(246)
-        >>> model.idx_sim = 0
-        >>> model.calc_solardeclination_v1()
-        >>> fluxes.solardeclination
-        solardeclination(0.117464)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-    DERIVEDPARAMETERS = (
-        lland_derived.DOY,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.SolarDeclination,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.solardeclination = .409*modelutils.sin(
-            2.*fix.pi/366.*(der.doy[model.idx_sim]+1.)-1.39)
-
-
-class Calc_SunsetHourAngle_V1(modeltools.Method):
-    """Calculate the sunset hour angle.
-
-    Basic equation (`Allen`_, equation 25):
-      :math:`SunsetHourAngle =
-      arccos(-tan(LatitudeRad) \\cdot tan(SolarDeclination))`
-
-    Example:
-
-        The following calculation agrees with example 8 of `Allen`_:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.doy.shape = 1
-        >>> derived.doy(246)
-        >>> derived.latituderad(-0.35)
-        >>> fluxes.solardeclination = 0.12
-        >>> model.calc_sunsethourangle_v1()
-        >>> fluxes.sunsethourangle
-        sunsethourangle(1.526767)
-    """
-    DERIVEDPARAMETERS = (
-        lland_derived.LatitudeRad,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SolarDeclination,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.SunsetHourAngle,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.sunsethourangle = modelutils.acos(
-            -modelutils.tan(der.latituderad) *
-            modelutils.tan(flu.solardeclination))
-
-
-class Calc_SolarTimeAngle_V1(modeltools.Method):
-    """Calculate the solar time angle at the midpoint of the current period.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equations (`Allen`_, equations 31 to 33):
-      :math:`SolarTimeAngle =
-      \\pi / 12 \\cdot
-      ((SCT \\cdot 60 \\cdot 60 + (Longitude - UTCLongitude) / 15 + S_c)
-      - 12)` \n
-
-      :math:`S_c = 0.1645 \\cdot sin(2 \\cdot b) -
-      0.1255 \\cdot cos(b) - 0.025 \\cdot sin(b)` \n
-
-      :math:`b = (2 \\cdot \\pi (DOY - 80)) / 365`
-
-    Note there are two small deviations from the equations given by
-    `Allen`_.  The first one is to describe longitudes east of
-    Greenwich with positive numbers and longitudes west of Greenwich
-    with negative numbers.  The second one is due to the definition of
-    parameter |DOY|, as explained in the documentation on method
-    |Calc_EarthSunDistance_V1|.
-
-    Examples:
-
-        >>> from hydpy import pub, round_, UnitTest
-        >>> pub.timegrids = '2000-09-03', '2000-09-04', '1h'
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> longitude(15)
-        >>> derived.doy.update()
-        >>> derived.sct.update()
-        >>> derived.utclongitude.update()
-        >>> for hour in range(24):
-        ...     model.idx_sim = hour
-        ...     model.calc_solartimeangle_v1()
-        ...     print(hour, end=': ')
-        ...     round_(fluxes.solartimeangle.value)   # doctest: +ELLIPSIS
-        0: -3.004157
-        1: -2.742358
-        ...
-        11: -0.124364
-        12: 0.137435
-        ...
-        22: 2.755429
-        23: 3.017229
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-    CONTROLPARAMETERS = (
-        lland_control.Longitude,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.DOY,
-        lland_derived.SCT,
-        lland_derived.UTCLongitude,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.SolarTimeAngle,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_b = 2.*fix.pi*(der.doy[model.idx_sim]-80.)/365.
-        d_sc = (
-            .1645*modelutils.sin(2.*d_b) -
-            .1255*modelutils.cos(d_b) -
-            .025*modelutils.sin(d_b))
-        flu.solartimeangle = fix.pi/12. * (
-            (der.sct[model.idx_sim]/60./60. +
-             (con.longitude-der.utclongitude)/15.+d_sc)-12.)
-
-
-class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
-    """Calculate the extraterrestrial radiation.
-
-    Basic equation for daily simulation steps (`Allen`_, equation 21):
-      :math:`ExternalTerrestrialRadiation =
-      \\frac{Seconds}{\\pi} \\cdot
-      \\frac{4.92}{60 \\cdot 60} \\cdot
-      EarthSunDistance \\cdot (
-      SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +
-      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)
-      )`
-
-    Basic equation for hourly simulation steps (`Allen`_, eq. 28 to 30):
-      :math:`ExternalTerrestrialRadiation =
-      \\frac{12 \\cdot Seconds}{\\pi \\cdot 60 \\cdot 60} \\cdot 4.92 \\cdot
-      EarthSunDistance \\cdot (
-      (\\omega_2 - \\omega_1) \\cdot sin(LatitudeRad) \\cdot
-      sin(SolarDeclination) +
-      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot
-      (sin(\\omega_2) - sin(\\omega_1))
-      )` \n
-
-      :math:`omega_1 = SolarTimeAngle -
-      \\frac{\\pi \\cdot Seconds}{60 \\cdot 60 \\cdot 24}` \n
-
-      :math:`omega_2 = SolarTimeAngle +
-      \\frac{\\pi \\cdot Seconds}{60 \\cdot 60 \\cdot 24}`
-
-    Examples:
-
-        The following calculation agrees with example 8 of `Allen`_
-        for daily time steps:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.seconds(60*60*24)
-        >>> derived.latituderad(-0.35)
-        >>> fluxes.earthsundistance = 0.985
-        >>> fluxes.solardeclination = 0.12
-        >>> fluxes.sunsethourangle = 1.527
-        >>> model.calc_extraterrestrialradiation_v1()
-        >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(32.173851)
-
-        The following calculation repeats the above example for an hourly
-        simulation time step, still covering the whole day:
-
-        >>> import numpy
-        >>> longitude(-20)
-        >>> derived.utclongitude(-20)
-        >>> derived.seconds(60*60)
-        >>> derived.doy.shape = 24
-        >>> derived.doy(246)
-        >>> derived.sct.shape = 24
-        >>> derived.sct = numpy.linspace(1800.0, 84600.0, 24)
-        >>> sum_ = 0.0
-        >>> from hydpy import round_
-        >>> for hour in range(24):
-        ...     model.idx_sim = hour
-        ...     model.calc_solartimeangle_v1()
-        ...     model.calc_extraterrestrialradiation_v1()
-        ...     print(hour, end=': ')
-        ...     round_(fluxes.extraterrestrialradiation.value)
-        ...     sum_ += fluxes.extraterrestrialradiation
-        0: 0.0
-        1: 0.0
-        2: 0.0
-        3: 0.0
-        4: 0.0
-        5: 0.0
-        6: 0.418507
-        7: 1.552903
-        8: 2.567915
-        9: 3.39437
-        10: 3.975948
-        11: 4.273015
-        12: 4.265326
-        13: 3.953405
-        14: 3.35851
-        15: 2.52118
-        16: 1.49848
-        17: 0.360103
-        18: 0.0
-        19: 0.0
-        20: 0.0
-        21: 0.0
-        22: 0.0
-        23: 0.0
-
-        Note that, even with identical values of the local longitude
-        (|Longitude|) and the one of the time zone (|UTCLongitude|), the
-        calculated radiation values are not symmetrically shaped during the
-        day due to the eccentricity of the Earth's orbit (see `solar time`_).
-
-        There is a small deviation between the directly calculated daily
-        value and the sum of the hourly values:
-
-        >>> round_(sum_)
-        32.139663
-    """
-    DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
-        lland_derived.LatitudeRad,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SolarTimeAngle,
-        lland_fluxes.EarthSunDistance,
-        lland_fluxes.SolarDeclination,
-        lland_fluxes.SunsetHourAngle,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.ExtraterrestrialRadiation,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_g = 0.0820/60.
-        if der.seconds <= 60.*60.:
-            d_delta = fix.pi*der.seconds/60./60./24.
-            d_omega1 = flu.solartimeangle - d_delta
-            d_omega2 = flu.solartimeangle + d_delta
-            flu.extraterrestrialradiation = max(
-                12.*der.seconds/fix.pi*d_g*flu.earthsundistance * (
-                    (d_omega2-d_omega1) *
-                    modelutils.sin(der.latituderad) *
-                    modelutils.sin(flu.solardeclination) +
-                    modelutils.cos(der.latituderad) *
-                    modelutils.cos(flu.solardeclination) *
-                    (modelutils.sin(d_omega2)-modelutils.sin(d_omega1))), 0.)
-        else:
-            flu.extraterrestrialradiation = (
-                der.seconds/fix.pi*d_g*flu.earthsundistance * (
-                    flu.sunsethourangle*modelutils.sin(der.latituderad) *
-                    modelutils.sin(flu.solardeclination) +
-                    modelutils.cos(der.latituderad) *
-                    modelutils.cos(flu.solardeclination) *
-                    modelutils.sin(flu.sunsethourangle)))
-
-
-class Calc_PossibleSunshineDuration_V1(modeltools.Method):
-    """Calculate the possible astronomical sunshine duration.
-
-    Basic equation for daily timesteps (`Allen`_, equation 34):
-      :math:`PossibleSunshineDuration = 24 / \\pi \\cdot SunsetHourAngle`
-
-    Basic equation for (sub)hourly timesteps:
-      :math:`PossibleSunshineDuration =
-      min(max(12 / \\pi \\cdot (SunsetHourAngle - \\tau), 0),
-      \\frac{Seconds}{60 \\cdot 60})` \n
-
-      :math:`\\tau = \\Bigl \\lbrace
-      {
-      {-SolarTimeAngle - \\pi \\cdot Days \\ | \\ SolarTimeAngle \\leq 0}
-      \\atop
-      {SolarTimeAngle - \\pi \\cdot Days \\ | \\ SolarTimeAngle > 0}
-      }`
-
-    Examples:
-
-        The following calculation agrees with example 9 of `Allen`_:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.seconds(60*60*24)
-        >>> fluxes.sunsethourangle(1.527)
-        >>> model.calc_possiblesunshineduration_v1()
-        >>> fluxes.possiblesunshineduration
-        possiblesunshineduration(11.665421)
-
-        The following calculation repeats the above example for an hourly
-        simulation time step, still covering the whole day. Therefore the ratio
-        is only calculated for the hours of sunrise and sunset. In between the
-        ratio is set to 1 (day) or 0 (night):
-
-        >>> from hydpy import round_
-        >>> import numpy
-        >>> derived.seconds(60*60)
-        >>> solartimeangles = numpy.linspace(-3.004157, 3.017229, 24)
-        >>> sum_ = 0.
-        >>> for hour, solartimeangle in enumerate(solartimeangles):
-        ...     fluxes.solartimeangle = solartimeangle
-        ...     model.calc_possiblesunshineduration_v1()
-        ...     print(hour, end=': ')   # doctest: +ELLIPSIS
-        ...     round_(fluxes.possiblesunshineduration.value)
-        ...     sum_ += fluxes.possiblesunshineduration.value
-        0: 0.0
-        ...
-        5: 0.0
-        6: 0.857676
-        7: 1.0
-        ...
-        16: 1.0
-        17: 0.807745
-        18: 0.0
-        ...
-        23: 0.0
-
-        The sum of the hourly sunshine durations equals the one-step
-        calculation result:
-
-        >>> round_(sum_)
-        11.665421
-    """
-    DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SolarTimeAngle,
-        lland_fluxes.SunsetHourAngle,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.PossibleSunshineDuration,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_hours = der.seconds/60./60.
-        d_days = d_hours/24.
-        if d_hours <= 1.:
-            if flu.solartimeangle <= 0.:
-                d_thresh = -flu.solartimeangle-fix.pi*d_days
-            else:
-                d_thresh = flu.solartimeangle-fix.pi*d_days
-            flu.possiblesunshineduration = \
-                min(max(12./fix.pi*(flu.sunsethourangle-d_thresh), 0.), d_hours)
-        else:
-            flu.possiblesunshineduration = 24./fix.pi*flu.sunsethourangle
-
-
-class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
-    """Log the possible sunshine duration values of the last 24 hours.
+class Update_LoggedTemL_V1(modeltools.Method):
+    """Log the air temperature values of the last 24 hours.
 
     Example:
 
@@ -794,41 +36,208 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         respective new value on the most left position:
 
         >>> from hydpy.models.lland import *
-        >>> from hydpy import pub
         >>> parameterstep()
         >>> derived.nmblogentries(3)
-        >>> logs.loggedpossiblesunshineduration.shape = 3
-        >>> logs.loggedpossiblesunshineduration = 0.0
+        >>> logs.loggedteml.shape = 3
+        >>> logs.loggedteml = 0.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
-        ...                 model.update_loggedpossiblesunshineduration_v1,
+        ...                 model.update_loggedteml_v1,
         ...                 last_example=4,
-        ...                 parseqs=(fluxes.possiblesunshineduration,
-        ...                          logs.loggedpossiblesunshineduration))
-        >>> test.nexts.possiblesunshineduration = 1.0, 3.0, 2.0, 4.0
-        >>> del test.inits.loggedpossiblesunshineduration
+        ...                 parseqs=(inputs.teml,
+        ...                          logs.loggedteml))
+        >>> test.nexts.teml = 0.0, 6.0, 3.0, 3.0
+        >>> del test.inits.loggedteml
         >>> test()
-        | ex. | possiblesunshineduration |\
-           loggedpossiblesunshineduration |
-        ----------------------------------\
--------------------------------------------
-        |   1 |                      1.0 |\
- 1.0  0.0                             0.0 |
-        |   2 |                      3.0 |\
- 3.0  1.0                             0.0 |
-        |   3 |                      2.0 |\
- 2.0  3.0                             1.0 |
-        |   4 |                      4.0 |\
- 4.0  2.0                             3.0 |
+        | ex. | teml |           loggedteml |
+        -------------------------------------
+        |   1 |  0.0 | 0.0  0.0         0.0 |
+        |   2 |  6.0 | 6.0  0.0         0.0 |
+        |   3 |  3.0 | 3.0  6.0         0.0 |
+        |   4 |  3.0 | 3.0  3.0         6.0 |
     """
     DERIVEDPARAMETERS = (
         lland_derived.NmbLogEntries,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.PossibleSunshineDuration,
+        lland_inputs.TemL,
     )
     UPDATEDSEQUENCES = (
-        lland_logs.LoggedPossibleSunshineDuration,
+        lland_logs.LoggedTemL,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries-1, 0, -1):
+            log.loggedteml[idx] = log.loggedteml[idx - 1]
+        log.loggedteml[0] = inp.teml
+
+
+class Calc_TemLTag_V1(modeltools.Method):
+    """Calculate the average air temperature of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedteml.shape = 3
+        >>> logs.loggedteml = 1.0, 5.0, 3.0
+        >>> model.calc_temltag_v1()
+        >>> fluxes.temltag
+        temltag(3.0)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        lland_logs.LoggedTemL,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.TemLTag,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.temltag = 0.
+        for idx in range(der.nmblogentries):
+            flu.temltag += log.loggedteml[idx]
+        flu.temltag /= der.nmblogentries
+
+
+class Update_LoggedRelativeHumidity_V1(modeltools.Method):
+    """Log the sunshine duration values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively
+        moves the three memorised values to the right and stores the
+        respective new value on the most left position:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedrelativehumidity.shape = 3
+        >>> logs.loggedrelativehumidity = 0.0
+        >>> from hydpy import UnitTest
+        >>> method = (
+        ...     model.update_loggedrelativehumidity_v1)
+        >>> test = UnitTest(model,
+        ...                method,
+        ...                 last_example=4,
+        ...                 parseqs=(inputs.relativehumidity,
+        ...                          logs.loggedrelativehumidity))
+        >>> test.nexts.relativehumidity = 0.0, 6.0, 3.0, 3.0
+        >>> del test.inits.loggedrelativehumidity
+        >>> test()
+        | ex. | relativehumidity |           loggedrelativehumidity |
+        -------------------------------------------------------------
+        |   1 |              0.0 | 0.0  0.0                     0.0 |
+        |   2 |              6.0 | 6.0  0.0                     0.0 |
+        |   3 |              3.0 | 3.0  6.0                     0.0 |
+        |   4 |              3.0 | 3.0  3.0                     6.0 |
+
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.RelativeHumidity,
+    )
+    UPDATEDSEQUENCES = (
+        lland_logs.LoggedRelativeHumidity,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries-1, 0, -1):
+            log.loggedrelativehumidity[idx] = \
+                log.loggedrelativehumidity[idx - 1]
+        log.loggedrelativehumidity[0] = inp.relativehumidity
+
+
+class Calc_DailyRelativeHumidity_V1(modeltools.Method):
+    """Calculate the average relative humidity of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedrelativehumidity.shape = 3
+        >>> logs.loggedrelativehumidity = 1.0, 5.0, 3.0
+        >>> model.calc_dailyrelativehumidity_v1()
+        >>> fluxes.dailyrelativehumidity
+        dailyrelativehumidity(3.0)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        lland_logs.LoggedRelativeHumidity,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.DailyRelativeHumidity,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailyrelativehumidity = 0.
+        for idx in range(der.nmblogentries):
+            flu.dailyrelativehumidity += log.loggedrelativehumidity[idx]
+        flu.dailyrelativehumidity /= der.nmblogentries
+
+
+class Update_LoggedWindSpeed2m_V1(modeltools.Method):
+    """Log the wind speed values 2 meters above ground of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively
+        moves the three memorised values to the right and stores the
+        respective new value on the most left position:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedwindspeed2m.shape = 3
+        >>> logs.loggedwindspeed2m = 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedwindspeed2m_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.windspeed2m,
+        ...                          logs.loggedwindspeed2m))
+        >>> test.nexts.windspeed2m = 1.0, 3.0, 2.0, 4.0
+        >>> del test.inits.loggedwindspeed2m
+        >>> test()
+        | ex. | windspeed2m |           loggedwindspeed2m |
+        ---------------------------------------------------
+        |   1 |         1.0 | 1.0  0.0                0.0 |
+        |   2 |         3.0 | 3.0  1.0                0.0 |
+        |   3 |         2.0 | 2.0  3.0                1.0 |
+        |   4 |         4.0 | 4.0  2.0                3.0 |
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.WindSpeed2m,
+    )
+    UPDATEDSEQUENCES = (
+        lland_logs.LoggedWindSpeed2m,
     )
 
     @staticmethod
@@ -836,92 +245,45 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedpossiblesunshineduration[idx] = \
-                log.loggedpossiblesunshineduration[idx - 1]
-        log.loggedpossiblesunshineduration[0] = flu.possiblesunshineduration
+        for idx in range(der.nmblogentries-1, 0, -1):
+            log.loggedwindspeed2m[idx] = log.loggedwindspeed2m[idx - 1]
+        log.loggedwindspeed2m[0] = flu.windspeed2m
 
 
-class Calc_GlobalRadiation_V1(modeltools.Method):
-    """Calculate the global radiation.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equations:
-      :math:`GlobalRadiation = ExtraterrestrialRadiation * (AngstromConstant +
-      AngstromFactor * SunshineDuration / PossibleSunshineDuration))`
+class Calc_DailyWindSpeed2m_V1(modeltools.Method):
+    """Calculate the average wind speed 2 meters above ground of the last
+    24 hours.
 
     Example:
 
-        You can define the underlying Angstrom coefficients on a monthly
-        basis to the annual variability in the relationship between sunshine
-        duration and  global radiation:
-
         >>> from hydpy.models.lland import *
-        >>> from hydpy import pub
         >>> parameterstep()
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
-        >>> derived.moy.update()
-        >>> angstromconstant.jan = 0.1
-        >>> angstromfactor.jan = 0.5
-        >>> angstromconstant.feb = 0.2
-        >>> angstromfactor.feb = 0.6
-        >>> inputs.sunshineduration(0.6)
-        >>> fluxes.possiblesunshineduration = 1.0
-        >>> fluxes.extraterrestrialradiation = 1.7
-        >>> model.idx_sim = 1
-        >>> model.calc_globalradiation_v1()
-        >>> fluxes.globalradiation
-        globalradiation(0.68)
-        >>> model.idx_sim = 2
-        >>> model.calc_globalradiation_v1()
-        >>> fluxes.globalradiation
-        globalradiation(0.952)
-
-        If possible sunshine duration is zero, we generally set global
-        radiation to zero (even if the actual sunshine duration is larger
-        than zero, which might occur as a result of small inconsistencies
-        between measured and calculated input data):
-
-        >>> fluxes.possiblesunshineduration = 0.0
-        >>> model.calc_globalradiation_v1()
-        >>> fluxes.globalradiation
-        globalradiation(0.0)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-    CONTROLPARAMETERS = (
-        lland_control.AngstromConstant,
-        lland_control.AngstromFactor,
-    )
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedwindspeed2m.shape = 3
+        >>> logs.loggedwindspeed2m = 1.0, 5.0, 3.0
+        >>> model.calc_dailywindspeed2m_v1()
+        >>> fluxes.dailywindspeed2m
+        dailywindspeed2m(3.0)
+    """
     DERIVEDPARAMETERS = (
-        lland_derived.MOY,
+        lland_derived.NmbLogEntries,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.ExtraterrestrialRadiation,
-        lland_fluxes.PossibleSunshineDuration,
-        lland_inputs.SunshineDuration,
+        lland_logs.LoggedWindSpeed2m,
     )
-    RESULTSEQUENCES = (
-        lland_fluxes.GlobalRadiation,
+    UPDATEDSEQUENCES = (
+        lland_fluxes.DailyWindSpeed2m,
     )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        if flu.possiblesunshineduration > 0.:
-            idx = der.moy[model.idx_sim]
-            flu.globalradiation = flu.extraterrestrialradiation * (
-                con.angstromconstant[idx]+con.angstromfactor[idx] *
-                inp.sunshineduration/flu.possiblesunshineduration)
-        else:
-            flu.globalradiation = 0.
+        flu.dailywindspeed2m = 0.
+        for idx in range(der.nmblogentries):
+            flu.dailywindspeed2m += log.loggedwindspeed2m[idx]
+        flu.dailywindspeed2m /= der.nmblogentries
 
 
 class Update_LoggedSunshineDuration_V1(modeltools.Method):
@@ -976,6 +338,1177 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
         log.loggedsunshineduration[0] = inp.sunshineduration
 
 
+class Calc_DailySunshineDuration_V1(modeltools.Method):
+    """Calculate the sunshine duration sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedsunshineduration.shape = 3
+        >>> logs.loggedsunshineduration = 1.0, 5.0, 3.0
+        >>> model.calc_dailysunshineduration_v1()
+        >>> fluxes.dailysunshineduration
+        dailysunshineduration(9.0)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        lland_logs.LoggedSunshineDuration,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.DailySunshineDuration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailysunshineduration = 0.
+        for idx in range(der.nmblogentries):
+            flu.dailysunshineduration += log.loggedsunshineduration[idx]
+
+
+class Calc_NKor_V1(modeltools.Method):
+    """Adjust the given precipitation value.
+
+    Basic equation:
+      :math:`NKor = KG \\cdot Nied`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> kg(0.8, 1.0, 1.2)
+        >>> inputs.nied = 10.0
+        >>> model.calc_nkor_v1()
+        >>> fluxes.nkor
+        nkor(8.0, 10.0, 12.0)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KG,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.Nied,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.NKor,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.nkor[k] = con.kg[k]*inp.nied
+
+
+class Calc_TKor_V1(modeltools.Method):
+    """Adjust the given air temperature value.
+
+    Basic equation:
+      :math:`TKor = KT + TemL`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> kt(-2.0, 0.0, 2.0)
+        >>> inputs.teml(1.0)
+        >>> model.calc_tkor_v1()
+        >>> fluxes.tkor
+        tkor(-1.0, 1.0, 3.0)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KT,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.TemL,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.TKor,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.tkor[k] = con.kt[k]+inp.teml
+
+
+class Calc_TKorTag_V1(modeltools.Method):
+    """Adjust the given daily air temperature value.
+
+    Basic equation:
+      :math:`TKorTag = KT + TemLTag`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> kt(-2.0, 0.0, 2.0)
+        >>> fluxes.temltag(1.0)
+        >>> model.calc_tkortag_v1()
+        >>> fluxes.tkortag
+        tkortag(-1.0, 1.0, 3.0)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KT,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TemLTag,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.TKorTag,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.tkortag[k] = con.kt[k]+flu.temltag
+
+
+class Return_AdjustedWindSpeed_V1(modeltools.Method):
+    """Adjust and return the measured wind speed to the given defined
+    height above the ground.
+
+    Basic equation:
+      :math:`WindSpeed \\cdot
+      \\frac{ln(newheight/Z0)}{ln(MeasuringHeightWindSpeed/Z0)}`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> measuringheightwindspeed(10.0)
+        >>> inputs.windspeed = 5.0
+        >>> from hydpy import round_
+        >>> round_(model.return_adjustedwindspeed_v1(2.0))
+        4.007956
+        >>> round_(model.return_adjustedwindspeed_v1(0.5))
+        3.153456
+        """
+    CONTROLPARAMETERS = (
+        lland_control.MeasuringHeightWindSpeed,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Z0,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.WindSpeed,
+    )
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            newheight: float,
+    ) -> float:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        return inp.windspeed * (
+            modelutils.log(newheight/fix.z0) /
+            modelutils.log(con.measuringheightwindspeed/fix.z0)
+        )
+
+
+class Calc_WindSpeed2m_V1(modeltools.Method):
+    """Adjust the measured wind speed to a height of 2 meters above the ground.
+
+    Method |Calc_WindSpeed2m_V1| uses method |Return_AdjustedWindSpeed_V1|
+    to adjust the wind speed of all hydrological response units.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> measuringheightwindspeed(10.0)
+        >>> inputs.windspeed = 5.0
+        >>> model.calc_windspeed2m_v1()
+        >>> fluxes.windspeed2m
+        windspeed2m(4.007956)
+    """
+    SUBMETHODS = (
+        Return_AdjustedWindSpeed_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.MeasuringHeightWindSpeed,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Z0,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.WindSpeed,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.WindSpeed2m,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.windspeed2m = model.return_adjustedwindspeed_v1(2.)
+
+
+class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
+    """Calculate the land-use-specific wind speed at height of 2 meters.
+
+    Basic equation (for forests):
+      :math:`ReducedWindSpeed2m = \
+      max(P1Wind - P2Wind \\cdot LAI, 0) \\cdot WindSpeed2m`
+
+    Example:
+
+        The basic equation given above holds for forests (hydrological
+        response units of type |LAUBW|, |MISCHW|, and |NADELW| only.
+        For all other land-use types method |Calc_ReducedWindSpeed2m_V1|
+        maintains the given wind speed for grass:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2019-05-30', '2019-06-03', '1d'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> lnk(OBSTB, LAUBW, MISCHW, NADELW)
+        >>> lai.obstb_mai = 0.0
+        >>> lai.laubw_mai = 2.0
+        >>> lai.mischw_mai = 4.0
+        >>> lai.nadelw_mai = 7.0
+        >>> p1wind(0.5)
+        >>> p2wind(0.1)
+        >>> derived.moy.update()
+        >>> fluxes.windspeed2m = 2.0
+        >>> model.idx_sim = pub.timegrids.init['2019-05-31']
+        >>> model.calc_reducedwindspeed2m_v1()
+        >>> fluxes.reducedwindspeed2m
+        reducedwindspeed2m(2.0, 0.6, 0.2, 0.0)
+
+        >>> lai.obstb_jun = 0.0
+        >>> lai.laubw_jun = 3.0
+        >>> lai.mischw_jun = 6.0
+        >>> lai.nadelw_jun = 10.0
+        >>> model.idx_sim = pub.timegrids.init['2019-06-01']
+        >>> model.calc_reducedwindspeed2m_v1()
+        >>> fluxes.reducedwindspeed2m
+        reducedwindspeed2m(2.0, 0.4, 0.0, 0.0)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.LAI,
+        lland_control.P1Wind,
+        lland_control.P2Wind,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.WindSpeed2m,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.ReducedWindSpeed2m,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (LAUBW, MISCHW, NADELW):
+                d_lai = con.lai[con.lnk[k]-1, der.moy[model.idx_sim]]
+                flu.reducedwindspeed2m[k] = \
+                    max(con.p1wind-con.p2wind*d_lai, 0.)*flu.windspeed2m
+            else:
+                flu.reducedwindspeed2m[k] = flu.windspeed2m
+
+
+class Calc_WindSpeed10m_V1(modeltools.Method):
+    """Adjust the measured wind speed to a height of 10 meters above the ground.
+
+    Method |Calc_WindSpeed10m_V1| uses method |Return_AdjustedWindSpeed_V1|
+    to adjust the wind speed of all hydrological response units.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> measuringheightwindspeed(3.0)
+        >>> inputs.windspeed = 5.0
+        >>> model.calc_windspeed10m_v1()
+        >>> fluxes.windspeed10m
+        windspeed10m(5.871465)
+    """
+    SUBMETHODS = (
+        Return_AdjustedWindSpeed_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.MeasuringHeightWindSpeed,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Z0,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.WindSpeed,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.WindSpeed10m,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.windspeed10m = model.return_adjustedwindspeed_v1(10.)
+
+
+class Calc_SolarDeclination_V1(modeltools.Method):
+    # noinspection PyUnresolvedReferences
+    """Calculate the solar declination.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      :math:`SolarDeclination = 0.41 \\cdot cos \\left(
+      \\frac{2 \\cdot Pi \\cdot (DOY - 171)}{365} \\right)`
+
+    Examples:
+
+        We define an initialisation period covering both a leap year (2000)
+        and a non-leap year (2001):
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> derived.doy.update()
+
+        The following convenience function applies method
+        |Calc_SolarDeclination_V1| for the given dates and prints the results:
+
+        >>> def test(*dates):
+        ...     for date in dates:
+        ...         model.idx_sim = pub.timegrids.init[date]
+        ...         model.calc_solardeclination_v1()
+        ...         print(date, end=': ')
+        ...         round_(fluxes.solardeclination.value)
+
+        The results are identical for both years, due to :
+
+        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
+        ...      '2000-03-01', '2000-12-31')
+        2000-01-01: -0.401992
+        2000-02-28: -0.149946
+        2000-02-29: -0.143355
+        2000-03-01: -0.136722
+        2000-12-31: -0.401992
+
+        >>> test('2001-01-01', '2001-02-28',
+        ...      '2001-03-01', '2001-12-31')
+        2001-01-01: -0.401992
+        2001-02-28: -0.149946
+        2001-03-01: -0.136722
+        2001-12-31: -0.401992
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+    DERIVEDPARAMETERS = (
+        lland_derived.DOY,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Pi,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.SolarDeclination,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.solardeclination = .41*modelutils.cos(
+            2.*fix.pi*(der.doy[model.idx_sim]-171.)/365.
+        )
+
+
+class Calc_TSA_TSU_V1(modeltools.Method):
+    """Calculate time of sunrise and sunset of the current day.
+
+    Basic equations:
+      :math:`TSA^* = \\frac{12}{Pi} \\cdot acos \\left(
+      tan(SolarDeclination) \\cdot tan(LatitudeRad) +
+      \\frac{0.0145}{cos(SolarDeclination) \\cdot cos(LatitudeRad)} \\right)`
+
+      :math:`\\delta = \\frac{4 \\cdot (UTCLongitude - Longitude)}{60}`
+
+      :math:`TSA = TSA^* + \\delta`
+
+      :math:`TSU = 24 - TSA^* + \\delta`
+
+    Examples:
+
+        We calculate the local time of sunrise and sunset for a latitude of
+        approximately 52°N and a longitude of 10°E, which is 5° west of the
+        longitude defining the local time zone:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> longitude(10.0)
+        >>> derived.utclongitude(15.0)
+        >>> derived.latituderad(0.9)
+
+        The sunshine duration varies between seven hours at winter solstice
+        and 16 hours at summer solstice:
+
+        >>> fluxes.solardeclination = -0.41
+        >>> model.calc_tsa_tsu_v1()
+        >>> fluxes.tsa
+        tsa(8.432308)
+        >>> fluxes.tsu
+        tsu(16.234359)
+        >>> fluxes.solardeclination = 0.41
+        >>> model.calc_tsa_tsu_v1()
+        >>> fluxes.tsa
+        tsa(4.002041)
+        >>> fluxes.tsu
+        tsu(20.664625)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.Longitude,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.LatitudeRad,
+        lland_derived.UTCLongitude,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Pi,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.SolarDeclination,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.TSA,
+        lland_fluxes.TSU,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.tsa = (
+            12./fix.pi*modelutils.acos(
+                modelutils.tan(flu.solardeclination) *
+                modelutils.tan(der.latituderad) +
+                .0145 /
+                modelutils.cos(flu.solardeclination) /
+                modelutils.cos(der.latituderad))
+        )
+        flu.tsu = 24.-flu.tsa
+        d_dt = (der.utclongitude-con.longitude)*4./60.
+        flu.tsa += d_dt
+        flu.tsu += d_dt
+
+
+class Calc_EarthSunDistance_V1(modeltools.Method):
+    """Calculate the relative inverse distance between the earth and the sun.
+
+    Basic equation (`Allen`_, equation 23):
+      :math:`EarthSunDistance = 1 + 0.033 \\cdot cos \\bigl(
+      2 \\cdot Pi / 366 \\cdot (DOY + 1) \\bigr)`
+
+    Note that this equation differs a little from the one given by `Allen`_.
+    The following examples show that |Calc_EarthSunDistance_V1| calculates
+    the same distance value for a specific "day" (e.g. the 1st March) both
+    for leap years and non-leap years.  Hence, there is a tiny "jump"
+    between the 28th February and the 1st March for non-leap years.
+
+    Examples:
+
+        We define an initialisation period covering both a leap year (2000)
+        and a non-leap year (2001):
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> derived.doy.update()
+
+        The following convenience function applies method
+        |Calc_EarthSunDistance_V1| for the given dates and prints the results:
+
+        >>> def test(*dates):
+        ...     for date in dates:
+        ...         model.idx_sim = pub.timegrids.init[date]
+        ...         model.calc_earthsundistance_v1()
+        ...         print(date, end=': ')
+        ...         round_(fluxes.earthsundistance.value)
+
+        The results are identical for both years:
+
+        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
+        ...      '2000-03-01', '2000-07-01', '2000-12-31')
+        2000-01-01: 1.032995
+        2000-02-28: 1.017471
+        2000-02-29: 1.016988
+        2000-03-01: 1.0165
+        2000-07-01: 0.967
+        2000-12-31: 1.033
+
+        >>> test('2001-01-01', '2001-02-28',
+        ...      '2001-03-01', '2001-07-01', '2001-12-31')
+        2001-01-01: 1.032995
+        2001-02-28: 1.017471
+        2001-03-01: 1.0165
+        2001-07-01: 0.967
+        2001-12-31: 1.033
+
+        The following calculation agrees with example 8 of `Allen`_:
+
+        >>> derived.doy(246)
+        >>> model.idx_sim = 0
+        >>> model.calc_earthsundistance_v1()
+        >>> fluxes.earthsundistance
+        earthsundistance(0.984993)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.DOY,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Pi,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.EarthSunDistance,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.earthsundistance = 1.+0.033*modelutils.cos(
+            2*fix.pi/366.*(der.doy[model.idx_sim]+1)
+        )
+
+
+class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
+    """Calculate the amount of extraterrestrial radiation of the current day.
+
+    Basic equation:
+      :math:`ExternalTerrestrialRadiation =
+      \\frac{Sol \\cdot EarthSunDistance \\cdot (
+      SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +
+      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)
+      )}{PI}`
+
+      :math:`SunsetHourAngle = (TSU-TSA) \\cdot \\frac{Pi}{24}`
+
+    Examples:
+
+        First, we calculate the extraterrestrial radiation for a latitude of
+        approximately 52°N:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.latituderad(0.9)
+
+        The sunshine duration varies between seven hours at winter solstice
+        and 16 hours at summer solstice, which corresponds to a daily sum of
+        extraterrestrial radiation of 6.1 and 44.4 MJ/m², respectively:
+
+        >>> fluxes.solardeclination = -0.41
+        >>> fluxes.earthsundistance = 0.97
+        >>> fluxes.tsa = 8.4
+        >>> fluxes.tsu = 15.6
+        >>> model.calc_extraterrestrialradiation_v1()
+        >>> fluxes.extraterrestrialradiation
+        extraterrestrialradiation(6.087605)
+
+        >>> fluxes.solardeclination = 0.41
+        >>> fluxes.earthsundistance = 1.03
+        >>> fluxes.tsa = 4.0
+        >>> fluxes.tsu = 20.0
+        >>> model.calc_extraterrestrialradiation_v1()
+        >>> fluxes.extraterrestrialradiation
+        extraterrestrialradiation(44.44131)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.LatitudeRad,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Pi,
+        lland_fixed.Sol,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.SolarDeclination,
+        lland_fluxes.EarthSunDistance,
+        lland_fluxes.TSA,
+        lland_fluxes.TSU,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.ExtraterrestrialRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_sunsethourangle = (flu.tsu-flu.tsa)*fix.pi/24.
+        flu.extraterrestrialradiation = fix.sol*flu.earthsundistance/fix.pi * (
+            d_sunsethourangle *
+            modelutils.sin(flu.solardeclination) *
+            modelutils.sin(der.latituderad) +
+            modelutils.cos(flu.solardeclination) *
+            modelutils.cos(der.latituderad) *
+            modelutils.sin(d_sunsethourangle)
+        )
+
+
+class Calc_PossibleSunshineDuration_V1(modeltools.Method):
+    """Calculate the possible astronomical sunshine duration.
+
+    Basic equation:
+      :math:`PossibleSunshineDuration = max \\bigl(
+      max(SCT-Hours/2, TSA) - min(SCT+Hours/2, TSU), 0 \\bigr)`
+
+    Examples:
+
+        We focus on winter conditions with a relatively short possible
+        sunshine duration:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.tsa(8.4)
+        >>> fluxes.tsu(15.6)
+
+        We start with a daily simulation time step.  The possible sunshine
+        duration is, as to be expected, the span between sunrise and sunset:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> model.calc_possiblesunshineduration_v1()
+        >>> fluxes.possiblesunshineduration
+        possiblesunshineduration(7.2)
+
+        The following example calculates the hourly possible sunshine
+        durations of the same day:
+
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> sum_ = 0.0
+        >>> for idx in range(24):
+        ...     model.idx_sim = idx
+        ...     model.calc_possiblesunshineduration_v1()
+        ...     print(idx+1, end=': ')   # doctest: +ELLIPSIS
+        ...     round_(fluxes.possiblesunshineduration.value)
+        ...     sum_ += fluxes.possiblesunshineduration.value
+        1: 0.0
+        ...
+        9: 0.6
+        10: 1.0
+        ...
+        15: 1.0
+        16: 0.6
+        17: 0.0
+        ...
+        24: 0.0
+
+        The sum of the hourly possible sunshine durations equals the daily
+        possible sunshine, of course:
+
+        >>> round_(sum_)
+        7.2
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.SCT,
+        lland_derived.Hours,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TSA,
+        lland_fluxes.TSU,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.PossibleSunshineDuration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_tc = der.sct[model.idx_sim]
+        d_t0 = max((d_tc-der.hours/2.), flu.tsa)
+        d_t1 = min((d_tc+der.hours/2.), flu.tsu)
+        flu.possiblesunshineduration = max(d_t1-d_t0, 0.)
+
+
+class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
+    """Calculate the possible astronomical sunshine duration.
+
+    Basic equation:
+      :math:`PossibleSunshineDuration =  TSU - TSA`
+
+    Examples:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.tsa(8.4)
+        >>> fluxes.tsu(15.6)
+        >>> model.calc_dailypossiblesunshineduration()
+        >>> fluxes.dailypossiblesunshineduration
+        dailypossiblesunshineduration(7.2)
+    """
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TSA,
+        lland_fluxes.TSU,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailyPossibleSunshineDuration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailypossiblesunshineduration = flu.tsu-flu.tsa
+
+
+class Calc_SP_V1(modeltools.Method):
+    """Calculate the relative sum of radiation.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equations:
+
+      .. math::
+        SP = S_P^*(SCT + Hours/2) - S_P^*(SCT - Hours/2)
+
+      .. math::
+        S_P^*(t) = \\begin{cases}
+        0
+        &|\\
+        TL_P(t) \\leq 0
+        \\\\
+        50 - 50 \\cdot cos\\bigl(1.8 \\cdot TL_P(t)\\bigr) -
+        3.4 \\cdot sin\\bigl(3.6 \\cdot TL_P(t)\\bigr)^2
+        &|\\
+        0 < TL_P(t) \\leq 50 \\cdot \\frac{2 \\cdot Pi}{360}
+        \\\\
+        50 - 50 \\cdot cos\\bigl(1.8 \\cdot TL_P(t)\\bigr) +
+        3.4 \\cdot sin\\bigl(3.6 \\cdot TL_P(t)\\bigr)^2
+        &|\\
+        50 \\cdot \\frac{2 \\cdot Pi}{360} < TL_P(t) <
+        100 \\cdot \\frac{2 \\cdot Pi}{360}
+        \\\\
+        100
+        &|\\
+        100 \\cdot \\frac{2 \\cdot Pi}{360} \\leq TL_P(t)
+        \\end{cases}
+
+      .. math::
+        TL_P(t) = 100 \\cdot \\frac{2 \\cdot Pi}{360} \\cdot
+        \\frac{t - TSA}{TSU - TSA}
+
+    Examples:
+
+        We focus on winter conditions with a relatively short possible
+        sunshine duration:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.tsa(8.4)
+        >>> fluxes.tsu(15.6)
+
+        We start with an hourly simulation time step.  The relative radiation
+        sum is, as to be expected, zero before sunrise and after sunset.
+        In between, it reaches its maximum around noon:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> for idx in range(7, 17):
+        ...     model.idx_sim = idx
+        ...     model.calc_sp_v1()
+        ...     print(idx+1, end=': ')
+        ...     round_(fluxes.sp.value)
+        8: 0.0
+        9: 0.853709
+        10: 7.546592
+        11: 18.473585
+        12: 23.126115
+        13: 23.126115
+        14: 18.473585
+        15: 7.546592
+        16: 0.853709
+        17: 0.0
+
+        The following examples show how method |Calc_SP_V1| works for
+        time step sizes longer than one hour:
+
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> model.idx_sim = 0
+        >>> model.calc_sp_v1()
+        >>> fluxes.sp
+        sp(100.0)
+
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '6h'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> for idx in range(4):
+        ...     model.idx_sim = idx
+        ...     model.calc_sp_v1()
+        ...     print((idx+1)*6, end=': ')
+        ...     round_(fluxes.sp.value)
+        6: 0.0
+        12: 50.0
+        18: 50.0
+        24: 0.0
+
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '3h'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> for idx in range(8):
+        ...     model.idx_sim = idx
+        ...     model.calc_sp_v1()
+        ...     print((idx+1)*3, end=': ')
+        ...     round_(fluxes.sp.value)
+        3: 0.0
+        6: 0.0
+        9: 0.853709
+        12: 49.146291
+        15: 49.146291
+        18: 0.853709
+        21: 0.0
+        24: 0.0
+
+        Often, method |Calc_SP_V1| calculates a small but unrealistic
+        "bumb" around noon (for example, the relative radiation is slightly
+        smaller between 11:30 and 12:00 than it is between 11:00 and 11:30):
+
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '30m'
+        >>> derived.sct.update()
+        >>> derived.hours.update()
+        >>> for idx in range(15, 33):
+        ...     model.idx_sim = idx
+        ...     model.calc_sp_v1()
+        ...     print((idx+1)/2, end=': ')
+        ...     round_(fluxes.sp.value)
+        8.0: 0.0
+        8.5: 0.021762
+        9.0: 0.831947
+        9.5: 2.514315
+        10.0: 5.032276
+        10.5: 7.989385
+        11.0: 10.4842
+        11.5: 11.696873
+        12.0: 11.429242
+        12.5: 11.429242
+        13.0: 11.696873
+        13.5: 10.4842
+        14.0: 7.989385
+        14.5: 5.032276
+        15.0: 2.514315
+        15.5: 0.831947
+        16.0: 0.021762
+        16.5: 0.0
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+    DERIVEDPARAMETERS = (
+        lland_derived.SCT,
+        lland_derived.Hours,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Pi,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TSA,
+        lland_fluxes.TSU,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.SP,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_fac = 2.*fix.pi/360.
+        flu.sp = 0.
+        for i in range(2):
+            if i:
+                d_dt = der.hours/2.
+            else:
+                d_dt = -der.hours/2.
+            d_tlp = 100.*d_fac*(
+                (der.sct[model.idx_sim]+d_dt-flu.tsa)/(flu.tsu-flu.tsa)
+            )
+            if d_tlp <= 0.:
+                d_sp = 0.
+            elif d_tlp < 100.*d_fac:
+                d_sp = 50.-50.*modelutils.cos(1.8*d_tlp)
+                d_temp = 3.4*modelutils.sin(3.6*d_tlp)**2
+                if d_tlp <= 50.*d_fac:
+                    d_sp -= d_temp
+                else:
+                    d_sp += d_temp
+            else:
+                d_sp = 100.
+            if i:
+                flu.sp += d_sp
+            else:
+                flu.sp -= d_sp
+
+
+class Return_DailyGlobalRadiation_V1(modeltools.Method):
+    """Calculate and return the daily global radiation.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      .. math::
+        ExtraterrestrialRadiation \\cdot \\begin{cases}
+        AngstromConstant + AngstromFactor \\cdot
+        \\frac{sunshineduration}{possiblesunshineduration}
+        &|\\
+        sunshineduration > 0 \\;\\; \\lor \\;\\; Days < 1
+        \\\\
+        AngstromAlternative
+        &|\\
+        sunshineduration = 0 \\;\\; \\land \\;\\; Days \\geq1
+        \\end{cases}
+
+    Example:
+
+        You can define the underlying Angstrom coefficients on a monthly
+        basis to reflect the annual variability in the relationship between
+        sunshine duration and  global radiation.  First, we demonstrate
+        this for a daily time-step basis:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.moy.update()
+        >>> derived.days.update()
+        >>> angstromconstant.jan = 0.1
+        >>> angstromfactor.jan = 0.5
+        >>> angstromalternative.jan = 0.2
+        >>> angstromconstant.feb = 0.2
+        >>> angstromfactor.feb = 0.6
+        >>> angstromalternative.feb = 0.3
+        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> model.idx_sim = 1
+        >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
+        0.68
+        >>> model.idx_sim = 2
+        >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
+        0.952
+
+        If possible sunshine duration is zero, we generally set global
+        radiation to zero (even if the actual sunshine duration is larger
+        than zero, which might occur as a result of small inconsistencies
+        between measured and calculated input data):
+
+        >>> round_(model.return_dailyglobalradiation_v1(0.6, 0.0))
+        0.0
+
+        When actual sunshine is zero, the alternative Angstrom coefficient
+        applies:
+
+        >>> model.idx_sim = 1
+        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
+        0.34
+        >>> model.idx_sim = 2
+        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
+        0.51
+
+        All of the examples and explanations above hold for short simulation
+        time steps, except that parameter |AngstromAlternative| does never
+        replace parameter |AngstromConstant|:
+
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1h'
+        >>> derived.moy.update()
+        >>> derived.days.update()
+        >>> model.idx_sim = 1
+        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
+        0.17
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+    CONTROLPARAMETERS = (
+        lland_control.AngstromConstant,
+        lland_control.AngstromFactor,
+        lland_control.AngstromAlternative,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Days,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.ExtraterrestrialRadiation,
+    )
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            sunshineduration: float,
+            possiblesunshineduration: float
+    ) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if possiblesunshineduration > 0.:
+            idx = der.moy[model.idx_sim]
+            if (sunshineduration <= 0.) and (der.days >= 1.):
+                return \
+                    flu.extraterrestrialradiation*con.angstromalternative[idx]
+            return flu.extraterrestrialradiation * (
+                con.angstromconstant[idx]+con.angstromfactor[idx] *
+                sunshineduration/possiblesunshineduration
+            )
+        return 0.
+
+
+class Calc_GlobalRadiation_V1(modeltools.Method):
+    """Calculate the global radiation.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      .. math::
+        GlobalRadiation =  \\frac{SP}{100}\\cdot \\begin{cases}
+        Return\\_DailyGlobalRadiation\\_V1(
+        SunshineDuration, PossibleSunshineDuration)
+        &|\\
+        PossibleSunshineDuration > 0
+        \\\\
+        Return\\_DailyGlobalRadiation\\_V1(
+        DailySunshineDuration, DailyPossibleSunshineDuration)
+        &|\\
+        PossibleSunshineDuration = 0
+        \\end{cases}
+
+    Examples:
+
+        Method |Calc_GlobalRadiation_V1| uses the actual value of |SP| and
+        method |Return_DailyGlobalRadiation_V1|, to calculate the current
+        global radiation agreeing with the current values of sequence
+        |SunshineDuration| and sequence |PossibleSunshineDuration|:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries.update()
+        >>> derived.moy.update()
+        >>> derived.days.update()
+        >>> angstromconstant.jan = 0.1
+        >>> angstromconstant.jan = 0.1
+        >>> angstromfactor.jan = 0.5
+        >>> angstromalternative.jan = 0.2
+        >>> inputs.sunshineduration = 0.6
+        >>> fluxes.possiblesunshineduration = 1.0
+        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> fluxes.sp = 50.0
+        >>> model.idx_sim = 1
+        >>> model.calc_globalradiation_v1()
+        >>> fluxes.globalradiation
+        globalradiation(0.34)
+
+        During nightime periods, the value of |PossibleSunshineDuration| is
+        zero.  Then, method |Calc_GlobalRadiation_V1| uses the values of the
+        sequences |DailySunshineDuration| and |DailyPossibleSunshineDuration|
+        as surrogates:
+
+        >>> fluxes.possiblesunshineduration = 0.0
+        >>> fluxes.dailysunshineduration = 4.0
+        >>> fluxes.dailypossiblesunshineduration = 10.0
+
+        >>> model.calc_globalradiation_v1()
+        >>> fluxes.globalradiation
+        globalradiation(0.255)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+    SUBMETHODS = (
+        Return_DailyGlobalRadiation_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.AngstromConstant,
+        lland_control.AngstromFactor,
+        lland_control.AngstromAlternative,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Days,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.SunshineDuration,
+        lland_fluxes.ExtraterrestrialRadiation,
+        lland_fluxes.PossibleSunshineDuration,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+        lland_fluxes.SP,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.GlobalRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if flu.possiblesunshineduration > 0.:
+            d_act = inp.sunshineduration
+            d_pos = flu.possiblesunshineduration
+        else:
+            d_act = flu.dailysunshineduration
+            d_pos = flu.dailypossiblesunshineduration
+        flu.globalradiation = \
+            flu.sp/100.*model.return_dailyglobalradiation_v1(d_act, d_pos)
+
+
 class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     """Log the global radiation values of the last 24 hours.
 
@@ -986,9 +1519,9 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         respective new value on the most left position:
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep('8h')
         >>> parameterstep()
-        >>> derived.nmblogentries(3)
-        >>> logs.loggedglobalradiation.shape = 3
+        >>> derived.nmblogentries.update()
         >>> logs.loggedglobalradiation = 0.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
@@ -1005,7 +1538,6 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         |   2 |             3.0 | 3.0  1.0                    0.0 |
         |   3 |             2.0 | 2.0  3.0                    1.0 |
         |   4 |             4.0 | 4.0  2.0                    3.0 |
-
     """
     DERIVEDPARAMETERS = (
         lland_derived.NmbLogEntries,
@@ -1023,170 +1555,203 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries-1, 0, -1):
-            log.loggedglobalradiation[idx] = \
-                log.loggedglobalradiation[idx - 1]
+            log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx - 1]
         log.loggedglobalradiation[0] = flu.globalradiation
 
 
-class Update_LoggedExtraterrestrialRadiation_V1(modeltools.Method):
-    """Log the extraterrestrial radiation values of the last 24 hours.
-
-    Example:
-
-        The following example shows that each new method call successively
-        moves the three memorised values to the right and stores the
-        respective new value on the most left position:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.nmblogentries(3)
-        >>> logs.loggedextraterrestrialradiation.shape = 3
-        >>> logs.loggedextraterrestrialradiation = 0.0
-        >>> from hydpy import UnitTest
-        >>> test = UnitTest(model,
-        ...                 model.update_loggedextraterrestrialradiation_v1,
-        ...                 last_example=4,
-        ...                 parseqs=(fluxes.extraterrestrialradiation,
-        ...                          logs.loggedextraterrestrialradiation))
-        >>> test.nexts.extraterrestrialradiation = 1.0, 3.0, 2.0, 4.0
-        >>> del test.inits.loggedextraterrestrialradiation
-        >>> test()
-        | ex. | extraterrestrialradiation |           loggedextraterrestrialradiation |
-        -------------------------------------------------------------------------------
-        |   1 |                       1.0 | 1.0  0.0                              0.0 |
-        |   2 |                       3.0 | 3.0  1.0                              0.0 |
-        |   3 |                       2.0 | 2.0  3.0                              1.0 |
-        |   4 |                       4.0 | 4.0  2.0                              3.0 |
-
-    """
-    DERIVEDPARAMETERS = (
-        lland_derived.NmbLogEntries,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.ExtraterrestrialRadiation,
-    )
-    UPDATEDSEQUENCES = (
-        lland_logs.LoggedExtraterrestrialRadiation,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        for idx in range(der.nmblogentries-1, 0, -1):
-            log.loggedextraterrestrialradiation[idx] = \
-                log.loggedextraterrestrialradiation[idx - 1]
-        log.loggedextraterrestrialradiation[0] = flu.extraterrestrialradiation
-
-
 class Calc_DailyGlobalRadiation_V1(modeltools.Method):
-    """ ToDo Calculate the global radiation.
+    """Calculate the daily global radiation.
 
     Additional requirements:
       |Model.idx_sim|
 
-    Basic equations:
-      :math:`GlobalRadiation = ExtraterrestrialRadiation * (AngstromConstant +
-      AngstromFactor * SunshineDuration / PossibleSunshineDuration))`
+    Basic equation:
+      :math:`DailyGlobalRadiation = Return\\_DailyGlobalRadiation\\_(
+      DailySunshineDuration, DailyPossibleSunshineDuration)`
 
     Example:
 
-        You can define the underlying Angstrom coefficients on a monthly
-        basis to the annual variability in the relationship between sunshine
-        duration and  global radiation:
-
         >>> from hydpy.models.lland import *
-        >>> from hydpy import pub
         >>> parameterstep()
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
-        >>> derived.moy.update()
+        >>> from hydpy import pub
         >>> angstromconstant.jan = 0.1
         >>> angstromfactor.jan = 0.5
         >>> angstromconstant.feb = 0.2
         >>> angstromfactor.feb = 0.6
-        >>> inputs.sunshineduration(0.6)
-        >>> fluxes.possiblesunshineduration = 1.0
-        >>> fluxes.extraterrestrialradiation = 1.7
+
+        We define the extraterrestrial radiation to 10 MJ/m² and the
+        possible sunshine duration to 12 hours:
+
+        >>> fluxes.extraterrestrialradiation = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
+
+        We define a daily simulation step size and update the relevant
+        derived parameters:
+
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> derived.moy.update()
+        >>> derived.nmblogentries.update()
+
+        Applying the Angstrom coefficients for January and February on
+        the defined extraterrestrial radiation and a sunshine duration
+        of 7.2 hours results in a daily global radiation sum of 4.0 MJ/m²
+        and 5.6 MJ/m², respectively:
+
         >>> model.idx_sim = 1
+        >>> fluxes.dailysunshineduration = 7.2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(0.68)
+        dailyglobalradiation(4.0)
+
         >>> model.idx_sim = 2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(0.952)
+        dailyglobalradiation(5.6)
 
-        If possible sunshine duration is zero, we generally set global
-        radiation to zero (even if the actual sunshine duration is larger
-        than zero, which might occur as a result of small inconsistencies
-        between measured and calculated input data):
+        Finally, we demonstrate for January that method
+        |Calc_DailyGlobalRadiation_V1| calculates the same values for an
+        hourly simulation time step, as long as the daily sum of sunshine
+        duration remains identical:
 
-        >>> fluxes.possiblesunshineduration = 0.0
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1h'
+        >>> derived.moy.update()
+        >>> derived.nmblogentries.update()
+
+        The actual simulation step starts at 11 o'clock and ends at 12 o'clock:
+
+        >>> model.idx_sim = pub.timegrids.init['2000-01-31 11:00']
+        >>> fluxes.dailysunshineduration = 7.2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(0.0)
+        dailyglobalradiation(4.0)
 
         .. testsetup::
 
             >>> del pub.timegrids
-        """
+    """
+    SUBMETHODS = (
+        Return_DailyGlobalRadiation_V1,
+    )
     CONTROLPARAMETERS = (
         lland_control.AngstromConstant,
         lland_control.AngstromFactor,
+        lland_control.AngstromAlternative,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
+        lland_derived.Days,
     )
     REQUIREDSEQUENCES = (
-        lland_logs.LoggedExtraterrestrialRadiation,
-        lland_logs.LoggedPossibleSunshineDuration,
-        lland_logs.LoggedSunshineDuration,
+        lland_fluxes.ExtraterrestrialRadiation,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
     )
-    RESULTSEQUENCES = (
-        lland_aides.DailyGlobalRadiation,
+    UPDATEDSEQUENCES = (
+        lland_fluxes.DailyGlobalRadiation,
     )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        aid = model.sequences.aides.fastaccess
-        log = model.sequences.logs.fastaccess
-        d_e = 0.
-        d_p = 0.
-        d_s = 0.
-        for idx in range(der.nmblogentries):
-            d_e += log.loggedextraterrestrialradiation[idx]
-            d_p += log.loggedpossiblesunshineduration[idx]
-            d_s += log.loggedsunshineduration[idx]
-        idx = der.moy[model.idx_sim]
-        aid.dailyglobalradiation = d_e * (
-            con.angstromconstant[idx]+con.angstromfactor[idx] *
-            d_s/d_p)
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailyglobalradiation = model.return_dailyglobalradiation_v1(
+            flu.dailysunshineduration, flu.dailypossiblesunshineduration)
 
 
 class Calc_AdjustedGlobalRadiation_V1(modeltools.Method):
-    """ToDo
+    """Adjust the current global radiation to the daily global radiation.
 
-    Example:
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      :math:`AdjustedGlobalRadiation = GlobalRadiation \\cdot
+      \\frac{DailyGlobalRadiation}{\\sum LoggedGlobalRadiation}`
+
+    Examples:
+
+        The purpose of method |Calc_AdjustedGlobalRadiation_V1| is to
+        adjust hourly global radiation values (or those of other short
+        simulation time steps) so that their sum over the last 24 hours
+        equals the global radiation value directly calculated with the
+        relative sunshine duration over the last 24 hours.  We try to
+        explain this somewhat contraintuitive approach by building up
+        the examples on the examples on the documentation on method
+        |Calc_DailyGlobalRadiation_V1|.
+
+        Again, we start with a daily simulation time step:
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep('1d')
         >>> parameterstep()
-        >>> derived.nmblogentries(4)
-        >>> fluxes.globalradiation = 1.0
-        >>> logs.loggedglobalradiation.shape = 4
-        >>> logs.loggedglobalradiation = 0.0, 3.0, 2.0, 1.0
-        >>> aides.dailyglobalradiation = 3.0
+        >>> derived.nmblogentries.update()
+
+        For such a daily simulation time step, the values of the
+        sequences |GlobalRadiation|, |DailyGlobalRadiation|, and
+        |LoggedGlobalRadiation| must be identical:
+
+        >>> model.idx_sim = 1
+        >>> fluxes.globalradiation = 4.0
+        >>> fluxes.dailyglobalradiation = 4.0
+        >>> logs.loggedglobalradiation = 4.0
+
+        After calling method |Calc_AdjustedGlobalRadiation_V1|, the
+        same holds for the adjusted global radiation sum:
+
         >>> model.calc_adjustedglobalradiation_v1()
         >>> fluxes.adjustedglobalradiation
-        adjustedglobalradiation(0.5)
+        adjustedglobalradiation(4.0)
+
+        Normally, one would not expect method |Calc_AdjustedGlobalRadiation_V1|
+        to have an effect when applied on daily simulation time steps at all.
+        However, it corrects "wrong" predefined global radiation values:
+
+        >>> fluxes.dailyglobalradiation = 5.6
+        >>> model.calc_adjustedglobalradiation_v1()
+        >>> fluxes.adjustedglobalradiation
+        adjustedglobalradiation(5.6)
+
+        We now demonstrate how method |Calc_AdjustedGlobalRadiation_V1|
+        actually works for hourly simulation time steps:
+
+        >>> simulationstep('1h')
+        >>> derived.nmblogentries.update()
+
+        The daily global radiation value does not depend on the simulation
+        time step.  We reset it to 4 MJ/m²/d:
+
+        >>> fluxes.dailyglobalradiation = 4.0
+
+        The other global radiation values now must be smaller and vary
+        throughout the day.  We set them consistently with the values
+        of the logged sunshine duration in the documentation on method
+        |Calc_DailyGlobalRadiation_V1|:
+
+        >>> fluxes.globalradiation = 0.8
+        >>> logs.loggedglobalradiation = (
+        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0,
+        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ...     0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
+
+        Compared with the total 24 hours, the simulation time steps around
+        noon are relatively sunny, both for the current and the last day
+        (see the first and the last entries of the log sequence for sunshine
+        duration).  Accordingly, the sum of the hourly global radiation
+        values (4.6 W/m²)  is larger than the directly calculated daily sum
+        (4.0 W/m²).  Method |Calc_AdjustedGlobalRadiation_V1| uses the
+        fraction of both sums to finally calculate the adjusted global
+        radiation (:math:`0.8 \\cdot 4.0 / 4.6`):
+
+        >>> model.calc_adjustedglobalradiation_v1()
+        >>> fluxes.adjustedglobalradiation
+        adjustedglobalradiation(0.695652)
     """
     DERIVEDPARAMETERS = (
         lland_derived.NmbLogEntries,
     )
     REQUIREDSEQUENCES = (
-        lland_aides.DailyGlobalRadiation,
+        lland_fluxes.GlobalRadiation,
+        lland_fluxes.DailyGlobalRadiation,
         lland_logs.LoggedGlobalRadiation,
     )
     UPDATEDSEQUENCES = (
@@ -1198,15 +1763,11 @@ class Calc_AdjustedGlobalRadiation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        aid = model.sequences.aides.fastaccess
-        d_sum = 0.
+        d_glob_sum = 0.
         for idx in range(der.nmblogentries):
-            d_sum += log.loggedglobalradiation[idx]
-        if d_sum > 0.:
-            flu.adjustedglobalradiation = \
-                flu.globalradiation*(1.-(d_sum-aid.dailyglobalradiation)/d_sum)
-        else:
-            flu.adjustedglobalradiation = 0.
+            d_glob_sum += log.loggedglobalradiation[idx]
+        flu.adjustedglobalradiation = \
+            flu.globalradiation*flu.dailyglobalradiation/d_glob_sum
 
 
 class Calc_ET0_V1(modeltools.Method):
@@ -1220,8 +1781,7 @@ class Calc_ET0_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep()
         >>> nhru(3)
         >>> ke(1.1)
         >>> kf(0.6)
@@ -1253,8 +1813,9 @@ class Calc_ET0_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.et0[k] = con.ke[k]*(
-                ((8.64*inp.glob+93.*con.kf[k])*(flu.tkor[k]+22.)) /
-                (165.*(flu.tkor[k]+123.) * (1.+0.00019*min(con.hnn[k], 600.))))
+                (8.64*inp.glob+93.*con.kf[k])*(flu.tkor[k]+22.) /
+                (165.*(flu.tkor[k]+123.) * (1.+0.00019*min(con.hnn[k], 600.)))
+            )
 
 
 class Calc_ET0_WET0_V1(modeltools.Method):
@@ -1263,7 +1824,7 @@ class Calc_ET0_WET0_V1(modeltools.Method):
 
     Basic equation:
       :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
-      (1-WfET0) \\cdot ET0_{alt}`
+      (1-WfET0) \\cdot ET0_{old}`
 
     Example:
 
@@ -1321,8 +1882,8 @@ class Calc_ET0_WET0_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for k in range(con.nhru):
-            flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
-                          (1.-con.wfet0[k])*log.wet0[0, k])
+            flu.et0[k] = \
+                con.wfet0[k]*con.ke[k]*inp.pet+(1.-con.wfet0[k])*log.wet0[0, k]
             log.wet0[0, k] = flu.et0[k]
 
 
@@ -1422,12 +1983,16 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
       |Model.idx_sim|
 
     Basic equation:
-      :math:`NBes = \\Bigl \\lbrace
-      {
-      {PKor \\ | \\ Inzp = KInz}
-      \\atop
-      {0 \\ | \\ Inzp < KInz}
-      }`
+      .. math::
+        NBes = \\begin{cases}
+        PKor
+        &|\\
+        Inzp = KInz
+        \\\\
+        0
+        &|\\
+        Inzp < KInz
+        \\end{cases}
 
     Examples:
 
@@ -1532,12 +2097,17 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
             else:
                 flu.nbes[k] = max(
                     flu.nkor[k]+sta.inzp[k] -
-                    der.kinz[con.lnk[k]-1, der.moy[model.idx_sim]], 0.)
+                    der.kinz[con.lnk[k]-1, der.moy[model.idx_sim]], 0.
+                )
                 sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
 
 
-class Calc_SN_Ratio_V1(modeltools.Method):
+class Calc_SNRatio_V1(modeltools.Method):
     """Calculate the ratio of frozen to total precipitation.
+
+    Basic equation:
+      :math:`SNRatio =
+      min\\left(max\\left(\\frac{(TGr-TSp/2-TKor)}{TSp}, 0\\right), 1\\right)`
 
     Examples:
 
@@ -1551,23 +2121,23 @@ class Calc_SN_Ratio_V1(modeltools.Method):
         >>> tgr(1.0)
         >>> tsp(2.0)
 
-        The value of |SN_Ratio| is zero above 1 °C and 1 below -1 °C.  Between
-        these temperature values |SN_Ratio| decreases linearly:
+        The value of |SNRatio| is zero above 0 °C and 1 below 2 °C.  Between
+        these temperature values |SNRatio| decreases linearly:
 
         >>> fluxes.nkor = 4.0
-        >>> fluxes.tkor = -9.0, 0.0, 0.5, 1.0, 1.5, 2.0, 11.0
-        >>> model.calc_sn_ratio_v1()
-        >>> aides.sn_ratio
-        sn_ratio(1.0, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0)
+        >>> fluxes.tkor = -1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0
+        >>> model.calc_snratio_v1()
+        >>> aides.snratio
+        snratio(1.0, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0)
 
         Note the special case of a zero temperature interval.  With the
         actual temperature being equal to the threshold temperature, the
-        the value of |SN_Ratio| is zero:
+        the value of |SNRatio| is zero:
 
         >>> tsp(0.0)
-        >>> model.calc_sn_ratio_v1()
-        >>> aides.sn_ratio
-        sn_ratio(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
+        >>> model.calc_snratio_v1()
+        >>> aides.snratio
+        snratio(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
@@ -1578,7 +2148,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
         lland_fluxes.TKor,
     )
     RESULTSEQUENCES = (
-        lland_aides.SN_Ratio,
+        lland_aides.SNRatio,
     )
 
     @staticmethod
@@ -1588,11 +2158,11 @@ class Calc_SN_Ratio_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for k in range(con.nhru):
             if flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
-                aid.sn_ratio[k] = 0.
+                aid.snratio[k] = 0.
             elif flu.tkor[k] <= (con.tgr[k]-con.tsp[k]/2.):
-                aid.sn_ratio[k] = 1.
+                aid.snratio[k] = 1.
             else:
-                aid.sn_ratio[k] = \
+                aid.snratio[k] = \
                     ((con.tgr[k]+con.tsp[k]/2.)-flu.tkor[k])/con.tsp[k]
 
 
@@ -1809,7 +2379,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #         lland_fluxes.SInzpRate,
 #         lland_fluxes.NKor,
 #         lland_fluxes.SInzpCap,
-#         lland_aides.SN_Ratio,
+#         lland_aides.SNRatio,
 #     )
 #     UPDATEDSEQUENCES = (
 #         lland_states.SInz,
@@ -1840,9 +2410,9 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #                 d_cap = flu.sinzpcap[con.lnk[k] - 1, der.moy[model.idx_sim]]
 #
 #                 flu.nbes[k] = max(d_max + sta.sinz[k] - d_cap, 0.) + d_besrate
-#                 flu.sbes[k] = aid.sn_ratio[k] * flu.nbes[k]
+#                 flu.sbes[k] = aid.snratio[k] * flu.nbes[k]
 #                 d_ninz = flu.nkor[k] - flu.nbes[k]
-#                 d_sinz = aid.sn_ratio[k] * d_ninz
+#                 d_sinz = aid.snratio[k] * d_ninz
 #                 sta.sinz[k] += d_ninz
 #                 sta.stinz[k] += d_sinz
 #                 d_nbes = max(sta.sinz[k] - con.pwmax[k] * sta.stinz[k], 0.)
@@ -1854,7 +2424,7 @@ class Calc_SBes_V1(modeltools.Method):
     """Calculate the frozen part of stand precipitation.
 
     Basic equation:
-      :math:`SBes = SN_Ratio \\cdot NBes`
+      :math:`SBes = SNRatio \\cdot NBes`
 
     Example:
 
@@ -1862,7 +2432,7 @@ class Calc_SBes_V1(modeltools.Method):
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> fluxes.nbes = 10.0
-        >>> aides.sn_ratio = 0.2, 0.8
+        >>> aides.snratio = 0.2, 0.8
         >>> model.calc_sbes_v1()
         >>> fluxes.sbes
         sbes(2.0, 8.0)
@@ -1872,7 +2442,7 @@ class Calc_SBes_V1(modeltools.Method):
         lland_control.NHRU,
     )
     REQUIREDSEQUENCES = (
-        lland_aides.SN_Ratio,
+        lland_aides.SNRatio,
         lland_fluxes.NBes,
     )
     RESULTSEQUENCES = (
@@ -1885,14 +2455,14 @@ class Calc_SBes_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         for k in range(con.nhru):
-            flu.sbes[k] = aid.sn_ratio[k]*flu.nbes[k]
+            flu.sbes[k] = aid.snratio[k]*flu.nbes[k]
 
 
 class Calc_WATS_V1(modeltools.Method):
     """Add the snow fall to the frozen water equivalent of the snow cover.
 
     Basic equation:
-      :math:`WATS = WATS + SBes`
+      :math:`\\frac{dW\\!ATS}{dt} = SBes`
 
     Example:
 
@@ -1936,9 +2506,9 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
     """Add as much liquid precipitation to the snow cover as it is able to hold.
 
     Basic equations:
-      :math:`\\frac{dWAeS}{dt} = NBes - WaDa`
+      :math:`\\frac{dW\\!AeS}{dt} = NBes - WaDa`
 
-      :math:`WAeS \\leq PWMax \\cdot WATS`
+      :math:`W\\!AeS \\leq PWMax \\cdot W\\!ATS`
 
     Example:
 
@@ -2138,6 +2708,8 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
     layer (in other words: no temperature mixing occurs).
 
     Basic equation:
+      :math:`\\frac{dESnow}{dt} = WNied`
+
       :math:`WNied = (TKor-TRefN) \\cdot
       (CPEis \\cdot SBes + CPWasser \\cdot (NBes - SBes - WaDa))`
 
@@ -2203,9 +2775,9 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
     """Calculate and return the saturation vapour pressure over an
     arbitrary surface for the given temperature.
 
-    Basic equation (Allen, equation 11, modified):
-      :math:`0.6108 \\cdot
-      \\exp(\\frac{17.08085 \\cdot Temperature}{Temperature + 234.175})`
+    Basic equation:
+      :math:`0.61078 \\cdot
+      2.71828^{\\frac{17.08085 \\cdot temperature}{temperature + 234.175}}`
 
     Example:
 
@@ -2213,30 +2785,66 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import round_
         >>> round_(model.return_saturationvapourpressure_v1(10.0))
-        1.229426
+        1.229385
     """
 
     @staticmethod
-    def __call__(model: modeltools.Model, temperature: float) -> float:
-        return .6108*modelutils.exp(17.08085*temperature/(temperature+234.175))
+    def __call__(
+            model: modeltools.Model,
+            temperature: float,
+    ) -> float:
+        return .61078*2.71828**(17.08085*temperature/(temperature+234.175))
+
+
+class Return_SaturationVapourPressureSlope_V1(modeltools.Method):
+    """Calculate and return the saturation vapour pressure slope over an
+    arbitrary surface for the given temperature.
+
+    Basic equation (derivative of |Return_SaturationVapourPressure_V1|:
+      :math:`\\frac{2443.06 \\cdot
+      exp((17.08085 \\cdot temperature) / (temperature + 234.175)}
+      {(temperature+234.175)^2}`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> from hydpy import round_
+        >>> round_(model.return_saturationvapourpressureslope_v1(10.0))
+        0.082477
+        >>> dx = 1e-6
+        >>> round_((model.return_saturationvapourpressure_v1(10.0+dx) -
+        ...         model.return_saturationvapourpressure_v1(10.0-dx))/2/dx)
+        0.082477
+    """
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            temperature: float,
+    ) -> float:
+        return (
+            2443.06*modelutils.exp(17.08085*temperature/(temperature+234.175)) /
+            (temperature+234.175)**2
+        )
 
 
 class Calc_SaturationVapourPressure_V1(modeltools.Method):
     """Calculate the saturation vapour pressure over arbitrary surfaces.
 
-    Method |Calc_SaturationVapourPressure_V1| uses method
-    |Return_SaturationVapourPressure_V1| to calculate the saturation
-    vapour pressure of all hydrological response units.
+    Basic equation:
+      :math:`SaturationVapourPressure =
+      Return\\_SaturationVapourPressure\\_V1(TKor)`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> fluxes.tkor(-10.0, 0.0, 10.0)
+        >>> fluxes.tkor = -10.0, 0.0, 10.0
         >>> model.calc_saturationvapourpressure_v1()
         >>> fluxes.saturationvapourpressure
-        saturationvapourpressure(0.285096, 0.6108, 1.229426)
+        saturationvapourpressure(0.285087, 0.61078, 1.229385)
     """
     SUBMETHODS = (
         Return_SaturationVapourPressure_V1,
@@ -2253,37 +2861,78 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        flu = model.sequences.fluxes.fastaccess
         con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.saturationvapourpressure[k] = \
                 model.return_saturationvapourpressure_v1(flu.tkor[k])
 
 
-class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
-    """Calculate the slope of the saturation vapour pressure curve.
+class Calc_DailySaturationVapourPressure_V1(modeltools.Method):
+    """Calculate the daily saturation vapour pressure over arbitrary surfaces.
 
-    Basic equation (`Allen`_, equation 13, modified):
-      :math:`SaturationVapourPressureSlope = 4098 \\cdot
-      \\frac{SaturationVapourPressure}{(TKor+237.3)^2}`
+    Basic equation:
+      :math:`DailySaturationVapourPressure =
+      Return\\_SaturationVapourPressure\\_V1(TKorTag)`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> fluxes.tkor(-10.0, 0.0, 10.0)
-        >>> fluxes.saturationvapourpressure(0.285096, 0.6108, 1.229426)
+        >>> fluxes.tkortag = -10.0, 0.0, 10.0
+        >>> model.calc_dailysaturationvapourpressure_v1()
+        >>> fluxes.dailysaturationvapourpressure
+        dailysaturationvapourpressure(0.285087, 0.61078, 1.229385)
+    """
+    SUBMETHODS = (
+        Return_SaturationVapourPressure_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TKorTag,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailySaturationVapourPressure,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.dailysaturationvapourpressure[k] = \
+                model.return_saturationvapourpressure_v1(flu.tkortag[k])
+
+
+class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
+    """Calculate the daily slope of the saturation vapour pressure curve.
+
+    Basic equation:
+      :math:`SaturationVapourPressureSlope =
+      Return\\_SaturationVapourPressureSlope\\_V1(TKor)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> fluxes.tkor = -10.0, 0.0, 10.0
+        >>> fluxes.saturationvapourpressure = 0.285096, 0.6108, 1.229426
         >>> model.calc_saturationvapourpressureslope_v1()
         >>> fluxes.saturationvapourpressureslope
-        saturationvapourpressureslope(0.022613, 0.04445, 0.082381)
+        saturationvapourpressureslope(0.022691, 0.044551, 0.082477)
     """
+    SUBMETHODS = (
+        Return_SaturationVapourPressureSlope_V1,
+    )
     CONTROLPARAMETERS = (
         lland_control.NHRU,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
-        lland_fluxes.SaturationVapourPressure,
     )
     RESULTSEQUENCES = (
         lland_fluxes.SaturationVapourPressureSlope,
@@ -2295,54 +2944,92 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.saturationvapourpressureslope[k] = \
-                4098.*flu.saturationvapourpressure[k]/(flu.tkor[k]+237.3)**2
+                model.return_saturationvapourpressureslope_v1(flu.tkor[k])
 
 
-class Return_ActualVapourPressure_V1(modeltools.Method):
-    """Calculate and return the actual vapour pressure for the given
-    saturation vapour pressure.
+class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
+    """Calculate the daily slope of the saturation vapour pressure curve.
 
-    Basic equation (`Allen`_, equation 19, modified):
-      :math:`SaturationVapourPressure \\cdot RelativeHumidity / 100`
+    Basic equation:
+      :math:`DailySaturationVapourPressureSlope =
+      Return\\_SaturationVapourPressureSlope\\_V1(TKorTag)`
 
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep()
         >>> nhru(3)
-        >>> inputs.relativehumidity = 60.0
-        >>> from hydpy import round_
-        >>> round_(model.return_actualvapourpressure_v1(2.0))
-        1.2
+        >>> fluxes.tkortag = 10.0, 0.0, -10.0
+        >>> model.calc_dailysaturationvapourpressureslope_v1()
+        >>> fluxes.dailysaturationvapourpressureslope
+        dailysaturationvapourpressureslope(0.082477, 0.044551, 0.022691)
     """
+    SUBMETHODS = (
+        Return_SaturationVapourPressureSlope_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+    )
     REQUIREDSEQUENCES = (
-        lland_inputs.RelativeHumidity,
+        lland_fluxes.TKorTag,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailySaturationVapourPressureSlope,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, saturationvapourpressure: float) \
-            -> float:
-        inp = model.sequences.inputs.fastaccess
-        return saturationvapourpressure * inp.relativehumidity / 100.
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.dailysaturationvapourpressureslope[k] = \
+                model.return_saturationvapourpressureslope_v1(flu.tkortag[k])
+
+
+class Return_ActualVapourPressure_V1(modeltools.Method):
+    """Calculate and return the actual vapour pressure for the given
+    saturation vapour pressure and relative humidity.
+
+    Basic equation:
+      :math:`saturationvapourpressure \\cdot relativehumidity / 100`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> from hydpy import round_
+        >>> round_(model.return_actualvapourpressure_v1(2.0, 60.0))
+        1.2
+    """
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            saturationvapourpressure: float,
+            relativehumidity: float,
+    ) -> float:
+        return saturationvapourpressure*relativehumidity/100.
 
 
 class Calc_ActualVapourPressure_V1(modeltools.Method):
     """Calculate the actual vapour pressure.
 
-    Method |Calc_ActualVapourPressure_V1| uses method
-    |Return_ActualVapourPressure_V1| to calculate the actual
-    vapour pressure of all hydrological response units.
+    Basic equation:
+      :math:`ActualVapourPressure = Return\\_ActualVapourPressure\\_V1(
+      SaturationVapourPressure, RelativeHumidity)`
 
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
+        >>> simulationstep('1h')
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> derived.nmblogentries.update()
         >>> inputs.relativehumidity = 60.0
-        >>> fluxes.saturationvapourpressure = 2.0, 1.8, 1.5
+        >>> fluxes.saturationvapourpressure = 2.0
         >>> model.calc_actualvapourpressure_v1()
         >>> fluxes.actualvapourpressure
-        actualvapourpressure(1.2, 1.08, 0.9)
+        actualvapourpressure(1.2)
     """
     SUBMETHODS = (
         Return_ActualVapourPressure_V1,
@@ -2354,218 +3041,238 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
         lland_inputs.RelativeHumidity,
         lland_fluxes.SaturationVapourPressure,
     )
+    RESULTSEQUENCES = (
+        lland_fluxes.ActualVapourPressure,
+    )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.actualvapourpressure[k] = \
                 model.return_actualvapourpressure_v1(
-                    flu.saturationvapourpressure[k])
+                    flu.saturationvapourpressure[k], inp.relativehumidity
+                )
 
 
-class Return_NetLongwaveRadiation_V1(modeltools.Method):
-    """Calculate and return the net longwave radiation.
+class Calc_DailyActualVapourPressure_V1(modeltools.Method):
+    """Calculate the daily actual vapour pressure.
 
-    Method |Return_NetLongwaveRadiation_V1| relies on two different
-    equations for snow-covered and snow-free surfaces.
-
-    Basic equation above a snow-free surface:
-       :math:`Sigma \\cdot (TKor + 273.15)^4 \\cdot
-       (Emissivity - FrAtm \\cdot  (\\frac{ActualVapourPressure \\cdot 10}
-       {TKor + 273.15})^{1/7}) \\cdot (0.2 + 0.8 \\cdot
-       \\frac{SunshineDuration}{PossibleSunshineDuration})`
-
-    Basic equation above a snow layer:
-       :math:`Sigma \\cdot ((TempSSurface + 273.15)^4 -
-       (Tkor + 273.15)^4 \\cdot FrAtm \\cdot (\\frac{ActualVapourPressure
-       \\cdot 10}{TKor + 273.15})^{1/7} \\cdot (1 + 0.22
-       \\cdot (1 - \\frac{SunshineDuration}{PossibleSunshineDuration})^2))`
-
-    Examples:
-
-        The first two hydrological response units deal with a snow-free
-        situation (where no temperature of a snow surface can be defined),
-        wheres the last to units deal with a snow layer.  Note the
-        considerable difference between the results of the second (snow-free)
-        and the third (snow-covered) response unit:
-
-        >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(4)
-        >>> emissivity(0.95)
-        >>> fratm(1.28)
-        >>> derived.nmblogentries.update()
-        >>> inputs.sunshineduration = 12.0
-        >>> states.waes = 0.0, 0.0, 1.0, 1.0
-        >>> fluxes.tkor = 22.1, 0.0, 0.0, 0.0
-        >>> fluxes.actualvapourpressure = 1.6, 0.6, 0.6, 0.6
-        >>> fluxes.possiblesunshineduration = 14.0
-        >>> fluxes.tempssurface = nan, nan, 0.0, -5.0
-        >>> from hydpy import print_values
-        >>> for hru in range(4):
-        ...     print_values([hru, model.return_netlongwaveradiation_v1(hru)])
-        0, 3.495045
-        1, 5.027685
-        2, 6.949137
-        3, 5.006517
-
-        If we set the current sunshine duration to zero but log the original
-        sunshine duration, we get the same results as above:
-
-        >>> inputs.possiblesunshineduration = 0.0
-        >>> logs.loggedsunshineduration = 12.0
-        >>> logs.loggedpossiblesunshineduration = 14.0
-        >>> for hru in range(4):
-        ...     print_values([hru, model.return_netlongwaveradiation_v1(hru)])
-        0, 3.495045
-        1, 5.027685
-        2, 6.949137
-        3, 5.006517
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Emissivity,
-        lland_control.FrAtm,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.NmbLogEntries,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TempSSurface,
-        lland_states.WAeS,
-        lland_fluxes.ActualVapourPressure,
-        lland_inputs.SunshineDuration,
-        lland_logs.LoggedPossibleSunshineDuration,
-        lland_logs.LoggedSunshineDuration,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        sta = model.sequences.states.fastaccess
-
-        if flu.possiblesunshineduration > 0:
-            d_sunshineduration = inp.sunshineduration
-            d_possiblesunshineduration = flu.possiblesunshineduration
-        else:
-            d_sunshineduration = 0.
-            d_possiblesunshineduration = 0.
-            for idx in range(der.nmblogentries):
-                d_possiblesunshineduration += \
-                    log.loggedpossiblesunshineduration[idx]
-                d_sunshineduration += log.loggedsunshineduration[idx]
-
-        d_relsunshine = d_sunshineduration/d_possiblesunshineduration
-
-        d_temp1 = fix.sigma*(flu.tkor[k]+273.15)**4
-        d_temp2 = (flu.actualvapourpressure[k]*10. /
-                   (flu.tkor[k]+273.15))**(1./7.)
-        if sta.waes[k] > 0.:
-            return (fix.sigma*(flu.tempssurface[k]+273.15)**4 -
-                    d_temp1*con.fratm*d_temp2*(1.+.22*(1.-d_relsunshine)**2))
-        return (d_temp1*(con.emissivity-con.fratm*d_temp2) *
-                (.2+.8*d_relsunshine))
-
-
-class Calc_NetLongwaveRadiation_V1(modeltools.Method):
-    """Calculate the net longwave radiation for snow-free land surfaces.
+    Basic equation:
+      :math:`DailyActualVapourPressure = Return\\_ActualVapourPressure\\_V1(
+      DailySaturationVapourPressure, DailyRelativeHumidity)`
 
     Example:
 
-        Basically, method |Calc_NetLongwaveRadiation_V1| just uses method
-        |Return_NetLongwaveRadiation_V1| to calculate the long wave
-        radiation of each non-water response unit and keeps the eventually
-        predefined values of the other ones:
-
-        >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
         >>> from hydpy.models.lland import *
+        >>> simulationstep('1h')
         >>> parameterstep()
-        >>> nhru(2)
-        >>> lnk(ACKER)
+        >>> nhru(1)
         >>> derived.nmblogentries.update()
-        >>> fluxes.tkor = 22.1
-        >>> fluxes.actualvapourpressure = 1.6
-        >>> fluxes.possiblesunshineduration = 14.0
-        >>> inputs.sunshineduration = 12.0
-        >>> emissivity(0.95)
-        >>> fratm(1.28)
-        >>> states.waes = 0.0, 1.0
-        >>> fluxes.tempssurface = nan
-        >>> fluxes.netlongwaveradiation = 1.0
-        >>> model.calc_netlongwaveradiation_v1()
-        >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(3.495045, 1.0)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
+        >>> fluxes.dailyrelativehumidity = 40.0
+        >>> fluxes.dailysaturationvapourpressure = 4.0
+        >>> model.calc_dailyactualvapourpressure_v1()
+        >>> fluxes.dailyactualvapourpressure
+        dailyactualvapourpressure(1.6)
     """
     SUBMETHODS = (
-        Return_NetLongwaveRadiation_V1,
+        Return_ActualVapourPressure_V1,
     )
     CONTROLPARAMETERS = (
         lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.Emissivity,
-        lland_control.FrAtm,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.NmbLogEntries,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.TKor,
-        lland_states.WAeS,
-        lland_fluxes.ActualVapourPressure,
-        lland_logs.LoggedPossibleSunshineDuration,
-        lland_logs.LoggedSunshineDuration,
+        lland_fluxes.DailyRelativeHumidity,
+        lland_fluxes.DailySaturationVapourPressure,
     )
     RESULTSEQUENCES = (
-        lland_fluxes.NetLongwaveRadiation,
+        lland_fluxes.DailyActualVapourPressure,
     )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if sta.waes[k] <= 0.:
-                flu.netlongwaveradiation[k] = \
-                    model.return_netlongwaveradiation_v1(k)
+            flu.dailyactualvapourpressure[k] = \
+                model.return_actualvapourpressure_v1(
+                    flu.dailysaturationvapourpressure[k],
+                    flu.dailyrelativehumidity,
+                )
+
+
+class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
+    """Calculate the daily net longwave radiation.
+
+    Basic equation above a snow-free surface:
+       :math:`DailyNetLongwaveRadiation =
+       Sigma \\cdot (TKorTag + 273.15)^4 \\cdot
+       \\left(Emissivity - FrAtm \\cdot
+       \\left(\\frac{DailyActualVapourPressure \\cdot 10}
+       {TKorTag + 273.15}\\right)^{1/7}\\right) \\cdot
+       \\left(0.2 + 0.8 \\cdot
+       \\frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\\right)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> emissivity(0.95)
+        >>> fluxes.tkortag = 22.1, 0.0
+        >>> fluxes.dailyactualvapourpressure = 1.6, 0.6
+        >>> fluxes.dailysunshineduration = 12.0
+        >>> fluxes.dailypossiblesunshineduration = 14.0
+        >>> model.calc_dailynetlongwaveradiation_v1()
+        >>> fluxes.dailynetlongwaveradiation
+        dailynetlongwaveradiation(3.495045, 5.027685)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Emissivity,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.FrAtm,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TKorTag,
+        lland_fluxes.DailyActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailyNetLongwaveRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_relsunshine = \
+            flu.dailysunshineduration/flu.dailypossiblesunshineduration
+        for k in range(con.nhru):
+            d_temp = flu.tkortag[k]+273.15
+            flu.dailynetlongwaveradiation[k] = (
+                (.2+.8*d_relsunshine) *
+                fix.sigma*d_temp**4 * (
+                    con.emissivity - fix.fratm *
+                    (flu.dailyactualvapourpressure[k]*10./d_temp)**(1./7.)
+                )
+            )
+
+
+class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
+    """Calculate and return the net longwave radiation for snow-covered areas.
+
+    Method |Return_NetLongwaveRadiationSnow_V1| relies on two different
+    equations, one for forests (|LAUBW|, |MISCHW|, and |NADELW|) and the
+    other other one for all other land use classes.
+
+    Basic equation:
+
+      .. math::
+        \\begin{cases}
+        Fr \\cdot \\Bigl(0.97 \\cdot Sigma \\cdot \\bigl((TKor + 273.15)^4 -
+        R_{Latm}\\bigl)\\Bigl)
+        &|\\
+        Lnk \\in \\{LAUBW, MISCHW, NADELW\\}
+        \\\\
+        Sigma \\cdot (TempSSurface + 273.15)^4 - R_{Latm}
+        &|\\
+        Lnk \\notin \\{LAUBW, MISCHW, NADELW\\}
+        \\end{cases}
+
+      :math:`R_{Latm} =
+      FrAtm \\cdot Sigma \\cdot  (Tkor+273.15)^4 \\cdot
+      \\left(\\frac{ActualVapourPressure \\cdot 10}{TKor+273.15}\\right)^{1/7}
+      \\cdot \\left(1 + 0.22 \\cdot \\left(
+      1 - \\frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\\right)^2
+      \\right)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> lnk(ACKER, LAUBW)
+        >>> derived.moy(5)
+        >>> derived.days(1/24)
+        >>> derived.fr(0.5)
+        >>> emissivity(0.95)
+        >>> fluxes.tempssurface = -5.0
+        >>> fluxes.tkor = 0.0
+        >>> fluxes.actualvapourpressure = 0.6
+        >>> fluxes.dailysunshineduration = 12.0
+        >>> fluxes.dailypossiblesunshineduration = 14.0
+        >>> from hydpy import print_values
+        >>> for hru in range(2):
+        ...     print_values(
+        ...         [hru, model.return_netlongwaveradiationsnow_v1(hru)])
+        0, 0.208605
+        1, 0.127729
+    """
+    CONTROLPARAMETERS = (
+        lland_control.Lnk,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Days,
+        lland_derived.Fr,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.FrAtm,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TempSSurface,
+        lland_fluxes.TKor,
+        lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+    )
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_relsunshine = \
+            flu.dailysunshineduration/flu.dailypossiblesunshineduration
+        d_sigma = fix.sigma*der.days
+        d_temp = flu.tkor[k] + 273.15
+        d_ratm = (
+            fix.fratm*d_sigma*d_temp**4 *
+            (flu.actualvapourpressure[k]*10./d_temp)**(1./7.) *
+            (1.+.22*(1.-d_relsunshine)**2)
+        )
+        if con.lnk[k] in (LAUBW, MISCHW, NADELW):
+            idx = der.moy[model.idx_sim]
+            return (
+                der.fr[con.lnk[k]-1, idx] *
+                (0.97*d_sigma*(flu.tkor[k]+273.15)**4-d_ratm)
+            )
+        return d_sigma*(flu.tempssurface[k]+273.15)**4-d_ratm
 
 
 class Update_TauS_V1(modeltools.Method):
     """Calculate the dimensionless age of the snow layer.
 
     Basic equations:
-      :math:`TauS* = TauS \\cdot max(1 - 0.1 \\cdot SBes), 0)`
+      :math:`TauS_{new} = TauS_{old} \\cdot max(1 - 0.1 \\cdot SBes), 0) +
+      \\frac{r_1+r_2+r_3}{10^6} \\cdot Seconds`
 
-      :math:`TauS = TauS* + \\frac{r_1+r_2+r_3}{10^6} \\cdot Seconds`
+      :math:`r_1 = exp\\left(5000 \\cdot
+      \\left(\\frac{1}{273.15} - \\frac{1}{273.15+TempS}\\right)\\right)`
 
-      :math:`r_1 = exp(5000 \\cdot
-      (\\frac{1}{273.15} - \\frac{1}{273.15+TempS}))`
-
-      :math:`r_2 = min(r_1^{10}, 1)`
+      :math:`r_2 = min\\left(r_1^{10}, 1\\right)`
 
       :math:`r_3 = 0.03`
 
@@ -2601,7 +3308,6 @@ class Update_TauS_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.SBes,
-        lland_fluxes.TKor,
         lland_states.WAeS,
         lland_aides.TempS,
     )
@@ -2620,7 +3326,9 @@ class Update_TauS_V1(modeltools.Method):
             if sta.waes[k] > 0:
                 if modelutils.isnan(sta.taus[k]):
                     sta.taus[k] = 0.
-                d_r1 = modelutils.exp(5000.*(1/273.15-1./(273.15+aid.temps[k])))
+                d_r1 = modelutils.exp(
+                    5000.*(1/273.15-1./max(273.15+aid.temps[k], 0.))
+                )
                 d_r2 = min(d_r1**10, 1.)
                 sta.taus[k] *= max(1-0.1*flu.sbes[k], 0.)
                 sta.taus[k] += (d_r1+d_r2+.03)/1e6*der.seconds
@@ -2636,9 +3344,9 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
     For snow conditions, it estimates the albedo based on the snow age,
     as shown by the following equation.
 
-    Basic equations:
+    Basic equation:
       :math:`AlbedoSnow = Albedo0Snow \\cdot
-      (1-SnowAgingFactor \\cdot \\frac{TauS}{1 + TauS})`
+      \\left(1-SnowAgingFactor \\cdot \\frac{TauS}{1 + TauS}\\right)`
 
     Examples:
 
@@ -2672,6 +3380,7 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
         """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
         lland_control.SnowAgingFactor,
         lland_control.Albedo0Snow,
         lland_control.Albedo,
@@ -2697,7 +3406,8 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
             if sta.waes[k] > 0.:
                 flu.actualalbedo[k] = (
                     con.albedo0snow *
-                    (1.-con.snowagingfactor*sta.taus[k]/(1.+sta.taus[k])))
+                    (1.-con.snowagingfactor*sta.taus[k]/(1.+sta.taus[k]))
+                )
             else:
                 flu.actualalbedo[k] = \
                     con.albedo[con.lnk[k]-1, der.moy[model.idx_sim]]
@@ -2706,26 +3416,27 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
 class Calc_NetShortwaveRadiation_V1(modeltools.Method):
     """Calculate the net shortwave radiation.
 
-    Basic equation (`Allen`_, equation 38):
-      :math:`NetShortwaveRadiation = (1.0 - Albedo) \\cdot GlobalRadiation`
+    Basic equation:
+      :math:`NetShortwaveRadiation =
+      (1.0 - ActualAlbedo) \\cdot AdjustedGlobalRadiation`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(2)
-        >>> fluxes.actualalbedo(0.23, 0.5)
-        >>> fluxes.globalradiation = 20.0
+        >>> nhru(1)
+        >>> fluxes.actualalbedo = 0.25
+        >>> fluxes.adjustedglobalradiation = 1.0
         >>> model.calc_netshortwaveradiation_v1()
         >>> fluxes.netshortwaveradiation
-        netshortwaveradiation(15.4, 10.0)
+        netshortwaveradiation(0.75)
         """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.AdjustedGlobalRadiation,
         lland_fluxes.ActualAlbedo,
+        lland_fluxes.AdjustedGlobalRadiation,
     )
     RESULTSEQUENCES = (
         lland_fluxes.NetShortwaveRadiation,
@@ -2738,6 +3449,106 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
         for k in range(con.nhru):
             flu.netshortwaveradiation[k] = \
                 (1.-flu.actualalbedo[k])*flu.adjustedglobalradiation
+
+
+class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
+    """Calculate the net shortwave radiation for snow-surfaces.
+
+    Basic equation:
+      :math:`NetShortwaveRadiationSnow =
+      Fr \\cdot (1.0 - ActualAlbedo) \\cdot AdjustedGlobalRadiation`
+
+    Examples:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> lnk(ACKER, LAUBW)
+        >>> derived.fr.acker_jan = 1.0
+        >>> derived.fr.acker_feb = 1.0
+        >>> derived.fr.laubw_jan = 0.5
+        >>> derived.fr.laubw_feb = 0.1
+        >>> derived.moy.update()
+        >>> fluxes.actualalbedo = 0.5
+        >>> fluxes.adjustedglobalradiation = 2.0
+
+        >>> model.idx_sim = pub.timegrids.init['2000-01-31']
+        >>> model.calc_netshortwaveradiationsnow_v1()
+        >>> fluxes.netshortwaveradiationsnow
+        netshortwaveradiationsnow(1.0, 0.5)
+
+        >>> model.idx_sim = pub.timegrids.init['2000-02-01']
+        >>> model.calc_netshortwaveradiationsnow_v1()
+        >>> fluxes.netshortwaveradiationsnow
+        netshortwaveradiationsnow(1.0, 0.1)
+        """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Fr,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.ActualAlbedo,
+        lland_fluxes.AdjustedGlobalRadiation,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.NetShortwaveRadiationSnow,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.netshortwaveradiationsnow[k] = (
+                der.fr[con.lnk[k]-1, der.moy[model.idx_sim]] *
+                (1.-flu.actualalbedo[k])*flu.adjustedglobalradiation
+            )
+
+
+class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
+    """Calculate the daily net shortwave radiation.
+
+    Basic equation:
+      :math:`DailyNetShortwaveRadiation =
+      (1.0 - ActualAlbedo) \\cdot DailyGlobalRadiation`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep('1h')
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> fluxes.actualalbedo(0.25)
+        >>> fluxes.dailyglobalradiation = 1.0
+        >>> model.calc_dailynetshortwaveradiation_v1()
+        >>> fluxes.dailynetshortwaveradiation
+        dailynetshortwaveradiation(0.75)
+        """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.DailyGlobalRadiation,
+        lland_fluxes.ActualAlbedo,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailyNetShortwaveRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.dailynetshortwaveradiation[k] = \
+                (1.-flu.actualalbedo[k])*flu.dailyglobalradiation
 
 
 class Return_TempS_V1(modeltools.Method):
@@ -2776,7 +3587,10 @@ class Return_TempS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.waes[k] > 0.:
@@ -2787,11 +3601,11 @@ class Return_TempS_V1(modeltools.Method):
 
 
 class Return_ESnow_V1(modeltools.Method):
-    """Calculate and return the energy content of the snow layer for
+    """Calculate and return the thermal energy content of the snow layer for
     the given bulk temperature.
 
     Basic equation:
-      :math:`TempS \\cdot (WATS \\cdot CPEis + (WAeS-WATS)\\cdot CPWasser)`
+      :math:`temps \\cdot (WATS \\cdot CPEis + (WAeS-WATS)\\cdot CPWasser)`
 
     Example:
 
@@ -2819,7 +3633,11 @@ class Return_ESnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+            temps: float,
+    ) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis*sta.wats[k]
@@ -2861,8 +3679,6 @@ class Calc_TempS_V1(modeltools.Method):
         lland_states.WATS,
         lland_states.WAeS,
         lland_states.ESnow,
-        lland_fluxes.SBes,
-        lland_fluxes.TKor,
     )
     RESULTSEQUENCES = (
         lland_aides.TempS,
@@ -2879,21 +3695,27 @@ class Calc_TempS_V1(modeltools.Method):
 class Calc_TZ_V1(modeltools.Method):
     """Calculate the mean temperature in the top-layer of the soil.
 
-    Basic equation for a completely frozen soil:
-      :math:`TZ = \\frac{EBdn}{2 \\cdot z \\cdot c_G}`
-
-    Basic equation for a partly frozen soil:
-      :math:`TZ = 0`
-
-    Basic equation for a completely unfrozen soil:
-      :math:`TZ = \\frac{EBdn - BoWa2Z \\cdot RSchmelz}{2 \\cdot z \\cdot c_G}`
+    Basic equation:
+      .. math::
+        TZ = \\begin{cases}
+        \\frac{EBdn}{2 \\cdot z \\cdot CG}
+        &|\\
+        EBdn \\leq 0
+        \\\\
+        0
+        &|\\
+        0 < EBdn \\leq HeatOfFusion
+        \\\\
+        \\frac{EBdn - HeatOfFusion}{2 \\cdot z \\cdot CG}
+        &|\\
+        HeatOfFusion < EBdn
+        \\end{cases}
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(7)
-        >>> cg(1.5)
         >>> derived.heatoffusion(26.72)
         >>> states.ebdn(-10.0, -1.0, 0.0, 13.36, 26.72, 27.72, 36.72)
         >>> model.calc_tz_v1()
@@ -2901,13 +3723,14 @@ class Calc_TZ_V1(modeltools.Method):
         tz(-33.333333, -3.333333, 0.0, 0.0, 0.0, 3.333333, 33.333333)
         """
     CONTROLPARAMETERS = (
-        lland_control.CG,
+        lland_control.NHRU,
     )
     DERIVEDPARAMETERS = (
         lland_derived.HeatOfFusion,
     )
     FIXEDPARAMETERS = (
         lland_fixed.Z,
+        lland_fixed.CG,
     )
     REQUIREDSEQUENCES = (
         lland_states.EBdn,
@@ -2925,24 +3748,196 @@ class Calc_TZ_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if sta.ebdn[k] < 0.:
-                flu.tz[k] = sta.ebdn[k]/(2.*fix.z*con.cg[k])
+                flu.tz[k] = sta.ebdn[k]/(2.*fix.z*fix.cg)
             elif sta.ebdn[k] < der.heatoffusion[k]:
                 flu.tz[k] = 0.
             else:
                 flu.tz[k] = \
-                    (sta.ebdn[k]-der.heatoffusion[k])/(2.*fix.z*con.cg[k])
+                    (sta.ebdn[k]-der.heatoffusion[k])/(2.*fix.z*fix.cg)
+
+
+class Calc_G_V1(modeltools.Method):
+    """Calculate and return the "MORECS" soil heat flux.
+
+    Basic equations:
+      :math:`G = \\frac{PossibleSunshineDuration}
+      {DailyPossibleSunshineDuration} \\cdot G_D
+      + \\frac{(Hours - PossibleSunshineDuration)}
+      {24-DailyPossibleSunshineDuration} \\cdot G_N`
+
+      :math:`G_N = WG2Z - G_D`
+
+      :math:`G_D = (0.3 - 0.03 \\cdot LAI) \\cdot DailyNetRadiation`
+
+    The above equations are our interpretation on the relevant equations
+    and explanations given in the LARSIM user manual.  :math:`G_D` is the
+    daytime sum of the soil heat flux, which depends on the daily sum of
+    net radiation and the leaf area index.  Curiously, |DailyNetRadiation|
+    and :math:`G_D` become inversely related for leaf area index values
+    larger than 10.  |WG2Z| defines the daily energy change of the soil
+    layer, which is why we use its difference to :math:`G_D` for estimating
+    the nighttime sum of the soil heat flux (:math:`G_N`).
+
+    Examples:
+
+        To start as simple as possible, we perform the first test calculation
+        for a daily simulation step size:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-05-30', '2000-06-03', '1d'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+
+        We define five hydrological respose units, of which only the first
+        four ones need further parameterisation, as method |Calc_G_V1|
+        generally sets |G| to zero for all kinds of water areas:
+
+        >>> nhru(6)
+        >>> lnk(BODEN, OBSTB, OBSTB, LAUBW, NADELW, WASSER)
+
+        We assign leaf area indices covering the usual range of values:
+
+        >>> lai.boden = 0.0
+        >>> lai.obstb = 5.0
+        >>> lai.laubw = 10.0
+        >>> lai.nadelw = 15.0
+
+        We define a positive |WG2Z| value for May (on average, energy moves
+        from the soil body to the soil surface) and a negative one for June
+        (enery moves for the surface to the body):
+
+        >>> wg2z.mai=1.0
+        >>> wg2z.jun=-2.0
+
+        The following derived parameters need to be updated:
+
+        >>> derived.moy.update()
+        >>> derived.hours.update()
+
+        For a daily simulation step size, the values of
+        |PossibleSunshineDuration| (of the current simulation step) and
+        |DailyPossibleSunshineDuration| must be identical:
+
+        >>> fluxes.possiblesunshineduration = 14.0
+        >>> fluxes.dailypossiblesunshineduration = 14.0
+
+        We set |DailyNetRadiation| to 10 MJ/m² for most response units,
+        except one of the |ACKER| ones:
+
+        >>> fluxes.dailynetradiation = 10.0, 10.0, -10.0, 10.0, 10.0, 10.0
+
+        For the given daily simulation step size, method |Calc_G_V1|
+        calculates soil surface fluxes identical with the |WG2Z| value
+        of the respective month:
+
+        >>> model.idx_sim = pub.timegrids.init['2000-05-31']
+        >>> model.calc_g_v1()
+        >>> fluxes.g
+        g(1.0, 1.0, 1.0, 1.0, 1.0, 0.0)
+        >>> model.idx_sim = pub.timegrids.init['2000-06-01']
+        >>> model.calc_g_v1()
+        >>> fluxes.g
+        g(-2.0, -2.0, -2.0, -2.0, -2.0, 0.0)
+
+        Next, we switch to an hourly step size and focus on May:
+
+        >>> pub.timegrids = '2000-05-30 00:00', '2000-06-02 00:00', '1h'
+        >>> model.idx_sim = pub.timegrids.init['2000-05-31']
+        >>> derived.moy.update()
+        >>> derived.hours.update()
+        >>> derived.days.update()
+
+        During daytime (when the possible sunshine duration is one hour),
+        the soil surface flux is negative for net radiation values larger
+        one and for leaf area index values smaller than ten (see response
+        units one and two).  Negative net radiation (response unit three)
+        ar leaf area indices larger then ten (response unit five) result
+        in positive soil surface fluxes:
+
+        >>> fluxes.possiblesunshineduration = 1.0
+        >>> model.calc_g_v1()
+        >>> fluxes.g
+        g(-0.214286, -0.107143, 0.107143, 0.0, 0.107143, 0.0)
+        >>> day = fluxes.g.values.copy()
+
+        The nighttime soils surface fluxes (which we calculate through
+        setting |PossibleSunshineDuration| to zero) somehow compensate the
+        daytime ones:
+
+        >>> fluxes.possiblesunshineduration = 0.0
+        >>> model.calc_g_v1()
+        >>> fluxes.g
+        g(0.4, 0.25, -0.05, 0.1, -0.05, 0.0)
+        >>> night = fluxes.g.values.copy()
+
+        This compensation enforces that the daily sum the surface flux agrees
+        with the actual value of |WG2Z|, which we confirm by the following
+        test calculation:
+
+        >>> from hydpy import print_values
+        >>> print_values(day*fluxes.dailypossiblesunshineduration +
+        ...              night*(24-fluxes.dailypossiblesunshineduration))
+        1.0, 1.0, 1.0, 1.0, 1.0, 0.0
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.LAI,
+        lland_control.WG2Z,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Hours,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.PossibleSunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+        lland_fluxes.DailyNetRadiation,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.G,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (FLUSS, SEE, WASSER):
+                flu.g[k] = 0.
+            else:
+                idx = der.moy[model.idx_sim]
+                d_cr = .3-.03*con.lai[con.lnk[k]-1, idx]
+                d_gd = -d_cr*flu.dailynetradiation[k]
+                d_gn = con.wg2z[idx]-d_gd
+                d_gd_h = d_gd/flu.dailypossiblesunshineduration
+                d_gn_h = d_gn/(24.-flu.dailypossiblesunshineduration)
+                flu.g[k] = (
+                    flu.possiblesunshineduration*d_gd_h +
+                    (der.hours-flu.possiblesunshineduration)*d_gn_h
+                )
 
 
 class Return_WG_V1(modeltools.Method):
-    """Calculate and return the soil heat flux.
+    """Calculate and return the "dynamic" soil heat flux.
 
-    The soil heat flux depends on the temperature gradient between depth z
-    and the surface.  We set the soil surface temperature to the air
+    The soil heat flux |WG| depends on the temperature gradient between
+    depth z and the surface.  We set the soil surface temperature to the air
     temperature for snow-free conditions and otherwise to the average
     temperature of the snow layer.
 
     Basic equations:
-      :math:`\\lambdaG \\cdot \\frac{Tz-T_{surface}}{Z}`
+      .. math::
+        \\begin{cases}
+        LambdaG \\cdot \\frac{TZ-TempS}{Z}
+        &|\\
+        WAeS > 0
+        \\\\
+        LambdaG \\cdot \\frac{TZ-TKor}{Z}
+        &|\\
+        WAeS = 0
+        \\end{cases}
 
     Examples:
 
@@ -2961,9 +3956,6 @@ class Return_WG_V1(modeltools.Method):
         >>> round_(model.return_wg_v1(1))
         0.0648
     """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-    )
     FIXEDPARAMETERS = (
         lland_fixed.Z,
         lland_fixed.LambdaG,
@@ -2974,12 +3966,12 @@ class Return_WG_V1(modeltools.Method):
         lland_states.WAeS,
         lland_aides.TempS,
     )
-    RESULTSEQUENCES = (
-        lland_fluxes.WG,
-    )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2995,8 +3987,8 @@ class Calc_WG_V1(modeltools.Method):
     """Calculate the soil heat flux.
 
     Method |Calc_WG_V1| uses method |Return_WG_V1| to calculate the
-    soil heat flux for all hydrological response units that do not
-    represent water areas.
+    "dynamic" soil heat flux for all hydrological response units that
+    do not represent water areas.
 
     Examples:
 
@@ -3047,10 +4039,10 @@ class Calc_WG_V1(modeltools.Method):
 
 
 class Update_EBdn_V1(modeltools.Method):
-    """Update the energy content of the upper soil layer.
+    """Update the thermal energy content of the upper soil layer.
 
     Basic equation:
-      :math:`\\frac{dEBdn}{dt} = WG2Z - WG`
+      :math:`\\frac{dEBdn}{dt} = WG2Z \\cdot Days - WG`
 
     Example:
 
@@ -3065,6 +4057,7 @@ class Update_EBdn_V1(modeltools.Method):
         >>> pub.timegrids = '2019-04-29', '2019-05-03', '1d'
         >>> derived.moy.update()
         >>> derived.seconds.update()
+        >>> derived.days.update()
         >>> wg2z.apr = -0.03
         >>> wg2z.mai = -0.04
         >>> states.ebdn = 0.0
@@ -3089,7 +4082,7 @@ class Update_EBdn_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
-        lland_derived.Seconds,
+        lland_derived.Days,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.WG,
@@ -3108,14 +4101,15 @@ class Update_EBdn_V1(modeltools.Method):
             if con.lnk[k] in (WASSER, FLUSS, SEE):
                 sta.ebdn[k] = 0.
             else:
-                sta.ebdn[k] += con.wg2z[der.moy[model.idx_sim]]-flu.wg[k]
+                sta.ebdn[k] += \
+                    con.wg2z[der.moy[model.idx_sim]]*der.days-flu.wg[k]
 
 
 class Return_WSensSnow_V1(modeltools.Method):
     """Calculate and return the sensible heat flux of the snow surface.
 
-    Basic equations:
-      :math:`(Turb0 + Turb1 \\cdot WindSpeed10m) \\cdot (TKor - TempSSurface)`
+    Basic equation:
+      :math:`(Turb0 + Turb1 \\cdot WindSpeed2m) \\cdot (TempSSurface - TKor)`
 
     Example:
 
@@ -3127,7 +4121,7 @@ class Return_WSensSnow_V1(modeltools.Method):
         >>> turb1(0.1728)
         >>> fluxes.tkor = -2.0, -1.0
         >>> fluxes.tempssurface = -5.0, 0.0
-        >>> fluxes.windspeed10m = 3.0
+        >>> fluxes.reducedwindspeed2m = 3.0
         >>> from hydpy import round_
         >>> round_(model.return_wsenssnow_v1(0))
         -0.0864
@@ -3135,33 +4129,34 @@ class Return_WSensSnow_V1(modeltools.Method):
         0.0288
     """
     CONTROLPARAMETERS = (
-        lland_control.NHRU,
         lland_control.Turb0,
         lland_control.Turb1,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.TempSSurface,
-        lland_fluxes.WindSpeed10m,
+        lland_fluxes.ReducedWindSpeed2m,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        return ((con.turb0+con.turb1*flu.windspeed10m) *
-                (flu.tempssurface[k]-flu.tkor[k]))
+        return (
+            (con.turb0+con.turb1*flu.reducedwindspeed2m[k]) *
+            (flu.tempssurface[k]-flu.tkor[k])
+        )
 
 
 class Return_WLatSnow_V1(modeltools.Method):
     """Calculate and return the latent heat flux of the snow surface.
 
-    Basic equations:
-      :math:`(Turb0 + Turb1 \\cdot WindSpeed10m) \\cdot
-      \\beta \\cdot(ActualVapourPressureSnow - SaturationVapourPressureSnow))`
-
-      :math:`\\beta = 17.6 °C/kpa`
-      :math:`SaturationVapourPressureSnow = 0.6108 kPa`
+    Basic equation:
+      :math:`(Turb0 + Turb1 \\cdot ReducedWindSpeed2m) \\cdot
+      PsiInv \\cdot (SaturationVapourPressureSnow - ActualVapourPressure))`
 
     Example:
 
@@ -3171,8 +4166,9 @@ class Return_WLatSnow_V1(modeltools.Method):
         >>> nhru(2)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fluxes.windspeed10m = 3.0
-        >>> fluxes.actualvapourpressuresnow = 0.4, 0.8
+        >>> fluxes.reducedwindspeed2m = 3.0
+        >>> fluxes.saturationvapourpressuresnow = 0.4, 0.8
+        >>> fluxes.actualvapourpressure = .6108
         >>> from hydpy import round_
         >>> round_(model.return_wlatsnow_v1(0))
         -0.10685
@@ -3183,24 +4179,34 @@ class Return_WLatSnow_V1(modeltools.Method):
         lland_control.Turb0,
         lland_control.Turb1
     )
+    FIXEDPARAMETERS = (
+        lland_fixed.PsyInv,
+    )
     REQUIREDSEQUENCES = (
-        lland_fluxes.WindSpeed10m,
-        lland_fluxes.ActualVapourPressureSnow,
+        lland_fluxes.ReducedWindSpeed2m,
+        lland_fluxes.SaturationVapourPressureSnow,
+        lland_fluxes.ActualVapourPressure,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        return ((con.turb0+con.turb1*flu.windspeed10m) *
-                17.6*(flu.actualvapourpressuresnow[k]-.6108))
+        return (
+            (con.turb0+con.turb1*flu.reducedwindspeed2m[k])*fix.psyinv *
+            (flu.saturationvapourpressuresnow[k]-flu.actualvapourpressure[k])
+        )
 
 
 class Return_WSurf_V1(modeltools.Method):
     """Calculate and return the snow surface heat flux.
 
     Basic equation:
-      :math:`KTSchnee \\cdot (TempSSurface - TempS)`
+      :math:`KTSchnee \\cdot (TempS - TempSSurface)`
 
     Example:
 
@@ -3222,22 +4228,140 @@ class Return_WSurf_V1(modeltools.Method):
         >>> round_(model.return_wsurf_v1(0))
         inf
     """
+    CONTROLPARAMETERS = (
+        lland_control.KTSchnee,
+    )
     REQUIREDSEQUENCES = (
         lland_aides.TempS,
         lland_fluxes.TempSSurface,
     )
-    RESULTSEQUENCES = (
-        lland_fluxes.WSurf,
-    )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         if modelutils.isinf(con.ktschnee):
             return modelutils.inf
         return con.ktschnee*(aid.temps[k]-flu.tempssurface[k])
+
+
+class Return_NetRadiation_V1(modeltools.Method):
+    """Calculate and return the total net radiation.
+
+    Basic equation:
+      :math:`netshortwaveradiation - netlongwaveradiation`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> from hydpy import round_
+        >>> round_(model.return_netradiation_v1(3.0, 2.0))
+        1.0
+    """
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            netshortwaveradiation: float,
+            netlongwaveradiation: float,
+    ) -> float:
+        return netshortwaveradiation-netlongwaveradiation
+
+
+class Calc_NetRadiation_V1(modeltools.Method):
+    """Calculate the total net radiation.
+
+    Basic equation:
+      :math:`NetRadiation = Return\\_NetRadiation\\_V1(
+      NetShortwaveRadiation, DailyNetLongwaveRadiation \\cdot Days)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> derived.days(0.5)
+        >>> fluxes.netshortwaveradiation = 3.0
+        >>> fluxes.dailynetlongwaveradiation = 2.0
+        >>> model.calc_netradiation_v1()
+        >>> fluxes.netradiation
+        netradiation(2.0)
+    """
+    SUBMETHODS = (
+        Return_NetRadiation_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.Days,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NetShortwaveRadiation,
+        lland_fluxes.DailyNetLongwaveRadiation,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.NetRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.netradiation[k] = model.return_netradiation_v1(
+                flu.netshortwaveradiation[k],
+                flu.dailynetlongwaveradiation[k]*der.days,
+            )
+
+
+class Calc_DailyNetRadiation_V1(modeltools.Method):
+    """Calculate the daily total net radiation for snow-free land surfaces.
+
+    Basic equation:
+      :math:`NetRadiation = Return\\_NetRadiation\\_V1(
+      DailyDailyNetShortwaveRadiation, DailyNetLongwaveRadiation)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> fluxes.dailynetshortwaveradiation = 3.0
+        >>> fluxes.dailynetlongwaveradiation = 2.0
+        >>> model.calc_dailynetradiation_v1()
+        >>> fluxes.dailynetradiation
+        dailynetradiation(1.0)
+    """
+    SUBMETHODS = (
+        Return_NetRadiation_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.DailyNetLongwaveRadiation,
+        lland_fluxes.DailyNetShortwaveRadiation,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.DailyNetRadiation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.dailynetradiation[k] = model.return_netradiation_v1(
+                flu.dailynetshortwaveradiation[k],
+                flu.dailynetlongwaveradiation[k],
+            )
 
 
 class Return_EnergyGainSnowSurface_V1(modeltools.Method):
@@ -3248,12 +4372,10 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     snow surface.  Hence, this methods provides a means to find this
     "correct" temperature via root finding algorithms.
 
-    Basic equations:
-      :math:`WSurf(TempSSurface) + NetRadiation(TempSSurface) -
-      WSensSnow(TempSSurface) - WLatSnow(TempSSurface)`
-
-      :math:`NetRadiation(TempSSurface) =
-      NetshortwaveRadiation - NetlongwaveRadiation(TempSSurface)`
+    Basic equation:
+      :math:`WSurf(tempssurface) +
+      NetshortwaveRadiation - NetlongwaveRadiation(tempssurface) -
+      WSensSnow(tempssurface) - WLatSnow(tempssurface)`
 
     Example:
 
@@ -3266,19 +4388,20 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         >>> simulationstep('1d')
         >>> parameterstep('1d')
         >>> nhru(1)
+        >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fratm(1.28)
         >>> ktschnee(0.432)
-        >>> derived.seconds.update()
+        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
-        >>> inputs.sunshineduration = 10.0
         >>> states.waes = 1.0
         >>> fluxes.tkor = -3.0
-        >>> fluxes.windspeed10m = 3.0
+        >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.netshortwaveradiation = 2.0
-        >>> fluxes.possiblesunshineduration = 12.0
+        >>> fluxes.netshortwaveradiationsnow = 2.0
+        >>> derived.nmblogentries.update()
+        >>> fluxes.dailysunshineduration = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = -2.0
 
         Under the defined conditions and for a snow surface temperature of
@@ -3287,84 +4410,96 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         >>> from hydpy import round_
         >>> model.idx_hru = 0
         >>> round_(model.return_energygainsnowsurface_v1(-4.0))
-        -0.454395
+        -6.565618
 
         As a side-effect, method |Return_EnergyGainSnowSurface_V1| calculates
         the following flux sequences for the given snow surface temperature:
 
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.453927)
-        >>> fluxes.actualvapourpressuresnow
-        actualvapourpressuresnow(0.272356)
-        >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(8.126801)
-        >>> fluxes.netradiation
-        netradiation(-6.126801)
+        saturationvapourpressuresnow(0.453913)
+        >>> fluxes.netlongwaveradiationsnow
+        netlongwaveradiationsnow(8.126801)
+        >>> fluxes.netradiationsnow
+        netradiationsnow(-6.126801)
         >>> fluxes.wsenssnow
         wsenssnow(-0.6912)
         >>> fluxes.wlatsnow
-        wlatsnow(-4.117207)
+        wlatsnow(1.994016)
         >>> fluxes.wsurf
         wsurf(0.864)
     """
     SUBMETHODS = (
         Return_SaturationVapourPressure_V1,
-        Return_ActualVapourPressure_V1,
-        Return_WSensSnow_V1,
         Return_WLatSnow_V1,
+        Return_WSensSnow_V1,
+        Return_NetLongwaveRadiationSnow_V1,
+        Return_NetRadiation_V1,
         Return_WSurf_V1,
-        Return_NetLongwaveRadiation_V1,
     )
     CONTROLPARAMETERS = (
-        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.KTSchnee,
         lland_control.Turb0,
         lland_control.Turb1,
-        lland_control.FrAtm,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
+        lland_derived.MOY,
+        lland_derived.Days,
+        lland_derived.Fr,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.PsyInv,
+        lland_fixed.Sigma,
+        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
-        lland_inputs.RelativeHumidity,
-        lland_states.WAeS,
-        lland_fluxes.NetShortwaveRadiation,
+        lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
-        lland_fluxes.WindSpeed10m,
-        lland_inputs.SunshineDuration,
-        lland_fluxes.PossibleSunshineDuration,
-        lland_logs.LoggedPossibleSunshineDuration,
-        lland_logs.LoggedSunshineDuration,
+        lland_fluxes.ReducedWindSpeed2m,
+        lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
         lland_aides.TempS,
     )
     RESULTSEQUENCES = (
+        lland_fluxes.TempSSurface,
         lland_fluxes.SaturationVapourPressureSnow,
-        lland_fluxes.ActualVapourPressureSnow,
         lland_fluxes.WSensSnow,
         lland_fluxes.WLatSnow,
-        lland_fluxes.NetLongwaveRadiation,
+        lland_fluxes.NetLongwaveRadiationSnow,
+        lland_fluxes.NetRadiationSnow,
         lland_fluxes.WSurf,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, tempssurface: float) -> float:
+    def __call__(
+            model: modeltools.Model,
+            tempssurface: float,
+    ) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         k = model.idx_hru
+
         flu.tempssurface[k] = tempssurface
 
         flu.saturationvapourpressuresnow[k] = \
             model.return_saturationvapourpressure_v1(flu.tempssurface[k])
-        flu.actualvapourpressuresnow[k] = \
-            model.return_actualvapourpressure_v1(
-                flu.saturationvapourpressuresnow[k])
         flu.wlatsnow[k] = model.return_wlatsnow_v1(k)
         flu.wsenssnow[k] = model.return_wsenssnow_v1(k)
-        flu.netlongwaveradiation[k] = model.return_netlongwaveradiation_v1(k)
-        flu.netradiation[k] = \
-            flu.netshortwaveradiation[k]-flu.netlongwaveradiation[k]
+        flu.netlongwaveradiationsnow[k] = \
+            model.return_netlongwaveradiationsnow_v1(k)
+        flu.netradiationsnow[k] = model.return_netradiation_v1(
+            flu.netshortwaveradiationsnow[k],
+            flu.netlongwaveradiationsnow[k],
+        )
         flu.wsurf[k] = model.return_wsurf_v1(k)
 
-        return flu.wsurf[k]+flu.netradiation[k]-flu.wsenssnow[k]-flu.wlatsnow[k]
+        return (
+            flu.wsurf[k] +
+            flu.netradiationsnow[k] -
+            flu.wsenssnow[k] -
+            flu.wlatsnow[k]
+        )
 
 
 class Return_TempSSurface_V1(modeltools.Method):
@@ -3391,19 +4526,20 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> simulationstep('1d')
         >>> parameterstep('1d')
         >>> nhru(5)
+        >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fratm(1.28)
         >>> ktschnee(0.432)
-        >>> derived.seconds(24*60*60)
+        >>> derived.nmblogentries.update()
+        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
-        >>> inputs.sunshineduration = 10.0
         >>> states.waes = 0.0, 1.0, 1.0, 1.0, 1.0
         >>> fluxes.tkor = -3.0
-        >>> fluxes.windspeed10m = 3.0
+        >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.possiblesunshineduration = 12.0
-        >>> fluxes.netshortwaveradiation = 1.0, 1.0, 2.0, 2.0, 2.0
+        >>> fluxes.netshortwaveradiationsnow = 1.0, 1.0, 2.0, 2.0, 2.0
+        >>> fluxes.dailysunshineduration = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = nan, -2.0, -2.0, -50.0, -200.0
 
         For the first, snow-free response unit, we cannot define a reasonable
@@ -3418,13 +4554,13 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> for hru in range(5):
         ...     _ = model.return_tempssurface_v1(hru)
         >>> fluxes.tempssurface
-        tempssurface(nan, -4.832608, -4.259254, -16.889144, -63.201335)
+        tempssurface(nan, -8.064938, -7.512933, -19.826442, -66.202324)
 
         As to be expected, the energy fluxes of the snow surface neutralise
         each other (within the defined numerical accuracy):
 
         >>> from hydpy import print_values
-        >>> print_values(fluxes.netradiation -
+        >>> print_values(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3442,8 +4578,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> fluxes.tempssurface
         tempssurface(nan, -2.0, -2.0, -50.0, -200.0)
         >>> fluxes.wsurf
-        wsurf(0.0, 5.008511, 4.008511, -47.307802, -163.038145)
-        >>> print_values(fluxes.netradiation -
+        wsurf(0.0, 11.476385, 10.476385, -43.376447, -159.135575)
+        >>> print_values(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3453,47 +4589,56 @@ class Return_TempSSurface_V1(modeltools.Method):
         Return_EnergyGainSnowSurface_V1,
     )
     CONTROLPARAMETERS = (
+        lland_control.Lnk,
         lland_control.Turb0,
         lland_control.Turb1,
-        lland_control.FrAtm,
         lland_control.KTSchnee,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
+        lland_derived.MOY,
+        lland_derived.Days,
+        lland_derived.Fr,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.PsyInv,
+        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
-        lland_inputs.RelativeHumidity,
-        lland_inputs.SunshineDuration,
-        lland_fluxes.NetShortwaveRadiation,
-        lland_fluxes.WNied,
+        lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
-        lland_fluxes.WindSpeed10m,
-        lland_fluxes.PossibleSunshineDuration,
+        lland_fluxes.ReducedWindSpeed2m,
+        lland_fluxes.ActualVapourPressure,
         lland_states.WAeS,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
         lland_aides.TempS,
     )
     RESULTSEQUENCES = (
         lland_fluxes.SaturationVapourPressureSnow,
-        lland_fluxes.ActualVapourPressureSnow,
         lland_fluxes.TempSSurface,
         lland_fluxes.WSensSnow,
         lland_fluxes.WLatSnow,
-        lland_fluxes.NetLongwaveRadiation,
+        lland_fluxes.NetLongwaveRadiationSnow,
+        lland_fluxes.NetRadiationSnow,
         lland_fluxes.WSurf,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
-        aid = model.sequences.aides.fastaccess
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
         if sta.waes[k] > 0.:
             if modelutils.isinf(con.ktschnee):
                 model.idx_hru = k
                 model.return_energygainsnowsurface_v1(aid.temps[k])
                 flu.wsurf[k] = \
-                    flu.wsenssnow[k]+flu.wlatsnow[k]-flu.netradiation[k]
+                    flu.wsenssnow[k]+flu.wlatsnow[k]-flu.netradiationsnow[k]
             else:
                 model.idx_hru = k
                 model.pegasustempssurface.find_x(
@@ -3501,7 +4646,6 @@ class Return_TempSSurface_V1(modeltools.Method):
         else:
             flu.tempssurface[k] = modelutils.nan
             flu.saturationvapourpressuresnow[k] = 0.
-            flu.actualvapourpressuresnow[k] = 0.
             flu.wsenssnow[k] = 0.
             flu.wlatsnow[k] = 0.
             flu.wsurf[k] = 0.
@@ -3513,74 +4657,72 @@ class Return_BackwardEulerError_V1(modeltools.Method):
     update of |ESnow| due to the energy fluxes |WG| and |WSurf|.
 
     Basic equation:
-      :math:`ESnow_{old} - ESnow_{new} + WG(ESnow_{new} ) - WSurf(ESnow_{new})`
+      :math:`ESnow_{old} - esnow_{new} + WG(esnow{new} ) - WSurf(esnow{new})`
 
-    Method |Return_BackwardEulerError_V1| does not calculate any
-    hydrologically meaningfull.  It is just a technical means to update
-    the energy content of the snow layer with running into instability
-    issues.  See the documentation on method |Update_ESnow_V2| for
-    further information.
+    Method |Return_BackwardEulerError_V1| does not calculate any hydrologically
+    meaningfull property.  It is just a technical means to update the energy
+    content of the snow layer with running into instability issues.  See the
+    documentation on method |Update_ESnow_V1| for further information.
 
     Example:
 
-        Method |Return_BackwardEulerError_V1| relies on multiple
-        submethods with different requirements.  Hence, we first need to
-        specify a lot of input data (see the documentation on the
-        different submethods for further information):
+        Method |Return_BackwardEulerError_V1| relies on multiple submethods
+        with different requirements.  Hence, we first need to specify a lot
+        of input data (see the documentation on the different submethods for
+        further information):
 
         >>> from hydpy.models.lland import *
         >>> simulationstep('1d')
         >>> parameterstep('1d')
         >>> nhru(1)
+        >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fratm(1.28)
-        >>> derived.seconds.update()
+        >>> derived.nmblogentries.update()
+        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
-        >>> inputs.sunshineduration = 10.0
         >>> states.waes = 12.0
         >>> states.wats = 10.0
         >>> fluxes.tkor = -3.0
-        >>> fluxes.windspeed10m = 3.0
+        >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.netshortwaveradiation = 2.0
-        >>> fluxes.possiblesunshineduration = 12.0
+        >>> fluxes.netshortwaveradiationsnow = 2.0
         >>> states.esnow = -0.1
+        >>> fluxes.dailysunshineduration = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> fluxes.tz = 0.0
 
         Under the defined conditions the "correct" next value of |ESnow|,
-        when following the Backward Euler Approach, is approximately
-        -0.105 MJ/m²:
+        when following the Backward Euler approach, is approximately
+        -0.195 MJ/m²:
 
         >>> ktschnee(inf)
         >>> from hydpy import round_
         >>> model.idx_hru = 0
-        >>> round_(model.return_backwardeulererror_v1(-0.10503956))
+        >>> round_(model.return_backwardeulererror_v1(-0.19536469903172524))
         0.0
 
         As a side-effect, method |Return_BackwardEulerError_V1| calculates
         the following flux sequences for the given amount of energy:
 
         >>> aides.temps
-        temps(-3.588201)
+        temps(-6.67375)
         >>> fluxes.tempssurface
-        tempssurface(-3.588201)
+        tempssurface(-6.67375)
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.468236)
-        >>> fluxes.actualvapourpressuresnow
-        actualvapourpressuresnow(0.280941)
-        >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(8.284498)
-        >>> fluxes.netradiation
-        netradiation(-6.284498)
+        saturationvapourpressuresnow(0.370062)
+        >>> fluxes.netlongwaveradiationsnow
+        netlongwaveradiationsnow(7.12037)
+        >>> fluxes.netradiationsnow
+        netradiationsnow(-5.12037)
         >>> fluxes.wsenssnow
-        wsenssnow(-0.406565)
+        wsenssnow(-2.539296)
         >>> fluxes.wlatsnow
-        wlatsnow(-4.01277)
+        wlatsnow(0.973963)
         >>> fluxes.wsurf
-        wsurf(1.865163)
+        wsurf(3.555037)
         >>> fluxes.wg
-        wg(1.860123)
+        wg(3.459672)
 
         Note that the original value of |ESnow| remains unchanged, to allow
         for calling method |Return_BackwardEulerError_V1| multiple times
@@ -3594,32 +4736,30 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         common value of 0.432 MJ/m²/K/d, the surface temperature is
         calculated by another, embeded iteration approach (see method
         |Return_TempSSurface_V1|).  Hence, the values of |TempSSurface|
-        and |TempS| differ and the energy amount of -0.105 MJ/m² is
+        and |TempS| differ and the energy amount of -0.195 MJ/m² is
         not correct anymore:
 
         >>> ktschnee(0.432)
-        >>> round_(model.return_backwardeulererror_v1(-0.10503956))
-        1.405507
+        >>> round_(model.return_backwardeulererror_v1(-0.19536469903172524))
+        2.70906
         >>> aides.temps
-        temps(-3.588201)
+        temps(-6.67375)
         >>> fluxes.tempssurface
-        tempssurface(-4.652219)
+        tempssurface(-8.632029)
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.432056)
-        >>> fluxes.actualvapourpressuresnow
-        actualvapourpressuresnow(0.259234)
-        >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(7.878514)
-        >>> fluxes.netradiation
-        netradiation(-5.878514)
+        saturationvapourpressuresnow(0.317671)
+        >>> fluxes.netlongwaveradiationsnow
+        netlongwaveradiationsnow(6.402218)
+        >>> fluxes.netradiationsnow
+        netradiationsnow(-4.402218)
         >>> fluxes.wsenssnow
-        wsenssnow(-1.142014)
+        wsenssnow(-3.892859)
         >>> fluxes.wlatsnow
-        wlatsnow(-4.276844)
+        wlatsnow(0.336617)
         >>> fluxes.wsurf
-        wsurf(0.459656)
+        wsurf(0.845976)
         >>> fluxes.wg
-        wg(1.860123)
+        wg(3.459672)
         >>> states.esnow
         esnow(-0.1)
 
@@ -3631,7 +4771,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> round_(model.return_backwardeulererror_v1(-0.10503956))
         nan
         >>> fluxes.wsurf
-        wsurf(0.459656)
+        wsurf(0.845976)
     """
     SUBMETHODS = (
         Return_TempS_V1,
@@ -3639,42 +4779,57 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         Return_TempSSurface_V1,
     )
     CONTROLPARAMETERS = (
-        lland_control.NHRU,
         lland_control.Turb0,
         lland_control.Turb1,
-        lland_control.FrAtm,
+        lland_control.Lnk,
+        lland_control.KTSchnee,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
+        lland_derived.MOY,
+        lland_derived.Days,
+        lland_derived.Fr,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.CPWasser,
+        lland_fixed.CPEis,
+        lland_fixed.Z,
+        lland_fixed.LambdaG,
+        lland_fixed.Sigma,
+        lland_fixed.PsyInv,
+        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
-        lland_inputs.RelativeHumidity,
         lland_states.WAeS,
         lland_states.WATS,
-        lland_fluxes.NetShortwaveRadiation,
+        lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
-        lland_fluxes.WindSpeed10m,
-        lland_inputs.SunshineDuration,
-        lland_fluxes.PossibleSunshineDuration,
-        lland_logs.LoggedPossibleSunshineDuration,
-        lland_logs.LoggedSunshineDuration,
+        lland_fluxes.ReducedWindSpeed2m,
         lland_fluxes.TZ,
+        lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
         lland_aides.TempS,
+        lland_states.ESnow,
     )
     RESULTSEQUENCES = (
+        lland_fluxes.TempSSurface,
         lland_fluxes.SaturationVapourPressureSnow,
-        lland_fluxes.ActualVapourPressureSnow,
         lland_fluxes.WSensSnow,
         lland_fluxes.WLatSnow,
-        lland_fluxes.NetLongwaveRadiation,
+        lland_fluxes.NetLongwaveRadiationSnow,
+        lland_fluxes.NetRadiationSnow,
         lland_fluxes.WSurf,
+        lland_fluxes.WG,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, esnow: float) -> float:
+    def __call__(
+            model: modeltools.Model,
+            esnow: float,
+    ) -> float:
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
         k = model.idx_hru
         if sta.waes[k] > 0.:
             d_esnow_old = sta.esnow[k]
@@ -3687,24 +4842,24 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         return modelutils.nan
 
 
-class Update_ESnow_V2(modeltools.Method):
-    """Update the energy content of the snow layer with regard to the
+class Update_ESnow_V1(modeltools.Method):
+    """Update the thermal energy content of the snow layer with regard to the
     energy fluxes from the soil and the atmosphere (except the one related
     to the heat content of precipitation).
 
     Basic equation:
-      :math:`\\frac{dESnow}{dt} = WG(ESnow(t)) - WSurf(ESnow(t))`
+      :math:`\\frac{dESnow}{dt} = WG - WSurf`
 
     For a thin snow cover, small absolute changes in its energy content
     result in extreme temperature changes, which makes the above calculation
     stiff.  Furthermore, the nonlinearity of the term :math:` WSurf(ESnow(t))`
-    prevents from finding an analytical solution of the problem.  This
-    is why we apply the A-stable Backward Euler method.  Through our
-    simplified approach of taking only one variable (|ESnow|) into account,
-    we can solve the underlying root finding problem without any need to
-    calculate or approximate derivatives.  Speaking plainly, we use the
-    Pegasus iterator |PegasusESnow| to find the root of method
-    Method |Return_BackwardEulerError_V1| whenever the surface is snow-covered.
+    prevents from finding an analytical solution of the problem.  This is why
+    we apply the A-stable Backward Euler method.  Through our simplified
+    approach of taking only one variable (|ESnow|) into account, we can solve
+    the underlying root finding problem without any need to calculate or
+    approximate derivatives.  Speaking plainly, we use the Pegasus iterator
+    |PegasusESnow| to find the root of method |Return_BackwardEulerError_V1|
+    whenever the surface is snow-covered.
 
     Example:
 
@@ -3716,21 +4871,22 @@ class Update_ESnow_V2(modeltools.Method):
         >>> simulationstep('1d')
         >>> parameterstep('1d')
         >>> nhru(8)
+        >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
-        >>> fratm(1.28)
         >>> ktschnee(inf)
-        >>> derived.seconds.update()
+        >>> derived.nmblogentries.update()
+        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
-        >>> inputs.sunshineduration = 10.0
         >>> states.waes = 0.0, 120.0, 12.0, 1.2, 0.12, 0.012, 1.2e-6, 1.2e-12
         >>> states.wats = 0.0, 100.0, 12.0, 1.0, 0.10, 0.010, 1.0e-6, 1.0e-12
         >>> fluxes.tkor = -3.0
-        >>> fluxes.windspeed10m = 3.0
+        >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.possiblesunshineduration = 12.0
-        >>> fluxes.netshortwaveradiation = 2.0
+        >>> fluxes.netshortwaveradiationsnow = 2.0
         >>> states.esnow = -0.1
+        >>> fluxes.dailysunshineduration = 10.0
+        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> fluxes.tz = 0.0
 
         For the first, snow-free response unit, the energy content of the
@@ -3740,17 +4896,16 @@ class Update_ESnow_V2(modeltools.Method):
         orders of magnitudes.  We hope, our implementation works always
         well.  Please tell us, if you encounter any cases where it does not):
 
-
-        >>> model.update_esnow_v2()
+        >>> model.update_esnow_v1()
         >>> states.esnow
-        esnow(0.0, -0.92156, -0.090193, -0.010653, -0.001067, -0.000107, 0.0,
+        esnow(0.0, -1.723064, -0.167737, -0.019803, -0.001983, -0.000198, 0.0,
               0.0)
         >>> aides.temps
-        temps(nan, -3.148092, -3.596224, -3.639221, -3.644405, -3.644924,
-              -3.644982, -3.644982)
+        temps(nan, -5.886068, -6.688079, -6.764855, -6.774109, -6.775036,
+              -6.775139, -6.775139)
         >>> fluxes.tempssurface
-        tempssurface(nan, -3.148092, -3.596224, -3.639221, -3.644405, -3.644924,
-                     -3.644982, -3.644982)
+        tempssurface(nan, -5.886068, -6.688079, -6.764855, -6.774109, -6.775036,
+                     -6.775139, -6.775139)
 
         As to be expected, the requirement of the Backward Euler method
         is approximetely fullfilled for each response unit:
@@ -3771,16 +4926,16 @@ class Update_ESnow_V2(modeltools.Method):
         of the snow layer:
 
         >>> ktschnee(0.432)
-        >>> model.update_esnow_v2()
+        >>> model.update_esnow_v1()
         >>> states.esnow
-        esnow(0.0, -0.444773, -0.049844, -0.00597, -0.000599, -0.00006, 0.0, \
-0.0)
+        esnow(0.0, -0.806055, -0.090244, -0.010808, -0.001084, -0.000108, 0.0,
+              0.0)
         >>> aides.temps
-        temps(nan, -1.519365, -1.987383, -2.039381, -2.045747, -2.046385,
-              -2.046456, -2.046456)
+        temps(nan, -2.753522, -3.59826, -3.692022, -3.7035, -3.704652, -3.70478,
+              -3.70478)
         >>> fluxes.tempssurface
-        tempssurface(nan, -4.140689, -4.256139, -4.268976, -4.270547, -4.270705,
-                     -4.270722, -4.270722)
+        tempssurface(nan, -7.692134, -7.893588, -7.915986, -7.918728, -7.919003,
+                     -7.919034, -7.919034)
 
         The resulting energy amounts are, again, the "correct" ones:
 
@@ -3795,44 +4950,63 @@ class Update_ESnow_V2(modeltools.Method):
     """
     SUBMETHODS = (
         Return_ESnow_V1,
+        Return_TempSSurface_V1,
+        Return_WG_V1,
+        Return_BackwardEulerError_V1,
     )
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
         lland_control.Turb0,
         lland_control.Turb1,
-        lland_control.FrAtm,
         lland_control.KTSchnee,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
+        lland_derived.MOY,
+        lland_derived.Days,
+        lland_derived.Fr,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.CPWasser,
+        lland_fixed.CPEis,
+        lland_fixed.Z,
+        lland_fixed.LambdaG,
+        lland_fixed.Sigma,
+        lland_fixed.PsyInv,
+        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
-        lland_inputs.RelativeHumidity,
-        lland_inputs.SunshineDuration,
-        lland_fluxes.NetShortwaveRadiation,
-        lland_fluxes.WNied,
+        lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
-        lland_fluxes.WindSpeed10m,
-        lland_fluxes.PossibleSunshineDuration,
+        lland_fluxes.ReducedWindSpeed2m,
+        lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+        lland_fluxes.TZ,
+        lland_states.WATS,
         lland_states.WAeS,
         lland_aides.TempS,
     )
+    UPDATEDSEQUENCES = (
+        lland_states.ESnow,
+    )
     RESULTSEQUENCES = (
         lland_fluxes.SaturationVapourPressureSnow,
-        lland_fluxes.ActualVapourPressureSnow,
         lland_fluxes.TempSSurface,
         lland_fluxes.WSensSnow,
         lland_fluxes.WLatSnow,
-        lland_fluxes.NetLongwaveRadiation,
+        lland_fluxes.NetLongwaveRadiationSnow,
+        lland_fluxes.NetRadiationSnow,
         lland_fluxes.WSurf,
+        lland_fluxes.WG,
     )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        aid = model.sequences.aides.fastaccess
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
         for k in range(con.nhru):
             if sta.waes[k] > 0.:
                 model.idx_hru = k
@@ -3840,7 +5014,12 @@ class Update_ESnow_V2(modeltools.Method):
                 sta.esnow[k] = model.pegasusesnow.find_x(
                     model.return_esnow_v1(k, -30.0),
                     model.return_esnow_v1(k, 100.0),
-                    -100.0, 100.0, 0.0, 1e-8, 10)
+                    -100.0,
+                    100.0,
+                    0.0,
+                    1e-8,
+                    10,
+                )
                 if sta.esnow[k] > 0.:
                     aid.temps[k] = 0.
                     flu.tempssurface[k] = model.return_tempssurface(k)
@@ -3850,71 +5029,26 @@ class Update_ESnow_V2(modeltools.Method):
                 sta.esnow[k] = 0.
                 aid.temps[k] = modelutils.nan
                 flu.tempssurface[k] = modelutils.nan
+                flu.netlongwaveradiationsnow[k] = 0.
+                flu.netradiationsnow[k] = 0.
                 flu.saturationvapourpressuresnow[k] = 0.
-                flu.actualvapourpressuresnow[k] = 0.
                 flu.wsenssnow[k] = 0.
                 flu.wlatsnow[k] = 0.
                 flu.wsurf[k] = 0.
-
-
-class Calc_NetRadiation_V1(modeltools.Method):
-    """Calculate the total net radiation for snow-free land surfaces.
-
-    Basic equation (`Allen`_, equation 40):
-      :math:`NetRadiation = NetShortwaveRadiation - NetLongwaveRadiation`
-
-    Example:
-
-        For the first, snow-free hydrological response unit, the result agrees
-        with example 12 of `Allen`_; for the second, snow-covered response
-        unit, the original |NetRadiation| value remains unchanged:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(2)
-        >>> fluxes.netshortwaveradiation = 11.1
-        >>> fluxes.netlongwaveradiation = 3.5
-        >>> fluxes.netradiation = 2.0
-        >>> states.waes = 0.0, 1.0
-        >>> model.calc_netradiation_v1()
-        >>> fluxes.netradiation
-        netradiation(7.6, 2.0)
-    """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WAeS,
-        lland_fluxes.NetShortwaveRadiation,
-        lland_fluxes.NetLongwaveRadiation,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.NetRadiation,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nhru):
-            if sta.waes[k] <= 0.:
-                flu.netradiation[k] = \
-                    flu.netshortwaveradiation[k]-flu.netlongwaveradiation[k]
 
 
 class Calc_SchmPot_V1(modeltools.Method):
     """Calculate the potential snow melt according to the day degree method.
 
     Basic equation:
-      :math:`WMelt = max((WGTF + WNied, 0)/RSchmelz`
+      :math:`SchmPot = max\\left(\\frac{WGTF + WNied}{RSchmelz}, 0\\right)`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
-        >>> fluxes.wgtf(2.0)
+        >>> fluxes.wgtf = 2.0
         >>> fluxes.wnied = 1.0, 2.0
         >>> model.calc_schmpot_v1()
         >>> fluxes.schmpot
@@ -3940,15 +5074,15 @@ class Calc_SchmPot_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.schmpot[k] = max((flu.wgtf[k]+flu.wnied[k])/fix.rschmelz, 0)
+            flu.schmpot[k] = max((flu.wgtf[k]+flu.wnied[k])/fix.rschmelz, 0.)
 
 
 class Calc_SchmPot_V2(modeltools.Method):
     """Calculate the potential snow melt according to the heat content of the
     snow layer.
 
-    Basic equations:
-      :math:`SchmPot = max(ESnow/RSchmelz, 0)`
+    Basic equation:
+      :math:`SchmPot = max\\left(\\frac{ESnow}{RSchmelz}, 0\\right)`
 
     Example:
 
@@ -3983,17 +5117,17 @@ class Calc_SchmPot_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if sta.waes[k] > 0.:
-                flu.schmpot[k] = max(sta.esnow[k]/fix.rschmelz, 0)
+                flu.schmpot[k] = max(sta.esnow[k]/fix.rschmelz, 0.)
             else:
                 flu.schmpot[k] = 0.
 
 
 class Calc_GefrPot_V1(modeltools.Method):
     """Calculate the potential refreezing within the snow layer according
-    to the energy content of the snow layer.
+    to the thermal energy content of the snow layer.
 
-    Basic equations:
-      :math:`GefrPot = max(-ESnow/RSchmelz, 0)`
+    Basic equation:
+      :math:`GefrPot = max\\left(-\\frac{ESnow}{RSchmelz}, 0\\right)`
 
     Example:
 
@@ -4037,17 +5171,25 @@ class Calc_Schm_WATS_V1(modeltools.Method):
     """Calculate the actual amount of water melting within the snow layer.
 
     Basic equations:
-      :math:`Schm = \\Bigl \\lbrace
-      {
-      {SchmPot \\ | \\ WATS > 0}
-      \\atop
-      {0 \\ | \\ WATS = 0}
-      }`
+
+      :math:`\\frac{dW\\!ATS}{dt} = -Schm`
+
+      .. math::
+        Schm = \\begin{cases}
+        SchmPot
+        &|\\
+        WATS > 0
+        \\\\
+        0
+        &|\\
+        WATS = 0
+        \\end{cases}
+
 
     Examples:
 
-        Initialise two water (|FLUSS| and |SEE|) and four arable land
-        (|ACKER|) HRUs.  Assume the same values for the initial amount
+        We initialise two water (|FLUSS| and |SEE|) and four arable land
+        (|ACKER|) HRUs.  We assume the same values for the initial amount
         of frozen water (|WATS|) and the frozen part of stand precipitation
         (|SBes|), but different values for potential snowmelt (|SchmPot|):
 
@@ -4072,9 +5214,7 @@ class Calc_Schm_WATS_V1(modeltools.Method):
         lland_control.Lnk,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
         lland_fluxes.SchmPot,
-        lland_states.WATS,
     )
     RESULTSEQUENCES = (
         lland_fluxes.Schm,
@@ -4100,17 +5240,23 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
     """Calculate the actual amount of water melting within the snow layer.
 
     Basic equations:
-      :math:`Gefr = \\Bigl \\lbrace
-      {
-      {GefrPot \\ | \\ WAeS - WATS > 0}
-      \\atop
-      {0 \\ | \\ WATS = 0}
-      }`
+      :math:`\\frac{dGefr}{dt} = -Gefr`
+
+      .. math::
+        Gefr = \\begin{cases}
+        GefrPot
+        &|\\
+        WAeS - WATS > 0
+        \\\\
+        0
+        &|\\
+        WAeS - WATS = 0
+        \\end{cases}
 
     Examples:
 
-        Initialise two water (|FLUSS| and |SEE|) and four arable land
-        (|ACKER|) HRUs.  Assume the same values for the initial amount
+        We initialise two water (|FLUSS| and |SEE|) and four arable land
+        (|ACKER|) HRUs.  We assume the same values for the initial amount
         of frozen water (|WATS|) and the frozen part of stand precipitation
         (|SBes|), but different values for potential snowmelt (|SchmPot|):
 
@@ -4147,10 +5293,8 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
         lland_control.RefreezeFlag,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
         lland_fluxes.GefrPot,
         lland_states.WAeS,
-        lland_states.WATS,
     )
     RESULTSEQUENCES = (
         lland_fluxes.Gefr,
@@ -4177,11 +5321,11 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
     the snow layer due to melting.
 
     Basic equations:
-      :math:`\\delta = Max(WAeS-PWMax \\cdot WATS, 0)`
+      :math:`WaDa_{new} = WaDa_{old} + \\Delta`
 
-      :math:`WaDa_{new} = WaDa_{old} + \\delta`
+      :math:`WAeS_{new} = WAeS_{old} - \\Delta`
 
-      :math:`WAeS_{new} = WAeS_{old} - \\delta`
+      :math:`\\Delta = max(WAeS-PWMax \\cdot WATS, 0)`
 
     Examples:
 
@@ -4234,9 +5378,12 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
                 sta.waes[k] -= d_wada_corr
 
 
-class Update_ESnow_V3(modeltools.Method):
-    """Update the energy content of the snow layer regarding snow melt
-    and refreezing.
+class Update_ESnow_V2(modeltools.Method):
+    """Update the thermal energy content of the snow layer regarding snow
+    melt and refreezing.
+
+    Basic equation:
+      :math:`\\frac{dESNOW}{dt} = RSchmelz \\cdot (Gefr - Schm)`
 
     Examples:
 
@@ -4247,8 +5394,8 @@ class Update_ESnow_V3(modeltools.Method):
         >>> fluxes.gefr = 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 4.0
         >>> fluxes.schm = 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0
         >>> states.esnow = 1.0, 1.0, 1.0, 1.0, -1.5, 1.336, 0.0
-        >>> states.wats = 1.0, 1.0, 1.0, 0.0, 5.0, 5.0, 10.0
-        >>> model.update_esnow_v3()
+        >>> states.waes = 1.0, 1.0, 1.0, 0.0, 5.0, 5.0, 10.0
+        >>> model.update_esnow_v2()
         >>> states.esnow
         esnow(0.0, 0.0, 0.0, 0.0, -0.164, 0.0, 0.0)
     """
@@ -4262,7 +5409,7 @@ class Update_ESnow_V3(modeltools.Method):
     REQUIREDSEQUENCES = (
         lland_fluxes.Gefr,
         lland_fluxes.Schm,
-        lland_states.WATS,
+        lland_states.WAeS,
     )
     UPDATEDSEQUENCES = (
         lland_states.ESnow,
@@ -4275,11 +5422,10 @@ class Update_ESnow_V3(modeltools.Method):
         sta = model.sequences.states.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            if (con.lnk[k] in (WASSER, FLUSS, SEE)) or (sta.wats[k] <= 0.):
+            if (con.lnk[k] in (WASSER, FLUSS, SEE)) or (sta.waes[k] <= 0.):
                 sta.esnow[k] = 0.
             else:
-                sta.esnow[k] -= flu.schm[k]*fix.rschmelz
-                sta.esnow[k] += flu.gefr[k]*fix.rschmelz
+                sta.esnow[k] += fix.rschmelz*(flu.gefr[k]-flu.schm[k])
 
 
 class Calc_SFF_V1(modeltools.Method):
@@ -4287,7 +5433,8 @@ class Calc_SFF_V1(modeltools.Method):
     the top soil layer.
 
     Basic equations:
-      :math:`SFF = Min(Max(1 - \\frac{EBdn}{BoWa2Z} \\cdot RSchmelz, 0), 1)`
+      :math:`SFF = min\\left(max\\left(
+      1 - \\frac{EBdn}{BoWa2Z} \\cdot RSchmelz, 0\\right), 1\\right)`
 
     Example:
 
@@ -4295,7 +5442,6 @@ class Calc_SFF_V1(modeltools.Method):
         >>> parameterstep('1d')
         >>> nhru(9)
         >>> lnk(VERS, WASSER, FLUSS, SEE, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> bowa2z(80.0)
         >>> states.ebdn(0.0, 0.0, 0.0, 0.0, 28.0, 27.0, 10.0, 0.0, -1.0)
         >>> model.calc_sff_v1()
         >>> fluxes.sff
@@ -4304,9 +5450,9 @@ class Calc_SFF_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.BoWa2Z,
     )
     FIXEDPARAMETERS = (
+        lland_fixed.BoWa2Z,
         lland_fixed.RSchmelz,
     )
     REQUIREDSEQUENCES = (
@@ -4325,20 +5471,23 @@ class Calc_SFF_V1(modeltools.Method):
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 flu.sff[k] = 0.
-            elif sta.ebdn[k] < 0.:
-                flu.sff[k] = 1.
             else:
-                flu.sff[k] = \
-                    max(1.-sta.ebdn[k]/(con.bowa2z[k]*fix.rschmelz), 0.)
+                flu.sff[k] = min(
+                    max(
+                        1.-sta.ebdn[k]/(fix.bowa2z[k]*fix.rschmelz),
+                        0.,
+                    ),
+                    1.,
+                )
 
 
 class Calc_FVG_V1(modeltools.Method):
     """Calculate the degree of frost sealing of the soil.
 
     Basic equation:
-      :math:`FVG = FVF \\cdot SFF^{BSFF})`
+      :math:`FVG = min\\bigl(FVF \\cdot SFF^{BSFF}, 1\\bigl)`
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -4350,6 +5499,14 @@ class Calc_FVG_V1(modeltools.Method):
         >>> model.calc_fvg_v1()
         >>> fluxes.fvg
         fvg(0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.8)
+
+        The calculated degree of frost sealing does never exceed one,
+        even when defining |FVF| values larger one:
+
+        >>> fvf(1.6)
+        >>> model.calc_fvg_v1()
+        >>> fluxes.fvg
+        fvg(0.0, 0.0, 0.0, 0.0, 0.0, 0.4, 1.0)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
@@ -4372,17 +5529,17 @@ class Calc_FVG_V1(modeltools.Method):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 flu.fvg[k] = 0.
             else:
-                flu.fvg[k] = con.fvf*flu.sff[k]**con.bsff
+                flu.fvg[k] = min(con.fvf*flu.sff[k]**con.bsff, 1.)
 
 
 class Calc_EvB_V1(modeltools.Method):
     """Calculate the actual soil evapotranspiration.
 
     Basic equations:
-      :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{WMax})`
-
       :math:`EvB = (EvPo - EvI) \\cdot
       \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
+
+      :math:`temp = exp\\left(-GrasRef_R \\cdot \\frac{BoWa}{WMax}\\right)`
 
     Examples:
 
@@ -4434,8 +5591,10 @@ class Calc_EvB_V1(modeltools.Method):
                 flu.evb[k] = 0.
             else:
                 d_temp = modelutils.exp(-con.grasref_r*sta.bowa[k]/con.wmax[k])
-                flu.evb[k] = ((flu.evpo[k]-flu.evi[k])*(1.-d_temp) /
-                              (1.+d_temp-2.*modelutils.exp(-con.grasref_r)))
+                flu.evb[k] = (
+                    (flu.evpo[k]-flu.evi[k])*(1.-d_temp) /
+                    (1.+d_temp-2.*modelutils.exp(-con.grasref_r))
+                )
 
 
 class Calc_DryAirPressure_V1(modeltools.Method):
@@ -4518,22 +5677,27 @@ class Calc_DensityAir_V1(modeltools.Method):
             d_t = flu.tkor[k]+273.15
             flu.densityair[k] = (
                 flu.dryairpressure[k]/(fix.rdryair*d_t) +
-                flu.actualvapourpressure[k]/(fix.rwatervapour*d_t))
+                flu.actualvapourpressure[k]/(fix.rwatervapour*d_t)
+            )
 
 
 class Calc_AerodynamicResistance_V1(modeltools.Method):
     """Calculate the aerodynamic resistance.
 
-    Basic equations (z0 nach Quast und Boehm, 1997):
+    Basic equations (:math:`z_0` after Quast and Boehm, 1997):
+      .. math::
+        AerodynamicResistance = \\begin{cases}
+        \\frac{6.25}{WindSpeed10m} \\cdot ln\\left(\\frac{10}{z_0}\\right)^2
+        &|\\
+        z_0 < 10
+        \\\\
+        \\frac{94}{WindSpeed10m}
+        &|\\
+        z_0 \\geq 10
+        \\end{cases}
 
-       :math:`z_0 = 0.021 + 0.163 \\cdot CropHeight`
+      :math:`z_0 = 0.021 + 0.163 \\cdot CropHeight`
 
-       :math:`AerodynamicResistance = \\biggl \\lbrace
-       {
-       \\frac{6.25}{WindSpeed10m} \\cdot ln(\\frac{10}{z_0})^2 \\|\\ z_0 < 10
-       \\atop
-       \\frac{94}{WindSpeed10m} z_{0} \\|\\ z_0 \\geq 10
-       }`
 
     Examples:
 
@@ -4585,7 +5749,8 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
         of 1.14 m instead of 10 m for the selection of
         the two underlying equations:
 
-        :math:`1.1404411695422059 = (10/\\exp(\\sqrt(94/6.25))-0.021)/0.163`
+        :math:`1.1404411695422059 =
+        \\frac{\\frac{10}{\\exp(\\sqrt{94/6.25}}-0.021}{0.163}`
 
         The last example shows the inverse relationship between resistance
         and wind speed.  For zero wind speed, resistance becomes infinite:
@@ -4606,8 +5771,9 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
             >>> del pub.timegrids
     """
     CONTROLPARAMETERS = (
-        lland_control.CropHeight,
+        lland_control.NHRU,
         lland_control.Lnk,
+        lland_control.CropHeight,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
@@ -4639,16 +5805,19 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
 
 
 class Calc_SoilSurfaceResistance_V1(modeltools.Method):
-    """Calculate the surface resistance of the soil surface.
+    """Calculate the surface resistance of the bare soil surface.
 
     Basic equation:
-       :math:`SoilSurfaceResistance = \\biggl \\lbrace
-       {
-       100 \\|\\ NFk > 20
-       \\atop
-       100 \\cdot \\frac{NFk}{max(BoWa-PWP, 0) + NFk/100}
-       \\|\\ NFk \\geq 20
-       }`
+      .. math::
+        SoilSurfaceResistance = \\begin{cases}
+        100
+        &|\\
+        NFk > 20
+        \\\\
+        \\frac{100 \\cdot NFk}{max(BoWa-PWP, 0) + NFk/100}
+        &|\\
+        NFk \\geq 20
+        \\end{cases}
 
     Examples:
 
@@ -4722,7 +5891,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.PWP,   # ToDo: py?
+        lland_control.PWP,
     )
     DERIVEDPARAMETERS = (
         lland_derived.NFk,
@@ -4756,23 +5925,36 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     """Calculate the surface resistance of vegetation, water and sealed areas.
 
-    Basic equation:
+    Basic equations:
+       :math:`LanduseSurfaceResistance = SR^* \\cdot \\left(3.5 \\cdot
+       \\left(1 - \\frac{min(BoWa, PY)}{PY}\\right) +
+       exp\\left(\\frac{0.2 \\cdot PY}{max(BoWa, 0)}\\right)\\right)`
 
-       :math:`LanduseSurfaceResistance = SurfaceResistance* \\cdot
-       (3.5 \\cdot (1 - \\frac{min(BoWa, PY)}{PY}) +
-       exp(\\frac{0.2 \\cdot PY}{min(BoWa, 0)}))`
+      .. math::
+        SR^* = \\begin{cases}
+        SurfaceResistance
+        &|\\
+        Lnk \\neq NADELW
+        \\\\
+        10\\,000
+        &|\\
+        Lnk = NADELW \\;\\; \\land \\;\\;
+        (TKor \\leq -5 \\;\\; \\lor \\;\\; \\Delta \\geq 2)
+        \\\\
+        min\\left(\\frac{25 \\cdot SurfaceResistance}{(TKor + 5)
+       \\cdot (1 - \\Delta/2)}, 10\\,000\\right)
+        &|\\
+        Lnk = NADELW \\;\\; \\land \\;\\;
+        (-5 < TKor < 20 \\;\\; \\land \\;\\; \\Delta < 2)
+        \\\\
+        min\\left(\\frac{SurfaceResistance}{(1 - \\Delta/2)}, 10\\,000\\right)
+        &|\\
+        Lnk = NADELW \\;\\; \\land \\;\\;
+        (20 \\leq TKor \\;\\; \\land \\;\\; \\Delta < 2)
+        \\end{cases}
 
-    Modification for coniferous trees:
+      :math:`\\Delta = SaturationVapourPressure - ActualVapourPressure`
 
-       :math:`Deficit = SaturationVapourPressure - ActualVapourPressure`
-
-       :math:`SurfaceResistance* = \\biggl \\lbrace
-       {
-       10'000 \\|\\ TKor \\leq PWP or Deficit \\geq 2
-       \\atop
-       min(\\frac{25 \\cdot SurfaceResistance}{(min(TKor, 20) + 5)
-       \\cdot (1 - Deficit/2)}, 10'000) \\|\\ PWP < TKor < 20
-       }`
 
     Example:
 
@@ -4870,6 +6052,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
             >>> del pub.timegrids
     """
     CONTROLPARAMETERS = (
+        lland_control.NHRU,
         lland_control.Lnk,
         lland_control.SurfaceResistance,
         lland_control.PY,
@@ -4881,7 +6064,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         lland_fluxes.TKor,
         lland_fluxes.SaturationVapourPressure,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.SoilSurfaceResistance,
+        lland_states.BoWa,
     )
     RESULTSEQUENCES = (
         lland_fluxes.LanduseSurfaceResistance,
@@ -4902,10 +6085,12 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
                     flu.landusesurfaceresistance[k] = 10000.
                 elif flu.tkor[k] < 20.:
                     flu.landusesurfaceresistance[k] = min(
-                        (25.*d_res)/(flu.tkor[k]+5.)/(1.-.5*d_def), 10000.)
+                        (25.*d_res)/(flu.tkor[k]+5.)/(1.-.5*d_def),
+                        10000.,
+                    )
                 else:
-                    flu.landusesurfaceresistance[k] = min(
-                        d_res/(1.-.5*d_def), 10000.)
+                    flu.landusesurfaceresistance[k] = \
+                        min(d_res/(1.-.5*d_def), 10000.)
             else:
                 flu.landusesurfaceresistance[k] = d_res
             if con.lnk[k] not in (WASSER, FLUSS, SEE, VERS):
@@ -4914,33 +6099,35 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
                 elif sta.bowa[k] < con.py[k]:
                     flu.landusesurfaceresistance[k] *= (
                         3.5*(1.-sta.bowa[k]/con.py[k]) +
-                        modelutils.exp(.2*con.py[k]/sta.bowa[k]))
+                        modelutils.exp(.2*con.py[k]/sta.bowa[k])
+                    )
                 else:
                     flu.landusesurfaceresistance[k] *= modelutils.exp(.2)
 
 
-class Calc_SurfaceResistance_V1(modeltools.Method):
+class Calc_ActualSurfaceResistance_V1(modeltools.Method):
     """Calculate the total surface resistance.
 
     Basic equations:
-      :math:`SurfaceRestance_{day} = \\frac{1}
-      {\\frac{1-0.7^{LAI}}{LanduseSurfaceResistance} +
-      \\frac{0.7^{LAI}}{SoilSurfaceResistance}}`
+      :math:`ActualSurfaceResistance =
+      \\left(w \\cdot \\frac{1}{SRD} +
+      (1-w) \\cdot \\frac{1}{SRN}\\right)^{-1}`
 
-      :math:`SurfaceRestance_{night} = \\frac{1}
-      {\\frac{LAI}{2500} + \\frac{1}{LanduseSurfaceResistance}}`
+      :math:`SRD =
+      \\left(\\frac{1-0.7^{LAI}}{LanduseSurfaceResistance} +
+      \\frac{0.7^{LAI}}{SoilSurfaceResistance}\\right)^{-1}`
 
-      :math:`w = \\frac{PossibleSunshineDuration}{Seconds / 60 / 60}`
+      :math:`SRN =
+      \\left(\\frac{LAI}{2500} + \\frac{1}{SoilSurfaceResistance}\\right)^{-1}`
 
-      :math:`Surfaceresistance = \\frac{1}
-      {x \\cdot \\frac{1}{SurfaceRestance_{day}} +
-      (1-x) \\cdot \\frac{1}{SurfaceRestance_{night}}}`
+      :math:`w = \\frac{PossibleSunshineDuration}{Hours}`
+
 
     Examples:
 
-        For sealed surfaces and water areas, method |Calc_SurfaceResistance_V1|
-        just the values of sequence |LanduseSurfaceResistance| as the
-        effective surface resistance values:
+        For sealed surfaces and water areas, method
+        |Calc_ActualSurfaceResistance_V1| just uses the values of sequence
+        |LanduseSurfaceResistance| as the effective surface resistance values:
 
         >>> from hydpy import pub
         >>> pub.timegrids = '2019-05-30', '2019-06-03', '1d'
@@ -4949,11 +6136,11 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         >>> nhru(4)
         >>> lnk(VERS, FLUSS, SEE, WASSER)
         >>> derived.moy.update()
-        >>> derived.seconds.update()
+        >>> derived.hours.update()
         >>> fluxes.soilsurfaceresistance = nan
         >>> fluxes.landusesurfaceresistance = 500.0, 0.0, 0.0, 0.0
         >>> model.idx_sim = 1
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(500.0, 0.0, 0.0, 0.0)
 
@@ -4982,7 +6169,7 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         leaf area index increases:
 
         >>> fluxes.possiblesunshineduration = 24.0
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 132.450331, 109.174477, 101.43261)
 
@@ -4990,7 +6177,7 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         between soil surface resistance and a fixed resistance value:
 
         >>> fluxes.possiblesunshineduration = 0.0
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 172.413793, 142.857143, 111.111111)
 
@@ -4999,12 +6186,12 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         sunshine duration of that day:
 
         >>> fluxes.possiblesunshineduration = 12.0
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 149.812734, 123.765057, 106.051498)
 
         The following examples demonstrate that method
-        |Calc_SurfaceResistance_V1| works similar when applied on an
+        |Calc_ActualSurfaceResistance_V1| works similar when applied on an
         hourly time basis during the daytime period (first example),
         during the nighttime (second example), and during dawn or
         dusk (third example):
@@ -5015,21 +6202,21 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         >>> fluxes.soilsurfaceresistance = 200.0
         >>> fluxes.landusesurfaceresistance = 100.0
         >>> derived.moy.update()
-        >>> derived.seconds.update()
+        >>> derived.hours.update()
         >>> lai.nadelw_jun = 5.0
         >>> model.idx_sim = 2
         >>> fluxes.possiblesunshineduration = 1.0
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(109.174477)
 
         >>> fluxes.possiblesunshineduration = 0.0
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(142.857143)
 
         >>> fluxes.possiblesunshineduration = 0.5
-        >>> model.calc_surfaceresistance_v1()
+        >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(123.765057)
 
@@ -5038,11 +6225,13 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
             >>> del pub.timegrids
     """
     CONTROLPARAMETERS = (
-        lland_control.LAI,
+        lland_control.NHRU,
         lland_control.Lnk,
+        lland_control.LAI,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
+        lland_derived.Hours,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.SoilSurfaceResistance,
@@ -5059,7 +6248,6 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_hours = der.seconds/60./60.
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, FLUSS, SEE, WASSER):
                 flu.actualsurfaceresistance[k] = flu.landusesurfaceresistance[k]
@@ -5067,32 +6255,129 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
                 d_lai = con.lai[con.lnk[k]-1, der.moy[model.idx_sim]]
                 d_invrestday = (
                     ((1.-.7**d_lai)/flu.landusesurfaceresistance[k]) +
-                    .7**d_lai/flu.soilsurfaceresistance[k])
+                    .7**d_lai/flu.soilsurfaceresistance[k]
+                )
                 d_invrestnight = \
                     d_lai/2500.+1./flu.soilsurfaceresistance[k]
-                flu.actualsurfaceresistance[k] = (
-                    1. /
-                    (flu.possiblesunshineduration/d_hours*d_invrestday +
-                     (1.-flu.possiblesunshineduration/d_hours)*d_invrestnight))
+                flu.actualsurfaceresistance[k] = 1. / (
+                    (flu.possiblesunshineduration/der.hours*d_invrestday +
+                     (1.-flu.possiblesunshineduration/der.hours)*d_invrestnight)
+                )
+
+
+class Return_Penman_V1(modeltools.Method):
+    """Calculate and return the evaporation from water surfaces according to
+    Penman.
+
+    Basic equation:
+      :math:`Days \\cdot \\frac{DailySaturationVapourPressureSlope \\cdot
+      \\frac{DailyNetRadiation}{LW} +
+      Psy \\cdot (1.3 + 0.94 \\cdot DailyWindSpeed2m) \\cdot
+      (DailySaturationVapourPressure-DailyActualVapourPressure)}
+      {DailySaturationVapourPressureSlope + Psy}`
+
+    Examples:
+
+        We initialise seven hydrological response units.  In reponse units
+        one to three, evaporation is due to radiative forcing only.  In
+        response units four to six, evaporation is due to aerodynamic forcing
+        only.  Response unit seven shows the combined effect of both forces:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep('1d')
+        >>> parameterstep()
+        >>> nhru(7)
+        >>> derived.days.update()
+        >>> fluxes.dailynetradiation = 0.0, 3.5, 7.0, 0.0, 0.0, 0.0, 7.0
+        >>> fluxes.dailywindspeed2m = 2.0
+        >>> fluxes.dailysaturationvapourpressure = 1.2
+        >>> fluxes.dailysaturationvapourpressureslope = 0.08
+        >>> fluxes.dailyactualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
+        >>> from hydpy import print_values
+        >>> for hru in range(7):
+        ...     deficit = (fluxes.dailysaturationvapourpressure[hru] -
+        ...                fluxes.dailyactualvapourpressure[hru])
+        ...     print_values([fluxes.dailynetradiation[hru],
+        ...                   deficit,
+        ...                   model.return_penman_v1(hru)])
+        0.0, 0.0, 0.0
+        3.5, 0.0, 0.781513
+        7.0, 0.0, 1.563027
+        0.0, 0.0, 0.0
+        0.0, 0.6, 0.858928
+        0.0, 1.2, 1.717856
+        7.0, 1.2, 3.280882
+        
+        The above results apply for a daily simulation time step.  The
+        following example demonstrates that  we get equivalent results
+        for hourly time steps:
+
+        >>> simulationstep('1h')
+        >>> derived.days.update()
+        >>> for hru in range(7):
+        ...     deficit = (fluxes.dailysaturationvapourpressure[hru] -
+        ...                fluxes.dailyactualvapourpressure[hru])
+        ...     print_values([fluxes.dailynetradiation[hru],
+        ...                   deficit,
+        ...                   24*model.return_penman_v1(hru)])
+        0.0, 0.0, 0.0
+        3.5, 0.0, 0.781513
+        7.0, 0.0, 1.563027
+        0.0, 0.0, 0.0
+        0.0, 0.6, 0.858928
+        0.0, 1.2, 1.717856
+        7.0, 1.2, 3.280882
+        """
+    DERIVEDPARAMETERS = (
+        lland_derived.Days,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.LW,
+        lland_fixed.Psy,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.DailySaturationVapourPressureSlope,
+        lland_fluxes.DailyNetRadiation,
+        lland_fluxes.DailyWindSpeed2m,
+        lland_fluxes.DailySaturationVapourPressure,
+        lland_fluxes.DailyActualVapourPressure,
+    )
+
+    @staticmethod
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+    ) -> float:
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        return (
+            der.days * (
+                flu.dailysaturationvapourpressureslope[k] *
+                flu.dailynetradiation[k]/fix.lw +
+                fix.psy*(1.3+.94*flu.dailywindspeed2m) *
+                (flu.dailysaturationvapourpressure[k] -
+                 flu.dailyactualvapourpressure[k])
+            ) / (flu.dailysaturationvapourpressureslope[k]+fix.psy)
+        )
 
 
 class Return_PenmanMonteith_V1(modeltools.Method):
     """Calculate and return the evapotranspiration according to Penman-Monteith.
 
     Basic equations:
+      :math:`\\frac{SaturationVapourPressureSlope \\cdot (NetRadiation + G) +
+      Seconds \\cdot C \\cdot DensitiyAir \\cdot CPLuft \\cdot
+      \\frac{SaturationVapourPressure - ActualVapourPressure}
+      {AerodynamicResistance}}
+      {LW \\cdot (SaturationVapourPressureSlope + Psy \\cdot
+      C \\cdot (1 + \\frac{actualsurfaceresistance}{AerodynamicResistance}))}`
 
-    :math:`\\frac
-    {SaturationVapourPressureSlope \\cdot (NetRadiation + WG) +
-    Seconds \\cdot C \\cdot DensitiyAir \\cdot CPLuft \\cdot
-    (SaturationVapourPressure - ActualVapourPressure) / AerodynamicResistance}
-    {LW \\cdot (SaturationVapourPressureSlope +
-    PsychrometricConstant \\cdot
-    C \\cdot (1 + SurfaceResistance/AerodynamicResistance))}`
+      :math:`C = 1 +
+      \\frac{b' \\cdot AerodynamicResistance}{DensitiyAir \\cdot CPLuft}`
 
-    :math:`b' = 1 + 4 \\cdot Emissivity \\cdot Sigma \\cdot (273.15 + TKor)^3`
-
-    :math:`C = 1 +
-    \\frac{b' \\cdot AerodynamicResistance}{DensitiyAir \\cdot CPLuft}`
+      :math:`b' = 4 \\cdot Emissivity \\cdot
+      \\frac{Sigma}{60 \\cdot 60 \\cdot 24} \\cdot (273.15 + TKor)^3`
 
     Correction factor `C` takes the difference between measured temperature
     and actual surface temperature into account.
@@ -5101,12 +6386,12 @@ class Return_PenmanMonteith_V1(modeltools.Method):
 
         We build the following example on the first example of the
         documentation on method |Return_Penman_V1|.  The total available
-        energy (|NetRadiation| plus |WG|) and the vapour saturation pressure
+        energy (|NetRadiation| plus |G|) and the vapour saturation pressure
         deficit (|SaturationVapourPressure| minus |ActualVapourPressure|
         are identical.  To make the results roughly comparable, we use
         resistances suitable for water surfaces through setting
         |AerodynamicResistance| to zero and |ActualSurfaceResistance| to
-        a reasonalbe precalculated value of 106 s/m:
+        a reasonable precalculated value of 106 s/m:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep('1d')
@@ -5115,12 +6400,11 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         >>> emissivity(0.96)
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 1.0, 4.5, 8.0, 1.0, 1.0, 1.0, 8.0
-        >>> fluxes.wg = -1.0
+        >>> fluxes.g = -1.0
         >>> fluxes.saturationvapourpressure = 1.2
         >>> fluxes.saturationvapourpressureslope = 0.08
         >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
         >>> fluxes.densityair = 1.24
-        >>> fluxes.psychrometricconstant = 0.07
         >>> fluxes.actualsurfaceresistance = 0.0
         >>> fluxes.aerodynamicresistance = 106.0
         >>> fluxes.tkor = 10.0
@@ -5137,16 +6421,17 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         >>> for hru in range(7):
         ...     deficit = (fluxes.saturationvapourpressure[hru] -
         ...                fluxes.actualvapourpressure[hru])
-        ...     print_values([fluxes.netradiation[hru]+fluxes.wg[hru],
+        ...     print_values([fluxes.netradiation[hru]+fluxes.g[hru],
         ...                   deficit,
-        ...                   model.return_penmanmonteith_v1(hru)])
+        ...                   model.return_penmanmonteith_v1(
+        ...                       hru, fluxes.actualsurfaceresistance[hru])])
         0.0, 0.0, 0.0
-        3.5, 0.0, 0.633733
-        7.0, 0.0, 1.267465
+        3.5, 0.0, 0.657142
+        7.0, 0.0, 1.314284
         0.0, 0.0, 0.0
-        0.0, 0.6, 1.959347
-        0.0, 1.2, 3.918693
-        7.0, 1.2, 5.186158
+        0.0, 0.6, 2.031724
+        0.0, 1.2, 4.063447
+        7.0, 1.2, 5.377732
 
         Next, we repeat the above calculations using resistances relevant
         for vegetated surfaces (note that this also changes the results
@@ -5158,16 +6443,17 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         >>> for hru in range(7):
         ...     deficit = (fluxes.saturationvapourpressure[hru] -
         ...                fluxes.actualvapourpressure[hru])
-        ...     print_values([fluxes.netradiation[hru]+fluxes.wg[hru],
+        ...     print_values([fluxes.netradiation[hru]+fluxes.g[hru],
         ...                   deficit,
-        ...                   model.return_penmanmonteith_v1(hru)])
+        ...                   model.return_penmanmonteith_v1(
+        ...                       hru, fluxes.actualsurfaceresistance[hru])])
         0.0, 0.0, 0.0
-        3.5, 0.0, 0.3517
-        7.0, 0.0, 0.703399
+        3.5, 0.0, 0.36958
+        7.0, 0.0, 0.739159
         0.0, 0.0, 0.0
-        0.0, 0.6, 2.35049
-        0.0, 1.2, 4.70098
-        7.0, 1.2, 5.404379
+        0.0, 0.6, 2.469986
+        0.0, 1.2, 4.939972
+        7.0, 1.2, 5.679131
 
         The above results are sensitive to the relation of
         |ActualSurfaceResistance| and |AerodynamicResistance|.  The
@@ -5180,41 +6466,42 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         ...     0.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
         >>> for hru in range(7):
         ...     print_values([fluxes.actualsurfaceresistance[hru],
-        ...                   model.return_penmanmonteith_v1(hru)])
-        0.0, 10.84584
-        20.0, 8.664782
-        50.0, 6.656796
-        100.0, 4.802069
-        200.0, 3.083698
-        500.0, 1.487181
-        1000.0, 0.798324
+        ...                   model.return_penmanmonteith_v1(
+        ...                       hru, fluxes.actualsurfaceresistance[hru])])
+        0.0, 11.208588
+        20.0, 9.014385
+        50.0, 6.968226
+        100.0, 5.055617
+        200.0, 3.263897
+        500.0, 1.581954
+        1000.0, 0.851033
 
         Now we change the simulation time step from one day to one hour
         to demonstrate that we can reproduce the results of the first
-        example, which only required to adjust |NetRadiation| and |WG|:
+        example, which requires to adjust |NetRadiation| and |WG|:
 
         >>> simulationstep('1h')
         >>> derived.seconds.update()
-        >>> fixed.sigma.restore()
         >>> fluxes.netradiation = 1.0, 4.5, 8.0, 1.0, 1.0, 1.0, 8.0
         >>> fluxes.netradiation /= 24
-        >>> fluxes.wg = -1.0/24
+        >>> fluxes.g = -1.0/24
         >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
         >>> fluxes.actualsurfaceresistance = 0.0
         >>> fluxes.aerodynamicresistance = 106.0
         >>> for hru in range(7):
         ...     deficit = (fluxes.saturationvapourpressure[hru] -
         ...                fluxes.actualvapourpressure[hru])
-        ...     print_values([24*(fluxes.netradiation[hru]+fluxes.wg[hru]),
+        ...     print_values([24*(fluxes.netradiation[hru]+fluxes.g[hru]),
         ...                   deficit,
-        ...                   24*model.return_penmanmonteith_v1(hru)])
+        ...                   24*model.return_penmanmonteith_v1(
+        ...                       hru, fluxes.actualsurfaceresistance[hru])])
         0.0, 0.0, 0.0
-        3.5, 0.0, 0.633733
-        7.0, 0.0, 1.267465
+        3.5, 0.0, 0.657142
+        7.0, 0.0, 1.314284
         0.0, 0.0, 0.0
-        0.0, 0.6, 1.959347
-        0.0, 1.2, 3.918693
-        7.0, 1.2, 5.186158
+        0.0, 0.6, 2.031724
+        0.0, 1.2, 4.063447
+        7.0, 1.2, 5.377732
         """
     CONTROLPARAMETERS = (
         lland_control.Emissivity,
@@ -5226,181 +6513,118 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         lland_fixed.Sigma,
         lland_fixed.LW,
         lland_fixed.CPLuft,
+        lland_fixed.Psy,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.NetRadiation,
-        lland_fluxes.WG,
+        lland_fluxes.G,
         lland_fluxes.TKor,
         lland_fluxes.SaturationVapourPressureSlope,
         lland_fluxes.SaturationVapourPressure,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.PsychrometricConstant,
         lland_fluxes.DensityAir,
         lland_fluxes.AerodynamicResistance,
-        lland_fluxes.ActualSurfaceResistance,
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(
+            model: modeltools.Model,
+            k: int,
+            actualsurfaceresistance: float,
+    ) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_b = 4.*con.emissivity*fix.sigma/der.seconds*(273.15+flu.tkor[k])**3
+        d_b = 4.*con.emissivity*fix.sigma/60./60./24.*(273.15+flu.tkor[k])**3
         d_c = 1.+d_b*flu.aerodynamicresistance[k]/flu.densityair[k]/fix.cpluft
         return (
             (flu.saturationvapourpressureslope[k] *
-             (flu.netradiation[k]+flu.wg[k]) +
-             der.seconds*flu.densityair[k]*fix.cpluft *
-             (flu.saturationvapourpressure[k]-flu.actualvapourpressure[k]) *
-             d_c/flu.aerodynamicresistance[k]) /
-            (flu.saturationvapourpressureslope[k] +
-             flu.psychrometricconstant*d_c *
-             (1.+flu.actualsurfaceresistance[k]/flu.aerodynamicresistance[k])) /
-            fix.lw)
-
-
-class Return_Penman_V1(modeltools.Method):
-    """Calculate and return the evaporation from water surfaces according to
-    Penman.
-
-    Basic equation:
-      :math:`\\frac{SaturationVapourPressureSlope \\cdot
-      \\frac{NetRadiation}{LW}
-      + \\PsychrometricConstant \\cdot (1.3 + 0.94 \\cdot WindSpeed2m) \\cdot
-      (SaturationVapourPressure-ActualVapourPressure)}
-      {SaturationVapourPressureSlope + PsychrometricConstant}`
-
-    Examples:
-
-        We initialise seven hydrological response units.  In reponse units
-        one to three, evaporation is due to radiative forcing only.  In
-        response units four to six, evaporation is due to aerodynamic forcing
-        only.  Response unit seven shows the combined effect of both forces:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(7)
-        >>> derived.seconds(24*60*60)
-        >>> fluxes.netradiation = 0.0, 3.5, 7.0, 0.0, 0.0, 0.0, 7.0
-        >>> fluxes.saturationvapourpressure = 1.2
-        >>> fluxes.saturationvapourpressureslope = 0.08
-        >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
-        >>> fluxes.psychrometricconstant = 0.07
-        >>> fluxes.windspeed2m = 2.0
-        >>> from hydpy import print_values
-        >>> for hru in range(7):
-        ...     deficit = (fluxes.saturationvapourpressure[hru] -
-        ...                fluxes.actualvapourpressure[hru])
-        ...     print_values([fluxes.netradiation[hru],
-        ...                   deficit,
-        ...                   model.return_penman_v1(hru)])
-        0.0, 0.0, 0.0
-        3.5, 0.0, 0.758068
-        7.0, 0.0, 1.516136
-        0.0, 0.0, 0.0
-        0.0, 0.6, 0.8904
-        0.0, 1.2, 1.7808
-        7.0, 1.2, 3.296936
-        
-        The above results apply for a daily simulation time step.  The
-        following example demonstrates that, after adjusting the total
-        amount of energy available via sequence |NetRadiation|, we get
-        equivalent results for hourly time steps:
-
-        >>> derived.seconds(60*60)
-        >>> fluxes.netradiation /= 24
-        >>> for hru in range(7):
-        ...     deficit = (fluxes.saturationvapourpressure[hru] -
-        ...                fluxes.actualvapourpressure[hru])
-        ...     print_values([24*fluxes.netradiation[hru],
-        ...                   deficit,
-        ...                   24*model.return_penman_v1(hru)])
-        0.0, 0.0, 0.0
-        3.5, 0.0, 0.758068
-        7.0, 0.0, 1.516136
-        0.0, 0.0, 0.0
-        0.0, 0.6, 0.8904
-        0.0, 1.2, 1.7808
-        7.0, 1.2, 3.296936
-        """
-
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.Seconds,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.LW,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SaturationVapourPressureSlope,
-        lland_fluxes.NetRadiation,
-        lland_fluxes.PsychrometricConstant,
-        lland_fluxes.WindSpeed2m,
-        lland_fluxes.SaturationVapourPressure,
-        lland_fluxes.ActualVapourPressure,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        return (
-            (flu.saturationvapourpressureslope[k]*flu.netradiation[k]/fix.lw +
-             flu.psychrometricconstant*(1.3+.94*flu.windspeed2m) *
+             (flu.netradiation[k]+flu.g[k]) +
+             der.seconds*d_c*flu.densityair[k]*fix.cpluft *
              (flu.saturationvapourpressure[k]-flu.actualvapourpressure[k]) /
-             (24*60*60)*der.seconds) /
-            (flu.saturationvapourpressureslope[k]+flu.psychrometricconstant))
+             flu.aerodynamicresistance[k]) /
+            (flu.saturationvapourpressureslope[k]+fix.psy*d_c *
+             (1.+actualsurfaceresistance/flu.aerodynamicresistance[k]))/fix.lw
+        )
 
 
-class Calc_EvPo_V3(modeltools.Method):
-    """Calculate the potential evaporation according to Penman.
+class Calc_EvPo_V2(modeltools.Method):
+    """Calculate the potential evaporation according to Penman or
+    Penman-Monteith.
 
-    At the moment, method |Calc_EvPo_V3| just applies method
-    |Return_Penman_V1| on all hydrological response units, irregardless
-    if they represent water areas or not.  This might change in the future.
+    Method |Calc_EvPo_V2| applies method |Return_Penman_V1| on all water
+    areas and method |Return_PenmanMonteith_V1| on all other hydrological
+    response units.  For Penman-Monteith, we yield potential values by passing
+    zero surface resistance values to method |Return_PenmanMonteith_V1|.
 
     Example:
 
-        For the first seven hydrological response units, the following
-        results agree with the results discussed in the documentation
-        on method |Return_Penman_V1|.  The eights response unit demonstrates
-        that method |Calc_EvPo_V3| trims negative evaporation to zero and
-        thus generally prevents condensation:
+        We recalculate the results for the seventh hydrological response
+        unit of the first example of the documention on the methods
+        |Return_Penman_V1| and |Return_PenmanMonteith_V1|.  The calculated
+        potential values differ markedly:
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep('1d')
         >>> parameterstep()
-        >>> nhru(8)
-        >>> derived.seconds(24*60*60)
-        >>> fluxes.netradiation = 0.0, 3.5, 7.0, 0.0, 0.0, 0.0, 7.0, -1.0
+        >>> nhru(2)
+        >>> lnk(WASSER, ACKER)
+        >>> emissivity(0.96)
+        >>> derived.nmblogentries.update()
+        >>> derived.seconds.update()
+        >>> derived.days.update()
+        >>> fluxes.netradiation = 8.0
+        >>> fluxes.dailynetradiation = 7.0
         >>> fluxes.saturationvapourpressure = 1.2
+        >>> fluxes.dailysaturationvapourpressure = 1.2
         >>> fluxes.saturationvapourpressureslope = 0.08
-        >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0, 1.2
-        >>> fluxes.psychrometricconstant = 0.07
+        >>> fluxes.dailysaturationvapourpressureslope = 0.08
+        >>> fluxes.actualvapourpressure = 0.0
+        >>> fluxes.dailyactualvapourpressure = 0.0
         >>> fluxes.windspeed2m = 2.0
-        >>> model.calc_evpo_v3()
+        >>> fluxes.dailywindspeed2m = 2.0
+        >>> fluxes.tkor = 10.0
+        >>> fluxes.g = -1.0
+        >>> fluxes.densityair = 1.24
+        >>> fluxes.aerodynamicresistance = 106.0
+        >>> model.calc_evpo_v2()
         >>> fluxes.evpo
-        evpo(0.0, 0.758068, 1.516136, 0.0, 0.8904, 1.7808, 3.296936, 0.0)
+        evpo(3.280882, 5.377732)
     """
     SUBMETHODS = (
         Return_Penman_V1,
+        Return_PenmanMonteith_V1,
     )
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.Emissivity,
     )
     DERIVEDPARAMETERS = (
+        lland_derived.Days,
         lland_derived.Seconds,
     )
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.LW,
+        lland_fixed.CPLuft,
+        lland_fixed.Psy,
+    )
     REQUIREDSEQUENCES = (
-        lland_fluxes.SaturationVapourPressure,
-        lland_fluxes.SaturationVapourPressureSlope,
         lland_fluxes.NetRadiation,
-        lland_fluxes.PsychrometricConstant,
-        lland_fluxes.WindSpeed2m,
+        lland_fluxes.G,
+        lland_fluxes.TKor,
+        lland_fluxes.SaturationVapourPressureSlope,
+        lland_fluxes.SaturationVapourPressure,
         lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DensityAir,
+        lland_fluxes.AerodynamicResistance,
+        lland_fluxes.DailySaturationVapourPressureSlope,
+        lland_fluxes.DailyNetRadiation,
+        lland_fluxes.DailyWindSpeed2m,
+        lland_fluxes.DailySaturationVapourPressure,
+        lland_fluxes.DailyActualVapourPressure,
     )
     RESULTSEQUENCES = (
         lland_fluxes.EvPo,
@@ -5411,41 +6635,54 @@ class Calc_EvPo_V3(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.evpo[k] = max(model.return_penman_v1(k), 0.)
+            if con.lnk[k] in (WASSER, SEE, FLUSS):
+                flu.evpo[k] = model.return_penman_v1(k)
+            else:
+                flu.evpo[k] = model.return_penmanmonteith_v1(k, 0.)
 
 
 class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
     """Calculate the evaporation from the snow layer, if any exists, and
-    update the water aequivalent of the snow cover accordingly.
+    update the snow cover accordingly.
 
     Basic equations:
-      :math:`EvS = Min(\\frac{WLatSnow}{L}, 0)`
+      :math:`WAeS_{new} = f \\cdot WAeS_{old}`
+
+      :math:`WATS_{new} = f \\cdot WATS_{old}`
+
+      :math:`f = \\frac{WAeS-EvS}{WAeS}`
+
+      :math:`EvS = max\\left(\\frac{WLatSnow}{L}, WAeS\\right)`
 
     Example:
 
         The first hydrological response unit shows that method
-        |Calc_EvS_WAeS_WATS_V1| does never calculate condensation or
-        deposition, even if a negative flux of latent heat suggests so.
-        Response units two to five show that methods |Calc_EvS_WAeS_WATS_V1|
-        first depletes the liquid water content of the snow layer completely
-        before it depletes its ice content.  The last three response units
-        that method |Calc_EvS_WAeS_WATS_V1| sets |EvS|, |WATS| and |WAeS|
-        to zero for all kinds of water areas:
+        |Calc_EvS_WAeS_WATS_V1| does calculate condensation and deposition
+        if a negative flux of latent heat suggests so.  We define the
+        relative amounts of condensation and deposition so that the fraction
+        between the frozen and the total water content of the snow layer
+        does not change.  The same holds for vaporisation and sublimation,
+        as shown by response units to to seven.  Note that method
+        |Calc_EvS_WAeS_WATS_V1| prevents negative water contents but does
+        not prevent to high liquid water contents, which eventually needs
+        to be corrected by another method called subsequentially.  The last
+        response unit shows that method |Calc_EvS_WAeS_WATS_V1| sets |EvS|,
+        |WATS| and |WAeS| to zero for water areas:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(8)
-        >>> lnk(ACKER, ACKER, ACKER, ACKER, ACKER, WASSER, FLUSS, SEE)
+        >>> lnk(ACKER, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER, WASSER)
         >>> fluxes.wlatsnow = -1.0, 0.0, 2.0, 4.0, 6.0, 6.0, 6.0, 6.0
-        >>> states.waes = 2.0
-        >>> states.wats = 1.0
+        >>> states.waes = 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 0.0, 2.0
+        >>> states.wats = 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 1.0
         >>> model.calc_evs_waes_wats_v1()
         >>> fluxes.evs
-        evs(0.0, 0.0, 0.74978, 1.49956, 2.0, 0.0, 0.0, 0.0)
+        evs(-0.37489, 0.0, 0.74978, 1.49956, 2.0, 1.5, 0.0, 0.0)
         >>> states.waes
-        waes(2.0, 2.0, 1.25022, 0.50044, 0.0, 0.0, 0.0, 0.0)
+        waes(2.37489, 2.0, 1.25022, 0.50044, 0.0, 0.0, 0.0, 0.0)
         >>> states.wats
-        wats(1.0, 1.0, 1.0, 0.50044, 0.0, 0.0, 0.0, 0.0)
+        wats(1.187445, 1.0, 0.62511, 0.25022, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -5457,7 +6694,6 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.WLatSnow,
-        lland_states.WAeS,
     )
     RESULTSEQUENCES = (
         lland_fluxes.EvS,
@@ -5474,17 +6710,15 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if con.lnk[k] in (WASSER, SEE, FLUSS):
+            if con.lnk[k] in (WASSER, SEE, FLUSS) or (sta.waes[k] <= 0.):
                 flu.evs[k] = 0.
                 sta.waes[k] = 0.
                 sta.wats[k] = 0.
-            elif (sta.waes[k] > 0.) and (flu.wlatsnow[k] > 0.):
-                flu.evs[k] = min(flu.wlatsnow[k]/fix.lwe, sta.waes[k])
-                sta.waes[k] = sta.waes[k]-flu.evs[k]
-                sta.wats[k] = min(sta.waes[k], sta.wats[k])
             else:
-                flu.evs[k] = 0.
-
+                flu.evs[k] = min(flu.wlatsnow[k]/fix.lwe, sta.waes[k])
+                d_frac = (sta.waes[k]-flu.evs[k])/sta.waes[k]
+                sta.waes[k] *= d_frac
+                sta.wats[k] *= d_frac
 
 
 class Calc_EvI_Inzp_V1(modeltools.Method):
@@ -5492,12 +6726,18 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
     storage accordingly.
 
     Basic equation:
-      :math:`EvI = \\Bigl \\lbrace
-      {
-      {EvPo \\ | \\ Inzp > 0}
-      \\atop
-      {0 \\ | \\ Inzp = 0}
-      }`
+      :math:`\\frac{dInzp}{dt} = -EvI`
+
+      .. math::
+        EvI = \\begin{cases}
+        EvPo
+        &|\\
+        Inzp > 0
+        \\\\
+        0
+        &|\\
+        Inzp = 0
+        \\end{cases}
 
     Examples:
 
@@ -5558,86 +6798,17 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
                 sta.inzp[k] -= flu.evi[k]
 
 
-class Calc_EvI_Inzp_V2(modeltools.Method):
-    """Calculate the interception evaporation and update the interception
-    storage accordingly for snow-free surfaces.
-
-    Method |Calc_EvI_Inzp_V2| works exactly like method |Calc_EvI_Inzp_V1|,
-    except that it sets |EvI| to zero for all snow-covered surfaces.
-
-    Examples:
-
-        For snow-free land surfaces (see the first two hydrological
-        response units), there is no difference to the results discussed
-        in the documentation on method |Calc_EvI_Inzp_V1|.  For snow-covered
-        surfaces, there is no interception evaporation and thus no change
-        in interception storage (see the third response unit):
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> states.inzp = 2.0, 4.0, 4.0
-        >>> fluxes.evpo = 3.0
-        >>> states.waes = 0.0, 0.0, 1.0
-        >>> model.calc_evi_inzp_v2()
-        >>> states.inzp
-        inzp(0.0, 1.0, 4.0)
-        >>> fluxes.evi
-        evi(2.0, 3.0, 0.0)
-
-        For water areas, where we do not model any snow processes, there
-        is no difference to the results of method |Calc_EvI_Inzp_V1|:
-
-        >>> lnk(WASSER, FLUSS, SEE)
-        >>> states.inzp = 2.0
-        >>> fluxes.evpo = 3.0
-        >>> model.calc_evi_inzp_v1()
-        >>> states.inzp
-        inzp(0.0, 0.0, 0.0)
-        >>> fluxes.evi
-        evi(3.0, 3.0, 3.0)
-    """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WAeS,
-        lland_fluxes.EvPo,
-    )
-    UPDATEDSEQUENCES = (
-        lland_states.Inzp,
-    )
-    RESULTSEQUENCES = (
-        lland_fluxes.EvI,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nhru):
-            if con.lnk[k] in (WASSER, FLUSS, SEE):
-                flu.evi[k] = flu.evpo[k]
-                sta.inzp[k] = 0.
-            elif sta.waes[k] > 0.:
-                flu.evi[k] = 0.
-            else:
-                flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
-                sta.inzp[k] -= flu.evi[k]
-
-
 class Calc_EvB_V2(modeltools.Method):
     """Calculate the actual evapotranspiration from the soil.
 
-    :math:`EvB = \\frac{EvPo - EvI}{EvPo} \\cdot EvB_{Penman-Monteith}`
+    Basic equation:
+      :math:`EvB = \\frac{EvPo - EvI}{EvPo} \\cdot
+      Return\\_PenmanMonteith\\_V1(ActualSurfaceResistance)`
 
     Example:
 
         For sealed surfaces, water areas and snow-covered hydrological
-        response units, there is no soil evaporation:
+        response units, there is no soil evapotranspiration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep('1d')
@@ -5652,32 +6823,27 @@ class Calc_EvB_V2(modeltools.Method):
         For all other cases, method |Calc_EvB_V2| first applies method
         |Return_PenmanMonteith_V1| (of which's documentation we take
         most of the following test configuration) and adjusts the returned
-        soil evaporation to the (prioritised) interception evaporation
-        in accordance with the base equation defined above.  Additionally,
-        the first and the last response unit show that method |Calc_EvPo_V3|
-        sets |EvB| to zero when |EvPo| is zero or when the original soil
-        evapotranspiration value calculated by |Return_PenmanMonteith_V1|
-        is negative:
+        soil evapotranspiration to the (prioritised) interception evaporation
+        in accordance with the base equation defined above:
 
         >>> lnk(NADELW)
         >>> states.waes = 0.0
         >>> emissivity(0.96)
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 8.0, 8.0, 8.0, 8.0, 8.0, -30.0
-        >>> fluxes.wg = -1.0
+        >>> fluxes.g = -1.0
         >>> fluxes.saturationvapourpressure = 1.2
         >>> fluxes.saturationvapourpressureslope = 0.08
         >>> fluxes.actualvapourpressure = 0.0
         >>> fluxes.densityair = 1.24
-        >>> fluxes.psychrometricconstant = 0.07
         >>> fluxes.actualsurfaceresistance = 0.0
         >>> fluxes.aerodynamicresistance = 106.0
         >>> fluxes.tkor = 10.0
-        >>> fluxes.evpo = 0.0, 6.0, 6.0, 6.0, 6.0, 6.0
-        >>> fluxes.evi = 0.0, 0.0, 2.0, 4.0, 6.0, 3.0
+        >>> fluxes.evpo = 0.0, 6.0, 6.0, 6.0, 6.0, -6.0
+        >>> fluxes.evi = 0.0, 0.0, 2.0, 4.0, 6.0, -3.0
         >>> model.calc_evb_v2()
         >>> fluxes.evb
-        evb(0.0, 5.186158, 3.457439, 1.728719, 0.0, 0.0)
+        evb(0.0, 5.377732, 3.585154, 1.792577, 0.0, -0.878478)
     """
     SUBMETHODS = (
         Return_PenmanMonteith_V1,
@@ -5687,14 +6853,22 @@ class Calc_EvB_V2(modeltools.Method):
         lland_control.Lnk,
         lland_control.Emissivity,
     )
+    DERIVEDPARAMETERS = (
+        lland_derived.Seconds,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.LW,
+        lland_fixed.CPLuft,
+        lland_fixed.Psy,
+    )
     REQUIREDSEQUENCES = (
         lland_fluxes.NetRadiation,
-        lland_fluxes.WG,
+        lland_fluxes.G,
         lland_fluxes.TKor,
         lland_fluxes.SaturationVapourPressureSlope,
         lland_fluxes.SaturationVapourPressure,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.PsychrometricConstant,
         lland_fluxes.DensityAir,
         lland_fluxes.AerodynamicResistance,
         lland_fluxes.ActualSurfaceResistance,
@@ -5712,36 +6886,25 @@ class Calc_EvB_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            # evpo = flu.evpo[k]    ToDo
-            d_asr = flu.actualsurfaceresistance[k]
-            flu.actualsurfaceresistance[k] = 0.
-            d_evpo = model.return_penmanmonteith_v1(k)
-            flu.actualsurfaceresistance[k] = d_asr
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.waes[k] > 0.) or (d_evpo <= 0.)):
+                    (sta.waes[k] > 0.) or (flu.evpo[k] == 0.)):
                 flu.evb[k] = 0.
             else:
-                d_evb = model.return_penmanmonteith_v1(k)
-                if d_evb < 0.:
-                    flu.evb[k] = 0.
-                else:
-                    flu.evb[k] = (d_evpo-flu.evi[k])/d_evpo*d_evb
+                flu.evb[k] = (
+                    (flu.evpo[k]-flu.evi[k])/flu.evpo[k] *
+                    model.return_penmanmonteith_v1(
+                        k,
+                        flu.actualsurfaceresistance[k],
+                    )
+                )
 
 
 class Calc_QKap_V1(modeltools.Method):
     """"Calculate the capillary rise.
 
     Basic equation:
-      :math:`QKap = \\Bigl \\lbrace
-      {
-      KapMax \\|\\ BoWa \\leq KapGrenz_1
-      \\atop
-      KapMax \\cdot (1 - \\frac{BoWa-KapGrenz_1}{KapGrenz_2-KapGrenz_1})
-      \\|\\ KapGrenz_1 < BoWa \\leq KapGrenz_2
-      \\atop
-      0 \\|\\ KapGrenz_2 < BoWa
-      }`
-
+      :math:`QKap = KapMax \\cdot min\\left(max\\left(1 -
+      \\frac{BoWa-KapGrenz_1}{KapGrenz_2-KapGrenz_1}, 0 \\right), 1 \\right)`
 
     Examples:
 
@@ -5796,6 +6959,7 @@ class Calc_QKap_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.KapMax,
         lland_control.KapGrenz,
+        lland_control.WMax,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -5827,19 +6991,29 @@ class Calc_QBB_V1(modeltools.Method):
     """Calculate the amount of base flow released from the soil.
 
     Basic equations:
-      :math:`Beta_{eff} = \\Bigl \\lbrace
-      {
-      {Beta \\ | \\ BoWa \\leq FK}
-      \\atop
-      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-FK}{WMax-FK}) \\|\\ BoWa > FK}
-      }`
+      .. math::
+        QBB = \\begin{cases}
+        0
+        &|\\
+        BoWa \\leq PWP \\;\\; \\lor \\;\\;
+        (BoWa \\leq NFk \\;\\; \\land \\;\\; RBeta)
+        \\\\
+        Beta_{eff}  \\cdot (BoWa - PWP)
+        &|\\
+        BoWa > NFk \\;\\; \\lor \\;\\;
+        (BoWa > PWP \\;\\; \\land \\;\\; \\overline{RBeta})
+        \\end{cases}
 
-      :math:`QBB = \\Bigl \\lbrace
-      {
-      {0 \\ | \\ BoWa \\leq PWP}
-      \\atop
-      {Beta_{eff}  \\cdot (BoWa - PWP) \\|\\ BoWa > PWP}
-      }`
+      .. math::
+        Beta_{eff} = \\begin{cases}
+        Beta
+        &|\\
+        BoWa \\leq FK
+        \\\\
+        Beta \\cdot \\left(1+(FBeta-1)\\cdot\\frac{BoWa-FK}{WMax-FK}\\right)
+        &|\\
+        BoWa > FK
+        \\end{cases}
 
     Examples:
 
@@ -5850,8 +7024,8 @@ class Calc_QBB_V1(modeltools.Method):
         HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> parameterstep('1d')
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> beta(0.04)
@@ -5916,13 +7090,11 @@ class Calc_QBB_V1(modeltools.Method):
         lland_control.Beta,
         lland_control.FBeta,
         lland_control.RBeta,
-        lland_control.KapGrenz,
         lland_control.PWP,
         lland_control.FK,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
-        lland_fluxes.QKap,
     )
     RESULTSEQUENCES = (
         lland_fluxes.QBB,
@@ -5946,7 +7118,8 @@ class Calc_QBB_V1(modeltools.Method):
                 flu.qbb[k] = (
                     con.beta[k]*(sta.bowa[k]-con.pwp[k]) *
                     (1.+(con.fbeta[k]-1.) *
-                     (sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k])))
+                     (sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k]))
+                )
 
 
 class Calc_QIB1_V1(modeltools.Method):
@@ -5964,8 +7137,8 @@ class Calc_QIB1_V1(modeltools.Method):
         HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> parameterstep('1d')
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
@@ -6027,7 +7200,7 @@ class Calc_QIB2_V1(modeltools.Method):
 
     Basic equation:
       :math:`QIB2 = (DMax-DMin) \\cdot
-      (\\frac{BoWa-FK}{WMax-FK})^\\frac{3}{2}`
+      \\left(\\frac{BoWa-FK}{WMax-FK}\\right)^\\frac{3}{2}`
 
     Examples:
 
@@ -6038,8 +7211,8 @@ class Calc_QIB2_V1(modeltools.Method):
         five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> parameterstep('1d')
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
@@ -6084,7 +7257,7 @@ class Calc_QIB2_V1(modeltools.Method):
         lland_states.BoWa,
     )
     RESULTSEQUENCES = (
-        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
     )
 
     @staticmethod
@@ -6099,21 +7272,26 @@ class Calc_QIB2_V1(modeltools.Method):
             else:
                 flu.qib2[k] = (
                     (con.dmax[k]-con.dmin[k]) *
-                    ((sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k]))**1.5)
+                    ((sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k]))**1.5
+                )
 
 
 class Calc_QDB_V1(modeltools.Method):
     """Calculate direct runoff released from the soil.
 
     Basic equations:
-      :math:`QDB = \\Bigl \\lbrace
-      {
-      {max(Exz, 0) \\ | \\ SfA \\leq 0}
-      \\atop
-      {max(Exz + WMax \\cdot SfA^{BSf+1}, 0) \\ | \\ SfA > 0}
-      }`
+      .. math::
+        QDB = \\begin{cases}
+        max\\bigl(Exz, 0\\bigl)
+        &|\\
+        SfA \\leq 0
+        \\\\
+        max\\bigl(Exz + WMax \\cdot SfA^{BSf+1}, 0\\bigl)
+        &|\\
+        SfA > 0
+        \\end{cases}
 
-      :math:`SFA = (1 - \\frac{BoWa}{WMax})^\\frac{1}{BSf+1} -
+      :math:`SFA = \\left(1 - \\frac{BoWa}{WMax}\\right)^\\frac{1}{BSf+1} -
       \\frac{WaDa}{(BSf+1) \\cdot WMax}`
 
       :math:`Exz = (BoWa + WaDa) - WMax`
@@ -6128,8 +7306,7 @@ class Calc_QDB_V1(modeltools.Method):
         HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep()
         >>> nhru(9)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> bsf(0.4)
@@ -6176,7 +7353,8 @@ class Calc_QDB_V1(modeltools.Method):
                 if sta.bowa[k] < con.wmax[k]:
                     d_sfa = (
                         (1.-sta.bowa[k]/con.wmax[k])**(1./(con.bsf[k]+1.)) -
-                        (flu.wada[k]/((con.bsf[k]+1.)*con.wmax[k])))
+                        (flu.wada[k]/((con.bsf[k]+1.)*con.wmax[k]))
+                    )
                 else:
                     d_sfa = 0.
                 d_exz = sta.bowa[k] + flu.wada[k] - con.wmax[k]
@@ -6187,11 +7365,10 @@ class Calc_QDB_V1(modeltools.Method):
 
 
 class Update_QDB_V1(modeltools.Method):
-    """Aktualisiert den Direktabfluss anhand des Frostversiegelungsgrades
-    (adjusts the direct runoff according to the degree of frost sealing)
+    """Update the direct runoff according to the degree of frost sealing.
 
     Basic equation:
-      :math:`Max(FVG \\cdot WaDa - QDB), 0)`
+      :math:`QDB_{updated} = QDB + FVG \\cdot (WaDa - QDB)`
 
     Example:
 
@@ -6204,7 +7381,7 @@ class Update_QDB_V1(modeltools.Method):
         >>> model.update_qdb_v1()
         >>> fluxes.qdb
         qdb(6.0, 6.0, 6.0)
-        """
+    """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
     )
@@ -6225,13 +7402,13 @@ class Update_QDB_V1(modeltools.Method):
 
 
 class Calc_BoWa_V1(modeltools.Method):
-    """Update the soil moisture and, if necessary, correct ingoing and
+    """Update the soil moisture and, if necessary, correct the ingoing and
     outgoing fluxes.
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
 
-       :math:`0 \\leq BoWa \\geq WMax`
+       :math:`0 \\leq BoWa \\leq WMax`
 
     Examples:
 
@@ -6248,14 +7425,17 @@ class Calc_BoWa_V1(modeltools.Method):
         bowa(0.0, 0.0, 0.0, 0.0)
 
         We make no principal distinction between the remaining land use
-        classes and select arable land (|ACKER|) for the following examples:
+        classes and select arable land (|ACKER|) for the following examples.
+
+        To prevent soil water contents increasing |WMax|, we might need to
+        decrease |WaDa| and |QKap|:
 
         >>> lnk(ACKER)
         >>> wmax(100.0)
         >>> states.bowa = 90.0
         >>> fluxes.wada = 0.0, 5.0, 10.0, 15.0
-        >>> fluxes.qkap = 5.0
-        >>> fluxes.evb = 0.0
+        >>> fluxes.qkap = 10.0
+        >>> fluxes.evb = 5.0
         >>> fluxes.qbb = 0.0
         >>> fluxes.qib1 = 0.0
         >>> fluxes.qib2 = 0.0
@@ -6264,9 +7444,32 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> states.bowa
         bowa(95.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada
+        wada(0.0, 5.0, 2.5, 6.0)
+        >>> fluxes.qkap
+        qkap(10.0, 10.0, 2.5, 4.0)
+        >>> fluxes.evb
+        evb(5.0, 5.0, 5.0, 5.0)
+
+        Additionally, to prevent storage overlflows we might need to
+        decrease |EvB| in case it is negative (meaning, condensation
+        increases the soil water storage):
+
+        >>> states.bowa = 90.0
+        >>> fluxes.wada = 0.0, 5.0, 10.0, 15.0
+        >>> fluxes.qkap = 2.5
+        >>> fluxes.evb = -2.5
+        >>> model.calc_bowa_v1()
+        >>> states.bowa
+        bowa(95.0, 100.0, 100.0, 100.0)
+        >>> fluxes.wada
         wada(0.0, 5.0, 3.333333, 7.5)
         >>> fluxes.qkap
-        qkap(5.0, 5.0, 1.666667, 2.5)
+        qkap(2.5, 2.5, 0.833333, 1.25)
+        >>> fluxes.evb
+        evb(-2.5, -2.5, -0.833333, -1.25)
+
+        To prevent negative |BoWa| value, we might need to decrease |QBB|,
+        |QIB1|, |QIB1|, |QBB|, and |EvB|:
 
         >>> states.bowa = 10.0
         >>> fluxes.wada = 0.0
@@ -6289,6 +7492,29 @@ class Calc_BoWa_V1(modeltools.Method):
         qib2(1.25, 1.25, 0.833333, 0.625)
         >>> fluxes.qdb
         qdb(1.25, 1.25, 0.833333, 0.625)
+
+        We do not to modify negative |EvB| values (condensation) to prevent
+        negative |BoWa| values:
+
+        >>> states.bowa = 10.0
+        >>> fluxes.evb = -15.0, -10.0, -5.0, 0.0
+        >>> fluxes.qbb = 5.0
+        >>> fluxes.qib1 = 5.0
+        >>> fluxes.qib2 = 5.0
+        >>> fluxes.qdb = 5.0
+        >>> model.calc_bowa_v1()
+        >>> states.bowa
+        bowa(5.0, 0.0, 0.0, 0.0)
+        >>> fluxes.evb
+        evb(-15.0, -10.0, -5.0, 0.0)
+        >>> fluxes.qbb
+        qbb(5.0, 5.0, 3.75, 2.5)
+        >>> fluxes.qib1
+        qib1(5.0, 5.0, 3.75, 2.5)
+        >>> fluxes.qib2
+        qib2(5.0, 5.0, 3.75, 2.5)
+        >>> fluxes.qdb
+        qdb(5.0, 5.0, 3.75, 2.5)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
@@ -6317,21 +7543,27 @@ class Calc_BoWa_V1(modeltools.Method):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.
             else:
-                d_bvl = flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k]
-                d_mvl = sta.bowa[k]+flu.wada[k]+flu.qkap[k]
-                if d_bvl > d_mvl:
-                    d_rvl = d_mvl/d_bvl
-                    flu.evb[k] *= d_rvl
+                d_decr = flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k]
+                d_incr = flu.wada[k]+flu.qkap[k]
+                if flu.evb[k] > 0.:
+                    d_decr += flu.evb[k]
+                else:
+                    d_incr -= flu.evb[k]
+                if d_decr > sta.bowa[k]+d_incr:
+                    d_rvl = (sta.bowa[k]+d_incr)/d_decr
+                    if flu.evb[k] > 0.:
+                        flu.evb[k] *= d_rvl
                     flu.qbb[k] *= d_rvl
                     flu.qib1[k] *= d_rvl
                     flu.qib2[k] *= d_rvl
                     flu.qdb[k] *= d_rvl
                     sta.bowa[k] = 0.
                 else:
-                    sta.bowa[k] = d_mvl-d_bvl
+                    sta.bowa[k] = (sta.bowa[k]+d_incr)-d_decr
                     if sta.bowa[k] > con.wmax[k]:
-                        d_factor = \
-                            (sta.bowa[k]-con.wmax[k])/(flu.wada[k]+flu.qkap[k])
+                        d_factor = (sta.bowa[k]-con.wmax[k])/d_incr
+                        if flu.evb[k] < 0.:
+                            flu.evb[k] *= d_factor
                         flu.wada[k] *= d_factor
                         flu.qkap[k] *= d_factor
                         sta.bowa[k] = con.wmax[k]
@@ -6347,8 +7579,8 @@ class Calc_QBGZ_V1(modeltools.Method):
     "percolation output" of the soil containing HRUs.
 
     Basic equation:
-       :math:`QBGZ = \\Sigma(FHRU \\cdot (QBB-Qkap)) +
-       \\Sigma(FHRU \\cdot (NKor_{SEE}-EvI_{SEE}))`
+       :math:`QBGZ = \\Sigma\\bigl(FHRU \\cdot \\bigl(QBB-Qkap\\bigl)\\bigl) +
+       \\Sigma\\bigl(FHRU \\cdot \\bigl(NKor_{SEE}-EvI_{SEE}\\bigl)\\bigl)`
 
     Examples:
 
@@ -6489,8 +7721,8 @@ class Calc_QDGZ_V1(modeltools.Method):
     """Aggregate the amount of total direct flow released by all HRUs.
 
     Basic equation:
-       :math:`QDGZ = \\Sigma(FHRU \\cdot QDB) +
-       \\Sigma(FHRU \\cdot (NKor_{FLUSS}-EvI_{FLUSS}))`
+       :math:`QDGZ = \\Sigma\\bigl(FHRU \\cdot QDB\\bigl) +
+       \\Sigma\\bigl(FHRU \\cdot \\bigl(NKor_{FLUSS}-EvI_{FLUSS}\\bigl)\\bigl)`
 
     Examples:
 
@@ -6565,8 +7797,8 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         the maximum amount of "slow" direct runoff per time step:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> parameterstep('1d')
         >>> a1(0.0)
 
         Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning
@@ -6704,9 +7936,8 @@ class Calc_QBGA_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_states.QBGZ,
-        lland_states.QBGA,
     )
-    RESULTSEQUENCES = (
+    UPDATEDSEQUENCES = (
         lland_states.QBGA,
     )
 
@@ -6721,9 +7952,11 @@ class Calc_QBGA_V1(modeltools.Method):
             new.qbga = old.qbga+new.qbgz-old.qbgz
         else:
             d_temp = 1.-modelutils.exp(-1./der.kb)
-            new.qbga = (old.qbga+
-                        (old.qbgz-old.qbga)*d_temp +
-                        (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
+            new.qbga = (
+                old.qbga +
+                (old.qbgz-old.qbga)*d_temp +
+                (new.qbgz-old.qbgz)*(1.-der.kb*d_temp)
+            )
 
 
 class Calc_QIGA1_V1(modeltools.Method):
@@ -6772,9 +8005,8 @@ class Calc_QIGA1_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_states.QIGZ1,
-        lland_states.QIGA1,
     )
-    RESULTSEQUENCES = (
+    UPDATEDSEQUENCES = (
         lland_states.QIGA1,
     )
 
@@ -6789,9 +8021,11 @@ class Calc_QIGA1_V1(modeltools.Method):
             new.qiga1 = old.qiga1+new.qigz1-old.qigz1
         else:
             d_temp = 1.-modelutils.exp(-1./der.ki1)
-            new.qiga1 = (old.qiga1 +
-                         (old.qigz1-old.qiga1)*d_temp +
-                         (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
+            new.qiga1 = (
+                old.qiga1 +
+                (old.qigz1-old.qiga1)*d_temp +
+                (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp)
+            )
 
 
 class Calc_QIGA2_V1(modeltools.Method):
@@ -6840,9 +8074,8 @@ class Calc_QIGA2_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_states.QIGZ2,
-        lland_states.QIGA2,
     )
-    RESULTSEQUENCES = (
+    UPDATEDSEQUENCES = (
         lland_states.QIGA2,
     )
 
@@ -6857,9 +8090,11 @@ class Calc_QIGA2_V1(modeltools.Method):
             new.qiga2 = old.qiga2+new.qigz2-old.qigz2
         else:
             d_temp = 1.-modelutils.exp(-1./der.ki2)
-            new.qiga2 = (old.qiga2 +
-                         (old.qigz2-old.qiga2)*d_temp +
-                         (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
+            new.qiga2 = (
+                old.qiga2 +
+                (old.qigz2-old.qiga2)*d_temp +
+                (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp)
+            )
 
 
 class Calc_QDGA1_V1(modeltools.Method):
@@ -6907,9 +8142,8 @@ class Calc_QDGA1_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_states.QDGZ1,
-        lland_states.QDGA1,
     )
-    RESULTSEQUENCES = (
+    UPDATEDSEQUENCES = (
         lland_states.QDGA1,
     )
 
@@ -6924,9 +8158,11 @@ class Calc_QDGA1_V1(modeltools.Method):
             new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
         else:
             d_temp = 1.-modelutils.exp(-1./der.kd1)
-            new.qdga1 = (old.qdga1 +
-                         (old.qdgz1-old.qdga1)*d_temp +
-                         (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
+            new.qdga1 = (
+                old.qdga1 +
+                (old.qdgz1-old.qdga1)*d_temp +
+                (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp)
+            )
 
 
 class Calc_QDGA2_V1(modeltools.Method):
@@ -6974,9 +8210,8 @@ class Calc_QDGA2_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         lland_states.QDGZ2,
-        lland_states.QDGA2,
     )
-    RESULTSEQUENCES = (
+    UPDATEDSEQUENCES = (
         lland_states.QDGA2,
     )
 
@@ -6991,9 +8226,11 @@ class Calc_QDGA2_V1(modeltools.Method):
             new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
         else:
             d_temp = 1.-modelutils.exp(-1./ der.kd2)
-            new.qdga2 = (old.qdga2 +
-                         (old.qdgz2-old.qdga2)*d_temp +
-                         (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
+            new.qdga2 = (
+                old.qdga2 +
+                (old.qdgz2-old.qdga2)*d_temp +
+                (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp)
+            )
 
 
 class Calc_Q_V1(modeltools.Method):
@@ -7007,11 +8244,9 @@ class Calc_Q_V1(modeltools.Method):
     runoff series. It seems advisable to use land type |FLUSS| and/or
     land type |SEE| instead.
 
-    Basic equations:
+    Basic equation:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
-
-       :math:`Q \\geq 0`
 
     Examples:
 
@@ -7124,7 +8359,6 @@ class Calc_Q_V1(modeltools.Method):
         lland_states.QDGA1,
         lland_states.QDGA2,
         lland_fluxes.NKor,
-        lland_fluxes.EvI,
     )
     UPDATEDSEQUENCES = (
         lland_fluxes.EvI,
@@ -7208,11 +8442,15 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = (
         Return_AdjustedWindSpeed_V1,
         Return_ActualVapourPressure_V1,
-        Return_NetLongwaveRadiation_V1,
+        Calc_DailyNetLongwaveRadiation_V1,
+        Return_NetLongwaveRadiationSnow_V1,
+        Return_DailyGlobalRadiation_V1,
         Return_Penman_V1,
         Return_PenmanMonteith_V1,
         Return_EnergyGainSnowSurface_V1,
         Return_SaturationVapourPressure_V1,
+        Return_SaturationVapourPressureSlope_V1,
+        Return_NetRadiation_V1,
         Return_WSensSnow_V1,
         Return_WLatSnow_V1,
         Return_WSurf_V1,
@@ -7223,32 +8461,42 @@ class Model(modeltools.AdHocModel):
         Return_TempSSurface_V1,
     )
     RUN_METHODS = (
+        Update_LoggedTemL_V1,
+        Calc_TemLTag_V1,
+        Update_LoggedRelativeHumidity_V1,
+        Calc_DailyRelativeHumidity_V1,
+        Update_LoggedSunshineDuration_V1,
         Calc_NKor_V1,
         Calc_TKor_V1,
-        Calc_PsychrometricConstant_V1,
+        Calc_TKorTag_V1,
         Calc_WindSpeed2m_V1,
+        Calc_ReducedWindSpeed2m_V1,
+        Update_LoggedWindSpeed2m_V1,
+        Calc_DailyWindSpeed2m_V1,
         Calc_WindSpeed10m_V1,
-        Calc_EarthSunDistance_V1,
         Calc_SolarDeclination_V1,
-        Calc_SunsetHourAngle_V1,
-        Calc_SolarTimeAngle_V1,
+        Calc_DailySunshineDuration_V1,
+        Calc_TSA_TSU_V1,
+        Calc_EarthSunDistance_V1,
         Calc_ExtraterrestrialRadiation_V1,
         Calc_PossibleSunshineDuration_V1,
-        Update_LoggedPossibleSunshineDuration_V1,
-        Update_LoggedSunshineDuration_V1,
+        Calc_DailyPossibleSunshineDuration_V1,
+        Calc_SP_V1,
         Calc_GlobalRadiation_V1,
         Update_LoggedGlobalRadiation_V1,
-        Update_LoggedExtraterrestrialRadiation_V1,
         Calc_DailyGlobalRadiation_V1,
         Calc_AdjustedGlobalRadiation_V1,
         Calc_SaturationVapourPressure_V1,
+        Calc_DailySaturationVapourPressure_V1,
         Calc_SaturationVapourPressureSlope_V1,
+        Calc_DailySaturationVapourPressureSlope_V1,
         Calc_ActualVapourPressure_V1,
+        Calc_DailyActualVapourPressure_V1,
         Calc_ET0_V1,
         Calc_ET0_WET0_V1,
         Calc_EvPo_V1,
         Calc_NBes_Inzp_V1,
-        Calc_SN_Ratio_V1,
+        Calc_SNRatio_V1,
         # Calc_F2SIMax_V1,
         # Calc_SInzpCap_V1,
         # Calc_F2SIRate_V1,
@@ -7265,22 +8513,24 @@ class Model(modeltools.AdHocModel):
         Calc_TempS_V1,
         Update_TauS_V1,
         Calc_ActualAlbedo_V1,
-        Calc_NetLongwaveRadiation_V1,
         Calc_NetShortwaveRadiation_V1,
+        Calc_NetShortwaveRadiationSnow_V1,
+        Calc_DailyNetShortwaveRadiation_V1,
+        Calc_G_V1,
+        Calc_EvB_V2,
+        Update_EBdn_V1,
+        Update_ESnow_V1,
         Calc_NetRadiation_V1,
+        Calc_DailyNetRadiation_V1,
         Calc_DryAirPressure_V1,
         Calc_DensityAir_V1,
         Calc_AerodynamicResistance_V1,
         Calc_SoilSurfaceResistance_V1,
         Calc_LanduseSurfaceResistance_V1,
-        Calc_SurfaceResistance_V1,
-        Calc_EvPo_V3,
+        Calc_ActualSurfaceResistance_V1,
+        Calc_EvPo_V2,
         Calc_EvI_Inzp_V1,
-        Calc_EvI_Inzp_V2,
         Calc_EvB_V1,
-        Calc_EvB_V2,
-        Update_EBdn_V1,
-        Update_ESnow_V2,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,
         Calc_GefrPot_V1,
@@ -7288,7 +8538,7 @@ class Model(modeltools.AdHocModel):
         Calc_Gefr_WATS_V1,
         Calc_EvS_WAeS_WATS_V1,
         Update_WaDa_WAeS_V1,
-        Update_ESnow_V3,
+        Update_ESnow_V2,
         Calc_SFF_V1,
         Calc_FVG_V1,
         Calc_QKap_V1,

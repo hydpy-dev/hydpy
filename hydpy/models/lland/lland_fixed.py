@@ -44,6 +44,13 @@ class Z(parametertools.FixedParameter):
     INIT = 0.1
 
 
+class BoWa2Z(parametertools.FixedParameter):
+    """Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water
+    content of the soil layer down two a depth of 2z) [mm]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    INIT = 80.
+
+
 class LambdaG(parametertools.FixedParameter):
     """Wärmeleitfähigkeit des Bodens (thermal conductivity of the top soil
     layer) [MJ/m/K/T]."""
@@ -52,8 +59,8 @@ class LambdaG(parametertools.FixedParameter):
 
 
 class Sigma(parametertools.FixedParameter):
-    """Stefan-Boltzmann-Konstante (Stefan-Boltzmann constant) [MJ/m²/K/T]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    """Stefan-Boltzmann-Konstante (Stefan-Boltzmann constant) [MJ/m²/K/d]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 4.89888e-09
 
 
@@ -79,7 +86,7 @@ class LW(parametertools.FixedParameter):
 
 class LWE(parametertools.FixedParameter):
     """Mittlere latente Verdunstungswärme für Wasser und Eis (average heat
-    of condensation at at temperature for water and ice) [MJ/m²/mm].
+    of condensation for water and ice) [MJ/m²/mm].
 
     Following the equations given on the `Wikipedia page on latent heat`_,
     we calculate the latent heat of water and the latent heat of sublimation
@@ -109,3 +116,43 @@ class CPLuft(parametertools.FixedParameter):
     water temperature of 15°C) [MJ/kg/K]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 0.001005
+
+
+class Psy(parametertools.FixedParameter):
+    """Psychrometerkonstante bei Normaldruck (psychrometric constant at
+    normal pressure) [kPa/°C]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 0.0655
+
+
+class PsyInv(parametertools.FixedParameter):
+    """Kehrwert der Psychrometerkonstante über Schnee und Eis bei 0°C
+    (inverse psychrometric constant for ice and snow at 0°C) [°C/kPa]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 17.6
+
+
+class Z0(parametertools.FixedParameter):
+    """Rauhigkeitslänge für Wiese (roughness length for short grass) [m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 0.003
+
+
+class Sol(parametertools.FixedParameter):
+    """Solarkonstante (solar constant) [m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 118.1088
+
+
+class FrAtm(parametertools.FixedParameter):
+    """Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung
+     (empirical factor for the calculation of atmospheric radiation) [-]"""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 1.28
+
+
+class CG(parametertools.FixedParameter):
+    """Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of
+    soil) [MJ/m³/°C]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 1.5

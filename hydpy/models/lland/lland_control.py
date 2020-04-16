@@ -61,7 +61,7 @@ class NHRU(parametertools.Parameter):
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
                 if (((seq.NDIM == 1) and (seq.name != 'moy') and
-                        not isinstance(seq, sequencetools.LogSequence)) or
+                     not isinstance(seq, sequencetools.LogSequence)) or
                         isinstance(seq, lland_logs.WET0)):
                     seq.shape = self.value
 
@@ -100,30 +100,16 @@ class FHRU(lland_parameters.ParameterComplete):
 
 class WG2Z(parametertools.MonthParameter):
     """Bodenwärmestrom in der Tiefe 2z (soil heat flux at depth 2z)
-    [MJ/m²/T]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
-    INIT = 0.
-
-
-class BoWa2Z(lland_parameters.ParameterLand):
-    """Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water
-    content of the soil layer down two a depth of 2z) [mm]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
-    INIT = 80.
-
-
-class CG(lland_parameters.ParameterLand):
-    """Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of
-    soil) [MJ/m³/°C]."""
+    [MJ/m²/d]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 1.5
+    INIT = 0.
 
 
 class FVF(lland_parameters.ParameterComplete):
     """Frostversiegelungsfaktor zur Ermittelung des Frostversiegelungsgrades
     (frost sealing factor for determination of the degree of frost sealing
     FVG) [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 0.5
 
 
@@ -144,6 +130,34 @@ class Albedo(lland_parameters.LanduseMonthParameter):
     """Albedo [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., 1.)
     INIT = 0.
+
+
+class P1Strahl(parametertools.Parameter):
+    """Konstante der Globalstrahlungsreduktion für Wald (constant for
+    reducing the global radiation in forests) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 0.5
+
+
+class P2Strahl(parametertools.Parameter):
+    """Faktor der Globalstrahlungsreduktion für Wald (factor for
+    reducing the global radiation in forests) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 1.0/35.0
+
+
+class P1Wind(parametertools.Parameter):
+    """Konstante der Windgeschwindigkeitsreduktion für Wald (constant for
+    reducing the wind speed in forests) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 0.6
+
+
+class P2Wind(parametertools.Parameter):
+    """Faktor der Windgeschwindigkeitsreduktion für Wald (factor for
+    reducing the wind speed in forests) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 1.0/70.0
 
 
 class SurfaceResistance(lland_parameters.LanduseMonthParameter):
@@ -207,35 +221,35 @@ class HInz(parametertools.Parameter):
 
 class P1SIMax(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität.""" # ToDo: Einheit
+    Schneeinterzeptionskapazität."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 8.
 
 
 class P2SIMax(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität.""" # ToDo: Einheit
+    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionskapazität."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 1.5
 
 
 class P1SIRate(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate.""" # ToDo: Einheit
+    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.2
 
 
 class P2SIRate(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate.""" # ToDo: Einheit
+    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = .02
 
 
 class P3SIRate(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate.""" # ToDo: Einheit
+    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .05)
     INIT = .003
 
@@ -426,18 +440,17 @@ class AngstromFactor(parametertools.MonthParameter):
         super().trim(lower, upper)
 
 
+class AngstromAlternative(parametertools.MonthParameter):
+    """An alternative Ångström coefficient replacing coefficient "c"
+    (|AngstromConstant|) on days without any direct sunshine [-]."""
+    TYPE, TIME, SPAN = float, None, (0., 1.)
+    INIT = 0.15
+
+
 class Emissivity(parametertools.Parameter):
     """Emissivität der Oberfläche (emissivity) [-]"""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.95
-
-
-class FrAtm(parametertools.Parameter):
-    """Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung
-     (empirical factor for the calculation of atmospheric radiation) [-]"""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-    INIT = 1.28
-    #todo: In Doku steht Eichparameter aber  nicht in Tape35
 
 
 class PWMax(lland_parameters.ParameterLand):
@@ -545,10 +558,11 @@ class WMax(lland_parameters.ParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.
 
-    CONTROLPARAMETERS = (
-        # PWP,   # ToDo: circular dependency, how to solve this?
-        # FK,   # ToDo: circular dependency, how to solve this?
-    )
+    # defined at the bottom of the file:
+    # CONTROLPARAMETERS = (
+    #     PWP,
+    #     FK,
+    # )
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -576,8 +590,8 @@ class WMax(lland_parameters.ParameterSoil):
 
 
 class FK(lland_parameters.ParameterSoilThreshold):
-    """Mindestbodenfeuchte für die Interflowentstehung (threshold
-    value of soil moisture for interflow generation) [mm].   # ToDo: wording
+    """Feldkapazität / Mindestbodenfeuchte für die Interflowentstehung (field
+    capacity / threshold value of soil moisture for interflow generation) [mm].
 
     Note that one can define the values of parameter |FK| via the
     keyword argument `relative`, as explained in the documentation
@@ -586,10 +600,11 @@ class FK(lland_parameters.ParameterSoilThreshold):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 0.
 
-    CONTROLPARAMETERS = (
-        # PWP,   # ToDo: circular dependency, how to solve this?
-        WMax,
-    )
+    # defined at the bottom of the file:
+    # CONTROLPARAMETERS = (
+    #     PWP,
+    #     WMax,
+    # )
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -612,8 +627,9 @@ class FK(lland_parameters.ParameterSoilThreshold):
 
 
 class PWP(lland_parameters.ParameterSoilThreshold):
-    """Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-    value of soil moisture for base flow generation) [mm].  # ToDo: wording
+    """Permanenter Welkepunkt / Mindestbodenfeuchte für die
+    Basisabflussentstehung (permanent wilting point threshold value of soil
+    moisture for base flow generation) [mm].
 
     Note that one can define the values of parameter |PWP| via the
     keyword argument `relative`, as explained in the documentation
@@ -652,8 +668,8 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 
 
 class PY(lland_parameters.ParameterSoilThreshold):
-    """Schwellenwert für den Anteil des für Pflanzen gebundenen Bodenwassers
-    (permanent wilting point) [mm].  # ToDo: wording
+    """Permanenter Welkepunkt / Schwellenwert für den Anteil des für Pflanzen
+    gebundenen Bodenwassers (permanent wilting point) [mm].
 
     Note that one can define the values of parameter |PY| via the
     keyword argument `relative`, as explained in the documentation
@@ -684,7 +700,7 @@ class PY(lland_parameters.ParameterSoilThreshold):
 
 
 class KapMax(lland_parameters.ParameterSoil):
-    """Maximale kapillare Aufstiegsrate (maximum capillary rise) [mm]."""
+    """Maximale kapillare Aufstiegsrate (maximum capillary rise) [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 0.
 
@@ -1333,3 +1349,13 @@ class NegQ(parametertools.Parameter):
     negative discharge values are allowed or not) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0., None)
     INIT = False
+
+
+WMax.CONTROLPARAMETERS = (
+    PWP,
+    FK,
+)
+FK.CONTROLPARAMETERS = (
+    PWP,
+    WMax,
+)

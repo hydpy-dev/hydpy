@@ -9,6 +9,7 @@ import typing
 import numpy
 from matplotlib import pyplot
 # ...from HydPy
+from hydpy.auxs import roottools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.cythons import smoothutils
@@ -2495,6 +2496,354 @@ class Pass_Q_V1(modeltools.Method):
         out.q[0] += flu.qa
 
 
+class Return_QF_V1(modeltools.Method):
+    """Calculate and return the "error" between the actual discharge and the
+    discharge corresponding to the given water stage.
+
+    Basic equation:
+      :math:`Q(H) - QG_0`
+
+    Method |Return_QF_V1| is a helper function not intended for performing
+    simulation runs but for easing the implementation of method
+    |lstream_v001.Model.calculate_characteristiclength| of application model
+    |lstream_v001| (and similar functionalities).  More specifically, it
+    defines the target function for the iterative root search triggered by
+    method |Return_H_V1|.
+
+    While method |Return_QF_V1| performs discharge calculations for all
+    stream subsections, it evaluates only those of the first subsection.
+    Accordingly, to avoid wasting computation time, one should not initialise
+    more than one subsection before calling method |Return_QF_V1| (or methods
+    |Return_H_V1| or |lstream_v001.Model.calculate_characteristiclength|).
+
+    Example:
+
+        We reuse the example given in the main documentation on module
+        |lstream_v001|:
+
+        >>> from hydpy.models.lstream import *
+        >>> parameterstep('1d')
+        >>> simulationstep('30m')
+
+        >>> gts(1)
+        >>> laen(100.0)
+        >>> gef(0.00025)
+        >>> bm(15.0)
+        >>> bnm(5.0)
+        >>> skm(1.0/0.035)
+        >>> hm(6.0)
+        >>> bv(100.0)
+        >>> bbv(20.0)
+        >>> bnv(10.0)
+        >>> bnvr(100.0)
+        >>> skv(10.0)
+        >>> ekm(1.0)
+        >>> ekv(1.0)
+        >>> hr(0.1)
+        >>> parameters.update()
+
+        A water stage of 1 m results in a discharge of 7.7 m³/s:
+
+        >>> states.h = 1.0
+        >>> model.calc_rhm_v1()
+        >>> model.calc_rhmdh_v1()
+        >>> model.calc_rhv_v1()
+        >>> model.calc_rhvdh_v1()
+        >>> model.calc_rhlvr_rhrvr_v1()
+        >>> model.calc_rhlvrdh_rhrvrdh_v1()
+        >>> model.calc_am_um_v1()
+        >>> model.calc_alv_arv_ulv_urv_v1()
+        >>> model.calc_alvr_arvr_ulvr_urvr_v1()
+        >>> model.calc_qm_v1()
+        >>> model.calc_qlv_qrv_v1()
+        >>> model.calc_qlvr_qrvr_v1()
+        >>> model.calc_ag_v1()
+        >>> model.calc_qg_v1()
+        >>> fluxes.qg
+        qg(7.745345)
+
+        The calculated |QG| value serves as the "true" value.  Now, when
+        passing stage values of 0.5 and 1.0 m, method |Return_QF_V1|
+        calculates the corresponding discharge values and returns the
+        "errors" -5.5 m³/s (a stage of 0.5 m results in a too-small discharge
+        value) and 0.0 m³/s  (1.0 m is the "true" stage), respectively:
+
+        >>> from hydpy import round_
+        >>> round_(model.return_qf_v1(0.5))
+        -5.474691
+        >>> round_(model.return_qf_v1(1.0))
+        0.0
+
+        Note that method |Return_QF_V1| does not overwrite the first
+        entry of |QG|, which would complicate its application within
+        an iterative approach.
+    """
+    CONTROLPARAMETERS = (
+        lstream_control.GTS,
+        lstream_control.HM,
+        lstream_control.BM,
+        lstream_control.BNM,
+        lstream_control.BV,
+        lstream_control.BNV,
+        lstream_control.BNVR,
+    )
+    DERIVEDPARAMETERS = (
+        lstream_derived.HV,
+        lstream_derived.HRP,
+        lstream_derived.BNMF,
+        lstream_derived.BNVF,
+        lstream_derived.BNVRF,
+        lstream_derived.MFM,
+        lstream_derived.MFV,
+    )
+    REQUIREDSEQUENCES = (
+        lstream_states.H,
+    )
+    RESULTSEQUENCES = (
+        lstream_aides.RHM,
+        lstream_aides.RHMDH,
+        lstream_aides.RHV,
+        lstream_aides.RHVDH,
+        lstream_aides.RHLVR,
+        lstream_aides.RHRVR,
+        lstream_aides.RHLVRDH,
+        lstream_aides.RHRVRDH,
+        lstream_aides.AM,
+        lstream_aides.UM,
+        lstream_aides.ALV,
+        lstream_aides.ARV,
+        lstream_aides.ULV,
+        lstream_aides.URV,
+        lstream_aides.ALVR,
+        lstream_aides.ARVR,
+        lstream_aides.ULVR,
+        lstream_aides.URVR,
+        lstream_aides.QM,
+        lstream_aides.QLV,
+        lstream_aides.QRV,
+        lstream_aides.QLVR,
+        lstream_aides.QRVR,
+        lstream_aides.AG,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model, h: float) -> float:
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        d_qg = flu.qg[0]
+        sta.h[0] = h
+        model.calc_rhm_v1()
+        model.calc_rhmdh_v1()
+        model.calc_rhv_v1()
+        model.calc_rhvdh_v1()
+        model.calc_rhlvr_rhrvr_v1()
+        model.calc_rhlvrdh_rhrvrdh_v1()
+        model.calc_am_um_v1()
+        model.calc_alv_arv_ulv_urv_v1()
+        model.calc_alvr_arvr_ulvr_urvr_v1()
+        model.calc_qm_v1()
+        model.calc_qlv_qrv_v1()
+        model.calc_qlvr_qrvr_v1()
+        model.calc_ag_v1()
+        model.calc_qg_v1()
+        d_error = flu.qg[0]-d_qg
+        flu.qg[0] = d_qg
+        return d_error
+
+
+class Return_H_V1(modeltools.Method):
+    """Calculate and return the water stage corresponding to the current
+    discharge value.
+
+    Method |Return_H_V1| is a helper function not for performing
+    simulation runs but for easing the implementation of method
+    |lstream_v001.Model.calculate_characteristiclength| of application model
+    |lstream_v001| (or similar functionalities).  More specifically, it
+    performs a root search by applying the |Pegasus| method implemented
+    in module |rootutils| on the target method |Return_QF_V1|.  Hence, please
+    see the additional application notes in the documentation on method
+    |Return_QF_V1|.
+
+    Example:
+
+        We recreate the exact parameterisation as in the example of the
+        documentation on method |Return_QF_V1|:
+
+        >>> from hydpy.models.lstream import *
+        >>> simulationstep('30m')
+        >>> parameterstep()
+
+        >>> gts(1)
+        >>> laen(100.0)
+        >>> gef(0.00025)
+        >>> bm(15.0)
+        >>> bnm(5.0)
+        >>> skm(1.0/0.035)
+        >>> hm(6.0)
+        >>> bv(100.0)
+        >>> bbv(20.0)
+        >>> bnv(10.0)
+        >>> bnvr(100.0)
+        >>> skv(10.0)
+        >>> ekm(1.0)
+        >>> ekv(1.0)
+        >>> hr(0.1)
+        >>> parameters.update()
+
+        For a given discharge value of 7.7 m³/s (discussed in the documentation
+        on method |Return_QF_V1|), method |Return_H_V1| correctly determines
+        the water stage of 1 m:
+
+        >>> fluxes.qg = 7.745345
+        >>> from hydpy import print_values, round_
+        >>> round_(model.return_h_v1())
+        1.0
+
+        To evaluate the reliability of our implementation, we search for
+        water stages covering an extensive range of discharge values.
+        The last printed column shows that method |Return_H_V1| finds the
+        correct water stage in all cases:
+
+        >>> import numpy
+        >>> for q in [0.0]+list(numpy.logspace(-6, 6, 13)):
+        ...     fluxes.qg = q
+        ...     h = model.return_h_v1()
+        ...     states.h = h
+        ...     model.calc_rhm_v1()
+        ...     model.calc_rhmdh_v1()
+        ...     model.calc_rhv_v1()
+        ...     model.calc_rhvdh_v1()
+        ...     model.calc_rhlvr_rhrvr_v1()
+        ...     model.calc_rhlvrdh_rhrvrdh_v1()
+        ...     model.calc_am_um_v1()
+        ...     model.calc_alv_arv_ulv_urv_v1()
+        ...     model.calc_alvr_arvr_ulvr_urvr_v1()
+        ...     model.calc_qm_v1()
+        ...     model.calc_qlv_qrv_v1()
+        ...     model.calc_qlvr_qrvr_v1()
+        ...     model.calc_ag_v1()
+        ...     model.calc_qg_v1()
+        ...     error = fluxes.qg[0]-q
+        ...     print_values([q, h, error])
+        0.0, -10.0, 0.0
+        0.000001, -0.390737, 0.0
+        0.00001, -0.308934, 0.0
+        0.0001, -0.226779, 0.0
+        0.001, -0.143209, 0.0
+        0.01, -0.053833, 0.0
+        0.1, 0.061356, 0.0
+        1.0, 0.310079, 0.0
+        10.0, 1.150307, 0.0
+        100.0, 3.717833, 0.0
+        1000.0, 9.108276, 0.0
+        10000.0, 18.246131, 0.0
+        100000.0, 37.330632, 0.0
+        1000000.0, 81.363979, 0.0
+
+        Due to smoothing the water stage with respect to the channel bottom,
+        small discharge values result in negative water stages.  The smallest
+        allowed stage is -10 m.
+
+        Through setting the regularisation parameter |HR| to zero (which
+        we do not recommend), method |Return_H_V1| should return the
+        non-negative water stages agreeing with the original, discontinuous
+        Manning-Strickler equation:
+
+        >>> hr(0.0)
+        >>> parameters.update()
+        >>> for q in [0.0]+list(numpy.logspace(-6, 6, 13)):
+        ...     fluxes.qg = q
+        ...     h = model.return_h_v1()
+        ...     states.h = h
+        ...     model.calc_rhm_v1()
+        ...     model.calc_rhmdh_v1()
+        ...     model.calc_rhv_v1()
+        ...     model.calc_rhvdh_v1()
+        ...     model.calc_rhlvr_rhrvr_v1()
+        ...     model.calc_rhlvrdh_rhrvrdh_v1()
+        ...     model.calc_am_um_v1()
+        ...     model.calc_alv_arv_ulv_urv_v1()
+        ...     model.calc_alvr_arvr_ulvr_urvr_v1()
+        ...     model.calc_qm_v1()
+        ...     model.calc_qlv_qrv_v1()
+        ...     model.calc_qlvr_qrvr_v1()
+        ...     model.calc_ag_v1()
+        ...     model.calc_qg_v1()
+        ...     error = fluxes.qg[0]-q
+        ...     print_values([q, h, error])
+        0.0, 0.0, 0.0
+        0.000001, 0.00008, 0.0
+        0.00001, 0.000317, 0.0
+        0.0001, 0.001263, 0.0
+        0.001, 0.005027, 0.0
+        0.01, 0.019992, 0.0
+        0.1, 0.079286, 0.0
+        1.0, 0.31039, 0.0
+        10.0, 1.150307, 0.0
+        100.0, 3.717833, 0.0
+        1000.0, 9.108276, 0.0
+        10000.0, 18.246131, 0.0
+        100000.0, 37.330632, 0.0
+        1000000.0, 81.363979, 0.0
+    """
+    CONTROLPARAMETERS = (
+        lstream_control.GTS,
+        lstream_control.HM,
+        lstream_control.BM,
+        lstream_control.BNM,
+        lstream_control.BV,
+        lstream_control.BNV,
+        lstream_control.BNVR,
+    )
+    DERIVEDPARAMETERS = (
+        lstream_derived.HV,
+        lstream_derived.HRP,
+        lstream_derived.BNMF,
+        lstream_derived.BNVF,
+        lstream_derived.BNVRF,
+        lstream_derived.MFM,
+        lstream_derived.MFV,
+    )
+    RESULTSEQUENCES = (
+        lstream_states.H,
+        lstream_aides.RHM,
+        lstream_aides.RHMDH,
+        lstream_aides.RHV,
+        lstream_aides.RHVDH,
+        lstream_aides.RHLVR,
+        lstream_aides.RHRVR,
+        lstream_aides.RHLVRDH,
+        lstream_aides.RHRVRDH,
+        lstream_aides.AM,
+        lstream_aides.UM,
+        lstream_aides.ALV,
+        lstream_aides.ARV,
+        lstream_aides.ULV,
+        lstream_aides.URV,
+        lstream_aides.ALVR,
+        lstream_aides.ARVR,
+        lstream_aides.ULVR,
+        lstream_aides.URVR,
+        lstream_aides.QM,
+        lstream_aides.QLV,
+        lstream_aides.QRV,
+        lstream_aides.QLVR,
+        lstream_aides.QRVR,
+        lstream_aides.AG,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        con = model.parameters.control.fastaccess
+        return model.pegasush.find_x(
+            0., 2.*con.hm, -10., 1000., 0., 1e-10, 1000)
+
+
+class PegasusH(roottools.Pegasus):
+    """Pegasus iterator for finding the correct water stage."""
+    METHODS = (
+        Return_QF_V1,
+    )
+
+
 class Model(modeltools.ELSModel):
     """The HydPy-L-Stream model."""
     SOLVERPARAMETERS = (
@@ -2508,7 +2857,10 @@ class Model(modeltools.ELSModel):
         Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        Return_QF_V1,
+        Return_H_V1,
+    )
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -2549,7 +2901,9 @@ class Model(modeltools.ELSModel):
         Pass_Q_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELS = ()
+    SUBMODELS = (
+        PegasusH,
+    )
 
 
 class ProfileMixin:
@@ -2580,7 +2934,7 @@ class ProfileMixin:
         >>> ekm(1.0)
         >>> ekv(1.0)
         >>> hr(0.1)
-        >>> gts(2)
+        >>> gts(1)
         >>> parameters.update()
 
         Calling method |ProfileMixin.plot_profile| prepares the profile

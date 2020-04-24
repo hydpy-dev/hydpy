@@ -808,8 +808,9 @@ Integration test:
 """
 # import...
 # ...from standard library
-import typing
+from typing import *
 # ...from HydPy
+from hydpy.core import objecttools
 from hydpy.exe.modelimports import *
 # ...from lstream
 from hydpy.models.lstream import lstream_fluxes
@@ -817,7 +818,7 @@ from hydpy.models.lstream import lstream_model
 from hydpy.models.lstream import lstream_solver
 
 
-class Characteristics(typing.NamedTuple):
+class Characteristics(NamedTuple):
     """Data class for holding the results of method
     |Model.calculate_characteristiclength|."""
     waterstage: float
@@ -858,7 +859,10 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         lstream_model.Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        lstream_model.Return_QF_V1,
+        lstream_model.Return_H_V1,
+    )
     PART_ODE_METHODS = (
         lstream_model.Calc_RHM_V1,
         lstream_model.Calc_RHMDH_V1,
@@ -888,25 +892,34 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         lstream_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELS = ()
+    SUBMODELS = (
+        lstream_model.PegasusH,
+    )
 
     def calculate_characteristiclength(
-            self, h: float, dh: float = 1e-6,
-            lenmin: float = 0.1, nmbmax: int = 50) -> Characteristics:
+            self,
+            *,
+            h: Optional[float] = None,
+            q: Optional[float] = None,
+            dx: float = 1e-6,
+            lenmin: float = 0.1,
+            nmbmax: int = 50,
+    ) -> Characteristics:
         """Approximate the characteristic length after the Kalinin-Milyukov
         method.
 
         Method |Model.calculate_characteristiclength| determines the
         characteristic length based on a finite difference approach and
         returns it, accompanied by some intermediate results, within a
-        |Characteristics| object.  You need to pass in the stage of
-        interest (`h`).  Optionally, you can define alternative values
-        for the finite-difference stepsize (`dh`), the smallest allowed
-        subsection length (`minlen`) and the maximum number of cross-sections
-        (`nmbmax`).  The returned `length_orig` value is the initial
-        approximation of the ideal characteristic length and `length_adj`
-        is its adjustment to the actual channel length.  All length value
-        must be given and are returned in kilometres.
+        |Characteristics| object.  You need to pass in either the stage
+        or the discharge (`q`) value of interest (`h`).  Optionally, you
+        can define alternative values for the finite-difference stepsize
+        (`dx`), the smallest allowed subsection length (`minlen`) and the
+        maximum number of cross-sections (`nmbmax`).  The returned
+        `length_orig` value is the initial approximation of the ideal
+        characteristic length, and `length_adj` is its adjustment to the
+        actual channel length.  All length value must be given and are
+        returned in kilometres.
 
         We reuse the example given in the main documentation on module
         |lstream_v001|:
@@ -915,6 +928,7 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         >>> parameterstep('1d')
         >>> simulationstep('30m')
 
+        >>> gts(1)
         >>> laen(100.0)
         >>> gef(0.00025)
         >>> bm(15.0)
@@ -929,7 +943,6 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         >>> ekm(1.0)
         >>> ekv(1.0)
         >>> hr(0.1)
-        >>> gts(1)
         >>> parameters.update()
 
         When passing a water stage of 7.5 m, method
@@ -946,6 +959,35 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
             nmb_subsections=8,
             length_adj=12.5,
         )
+
+        Passing the discharge value corresponding to the lastly defined
+        water stage returns equal results (method
+        |Model.calculate_characteristiclength| uses first method
+        |lstream_model.Return_H_V1| to calculate the water stage
+        and then precedes as usual):
+
+        >>> model.calculate_characteristiclength(q=470.654321)
+        Characteristics(
+            waterstage=7.5,
+            discharge=470.654321,
+            derivative=0.006929,
+            length_orig=13.044707,
+            nmb_subsections=8,
+            length_adj=12.5,
+        )
+
+        One must define at either `h` or `q` but not both:
+
+        >>> model.calculate_characteristiclength()
+        Traceback (most recent call last):
+        ...
+        ValueError: Calculating the characteristic length requires either a \
+reference stage or a discharge value, but neither is given.
+        >>> model.calculate_characteristiclength(h=7.5, q=470.654321)
+        Traceback (most recent call last):
+        ...
+        ValueError: Calculating the characteristic length requires either a \
+reference stage or a discharge value, but both are given.
 
         You can modify the allowed channel length or increase the allowed
         number of subsections:
@@ -984,21 +1026,33 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
             length_adj=1.0,
         )
         """
+        if h is None:
+            if q is None:
+                raise ValueError(
+                    'Calculating the characteristic length requires either '
+                    'a reference stage or a discharge value, but neither is '
+                    'given.')
+            self.sequences.fluxes.qg = q
+            h = self.return_h_v1()
+        elif q is not None:
+            raise ValueError(
+                'Calculating the characteristic length requires either '
+                'a reference stage or a discharge value, but both are given.')
         qs = []
-        for h_ in (h-dh/2.0, h+dh/2.0):
+        for h_ in (h-dx/2.0, h+dx/2.0):
             self.sequences.states.h(h_)
             self.calculate_single_terms()
             qs.append(self.sequences.fluxes.qg[0])
         qmean = float(numpy.mean(qs))
         dq = numpy.diff(qs)[0]
-        length_orig = (qmean*dh)/(self.parameters.control.gef*dq)/1000.0
+        length_orig = (qmean*dx)/(self.parameters.control.gef*dq)/1000.0
         length_adj = max(length_orig, lenmin)
         number = int(
             min(max(round(self.parameters.control.laen/length_adj), 1), nmbmax))
         return Characteristics(
             waterstage=h,
             discharge=qmean,
-            derivative=dh/dq,
+            derivative=dx/dq,
             length_orig=length_orig,
             nmb_subsections=number,
             length_adj=self.parameters.control.laen/number

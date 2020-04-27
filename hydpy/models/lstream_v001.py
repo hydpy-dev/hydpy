@@ -827,6 +827,21 @@ class Characteristics(typing.NamedTuple):
     nmb_subsections: int
     length_adj: float
 
+    def __repr__(self) -> str:
+        return (
+            f'Characteristics(\n'
+            f'    waterstage={objecttools.repr_(self.waterstage)},\n'
+            f'    discharge={objecttools.repr_(self.discharge)},\n'
+            f'    derivative={objecttools.repr_(self.derivative)},\n'
+            f'    length_orig={objecttools.repr_(self.length_orig)},\n'
+            f'    nmb_subsections={self.nmb_subsections},\n'
+            f'    length_adj={objecttools.repr_(self.length_adj)},\n'
+            f')'
+        )
+
+    def __str__(self):
+        return objecttools.flatten_repr(self)
+
 
 class Model(lstream_model.Model, lstream_model.ProfileMixin):
     """Version 1 of HydPy-L-Stream."""
@@ -922,51 +937,52 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         length of 13 km and suggest to split the total channel length of
         100 km length into eight subsections:
 
-        >>> chars = model.calculate_characteristiclength(7.5)
-        >>> from hydpy import round_
-        >>> round_(chars.waterstage)
-        7.5
-        >>> round_(chars.discharge)
-        470.654321
-        >>> round_(chars.derivative)
-        0.006929
-        >>> round_(chars.length_orig)
-        13.044707
-        >>> chars.nmb_subsections
-        8
-        >>> round_(chars.length_adj)
-        12.5
+        >>> model.calculate_characteristiclength(h=7.5)
+        Characteristics(
+            waterstage=7.5,
+            discharge=470.654321,
+            derivative=0.006929,
+            length_orig=13.044707,
+            nmb_subsections=8,
+            length_adj=12.5,
+        )
 
         You can modify the allowed channel length or increase the allowed
         number of subsections:
 
-        >>> chars = model.calculate_characteristiclength(7.5, lenmin=20.0)
-        >>> round_(chars.length_orig)
-        13.044707
-        >>> chars.nmb_subsections
-        5
-        >>> round_(chars.length_adj)
-        20.0
+        >>> model.calculate_characteristiclength(h=7.5, lenmin=20.0)
+        Characteristics(
+            waterstage=7.5,
+            discharge=470.654321,
+            derivative=0.006929,
+            length_orig=13.044707,
+            nmb_subsections=5,
+            length_adj=20.0,
+        )
 
-        >>> chars = model.calculate_characteristiclength(
-        ...     7.5, lenmin=20.0, nmbmax=4)
-        >>> round_(chars.length_orig)
-        13.044707
-        >>> chars.nmb_subsections
-        4
-        >>> round_(chars.length_adj)
-        25.0
+        >>> model.calculate_characteristiclength(
+        ...     h=7.5, lenmin=20.0, nmbmax=4)
+        Characteristics(
+            waterstage=7.5,
+            discharge=470.654321,
+            derivative=0.006929,
+            length_orig=13.044707,
+            nmb_subsections=4,
+            length_adj=25.0,
+        )
 
         The lowest returned number of subsections is one:
 
         >>> laen(1.0)
-        >>> chars = model.calculate_characteristiclength(7.5)
-        >>> round_(chars.length_orig)
-        13.044707
-        >>> chars.nmb_subsections
-        1
-        >>> round_(chars.length_adj)
-        1.0
+        >>> model.calculate_characteristiclength(h=7.5)
+        Characteristics(
+            waterstage=7.5,
+            discharge=470.654321,
+            derivative=0.006929,
+            length_orig=13.044707,
+            nmb_subsections=1,
+            length_adj=1.0,
+        )
         """
         qs = []
         for h_ in (h-dh/2.0, h+dh/2.0):

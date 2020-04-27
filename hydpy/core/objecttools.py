@@ -1270,9 +1270,9 @@ def flatten_repr(self):
     """Remove the newline characters from the string representation of the
     given object and return it.
 
-    Complex string representations like the following one are e. g.
-    convenient when working interactively, but cause line breaks when
-    included in e. g. exception messages:
+    Complex string representations like the following one are convenient
+    when working interactively, but cause line breaks when included in
+    strings like in exception messages:
 
     >>> from hydpy import Node
     >>> node = Node('name', keywords='test')
@@ -1298,8 +1298,40 @@ def flatten_repr(self):
     We print Node("name", variable="Q", keywords="test")!
 
     >>> Node.__str__ = __str__
+
+    The named tuple subclass |lstream_v001.Characteristics| of application
+    model |lstream_v001| uses function |flatten_repr| in the expected manner:
+
+    >>> from hydpy.models.lstream_v001 import Characteristics
+    >>> characteristics = Characteristics(
+    ...     waterstage=1.0,
+    ...     discharge=5.0,
+    ...     derivative=0.1,
+    ...     length_orig=3.0,
+    ...     nmb_subsections=4,
+    ...     length_adj=2.0,
+    ... )
+
+    >>> characteristics
+    Characteristics(
+        waterstage=1.0,
+        discharge=5.0,
+        derivative=0.1,
+        length_orig=3.0,
+        nmb_subsections=4,
+        length_adj=2.0,
+    )
+
+    >>> print(characteristics)
+    Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \
+length_orig=3.0, nmb_subsections=4, length_adj=2.0)
     """
-    return ' '.join(string.strip() for string in repr(self).split('\n'))
+    string = ' '.join(string.strip() for string in repr(self).split('\n'))
+    idx = string.find('(')
+    string = f'{string[:idx]}({string[idx+1:].strip()}'
+    if string.endswith(', )'):
+        string = f'{string[:-3]})'
+    return string
 
 
 def round_(values, decimals=None, width=0,

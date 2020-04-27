@@ -1060,22 +1060,23 @@ class PyxWriter:
     def parameters(self) -> List[str]:
         """Parameter declaration lines."""
         lines = Lines()
-        lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Parameters:')
-        for subpars in self.model.parameters:
-            lines.add(
-                1,
-                f'cdef public {type(subpars).__name__} {subpars.name}')
-        for subpars in self.model.parameters:
-            print(f'        - {subpars.name}')
+        if self.model.parameters:
             lines.add(0, '@cython.final')
-            lines.add(0, f'cdef class {type(subpars).__name__}:')
-            for par in subpars:
-                try:
-                    ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
-                except KeyError:
-                    ctype = par.TYPE + NDIM2STR[par.NDIM]
-                lines.add(1, f'cdef public {ctype} {par.name}')
+            lines.add(0, 'cdef class Parameters:')
+            for subpars in self.model.parameters:
+                lines.add(
+                    1,
+                    f'cdef public {type(subpars).__name__} {subpars.name}')
+            for subpars in self.model.parameters:
+                print(f'        - {subpars.name}')
+                lines.add(0, '@cython.final')
+                lines.add(0, f'cdef class {type(subpars).__name__}:')
+                for par in subpars:
+                    try:
+                        ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
+                    except KeyError:
+                        ctype = par.TYPE + NDIM2STR[par.NDIM]
+                    lines.add(1, f'cdef public {ctype} {par.name}')
         return lines
 
     @property
@@ -1451,7 +1452,8 @@ class PyxWriter:
         lines.add(0, 'cdef class Model:')
         for index in self.model.INDICES:
             lines.add(1, f'cdef public int {index}')
-        lines.add(1, 'cdef public Parameters parameters')
+        if self.model.parameters:
+            lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')
         for submodel in submodels:
             lines.add(1, f'cdef public {submodel.__name__} {submodel.name}')

@@ -145,6 +145,8 @@ class Parameters:
     ...     print(subpars.name)
     control
     derived
+    >>> len(model.parameters)
+    2
     """
 
     model: 'modeltools.Model'
@@ -358,6 +360,9 @@ no value has been defined so far.
         for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
                 yield subpars
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
     def __dir__(self) -> List[str]:
         """

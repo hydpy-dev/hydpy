@@ -80,6 +80,8 @@ class Sequences:
     states
     logs
     outlets
+    >>> len(sequences)
+    5
 
     Class |Sequences| provides some methods related to reading and
     writing time-series data, which (directly or indirectly) call the
@@ -529,6 +531,9 @@ neither a filename is given nor does the model know its master element.
                         self.aides, self.outlets, self.senders):
             if subseqs:
                 yield subseqs
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
     def __dir__(self) -> List[str]:
         """

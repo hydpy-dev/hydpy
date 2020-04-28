@@ -1477,11 +1477,11 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for further information.
         """
         return {
-            f'Number of nodes': len(self.nodes),
-            f'Number of elements': len(self.elements),
-            f'Number of end nodes': len(self.endnodes),
-            f'Number of distinct networks': len(self.segregatednetworks),
-            f'Applied node variables': self.variables
+            'Number of nodes': len(self.nodes),
+            'Number of elements': len(self.elements),
+            'Number of end nodes': len(self.endnodes),
+            'Number of distinct networks': len(self.segregatednetworks),
+            'Applied node variables': self.variables
         }
 
     def print_networkproperties(self) -> None:

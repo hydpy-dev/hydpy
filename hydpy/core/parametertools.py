@@ -1159,10 +1159,10 @@ parameter and a simulation time step size first.
         except RuntimeError:
             if not (cls.parameterstep and cls.simulationstep):
                 raise RuntimeError(
-                    f'To calculate the conversion factor for adapting '
-                    f'the values of the time-dependent parameters, '
-                    f'you need to define both a parameter and a simulation '
-                    f'time step size first.')
+                    'To calculate the conversion factor for adapting '
+                    'the values of the time-dependent parameters, '
+                    'you need to define both a parameter and a simulation '
+                    'time step size first.')
             date1 = timetools.Date('2000.01.01')
             date2 = date1 + cls.simulationstep
             parfactor = timetools.Timegrids(timetools.Timegrid(

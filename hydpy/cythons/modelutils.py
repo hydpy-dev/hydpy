@@ -1001,19 +1001,19 @@ class PyxWriter:
         >>> config.PROFILECYTHON = False
         """
         if config.FASTCYTHON:
-            lines = Lines(f'#!python',
-                          f'# cython: language_level=3',
-                          f'# cython: boundscheck=False',
-                          f'# cython: wraparound=False',
-                          f'# cython: initializedcheck=False',
-                          f'# cython: cdivision=True')
+            lines = Lines('#!python',
+                          '# cython: language_level=3',
+                          '# cython: boundscheck=False',
+                          '# cython: wraparound=False',
+                          '# cython: initializedcheck=False',
+                          '# cython: cdivision=True')
         else:
-            lines = Lines(f'#!python',
-                          f'# cython: language_level=3',
-                          f'# cython: boundscheck=True',
-                          f'# cython: wraparound=True',
-                          f'# cython: initializedcheck=True',
-                          f'# cython: cdivision=False')
+            lines = Lines('#!python',
+                          '# cython: language_level=3',
+                          '# cython: boundscheck=True',
+                          '# cython: wraparound=True',
+                          '# cython: initializedcheck=True',
+                          '# cython: cdivision=False')
         if config.PROFILECYTHON:
             lines.add(0, '# cython: linetrace=True')
             lines.add(0, '# distutils: define_macros=CYTHON_TRACE=1')
@@ -1929,11 +1929,11 @@ class PyxWriter:
         abserror = 'self.numvars.abserror'
         relerror = 'self.numvars.relerror'
         index = 'self.numvars.idx_method'
-        yield f'cdef double abserror'
+        yield 'cdef double abserror'
         yield f'{abserror} = 0.'
         yield f'if {userel}'
         yield f'    {relerror} = 0.'
-        yield f'else:'
+        yield 'else:'
         yield f'    {relerror} = inf'
         for seq in subseqs:
             results = f'self.sequences.fluxes._{seq.name}_results'
@@ -1944,7 +1944,7 @@ class PyxWriter:
                 yield f'if {userel}'
                 yield f'    if {results}[{index}] == 0.:'
                 yield f'        {relerror} = inf'
-                yield f'    else:'
+                yield '    else:'
                 yield (f'        {relerror} = max('
                        f'{relerror}, fabs(abserror/{results}[{index}]))')
             elif seq.NDIM == 1:
@@ -1956,7 +1956,7 @@ class PyxWriter:
                 yield f'    if {userel}'
                 yield f'        if {results}[{index}, idx0] == 0.:'
                 yield f'            {relerror} = inf'
-                yield f'        else:'
+                yield '        else:'
                 yield (f'            {relerror} = max('
                        f'{relerror}, fabs(abserror/{results}[{index}, idx0]))')
             elif seq.NDIM == 2:
@@ -1971,7 +1971,7 @@ class PyxWriter:
                 yield f'        if {userel}'
                 yield f'            if {results}[{index}, idx0, idx1] == 0.:'
                 yield f'                {relerror} = inf'
-                yield f'            else:'
+                yield '            else:'
                 yield (f'                {relerror} = max('
                        f'{relerror}, '
                        f'fabs(abserror/{results}[{index}, idx0, idx1]))')

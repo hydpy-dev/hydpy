@@ -467,7 +467,7 @@ neither a filename is given nor does the model know its master element.
             if self.states or self.logs:
                 con = hydpy.pub.controlmanager
                 lines = [
-                    f'# -*- coding: utf-8 -*-\n\n',
+                    '# -*- coding: utf-8 -*-\n\n',
                     f'from hydpy.models.{self.model} import *\n\n',
                     f'controlcheck(projectdir="{con.projectdir}", '
                     f'controldir="{con.currentdir}", '
@@ -3127,9 +3127,9 @@ broadcast input array from shape (2) into shape (1)
         try:
             if not self.__isready:
                 raise AttributeError(
-                    f'Proper connections are missing (which could '
-                    f'result in segmentation faults when using it, '
-                    f'so please be careful).')
+                    'Proper connections are missing (which could '
+                    'result in segmentation faults when using it, '
+                    'so please be careful).')
             if isinstance(self.fastaccess, FastAccessModelSequence):
                 value = getattr(self.fastaccess, self.name)[:]
                 if self.NDIM == 0:
@@ -3245,7 +3245,7 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
             try:
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
-                return self._get_fastaccessattribute(f'length_0'),
+                return self._get_fastaccessattribute('length_0'),
         except BaseException:
             raise objecttools.augment_excmessage(
                 f'While trying to query the shape of link sequence'

@@ -764,15 +764,15 @@ datetime of the Python standard library for for further information.
         blanks = ' '*tabs
         height = self._height
         height = self.plotting_options.height if height is None else height
-        lines = [f'.. raw:: html',
-                 f'',
-                 f'    <iframe',
+        lines = ['.. raw:: html',
+                 '',
+                 '    <iframe',
                  f'        src="{self._src}"',
-                 f'        width="100"',
+                 '        width="100"',
                  f'        height="{height+30}"',
-                 f'        frameborder=0',
-                 f'    ></iframe>',
-                 f'']
+                 '        frameborder=0',
+                 '    ></iframe>',
+                 '']
         print('\n'.join(blanks+line for line in lines))
 
 

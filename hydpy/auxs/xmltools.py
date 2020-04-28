@@ -960,9 +960,9 @@ Please make sure your XML file follows the relevant XML schema.
             master = getattr(master, 'master', None)
             if master is None:
                 raise AttributeError(
-                    f'Unable to find a XML element named "selections".  '
-                    f'Please make sure your XML file follows the '
-                    f'relevant XML schema.')
+                    'Unable to find a XML element named "selections".  '
+                    'Please make sure your XML file follows the '
+                    'relevant XML schema.')
             selections = master.find('selections')
         return _query_selections(selections)
 
@@ -1009,9 +1009,9 @@ Please make sure your XML file follows the relevant XML schema.
             master = getattr(master, 'master', None)
             if master is None:
                 raise AttributeError(
-                    f'Unable to find a XML element named "devices".  '
-                    f'Please make sure your XML file follows the '
-                    f'relevant XML schema.')
+                    'Unable to find a XML element named "devices".  '
+                    'Please make sure your XML file follows the '
+                    'relevant XML schema.')
             devices = master.find('devices')
         return _query_devices(devices)
 
@@ -1861,7 +1861,7 @@ class XSDWriter:
                 f'{blanks}<element name="{name}"',
                 f'{blanks}         substitutionGroup="hpcb:sequenceGroup"',
                 f'{blanks}         type="hpcb:{name}Type"/>',
-                f'',
+                '',
                 f'{blanks}<complexType name="{name}Type">',
                 f'{blanks}    <complexContent>',
                 f'{blanks}        <extension base="hpcb:sequenceGroupType">',
@@ -1873,7 +1873,7 @@ class XSDWriter:
                 f'{blanks}        </extension>',
                 f'{blanks}    </complexContent>',
                 f'{blanks}</complexType>',
-                f''
+                ''
             ])
         return '\n'.join(subs)
 
@@ -2037,7 +2037,7 @@ class XSDWriter:
                 f'{blanks}        </extension>',
                 f'{blanks}    </complexContent>',
                 f'{blanks}</complexType>',
-                f''])
+                ''])
         return '\n'.join(subs)
 
     @staticmethod
@@ -2102,7 +2102,7 @@ class XSDWriter:
             f'{blanks}        <attribute name="info" type="string"/>',
             f'{blanks}    </complexType>',
             f'{blanks}</element>',
-            f''])
+            ''])
         return '\n'.join(subs)
 
     @classmethod
@@ -2163,7 +2163,7 @@ class XSDWriter:
             cls.get_subgroupsiteminsertion(itemgroup, modelname, indent+2),
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
-            f'']
+            '']
         return '\n'.join(subs)
 
     @classmethod
@@ -2218,7 +2218,7 @@ class XSDWriter:
         subs.extend([
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
-            f''])
+            ''])
         return '\n'.join(subs)
 
     @classmethod

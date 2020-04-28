@@ -112,17 +112,17 @@ def _add_lines(specification, module):
     lines = []
     exc_mem = ", ".join(EXCLUDE_MEMBERS)
     if specification == 'model':
-        lines += [f'',
+        lines += ['',
                   f'.. autoclass:: {module.__name__}.Model',
-                  f'    :members:',
-                  f'    :show-inheritance:',
+                  '    :members:',
+                  '    :show-inheritance:',
                   f'    :exclude-members: {exc_mem}']
     elif exists_collectionclass:
-        lines += [f'',
+        lines += ['',
                   f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
                   f'.{name_collectionclass}',
-                  f'    :members:',
-                  f'    :show-inheritance:',
+                  '    :members:',
+                  '    :show-inheritance:',
                   f'    :exclude-members: {exc_mem}']
     lines += ['',
               '.. automodule:: ' + module.__name__,

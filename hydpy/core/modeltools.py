@@ -72,15 +72,91 @@ class Model:
     model, except method |Model.simulate|.  See class |AdHocModel| and
     |ELSModel|, which implement this method.
 
-    Note that the class tuple `INDICES` defines some names of index values.
-    The actual index names might differ from model to model, but all define
-    `idx_sim`. Some methods require to know the index of the current simulation
-    step (with respect to the initialisation period),  which one usually
-    updates by passing it to |Model.simulate|. However,  you are allowed to
-    change it manually, which is often beneficial when testing some methods:
+    Each final |Model| object has two attributes named `parameters` and
+    `sequences`, providing access to all parameter and sequence values,
+    respectively.  For example, the application model |hland_v1| so
+    provides access to the control parameter |hland_control.NmbZones|
+    and the input sequence |hland_inputs.P|:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep('1d')
+    >>> model.parameters.control.nmbzones
+    nmbzones(?)
+    >>> model.sequences.inputs.p
+    p(nan)
+
+    Both attributes are dynamic.  You need to add them manually whenever
+    you want to prepare a workable |Model| object on your own (see the
+    factory functions |prepare_model| and |parameterstep|, which do this
+    regularly).  In case you forget to do so, you get the following
+    error message:
+
+    >>> from hydpy.models.hland_v1 import Model
+    >>> Model().parameters
+    Traceback (most recent call last):
+    ...
+    AttributeError: The dynamic attribute `parameters` of `hland_v1` of \
+element `?` is not available at the moment.
+    >>> Model().sequences
+    Traceback (most recent call last):
+    ...
+    AttributeError: The dynamic attribute `sequences` of `hland_v1` of \
+element `?` is not available at the moment.
+
+    Other wrong attribute names result in the familiar error message:
+
+    >>> Model().wrong
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Model' object has no attribute 'wrong'
+
+    Similar to `parameters` and `sequences`, there is also the dynamic
+    `masks` attribute, making all predefined masks of the actual model
+    type available within in a |Masks| objects:
+
+    >>> model.masks
+    complete of module hydpy.models.hland.hland_masks
+    land of module hydpy.models.hland.hland_masks
+    noglacier of module hydpy.models.hland.hland_masks
+    soil of module hydpy.models.hland.hland_masks
+    field of module hydpy.models.hland.hland_masks
+    forest of module hydpy.models.hland.hland_masks
+    ilake of module hydpy.models.hland.hland_masks
+    glacier of module hydpy.models.hland.hland_masks
+
+    You can use these masks, for example, to average the zone-specific
+    precipitation values handled by sequence |hland_fluxes.PC|.
+    When passing no argument, method |Variable.average_values|
+    applies the `complete` mask.  Pass mask `land` to average the
+    values of all zones except those of type |hland_constants.ILAKE|:
+
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> zonearea(1.0)
+    >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
+    >>> fluxes.pc.average_values()
+    4.0
+    >>> fluxes.pc.average_values(model.masks.land)
+    3.0
+
+    Attribute `masks` is, in contrast to attributes `parameters` and
+    `sequences`, optional, which we indicate by a different error message:
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model('hland_v1')
+    >>> prepare_model('test_v1').masks
+    Traceback (most recent call last):
+    ...
+    AttributeError: Model ``test_v1` of element `?`` does not handle \
+a group of masks (at the moment).
+
+    There are also index-related dynamic attributes, defined by the tuple
+    `INDICES` by each model class individually.  The only index name common
+    to all models is `idx_sim`. Some methods require to know the index of
+    the current simulation step (with respect to the initialisation period),
+    which one usually updates by passing it to |Model.simulate|.  However,
+    you are allowed to change it manually, which is often beneficial when
+    during testing:
+
     >>> model.idx_sim
     0
     >>> model.idx_sim = 1
@@ -93,6 +169,7 @@ class Model:
     _name: ClassVar[Optional[str]] = None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
+    masks: 'masktools.Masks'
 
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -509,60 +586,6 @@ to any sequences: in2.
         if self.sequences:
             self.sequences.states.new2old()
 
-    @property
-    def masks(self) -> 'masktools.Masks':
-        """All predefined masks of the actual model type contained in a
-        |Masks| objects.
-
-        To give an example, we show the masks implemented by the
-        |hland_v1| application model:
-
-        >>> from hydpy.models.hland_v1 import *
-        >>> parameterstep('1d')
-        >>> model.masks
-        complete of module hydpy.models.hland.hland_masks
-        land of module hydpy.models.hland.hland_masks
-        noglacier of module hydpy.models.hland.hland_masks
-        soil of module hydpy.models.hland.hland_masks
-        field of module hydpy.models.hland.hland_masks
-        forest of module hydpy.models.hland.hland_masks
-        ilake of module hydpy.models.hland.hland_masks
-        glacier of module hydpy.models.hland.hland_masks
-
-        You can use them, for example, to average the zone-specific
-        precipitation values handled by sequence |hland_fluxes.PC|.
-        When passing no argument, method |Variable.average_values|
-        applies the `complete` mask.  Pass mask `land` to average the
-        values of all zones except those of type |hland_constants.ILAKE|:
-
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-        >>> zonearea(1.0)
-        >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
-        >>> fluxes.pc.average_values()
-        4.0
-        >>> fluxes.pc.average_values(model.masks.land)
-        3.0
-
-        To try to query the masks of a model not implementing any masks
-        results in the following error:
-
-        >>> from hydpy import prepare_model
-        >>> prepare_model('test_v1').masks
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `test_v1` does not handle a group of masks.
-        """
-        masks = vars(self).get('masks')
-        if masks is None:
-            raise AttributeError(
-                f'Model `{self.name}` does not handle a group of masks.')
-        return masks
-
-    @masks.setter
-    def masks(self, masks: 'masktools.Masks') -> None:
-        vars(self)['masks'] = masks
-
     @classmethod
     def get_methods(cls) -> Iterator[Method]:
         """Convenience method for iterating through all methods selected by
@@ -706,6 +729,22 @@ to any sequences: in2.
     #         else:
     #             dps.append(newpar)
     #     return tuple(dps)
+
+    def __getattr__(self, item):
+        if item in ('parameters', 'sequences'):
+            raise AttributeError(
+                f'The dynamic attribute `{item}` of '
+                f'{objecttools.elementphrase(self)} is not available '
+                f'at the moment.'
+            )
+        if item == 'masks':
+            raise AttributeError(
+                f'Model `{objecttools.elementphrase(self)}` does not '
+                f'handle a group of masks (at the moment).'
+            )
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{item}'"
+        )
 
 
 class AdHocModel(Model):
@@ -1224,7 +1263,7 @@ class ELSModel(SolverModel):
         Generally, it is sufficient to meet one of both criteria.  If we
         repeat the second example with a relaxed absolute but a strict
         relative tolerance, we reproduce the original result due to our
-        absolute criteria beeing the relevant one:
+        absolute criteria being the relevant one:
 
         >>> solver.abserrormax(0.1)
         >>> solver.relerrormax(0.000001)

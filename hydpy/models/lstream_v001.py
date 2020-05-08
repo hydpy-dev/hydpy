@@ -977,18 +977,43 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
             length_adj=12.5,
         )
 
+        The relevant discharge value must be greater than zero:
+
+        >>> model.calculate_characteristiclength(q=0.0)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to calculate the characteristic length for \
+the river channel of `lstream_v001` of element `?`, the following error \
+occurred: The given values result in a mean discharge of 0.0 m³/s and a \
+discharge gradient of 0.0 m³/s/m.
+
+        The same holds for the discharge gradient:
+
+        >>> model.calculate_characteristiclength(q=100.0, dx=0.0)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to calculate the characteristic length for \
+the river channel of `lstream_v001` of element `?`, the following error \
+occurred: The given values result in a mean discharge of 100.0 m³/s and a \
+discharge gradient of 0.0 m³/s/m.
+
         One must define at either `h` or `q` but not both:
 
         >>> model.calculate_characteristiclength()
         Traceback (most recent call last):
         ...
-        ValueError: Calculating the characteristic length requires either a \
-reference stage or a discharge value, but neither is given.
+        ValueError: While trying to calculate the characteristic length for \
+the river channel of `lstream_v001` of element `?`, the following error \
+occurred: Calculating the characteristic length requires either a reference \
+stage or a discharge value, but neither is given.
+
         >>> model.calculate_characteristiclength(h=7.5, q=470.654321)
         Traceback (most recent call last):
         ...
-        ValueError: Calculating the characteristic length requires either a \
-reference stage or a discharge value, but both are given.
+        ValueError: While trying to calculate the characteristic length for \
+the river channel of `lstream_v001` of element `?`, the following error \
+occurred: Calculating the characteristic length requires either a reference \
+stage or a discharge value, but both are given.
 
         You can modify the allowed channel length or increase the allowed
         number of subsections:
@@ -1027,37 +1052,49 @@ reference stage or a discharge value, but both are given.
             length_adj=1.0,
         )
         """
-        if h is None:
-            if q is None:
+        try:
+            if h is None:
+                if q is None:
+                    raise ValueError(
+                        'Calculating the characteristic length requires either '
+                        'a reference stage or a discharge value, but neither is '
+                        'given.')
+                self.sequences.fluxes.qg = q
+                h = self.return_h_v1()
+            elif q is not None:
                 raise ValueError(
                     'Calculating the characteristic length requires either '
-                    'a reference stage or a discharge value, but neither is '
-                    'given.')
-            self.sequences.fluxes.qg = q
-            h = self.return_h_v1()
-        elif q is not None:
-            raise ValueError(
-                'Calculating the characteristic length requires either '
-                'a reference stage or a discharge value, but both are given.')
-        qs = []
-        for h_ in (h-dx/2.0, h+dx/2.0):
-            self.sequences.states.h(h_)
-            self.calculate_single_terms()
-            qs.append(self.sequences.fluxes.qg[0])
-        qmean = float(numpy.mean(qs))
-        dq = numpy.diff(qs)[0]
-        length_orig = (qmean*dx)/(self.parameters.control.gef*dq)/1000.0
-        length_adj = max(length_orig, lenmin)
-        number = int(
-            min(max(round(self.parameters.control.laen/length_adj), 1), nmbmax))
-        return Characteristics(
-            waterstage=h,
-            discharge=qmean,
-            derivative=dx/dq,
-            length_orig=length_orig,
-            nmb_subsections=number,
-            length_adj=self.parameters.control.laen/number
-        )
+                    'a reference stage or a discharge value, but both are given.')
+            qs = []
+            for h_ in (h-dx/2.0, h+dx/2.0):
+                self.sequences.states.h(h_)
+                self.calculate_single_terms()
+                qs.append(self.sequences.fluxes.qg[0])
+            qmean = float(numpy.mean(qs))
+            dq = qs[1]-qs[0]
+            if (qmean == 0.) or (dq == 0.):
+                raise ValueError(
+                    f'The given values result in a mean discharge of '
+                    f'{objecttools.repr_(qmean)} m³/s and a discharge '
+                    f'gradient of {objecttools.repr_(dq)} m³/s/m.'
+                )
+            length_orig = (qmean*dx)/(self.parameters.control.gef*dq)/1000.0
+            length_adj = max(length_orig, lenmin)
+            number = int(min(max(round(
+                self.parameters.control.laen/length_adj), 1), nmbmax))
+            return Characteristics(
+                waterstage=h,
+                discharge=qmean,
+                derivative=dx/dq,
+                length_orig=length_orig,
+                nmb_subsections=number,
+                length_adj=self.parameters.control.laen/number
+            )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to calculate the characteristic length for '
+                f'the river channel of {objecttools.elementphrase(self)}'
+            )
 
 
 tester = Tester()

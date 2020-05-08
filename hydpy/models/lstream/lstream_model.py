@@ -15,6 +15,7 @@ from hydpy.core import objecttools
 from hydpy.cythons import smoothutils
 from hydpy.models.lstream import lstream_control
 from hydpy.models.lstream import lstream_derived
+from hydpy.models.lstream import lstream_fixed
 from hydpy.models.lstream import lstream_solver
 from hydpy.models.lstream import lstream_fluxes
 from hydpy.models.lstream import lstream_states
@@ -2071,6 +2072,10 @@ class Calc_WBM_V1(modeltools.Method):
         lstream_control.BM,
         lstream_control.BNM,
     )
+    FIXEDPARAMETERS = (
+        lstream_fixed.WBMin,
+        lstream_fixed.WBReg,
+    )
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
         lstream_aides.RHMDH,
@@ -2083,6 +2088,7 @@ class Calc_WBM_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             d_temp1 = aid.rhm[i]-aid.rhv[i]
@@ -2092,6 +2098,8 @@ class Calc_WBM_V1(modeltools.Method):
                 con.bnm*2.*d_temp2*aid.rhv[i] +
                 (con.bm+con.bnm*d_temp1)*d_temp2 +
                 (con.bm+con.bnm*2.*d_temp1)*aid.rhvdh[i])
+            aid.wbm[i] = smoothutils.smooth_max1(
+                fix.wbmin, aid.wbm[i], fix.wbreg)
 
 
 class Calc_WBLV_WBRV_V1(modeltools.Method):

@@ -91,13 +91,16 @@ from hydpy.exe.commandtools import test_everything
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server
 from hydpy.exe.servertools import start_server
-from hydpy.models import hland
 
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
+
+
+from hydpy.models import hland
+
 
 warnings.resetwarnings()
 # Due to a Cython problem:

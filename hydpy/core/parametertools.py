@@ -3138,6 +3138,27 @@ class SecondsParameter(Parameter):
         self.value = self.simulationstep.seconds
 
 
+class HoursParameter(Parameter):
+    """The length of the actual simulation step size in hours [h]."""
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0., None)
+
+    def update(self) -> None:
+        """Take the number of hours from the current simulation time step.
+
+        >>> from hydpy.core.parametertools import HoursParameter
+        >>> hoursparameter = HoursParameter(None)
+        >>> hoursparameter.parameterstep = '1d'
+        >>> hoursparameter.simulationstep = '12h'
+        >>> hoursparameter.update()
+        >>> hoursparameter
+        hoursparameter(12.0)
+        """
+        self.value = self.simulationstep.hours
+
+
 class TOYParameter(Parameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""

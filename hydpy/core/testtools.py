@@ -88,8 +88,7 @@ class Tester:
     """Tests either a base or an application model.
 
     Usually, a |Tester| object is initialised at the end of the `__init__`
-    file of its base model or at the end of the module of an application
-    model.
+    file of its base model or the end of the module of an application model.
 
     >>> from hydpy.models import hland, hland_v1
 
@@ -111,7 +110,7 @@ class Tester:
 
     @property
     def filenames(self) -> List[str]:
-        """The filenames defining the considered base or application model.
+        """The filenames which define the considered base or application model.
 
         >>> from hydpy.models import hland, hland_v1
         >>> from pprint import pprint
@@ -326,7 +325,7 @@ class Array:
 
 
 class ArrayDescriptor:
-    """Descriptor for handling values of |Array| objects."""
+    """A descriptor for handling values of |Array| objects."""
 
     def __init__(self):
         self.values = Array()
@@ -349,7 +348,7 @@ class Test:
     """Base class for |IntegrationTest| and |UnitTest|.
 
     This base class defines the printing of the test results primarily.
-    How the tests shall be prepared and performed, is to be defined in
+    How the tests shall be prepared and performed is to be defined in
     its subclasses.
     """
 
@@ -372,12 +371,12 @@ class Test:
 
     @property
     def nmb_rows(self):
-        """Number of rows of the table."""
+        """The number of rows of the table."""
         return len(self.raw_first_col_strings)+1
 
     @property
     def nmb_cols(self):
-        """Number of columns of the table."""
+        """The number of columns in the table."""
         nmb = 1
         for parseq in self.parseqs:
             nmb += max(len(parseq), 1)
@@ -399,7 +398,7 @@ class Test:
 
     @property
     def raw_body_strings(self):
-        """All raw strings for the tables body."""
+        """All raw strings for the body of the table."""
         strings = []
         for (idx, first_string) in enumerate(self.raw_first_col_strings):
             strings.append([first_string])
@@ -429,8 +428,8 @@ class Test:
         return widths
 
     @property
-    def col_seperators(self):
-        """The seperators for adjacent columns."""
+    def col_separators(self):
+        """The separators for adjacent columns."""
         seps = ['| ']
         for parseq in self.parseqs:
             seps.append(' | ')
@@ -441,31 +440,46 @@ class Test:
 
     @property
     def row_nmb_characters(self):
-        """Number of characters of a single row of the table."""
-        return (sum(self.col_widths) +
-                sum((len(sep) for sep in self.col_seperators)))
+        """The number of characters of a single row of the table."""
+        return (sum(self.col_widths)+
+                sum((len(sep) for sep in self.col_separators)))
 
     @staticmethod
-    def _interleave(seperators, strings, widths):
+    def _interleave(separators, strings, widths):
         """Generate a table line from the given arguments."""
-        lst = [value for (seperator, string, width)
-               in zip(seperators, strings, widths)
-               for value in (seperator, string.rjust(width))]
-        lst.append(seperators[-1])
+        lst = [value for (separator, string, width)
+               in zip(separators, strings, widths)
+               for value in (separator, string.rjust(width))]
+        lst.append(separators[-1])
         return ''.join(lst)
+
+    def make_table(self, idx1=None, idx2=None) -> str:
+        """Return the result table between the given indices."""
+        lines = []
+        col_widths = self.col_widths
+        col_separators = self.col_separators
+        lines.append(
+            self._interleave(
+                self.col_separators,
+                self.raw_header_strings,
+                col_widths,
+            )
+        )
+        lines.append('-'*self.row_nmb_characters)
+        for strings_in_line in self.raw_body_strings[idx1:idx2]:
+            lines.append(
+                self._interleave(
+                    col_separators,
+                    strings_in_line,
+                    col_widths,
+                )
+            )
+        return '\n'.join(lines)
 
     def print_table(self, idx1=None, idx2=None):
         """Print the result table between the given indices."""
-        col_widths = self.col_widths
-        col_seperators = self.col_seperators
-        print(self._interleave(self.col_seperators,
-                               self.raw_header_strings,
-                               col_widths))
-        print('-'*self.row_nmb_characters)
-        for strings_in_line in self.raw_body_strings[idx1:idx2]:
-            print(self._interleave(col_seperators,
-                                   strings_in_line,
-                                   col_widths))
+        print(self.make_table(idx1=idx1, idx2=idx2))
+
 
     @staticmethod
     def extract_units(parseqs):
@@ -496,11 +510,10 @@ class IntegrationTest(Test):
     inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are
-    initialised in accordance with the values are given in the `inits`
-    values.  The values of the simulation sequences of outlet and
-    sender nodes are always set to zero before each test run.  All other
-    parameter and sequence values can be changed between different test
-    runs.
+    initialised in accordance with the values are given as `inits` values.
+    The values of the simulation sequences of outlet and sender nodes are
+    always set to zero before each test run.  All other parameter and
+    sequence values can be changed between different test runs.
     """
 
     HEADER_OF_FIRST_COL = 'date'
@@ -532,7 +545,7 @@ class IntegrationTest(Test):
         """Prepare and perform an integration test and print and eventually
         plot its results.
 
-        Plotting is only performed, when a filename is given as first
+        Plotting is only performed when a filename is given as the first
         argument.  Additionally, all other arguments of function
         |IntegrationTest.plot| are allowed to modify plot design.
         """
@@ -558,8 +571,7 @@ class IntegrationTest(Test):
         See the documentation on module |datetime| for the format strings
         allowed.
 
-        You can query and change property |IntegrationTest.dateformat|.
-        Passing ill-defined format strings results in the shown error:
+        You can query and change property |IntegrationTest.dateformat|:
 
         >>> from hydpy import Element, IntegrationTest, prepare_model, pub
         >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
@@ -569,6 +581,8 @@ class IntegrationTest(Test):
         >>> tester = IntegrationTest(element)
         >>> tester.dateformat
         '%Y-%m-%d %H:%M:%S'
+
+        Passing an ill-defined format string leads to the following error:
 
         >>> tester.dateformat = '%'
         Traceback (most recent call last):
@@ -618,7 +632,7 @@ datetime of the Python standard library for for further information.
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
-        for applying their time series data in integration tests."""
+        for applying their time-series data in integration tests."""
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
         for seq in subseqs:
             seq.activate_ram()
@@ -666,7 +680,7 @@ datetime of the Python standard library for for further information.
 
     def plot(self, filename, width=None, height=None,
              selected=None, activated=None):
-        """Save a bokeh html file plotting the current test results.
+        """Save a bokeh HTML file plotting the current test results.
 
         (Optional) arguments:
             * filename: Name of the file.  If necessary, the file ending
@@ -744,7 +758,7 @@ datetime of the Python standard library for for further information.
         self._height = height
 
     def print_iframe(self, tabs: int = 4) -> None:
-        """Print a command for embeding the saved html file into the online
+        """Print a command for embedding the saved HTML file into the online
         documentation via an `iframe`.
 
         >>> from hydpy import Element, IntegrationTest, prepare_model, pub
@@ -804,7 +818,7 @@ class UnitTest(Test):
         self.first_example_plot = first_example
         self.last_example_plot = last_example
         self.parseqs = parseqs
-        self.memorize_inits()
+        self.memorise_inits()
         self.prepare_output_arrays()
 
     @property
@@ -814,12 +828,12 @@ class UnitTest(Test):
 
     @property
     def idx0(self):
-        """First index of the examples selected for printing."""
+        """The first index of the examples selected for printing."""
         return self.first_example_plot-self.first_example_calc
 
     @property
     def idx1(self):
-        """Last index of the examples selected for printing."""
+        """The last index of the examples selected for printing."""
         return self.nmb_examples-(self.last_example_calc -
                                   self.last_example_plot)
 
@@ -850,8 +864,8 @@ class UnitTest(Test):
         return [str(example) for example in
                 range(self.first_example_plot, self.last_example_plot+1)]
 
-    def memorize_inits(self):
-        """Memorize all initial conditions."""
+    def memorise_inits(self):
+        """Memorise all initial conditions."""
         for parseq in self.parseqs:
             setattr(self.inits, parseq.name, parseq.values)
 
@@ -921,15 +935,15 @@ class _Open:
         raise NotImplementedError(self.__readingerror)
 
     def write(self, text):
-        """Replaces the `write` method of file objects."""
+        """Replace the `write` method of file objects."""
         self.texts.append(text)
 
     def writelines(self, lines):
-        """Replaces the `writelines` method of file objects."""
+        """Replace the `writelines` method of file objects."""
         self.texts.extend(lines)
 
     def close(self):
-        """Replaces the `close` method of file objects."""
+        """Replace the `close` method of file objects."""
         text = ''.join(self.texts)
         maxchars = len(self.path)
         lines = []
@@ -950,9 +964,9 @@ class Open:
     """Replace |open| in doctests temporarily.
 
     Class |Open| to intended to make writing to files visible and testable
-    in docstrings.  Therefore, Python's built in function |open| is
+    in docstrings.  Therefore, Python's built-in function |open| is
     temporarily replaced by another object, printing the filename and the
-    file contend as shown in the following example:
+    file content, as shown in the following example:
 
     >>> import os
     >>> path = os.path.join('folder', 'test.py')
@@ -970,7 +984,7 @@ class Open:
     <BLANKLINE>
     ~~~~~~~~~~~~~~
 
-    Note that, for simplicity, the UNIX style path seperator `/` is used
+    Note that, for simplicity, the UNIX style path separator `/` is used
     to print the file path on all systems.
 
     Class |Open| is rather restricted at the moment.  Functionalities
@@ -1027,7 +1041,7 @@ class TestIO:
 
     If some tests require writing such a file, this should be done
     within HydPy's `iotesting` folder in subpackage `tests`, which
-    is achieved by appyling the `with` statement on |TestIO|:
+    is achieved by applying the `with` statement on |TestIO|:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
@@ -1141,13 +1155,13 @@ abstract methods array, dimensions, read, subdevicenames, write
     However, it is convenient to do so for testing (partly) abstract
     base classes in doctests.  The derived class returned by function
     |make_abc_testable| is identical with the original one, except that
-    its protection against initialization is disabled:
+    its protection against initialisation is disabled:
 
     >>> from hydpy import make_abc_testable, classname
     >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
 
-    To avoid confusion, |make_abc_testable| suffixes an underscore the
-    original classname:
+    To avoid confusion, |make_abc_testable| appends an underscore the
+    original class-name:
 
     >>> classname(ncvar)
     'NetCDFVariableBase_'
@@ -1161,7 +1175,7 @@ abstract methods array, dimensions, read, subdevicenames, write
 def mock_datetime_now(testdatetime):
     """Let class method |datetime.datetime.now| of class |datetime.datetime|
     of module |datetime| return the given date for testing purposes within
-    a "with block".
+    a "with-block".
 
     >>> import datetime
     >>> testdate = datetime.datetime(2000, 10, 1, 12, 30, 0, 999)
@@ -1181,9 +1195,9 @@ def mock_datetime_now(testdatetime):
     >>> classname(datetime.datetime)
     'datetime'
 
-    A test to see that mocking |datetime.datetime| does not interfere
-    with initialising |Date| objects and that exceptions are property
-    handled:
+    The following test shows that mocking |datetime.datetime| does not
+    interfere with initialising |Date| objects and that the relevant
+    exceptions are properly handled:
 
     >>> from hydpy import Date
     >>> with mock_datetime_now(testdate):
@@ -1218,9 +1232,9 @@ class NumericalDifferentiator:
 
     .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    Class |NumericalDifferentiator| it thought for testing purposes only.
-    See for example the documentation on method |lstream_model.Calc_RHMDH_V1|,
-    which uses a |NumericalDifferentiator| object to validate that this methods
+    Class |NumericalDifferentiator| is thought for testing purposes only.
+    See, for example, the documentation on method |lstream_model.Calc_RHMDH_V1|,
+    which uses a |NumericalDifferentiator| object to validate that this method
     calculates the derivative of sequence |lstream_aides.RHM| (`ysequence`)
     with respect to sequence |lstream_states.H| (`xsequence`) correctly.
     Therefore, it must know the relationship between |lstream_aides.RHM| and
@@ -1237,8 +1251,8 @@ class NumericalDifferentiator:
     |lstream_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves a second order of accuracy, due to
-    using the coefficients given `here`_.  If results are to inaccurate,
+    |NumericalDifferentiator| achieves the second order of accuracy, due to
+    using the coefficients given `here`_.  If results are too inaccurate,
     you might improve them by changing the finite difference method
     (`backward` or `central` instead of `forward`) or by changing the
     default interval width `dx`.
@@ -1401,7 +1415,3 @@ def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
             newlines.append(line[12:])
     print(f'Number of replacements: {nmb_replacements}\n')
     print(docstring)
-
-
-
-

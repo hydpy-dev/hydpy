@@ -10,9 +10,11 @@ import datetime
 import doctest
 import importlib
 import inspect
+import io
 import os
 import shutil
 import sys
+import types
 import warnings
 from typing import *
 from typing_extensions import Literal
@@ -1306,3 +1308,100 @@ class NumericalDifferentiator:
         for ysequence, derivatives in self._derivatives.items():
             print(f'd_{ysequence.name}/d_{self._xsequence.name}', end=': ')
             objecttools.print_values(derivatives, width=1000)
+
+
+def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
+        -> None:
+    """Print the docstring of the given application model updated with
+    the current simulation results.
+
+    Sometimes, even tiny model-related changes bring a great deal of work
+    concerning *HydPy's* integration test strategy.  For example, if you
+    modify the value of a fixed parameter, the results of possibly dozens
+    of integration tests of your application model might become wrong.
+    In such situations, function |update_integrationtests| helps you in
+    replacing all integration tests results at ones.  Therefore, it
+    calculates the new results, updates the old module docstring and
+    prints it.  You only need to copy-paste the printed result into the
+    affected module.  But be aware that function |update_integrationtests|
+    cannot guarantee the correctness of the new results.  Whenever in doubt
+    if the new results are really correct under all possible conditions,
+    you should inspect and replace each integration test result manually.
+
+    The following example, we disable method |conv_model.Pass_Outputs_V1|
+    temporarily.  Accordingly, application model |conv_v001| does not pass
+    any output to its outlet nodes, which is why the last four columns of
+    both integration test tables now contain zero value only (we can perform
+    this mocking-based test in Python-mode only):
+
+    >>> from hydpy.core.testtools import update_integrationtests
+    >>> from hydpy import pub
+    >>> from unittest import mock
+    >>> pass_output = 'hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__'
+    >>> with pub.options.usecython(False), mock.patch(pass_output):
+    ...     update_integrationtests('conv_v001')   # doctest: +ELLIPSIS
+    Number of replacements: 2
+    <BLANKLINE>
+    Nearest-neighbour interpolation.
+    ... test()
+    |       date |      inputs |                outputs | in1 | in2 | out1 \
+| out2 | out3 | out4 |
+    -----------------------------------------------------------------------\
+----------------------
+    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    | 2000-01-02 | 2.0     nan | 2.0  nan  2.0      2.0 | 2.0 | nan |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    <BLANKLINE>
+    ... test()
+    |       date |      inputs |                outputs | in1 | in2 | out1 \
+| out2 | out3 | out4 |
+    -----------------------------------------------------------------------\
+----------------------
+    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    | 2000-01-02 | 2.0     nan | 2.0  2.0  2.0      2.0 | 2.0 | nan |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  0.0 \
+|  0.0 |  0.0 |  0.0 |
+    <BLANKLINE>
+    """
+    module = importlib.import_module(
+        f'hydpy.models.{applicationmodel}'
+    )
+    docstring: str = module.__doc__
+    stringio = io.StringIO   # pylint: disable=no-member
+    with stringio() as resultfile, contextlib.redirect_stdout(resultfile):
+        module.tester.perform_tests()
+        result = resultfile.getvalue()
+    oldlines, newlines = [], []
+    expected, got = False, False
+    nmb_replacements = 0
+    for line in result.split('\n'):
+        if 'Expected:' in line:
+            expected = True
+        elif 'Got:' in line:
+            expected = False
+            got = True
+        elif got and ('***********************************' in line):
+            expected = False
+            got = False
+            if oldlines or newlines:
+                nmb_replacements += 1
+                docstring = docstring.replace(
+                    '\n'.join(oldlines),
+                    '\n'.join(newlines),
+                )
+            oldlines, newlines = [], []
+        elif expected:
+            oldlines.append(line[12:])
+        elif got:
+            newlines.append(line[12:])
+    print(f'Number of replacements: {nmb_replacements}\n')
+    print(docstring)
+
+
+
+

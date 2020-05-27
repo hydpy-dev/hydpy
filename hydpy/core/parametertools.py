@@ -3275,7 +3275,7 @@ class DOYParameter(Parameter):
 
 class SCTParameter(Parameter):
     """References the |Indexer.standardclocktime| array provided by the
-    instance of class |Indexer| available in module |pub| [-]."""
+    instance of class |Indexer| available in module |pub| [h]."""
     NDIM = 1
     TYPE = float
     TIME = None
@@ -3291,7 +3291,7 @@ class SCTParameter(Parameter):
         >>> sctparameter = SCTParameter(None)
         >>> sctparameter.update()
         >>> sctparameter
-        sctparameter(77400.0, 81000.0, 84600.0, 1800.0, 5400.0, 9000.0)
+        sctparameter(21.5, 22.5, 23.5, 0.5, 1.5, 2.5)
 
         .. testsetup::
 

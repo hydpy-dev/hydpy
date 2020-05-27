@@ -351,9 +351,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
 
     Basic equations (`Allen`_, equations 31 to 33):
       :math:`SolarTimeAngle =
-      \\pi / 12 \\cdot
-      ((SCT \\cdot 60 \\cdot 60 + (Longitude - UTCLongitude) / 15 + S_c)
-      - 12)` \n
+      \\pi / 12 \\cdot ((SCT + (Longitude - UTCLongitude) / 15 + S_c) - 12)` \n
 
       :math:`S_c = 0.1645 \\cdot sin(2 \\cdot b) -
       0.1255 \\cdot cos(b) - 0.025 \\cdot sin(b)` \n
@@ -415,7 +413,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
             .025*modelutils.sin(d_b)
         )
         flu.solartimeangle = d_pi/12. * (
-            (der.sct[model.idx_sim]/60./60. +
+            (der.sct[model.idx_sim] +
              (con.longitude-der.utclongitude)/15.+d_sc) - 12.
         )
 
@@ -472,7 +470,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         >>> derived.doy.shape = 24
         >>> derived.doy(246)
         >>> derived.sct.shape = 24
-        >>> derived.sct = numpy.linspace(1800.0, 84600.0, 24)
+        >>> derived.sct = numpy.linspace(0.5, 23.5, 24)
         >>> sum_ = 0.0
         >>> from hydpy import round_
         >>> for hour in range(24):
@@ -535,7 +533,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...     derived.doy(246)
         ...     derived.sct.shape = nmb
         ...     derived.sct = numpy.linspace(
-        ...         minutes*60/2, 60*60*24-minutes*60/2, nmb)
+        ...         minutes/60/2, 24-minutes/60/2, nmb)
         ...     sum_ = 0.0
         ...     for idx in range(nmb):
         ...         model.idx_sim = idx

@@ -670,13 +670,14 @@ datetime of the Python standard library for for further information.
 
     def reset_inits(self):
         """Set all initial conditions of all models."""
-        for subname in ('states', 'logs'):
-            for element in self.elements:
-                for seq in getattr(element.model.sequences, subname, ()):
-                    try:
-                        seq(getattr(self.inits, seq.name))
-                    except AttributeError:
-                        pass
+        with hydpy.pub.options.trimvariables(False):
+            for subname in ('states', 'logs'):
+                for element in self.elements:
+                    for seq in getattr(element.model.sequences, subname, ()):
+                        try:
+                            seq(getattr(self.inits, seq.name))
+                        except AttributeError:
+                            pass
 
     def plot(self, filename, width=None, height=None,
              selected=None, activated=None):

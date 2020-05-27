@@ -1324,10 +1324,12 @@ class NumericalDifferentiator:
             objecttools.print_values(derivatives, width=1000)
 
 
-def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
-        -> None:
-    """Print the docstring of the given application model updated with
-    the current simulation results.
+def update_integrationtests(
+        applicationmodel: Union[types.ModuleType, str],
+        resultfilepath: str,
+) -> None:
+    """Write the docstring of the given application model, updated with
+    the current simulation results, to file.
 
     Sometimes, even tiny model-related changes bring a great deal of work
     concerning *HydPy's* integration test strategy.  For example, if you
@@ -1336,7 +1338,7 @@ def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
     In such situations, function |update_integrationtests| helps you in
     replacing all integration tests results at ones.  Therefore, it
     calculates the new results, updates the old module docstring and
-    prints it.  You only need to copy-paste the printed result into the
+    writes it.  You only need to copy-paste the printed result into the
     affected module.  But be aware that function |update_integrationtests|
     cannot guarantee the correctness of the new results.  Whenever in doubt
     if the new results are really correct under all possible conditions,
@@ -1348,12 +1350,13 @@ def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
     both integration test tables now contain zero value only (we can perform
     this mocking-based test in Python-mode only):
 
-    >>> from hydpy.core.testtools import update_integrationtests
-    >>> from hydpy import pub
+    >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
     >>> pass_output = 'hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__'
-    >>> with pub.options.usecython(False), mock.patch(pass_output):
-    ...     update_integrationtests('conv_v001')   # doctest: +ELLIPSIS
+    >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
+    ...     update_integrationtests('conv_v001', 'temp.txt')
+    ...     with open('temp.txt') as resultfile:
+    ...         print(resultfile.read())   # doctest: +ELLIPSIS
     Number of replacements: 2
     <BLANKLINE>
     Nearest-neighbour interpolation.
@@ -1394,9 +1397,10 @@ def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
     expected, got = False, False
     nmb_replacements = 0
     for line in result.split('\n'):
-        if 'Expected:' in line:
+        line = line.strip()
+        if line == 'Expected:':
             expected = True
-        elif 'Got:' in line:
+        elif line == 'Got:':
             expected = False
             got = True
         elif got and ('***********************************' in line):
@@ -1410,8 +1414,9 @@ def update_integrationtests(applicationmodel: Union[types.ModuleType, str]) \
                 )
             oldlines, newlines = [], []
         elif expected:
-            oldlines.append(line[12:])
+            oldlines.append(line)
         elif got:
-            newlines.append(line[12:])
-    print(f'Number of replacements: {nmb_replacements}\n')
-    print(docstring)
+            newlines.append(line)
+    with open(resultfilepath, 'w', encoding='utf-8') as resultfile:
+        resultfile.write(f'Number of replacements: {nmb_replacements}\n\n')
+        resultfile.write(docstring)

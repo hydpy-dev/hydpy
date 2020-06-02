@@ -695,10 +695,6 @@ been defined.
     >>> del pub.timegrids
     >>> parameter.simulationstep
     Period('5s')
-
-    .. testsetup::
-
-        >>> del pub.timegrids
     """
     EXC_MESSAGE = ('Neither a global simulation time grid nor a general '
                    'simulation step size to be used as a surrogate for '
@@ -743,8 +739,6 @@ class Parameter(variabletools.Variable[SubParameters]):
 
     .. testsetup::
 
-        >>> from hydpy import pub
-        >>> del pub.timegrids
         >>> from hydpy.core.parametertools import Parameter
         >>> Parameter.simulationstep.delete()
         Period()
@@ -954,10 +948,6 @@ the following error occurred: While trying to convert the value(s) \
 `[ 0.5  1. ]` to a numpy ndarray with shape `(2, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
 shape (2) into shape (2,3)
-
-    .. testsetup::
-
-        >>> del pub.timegrids
     """
     TIME: Optional[bool]
 
@@ -2911,6 +2901,12 @@ class FixedParameter(Parameter):
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
+
+        .. testsetup::
+
+            >>> from hydpy.core.parametertools import Parameter
+            >>> Parameter.simulationstep.delete()
+            Period()
 
         >>> from hydpy.core.parametertools import FixedParameter
         >>> class Par(FixedParameter):

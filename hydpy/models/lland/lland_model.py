@@ -8568,7 +8568,4 @@ class Model(modeltools.AdHocModel):
         PegasusESnow,
         PegasusTempSSurface,
     )
-    INDICES = (
-        'idx_sim',
-        'idx_hru',
-    )
+    idx_hru = modeltools.Idx_HRU()

@@ -1922,10 +1922,7 @@ class Model(modeltools.AdHocModel):
         lland_model.PegasusESnow,
         lland_model.PegasusTempSSurface,
     )
-    INDICES = (
-        'idx_sim',
-        'idx_hru',
-    )
+    idx_hru = modeltools.Idx_HRU()
 
 
 class Masks(masktools.Masks):

@@ -1450,8 +1450,10 @@ class PyxWriter:
         lines = Lines()
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Model:')
-        for index in self.model.INDICES:
-            lines.add(1, f'cdef public int {index}')
+        for cls in inspect.getmro(type(self.model)):
+            for name, member in vars(cls).items():
+                if isinstance(member, modeltools.IndexProperty):
+                    lines.add(1, f'cdef public int {name}')
         if self.model.parameters:
             lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')

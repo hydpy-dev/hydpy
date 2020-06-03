@@ -46,10 +46,11 @@ class Method:
         cls.__call__.CYTHONIZE = True
 
 
-class _IndexProperty:
+class IndexProperty:
+    """Base class for index descriptors like |Idx_Sim|."""
 
-    def __init__(self, name: str):
-        self.name: str = name
+    def __set_name__(self, owner: 'Model', name: str) -> None:
+        self.name = name.lower()
 
     def __get__(self, obj: 'Model', objtype=None):
         if obj is None:
@@ -63,6 +64,40 @@ class _IndexProperty:
             setattr(obj.cymodel, self.name, value)
         else:
             vars(obj)[self.name] = value
+
+
+class Idx_Sim(IndexProperty):
+    """The simulation step index.
+
+    Some model methods require to know the index of the current simulation
+    step (with respect to the initialisation period), which one usually
+    updates by passing it to |Model.simulate|.  However, you are allowed
+    to change it manually via the |modeltools.Idx_Sim| descriptor, which is
+    often beneficial during testing:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep('1d')
+    >>> model.idx_sim
+    0
+    >>> model.idx_sim = 1
+    >>> model.idx_sim
+    1
+
+    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects
+    are aware of their name:
+
+    >>> Model.idx_sim.name
+    'idx_sim'
+    """
+
+
+class Idx_HRU(IndexProperty):
+    """The hydrological response unit index.
+
+    See class :class:`~hydpy.core.modeltools.Idx_HRU` for an
+    explanation  on the purpose and handling of objects of
+    :class:`~hydpy.core.modeltools.IndexProperty` subclasses.
+    """
 
 
 class Model:
@@ -148,20 +183,6 @@ element `?` is not available at the moment.
     ...
     AttributeError: Model ``test_v1` of element `?`` does not handle \
 a group of masks (at the moment).
-
-    There are also index-related dynamic attributes, defined by the tuple
-    `INDICES` by each model class individually.  The only index name common
-    to all models is `idx_sim`. Some methods require to know the index of
-    the current simulation step (with respect to the initialisation period),
-    which one usually updates by passing it to |Model.simulate|.  However,
-    you are allowed to change it manually, which is often beneficial when
-    during testing:
-
-    >>> model.idx_sim
-    0
-    >>> model.idx_sim = 1
-    >>> model.idx_sim
-    1
     """
 
     element: Optional['devicetools.Element']
@@ -170,6 +191,7 @@ a group of masks (at the moment).
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: 'masktools.Masks'
+    idx_sim = Idx_Sim()
 
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -180,8 +202,6 @@ a group of masks (at the moment).
     SUBMODELS: ClassVar[Tuple[Type['Submodel'], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-
-    INDICES: ClassVar[Tuple[str, ...]] = ('idx_sim',)
 
     def __init__(self) -> None:
         self.cymodel = None
@@ -612,8 +632,6 @@ to any sequences: in2.
         return self.name
 
     def __init_subclass__(cls):
-        for index in cls.INDICES:
-            setattr(cls, index, _IndexProperty(index))
 
         modulename = cls.__module__
         if modulename.count('.') > 2:

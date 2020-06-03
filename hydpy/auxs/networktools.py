@@ -2,9 +2,7 @@
 """This module provides features for preparing *HydPy* networks based on
 different data.
 
-.. _`guideline of the German organisation LAWA`:
-https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_\
-die_verschluesselung_von_fliessgewaessern_1552305779.pdf
+.. _`guideline of the German organisation LAWA`: https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf    # pylint: disable=line-too-long
 """
 # import...
 # ...from standard library

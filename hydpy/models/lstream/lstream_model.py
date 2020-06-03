@@ -2667,7 +2667,7 @@ class Return_H_V1(modeltools.Method):
     |lstream_v001.Model.calculate_characteristiclength| of application model
     |lstream_v001| (or similar functionalities).  More specifically, it
     performs a root search by applying the |Pegasus| method implemented
-    in module |rootutils| on the target method |Return_QF_V1|.  Hence, please
+    in module `rootutils` on the target method |Return_QF_V1|.  Hence, please
     see the additional application notes in the documentation on method
     |Return_QF_V1|.
 

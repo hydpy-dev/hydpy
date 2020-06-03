@@ -1994,10 +1994,35 @@ class PyxWriter:
         return lines
 
     def write_stubfile(self):
-        """ToDo
+        """Write a stub file for the actual base or application model.
+
+        At the moment, *HydPy* creates model objects quite dynamically.
+        In many regards, this comes with lots of conveniences.  However,
+        there two critical drawbacks compared to more static approaches:
+        some amount of additional initialisation time and, more important,
+        much opaqueness for code inspection
+        tools.  In this context, we experiment with "stub files" at
+        the moment.  These could either contain typing information only
+        or define statically predefined model classes.  The following
+        example uses method |PyxWriter.write_stubfile| to write a
+        (far from perfect) prototype stub file for base model |hland|:
 
         >>> from hydpy.models.hland import *
         >>> cythonizer.pyxwriter.write_stubfile()
+
+        This is the path to the written file:
+
+        >>> import os
+        >>> import hydpy
+        >>> filepath = os.path.join(hydpy.__path__[0], 'hland.py')
+        >>> os.path.exists(filepath)
+        True
+
+        However, it's just an experimental prototype, so we better remove it:
+
+        >>> os.remove(filepath)
+        >>> os.path.exists(filepath)
+        False
         """
         filepath = os.path.join(hydpy.__path__[0], f'{self.model.name}.py')
         base = '.'.join(self.model.__module__.split('.')[:3])

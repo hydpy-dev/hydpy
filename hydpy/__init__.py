@@ -99,10 +99,6 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
 
-
-from hydpy.models import hland
-
-
 warnings.resetwarnings()
 # Due to a Cython problem:
 warnings.filterwarnings('ignore', category=ImportWarning)
@@ -195,8 +191,7 @@ __all__ = ['config',
            'print_latest_logfile',
            'xml_replace',
            'await_server',
-           'start_server',
-           'hland']
+           'start_server']
 
 for moduleinfo in pkgutil.walk_packages(models.__path__):
     if moduleinfo.ispkg:

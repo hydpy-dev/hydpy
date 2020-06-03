@@ -61,6 +61,7 @@ EXCLUDE_MEMBERS = (
     'SOLVERPARAMETERS',
     'SOLVERSEQUENCES',
     'SUBMETHODS',
+    'SUBMODELS',
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
@@ -844,30 +845,45 @@ def autodoc_module(module):
 
 _name2descr = {
     'CLASSES': 'The following classes are selected',
-    'RUN_METHODS': ('The following "run methods" are called '
-                    'each simulation step run in the given sequence'),
-    'ADD_METHODS': ('The following "additional methods" are '
-                    'called by at least one "run method"'),
-    'INLET_METHODS': ('The following "inlet update methods" '
-                      'are called in the given sequence immediately '
-                      'of the respective model'),
-    'OUTLET_METHODS': ('The following "outlet update methods" '
-                       'are called in the given sequence immediately '
-                       'after solving the differential equations '
-                       'of the respective model'),
-    'RECEIVER_METHODS': ('The following "receiver update methods" '
-                         'are called in the given sequence before solving '
-                         'the differential equations of any model'),
-    'SENDER_METHODS': ('The following "sender update methods" '
-                       'are called in the given sequence after solving '
-                       'the differential equations of all models'),
-    'PART_ODE_METHODS': ('The following methods define the '
-                         'relevant components of a system of ODE '
-                         'equations (e.g. direct runoff)'),
-    'FULL_ODE_METHODS': ('The following methods define the '
-                         'complete equations of an ODE system '
-                         '(e.g. change in storage of `fast water` due to '
-                         ' effective precipitation and direct runoff)')
+    'RECEIVER_METHODS': (
+        'The following "receiver update methods" are called in '
+        'the given sequence before performing a simulation step'
+    ),
+    'INLET_METHODS': (
+        'The following "inlet update methods" are called in the '
+        'given sequence at the beginning of each simulation step'
+    ),
+    'RUN_METHODS': (
+        'The following "run methods" are called in the given '
+        'sequence during each simulation step'
+    ),
+    'PART_ODE_METHODS': (
+        'The following methods define the relevant components '
+        'of a system of ODE equations (e.g. direct runoff)'
+    ),
+    'FULL_ODE_METHODS': (
+        'The following methods define the complete equations of '
+        'an ODE system (e.g. change in storage of `fast water` '
+        'due to effective precipitation and direct runoff)'
+    ),
+    'OUTLET_METHODS': (
+        'The following "outlet update methods" are called in the '
+        'given sequence at the end of each simulation step'
+    ),
+    'SENDER_METHODS': (
+        'The following "sender update methods" are called in '
+        'the given sequence after performing a simulation step'
+    ),
+    'ADD_METHODS': (
+        'The following "additional methods" might be called '
+        'by one or more of the other methods or are meant to '
+        'be directly called by the user'
+    ),
+    'SUBMODELS': (
+        'The following "submodels" might be called by one or more '
+        'of the implemented methods or are meant to be directly '
+        'called by the user'
+    ),
 }
 
 _loggedtuples: Set[str] = set()

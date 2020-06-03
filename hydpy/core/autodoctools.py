@@ -62,6 +62,11 @@ EXCLUDE_MEMBERS = (
     'SOLVERSEQUENCES',
     'SUBMETHODS',
     'SUBMODELS',
+    'fastaccess',
+    'fastaccess_new',
+    'fastaccess_old',
+    'pars',
+    'seqs',
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),

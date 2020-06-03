@@ -123,6 +123,7 @@ def _add_lines(specification, module):
                   f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
                   f'.{name_collectionclass}',
                   '    :members:',
+                  '    :noindex:',
                   '    :show-inheritance:',
                   f'    :exclude-members: {exc_mem}']
     lines += ['',

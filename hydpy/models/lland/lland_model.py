@@ -4427,6 +4427,24 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         wlatsnow(1.994016)
         >>> fluxes.wsurf
         wsurf(0.864)
+
+    Technical checks:
+
+        Note that method |Return_EnergyGainSnowSurface_V1| calculates the
+        value of sequence |SaturationVapourPressureSnow| before its submethod
+        |Return_WLatSnow_V1| uses it and that it assigns the given value to
+        sequence |TempSSurface| before its submethods |Return_WSensSnow_V1|,
+        |Return_NetLongwaveRadiationSnow_V1|, and |Return_WSurf_V1| use it:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.lland.lland_model import (
+        ...     Return_EnergyGainSnowSurface_V1)
+        >>> print(check_selectedvariables(Return_EnergyGainSnowSurface_V1))
+        Possibly missing (REQUIREDSEQUENCES):
+            Return_WLatSnow_V1: SaturationVapourPressureSnow
+            Return_WSensSnow_V1: TempSSurface
+            Return_NetLongwaveRadiationSnow_V1: TempSSurface
+            Return_WSurf_V1: TempSSurface
     """
     SUBMETHODS = (
         Return_SaturationVapourPressure_V1,
@@ -4615,8 +4633,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         lland_aides.TempS,
     )
     RESULTSEQUENCES = (
-        lland_fluxes.SaturationVapourPressureSnow,
         lland_fluxes.TempSSurface,
+        lland_fluxes.SaturationVapourPressureSnow,
         lland_fluxes.WSensSnow,
         lland_fluxes.WLatSnow,
         lland_fluxes.NetLongwaveRadiationSnow,
@@ -4772,6 +4790,18 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         nan
         >>> fluxes.wsurf
         wsurf(0.845976)
+
+    Technical checks:
+
+        Note that method |Return_BackwardEulerError_V1| assigns a value to
+        sequence |ESnow| before its submethod |Return_TempS_V1| uses it:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.lland.lland_model import (
+        ...     Return_BackwardEulerError_V1)
+        >>> print(check_selectedvariables(Return_BackwardEulerError_V1))
+        Possibly missing (REQUIREDSEQUENCES):
+            Return_TempS_V1: ESnow
     """
     SUBMETHODS = (
         Return_TempS_V1,

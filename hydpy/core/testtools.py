@@ -11,6 +11,7 @@ import doctest
 import importlib
 import inspect
 import io
+import itertools
 import os
 import shutil
 import sys
@@ -26,12 +27,14 @@ from hydpy import docs
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
+from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core import variabletools
 from hydpy.tests import iotesting
 if TYPE_CHECKING:
     from hydpy.core import modeltools
@@ -479,7 +482,6 @@ class Test:
     def print_table(self, idx1=None, idx2=None):
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
-
 
     @staticmethod
     def extract_units(parseqs):
@@ -1421,3 +1423,392 @@ def update_integrationtests(
     with open(resultfilepath, 'w', encoding='utf-8') as resultfile:
         resultfile.write(f'Number of replacements: {nmb_replacements}\n\n')
         resultfile.write(docstring)
+
+
+def _enumerate(variables: Iterable[variabletools.Variable]) -> str:
+    return objecttools.enumeration(
+        v.__name__ for v in variabletools.sort_variables(variables)
+    )
+
+
+def check_methodorder(
+        model: 'modeltools.Model',
+        indent: int = 0,
+) -> str:
+    """Check that *HydPy* calls the methods of the given application model
+    in the correct order for each simulation step.
+
+    The purpose of this function is to help model developers to ensure
+    that each method uses only the values of those sequences that have
+    been calculated by other methods beforehand.  *HydPy's* test routines
+    apply |check_methodorder| automatically on each available application
+    model. Alternatively, you can also execute it at the end of the
+    docstring of an individual application model "manually", which
+    suppresses the automatic execution and allows to check and discuss
+    exceptional cases were |check_methodorder| generates false alarms.
+
+    Function |check_methodorder| relies on the class constants
+    `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES` of
+    all relevant |Method| subclasses.  Hence, the correctness of its
+    results depends on the correctness of these tuples.  However, even
+    of those tuples are well-defined, one cannot expect |check_methodorder|
+    to catch all kinds of order-related errors.  For example, consider the
+    case where one method calculates only some values of a multi-dimensional
+    sequence and another method the  remaining ones.  |check_methodorder|
+    would not report anything when a third method, relying on the completeness
+    of the sequence's values, were called after the first but before
+    the second method.
+
+    We use the quite complex model |lland_v3| as an example.
+    |check_methodorder| does not report any problems:
+
+    >>> from hydpy.core.testtools import check_methodorder
+    >>> from hydpy.models.lland_v3 import Model
+    >>> print(check_methodorder(Model))
+    <BLANKLINE>
+
+    To show how |check_methodorder| reports errors, we modify the
+    `RESULTSEQUENCES` tuples of methods |lland_model.Calc_TKor_V1|,
+    |lland_model.Calc_DryAirPressure_V1|, and |lland_model.Calc_Q_V1|:
+
+    >>> from hydpy.models.lland.lland_model import (
+    ...     Calc_TKor_V1, Calc_DryAirPressure_V1, Calc_Q_V1)
+    >>> results_tkor = Calc_TKor_V1.RESULTSEQUENCES
+    >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
+    >>> results_q = Calc_Q_V1.RESULTSEQUENCES
+    >>> Calc_TKor_V1.RESULTSEQUENCES = ()
+    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
+    >>> Calc_Q_V1.RESULTSEQUENCES += results_tkor
+
+    Now, none of the relevant models calculates the value of sequence
+    |lland_fluxes.DryAirPressure|.  For |lland_fluxes.TKor|, there is
+    still a method (|lland_model.Calc_Q_V1|) calculating its values,
+    but at a too-late stage of the simulation step:
+
+    >>> print(check_methodorder(Model))    # doctest: +ELLIPSIS
+    Method Calc_SaturationVapourPressure_V1 requires the following \
+sequences, which are not among the result sequences of any of its \
+predecessors: TKor
+    ...
+    Method Calc_DensityAir_V1 requires the following sequences, \
+which are not among the result sequences of any of its predecessors: \
+TKor and DryAirPressure
+    ...
+    Method Calc_EvB_V2 requires the following sequences, \
+which are not among the result sequences of any of its predecessors: TKor
+
+    To tidy up, we need to revert the above changes:
+
+    >>> Calc_TKor_V1.RESULTSEQUENCES = results_tkor
+    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
+    >>> Calc_Q_V1.RESULTSEQUENCES = results_q
+    >>> print(check_methodorder(Model))
+    <BLANKLINE>
+    """
+    blanks = ' '*indent
+    results: List[str] = []
+    excluded = (
+        sequencetools.InputSequence,
+        sequencetools.InletSequence,
+        sequencetools.ReceiverSequence,
+        sequencetools.StateSequence,
+        sequencetools.LogSequence,
+    )
+    methods = tuple(model.get_methods())
+    for idx, method1 in enumerate(methods):
+        required = set(
+            seq for seq in method1.REQUIREDSEQUENCES
+            if not issubclass(seq, excluded)
+        )
+        for method0 in methods[:idx]:
+            for seq in itertools.chain(
+                    method0.RESULTSEQUENCES,
+                    method0.UPDATEDSEQUENCES,
+            ):
+                if seq in required:
+                    required.remove(seq)
+        if required:
+            results.append(
+                f'{blanks}Method {method1.__name__} requires the following '
+                f'sequences, which are not among the result sequences of any '
+                f'of its predecessors: {_enumerate(required)}'
+            )
+    return '\n'.join(results)
+
+
+def check_selectedvariables(
+        method: 'modeltools.Method',
+        indent: int = 0,
+) -> str:
+    """Perform consistency checks regarding the |Parameter| and |Sequence|
+    subclasses selected by the given |Method| subclass.
+
+    The purpose of this function is to help model developers to ensure
+    that the class tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`,
+    `FIXEDPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and
+    `RESULTSEQUENCES` contain the correct parameter and sequence
+    subclasses.  *HydPy's* test routines apply |check_selectedvariables|
+    automatically on each method of each available application model.
+    Alternatively, you can also execute it at the end of the docstring
+    of an individual |Method| subclass "manually", which suppresses
+    the automatic execution and allows to check and discuss exceptional
+    cases were |check_selectedvariables| generates false alarms.
+
+    Do not expect |check_selectedvariables| to catch all possible
+    errors.  Also, false positives might occur.  However, in our experience
+    functions |check_selectedvariables| is of great help to prevent most
+    common mistakes when defining the parameter and sequence classes
+    relevant for a specific method.
+
+    As an example, we select method |lland_model.Calc_WindSpeed2m_V1| of base
+    model |lland|.  |check_selectedvariables| does not reportany problems:
+
+    >>> from hydpy.core.testtools import check_selectedvariables
+    >>> from hydpy.models.lland.lland_model import (
+    ...     Calc_WindSpeed2m_V1, Return_AdjustedWindSpeed_V1)
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    <BLANKLINE>
+
+    To show how |check_selectedvariables| reports errors, we clear the
+    `RESULTSEQUENCES` tuple of method |lland_model.Calc_WindSpeed2m_V1|.
+    Now |check_selectedvariables| realises the usage of the flux sequence
+    object `windspeed2m` within the source code of method
+    |lland_model.Calc_WindSpeed2m_V1|, which is neither available within
+    the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`, nor the`RESULTSEQUENCES`
+    tuple:
+
+    >>> resultseqs = Calc_WindSpeed2m_V1.RESULTSEQUENCES
+    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = ()
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    Definitely missing: windspeed2m
+
+    After putting the wrong flux sequence class |lland_fluxes.WindSpeed10m|
+    into the tuple, we get an additional warning pointing to our mistake:
+
+    >>> from hydpy.models.lland.lland_fluxes import WindSpeed10m
+    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = WindSpeed10m,
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    Definitely missing: windspeed2m
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
+
+    Method |lland_model.Calc_WindSpeed2m_V1| uses
+    |lland_model.Return_AdjustedWindSpeed_V1| as a submethod.  Hence,
+    |lland_model.Calc_WindSpeed2m_V1| most likely needs to select
+    each variable selected by |lland_model.Return_AdjustedWindSpeed_V1|.
+    After adding additional variables to the `DERIVEDPARAMETERS` tuple of
+    |lland_model.Return_AdjustedWindSpeed_V1|, we get another warning message:
+
+    >>> from hydpy.models.lland.lland_derived import (
+    ...     Days, Hours, Seconds)
+    >>> derivedpars = Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS
+    >>> Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS = Days, Hours, Seconds
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    Definitely missing: windspeed2m
+    Possibly missing (DERIVEDPARAMETERS):
+        Return_AdjustedWindSpeed_V1: Seconds, Hours, and Days
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
+
+    Finally, |check_selectedvariables| checks for duplicates both within
+    and between the different tuples:
+
+    >>> from hydpy.models.lland.lland_inputs import WindSpeed, TemL
+    >>> requiredseqs = Calc_WindSpeed2m_V1.REQUIREDSEQUENCES
+    >>> Calc_WindSpeed2m_V1.REQUIREDSEQUENCES = WindSpeed, WindSpeed, TemL
+    >>> Calc_WindSpeed2m_V1.UPDATEDSEQUENCES = TemL,
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    Definitely missing: windspeed2m
+    Possibly missing (DERIVEDPARAMETERS):
+        Return_AdjustedWindSpeed_V1: Seconds, Hours, and Days
+    Possibly erroneously selected (REQUIREDSEQUENCES): TemL
+    Possibly erroneously selected (UPDATEDSEQUENCES): TemL
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
+    Duplicates: TemL and WindSpeed
+
+    To tidy up, we need to revert the above changes:
+
+    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = resultseqs
+    >>> Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS = derivedpars
+    >>> Calc_WindSpeed2m_V1.REQUIREDSEQUENCES = requiredseqs
+    >>> Calc_WindSpeed2m_V1.UPDATEDSEQUENCES = ()
+    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    <BLANKLINE>
+
+    Some methods as |arma_model.Pick_Q_V1| of base model |arma| rely on
+    the `len` attribute of 1-dimensional sequences.  Function
+    |check_selectedvariables| does not report false alarms in such cases:
+
+    >>> from hydpy.models.arma.arma_model import Pick_Q_V1
+    >>> print(check_selectedvariables(Pick_Q_V1))
+    <BLANKLINE>
+    """
+    prefixes = (
+        'con',
+        'der',
+        'fix',
+        'inp',
+        'flu',
+        'sta',
+        'old',
+        'new',
+        'log',
+        'aid',
+        'inl',
+        'out',
+        'rec',
+        'sen',
+    )
+    groups = (
+        'CONTROLPARAMETERS',
+        'DERIVEDPARAMETERS',
+        'FIXEDPARAMETERS',
+        'REQUIREDSEQUENCES',
+        'UPDATEDSEQUENCES',
+        'RESULTSEQUENCES',
+    )
+    blanks = ' '*indent
+    results: List[str] = []
+    # search for variables that are used in the source code but not
+    # among the selected variables:
+    source = inspect.getsource(method.__call__)
+    vars_source = set()
+    for var in inspect.getclosurevars(method.__call__).unbound:
+        for prefix in prefixes:
+            if f'{prefix}.{var}' in source:
+                if var.startswith('len_'):
+                    var = var[4:]
+                vars_source.add(var)
+    vars_selected = set()
+    for group in groups:
+        vars_selected.update(
+            g.__name__.lower() for g in getattr(method, group)
+        )
+    diff = vars_source-vars_selected
+    if diff:
+        results.append(
+            f'{blanks}Definitely missing: {objecttools.enumeration(diff)}'
+        )
+
+    # search for variables selected by at least one submethod
+    # but not by the method calling these submethods:
+    for group in groups:
+        vars_method = set(getattr(method, group))
+        found_problem = False
+        for submethod in method.SUBMETHODS:
+            vars_submethods = set(getattr(submethod, group))
+            diff = vars_submethods-vars_method
+            if diff:
+                if not found_problem:
+                    found_problem = True
+                    results.append(
+                        f'{blanks}Possibly missing ({group}):'
+                    )
+                results.append(
+                    f'{blanks}    {submethod.__name__}: {_enumerate(diff)}'
+                )
+
+    # search for selected variables that are neither used within the
+    # source code nor selected by any submethod:
+    group2vars_method = {g: set(getattr(method, g)) for g in groups}
+    group2vars_submethods = {g: set() for g in groups}
+    for submethod in method.SUBMETHODS:
+        for group, vars_submethods in group2vars_submethods.items():
+            vars_submethods.update(getattr(submethod, group))
+    for group, vars_method in group2vars_method.items():
+        vars_submethods = group2vars_submethods[group]
+        diff = [
+            method for method in vars_method-vars_submethods
+            if method.__name__.lower() not in vars_source
+        ]
+        if diff:
+            results.append(
+                f'{blanks}Possibly erroneously selected ({group}): '
+                f'{_enumerate(diff)}'
+            )
+
+    # search for variables that are selected multiple times:
+    dupl = set()
+    for group1 in groups:
+        vars1 = getattr(method, group1)
+        for var in vars1:
+            if vars1.count(var) > 1:
+                dupl.add(var)
+        for group2 in groups:
+            if group1 is not group2:
+                vars2 = getattr(method, group2)
+                dupl.update(set(vars1).intersection(vars2))
+    if dupl:
+        results.append(f'{blanks}Duplicates: {_enumerate(dupl)}')
+    return '\n'.join(results)
+
+
+def perform_consistencychecks(
+        applicationmodel=Union[types.ModuleType, str],
+        indent: int = 0,
+) -> str:
+    """Perform all available consistency checks for the given application model.
+
+    At the moment, function |perform_consistencychecks| calls function
+    |check_selectedvariables| for each relevant model methods and function
+    |check_methodorder| for the application model itself.  Note that
+    |perform_consistencychecks| executes only those checks not already
+    executed in the doctest of the respective method or model.  This
+    alternative allows model developers to perform the tests themselves
+    whenever exceptional cases result in misleading error reports and
+    discuss any related potential pitfalls in the official documentation.
+
+    As an example, we apply |perform_consistencychecks| on the application
+    model |lland_v3|.  It does not report any potential problems (not
+    already discussed in the documentation on the individual model methods):
+
+    >>> from hydpy.core.testtools import perform_consistencychecks
+    >>> print(perform_consistencychecks('lland_v3'))
+    <BLANKLINE>
+
+    To show how |perform_consistencychecks| reports errors, we modify the
+    `RESULTSEQUENCES` tuple of method |lland_model.Calc_DryAirPressure_V1|:
+
+    >>> from hydpy.models.lland.lland_model import (
+    ...     Calc_DryAirPressure_V1)
+    >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
+    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
+    >>> print(perform_consistencychecks('lland_v3'))
+    Potential consistency problems for individual methods:
+       Method Calc_DryAirPressure_V1:
+            Definitely missing: dryairpressure
+    Potential consistency problems between methods:
+        Method Calc_DensityAir_V1 requires the following sequences, which are \
+not among the result sequences of any of its predecessors: DryAirPressure
+
+    To tidy up, we need to revert the above changes:
+
+    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
+    >>> print(perform_consistencychecks('lland_v3'))
+    <BLANKLINE>
+    """
+    blanks = ' '*indent
+    model = importtools.prepare_model(applicationmodel)
+    results: List[str] = []
+    method2errors: Dict[str, str] = {}
+    for method in model.get_methods():
+        if 'check_selectedvariables(' not in method.__doc__:
+            subresult = check_selectedvariables(
+                method=method,
+                indent=indent+8,
+            )
+            if subresult:
+                method2errors[method.__name__] = subresult
+    if method2errors:
+        results.append(
+            f'{blanks}Potential consistency problems for individual methods:'
+        )
+        for method, errors in method2errors.items():
+            results.append(f'{blanks}   Method {method}:')
+            results.append(errors)
+    if 'check_methodorder(' not in model.__doc__:
+        subresult = check_methodorder(model, indent+4)
+        if subresult:
+            results.append(
+                f'{blanks}Potential consistency problems between methods:'
+            )
+            results.append(subresult)
+    return '\n'.join(results)

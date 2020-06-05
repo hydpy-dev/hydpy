@@ -770,9 +770,13 @@ class AdHocModel(Model):
 
     RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
-        'RUN_METHODS', 'ADD_METHODS',
-        'INLET_METHODS', 'OUTLET_METHODS',
-        'RECEIVER_METHODS', 'SENDER_METHODS')
+        'RECEIVER_METHODS',
+        'INLET_METHODS',
+        'RUN_METHODS',
+        'ADD_METHODS',
+        'OUTLET_METHODS',
+        'SENDER_METHODS',
+    )
 
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
@@ -993,10 +997,14 @@ class ELSModel(SolverModel):
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS = (
-        'INLET_METHODS', 'OUTLET_METHODS',
-        'RECEIVER_METHODS', 'SENDER_METHODS',
-        'PART_ODE_METHODS', 'FULL_ODE_METHODS',
-        'ADD_METHODS')
+        'RECEIVER_METHODS',
+        'INLET_METHODS',
+        'PART_ODE_METHODS',
+        'FULL_ODE_METHODS',
+        'ADD_METHODS',
+        'OUTLET_METHODS',
+        'SENDER_METHODS',
+    )
     numconsts: NumConstsELS
     numvars: NumVarsELS
 

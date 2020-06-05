@@ -1814,6 +1814,28 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return to_repr(self, self.value)
 
 
+def sort_variables(
+        variables: Iterable[Type[typingtools.VariableProtocol]]
+) -> Tuple[Type[typingtools.VariableProtocol], ...]:
+    """Sort the given |Variable| subclasses by their initialisation order.
+
+    When defined in one module, the initialisation order corresponds the
+    order within the file:
+
+    >>> from hydpy import classname, sort_variables
+    >>> from hydpy.models.hland.hland_control import Area, NmbZones, ZoneType
+    >>> from hydpy import classname
+    >>> for var in sort_variables([NmbZones, ZoneType, Area]):
+    ...     print(classname(var))
+    Area
+    NmbZones
+    ZoneType
+    """
+    return tuple(var_ for (idx, var_) in sorted(
+        (var_.__hydpy__subclasscounter__, var_) for var_ in variables
+    ))
+
+
 class SubVariables(Generic[GroupType]):
     """Base class for |SubParameters| and |SubSequences|.
 

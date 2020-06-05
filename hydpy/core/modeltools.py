@@ -24,6 +24,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core import variabletools
 from hydpy.cythons import modelutils
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -665,7 +666,7 @@ to any sequences: in2.
             classname = typesequences.__name__
             if not hasattr(module, classname):
                 members = {
-                    'CLASSES': cls._sort_variables(sequences),
+                    'CLASSES': variabletools.sort_variables(sequences),
                     '__doc__': f'{classname[:-9]} sequences '
                                f'of model {modelname}.',
                     '__module__': modulename,
@@ -693,7 +694,7 @@ to any sequences: in2.
             module.ControlParameters = type(
                 'ControlParameters',
                 (parametertools.SubParameters,),
-                {'CLASSES': cls._sort_variables(controlparameters),
+                {'CLASSES': variabletools.sort_variables(controlparameters),
                  '__doc__': f'Control parameters of model {modelname}.',
                  '__module__': modulename},
             )
@@ -701,7 +702,7 @@ to any sequences: in2.
             module.DerivedParameters = type(
                 'DerivedParameters',
                 (parametertools.SubParameters,),
-                {'CLASSES': cls._sort_variables(derivedparameters),
+                {'CLASSES': variabletools.sort_variables(derivedparameters),
                  '__doc__': f'Derived parameters of model {modelname}.',
                  '__module__': modulename},
             )
@@ -709,7 +710,7 @@ to any sequences: in2.
             module.FixedParameters = type(
                 'FixedParameters',
                 (parametertools.SubParameters,),
-                {'CLASSES': cls._sort_variables(fixedparameters),
+                {'CLASSES': variabletools.sort_variables(fixedparameters),
                  '__doc__': f'Fixed parameters of model {modelname}.',
                  '__module__': modulename},
             )
@@ -717,17 +718,10 @@ to any sequences: in2.
             module.SolverParameters = type(
                 'SolverParameters',
                 (parametertools.SubParameters,),
-                {'CLASSES': cls._sort_variables(cls.SOLVERPARAMETERS),
+                {'CLASSES': variabletools.sort_variables(cls.SOLVERPARAMETERS),
                  '__doc__': f'Solver parameters of model {modelname}.',
                  '__module__': modulename},
             )
-
-    @staticmethod
-    def _sort_variables(variables: Iterable[Type[typingtools.VariableProtocol]]
-                        ) -> Tuple[Type[typingtools.VariableProtocol], ...]:
-        return tuple(var_ for (idx, var_) in sorted(
-            (var_.__hydpy__subclasscounter__, var_) for var_ in variables
-        ))
 
     # sorting with dependencies, or is the definition order always okay?
     #

@@ -55,6 +55,7 @@ from hydpy.core.testtools import TestIO
 from hydpy.core.testtools import UnitTest
 from hydpy.core.testtools import update_integrationtests
 from hydpy.core.variabletools import INT_NAN
+from hydpy.core.variabletools import sort_variables
 from hydpy.auxs.armatools import ARMA
 from hydpy.auxs.armatools import MA
 from hydpy.auxs.anntools import ANN
@@ -151,6 +152,7 @@ __all__ = ['config',
            'Open',
            'TestIO',
            'INT_NAN',
+           'sort_variables',
            'UnitTest',
            'update_integrationtests',
            'ARMA',

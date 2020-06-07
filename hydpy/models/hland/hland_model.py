@@ -1050,6 +1050,7 @@ class Calc_In_WC_V1(modeltools.Method):
         hland_control.WHC,
     )
     REQUIREDSEQUENCES = (
+        hland_fluxes.TF,
         hland_states.SP,
     )
     UPDATEDSEQUENCES = (
@@ -1858,6 +1859,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         hland_derived.DT,
     )
     REQUIREDSEQUENCES = (
+        hland_fluxes.ContriArea,
         hland_fluxes.InUZ,
     )
     UPDATEDSEQUENCES = (

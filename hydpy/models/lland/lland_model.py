@@ -2679,6 +2679,7 @@ class Calc_WNied_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.NBes,
+        lland_fluxes.SBes,
     )
     RESULTSEQUENCES = (
         lland_fluxes.WNied,

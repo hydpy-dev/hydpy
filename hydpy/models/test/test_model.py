@@ -147,9 +147,6 @@ class Calc_S_V1(modeltools.Method):
        >>> states.s
        s(0.2)
     """
-    CONTROLPARAMETERS = (
-        test_control.K,
-    )
     REQUIREDSEQUENCES = (
         test_fluxes.Q,
     )
@@ -185,7 +182,6 @@ class Calc_SV_V1(modeltools.Method):
     """
     CONTROLPARAMETERS = (
         test_control.N,
-        test_control.K,
     )
     REQUIREDSEQUENCES = (
         test_fluxes.QV,

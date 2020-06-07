@@ -131,6 +131,9 @@ class Pick_Q_V1(modeltools.Method):
 class Pass_Q_V1(modeltools.Method):
     """Assing the actual value of the lower joint of of the subreach
     downstream to the outlet sequence."""
+    DERIVEDPARAMETERS = (
+        hstream_derived.NmbSegments,
+    )
     REQUIREDSEQUENCES = (
         hstream_states.QJoints,
     )

@@ -624,7 +624,7 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         lstream_control.BNM,
     )
     DERIVEDPARAMETERS = (
-        lstream_derived.BNVF,
+        lstream_derived.BNMF,
     )
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
@@ -783,6 +783,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
             3.9, 4.0, 4.1, 5.0)
     """
     CONTROLPARAMETERS = (
+        lstream_control.GTS,
         lstream_control.BV,
         lstream_control.BNV,
     )
@@ -940,6 +941,7 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 3.04951, 1.000871, 1.000001, 1.0, 1.0, 1.0, 1.0
     """
     CONTROLPARAMETERS = (
+        lstream_control.GTS,
         lstream_control.BV,
         lstream_control.BNV,
     )
@@ -1093,11 +1095,9 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
     """
     CONTROLPARAMETERS = (
         lstream_control.GTS,
-        lstream_control.HM,
         lstream_control.BNVR,
     )
     DERIVEDPARAMETERS = (
-        lstream_derived.HV,
         lstream_derived.BNVRF,
     )
     REQUIREDSEQUENCES = (
@@ -1740,9 +1740,6 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
     CONTROLPARAMETERS = (
         lstream_control.GTS,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFV,
-    )
     REQUIREDSEQUENCES = (
         lstream_aides.ALVR,
         lstream_aides.ARVR,
@@ -1999,6 +1996,7 @@ class Calc_QG_V2(modeltools.Method):
         storage and discharge, we require larger neural networks.
     """
     CONTROLPARAMETERS = (
+        lstream_control.GTS,
         lstream_control.VG2QG,
     )
     REQUIREDSEQUENCES = (
@@ -2268,6 +2266,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
         lstream_control.BNVR,
     )
     REQUIREDSEQUENCES = (
+        lstream_aides.RHLVR,
         lstream_aides.RHLVRDH,
         lstream_aides.RHRVR,
         lstream_aides.RHRVRDH,
@@ -2585,7 +2584,51 @@ class Return_QF_V1(modeltools.Method):
         Note that method |Return_QF_V1| does not overwrite the first
         entry of |QG|, which would complicate its application within
         an iterative approach.
+
+    Technical checks:
+
+        Note that method |Return_QF_V1| calculates the value of sequence |QG|
+        temporarily and resets it afterwards and calculates all other values
+        of the mentioned sequences without resetting:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.lstream.lstream_model import Return_QF_V1
+        >>> print(check_selectedvariables(Return_QF_V1))
+        Definitely missing: qg
+        Possibly missing (REQUIREDSEQUENCES):
+            Calc_RHM_V1: H
+            Calc_RHMDH_V1: H
+            Calc_RHV_V1: H
+            Calc_RHVDH_V1: H
+            Calc_RHLVR_RHRVR_V1: H
+            Calc_RHLVRDH_RHRVRDH_V1: H
+            Calc_AM_UM_V1: RHM and RHV
+            Calc_ALV_ARV_ULV_URV_V1: RHV, RHLVR, and RHRVR
+            Calc_ALVR_ARVR_ULVR_URVR_V1: RHLVR and RHRVR
+            Calc_QM_V1: AM and UM
+            Calc_QLV_QRV_V1: ALV, ARV, ULV, and URV
+            Calc_QLVR_QRVR_V1: ALVR, ARVR, ULVR, and URVR
+            Calc_AG_V1: AM, ALV, ARV, ALVR, and ARVR
+            Calc_QG_V1: QM, QLV, QRV, QLVR, and QRVR
+        Possibly missing (RESULTSEQUENCES):
+            Calc_QG_V1: QG
     """
+    SUBMETHODS = (
+        Calc_RHM_V1,
+        Calc_RHMDH_V1,
+        Calc_RHV_V1,
+        Calc_RHVDH_V1,
+        Calc_RHLVR_RHRVR_V1,
+        Calc_RHLVRDH_RHRVRDH_V1,
+        Calc_AM_UM_V1,
+        Calc_ALV_ARV_ULV_URV_V1,
+        Calc_ALVR_ARVR_ULVR_URVR_V1,
+        Calc_QM_V1,
+        Calc_QLV_QRV_V1,
+        Calc_QLVR_QRVR_V1,
+        Calc_AG_V1,
+        Calc_QG_V1,
+    )
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
@@ -2604,10 +2647,8 @@ class Return_QF_V1(modeltools.Method):
         lstream_derived.MFM,
         lstream_derived.MFV,
     )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
     RESULTSEQUENCES = (
+        lstream_states.H,
         lstream_aides.RHM,
         lstream_aides.RHMDH,
         lstream_aides.RHV,
@@ -2793,6 +2834,9 @@ class Return_H_V1(modeltools.Method):
         100000.0, 37.330632, 0.0
         1000000.0, 81.363979, 0.0
     """
+    SUBMETHODS = (
+        Return_QF_V1,
+    )
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,

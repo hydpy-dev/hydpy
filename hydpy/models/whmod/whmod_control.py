@@ -205,11 +205,12 @@ class KapilGrenzwert(BodenTypComplete):
 
 
 class BFI(BodenTypComplete):
-    """Base Flow Index [-]"""
+    """Base Flow Index [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
 class Schwerpunktlaufzeit(parametertools.Parameter):
+    """Schwerpunktlaufzeit [T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
 
     def __call__(self, *args, **kwargs):

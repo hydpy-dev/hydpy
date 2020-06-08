@@ -24,4 +24,4 @@ class AktBodenwassergehalt(sequencetools.StateSequence):
 
 class Zwischenspeicher(sequencetools.StateSequence):
     """[mm]"""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)

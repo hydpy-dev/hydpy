@@ -1640,6 +1640,16 @@ def check_selectedvariables(
     >>> from hydpy.models.arma.arma_model import Pick_Q_V1
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
+
+    Some methods as |lland_model.Update_ESnow_V1| of base model |lland| update a
+    sequence (meaning, they require its old value and calculate a new one), but
+    their submethods (in this case |lland_model.Return_BackwardEulerError_V1|)
+    just require them as input.  Function |check_selectedvariables| does not
+    report false alarms in such cases:
+
+    >>> from hydpy.models.lland.lland_model import Update_ESnow_V1
+    >>> print(check_selectedvariables(Update_ESnow_V1))
+    <BLANKLINE>
     """
     prefixes = (
         'con',
@@ -1671,12 +1681,12 @@ def check_selectedvariables(
     # among the selected variables:
     source = inspect.getsource(method.__call__)
     vars_source = set()
-    for var in inspect.getclosurevars(method.__call__).unbound:
-        for prefix in prefixes:
-            if f'{prefix}.{var}' in source:
-                if var.startswith('len_'):
-                    var = var[4:]
-                vars_source.add(var)
+    unbound_vars = inspect.getclosurevars(method.__call__).unbound
+    for var, prefix in itertools.product(unbound_vars, prefixes):
+        if f'{prefix}.{var}' in source:
+            if var.startswith('len_'):
+                var = var[4:]
+            vars_source.add(var)
     vars_selected = set()
     for group in groups:
         vars_selected.update(
@@ -1695,6 +1705,12 @@ def check_selectedvariables(
         found_problem = False
         for submethod in method.SUBMETHODS:
             vars_submethods = set(getattr(submethod, group))
+            if group == 'REQUIREDSEQUENCES':
+                vars_method.update(
+                    set(method.UPDATEDSEQUENCES).intersection(
+                        submethod.REQUIREDSEQUENCES
+                    )
+                )
             diff = vars_submethods-vars_method
             if diff:
                 if not found_problem:

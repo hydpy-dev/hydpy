@@ -86,9 +86,8 @@ Integration tests:
     >>> ft(1.0)
     >>> fhru(1.0)
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 2200
     >>> IntegrationTest.plotting_options.activated=(
-    ...     inputs.nied, inputs.teml, fluxes.q)
+    ...     inputs.nied, fluxes.q)
     >>> test = IntegrationTest(land)
     >>> test.dateformat = '%Y-%d-%m'
 
@@ -296,7 +295,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex1.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -354,7 +353,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex2_1.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -406,7 +405,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex2_2.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -464,7 +463,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex3.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -520,7 +519,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex4.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -577,7 +576,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex5.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -633,7 +632,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex1_wet.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -696,7 +695,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex6.html"
             width="100%"
-            height="2230px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -824,7 +823,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex7.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -869,7 +868,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex7.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -918,7 +917,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex8.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1126,7 +1125,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex1_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1224,7 +1223,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex1_hourly_wet'.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1331,7 +1330,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex2_1_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1417,7 +1416,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex6_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1613,7 +1612,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex7_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1699,7 +1698,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex7_NADELW_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 
@@ -1786,7 +1785,7 @@ Integration tests:
         <iframe
             src="lland_v3_ex8_hourly.html"
             width="100%"
-            height="2230px"
+            height="700px"
             frameborder=0
         ></iframe>
 """

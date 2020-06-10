@@ -136,7 +136,7 @@ Integration examples:
         <iframe
             src="arma_v1_ex1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -179,7 +179,7 @@ Integration examples:
         <iframe
             src="arma_v1_ex2.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -217,7 +217,7 @@ Integration examples:
         <iframe
             src="arma_v1_ex3.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -261,7 +261,7 @@ Integration examples:
         <iframe
             src="arma_v1_ex4.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -317,7 +317,7 @@ Integration examples:
         <iframe
             src="arma_v1_ex5.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

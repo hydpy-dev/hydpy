@@ -7,7 +7,9 @@ matplotlib
 netcdf4
 networkx
 numpy
+packaging
 pandas
+plotly
 setuptools
 typing_extensions
 scipy

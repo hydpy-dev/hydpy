@@ -230,7 +230,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -280,7 +280,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex2.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -327,7 +327,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex3.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -376,7 +376,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex4.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -422,7 +422,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex5.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -469,7 +469,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex6.html"
             width="100%"
-            height="330px"
+            height="6900px"
             frameborder=0
         ></iframe>
 
@@ -518,7 +518,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex7.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -574,7 +574,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex8_1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -616,7 +616,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex8_2.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -670,7 +670,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex9.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -739,7 +739,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex10.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -815,7 +815,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex11.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -863,7 +863,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex12.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -974,7 +974,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex13.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -1042,7 +1042,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex14.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -1104,7 +1104,7 @@ Integration examples:
         <iframe
             src="dam_v001_ex15.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 

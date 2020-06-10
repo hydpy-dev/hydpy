@@ -79,7 +79,7 @@ Integration examples:
         <iframe
             src="dam_v007_ex1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -123,7 +123,7 @@ Integration examples:
         <iframe
             src="dam_v007_ex2a.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -164,7 +164,7 @@ Integration examples:
         <iframe
             src="dam_v007_ex2b.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 

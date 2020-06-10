@@ -97,7 +97,6 @@ Integration tests:
 
     >>> parameters.update()
     >>> test = IntegrationTest(element)
-    >>> IntegrationTest.plotting_options.height = 550
     >>> IntegrationTest.plotting_options.activated = [
     ...     fluxes.referenceevapotranspiration]
     >>> test.dateformat = '%Y-%d-%m %H:00'

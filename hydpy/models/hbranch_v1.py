@@ -81,7 +81,7 @@ Integration Test:
         <iframe
             src="hbranch_v1_ex1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

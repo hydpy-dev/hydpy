@@ -77,7 +77,6 @@ Integration tests:
     and prints their results for the given sequences:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 900
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.p, inputs.t, fluxes.qt)
     >>> test = IntegrationTest(land)
@@ -303,7 +302,7 @@ Integration tests:
         <iframe
             src="hland_v1_ex1.html"
             width="100%"
-            height="930px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -424,7 +423,7 @@ Integration tests:
         <iframe
             src="hland_v1_ex2.html"
             width="100%"
-            height="930px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -547,7 +546,7 @@ Integration tests:
         <iframe
             src="hland_v1_ex3.html"
             width="100%"
-            height="930px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -677,7 +676,7 @@ Integration tests:
         <iframe
             src="hland_v1_ex4.html"
             width="100%"
-            height="930px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -809,7 +808,7 @@ Integration tests:
         <iframe
             src="hland_v1_ex5.html"
             width="100%"
-            height="930px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

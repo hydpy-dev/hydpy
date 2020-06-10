@@ -38,7 +38,6 @@ Integration test:
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
-    >>> IntegrationTest.plotting_options.height = 650
     >>> test = IntegrationTest(stream, inits=[[states.h, 3.203338552]])
 
     >>> laen(100.0)
@@ -275,7 +274,7 @@ Integration test:
         <iframe
             src="lstream_v002_ex1.html"
             width="100%"
-            height="680"
+            height="600"
             frameborder=0
         ></iframe>
 
@@ -487,7 +486,7 @@ Integration test:
         <iframe
             src="lstream_v002_ex2.html"
             width="100%"
-            height="680"
+            height="600"
             frameborder=0
         ></iframe>
 
@@ -700,7 +699,7 @@ Integration test:
         <iframe
             src="lstream_v002_ex3.html"
             width="100%"
-            height="680"
+            height="600"
             frameborder=0
         ></iframe>
 

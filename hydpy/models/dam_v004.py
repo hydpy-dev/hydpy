@@ -119,7 +119,7 @@
         <iframe
             src="dam_v004_ex7.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -180,7 +180,7 @@
         <iframe
             src="dam_v004_ex7_1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -236,7 +236,7 @@
         <iframe
             src="dam_v004_ex7_2.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -277,7 +277,7 @@
         <iframe
             src="dam_v004_ex7_3.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -336,7 +336,7 @@
         <iframe
             src="dam_v004_ex8.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -384,7 +384,7 @@
         <iframe
             src="dam_v004_ex10.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -437,7 +437,7 @@
         <iframe
             src="dam_v004_ex13.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -501,7 +501,7 @@
         <iframe
             src="dam_v004_ex13_1.html"
             width="100%"
-            height="330px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

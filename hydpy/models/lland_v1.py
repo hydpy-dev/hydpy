@@ -63,7 +63,6 @@ Integration tests:
     and prints their results for the given sequences:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 800
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.nied, inputs.teml, fluxes.q)
     >>> test = IntegrationTest(land)
@@ -285,7 +284,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex1.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -413,7 +412,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex2_1.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -533,7 +532,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex2_2.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -657,7 +656,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex3.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -783,7 +782,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex4.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -901,7 +900,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex5.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -1035,7 +1034,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex6.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -1157,7 +1156,7 @@ Integration tests:
         <iframe
             src="lland_v1_ex7.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

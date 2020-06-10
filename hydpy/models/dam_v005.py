@@ -108,7 +108,6 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.model = model
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 370
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
@@ -201,7 +200,7 @@ Integration examples:
         <iframe
             src="dam_v005_ex7.html"
             width="100%"
-            height="400px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -247,7 +246,7 @@ Integration examples:
         <iframe
             src="dam_v005_ex8.html"
             width="100%"
-            height="400px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -290,7 +289,7 @@ Integration examples:
         <iframe
             src="dam_v005_ex10.html"
             width="100%"
-            height="400px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -347,7 +346,7 @@ Integration examples:
         <iframe
             src="dam_v005_ex13.html"
             width="100%"
-            height="400px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

@@ -38,7 +38,6 @@ Integration tests:
     >>> ft(1.0)
     >>> fhru(1.0)
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 800
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.nied, inputs.teml, fluxes.q)
     >>> test = IntegrationTest(land)
@@ -254,7 +253,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex1.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -381,7 +380,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex2_1a.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -501,7 +500,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex2_2.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -619,7 +618,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex3.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -735,7 +734,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex4.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -851,7 +850,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex5.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -969,7 +968,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex6.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 
@@ -1103,7 +1102,7 @@ Integration tests:
         <iframe
             src="lland_v2_ex7.html"
             width="100%"
-            height="830px"
+            height="600px"
             frameborder=0
         ></iframe>
 """

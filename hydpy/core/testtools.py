@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for making doctests clearer."""
+"""This module implements tools for testing *HydPy* and its models."""
 # import...
 # ...from standard library
 import abc
@@ -38,12 +38,16 @@ from hydpy.core import variabletools
 from hydpy.tests import iotesting
 if TYPE_CHECKING:
     from hydpy.core import modeltools
-models = exceptiontools.OptionalImport(
-    'models', ['bokeh.models'], locals())
-palettes = exceptiontools.OptionalImport(
-    'palettes', ['bokeh.palettes'], locals())
-plotting = exceptiontools.OptionalImport(
-    'plotting', ['bokeh.plotting'], locals())
+matplotlib = exceptiontools.OptionalImport(
+    'matplotlib', ['matplotlib'], locals())
+pyplot = exceptiontools.OptionalImport(
+    'pyplot', ['matplotlib.pyplot'], locals())
+pandas = exceptiontools.OptionalImport(
+    'pandas', ['pandas'], locals())
+plotly = exceptiontools.OptionalImport(
+    'plotly', ['plotly'], locals())
+subplots = exceptiontools.OptionalImport(
+    'subplots', ['plotly.subplots'], locals())
 
 
 class StdOutErr:
@@ -483,17 +487,6 @@ class Test:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
 
-    @staticmethod
-    def extract_units(parseqs):
-        """Return a set of units of the given parameters and sequences."""
-        units = set()
-        for parseq in parseqs:
-            desc = objecttools.description(parseq)
-            if '[' in desc:
-                unit = desc.split('[')[-1].split(']')[0]
-                units.add(unit)
-        return units
-
 
 class PlottingOptions:
     """Plotting options of class |IntegrationTest|."""
@@ -540,8 +533,6 @@ class IntegrationTest(Test):
         self.hydpy.update_devices(
             selectiontools.Selection('test', self.nodes, self.elements))
         self._src = None
-        self._width = None
-        self._height = None
 
     def __call__(self, *args, update_parameters=True, **kwargs):
         """Prepare and perform an integration test and print and eventually
@@ -681,84 +672,167 @@ datetime of the Python standard library for for further information.
                         except AttributeError:
                             pass
 
-    def plot(self, filename, width=None, height=None,
-             selected=None, activated=None):
-        """Save a bokeh HTML file plotting the current test results.
+    def plot(self, filename, sel_sequences=None, act_sequences=None):
+        """Save a plotly HTML file plotting the current test results.
 
         (Optional) arguments:
             * filename: Name of the file.  If necessary, the file ending
               `html` is added automatically.  The file is stored in the
               `html_` folder of subpackage `docs`.
-            * width: Width of the plot in screen units.  Defaults to 600.
-            * height: Height of the plot in screen units.  Defaults to 300.
-            * selected: List of the sequences to be plotted.
-            * activated: List of the sequences to be shown initially.
+            * sel_sequences: List of the sequences to be plotted.
+            * act_sequences: List of the sequences to be shown initially.
         """
-        if width is None:
-            width = self.plotting_options.width
-        if height is None:
-            height = self.plotting_options.height
         if not filename.endswith('.html'):
             filename += '.html'
-        if selected is None:
-            selected = self.plotting_options.selected
-            if selected is None:
-                selected = self.parseqs
-        if activated is None:
-            activated = self.plotting_options.activated
-            if activated is None:
-                activated = self.parseqs
-        activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
-                          for nm_ in activated)
-        path = os.path.join(docs.__path__[0], 'html_', filename)
-        plotting.output_file(path)
-        plot = plotting.figure(x_axis_type="datetime")
-        plot.toolbar.active_drag = plot.tools[0]
-        plot.toolbar.active_scroll = plot.tools[1]
-        plot.plot_width = width
-        plot.plot_height = height
-        legend_entries = []
-        viridis = palettes.viridis
-        headers = [header for header in self.raw_header_strings[1:]
-                   if header]
-        zipped = zip(selected,
-                     viridis(len(selected)),
-                     headers)
-        for (seq, col, header) in zipped:
-            series = seq.series.copy()
-            if not seq.NDIM:
-                listofseries = [series]
-                listofsuffixes = ['']
+        if sel_sequences is None:
+            sel_sequences = self.plotting_options.selected
+            if sel_sequences is None:
+                sel_sequences = self.parseqs
+        if act_sequences is None:
+            act_sequences = self.plotting_options.activated
+            if act_sequences is None:
+                act_sequences = self.parseqs
+        sel_sequences = sorted(sel_sequences, key=lambda seq_: seq_.name)
+        act_types = tuple(type(seq_) for seq_ in act_sequences)
+        sel_names, sel_series, sel_units, act_names = [], [], [], []
+        for sequence in sel_sequences:
+            name = type(sequence).__name__
+            if sequence.NDIM == 0:
+                sel_names.append(name)
+                sel_units.append(sequence.unit)
+                sel_series.append(list(sequence.series))
+                if isinstance(sequence, act_types):
+                    act_names.append(name)
+            elif sequence.shape[0] == 1:
+                sel_names.append(name)
+                sel_units.append(sequence.unit)
+                sel_series.append(list(sequence.series[:, 0]))
+                if isinstance(sequence, act_types):
+                    act_names.append(name)
             else:
-                nmb = seq.shape[0]
-                listofseries = [series[:, idx] for idx in range(nmb)]
-                if nmb == 1:
-                    listofsuffixes = ['']
-                else:
-                    listofsuffixes = ['-%d' % idx for idx in range(nmb)]
-            for subseries, suffix in zip(listofseries, listofsuffixes):
-                line = plot.line(self._datetimes, subseries,
-                                 alpha=0.8, muted_alpha=0.0,
-                                 line_width=2, color=col)
-                line.muted = seq.name not in activated
-                if header.strip() == seq.name:
-                    title = type(seq).__name__
-                else:
-                    title = header.capitalize()
-                title += suffix
-                legend_entries.append((title, [line]))
-        legend = models.Legend(items=legend_entries,
-                               click_policy='mute')
-        legend.border_line_color = None
-        plot.add_layout(legend, 'right')
-        units = self.extract_units(selected)
-        ylabel = objecttools.enumeration(units).replace('and', 'or')
-        plot.yaxis.axis_label = ylabel
-        plot.yaxis.axis_label_text_font_style = 'normal'
-        plotting.save(plot)
-        self._src = filename
-        self._width = width
-        self._height = height
+                for idx in range(sequence.shape[0]):
+                    subname = f'{name}_{idx+1}'
+                    sel_names.append(subname)
+                    sel_units.append(sequence.unit)
+                    sel_series.append(list(sequence.series[:, idx]))
+                    if isinstance(sequence, act_types):
+                        act_names.append(subname)
+
+        fig = subplots.make_subplots(
+            rows=1,
+            cols=1,
+            specs=[[{'secondary_y': True}]],
+        )
+        fig.update_xaxes(
+            showgrid=False,
+            zeroline=False,
+        )
+        fig.update_yaxes(
+            showgrid=False,
+            zeroline=False,
+        )
+        fig.update_layout(
+            showlegend=True,
+        )
+
+        cmap = pyplot.get_cmap('tab20', 2*len(sel_names))
+        dates = list(
+            pandas.date_range(
+                start=hydpy.pub.timegrids.init.firstdate.datetime,
+                end=hydpy.pub.timegrids.init.lastdate.datetime,
+                freq=hydpy.pub.timegrids.init.stepsize.timedelta,
+            )
+        )
+        for idx, (name, series, unit) in enumerate(
+                zip(sel_names, sel_series, sel_units)
+        ):
+            fig.add_trace(
+                plotly.graph_objects.Scattergl(
+                    x=dates,
+                    y=series,
+                    name=f"{name} [{unit}] (1)",
+                    visible=name in act_names,
+                    legendgroup='axis 1',
+                    line={'color': matplotlib.colors.rgb2hex(cmap(2*idx))},
+                ),
+            )
+            fig.add_trace(
+                plotly.graph_objects.Scattergl(
+                    x=dates,
+                    y=series,
+                    name=f"{name} [{unit}] (2)",
+                    visible=False,
+                    legendgroup='axis 2',
+                    line={'color': matplotlib.colors.rgb2hex(cmap(2*idx+1))},
+                ),
+                secondary_y=True,
+            )
+
+        buttons = []
+        for label, visibles in (
+                ['add all to y-axis 1', [True, False]],
+                ['remove all', [False, False]],
+                ['add all to y-axis 2', [False, True]],
+        ):
+            subbuttons = [
+                {
+                    'label': label,
+                    'method': 'restyle',
+                    'args': [
+                        {
+                            'visible': len(sel_sequences)*visibles,
+                        }
+                    ],
+                }
+            ]
+            for idx, name in enumerate(sel_names):
+                subbuttons.append(
+                    {
+                        'label': name,
+                        'method': 'restyle',
+                        'args': [
+                            {
+                                "visible": visibles,
+                            },
+                            [2*idx, 2*idx+1]],
+                    }
+                )
+            buttons.append(subbuttons)
+
+        fig.update_layout(
+            hovermode='x unified',
+            updatemenus=[
+                {
+                    'active': 0,
+                    'xanchor': 'left',
+                    'x': 0.,
+                    'yanchor': 'bottom',
+                    'y': 1.02,
+                    'buttons': buttons[0],
+                },
+                {
+                    'active': 0,
+                    'xanchor': 'center',
+                    'x': .5,
+                    'yanchor': 'bottom',
+                    'y': 1.02,
+                    'buttons': buttons[1],
+                },
+                {
+                    'active': 0,
+                    'xanchor': 'right',
+                    'x': 1.,
+                    'yanchor': 'bottom',
+                    'y': 1.02,
+                    'buttons': buttons[2],
+                },
+            ],
+            legend={
+                'tracegroupgap': 100,
+            },
+        )
+
+        fig.write_html(os.path.join(docs.__path__[0], 'html_', filename))
 
     def print_iframe(self, tabs: int = 4) -> None:
         """Print a command for embedding the saved HTML file into the online
@@ -775,20 +849,18 @@ datetime of the Python standard library for for further information.
                 <iframe
                     src="None"
                     width="100"
-                    height="330"
+                    height="600"
                     frameborder=0
                 ></iframe>
         <BLANKLINE>
         """
         blanks = ' '*tabs
-        height = self._height
-        height = self.plotting_options.height if height is None else height
         lines = ['.. raw:: html',
                  '',
                  '    <iframe',
                  f'        src="{self._src}"',
                  '        width="100"',
-                 f'        height="{height+30}"',
+                 '        height="600"',
                  '        frameborder=0',
                  '    ></iframe>',
                  '']

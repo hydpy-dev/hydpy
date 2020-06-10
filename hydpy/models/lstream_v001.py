@@ -92,7 +92,6 @@ Integration test:
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
-    >>> IntegrationTest.plotting_options.height = 700
     >>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
 
     Now we define the geometry and roughness values for the main channel
@@ -363,7 +362,7 @@ Integration test:
         <iframe
             src="lstream_v001_ex1.html"
             width="100%"
-            height="730"
+            height="600"
             frameborder=0
         ></iframe>
 
@@ -580,7 +579,7 @@ Integration test:
         <iframe
             src="lstream_v001_ex2.html"
             width="100%"
-            height="730"
+            height="600"
             frameborder=0
         ></iframe>
 
@@ -802,7 +801,7 @@ Integration test:
         <iframe
             src="lstream_v001_ex3.html"
             width="100%"
-            height="730"
+            height="600"
             frameborder=0
         ></iframe>
 

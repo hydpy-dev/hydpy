@@ -43,7 +43,6 @@ Integration test:
     ...       intercepts_output=[-78.006394])
 
     >>> from hydpy.core.testtools import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 550
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
     >>> test = IntegrationTest(stream, inits=[[states.vg, 1.570929405]])
 
@@ -264,7 +263,7 @@ Integration test:
         <iframe
             src="lstream_v003_ex1.html"
             width="100%"
-            height="580"
+            height="600"
             frameborder=0
         ></iframe>
 """

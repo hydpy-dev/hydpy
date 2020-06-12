@@ -64,6 +64,10 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/', None)
     }
 
+mathjax_config = {
+    "displayAlign": "left"
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

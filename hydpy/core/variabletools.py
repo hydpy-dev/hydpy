@@ -931,6 +931,21 @@ operands could not be broadcast together with shapes (2,) (3,)...
     >>> pub.options.reprcomments = False
     >>> var
     var(3.0)
+
+    During initialisation, each |Variable| subclass tries to extract its
+    unit from its docstring:
+
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge [m³/s].'}).unit
+    'm³/s'
+
+    For missing or poorly written docstrings, we set `unit` to "?":
+
+    >>> type('Var', (Variable,), {}).unit
+    '?'
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge ]m³/s[.'}).unit
+    '?'
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge m³/s].'}).unit
+    '?'
     """
     # Subclasses need to define...
     NDIM: int
@@ -947,6 +962,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     __hydpy__subclasscounter__ = 1
 
     name: str
+    unit: str
     fastaccess: Union[
         'FastAccess',
         typingtools.FastAccessParameterProtocol,
@@ -963,9 +979,21 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     def __init_subclass__(cls):
         cls.name = cls.__name__.lower()
+        cls.unit = cls._get_unit()
         subclasscounter = Variable.__hydpy__subclasscounter__ + 1
         Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
+
+    @classmethod
+    def _get_unit(cls) -> str:
+        descr = objecttools.description(cls)
+        idx1 = descr.find('[')+1
+        idx2 = descr.find(']')
+        if 0 < idx1 < idx2:
+            return descr[idx1:idx2]
+        return '?'
+
+
 
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:

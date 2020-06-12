@@ -1413,7 +1413,7 @@ implement method `update`.
 'fastaccess', 'get_submask', 'get_timefactor', 'initinfo', 'mask', 'name', \
 'parameterstep', 'refweights', 'revert_timefactor', 'shape', \
 'simulationstep', 'strict_valuehandling', 'subpars', 'subvars', 'trim', \
-'update', 'value', 'values', 'verify']
+'unit', 'update', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 

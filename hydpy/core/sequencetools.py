@@ -995,10 +995,10 @@ retrieved after it has been defined.
         >>> from hydpy.core.sequencetools import Sequence
         >>> sequence = Sequence(None)
         >>> dir(sequence)
-        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', \
-'availablemasks', 'average_values', 'commentrepr', 'fastaccess', \
-'get_submask', 'initinfo', 'mask', 'name', 'refweights', 'shape', \
-'strict_valuehandling', 'subseqs', 'subvars', 'value', 'values', 'verify']
+        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', 'availablemasks', \
+'average_values', 'commentrepr', 'fastaccess', 'get_submask', 'initinfo', \
+'mask', 'name', 'refweights', 'shape', 'strict_valuehandling', 'subseqs', \
+'subvars', 'unit', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 

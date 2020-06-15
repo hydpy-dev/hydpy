@@ -137,8 +137,8 @@ Integration tests:
     ...               (states.lz, 10.0),
     ...               (logs.quh, 0.05))
 
-    As mentioned above, the values of the input sequences |P|,
-    |hland_inputs.T|, and |EPN| are taken from :ref:`here <lland_v2_ex1>`.
+    As mentioned above, the values of the input sequences |P|, |hland_inputs.T|,
+    and |EPN| are taken from :ref:`here <lland_v2_acker_summer>`.
     For educational purposes, unrealistically high values of |EPN| are
     used again.  For the sake of simplicity, the values of |TN| are assumed
     to be constantly 1 °C below the values of |hland_inputs.T|:

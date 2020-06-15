@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-The L-Land model is the core of the HydPy implementation of the
-LARSIM model.  It consists of routines for the preparation
-of meteorological input, the calculation of potential evaporation,
-the simulation of water stored on plants, in the snow layer and in the
-soil, as well as runoff concentration.
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
+.. _`Bremicker`: \
+http://www.larsim.info/fileadmin/files/Dokumentation/FSH-Bd11-Bremicker.pdf
+
+Base model |lland| is the core of the *HydPy* implementation of all
+`LARSIM`_ type models (`Bremicker`).  It consists of routines for the
+preparation of meteorological input, the calculation of potential
+evaporation, the simulation of water stored on plants, in the snow
+layer and the soil, as well as runoff concentration.
 """
 # import...
 # ...from HydPy

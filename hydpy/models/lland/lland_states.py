@@ -84,6 +84,7 @@ class ESnow(lland_sequences.State1DSequence):
     """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
     energy content of the snow layer with respect to 0°C) [MJ/m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
 
 
 class TauS(lland_sequences.State1DSequence):
@@ -93,12 +94,14 @@ class TauS(lland_sequences.State1DSequence):
     If there is no snow-layer, the value of |TauS| is |numpy.nan|.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
 
 class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
     [MJ/m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
 
 
 class BoWa(lland_sequences.State1DSequence):
@@ -175,11 +178,13 @@ class BoWa(lland_sequences.State1DSequence):
 class ESnowInz(lland_sequences.State1DSequence):
     """Kälteinhalt der Schneedecke des Interzeptionsspeichers [MJ/m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
 
 
 class ASInz(lland_sequences.State1DSequence):
     """Dimensionsloses Alter der Schneedecke des Interzeptionsspeichers."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
 
 class QDGZ1(sequencetools.StateSequence):

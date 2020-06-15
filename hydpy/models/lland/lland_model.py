@@ -3327,9 +3327,7 @@ class Update_TauS_V1(modeltools.Method):
             if sta.waes[k] > 0:
                 if modelutils.isnan(sta.taus[k]):
                     sta.taus[k] = 0.
-                d_r1 = modelutils.exp(
-                    5000.*(1/273.15-1./max(273.15+aid.temps[k], 0.))
-                )
+                d_r1 = modelutils.exp(5000.*(1/273.15-1./(273.15+aid.temps[k])))
                 d_r2 = min(d_r1**10, 1.)
                 sta.taus[k] *= max(1-0.1*flu.sbes[k], 0.)
                 sta.taus[k] += (d_r1+d_r2+.03)/1e6*der.seconds
@@ -3556,19 +3554,23 @@ class Return_TempS_V1(modeltools.Method):
     """Calculate and return the average temperature of the snow layer.
 
     Basic equation:
-      :math:`\\frac{ESnow}{WATS \\cdot CPEis + (WAeS-WATS) \\cdot CPWasser}`
+      :math:`max\\left(
+      \\frac{ESnow}{WATS \\cdot CPEis + (WAeS-WATS) \\cdot CPWasser},
+      -273\\right)`
 
     Example:
 
         Note that we use |numpy.nan| values for snow-free surfaces
-        (see the result of the first hydrological response unit):
+        (see the result of the first hydrological response unit) and
+        that method |Return_TempS_V1| never returns temperature values
+        lower than -273 °C (see the result of the fifth response unit):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> states.wats = 0.0, 0.5, 5.0
-        >>> states.waes = 0.0, 1.0, 10.0
-        >>> states.esnow = 0.0, 0.0, -0.1
+        >>> nhru(5)
+        >>> states.wats = 0.0, 0.5, 5.0, 0.5, 0.5
+        >>> states.waes = 0.0, 1.0, 10.0, 1.0, 1.0
+        >>> states.esnow = 0.0, 0.0, -0.1, -0.8, -1.0
         >>> from hydpy import round_
         >>> round_(model.return_temps_v1(0))
         nan
@@ -3576,6 +3578,10 @@ class Return_TempS_V1(modeltools.Method):
         0.0
         >>> round_(model.return_temps_v1(2))
         -3.186337
+        >>> round_(model.return_temps_v1(3))
+        -254.906959
+        >>> round_(model.return_temps_v1(4))
+        -273.0
     """
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
@@ -3597,7 +3603,7 @@ class Return_TempS_V1(modeltools.Method):
         if sta.waes[k] > 0.:
             d_ice = fix.cpeis*sta.wats[k]
             d_water = fix.cpwasser*(sta.waes[k]-sta.wats[k])
-            return sta.esnow[k]/(d_ice+d_water)
+            return max(sta.esnow[k]/(d_ice+d_water), -273.)
         return modelutils.nan
 
 
@@ -3712,19 +3718,30 @@ class Calc_TZ_V1(modeltools.Method):
         HeatOfFusion < EBdn
         \\end{cases}
 
-    Example:
+    Examples:
+
+        We set |TZ| to |numpy.nan| for all types of water areas:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(7)
+        >>> lnk(WASSER, FLUSS, SEE, WASSER, SEE, FLUSS, WASSER)
+        >>> model.calc_tz_v1()
+        >>> fluxes.tz
+        tz(nan, nan, nan, nan, nan, nan, nan)
+
+        For all other land use types, the above basic equation applies:
+
+        >>> lnk(ACKER)
         >>> derived.heatoffusion(26.72)
         >>> states.ebdn(-10.0, -1.0, 0.0, 13.36, 26.72, 27.72, 36.72)
         >>> model.calc_tz_v1()
         >>> fluxes.tz
         tz(-33.333333, -3.333333, 0.0, 0.0, 0.0, 3.333333, 33.333333)
-        """
+    """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
     )
     DERIVEDPARAMETERS = (
         lland_derived.HeatOfFusion,
@@ -3748,7 +3765,9 @@ class Calc_TZ_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if sta.ebdn[k] < 0.:
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.tz[k] = modelutils.nan
+            elif sta.ebdn[k] < 0.:
                 flu.tz[k] = sta.ebdn[k]/(2.*fix.z*fix.cg)
             elif sta.ebdn[k] < der.heatoffusion[k]:
                 flu.tz[k] = 0.
@@ -4791,18 +4810,6 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         nan
         >>> fluxes.wsurf
         wsurf(0.845976)
-
-    Technical checks:
-
-        Note that method |Return_BackwardEulerError_V1| assigns a value to
-        sequence |ESnow| before its submethod |Return_TempS_V1| uses it:
-
-        >>> from hydpy.core.testtools import check_selectedvariables
-        >>> from hydpy.models.lland.lland_model import (
-        ...     Return_BackwardEulerError_V1)
-        >>> print(check_selectedvariables(Return_BackwardEulerError_V1))
-        Possibly missing (REQUIREDSEQUENCES):
-            Return_TempS_V1: ESnow
     """
     SUBMETHODS = (
         Return_TempS_V1,
@@ -6400,15 +6407,18 @@ class Return_PenmanMonteith_V1(modeltools.Method):
       :math:`\\frac{SaturationVapourPressureSlope \\cdot (NetRadiation + G) +
       Seconds \\cdot C \\cdot DensitiyAir \\cdot CPLuft \\cdot
       \\frac{SaturationVapourPressure - ActualVapourPressure}
-      {AerodynamicResistance}}
+      {AerodynamicResistance^*}}
       {LW \\cdot (SaturationVapourPressureSlope + Psy \\cdot
-      C \\cdot (1 + \\frac{actualsurfaceresistance}{AerodynamicResistance}))}`
+      C \\cdot (1 + \\frac{actualsurfaceresistance}{AerodynamicResistance^*}))}`
 
       :math:`C = 1 +
-      \\frac{b' \\cdot AerodynamicResistance}{DensitiyAir \\cdot CPLuft}`
+      \\frac{b' \\cdot AerodynamicResistance^*}{DensitiyAir \\cdot CPLuft}`
 
       :math:`b' = 4 \\cdot Emissivity \\cdot
       \\frac{Sigma}{60 \\cdot 60 \\cdot 24} \\cdot (273.15 + TKor)^3`
+
+      :math:`AerodynamicResistance^* =
+      min\\Bigl(max\\bigl(AerodynamicResistance, 10^{-6}\\bigl), 10^6\\Bigl)`
 
     Correction factor `C` takes the difference between measured temperature
     and actual surface temperature into account.
@@ -6421,7 +6431,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         deficit (|SaturationVapourPressure| minus |ActualVapourPressure|
         are identical.  To make the results roughly comparable, we use
         resistances suitable for water surfaces through setting
-        |AerodynamicResistance| to zero and |ActualSurfaceResistance| to
+        |ActualSurfaceResistance| to zero and |AerodynamicResistance| to
         a reasonable precalculated value of 106 s/m:
 
         >>> from hydpy.models.lland import *
@@ -6507,6 +6517,29 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         500.0, 1.581954
         1000.0, 0.851033
 
+        One potential pitfall of the given Penman-Monteith equation is that
+        |AerodynamicResistance| becomes infinite for zero windspeed.  We
+        protect method |Return_PenmanMonteith_V1| against this problem
+        (and the less likely problem of zero aerodynamic resistance) by
+        limiting the value of |AerodynamicResistance| to the interval
+        :math:`[10^{-6}, 10^6]`:
+
+        >>> fluxes.actualvapourpressure = 0.6
+        >>> fluxes.actualsurfaceresistance = 80.0
+        >>> fluxes.aerodynamicresistance = (
+        ...     0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
+        >>> for hru in range(7):
+        ...     print_values([fluxes.aerodynamicresistance[hru],
+        ...                   model.return_penmanmonteith_v1(
+        ...                       hru, fluxes.actualsurfaceresistance[hru])])
+        0.0, 5.00683
+        0.000001, 5.00683
+        0.001, 5.006734
+        1.0, 4.91391
+        1000.0, 0.829364
+        1000000.0, 0.001275
+        inf, 0.001275
+
         Now we change the simulation time step from one day to one hour
         to demonstrate that we can reproduce the results of the first
         example, which requires to adjust |NetRadiation| and |WG|:
@@ -6567,16 +6600,17 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        d_ar = min(max(flu.aerodynamicresistance[k], 1e-6), 1e6)
         d_b = 4.*con.emissivity*fix.sigma/60./60./24.*(273.15+flu.tkor[k])**3
-        d_c = 1.+d_b*flu.aerodynamicresistance[k]/flu.densityair[k]/fix.cpluft
+        d_c = 1.+d_b*d_ar/flu.densityair[k]/fix.cpluft
         return (
             (flu.saturationvapourpressureslope[k] *
              (flu.netradiation[k]+flu.g[k]) +
              der.seconds*d_c*flu.densityair[k]*fix.cpluft *
-             (flu.saturationvapourpressure[k]-flu.actualvapourpressure[k]) /
-             flu.aerodynamicresistance[k]) /
+             (flu.saturationvapourpressure[k]-flu.actualvapourpressure[k])/d_ar)
+            /
             (flu.saturationvapourpressureslope[k]+fix.psy*d_c *
-             (1.+actualsurfaceresistance/flu.aerodynamicresistance[k]))/fix.lw
+             (1.+actualsurfaceresistance/d_ar))/fix.lw
         )
 
 
@@ -8267,13 +8301,11 @@ class Calc_QDGA2_V1(modeltools.Method):
 class Calc_Q_V1(modeltools.Method):
     """Calculate the final runoff.
 
-    Note that, in case there are water areas, their |NKor| values are
-    added and their |EvPo| values are subtracted from the "potential"
-    runoff value, if possible.  This hold true for |WASSER| only and is
-    due to compatibility with the original LARSIM implementation. Using land
-    type |WASSER| can result  in problematic modifications of simulated
-    runoff series. It seems advisable to use land type |FLUSS| and/or
-    land type |SEE| instead.
+    Note that, in case there are water areas of type |WASSER|, their |NKor|
+    values are added and their |EvPo| values are subtracted from the
+    "potential" runoff value, if possible.  This can result in problematic
+    modifications of simulated runoff series. It seems advisable to use the
+    water types |FLUSS| and |SEE| instead.
 
     Basic equation:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
@@ -8306,10 +8338,10 @@ class Calc_Q_V1(modeltools.Method):
 
         The defined values of interception evaporation do not show any
         impact on the result of the given example, the predefined values
-        for sequence |EvI| remain unchanged.  But when the first HRU is
-        assumed to be a water area (|WASSER|), its adjusted precipitaton
-        |NKor| value and its interception  evaporation |EvI| value are added
-        to and subtracted from |lland_fluxes.Q| respectively:
+        for sequence |EvI| remain unchanged.  But when we define the first
+        hydrological as a water area (|WASSER|), |Calc_Q_V1| add the adjusted
+        precipitaton (|NKor|) to and subtracts the interception evaporation
+        (|EvI|) from |lland_fluxes.Q|:
 
         >>> control.lnk(WASSER, VERS, NADELW)
         >>> model.calc_q_v1()
@@ -8320,10 +8352,11 @@ class Calc_Q_V1(modeltools.Method):
 
         Note that only 5 mm are added (instead of the |NKor| value 10 mm)
         and that only 2 mm are substracted (instead of the |EvI| value 4 mm,
-        as the first HRU`s area only accounts for 50 % of the subbasin area.
+        as the first response unit area only accounts for 50 % of the
+        total subbasin area.
 
-        Setting also the land use class of the second HRU to land type
-        |WASSER| and resetting |NKor| to zero would result in overdrying.
+        Setting also the land use class of the second response unit to water
+        type |WASSER| and resetting |NKor| to zero would result in overdrying.
         To avoid this, both actual water evaporation values stored in
         sequence |EvI| are reduced by the same factor:
 
@@ -8335,15 +8368,15 @@ class Calc_Q_V1(modeltools.Method):
         >>> fluxes.evi
         evi(3.333333, 4.166667, 3.0)
 
-        The handling from water areas of type |FLUSS| and |SEE| differs
+        The handling of water areas of type |FLUSS| and |SEE| differs
         from those of type |WASSER|, as these do receive their net input
         before the runoff concentration routines are applied.  This
-        should be more realistic in most cases (especially for type |SEE|
-        representing lakes not direct connected to the stream network).
-        But it could sometimes result in negative outflow values. This
-        is avoided by simply setting |lland_fluxes.Q| to zero and adding
-        the truncated negative outflow value to the |EvI| value of all
-        HRUs of type |FLUSS| and |SEE|:
+        should be more realistic in most cases (especially for type |SEE|,
+        representing lakes not directly connected to the stream network).
+        But it could also, at least for very dry periods, result in negative
+        outflow values. We avoid this by setting |lland_fluxes.Q|
+        to zero and adding the truncated negative outflow value to the |EvI|
+        value of all response units of type |FLUSS| and |SEE|:
 
         >>> control.lnk(FLUSS, SEE, NADELW)
         >>> states.qbga = -1.0
@@ -8360,14 +8393,14 @@ class Calc_Q_V1(modeltools.Method):
         resulting |EvI| values are assured.  In the most extreme case,
         even negative |EvI| values might occur.  This seems acceptable,
         as long as the adjustment of |EvI| is rarely triggered.  When in
-        doubt about this, check sequences |EvPo| and |EvI| of HRUs of
-        types |FLUSS| and |SEE| for possible discrepancies.  Also note
-        that there might occur unnecessary corrections of |lland_fluxes.Q|
-        in case landtype |WASSER| is combined with either landtype
-        |SEE| or |FLUSS|.
+        doubt about this, check sequences |EvPo| and |EvI| of all |FLUSS|
+        and |SEE| units for possible discrepancies.  Also note that
+        |lland_fluxes.Q| might perform unnecessary corrections when you
+        combine water type |WASSER| with water type |SEE| or |FLUSS|.
 
-        Eventually you might want to avoid correcting |lland_fluxes.Q|.
-        This can be achieved by setting parameter |NegQ| to `True`:
+        For some model configurations, negative discharges for dry conditions
+        are acceptable or even preferable, which is possible through
+        setting parameter |NegQ| to |True|:
 
         >>> negq(True)
         >>> fluxes.evi = 4.0, 5.0, 3.0

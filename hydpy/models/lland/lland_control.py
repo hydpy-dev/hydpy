@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
-
+"""
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
+"""
 # import...
 import warnings
 # ...from site-packages
@@ -756,44 +758,39 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz
     kapgrenz(30.0)
 
-    For convenience and better compatibility with the original LARSIM model,
-    we provide the keyword argument `option`.  You simply pass an option
+    For convenience and better compatibility with the original `LARSIM`_
+    model, we provide the keyword argument `option`.  Simply pass an option
     name and then parameter |KapGrenz| itself calculates suitable threshold
     values based on soil properties.
 
-    The first possible string is `KapillarerAufstieg`.  When passing this
-    string, the current value of parameter |NFk| serves both as the lower
-    and the upper threshold, which is in agreement with the LARSIM option
-    `KAPILLARER AUFSTIEG`:
+    The first possible string is `FK`.  When passing this string, the current
+    value of parameter |FK| serves both as the lower and the upper threshold,
+    which is in agreement with the `LARSIM`_ option `KAPILLARER AUFSTIEG`:
 
     >>> fk(60.0, 120.0, 180.0)
-    >>> kapgrenz(option='kapillarerAufstieg')
+    >>> kapgrenz(option='FK')
     >>> kapgrenz
     kapgrenz([[60.0, 60.0],
               [120.0, 120.0],
               [180.0, 180.0]])
 
-    The second possible string is `BodenGrundwasser`, which corresponds
-    to the LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower
-    and upper threshold are zero and 10 % of the current value of
-    parameter |WMax|, respectively:
+    The second possible string is `0_WMax/10'`, which corresponds to the
+    LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower and upper
+    threshold are zero and 10 % of the current value of parameter |WMax|,
+    respectively:
 
     >>> wmax(100.0, 150.0, 200.0)
-    >>> kapgrenz(option='BodenGrundwasser')
+    >>> kapgrenz(option='0_WMax/10')
     >>> kapgrenz
     kapgrenz([[0.0, 10.0],
               [0.0, 15.0],
               [0.0, 20.0]])
 
-    one defines the
-    water content
-    One defines the lower
+    The third possible string is `FK/2_FK` where the lower and the upper
+    threshold are 50 % and 100 % of the value of parameter |NFk|, which does
+    not correspond to any available `LARSIM`_ option:
 
-    The third possible string is `KapAquantec`, which does not correspond
-    to any LARSIM option, where the lower and the upper threshold are
-    50 % and 100 % of the value of parameter |NFk|:
-
-    >>> kapgrenz(option='KapAquantec')
+    >>> kapgrenz(option='FK/2_FK')
     >>> kapgrenz
     kapgrenz([[30.0, 60.0],
               [60.0, 120.0],
@@ -802,25 +799,24 @@ class KapGrenz(parametertools.Parameter):
     Wrong keyword arguments result in errors like the following:
 
 
-    >>> kapgrenz(option1='GrundwasserBoden', option2='kapillarerAufstieg')
+    >>> kapgrenz(option1='FK', option2='0_WMax/10')
     Traceback (most recent call last):
     ...
     ValueError: Parameter `kapgrenz` of element `?` does not accept multiple \
 keyword arguments, but the following are given: option1 and option2
 
-    >>> kapgrenz(option1='GrundwasserBoden')
+    >>> kapgrenz(option1='FK')
     Traceback (most recent call last):
     ...
     ValueError: Besides the standard keyword arguments, parameter `kapgrenz` \
 of element `?` does only support the keyword argument `option`, but `option1` \
 is given.
 
-    >>> kapgrenz(option='GrundwasserBoden')
+    >>> kapgrenz(option='NFk')
     Traceback (most recent call last):
     ...
     ValueError: Parameter `kapgrenz` of element `?` supports the options \
-`KapAquantec`, `BodenGrundwasser`, and `kapillarerAufstieg`, but \
-`GrundwasserBoden` is given.
+`FK`, `0_WMax/10`, and `FK/2_FK`, but `NFk` is given.
     """
     CONTROLPARAMETERS = (
         WMax,
@@ -846,20 +842,20 @@ is given.
                     f'is given.')
             con = self.subpars
             self.values = 0.
-            if kwargs['option'] == 'KapAquantec':
+            if kwargs['option'] == 'FK/2_FK':
                 self.values[:, 0] = .5*con.fk
                 self.values[:, 1] = con.fk
-            elif kwargs['option'] == 'BodenGrundwasser':
+            elif kwargs['option'] == '0_WMax/10':
                 self.values[:, 0] = 0.
                 self.values[:, 1] = .1*con.wmax
-            elif kwargs['option'] == 'kapillarerAufstieg':
+            elif kwargs['option'] == 'FK':
                 self.values[:, 0] = con.fk
                 self.values[:, 1] = con.fk
             else:
                 raise ValueError(
                     f'Parameter {objecttools.elementphrase(self)} supports '
-                    f'the options `KapAquantec`, `BodenGrundwasser`, and '
-                    f'`kapillarerAufstieg`, but `{kwargs["option"]}` is given.')
+                    f'the options `FK`, `0_WMax/10`, and `FK/2_FK`, but '
+                    f'`{kwargs["option"]}` is given.')
 
 
 class Beta(lland_parameters.ParameterSoil):

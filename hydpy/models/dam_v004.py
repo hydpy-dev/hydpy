@@ -116,12 +116,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`First modification of example 7 <dam_v003_ex07>`
 
@@ -177,12 +175,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Second modification of example 7 <dam_v003_ex07>`
 
@@ -233,12 +229,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Third modification of example 7 <dam_v003_ex07>`
 
@@ -274,12 +268,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 8 <dam_v003_ex08>`
 
@@ -333,12 +325,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex8.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex8.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 10 <dam_v003_ex10>`
 
@@ -381,12 +371,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex10.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 13 <dam_v003_ex13>`
 
@@ -434,12 +422,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex13.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Modification of example 13 <dam_v003_ex13>`
 
@@ -498,12 +484,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex13_1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex13_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...

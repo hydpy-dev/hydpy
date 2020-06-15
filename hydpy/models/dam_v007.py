@@ -76,12 +76,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v007_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v007_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the second example, we introduce a more realistic relationship
     between flood discharge and stage.  Now, the spillway starts to become
@@ -120,12 +118,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v007_ex2a.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v007_ex2a.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the last example, |dam_v007| could not handle a second event following
     the first one similarly well, as the spillway does not release the
@@ -161,12 +157,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v007_ex2b.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v007_ex2b.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     The initial and final water volumes shown in the last table are slightly
     negative, which is due to the periods of zero inflow in combination

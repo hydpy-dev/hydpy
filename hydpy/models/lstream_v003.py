@@ -260,12 +260,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v003_ex1.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v003_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

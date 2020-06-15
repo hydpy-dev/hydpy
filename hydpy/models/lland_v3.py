@@ -292,12 +292,12 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
+    .. _lland_v3_ex2:
 
     :ref:`Recalculation of example 2.1 <lland_v1_ex2_1>`
 
@@ -350,12 +350,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex2_1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex2_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 2.2 <lland_v1_ex2_2>`
 
@@ -402,14 +400,14 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex2_2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex2_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> negq(False)
+
+
 
     :ref:`Recalculation of example 3 <lland_v1_ex3>`
 
@@ -460,12 +458,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 4 <lland_v1_ex4>`
 
@@ -516,12 +512,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex4.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 5 <lland_v1_ex5>`
 
@@ -573,12 +567,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex5.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Because the summer event was dry and hot and some methods could not be
     tested, we rerun the model under wet conditions
@@ -629,12 +621,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex1_wet.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex1_wet.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> inputs.nied.series = (
     ...     13.35,  0.09,  0.  , 0.08, 0.  , 0.  , 0.  , 0.  , 0.  ,
@@ -692,12 +682,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex6.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     Therefore we use a cold and snowy winter event to demonstrate the snow
@@ -820,12 +808,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex7.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> lnk(NADELW)
     >>> test('lland_v3_ex7_NADELW')
@@ -865,12 +851,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex7.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex7_NADELW.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the following test, we demonstrate the influence of |KTSchnee|:
 
@@ -914,12 +898,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex8.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex8.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> ktschnee(inf)
 
@@ -1122,12 +1104,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex1_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex1_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Now we rerun the first hourly example for wet conditions
 
@@ -1220,12 +1200,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex1_hourly_wet'.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex1_hourly_wet.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Now we repeat example 2.1 for hourly timestep
 
@@ -1327,12 +1305,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex2_1_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex2_1_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> lnk(NADELW)
     >>> test('lland_v3_ex6_hourly')
@@ -1413,12 +1389,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex6_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex6_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Now we rerun the winter examples for hourly timestep
 
@@ -1609,12 +1583,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex7_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex7_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> lnk(NADELW)
     >>> test('lland_v3_ex7_NADELW_hourly')
@@ -1695,12 +1667,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex7_NADELW_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex7_NADELW_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> lnk(ACKER)
     >>> ktschnee(0.018)
@@ -1782,12 +1752,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v3_ex8_hourly.html"
-            width="100%"
-            height="700px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v3_ex8_hourly.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

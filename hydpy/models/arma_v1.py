@@ -133,12 +133,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="arma_v1_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="arma_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the second example, the mimimum order of the MA process is defined,
     which is one.  The autoregression (AR) process is of order two.  Note
@@ -176,12 +174,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="arma_v1_ex2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="arma_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     The third example equals the second one, except in the additional
     time delay of exactly one hour, due to the changed MA process:
@@ -214,12 +210,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="arma_v1_ex3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="arma_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Be aware that neither parameter |Responses| does check the assigned
     coefficients nor does model |arma_v1| check the calculated outflow
@@ -258,12 +252,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="arma_v1_ex4.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="arma_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the fifth example, the coefficients of the first two examples are
     combined.  For inflow discharges between 0 and 7 m³/s, the pure AR
@@ -314,12 +306,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="arma_v1_ex5.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="arma_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...

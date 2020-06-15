@@ -78,12 +78,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hbranch_v1_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hbranch_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

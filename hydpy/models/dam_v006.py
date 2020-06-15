@@ -108,12 +108,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v006_ex1a.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v006_ex1a.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     |dam_v006| achieves this sufficiently high accuracy with 174 calls to
     the system of differential equations, which averages to less than nine
@@ -155,12 +153,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v006_ex1b.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v006_ex1b.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> model.numvars.nmb_calls
     104
@@ -200,12 +196,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v006_ex2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v006_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Considering the number of calls, |dam_v006| is quite efficient, again:
 

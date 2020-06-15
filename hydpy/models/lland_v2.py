@@ -250,12 +250,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Modification of example 2.1 <lland_v1_ex2_1>`
 
@@ -377,12 +375,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex2_1a.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex2_1a.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> wfet0(1.0)
     >>> test.inits.wet0 = 0.0
@@ -497,12 +493,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex2_2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex2_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     :ref:`Recalculation of example 3 <lland_v1_ex3>`
@@ -615,12 +609,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 4 <lland_v1_ex4>`
 
@@ -731,12 +723,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex4.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 5 <lland_v1_ex5>`
 
@@ -847,12 +837,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex5.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 6 <lland_v1_ex6>`
 
@@ -965,12 +953,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex6.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 7 <lland_v1_ex7>`
 
@@ -1099,12 +1085,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v2_ex7.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v2_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

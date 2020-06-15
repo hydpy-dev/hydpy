@@ -85,12 +85,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v008_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     When we reuse the more realistic relationship between flood discharge
     and stage of the second example on |dam_v007|, we again get the same
@@ -125,12 +123,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex2a.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v008_ex2a.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     During dry periods, application model |dam_v007| generally releases all
     its water until the basin runs dry.  Application model |dam_v008| is
@@ -186,12 +182,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex2b.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v008_ex2b.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Due to smoothing, the above results deviate from the ones one would
     expect from LARSIM simulations to some degree.  However, if we set both
@@ -229,12 +223,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex2c.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v008_ex2c.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     The first water volume in the last example is negative, which is a
     result of the limited numerical accuracy of the underlying integration
@@ -269,12 +261,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex2d.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v008_ex2d.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the last example, the behaviour of the reservoir always changes
     abruptly when the actual volume transcends the target volume. According
@@ -318,13 +308,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v008_ex2e.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="dam_v008_ex2e.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

@@ -359,12 +359,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v001_ex1.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v001_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the above example, water flows in the main channel only.  Next, we
     set the height of the main channel to 6 m:
@@ -576,12 +574,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v001_ex2.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v001_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Finally, we show that |lstream_v001| allows for negative stages.
     Therefore, we reset |HM| to infinity, set the base flow provided by
@@ -798,12 +794,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v001_ex3.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v001_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     We printed the last test results with a lower precision than usual.
     Otherwise, there were some differences when performing the test

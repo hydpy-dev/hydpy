@@ -834,38 +834,6 @@ datetime of the Python standard library for for further information.
 
         fig.write_html(os.path.join(docs.__path__[0], 'html_', filename))
 
-    def print_iframe(self, tabs: int = 4) -> None:
-        """Print a command for embedding the saved HTML file into the online
-        documentation via an `iframe`.
-
-        >>> from hydpy import Element, IntegrationTest, prepare_model, pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
-        >>> element = Element('element', outlets='node')
-        >>> element.model = prepare_model('hland_v1')
-        >>> __package__ = 'testpackage'
-        >>> IntegrationTest(element).print_iframe()
-            .. raw:: html
-        <BLANKLINE>
-                <iframe
-                    src="None"
-                    width="100"
-                    height="600"
-                    frameborder=0
-                ></iframe>
-        <BLANKLINE>
-        """
-        blanks = ' '*tabs
-        lines = ['.. raw:: html',
-                 '',
-                 '    <iframe',
-                 f'        src="{self._src}"',
-                 '        width="100"',
-                 '        height="600"',
-                 '        frameborder=0',
-                 '    ></iframe>',
-                 '']
-        print('\n'.join(blanks+line for line in lines))
-
 
 class UnitTest(Test):
     """Defines unit doctests for a single model method."""

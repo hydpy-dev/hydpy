@@ -108,12 +108,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex7.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
@@ -155,12 +153,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex8_1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -245,12 +241,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex13.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...

@@ -281,12 +281,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex2_1:
 
@@ -409,12 +407,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex2_1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex2_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex2_2:
 
@@ -529,12 +525,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex2_2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex2_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> negq(False)
 
@@ -653,12 +647,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex4:
 
@@ -779,12 +771,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex4.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex5:
 
@@ -897,12 +887,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex5.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex6:
 
@@ -1031,12 +1019,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex6.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _lland_v1_ex7:
 
@@ -1153,12 +1139,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="lland_v1_ex7.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lland_v1_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

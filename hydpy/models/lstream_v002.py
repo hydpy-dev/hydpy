@@ -271,12 +271,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v002_ex1.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v002_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     When taking flood plain overflow into account, the fraction between
     wave celerity and water velocity varies significantly.  The deviations
@@ -483,12 +481,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v002_ex2.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
+        <a
+            href="lstream_v002_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     |lstream_v002| handles negative water stages similarly as application
     model |lstream_v001|:
@@ -696,13 +692,10 @@ Integration test:
 
     .. raw:: html
 
-        <iframe
-            src="lstream_v002_ex3.html"
-            width="100%"
-            height="600"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="lstream_v002_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

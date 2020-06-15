@@ -299,12 +299,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex1.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex2:
 
@@ -420,12 +418,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex3:
 
@@ -543,12 +539,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex3.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex4:
 
@@ -673,12 +667,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex4.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex5:
 
@@ -805,12 +797,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex5.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

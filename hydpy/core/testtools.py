@@ -34,6 +34,7 @@ from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.tests import iotesting
 if TYPE_CHECKING:
@@ -494,8 +495,10 @@ class PlottingOptions:
     def __init__(self):
         self.width = 600
         self.height = 300
-        self.activated = None
         self.selected = None
+        self.activated = None
+        self.axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None
+        self.axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None
 
 
 class IntegrationTest(Test):
@@ -672,51 +675,72 @@ datetime of the Python standard library for for further information.
                         except AttributeError:
                             pass
 
-    def plot(self, filename, sel_sequences=None, act_sequences=None):
+    def plot(
+            self,
+            filename: str,
+            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+    ):
         """Save a plotly HTML file plotting the current test results.
 
         (Optional) arguments:
             * filename: Name of the file.  If necessary, the file ending
               `html` is added automatically.  The file is stored in the
               `html_` folder of subpackage `docs`.
-            * sel_sequences: List of the sequences to be plotted.
-            * act_sequences: List of the sequences to be shown initially.
+            * act_sequences: List of the sequences to be shown initially
+              (deprecated).
+            * axis1: sequences to be shown initially on the first axis.
+            * axis2: sequences to be shown initially on the second axis.
         """
+
+        def _update_act_names(sequence_) -> None:
+            if isinstance(sequence_, act_types1):
+                act_names1.append(name)
+            if isinstance(sequence_, act_types2):
+                act_names2.append(name)
+
         if not filename.endswith('.html'):
             filename += '.html'
+        if self.plotting_options.activated:
+            axis1 = self.plotting_options.activated
+            axis2 = ()
+        else:
+            if not (axis1 or axis2):
+                axis1 = self.plotting_options.axis1
+                axis2 = self.plotting_options.axis2
+            if axis1 is None:
+                axis1 = self.parseqs
+            if axis2 is None:
+                axis2 = ()
+            axis1 = objecttools.extract(axis1, sequencetools.IOSequence)
+            axis2 = objecttools.extract(axis2, sequencetools.IOSequence)
+        sel_sequences = self.plotting_options.selected
         if sel_sequences is None:
-            sel_sequences = self.plotting_options.selected
-            if sel_sequences is None:
-                sel_sequences = self.parseqs
-        if act_sequences is None:
-            act_sequences = self.plotting_options.activated
-            if act_sequences is None:
-                act_sequences = self.parseqs
+            sel_sequences = self.parseqs
         sel_sequences = sorted(sel_sequences, key=lambda seq_: seq_.name)
-        act_types = tuple(type(seq_) for seq_ in act_sequences)
-        sel_names, sel_series, sel_units, act_names = [], [], [], []
+        act_types1 = tuple(type(seq_) for seq_ in axis1)
+        act_types2 = tuple(type(seq_) for seq_ in axis2)
+        sel_names, sel_series, sel_units = [], [], []
+        act_names1, act_names2 = [], []
         for sequence in sel_sequences:
             name = type(sequence).__name__
             if sequence.NDIM == 0:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series))
-                if isinstance(sequence, act_types):
-                    act_names.append(name)
+                _update_act_names(sequence)
             elif sequence.shape[0] == 1:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series[:, 0]))
-                if isinstance(sequence, act_types):
-                    act_names.append(name)
+                _update_act_names(sequence)
             else:
                 for idx in range(sequence.shape[0]):
                     subname = f'{name}_{idx+1}'
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
                     sel_series.append(list(sequence.series[:, idx]))
-                    if isinstance(sequence, act_types):
-                        act_names.append(subname)
+                    _update_act_names(sequence)
 
         fig = subplots.make_subplots(
             rows=1,
@@ -751,7 +775,7 @@ datetime of the Python standard library for for further information.
                     x=dates,
                     y=series,
                     name=f"{name} [{unit}] (1)",
-                    visible=name in act_names,
+                    visible=name in act_names1,
                     legendgroup='axis 1',
                     line={'color': matplotlib.colors.rgb2hex(cmap(2*idx))},
                 ),
@@ -761,7 +785,7 @@ datetime of the Python standard library for for further information.
                     x=dates,
                     y=series,
                     name=f"{name} [{unit}] (2)",
-                    visible=False,
+                    visible=name in act_names2,
                     legendgroup='axis 2',
                     line={'color': matplotlib.colors.rgb2hex(cmap(2*idx+1))},
                 ),

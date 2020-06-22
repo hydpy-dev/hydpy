@@ -2,6 +2,7 @@ hydpy
 bokeh
 coverage
 Cython
+docutils
 matplotlib
 netcdf4
 networkx
@@ -10,6 +11,7 @@ pandas
 setuptools
 typing_extensions
 scipy
+sphinx
 wheel
 wrapt
 xmlschema

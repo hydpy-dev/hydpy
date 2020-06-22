@@ -80,13 +80,16 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
         ('Python', 'Cython'), alldoctests,
         allsuccessfuldoctests, allfaileddoctests):
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
+        is_package = '__init__.py' in filenames_
         if '__init__.py' not in filenames_:
             continue
         if (dirpath.endswith('tests') or
                 dirpath.endswith('docs') or
-                dirpath.endswith('autogen') or
-                dirpath.endswith('__pycache__') or
-                dirpath.endswith('build')):
+                dirpath.endswith('sphinx') or
+                dirpath.endswith('autogen')):
+            continue
+        if (dirpath.endswith('build') or
+                dirpath.endswith('__pycache__')):
             continue
         filenames_ = filter_filenames(filenames_)
         packagename = dirpath.replace(os.sep, '.')+'.'

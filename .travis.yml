@@ -25,17 +25,17 @@ install:
   - pip install bokeh
   - pip install coverage
   - pip install networkx
+  - pip install netCDF4
   - pip install pandas
   - pip install pylint
   - pip install typing_extensions
   - pip install wrapt
   - pip install xmlschema
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install travis-sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxcontrib-fulltoc; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxprettysearchresults; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install netCDF4; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install netCDF4; fi
+  - pip install docutils
+  - pip install sphinx
+  - pip install travis-sphinx
+  - pip install sphinxcontrib-fulltoc
+  - pip install sphinxprettysearchresults
 
 script:
   - python setup.py install

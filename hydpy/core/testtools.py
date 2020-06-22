@@ -1479,6 +1479,10 @@ def update_integrationtests(
                     '\n'.join(oldlines),
                     '\n'.join(newlines),
                 )
+                docstring = docstring.replace(
+                    '\n'.join(f'    {line}' for line in oldlines),
+                    '\n'.join(f'    {line}' for line in newlines),
+                )
             oldlines, newlines = [], []
         elif expected:
             oldlines.append(line)

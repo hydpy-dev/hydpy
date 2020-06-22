@@ -537,19 +537,85 @@ class IntegrationTest(Test):
             selectiontools.Selection('test', self.nodes, self.elements))
         self._src = None
 
-    def __call__(self, *args, update_parameters=True, **kwargs):
+    @overload
+    def __call__(
+            self,
+            filename: Optional[str] = None,
+            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+            update_parameters: bool = True,
+            get_conditions: Literal[None] = None,
+            use_conditions: Optional[timetools.DateConstrArg] = None,
+    ) -> None:
+        """do not return conditions"""
+
+    @overload
+    def __call__(
+            self,
+            filename: Optional[str] = None,
+            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+            update_parameters: bool = True,
+            get_conditions: timetools.DateConstrArg = None,
+            use_conditions: Optional[timetools.DateConstrArg] = None,
+    ) -> Dict[sequencetools.IOSequence, Union[float, numpy.array]]:
+        """do return conditions"""
+
+    def __call__(
+            self,
+            filename=None,
+            axis1=None,
+            axis2=None,
+            update_parameters=True,
+            get_conditions=None,
+            use_conditions=None,
+    ):
         """Prepare and perform an integration test and print and eventually
         plot its results.
 
-        Plotting is only performed when a filename is given as the first
-        argument.  Additionally, all other arguments of function
-        |IntegrationTest.plot| are allowed to modify plot design.
+        Note that the conditions defined under |IntegrationTest.inits|
+        override the ones given via keyword `use_conditions`.
         """
-        self.prepare_model(update_parameters=update_parameters)
-        self.hydpy.simulate()
+        self.prepare_model(
+            update_parameters=update_parameters,
+            use_conditions=use_conditions,
+        )
+        seq2value = self._perform_simulation(get_conditions)
         self.print_table()
-        if args:
-            self.plot(*args, **kwargs)
+        if filename:
+            self.plot(
+                filename=filename,
+                axis1=axis1,
+                axis2=axis2,
+            )
+        return seq2value
+
+    def _perform_simulation(self, get_conditions):
+        if get_conditions:
+            date = timetools.Date(get_conditions)
+            hydpy.pub.timegrids.sim = timetools.Timegrid(
+                firstdate=hydpy.pub.timegrids.init.firstdate,
+                lastdate=date,
+                stepsize=hydpy.pub.timegrids.stepsize,
+            )
+            self.hydpy.simulate()
+            seq2value = {}
+            for seq in self.element.model.sequences.conditionsequences:
+                seq2value[seq] = copy.deepcopy(seq.value)
+            hydpy.pub.timegrids.sim = timetools.Timegrid(
+                firstdate=date,
+                lastdate=hydpy.pub.timegrids.init.lastdate,
+                stepsize=hydpy.pub.timegrids.stepsize,
+            )
+            self.hydpy.simulate()
+            hydpy.pub.timegrids.sim = timetools.Timegrid(
+                firstdate=hydpy.pub.timegrids.init.firstdate,
+                lastdate=hydpy.pub.timegrids.init.lastdate,
+                stepsize=hydpy.pub.timegrids.stepsize,
+            )
+            return seq2value
+        self.hydpy.simulate()
+        return None
 
     @property
     def _datetimes(self):
@@ -645,15 +711,22 @@ datetime of the Python standard library for for further information.
             seqs.append(node.sequences.sim)
         return seqs
 
-    def prepare_model(self, update_parameters):
+    def prepare_model(
+            self,
+            update_parameters: bool,
+            use_conditions: Optional[timetools.DateConstrArg],
+    ) -> None:
         """Derive the secondary parameter values, prepare all required time
-        series and set the initial conditions.
-        """
+        series and set the initial conditions."""
         if update_parameters:
             self.model.parameters.update()
         self.element.prepare_fluxseries()
         self.element.prepare_stateseries()
         self.reset_outputs()
+        if use_conditions:
+            with hydpy.pub.options.trimvariables(False):
+                for seq in self.element.model.sequences.conditionsequences:
+                    seq(use_conditions[seq])
         self.reset_inits()
 
     def reset_outputs(self):

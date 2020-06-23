@@ -155,20 +155,37 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                     with warnings.catch_warnings(), \
                             open(os.devnull, 'w') as file_:
                         warnings.filterwarnings(
-                            'error', module='hydpy')
+                            action='error',
+                            module='hydpy',
+                        )
                         warnings.filterwarnings(
-                            'error', category=UserWarning)
+                            action='error',
+                            category=UserWarning,
+                        )
                         warnings.filterwarnings(
-                            'ignore', category=ImportWarning)
+                            action='ignore',
+                            category=ImportWarning,
+                        )
                         warnings.filterwarnings(
-                            'ignore', message="numpy.dtype size changed")
+                            action='ignore',
+                            message='numpy.dtype size changed',
+                        )
                         warnings.filterwarnings(
-                            'ignore', message="numpy.ufunc size changed")
+                            action='ignore',
+                            message='numpy.ufunc size changed',
+                        )
                         warnings.filterwarnings(
-                            'ignore', r'elementwise')
+                            action='ignore',
+                            message='elementwise',
+                        )
                         warnings.filterwarnings(
-                            'ignore',
-                            message='the imp module is deprecated')
+                            action='ignore',
+                            message='the imp module is deprecated',
+                        )
+                        warnings.filterwarnings(
+                            action='ignore',
+                            message='tostring',
+                        )
                         runner = unittest.TextTestRunner(stream=file_)
                         testresult = runner.run(suite)
                         doctests[name] = testresult

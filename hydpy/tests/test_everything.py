@@ -80,8 +80,10 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
         ('Python', 'Cython'), alldoctests,
         allsuccessfuldoctests, allfaileddoctests):
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
-        if (('__init__.py' not in filenames_) or
-                dirpath.endswith('tests') or
+        if '__init__.py' not in filenames_:
+            continue
+        if (dirpath.endswith('tests') or
+                dirpath.endswith('docs') or
                 dirpath.endswith('autogen') or
                 dirpath.endswith('__pycache__') or
                 dirpath.endswith('build')):
@@ -103,12 +105,19 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
             try:
                 if name[-4:] in ('.rst', '.pyx'):
                     suite.addTest(
-                        doctest.DocFileSuite(name, module_relative=False,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocFileSuite(
+                            name,
+                            module_relative=False,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
                 else:
                     suite.addTest(
-                        doctest.DocTestSuite(module,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocTestSuite(
+                            module,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
                     raise exc

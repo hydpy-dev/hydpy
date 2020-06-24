@@ -1,167 +1,189 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-"""Version 1 of HydPy-L-Stream corresponds to the "WILLIAMS" option of
-`LARSIM`_.  Both implementations rely on a storage routing approach and apply
-the  Gauckler-Manning-Strickler formula in a triple trapezoid profile.
-However, there are some differences.  First, LARSIM generally assumes that
-there is only one storage per channel section, whereas |lstream_v001| allows
-for dividing the channel into multiple subsections of equal length (storage
-cascade).  Second, LARSIM calculates a storage coefficient for a predetermined
-reference discharge in each simulation time step and assumes it to be constant
-during the whole time step, whereas |lstream_v001| always calculates the
-current storage-outflows based on the current stages.
-
+"""
+.. _`Williams (1969)`: \
+https://elibrary.asabe.org/abstract.asp?aid=38772&confalias=
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 .. _`Todini (2007)`: https://www.hydrol-earth-syst-sci.net/11/1645/2007
 
-The following figure shows the triple trapezoid profile, some related
-parameter names, and the taken assumptions on the wetted perimeters of
-the different parts of a cross-section:
+Version 1 of *HydPy-L-Stream* is a kinematic wave routing approach.
+Initially, we designed it to agree with the variable storage-coefficient
+procedure `Williams (1969)`_.  After recognising some accuracy and stability
+issues, we reimplemented it in a more hydrodynamical fashion.  It is now
+similar to the "DV/DQ FUER WILLIAMS" option of `LARSIM`_, which is also a
+more hydrodynamical version of the pure "WILLIAMS" option.
+
+While `Williams (1969)`_ uses precalculated tabulated data, both `LARSIM`_
+and *HydPy* calculate the discharge dynamically based on the actualchannel
+storage or water stage.  For this purpose, they apply the
+Gauckler-Manning-Strickler equation on a triple trapezoid profile of the
+following structure:
 
 .. image:: HydPy-L-Stream_Version-1.png
 
-Neither |lstream_v001| nor LARSIM implements the storage routing approach
-proposed by Williams exactly. LARSIM integrates the storage outflow with
-an analytical solution of the linear storage equation that uses "old"
-discharge values to keep track of the state.  This approach is efficient
-and stable but can result in relevant systematic errors.  |lstream_v001|
-relies on a more hydrodynamical approach in the sense that the underlying
-differential equations are solved numerically under constant state updates
-(we use the stage instead of the water storage as the state for efficiency
-reasons).  This approach is more flexible and accurate (it avoids systematic
-volume errors) but results in longer computation times.
+A running |lstream_v001| model consists of a several equally long
+channel-subsections, which one can understand as an array of nonlinear
+storages.  This nonlinearity is computationally more demanding than using
+linear approaches (for example, the linear storage cascade, see |arma_v1|
+and |LinearStorageCascade|). Still, it allows to model changes in velocity
+due to rising or falling water stages more easily.
 
-When starting to use application model |lstream_v001|, one should keep the
-following two computational challenges in mind, which are both due to
-|lstream_v001| relying on the explicit integration algorithm provided by
-class |ELSModel|.  First, defining very short (sub)channels results in
-stiff initial value problems.  |ELSModel| solves such stiff problems but
-might need to decrease its internal integration step size considerably,
-which is time-consuming.  Second, using the triple trapezoid profile
-results in discontinuities at the transition points, e.g. when water
-starts to leave the main channel and flows over the forelands.  Sharp
-discontinuities also result in performance losses and possibly even in
-erroneous results.  |lstream_v001| solves the latter problem by regularising
-("smoothing") all discontinuous equations.  However, the user needs to
-define the degree of smoothness via parameter |HR|.  Please read the
-documentation on class |ELSModel| and module |smoothtools| for further
-information.  We also advise to repeat and play around with the following
-examples to gain experience on how different model configurations
-influence computation times.
+|lstream_v001| is not a fully dynamical 1D-approach considering all energy
+terms of the Saint-Venant equation.  Instead, as all kinematic approaches,
+it takes only the local water stage into account explicitly and ignores
+changes in depth or velocity over the channel length. Hence, do not use
+|lstream_v001| when you expect substantial backwater effects or other
+hydraulic complications.
 
-Finally, there is also the challenge of finding the correct number of
-channel subsections, which controls the retention or diffusion of a
-flood wave.  It seems reasonable to rely on estimates of the characteristic
-length following the Kalinin-Milyukov method.  However, such estimates
-depend on the considered discharge.  Accordingly, while being able to
-adapt its translation time, |lstream_v001| cannot adapt its retention
-to the current stage, which might be a disadvantage when performing
-long simulation runs covering wide discharge ranges.
+While |lstream_v001| is kinematic, it still allows for diffusion (or
+attenuation) of flood waves. You can control the strength of diffusivity
+via parameter |GTS|, which determines the number of channel-subsections.
+The more subsections, the smaller the numerical diffusivity: peak flows
+decrease less over the complete channel length. Contrary, when you set
+|GTS| to one, you get the highest possible flood attenuation.  You can
+use method |Model.calculate_characteristiclength| to gain reasonable
+estimates for |GTS|.
 
-Integration test:
+Please note that a high number of channel-subsections does not only result
+in high peak-flows but often also in high computation times.  This
+unfavourable aspect is due to increased stiffness, which the explicit
+integration method implemented in |ELSModel| cannot handle very efficiently.
+Usually, |ELSModel| still returns good results (more correctly: results
+meeting the acceptable numerical tolerance), but it may need to decrease
+the internal numerical integration step size considerably.
 
-    For our first test, we take up one of the examples given by
-    `Todini (2007)`_, focussing on the routing of a unimodal flood wave
-    through a 100 km long channel exhibiting the trapezoidal cross-section
-    shown in figure 5.
+The default values of the numerical tolerance parameters (|AbsErrorMax| and
+|RelErrorMax|) should work well for most situations.  However, you are
+always free to modify them to either gain more computational speed or
+numerical accuracy.
 
-    >>> from hydpy.models.lstream_v001 import *
-    >>> parameterstep('1d')
+One implementation detail of |lstream_v001| stems from the fact that the
+triple trapezoid profile depicted above introduces discontinuities into the
+relationships between water stage and some other variables.  Generally,
+discontinuities decrease the speed and reliability of numerical integration
+algorithms.  As a solution, we "smooth" the affected relationships or, put
+more concretely, we apply the function |smooth_logistic2| to calculate
+different modified water stages for the locations around the individual
+discontinuities.
 
-    The simulation period spans 96 hours; the simulation step is 30 minutes:
+On the downside, this approach introduces one more control parameter that is
+not too easy to understand: |HR|.  The higher the value of |HR|, the smoother
+the affected relationships.  Hence, high |HR| values are beneficial for numerical
+reasons, but at some point, they caninfluence the calculated results notably.
+In our experience, 0.1 m serves as a good compromise value in most cases.
 
-    >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
+Integration tests
+=================
 
-    For testing purposes, the model retrieves its input data from two nodes
-    (`input1` and `input2`) and passes its output to node `output`.  First,
-    we define these nodes:
+.. _lstream_v001_main_channel_flow:
 
-    >>> nodes = Nodes('input1', 'input2', 'output')
+main channel flow
+_________________
 
-    Second, we define the element `stream` and build the connections between
-    the prepared nodes and the |lstream_v001| model instance:
+For our first test, we take up one of the examples given by
+`Todini (2007)`_, focussing on the routing of a unimodal flood wave
+through a 100 km long channel exhibiting the trapezoidal cross-section
+shown in figure 5.
 
-    >>> stream = Element('stream',
-    ...                  inlets=['input1', 'input2'],
-    ...                  outlets='output')
-    >>> stream.model = model
+>>> from hydpy.models.lstream_v001 import *
+>>> parameterstep('1d')
 
-    Next, we prepare a test function object which sets the intial stage
-    to 3.71783276 m, which results in an initial outflow of 100 m³/s:
+The simulation period spans 96 hours; the simulation step is 30 minutes:
 
-    >>> from hydpy.core.testtools import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
-    >>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
+>>> from hydpy import pub, Nodes, Element
+>>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
 
-    Now we define the geometry and roughness values for the main channel
-    given by `Todini (2007)`_:
+For testing purposes, the model retrieves its input data from two nodes
+(`input1` and `input2`) and passes its output to node `output`.  First,
+we define these nodes:
 
-    >>> laen(100.0)
-    >>> gef(0.00025)
-    >>> bm(15.0)
-    >>> bnm(5.0)
-    >>> skm(1.0/0.035)
+>>> nodes = Nodes('input1', 'input2', 'output')
 
-    To enforce that all water flows through the main channel only, we set
-    its height to infinity:
+Second, we define the element `stream` and build the connections between
+the prepared nodes and the |lstream_v001| model instance:
 
-    >>> hm(inf)
+>>> stream = Element('stream',
+...                  inlets=['input1', 'input2'],
+...                  outlets='output')
+>>> stream.model = model
 
-    Hence, the following values, describing the forelands and outer
-    embankments, are irrelevant in this first example:
+Next, we prepare a test function object which sets the intial stage
+to 3.71783276 m, which results in an initial outflow of 100 m³/s:
 
-    >>> bv(100.0)
-    >>> bbv(20.0)
-    >>> bnv(10.0)
-    >>> bnvr(100.0)
-    >>> skv(10.0)
-    >>> ekm(1.0)
-    >>> ekv(1.0)
+>>> from hydpy.core.testtools import IntegrationTest
+>>> IntegrationTest.plotting_options.activated = fluxes.qz, fluxes.qa
+>>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
+
+Now we define the geometry and roughness values for the main channel
+given by `Todini (2007)`_:
+
+>>> laen(100.0)
+>>> gef(0.00025)
+>>> bm(15.0)
+>>> bnm(5.0)
+>>> skm(1.0/0.035)
+
+To enforce that all water flows through the main channel only, we set
+its height to infinity:
+
+>>> hm(inf)
+
+Hence, the following values, describing the forelands and outer
+embankments, are irrelevant in this first example:
+
+>>> bv(100.0)
+>>> bbv(20.0)
+>>> bnv(10.0)
+>>> bnvr(100.0)
+>>> skv(10.0)
+>>> ekm(1.0)
+>>> ekv(1.0)
 
 
-    The same holds for the value of parameter |HR|, which defines the degree
-    of smoothness of the differential equations as soon as water leaves the
-    main channel:
+The same holds for the value of parameter |HR|, which, for example, defines
+the degree of smoothness of the differential equations as soon as water
+leaves the main channel:
 
-    >>> hr(0.1)
+>>> hr(0.1)
 
-    `Todini (2007)`_ divides the channel into different numbers of subsections
-    in his experiments.  Here, we define eight subsections, which is in
-    agreement with the characteristic length of the Kalinin-Milyukov method:
+`Todini (2007)`_ divides the channel into different numbers of subsections
+in his experiments.  Here, we define eight subsections, which is in
+agreement with the characteristic length of the Kalinin-Milyukov method:
 
-    >>> gts(8)
+>>> gts(8)
 
-    As we do not change the default solver parameter values, the accuracy of
-    the following results should be driven by the relative error estimates,
-    which must be lower than the tolerance defined by parameter |RelErrorMax|:
+As we do not change the default solver parameter values, the accuracy of
+the following results should be driven by the relative error estimates,
+which must be lower than the tolerance defined by parameter |RelErrorMax|:
 
-    >>> parameters.update()
-    >>> solver.relerrormax
-    relerrormax(0.001)
+>>> parameters.update()
+>>> solver.relerrormax
+relerrormax(0.001)
 
-    Node `input1` supplies constant base flow and node `input2` supplies
-    the actual flood wave.  The peak occurs after 24 hours and with a
-    (total) height of 900 m³/s:
+Node `input1` supplies constant base flow and node `input2` supplies
+the actual flood wave.  The peak occurs after 24 hours and with a
+(total) height of 900 m³/s:
 
-    >>> import numpy
-    >>> q_base = 100.0
-    >>> q_peak = 900.0
-    >>> t_peak = 24.0
-    >>> β = 16.0
-    >>> ts = pub.timegrids.init.to_timepoints()
-    >>> nodes.input1.sequences.sim.series = q_base
-    >>> nodes.input2.sequences.sim.series = (
-    ...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
+>>> import numpy
+>>> q_base = 100.0
+>>> q_peak = 900.0
+>>> t_peak = 24.0
+>>> β = 16.0
+>>> ts = pub.timegrids.init.to_timepoints()
+>>> nodes.input1.sequences.sim.series = q_base
+>>> nodes.input2.sequences.sim.series = (
+...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
 
-    The following table and figure show all relevant input and output data
-    as well as all relevant variables calculated internally.  |QG| shows
-    the typical storage cascade pattern with translation and retention
-    increasing from subsection to subsection. The water balance is kept with
-    high accuracy.  The height and timing of the calculated peak flow
-    agree very well with the results of `Todini (2007)`_ (see figure 13):
+The following table and figure show all relevant input and output data
+as well as all relevant variables calculated internally.  |QG| shows
+the typical storage cascade pattern with translation and retention
+increasing from subsection to subsection. |lstream_v001| keeps the water
+balance with high accuracy.  The height and timing of the calculated peak flow
+agree very well with the results of `Todini (2007)`_ (see figure 13):
 
-    >>> test('lstream_v001_ex1')
+.. integration-test::
+
+    >>> test('lstream_v001_main_channel_flow')
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -357,26 +379,26 @@ Integration test:
     | 2000-01-04 23:00:00 |      100.0 | 100.000019  100.000262  100.001933  100.009883  100.039072  100.126724  100.349958   100.84446 |  100.84446 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0  -0.000001 | 3.717833  3.717837  3.717865  3.717996  3.718481  3.719945  3.723686  3.731995 |  100.0 |        0.0 |  100.84446 |
     | 2000-01-04 23:30:00 |      100.0 | 100.000016  100.000227  100.001688  100.008711  100.034749  100.113677  100.316562  100.770063 | 100.770063 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0  -0.000001 | 3.717833  3.717836  3.717861  3.717977  3.718409  3.719727  3.723127  3.730747 |  100.0 |        0.0 | 100.770063 |
 
-    .. raw:: html
+.. _lstream_v001_overbank_flow:
 
-        <a
-            href="lstream_v001_ex1.html"
-            target="_blank"
-        >Click here to see the graph</a>
+overbank flow
+_____________
 
-    In the above example, water flows in the main channel only.  Next, we
-    set the height of the main channel to 6 m:
+In the above example, water flows in the main channel only.  Next, we
+set the height of the main channel to 6 m:
 
-    >>> hm(6.0)
-    >>> parameters.update()
+>>> hm(6.0)
+>>> parameters.update()
 
-    Now the calculated flood wave shows a considerable increase in
-    translation and retention.  Clicking and zooming into the time series
-    of the stage shows that this effect is actually due to the (originally
-    discontinuous) transition from pure channel flow to a mixture of channel
-    and overbank flow, where additional storage capacities come into play:
+Now the calculated flood wave shows a considerable increase in translation
+and retention.  Inspecting the time series of the stages reveals that this
+effect is actually due to the (originally discontinuous) transition from
+pure channel flow to a mixture of channel and overbank flow, where
+additional storage capacities come into play:
 
-    >>> test('lstream_v001_ex2')
+.. integration-test::
+
+    >>> test('lstream_v001_overbank_flow')
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -572,31 +594,31 @@ Integration test:
     | 2000-01-04 23:00:00 |      100.0 | 100.000023  100.000352  100.002905  100.016936   100.07774  100.297564  100.984143  102.883726 | 102.883726 |       0.0        0.0        0.0        0.0        0.0        0.0  -0.000001  -0.000003 | 3.717833  3.717839   3.71788  3.718112  3.719119  3.722771  3.734185  3.765634 |  100.0 |        0.0 | 102.883726 |
     | 2000-01-04 23:30:00 |      100.0 |  100.00002  100.000304  100.002531  100.014872  100.068761  100.264973  100.881856  102.598641 | 102.598641 |       0.0        0.0        0.0        0.0        0.0        0.0  -0.000001  -0.000003 | 3.717833  3.717838  3.717874  3.718078   3.71897   3.72223  3.732487  3.760937 |  100.0 |        0.0 | 102.598641 |
 
-    .. raw:: html
+.. _lstream_v001_negative_water_stage:
 
-        <a
-            href="lstream_v001_ex2.html"
-            target="_blank"
-        >Click here to see the graph</a>
+negative water stages
+_____________________
 
-    Finally, we show that |lstream_v001| allows for negative stages.
-    Therefore, we reset |HM| to infinity, set the base flow provided by
-    node `input1` to zero, and set the initial water stage to -1.0 m:
+Finally, we show that |lstream_v001| allows for negative stages.
+Therefore, we reset |HM| to infinity, set the base flow provided by
+node `input1` to zero, and set the initial water stage to -1.0 m:
 
-    >>> hm(inf)
-    >>> nodes.input1.sequences.sim.series = 0.0
-    >>> test.inits.h = -1.0
+>>> hm(inf)
+>>> nodes.input1.sequences.sim.series = 0.0
+>>> test.inits.h = -1.0
 
-    In usual simulations with reasonable smoothing parameterisations, one
-    is unlikely to encounter negative stages.  However, they are principally
-    allowed for the sake of numerical robustness.  Careful inspection of
-    the stage (|H|) and the discharge (|QG|) of a cross-section at the begin
-    of the rising limb reveals that the first discharge occurs for stages
-    slightly below zero (due to setting the regularisation parameter |HR|
-    to 0.1 m³/s):
+In usual simulations with reasonable smoothing parameterisations, one is
+unlikely to encounter negative stages.  However, they are principally
+allowed for the sake of numerical robustness.  Careful inspection of the
+stage (|H|) and the discharge (|QG|) of a cross-section at the beginning
+of the rising limb reveals that the first discharge occurs for stages
+slightly below zero (due to setting the regularisation parameter |HR|
+to 0.1 m):
+
+.. integration-test::
 
     >>> with pub.options.reprdigits(2):
-    ...     test('lstream_v001_ex3')
+    ...     test('lstream_v001_negative_water_stage')
     |                date |     qz |                                                             qg |     qa |                                     dh |                                                      h | input1 | input2 | output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |    0.0 |    0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 |    0.0 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0 |    0.0 |    0.0 |    0.0 |
@@ -792,21 +814,14 @@ Integration test:
     | 2000-01-04 23:00:00 |    0.0 |   0.23    0.74    1.59    2.91    4.79    7.34   10.69   14.94 |  14.94 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  0.12   0.26    0.4   0.57   0.76   0.96   1.18   1.42 |    0.0 |    0.0 |  14.94 |
     | 2000-01-04 23:30:00 |    0.0 |   0.23    0.72    1.55    2.83    4.66    7.14    10.4   14.54 |  14.54 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  0.12   0.25    0.4   0.56   0.75   0.95   1.17    1.4 |    0.0 |    0.0 |  14.54 |
 
-    .. raw:: html
-
-        <a
-            href="lstream_v001_ex3.html"
-            target="_blank"
-        >Click here to see the graph</a>
-
-    We printed the last test results with a lower precision than usual.
-    Otherwise, there were some differences when performing the test
-    in Python and in Cython mode and possibly also when working with
-    different compilers, which indicates that |lstream_v001| reaches
-    limited numerical accuracy when negative water stages occur.  In our
-    real applications, we did not realise any problems stemming from this.
-    However, we cannot guarantee that they will never occur.  Any
-    suggestions on solving this issue are welcome.
+We printed the last test results with a lower precision than usual.
+Otherwise, there were some differences when performing the test
+in Python and in Cython mode and possibly also when working with
+different compilers, which indicates that |lstream_v001| reaches
+limited numerical accuracy when negative water stages occur.  In our
+real applications, we did not realise any problems stemming from this.
+However, we cannot guarantee that they will never occur.  Any
+suggestions on solving this issue are welcome.
 """
 # import...
 # ...from standard library
@@ -916,7 +931,7 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         returns it, accompanied by some intermediate results, within a
         |Characteristics| object.  You need to pass in either the stage
         or the discharge (`q`) value of interest (`h`).  Optionally, you
-        can define alternative values for the finite-difference stepsize
+        can define alternative values for the finite-difference step size
         (`dx`), the smallest allowed subsection length (`minlen`) and the
         maximum number of cross-sections (`nmbmax`).  The returned
         `length_orig` value is the initial approximation of the ideal

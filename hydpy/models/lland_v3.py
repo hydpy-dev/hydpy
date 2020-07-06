@@ -25,18 +25,21 @@ the Kiel Channel (Nord-Ostsee-Kanal).
 The following list summarises the main components of |lland_v3|:
 
  * Multiple routines for adjusting the meteorological input data
- * Transformation of sunshine duration into global radiation after Ångström
- * Evaporation from water surfaces after Penman
+ * Transformation of sunshine duration into global radiation
+   :cite:`ref-Thompson1981`
+ * Evaporation from water surfaces after Penman :cite:`ref-penman1948natural`
  * Evapotranspiration (interception evaporation) after Penman-Monteith
- * Actual soil evapotranspiration after Wigmosta, 1996
- * Surface roughnesses after Quast and Böhm
+   :cite:`ref-Thompson1981`
+ * Actual soil evapotranspiration after Wigmosta
+   :cite:`ref-wigmosta1994distributed`
+ * Surface roughnesses after Quast and Böhm :cite:`ref-bohm1998ermittlung`
  * Mixed precipitation within a definable temperature-range
- * Energy balance of the snow-layer after Knauf, 2006
+ * Energy balance of the snow-layer after Knauf :cite:`ref-LUBW2006a`
  * Dynamical adjustment of the snow albedo
  * Optional refinement of the snow-surface temperature
  * Optional (re)freezing of liquid water within the snow-layer
  * A simple snow retention routine
- * A soil routine based on the Xinanjiang model
+ * A soil routine based on the Xinanjiang model :cite:`ref-zhao1977flood`
  * Frost-sealing of the upper soil-layer
  * One base flow, two interflow and two direct flow components
  * A freely configurable capillary rise routine
@@ -163,7 +166,7 @@ evapotranspiration via Penman-Monteith:
 >>> surfaceresistance.acker = 40.0
 
 The following parameters are related to the energy accounting snow
-modelling approach after Knauf, 2006:
+modelling approach after Knauf :cite:`ref-LUBW2006a`:
 
 >>> p1strahl(0.5)
 >>> p2strahl(1.0/35.0)
@@ -238,7 +241,8 @@ test :ref:`lland_v1_acker_summer` of the application model |lland_v1|,
 there are much more columns, because of to the higher number of input,
 flux, and state sequences.  These are mainly due to the increased data
 requirements and the more complex calculations of the Penman-Monteith
-equation and the Knauf approach.  Additionally, |lland_v3| calculates many
+equation and the Knauf :cite:`ref-LUBW2006a` approach.
+Additionally, |lland_v3| calculates many
 daily values (containing the averages or sums over the last 24 hours),
 required for the Penman equation, which we generally apply based on the
 input data of the previous 24-hours. (Note that we could save some

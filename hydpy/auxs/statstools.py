@@ -796,7 +796,7 @@ def kge(
 @objecttools.excmessage_decorator(
     'calculate the Kling-Gupta-Efficiency')
 def kge(sim=None, obs=None, node=None, skip_nan=False):
-    """Calculate the Kling-Gupta efficiency :cite:`Kling2012`.
+    """Calculate the Kling-Gupta efficiency :cite:`ref-Kling2012`.
 
     >>> from hydpy import  kge
     >>> from hydpy import round_

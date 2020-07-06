@@ -2,9 +2,6 @@
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
 """
-.. _`Allen`: http://www.fao.org/3/x0490e/x0490e00.htm
-.. _`ATV-DVWK-M 504`: \
-https://webshop.dwa.de/de/merkblatt-atv-dvwk-m-504-september-2002.html
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
 # imports...
@@ -373,7 +370,7 @@ class Calc_DailySunshineDuration_V1(modeltools.Method):
 
 
 class Calc_NKor_V1(modeltools.Method):
-    """Adjust the given precipitation value.
+    """Adjust the given precipitation value :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`NKor = KG \\cdot Nied`
@@ -484,7 +481,7 @@ class Calc_TKorTag_V1(modeltools.Method):
 
 class Return_AdjustedWindSpeed_V1(modeltools.Method):
     """Adjust and return the measured wind speed to the given defined
-    height above the ground.
+    height above the ground :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`WindSpeed \\cdot
@@ -567,7 +564,10 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
 
 
 class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
-    """Calculate the land-use-specific wind speed at height of 2 meters.
+    """Calculate the ref-use-specific wind speed at height of 2 meters
+    :cite:`ref-LARSIM` (based on :cite:`ref-LUBW2006a`,
+    :cite:`ref-LUBWLUWG2015`).
+
 
     Basic equation (for forests):
       :math:`ReducedWindSpeed2m = \
@@ -577,7 +577,7 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
 
         The basic equation given above holds for forests (hydrological
         response units of type |LAUBW|, |MISCHW|, and |NADELW| only.
-        For all other land-use types method |Calc_ReducedWindSpeed2m_V1|
+        For all other ref-use types method |Calc_ReducedWindSpeed2m_V1|
         maintains the given wind speed for grass:
 
         >>> from hydpy import pub
@@ -680,7 +680,7 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
 
 class Calc_SolarDeclination_V1(modeltools.Method):
     # noinspection PyUnresolvedReferences
-    """Calculate the solar declination.
+    """Calculate the solar declination (:cite:`ref-LARSIM`).
 
     Additional requirements:
       |Model.idx_sim|
@@ -752,7 +752,8 @@ class Calc_SolarDeclination_V1(modeltools.Method):
 
 
 class Calc_TSA_TSU_V1(modeltools.Method):
-    """Calculate time of sunrise and sunset of the current day.
+    """Calculate time of sunrise and sunset of the current day
+    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
 
     Basic equations:
       :math:`TSA^* = \\frac{12}{Pi} \\cdot acos \\left(
@@ -834,11 +835,13 @@ class Calc_TSA_TSU_V1(modeltools.Method):
 class Calc_EarthSunDistance_V1(modeltools.Method):
     """Calculate the relative inverse distance between the earth and the sun.
 
-    Basic equation (`Allen`_, equation 23):
+    Basic equation (:cite:`ref-Allen1998`, equation 23):
+
       :math:`EarthSunDistance = 1 + 0.033 \\cdot cos \\bigl(
       2 \\cdot Pi / 366 \\cdot (DOY + 1) \\bigr)`
 
-    Note that this equation differs a little from the one given by `Allen`_.
+    Note that this equation differs a little from the one given by Allen
+    :cite:`ref-Allen1998`.
     The following examples show that |Calc_EarthSunDistance_V1| calculates
     the same distance value for a specific "day" (e.g. the 1st March) both
     for leap years and non-leap years.  Hence, there is a tiny "jump"
@@ -884,7 +887,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         2001-07-01: 0.967
         2001-12-31: 1.033
 
-        The following calculation agrees with example 8 of `Allen`_:
+        The following calculation agrees with example 8 of Allen
+        :cite:`ref-Allen1998`:
 
         >>> derived.doy(246)
         >>> model.idx_sim = 0
@@ -913,7 +917,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
 
 
 class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
-    """Calculate the amount of extraterrestrial radiation of the current day.
+    """Calculate the amount of extraterrestrial radiation of the current day
+    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
 
     Basic equation:
       :math:`ExternalTerrestrialRadiation =
@@ -987,7 +992,8 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
 
 class Calc_PossibleSunshineDuration_V1(modeltools.Method):
-    """Calculate the possible astronomical sunshine duration.
+    """Calculate the possible astronomical sunshine duration
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`PossibleSunshineDuration = max \\bigl(
@@ -1101,7 +1107,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
 
 
 class Calc_SP_V1(modeltools.Method):
-    """Calculate the relative sum of radiation.
+    """Calculate the relative sum of radiation :cite:`ref-LARSIM-Hilfe`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -1295,7 +1301,7 @@ class Calc_SP_V1(modeltools.Method):
 
 
 class Return_DailyGlobalRadiation_V1(modeltools.Method):
-    """Calculate and return the daily global radiation.
+    """Calculate and return the daily global radiation :cite:`ref-LARSIM`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -1408,7 +1414,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_GlobalRadiation_V1(modeltools.Method):
-    """Calculate the global radiation.
+    """Calculate the global radiation :cite:`ref-LARSIM`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -2103,7 +2109,7 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
 
 
 class Calc_SNRatio_V1(modeltools.Method):
-    """Calculate the ratio of frozen to total precipitation.
+    """Calculate the ratio of frozen to total precipitation :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`SNRatio =
@@ -2571,7 +2577,8 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
 
 
 class Calc_WGTF_V1(modeltools.Method):
-    """Calculate the heat flux according to the degree-day method.
+    """Calculate the heat flux according to the degree-day method
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`WGTF = GTF \\cdot (TKor - TRefT) \\cdot RSchmelz`
@@ -2604,7 +2611,7 @@ class Calc_WGTF_V1(modeltools.Method):
 
         The results of the first four hydrological response units show
         that |WGTF| is generally zero for water areas (here, |FLUSS| and
-        |SEE|) in principally identical for all other land-use type
+        |SEE|) in principally identical for all other ref-use type
         (here, |ACKER| and |LAUBW|).  The results of the last three
         response units show the expectable linear relationship.  However,
         note that that |WGTF| is allowed to be negative:
@@ -2643,7 +2650,7 @@ class Calc_WGTF_V1(modeltools.Method):
 
 class Calc_WNied_V1(modeltools.Method):
     """Calculate the heat flux into the snow layer due to the total amount
-    of ingoing precipitation.
+    of ingoing precipitation (:cite:`ref-LARSIM`, modified).
 
     Method |Calc_WNied_V1| assumes that the temperature of precipitation
     equals air temperature minus |TRefN|.
@@ -2774,7 +2781,8 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
 
 class Return_SaturationVapourPressure_V1(modeltools.Method):
     """Calculate and return the saturation vapour pressure over an
-    arbitrary surface for the given temperature.
+    arbitrary surface for the given temperature :cite:`ref-LARSIM`
+    (based on :cite:`ref-Weischt1983`).
 
     Basic equation:
       :math:`0.61078 \\cdot
@@ -2989,7 +2997,8 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
 
 class Return_ActualVapourPressure_V1(modeltools.Method):
     """Calculate and return the actual vapour pressure for the given
-    saturation vapour pressure and relative humidity.
+    saturation vapour pressure and relative humidity. :cite:`ref-LARSIM`
+    (based on `ref-Weischet1983`)
 
     Basic equation:
       :math:`saturationvapourpressure \\cdot relativehumidity / 100`
@@ -3171,7 +3180,8 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
 
     Method |Return_NetLongwaveRadiationSnow_V1| relies on two different
     equations, one for forests (|LAUBW|, |MISCHW|, and |NADELW|) and the
-    other other one for all other land use classes.
+    other other one for all other land use classes :cite:`ref-LARSIM` (based
+    on :cite:`ref-Thompson1981`).
 
     Basic equation:
 
@@ -3264,7 +3274,8 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
 
 
 class Update_TauS_V1(modeltools.Method):
-    """Calculate the dimensionless age of the snow layer.
+    """Calculate the dimensionless age of the snow layer :cite:`ref-LARSIM`
+    (based on :cite:`ref-LUBW2006b`).
 
     Basic equations:
       :math:`TauS_{new} = TauS_{old} \\cdot max(1 - 0.1 \\cdot SBes), 0) +
@@ -3336,7 +3347,8 @@ class Update_TauS_V1(modeltools.Method):
 
 
 class Calc_ActualAlbedo_V1(modeltools.Method):
-    """Calculate the current albedo value.
+    """Calculate the current albedo value :cite:`ref-LARSIM` (based on
+    :cite:`ref-LUBW2006b`).
 
     For snow-free surfaces, method |Calc_ActualAlbedo_V1| takes the
     value of parameter |Albedo| relevant for the given landuse and month.
@@ -3551,7 +3563,8 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
 
 
 class Return_TempS_V1(modeltools.Method):
-    """Calculate and return the average temperature of the snow layer.
+    """Calculate and return the average temperature of the snow layer
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`max\\left(
@@ -3609,7 +3622,7 @@ class Return_TempS_V1(modeltools.Method):
 
 class Return_ESnow_V1(modeltools.Method):
     """Calculate and return the thermal energy content of the snow layer for
-    the given bulk temperature.
+    the given bulk temperature :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`temps \\cdot (WATS \\cdot CPEis + (WAeS-WATS)\\cdot CPWasser)`
@@ -3700,7 +3713,8 @@ class Calc_TempS_V1(modeltools.Method):
 
 
 class Calc_TZ_V1(modeltools.Method):
-    """Calculate the mean temperature in the top-layer of the soil.
+    """Calculate the mean temperature in the top-layer of the soil
+    :cite:`ref-LARSIM` (based on :cite:`ref-LUBW2006b`).
 
     Basic equation:
       .. math::
@@ -3777,7 +3791,8 @@ class Calc_TZ_V1(modeltools.Method):
 
 
 class Calc_G_V1(modeltools.Method):
-    """Calculate and return the "MORECS" soil heat flux.
+    """Calculate and return the "MORECS" soil heat flux (modified
+    :cite:`ref-LARSIM`, based on :cite:`ref-Thompson1981`).
 
     Basic equations:
       :math:`G = \\frac{PossibleSunshineDuration}
@@ -3940,7 +3955,7 @@ class Calc_G_V1(modeltools.Method):
 
 
 class Return_WG_V1(modeltools.Method):
-    """Calculate and return the "dynamic" soil heat flux.
+    """Calculate and return the "dynamic" soil heat flux :cite:`ref-LARSIM`.
 
     The soil heat flux |WG| depends on the temperature gradient between
     depth z and the surface.  We set the soil surface temperature to the air
@@ -4059,7 +4074,8 @@ class Calc_WG_V1(modeltools.Method):
 
 
 class Update_EBdn_V1(modeltools.Method):
-    """Update the thermal energy content of the upper soil layer.
+    """Update the thermal energy content of the upper soil layer
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`\\frac{dEBdn}{dt} = WG2Z \\cdot Days - WG`
@@ -4126,7 +4142,8 @@ class Update_EBdn_V1(modeltools.Method):
 
 
 class Return_WSensSnow_V1(modeltools.Method):
-    """Calculate and return the sensible heat flux of the snow surface.
+    """Calculate and return the sensible heat flux of the snow surface
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`(Turb0 + Turb1 \\cdot WindSpeed2m) \\cdot (TempSSurface - TKor)`
@@ -4172,7 +4189,8 @@ class Return_WSensSnow_V1(modeltools.Method):
 
 
 class Return_WLatSnow_V1(modeltools.Method):
-    """Calculate and return the latent heat flux of the snow surface.
+    """Calculate and return the latent heat flux of the snow surface
+    :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`(Turb0 + Turb1 \\cdot ReducedWindSpeed2m) \\cdot
@@ -4223,7 +4241,8 @@ class Return_WLatSnow_V1(modeltools.Method):
 
 
 class Return_WSurf_V1(modeltools.Method):
-    """Calculate and return the snow surface heat flux.
+    """Calculate and return the snow surface heat flux :cite:`ref-LARSIM`
+    (based on :cite:`ref-LUBW2006b`).
 
     Basic equation:
       :math:`KTSchnee \\cdot (TempS - TempSSurface)`
@@ -4385,7 +4404,8 @@ class Calc_DailyNetRadiation_V1(modeltools.Method):
 
 
 class Return_EnergyGainSnowSurface_V1(modeltools.Method):
-    """Calculate and return the net energy gain of the snow surface.
+    """Calculate and return the net energy gain of the snow surface
+    (:cite:`ref-LARSIM` :cite:`ref-LUBW2006b`, modified).
 
     As surface cannot store any energy, method |Return_EnergyGainSnowSurface_V1|
     returns zero if one supplies it with the correct temperature of the
@@ -4541,7 +4561,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
 
 
 class Return_TempSSurface_V1(modeltools.Method):
-    """Determine and return the snow surface temperature.
+    """Determine and return the snow surface temperature
+    (:cite:`ref-LARSIM` based on :cite:`ref-LUBW2006b`, modified).
 
     |Return_TempSSurface_V1| needs to determine the snow surface temperature
     via iteration.  Therefore, it uses the class |PegasusTempSSurface|
@@ -4692,7 +4713,8 @@ class Return_TempSSurface_V1(modeltools.Method):
 
 class Return_BackwardEulerError_V1(modeltools.Method):
     """Calculate and return the "Backward Euler error" regarding the
-    update of |ESnow| due to the energy fluxes |WG| and |WSurf|.
+    update of |ESnow| due to the energy fluxes |WG| and |WSurf|
+    (:cite:`ref-LARSIM` based on :cite:`ref-LUBW2006b`, modified).
 
     Basic equation:
       :math:`ESnow_{old} - esnow_{new} + WG(esnow{new} ) - WSurf(esnow{new})`
@@ -4883,7 +4905,8 @@ class Return_BackwardEulerError_V1(modeltools.Method):
 class Update_ESnow_V1(modeltools.Method):
     """Update the thermal energy content of the snow layer with regard to the
     energy fluxes from the soil and the atmosphere (except the one related
-    to the heat content of precipitation).
+    to the heat content of precipitation). :cite:`ref-LARSIM` based on
+    :cite:`ref-LUBW2006b`, modified.
 
     Basic equation:
       :math:`\\frac{dESnow}{dt} = WG - WSurf`
@@ -5468,7 +5491,7 @@ class Update_ESnow_V2(modeltools.Method):
 
 class Calc_SFF_V1(modeltools.Method):
     """Calculate the ratio between frozen water and total water within
-    the top soil layer.
+    the top soil layer :cite:`ref-LARSIM`.
 
     Basic equations:
       :math:`SFF = min\\left(max\\left(
@@ -5520,7 +5543,7 @@ class Calc_SFF_V1(modeltools.Method):
 
 
 class Calc_FVG_V1(modeltools.Method):
-    """Calculate the degree of frost sealing of the soil.
+    """Calculate the degree of frost sealing of the soil :cite:`ref-LARSIM`.
 
     Basic equation:
       :math:`FVG = min\\bigl(FVF \\cdot SFF^{BSFF}, 1\\bigl)`
@@ -5585,10 +5608,10 @@ class Calc_EvB_V1(modeltools.Method):
         sealed areas (see the first three hydrological reponse units of
         type |FLUSS|, |SEE|, and |VERS|).  All other land use classes are
         handled in accordance with a recommendation of the set of codes
-        described in `ATV-DVWK-M 504`_.  In case maximum soil water storage
-        (|WMax|) is zero, soil evaporation (|EvB|) is generally set to zero
-        (see the fourth hydrological response unit).  The last three response
-        units demonstrate the rise in soil evaporation with increasing
+        described in DVWK-M 504 :cite:`ref-DVWK`.  In case maximum soil water
+        storage (|WMax|) is zero, soil evaporation (|EvB|) is generally set to
+        zero (see the fourth hydrological response unit).  The last three
+        response units demonstrate the rise in soil evaporation with increasing
         soil moisture, which is lessening in the high soil moisture range:
 
         >>> from hydpy.models.lland import *
@@ -5636,7 +5659,7 @@ class Calc_EvB_V1(modeltools.Method):
 
 
 class Calc_DryAirPressure_V1(modeltools.Method):
-    """Calculate the pressure of the dry air.
+    """Calculate the pressure of the dry air (based on :cite:`ref-DWD1987`).
 
     Basic equation:
        :math:`DryAirPressure = AirPressure - ActualVapourPressure`
@@ -5673,7 +5696,7 @@ class Calc_DryAirPressure_V1(modeltools.Method):
 
 
 class Calc_DensityAir_V1(modeltools.Method):
-    """Calculate the density of the air.
+    """Calculate the density of the air (based on :cite:`ref-DWD1987`).
 
     Basic equation:
        :math:`DensityAir = \\frac{DryAirPressure}{RDryAir \\cdot (TKor+273.15)}
@@ -5720,7 +5743,8 @@ class Calc_DensityAir_V1(modeltools.Method):
 
 
 class Calc_AerodynamicResistance_V1(modeltools.Method):
-    """Calculate the aerodynamic resistance.
+    """Calculate the aerodynamic resistance :cite:`ref-LARSIM` (based on
+    :cite:`ref-Thompson1981`).
 
     Basic equations (:math:`z_0` after Quast and Boehm, 1997):
       .. math::
@@ -5740,9 +5764,9 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
     Examples:
 
         Besides wind speed, aerodynamic resistance depends on the crop height,
-        which typically varies between different land-use classes and, for
+        which typically varies between different ref-use classes and, for
         vegetated surfaces, months.  In the first example, we set some
-        different crop heights for different land-use types to cover the
+        different crop heights for different ref-use types to cover the
         relevant range of values:
 
         >>> from hydpy import pub
@@ -5843,7 +5867,8 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
 
 
 class Calc_SoilSurfaceResistance_V1(modeltools.Method):
-    """Calculate the surface resistance of the bare soil surface.
+    """Calculate the surface resistance of the bare soil surface
+    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
 
     Basic equation:
       .. math::
@@ -5962,6 +5987,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 
 class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     """Calculate the surface resistance of vegetation, water and sealed areas.
+    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`)
 
     Basic equations:
        :math:`LanduseSurfaceResistance = SR^* \\cdot \\left(3.5 \\cdot
@@ -5998,7 +6024,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
 
         Method |Calc_LanduseSurfaceResistance_V1| relies on multiple
         discontinuous relationships, works different for different
-        types of land-use, and uses montly varying base parameters.
+        types of ref-use, and uses montly varying base parameters.
         Hence, we try to start simple and introduce further complexities
         step by step.
 
@@ -6144,7 +6170,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
 
 
 class Calc_ActualSurfaceResistance_V1(modeltools.Method):
-    """Calculate the total surface resistance.
+    """Calculate the total surface resistance. :cite:`ref-LARSIM`
+    (based on :cite:`ref-Grant1975`)
 
     Basic equations:
       :math:`ActualSurfaceResistance =
@@ -6305,7 +6332,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
 
 class Return_Penman_V1(modeltools.Method):
     """Calculate and return the evaporation from water surfaces according to
-    Penman.
+    Penman :cite:`ref-LARSIM` (based on :cite:`ref-DVWK1996`).
 
     Basic equation:
       :math:`Days \\cdot \\frac{DailySaturationVapourPressureSlope \\cdot
@@ -6402,6 +6429,7 @@ class Return_Penman_V1(modeltools.Method):
 
 class Return_PenmanMonteith_V1(modeltools.Method):
     """Calculate and return the evapotranspiration according to Penman-Monteith.
+    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`)
 
     Basic equations:
       :math:`\\frac{SaturationVapourPressureSlope \\cdot (NetRadiation + G) +
@@ -8493,7 +8521,8 @@ class PegasusESnow(roottools.Pegasus):
 
 
 class PegasusTempSSurface(roottools.Pegasus):
-    """Pegasus iterator for finding the correct snow surface temperature."""
+    """Pegasus iterator for finding the correct snow surface temperature.
+    """
     METHODS = (
         Return_EnergyGainSnowSurface_V1,
     )

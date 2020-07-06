@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.mathjax',
     'sphinx.ext.doctest',
+    'sphinxcontrib.bibtex',
     'sphinxcontrib.fulltoc',
     'integrationtest_extension',
 ]
@@ -284,4 +285,3 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
-

@@ -69,6 +69,7 @@ from hydpy.core.itemtools import SetItem
 from hydpy.auxs.networktools import RiverBasinNumber
 from hydpy.auxs.networktools import RiverBasinNumbers
 from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+from hydpy.auxs.statstools import aggregate_series
 from hydpy.auxs.statstools import bias_abs
 from hydpy.auxs.statstools import bias_rel
 from hydpy.auxs.statstools import calc_mean_time
@@ -78,8 +79,11 @@ from hydpy.auxs.statstools import evaluationtable
 from hydpy.auxs.statstools import hsepd
 from hydpy.auxs.statstools import hsepd_manual
 from hydpy.auxs.statstools import hsepd_pdf
+from hydpy.auxs.statstools import kge
 from hydpy.auxs.statstools import nse
+from hydpy.auxs.statstools import nse_log
 from hydpy.auxs.statstools import prepare_arrays
+from hydpy.auxs.statstools import r_squared
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
 from hydpy.auxs.xmltools import run_simulation
@@ -127,7 +131,8 @@ pub.scriptfunctions['start_server'] = start_server
 pub.scriptfunctions['test_everything'] = test_everything
 pub.scriptfunctions['xml_replace'] = xml_replace
 
-__all__ = ['config',
+__all__ = ['aggregate_series',
+           'config',
            'pub',
            'Auxfiler',
            'Element',
@@ -180,8 +185,11 @@ __all__ = ['config',
            'hsepd',
            'hsepd_manual',
            'hsepd_pdf',
+           'kge',
            'nse',
+           'nse_log',
            'prepare_arrays',
+           'r_squared',
            'std_ratio',
            'XMLInterface',
            'run_simulation',

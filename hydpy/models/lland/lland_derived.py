@@ -175,7 +175,8 @@ class KInz(lland_parameters.LanduseMonthParameter):
     )
 
     def update(self):
-        """Update |KInz| based on |HInz| and |LAI|.
+        """Update |KInz| based on |HInz| and |LAI| :cite:`ref-LARSIM`
+        (based on :cite:`ref-Dickinson1984`).
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -297,8 +298,10 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 
 
 class Fr(lland_parameters.LanduseMonthParameter):
-    """Reduktionsfaktor für Strahlung (reduction factor for short- and long
-    wave radiation) [-]."""
+    """Reduktionsfaktor für Strahlung :cite:`ref-LARSIM`
+    (basierend auf :cite:`ref-LUBWLUWG2015`) (reduction factor for short- and
+    long wave radiation) :cite:`ref-LARSIM` (based on :cite:`ref-LUBWLUWG2015`)
+    [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
     CONTROLPARAMETERS = (

@@ -3,11 +3,19 @@
 hydrological modelling.
 """
 # import...
+# ...from standard library
+import datetime as datetime_
+import warnings
+from typing import *
 # ...from site-packages
 import numpy
+import pandas
 # ...from HydPy
+import hydpy
 from hydpy.core import exceptiontools
+from hydpy.core import devicetools
 from hydpy.core import objecttools
+from hydpy.core import typingtools
 from hydpy.auxs import validtools
 pandas = exceptiontools.OptionalImport(
     'pandas', ['pandas'], locals())
@@ -15,6 +23,427 @@ optimize = exceptiontools.OptionalImport(
     'optimize', ['scipy.optimize'], locals())
 special = exceptiontools.OptionalImport(
     'special', ['scipy.special'], locals())
+
+
+@overload
+def aggregate_series(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        aggregation_step: Union['Period', datetime_.timedelta, str],
+        aggregation_type: Union[numpy.mean, numpy.std],
+        base: Optional[int] = None,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def aggregate_series(
+        node: devicetools.Node,
+        aggregation_step: Union['Period', datetime_.timedelta, str],
+        aggregation_type: Union[numpy.mean, numpy.std],
+        base: Optional[int] = None,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
+@objecttools.excmessage_decorator(
+    'aggregate_series')
+def aggregate_series(
+        sim=None, obs=None, node=None, aggregation_step=None,
+        aggregation_type=None, base=None,
+) -> Tuple[pandas.Series, pandas.Series]:
+    """Aggregates simulated and observed runoff.
+
+    In order to aggregate data a timegrid corresponding to the runoff data has
+    to be defined:
+
+    >>> from hydpy import pub, Node, nan
+    >>> pub.timegrids = '01.01.2000 22:00:00', '03.01.2000 22:00:00', '1h'
+    >>> node = Node('test')
+
+    Next, we assign values to the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0)
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = (2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0)
+
+    >>> import numpy
+    >>> from hydpy import aggregate_series
+
+    Now we can pass the node to object to function |aggregate_series| function.
+    As aggregation type any numpy function can be chosen. The aggregation step
+    defines the rule for data resampling.
+
+    By default the day begins at 0 o'clock. Incomplete days will be dropped:
+
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='24h',
+    ...     aggregation_type=numpy.mean,
+    ...     )
+    >>> obs
+    2000-01-02    1.0
+    Freq: 24H, Name: obs, dtype: float64
+    >>> sim
+    2000-01-02    1.083333
+    Freq: 24H, Name: sim, dtype: float64
+
+    If the aggregation should start at a different hour of the day it can be
+    defined in the 'base' argument:
+
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='24h',
+    ...     aggregation_type=numpy.mean,
+    ...     base=22,
+    ...     )
+    >>> obs
+    2000-01-01    1.083333
+    2000-01-02    1.916667
+    Freq: 24H, Name: obs, dtype: float64
+    >>> sim
+    2000-01-01    1.0
+    2000-01-02    2.0
+    Freq: 24H, Name: sim, dtype: float64
+
+    Instead of nodes also series can be passed:
+    >>> obs, sim = aggregate_series(
+    ...     sim=node.sequences.sim.series,
+    ...     obs=node.sequences.obs.series,
+    ...     aggregation_step='24h',
+    ...     aggregation_type=numpy.mean,
+    ...     base=22,
+    ...     )
+    >>> obs
+    2000-01-01    1.083333
+    2000-01-02    1.916667
+    Freq: 24H, Name: obs, dtype: float64
+    >>> sim
+    2000-01-01    1.0
+    2000-01-02    2.0
+    Freq: 24H, Name: sim, dtype: float64
+
+
+    >>> pub.timegrids = '01.01.2000', '01.03.2000', '1d'
+
+    Next, we assign values to the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0)
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = (2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0)
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='M',
+    ...     aggregation_type=numpy.mean,
+    ...     )
+    >>> obs
+    2000-01-31    2.0
+    2000-02-29    1.0
+    Freq: M, Name: obs, dtype: float64
+    >>> sim
+    2000-01-31    1.0
+    2000-02-29    2.0
+    Freq: M, Name: sim, dtype: float64
+
+    The 'base' argument is only valid for hourly aggregation step sizes:
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='M',
+    ...     aggregation_type=numpy.mean,
+    ...     base = 22
+    ...     )
+    Traceback (most recent call last):
+    ...
+    Exception: While trying to aggregate_series, the following error \
+occurred: Argument 'base' can only be defined if timestep is smaller than daily
+
+    If we define the aggregation step size bigger than the timestep we get an
+    error:
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='H',
+    ...     aggregation_type=numpy.mean,
+    ...     )
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to aggregate_series, the following error \
+occurred: Aggregation step 'H' is bigger than timestep '1d'
+
+    If we define an invalid aggregation step size we also get an error:
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='2.5h',
+    ...     aggregation_type=numpy.mean,
+    ...     )
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to aggregate_series, the following error \
+occurred: Invalid aggregation frequency `2.5h`
+
+    If we define an aggregation type as string instead of passing a function
+    we also get an error:
+    >>> obs, sim = aggregate_series(
+    ...     node=node,
+    ...     aggregation_step='24h',
+    ...     aggregation_type='mean',
+    ...     )
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to aggregate_series, the following error \
+occurred: `mean` is not a valid function for aggregation
+    """
+
+    if not base:
+        base = 0
+    elif hydpy.pub.timegrids.stepsize.seconds < 24*60*60:
+        base /= hydpy.pub.timegrids.stepsize.timedelta.seconds/(60*60)
+    else:
+        raise Exception("Argument 'base' can only be defined if timestep is "
+                        "smaller than daily")
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=False)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=False)
+    dataframe = pandas.DataFrame()
+    dataframe['obs'] = obs
+    dataframe['sim'] = sim
+    timedelta = hydpy.pub.timegrids.stepsize.timedelta
+    firstdate = hydpy.pub.timegrids.sim.firstdate.datetime
+    lastdate = hydpy.pub.timegrids.sim.lastdate.datetime - timedelta
+    index = pandas.date_range(start=firstdate, end=lastdate, freq=timedelta)
+    dataframe.index = index
+    firstdate_fill = f'{firstdate.year}-{firstdate.month}-01 00:00:00'
+    lastdate_fill = (lastdate -
+                     pandas.tseries.offsets.Day() +
+                     pandas.tseries.offsets.MonthEnd())
+    lastdate_fill = f'{lastdate_fill.year}-' \
+                    f'{lastdate_fill.month}-' \
+                    f'{lastdate_fill.day} ' \
+                    f'23:00:00'
+
+    new_index = pandas.date_range(firstdate_fill, lastdate_fill, freq=timedelta)
+    dataframe_infilled = dataframe.reindex(new_index, fill_value=numpy.nan)
+
+    if hydpy.pub.timegrids.stepsize.seconds < 24 * 60 * 60:
+        dataframe_infilled.index = \
+            [ind - base * timedelta for ind in dataframe_infilled.index]
+
+    warnings.filterwarnings("error")
+    try:
+        df_resample = dataframe_infilled.resample(
+            aggregation_step,
+        ).apply(lambda x: aggregation_type(x.values))
+    except RuntimeWarning:
+        warnings.resetwarnings()
+        raise ValueError(f"Aggregation step '{aggregation_step}' "
+                         f"is bigger than timestep "
+                         f"'{hydpy.pub.timegrids.stepsize}'")
+    except ValueError:
+        warnings.resetwarnings()
+        raise ValueError(f'Invalid aggregation frequency `{aggregation_step}`')
+    except TypeError:
+        warnings.resetwarnings()
+        raise TypeError(f'`{aggregation_type}` is not a valid function '
+                        f'for aggregation')
+    warnings.resetwarnings()
+    first_idx = df_resample.first_valid_index()
+    last_idx = df_resample.last_valid_index()
+    df_mean_valid = df_resample.loc[first_idx:last_idx]
+
+    return df_mean_valid['obs'], df_mean_valid['sim']
+
+
+@overload
+def filter_series_by_date(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        date_ranges: Optional[List[List[str]]],
+        months: Optional[List[str]] = None
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def filter_series_by_date(
+        node: devicetools.Node,
+        date_ranges: Optional[List[List[str]]],
+        months: Optional[List[str]] = None
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
+@objecttools.excmessage_decorator(
+    'filter series by date')
+def filter_series_by_date(
+        sim=None, obs=None, node=None, date_ranges=None, months=None
+) -> Tuple[pandas.Series, pandas.Series]:
+    """Filter time series by dates
+
+    >>> from hydpy import pub, Node, nan
+    >>> pub.timegrids = '31.12.1999 22:00:00', '02.01.2000 22:00:00', '1h'
+    >>> node = Node('test')
+
+    Next, we assign values to the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0)
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = (2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...     2.0, 2.0)
+
+    To select time periods, a list of lists with start and end dates of the
+    periods to extract have to be handed to the date_range argument:
+
+    >>> date_ranges = [['1999-12-31 22:30:00', '2000-01-01 00:00:00'],
+    ...                ['2000-01-02 03:00:00', '2000-01-02 05:00:00']]
+    >>> obs, sim = filter_series_by_date(node=node, date_ranges=date_ranges)
+
+    The returned series also have a time index which addresses to the right
+    boundary of the simulationstep. The value for '2000-01-02 03:00:00' will
+    not be returned because it is the value for the timespan between 2 and 3
+    o'clack and therefore not within the date range:
+
+    >>> obs
+    2000-01-02 04:00:00    2.0
+    2000-01-02 05:00:00    2.0
+    2000-01-01 00:00:00    2.0
+    Name: obs, dtype: float64
+    >>> sim
+    2000-01-02 04:00:00    2.0
+    2000-01-02 05:00:00    2.0
+    2000-01-01 00:00:00    1.0
+    Name: sim, dtype: float64
+
+    Instead of date ranges also specific months can be defined. Note that even
+    if we select december, also the '2000-01-01 00:00:00' value is returned
+    because it describes the timestep fron 23 to 24 o'clock of 31st december:
+
+    >>> obs, sim = filter_series_by_date(node=node, months=['12'])
+    >>> obs
+    1999-12-31 23:00:00    2.0
+    2000-01-01 00:00:00    2.0
+    Name: obs, dtype: float64
+    >>> sim
+    1999-12-31 23:00:00    1.0
+    2000-01-01 00:00:00    1.0
+    Name: sim, dtype: float64
+
+    Alternatively series and a predefined timegrid can be used:
+
+    >>> sim = node.sequences.sim.series
+    >>> obs = node.sequences.obs.series
+
+    >>> obs, sim = filter_series_by_date(sim=sim, obs=obs, months=['12'])
+    >>> obs
+    1999-12-31 23:00:00    2.0
+    2000-01-01 00:00:00    2.0
+    Name: obs, dtype: float64
+    >>> sim
+    1999-12-31 23:00:00    1.0
+    2000-01-01 00:00:00    1.0
+    Name: sim, dtype: float64
+    """
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=False)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=False)
+    dataframe = pandas.DataFrame()
+    dataframe['obs'] = obs
+    dataframe['sim'] = sim
+    timedelta = hydpy.pub.timegrids.stepsize.timedelta
+    dataframe_selected = pandas.DataFrame()
+    if date_ranges:
+        dates = date_ranges
+    elif months:
+        dates = months
+    for date in dates:
+        if date_ranges:
+            firstdate = hydpy.pub.timegrids.sim.firstdate.datetime + timedelta
+            lastdate = hydpy.pub.timegrids.sim.lastdate.datetime
+            index = pandas.date_range(start=firstdate, end=lastdate,
+                                      freq=timedelta)
+            dataframe.index = index
+            selected_date = dataframe.loc[date[0]:date[1]][1:]
+        elif months:
+            firstdate = hydpy.pub.timegrids.sim.firstdate.datetime
+            lastdate = hydpy.pub.timegrids.sim.lastdate.datetime - timedelta
+            index = pandas.date_range(start=firstdate, end=lastdate,
+                                      freq=timedelta)
+            dataframe.index = index
+            selected_date = dataframe.loc[dataframe.index.month == int(date)]
+            selected_date.index = \
+                [ind + timedelta for ind in selected_date.index]
+        dataframe_selected = pandas.concat([selected_date, dataframe_selected])
+    return dataframe_selected['obs'], dataframe_selected['sim']
+
+
+@overload
+def prepare_arrays(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def prepare_arrays(
+        sim: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def prepare_arrays(
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def prepare_arrays(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
@@ -137,6 +566,23 @@ no value is passed to argument `sim`.
     return sim, obs
 
 
+@overload
+def nse(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def nse(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
 @objecttools.excmessage_decorator(
     'calculate the Nash-Sutcliffe efficiency')
 def nse(sim=None, obs=None, node=None, skip_nan=False):
@@ -165,11 +611,250 @@ def nse(sim=None, obs=None, node=None, skip_nan=False):
     >>> nse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
     1.0
 
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(nse(node=node))
+    0.090909
+
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |nse|.
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return 1.-numpy.sum((sim-obs)**2)/numpy.sum((obs-numpy.mean(obs))**2)
+
+
+@overload
+def nse_log(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def nse_log(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
+@objecttools.excmessage_decorator(
+    'calculate the log-Nash-Sutcliffe efficiency')
+def nse_log(sim=None, obs=None, node=None, skip_nan=False):
+    """Calculate the efficiency criteria after Nash & Sutcliffe for
+    logarithmic values.
+
+    For worse and better simulated values the NSE is negative
+    or positive, respectively:
+
+    >>> from hydpy import nse_log
+    >>> from hydpy import round_
+    >>> round_(nse_log(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
+    -2.910616
+    >>> round_(nse_log(sim=[1.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
+    0.733662
+
+    The highest possible value is one:
+
+    >>> nse_log(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    1.0
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(nse_log(node=node))
+    0.104811
+
+    See the documentation on function |prepare_arrays| for some
+    additional instructions for use of function |nse_log|.
+    """
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
+
+    return (1.-numpy.sum((numpy.log(sim)-numpy.log(obs))**2) /
+            numpy.sum((numpy.log(obs)-numpy.mean(numpy.log(obs)))**2))
+
+
+@overload
+def r_squared(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def r_squared(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
+@objecttools.excmessage_decorator(
+    'calculate the R²-Error')
+def r_squared(sim=None, obs=None, node=None, skip_nan=False):
+    """The coefficient of determination r² is defined as the squared
+    value of the coefficient of correlation according to Bravais-Pearson.
+
+    >>> from hydpy import r_squared
+    >>> from hydpy import round_
+    >>> r_squared(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    1.0
+    >>> r_squared(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0])
+    1.0
+    >>> round_(r_squared(sim=[2.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
+    0.75
+
+    Take care if there is no variation in one of the data series the
+    correlation coefficient and therefore also R² will return nan-values.
+    >>> r_squared(sim=[2.0, 2.0, 2.0], obs=[2.0, 2.0, 3.0])
+    nan
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(r_squared(node=node))
+    0.409091
+
+    See the documentation on function |prepare_arrays| for some
+    additional instructions for use of function |r_squared|.
+    """
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
+
+    return numpy.corrcoef(sim, obs)[0, 1]**2
+
+
+@overload
+def kge(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def kge(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
+
+
+@objecttools.excmessage_decorator(
+    'calculate the Kling-Gupta-Efficiency')
+def kge(sim=None, obs=None, node=None, skip_nan=False):
+    """Calculate the Kling-Gupta efficiency :cite:`Kling2012`.
+
+    >>> from hydpy import  kge
+    >>> from hydpy import round_
+    >>> kge(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    1.0
+    >>> kge(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0])
+    -3.0
+    >>> round_(kge(sim=[2.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
+    -2.688461
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(kge(node=node))
+    0.808446
+
+    See the documentation on function |prepare_arrays| for some
+    additional instructions for use of function |kge|.
+    """
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
+
+    return (1 - numpy.sum(
+        (numpy.corrcoef(sim, obs)[0, 1] - 1)**2 +
+        (numpy.std(sim)/numpy.std(obs) - 1)**2 +
+        (numpy.mean(sim)/numpy.mean(obs) - 1)**2))
+
+
+@overload
+def bias_abs(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def bias_abs(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -187,11 +872,50 @@ def bias_abs(sim=None, obs=None, node=None, skip_nan=False):
     >>> round_(bias_abs(sim=[1.0, 1.0, 1.0], obs=[1.0, 2.0, 3.0]))
     -1.0
 
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(bias_abs(node=node))
+    -0.5
+
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |bias_abs|.
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return numpy.mean(sim-obs)
+
+
+@overload
+def bias_rel(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def bias_rel(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -209,11 +933,50 @@ def bias_rel(sim=None, obs=None, node=None, skip_nan=False):
     >>> round_(bias_rel(sim=[1.0, 1.0, 1.0], obs=[1.0, 2.0, 3.0]))
     -0.5
 
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(bias_rel(node=node))
+    -0.2
+
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |bias_rel|.
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return numpy.mean(sim)/numpy.mean(obs)-1.
+
+
+@overload
+def std_ratio(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def std_ratio(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -231,11 +994,50 @@ def std_ratio(sim=None, obs=None, node=None, skip_nan=False):
     >>> round_(std_ratio(sim=[0.0, 3.0, 6.0], obs=[1.0, 2.0, 3.0]))
     2.0
 
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(std_ratio(node=node))
+    -0.147197
+
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |std_ratio|.
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return numpy.std(sim)/numpy.std(obs)-1.
+
+
+@overload
+def corr(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def corr(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -252,10 +1054,38 @@ def corr(sim=None, obs=None, node=None, skip_nan=False):
     >>> round_(corr(sim=[1.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
     0.0
 
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(corr(node=node))
+    0.639602
+
+    Take care if there is no variation in one of the data series the
+    correlation coefficient will return nan-values.
+    >>> round_(corr(sim=[2.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
+    nan
+
+
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |corr|.
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return numpy.corrcoef(sim, obs)[0, 1]
 
 
@@ -273,6 +1103,23 @@ def _pars_sepd(xi, beta):
 
 def _pars_h(sigma1, sigma2, sim):
     return sigma1*numpy.mean(sim) + sigma2*sim
+
+
+@overload
+def hsepd_pdf(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def hsepd_pdf(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -375,8 +1222,31 @@ def hsepd_pdf(sigma1, sigma2, xi, beta,
 
         >>> from matplotlib import pyplot
         >>> pyplot.close()
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(hsepd_pdf(sigma1=general['sigma1'], sigma2=general['sigma2'],
+    ...     xi=general['xi'], beta=general['beta'], node=node, skip_nan=False))
+    0.997356, 0.043821, 0.043821, 0.043821, 0.043821, 0.043821
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     sigmas = _pars_h(sigma1, sigma2, sim)
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
     x, mu = obs, sim
@@ -394,6 +1264,23 @@ def _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs):
     ps = hsepd_pdf(sigma1, sigma2, xi, beta, sim, obs)
     ps[ps < 1e-200] = 1e-200
     return numpy.mean(numpy.log(ps))
+
+
+@overload
+def hsepd_manual(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def hsepd_manual(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -425,9 +1312,50 @@ def hsepd_manual(sigma1, sigma2, xi, beta,
     ...                     sim=numpy.arange(10.0, 41.0),
     ...                     obs=numpy.full(31, 25.0)))
     -209.539335
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.0,
+    ...                     xi=1.0, beta=-0.99,
+    ...                     node=node))
+    -383.818532
     """
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     return _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
+
+
+@overload
+def hsepd(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def hsepd(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -496,6 +1424,29 @@ def hsepd(sim=None, obs=None, node=None, skip_nan=False,
     -2.174492
     >>> round_(pars)
     0.0, 0.213179, 1.705485, 0.505112
+
+    Alternatively a node can be used as input:
+
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
+    >>> node = Node('test')
+
+    Next, we assign values the `simulation` and the `observation` sequences
+    (to do so for the `observation` sequence requires a little trick, as
+    its values are normally supposed to be read from a file):
+
+    >>> node.prepare_simseries()
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 2.0, 1.0, 3.0, 2.0, 3.0
+    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.series = 1.0, 3.0, 2.0, 2.0, 3.0, 4.0
+
+    >>> value, pars = hsepd(node=node, return_pars=True,
+    ...                     inits=(0.0, 0.2, 1.0, 0.0))
+    >>> round_(value)
+    -1.121904
+    >>> round_(pars)
+    0.0, 0.904799, 0.387431, 3.231805
     """
 
     def transform(pars):
@@ -512,7 +1463,10 @@ def hsepd(sim=None, obs=None, node=None, skip_nan=False,
         beta = numpy.clip(beta, -0.99, 5.0)
         return sigma1, sigma2, xi, beta
 
-    sim, obs = prepare_arrays(sim, obs, node, skip_nan)
+    if not node:
+        sim, obs = prepare_arrays(sim=sim, obs=obs, skip_nan=skip_nan)
+    else:
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
     if not inits:
         inits = [0.1, 0.2, 3.0, 1.0]
     values = optimize.fmin(transform, inits,
@@ -523,6 +1477,23 @@ def hsepd(sim=None, obs=None, node=None, skip_nan=False,
     if return_pars:
         return result, values
     return result
+
+
+@overload
+def calc_mean_time(
+        sim: typingtools.Vector,
+        obs: typingtools.Vector,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def calc_mean_time(
+        node: devicetools.Node,
+        skip_nan: bool,
+) -> numpy.ndarray:
+    """sim and obs as argument"""
 
 
 @objecttools.excmessage_decorator(
@@ -702,7 +1673,7 @@ which does not match with number of given alternative names beeing 1.
         critnames = [crit.__name__ for crit in criteria]
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
-        sim, obs = prepare_arrays(None, None, node, skip_nan)
+        sim, obs = prepare_arrays(node=node, skip_nan=skip_nan)
         for jdx, criterion in enumerate(criteria):
             data[idx, jdx] = criterion(sim, obs)
     table = pandas.DataFrame(

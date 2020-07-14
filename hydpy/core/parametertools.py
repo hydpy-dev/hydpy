@@ -273,34 +273,34 @@ function `save_controls` directly.  But in complete HydPy applications, \
 it is usally assumed to be consistent with the name of the element \
 handling the model.
         """
-        if self.control:
-            variable2auxfile = getattr(auxfiler, str(self.model), None)
-            lines = [get_controlfileheader(
-                self.model, parameterstep, simulationstep)]
-            with Parameter.parameterstep(parameterstep):
-                for par in self.control:
-                    if variable2auxfile:
-                        auxfilename = variable2auxfile.get_filename(par)
-                        if auxfilename:
-                            lines.append(
-                                f"{par.name}(auxfile='{auxfilename}')\n")
-                            continue
-                    lines.append(repr(par) + '\n')
-            text = ''.join(lines)
-            if filepath:
-                with open(filepath, mode='w', encoding='utf-8') as controlfile:
-                    controlfile.write(text)
-            else:
-                filename = objecttools.devicename(self)
-                if filename == '?':
-                    raise RuntimeError(
-                        'To save the control parameters of a model to a file, '
-                        'its filename must be known.  This can be done, by '
-                        'passing a filename to function `save_controls` '
-                        'directly.  But in complete HydPy applications, it is '
-                        'usally assumed to be consistent with the name of the '
-                        'element handling the model.')
-                hydpy.pub.controlmanager.save_file(filename, text)
+        variable2auxfile = getattr(auxfiler, str(self.model), None)
+        lines = [get_controlfileheader(
+            self.model, parameterstep, simulationstep)]
+        with Parameter.parameterstep(parameterstep):
+            for par in self.control:
+                if variable2auxfile:
+                    auxfilename = variable2auxfile.get_filename(par)
+                    if auxfilename:
+                        lines.append(
+                            f"{par.name}(auxfile='{auxfilename}')\n")
+                        continue
+                lines.append(repr(par) + '\n')
+        text = ''.join(lines)
+        if filepath:
+            with open(filepath, mode='w', encoding='utf-8') as controlfile:
+                controlfile.write(text)
+        else:
+            filename = objecttools.devicename(self)
+            if filename == '?':
+                raise RuntimeError(
+                    'To save the control parameters of a model to a file, '
+                    'its filename must be known.  This can be done, by '
+                    'passing a filename to function `save_controls` '
+                    'directly.  But in complete HydPy applications, it is '
+                    'usally assumed to be consistent with the name of the '
+                    'element handling the model.')
+            hydpy.pub.controlmanager.save_file(filename, text)
+
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects

@@ -13,56 +13,78 @@ performance cost.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Integration test:
+Integration tests
+=================
 
-    The following example repeats the first example of the documentation
-    on application model |lstream_v001|:
+.. _lstream_v002_main_channel_flow:
 
-    >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
-    >>> from hydpy.models.lstream_v003 import *
-    >>> parameterstep('1d')
-    >>> nodes = Nodes('input1', 'input2', 'output')
-    >>> stream = Element('stream',
-    ...                  inlets=['input1', 'input2'],
-    ...                  outlets='output')
-    >>> stream.model = model
+main channel flow
+_________________
 
-    We define a relatively small neural network consisting of three neurons
-    in a single hidden layer:
+The following integration test repeats the :ref:`lstream_v001_main_channel_flow`
+example of the documentation on application model |lstream_v001|.  The spatial
+end temporal settings are identical:
 
-    >>> gts(8)
-    >>> vg2qg(nmb_inputs=1,
-    ...       nmb_neurons=(3,),
-    ...       nmb_outputs=1,
-    ...       weights_input=[[0.610346, 1.360399, 0.35465]],
-    ...       weights_output=[[432.958081],
-    ...                       [94.674914],
-    ...                       [1778.576841]],
-    ...       intercepts_hidden=[[-2.681908, -2.237483, -3.790469]],
-    ...       intercepts_output=[-78.006394])
+>>> from hydpy import pub, Nodes, Element
+>>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
+>>> from hydpy.models.lstream_v002 import *
+>>> parameterstep('1d')
+>>> nodes = Nodes('input1', 'input2', 'output')
+>>> stream = Element('stream',
+...                  inlets=['input1', 'input2'],
+...                  outlets='output')
+>>> stream.model = model
 
-    >>> from hydpy.core.testtools import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
-    >>> test = IntegrationTest(stream, inits=[[states.vg, 1.570929405]])
+We again divide the channel into eight subsections:
 
-    >>> import numpy
-    >>> q_base = 100.0
-    >>> q_peak = 900.0
-    >>> t_peak = 24.0
-    >>> β = 16.0
-    >>> ts = pub.timegrids.init.to_timepoints()
-    >>> nodes.input1.sequences.sim.series = q_base
-    >>> nodes.input2.sequences.sim.series = (
-    ...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
+>>> gts(8)
 
-    Our approximation of the discharge-storage relationship is far from
-    perfect, but is, at least in the range relevant for the selected
-    event, sufficient to reproduce the original results of application
-    model |lstream_v001| with reasonable accuracy (for example, peak
-    flow is 660 m³/s instead of 659 m³/s):
+Next, we define a relatively small neural network consisting of three neurons
+in a single hidden layer.  This network roughly approximates the discharge
+calculated by the Gauckler-Manning-Strickler equation on the triple trapezoid
+profile defined in the :ref:`lstream_v001_main_channel_flow` example:
 
-    >>> test('lstream_v003_ex1')
+>>> vg2qg(nmb_inputs=1,
+...       nmb_neurons=(3,),
+...       nmb_outputs=1,
+...       weights_input=[[0.610346, 1.360399, 0.35465]],
+...       weights_output=[[432.958081],
+...                       [94.674914],
+...                       [1778.576841]],
+...       intercepts_hidden=[[-2.681908, -2.237483, -3.790469]],
+...       intercepts_output=[-78.006394])
+
+In contrast to application model |lstream_v001|, |lstream_v002| uses the
+stored water volume (|VG|) as its state variable instead of the water
+stage (|H|).  Hence, we now must set |VG| to a value resulting in an
+initial outflow of 100 m³/s for the defined parameterisation of |VG2QG|,
+which holds for 1.570929405 million m³:
+
+>>> from hydpy.core.testtools import IntegrationTest
+>>> IntegrationTest.plotting_options.activated = fluxes.qz, fluxes.qa
+>>> test = IntegrationTest(stream, inits=[[states.vg, 1.570929405]])
+
+Finally, we define two identical inflow time series:
+
+>>> import numpy
+>>> q_base = 100.0
+>>> q_peak = 900.0
+>>> t_peak = 24.0
+>>> β = 16.0
+>>> ts = pub.timegrids.init.to_timepoints()
+>>> nodes.input1.sequences.sim.series = q_base
+>>> nodes.input2.sequences.sim.series = (
+...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
+
+Our approximation of the discharge-storage relationship is far from
+perfect.  Still, it is, at least in the range relevant for the selected
+event, sufficient to reproduce the original results of application
+model |lstream_v001| with reasonable accuracy (for example, peak
+flow is 660 m³/s instead of 659 m³/s):
+
+.. integration-test::
+
+    >>> test('lstream_v002_main_channel_flow')
     |                date |         qz |        qza |                                                                                             qg |         qa |                                                                             vg | input1 |     input2 |     output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 | 1.570929  1.570929  1.570929  1.570929  1.570929  1.570929  1.570929  1.570929 |  100.0 |        0.0 |      100.0 |
@@ -257,13 +279,6 @@ Integration test:
     | 2000-01-04 22:30:00 |      100.0 |      100.0 | 100.000016  100.000226  100.001663  100.008518  100.033823  100.110381  100.307162  100.747753 | 100.747753 |  1.57093  1.570932  1.570947  1.571019  1.571288  1.572103  1.574207  1.578934 |  100.0 |        0.0 | 100.747753 |
     | 2000-01-04 23:00:00 |      100.0 |      100.0 | 100.000014  100.000195  100.001448  100.007488  100.030001  100.098758  100.277124   100.68009 |  100.68009 |  1.57093  1.570931  1.570945  1.571008  1.571247  1.571979  1.573886  1.578209 |  100.0 |        0.0 |  100.68009 |
     | 2000-01-04 23:30:00 |      100.0 |      100.0 | 100.000012  100.000168  100.001261  100.006581  100.026602  100.088323  100.249907  100.618238 | 100.618238 |  1.57093  1.570931  1.570943  1.570999  1.571211  1.571868  1.573595  1.577546 |  100.0 |        0.0 | 100.618238 |
-
-    .. raw:: html
-
-        <a
-            href="lstream_v003_ex1.html"
-            target="_blank"
-        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

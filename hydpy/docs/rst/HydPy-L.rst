@@ -49,8 +49,7 @@ So far, we compiled the following application models:
    lland_v2 (External PET, Degree day) <lland_v2>
    lland_v3 (Penman-Monteith, Knauf) <lland_v3>
    lstream_v001 (Kinematic Wave, Manning-Strickler) <lstream_v001>
-   lstream_v002 (deprecated) <lstream_v002>
-   lstream_v003 (Kinematic wave, External rating curve) <lstream_v003>
+   lstream_v002 (Kinematic wave, External rating curve) <lstream_v002>
    llake_v1 (controlled lake) <llake_v1>
 
 These application models are stand-alone models.  You can combine them

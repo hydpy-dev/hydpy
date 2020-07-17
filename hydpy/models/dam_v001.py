@@ -52,7 +52,7 @@ Integration examples:
     and add some `natural` discharge of the subcatchment between the dam
     and the cross section (a picture would be helpful).
 
-    We define four nodes.  The `input` node is used to define the inflow into
+    We define four nodes.  The `input_` node is used to define the inflow into
     the dam and the `natural` node is used to define the additional discharge
     of the subcatchment.  The `output` node receives the (unmodified) outflow
     out of dam and the `remote` node receives both the routed outflow of the
@@ -109,7 +109,7 @@ Integration examples:
     is prepared:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,

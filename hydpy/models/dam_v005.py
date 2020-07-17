@@ -108,7 +108,7 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.model = model
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,

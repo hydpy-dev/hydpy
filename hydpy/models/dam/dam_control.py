@@ -9,7 +9,7 @@ from hydpy.auxs import anntools
 
 
 class CatchmentArea(parametertools.Parameter):
-    """Size of the catchment draining into the dam [km2]."""
+    """Size of the catchment draining into the dam [km²]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
@@ -197,7 +197,7 @@ class TargetRangeAbsolute(parametertools.Parameter):
 
 class TargetRangeRelative(parametertools.Parameter):
     """The relative interpolation range related to parameter |TargetVolume|
-    [Mio. m³]."""
+    [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 

@@ -1,65 +1,95 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-"""Reservoir (TALS) version of HydPy-Dam.
+"""Reservoir version of HydPy-Dam.
 
-|dam_v008| is a relatively simple reservoir model, like the one selectable via the "TALS"
-option of LARSIM.  It combines the features of |dam_v006| (implementing a
-"controlled lake") and |dam_v007| (implementing a "retention basin").
-Additionally, it allows controlling the stored water volume via
-defining target values that can vary seasonally.
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Integration examples:
+|dam_v008| is a relatively simple reservoir model, similar to the "TALS"
+model of `LARSIM`_.  It combines the features of |dam_v006| ("controlled
+lake") and |dam_v007| ("retention basin").  Additionally, it allows
+controlling the stored water volume via defining target values that can
+vary seasonally.
 
-    The following examples build on the documentation on application models
-    |dam_v006| and |dam_v007|.  We create the same test set, including an
-    identical inflow series and an identical relationship between stage and
-    volume as well as between flood discharge and stage:
+Like |dam_v007|, |dam_v008| allows for combining controlled, "harmless
+outflow" (via parameter |AllowedRelease|) and uncontrolled, "spillway
+outflow" (via parameter |WaterLevel2FloodDischarge|), and like |dam_v006|,
+it allows to restrict the speed of the water level decrease during periods
+with little inflow via parameter |AllowedWaterLevelDrop| (only through
+reducing the controlled outflow, of course).  Before continuing, please
+first read the documentation on these two application models.
 
-    >>> from hydpy import pub, Node, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
-    >>> from hydpy.models.dam_v008 import *
-    >>> parameterstep('1d')
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> lake = Element('lake', inlets=input_, outlets=output)
-    >>> lake.model = model
-    >>> from hydpy import IntegrationTest
-    >>> test = IntegrationTest(lake,
-    ...                        inits=[(states.watervolume, 0.0)])
-    >>> test.dateformat = '%d.%m.'
+The additional feature of |dam_v008| is that it tries to track target
+volumes that can vary seasonally.  Define these target volumes via
+parameter |TargetVolume|.  The parameters |VolumeTolerance|,
+|TargetRangeAbsolute|, and |TargetRangeRelative| serve to yield more
+smooth and realistic reservoir responses for small deviations from
+the given target values.  Setting |TargetRangeRelative| to 0.2 and
+both other parameters to zero corresponds to selecting the
+"TALSPERRE SOLLRANGE" option in `LARSIM`_.  Please see the following
+examples and the documentation on method |Calc_ActualRelease_V3| for
+more information on how to set and combine the individual parameter
+values for different use-cases.
 
-    >>> watervolume2waterlevel(
-    ...     weights_input=1e-6, weights_output=4.e6,
-    ...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
-    >>> waterlevel2flooddischarge(ann(
-    ...     weights_input=1e-6, weights_output=4e7,
-    ...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
-    >>> catchmentarea(86.4)
+Integration tests
+=================
 
-    >>> input_.sequences.sim.series = [
-    ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
-    ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+We create the same test set as for application models |dam_v006| and
+|dam_v007|, including an identical inflow series and an identical
+relationship between stage and volume:
 
-    In the first example, we set some of the remaining parameter values
-    extremely high or low, to make sure that the reservoir stores all water
-    except the one activating the spillway and thus becoming "flood discharge":
+>>> from hydpy import IntegrationTest, Element, pub
+>>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+>>> from hydpy.models.dam_v008 import *
+>>> parameterstep('1d')
+>>> element = Element('element', inlets='input_', outlets='output')
+>>> element.model = model
+>>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
+>>> IntegrationTest.plotting_options.axis2 = states.watervolume
+>>> test = IntegrationTest(element)
+>>> test.inits = [(states.watervolume, 0.0)]
+>>> test.dateformat = '%d.%m.'
+>>> watervolume2waterlevel(
+...     weights_input=1e-6, weights_output=4.e6,
+...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+>>> catchmentarea(86.4)
+>>> element.inlets.input_.sequences.sim.series = [
+...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
+...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-    >>> targetvolume(100.0)
-    >>> neardischargeminimumthreshold.shape = 1
-    >>> neardischargeminimumthreshold.values = -100.0
-    >>> targetrangeabsolute(0.1)
-    >>> targetrangerelative(0.2)
-    >>> volumetolerance(0.1)
-    >>> dischargetolerance(0.1)
-    >>> allowedrelease(100.0)
-    >>> allowedwaterleveldrop(100.0)
+.. _dam_v008_base_scenario:
 
-    Due to the identical configuration of the neural networks relevant
-    for the calculation of flood discharge, the results are identical with
-    the ones of the first examples on application models |dam_v006| and
-    |dam_v007|:
+base scenario
+_____________
 
-    >>> test('dam_v008_ex1')
+First, we again use the quasi-linear relation between discharge
+and stage used throughout the integration tests of |dam_v006| and in the
+:ref:`dam_v006_base_scenario` example of |dam_v007|:
+
+>>> waterlevel2flooddischarge(ann(
+...     weights_input=1e-6, weights_output=4e7,
+...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
+
+Additionally, we set some of the remaining parameter values extremely high
+or low, to make sure that the reservoir stores all water except the one
+activating the spillway and thus becoming "flood discharge":
+
+>>> targetvolume(100.0)
+>>> neardischargeminimumthreshold.shape = 1
+>>> neardischargeminimumthreshold.values = -100.0
+>>> targetrangeabsolute(0.1)
+>>> targetrangerelative(0.2)
+>>> volumetolerance(0.1)
+>>> dischargetolerance(0.1)
+>>> allowedrelease(100.0)
+>>> allowedwaterleveldrop(100.0)
+
+Due to the same the neural network configuration, the results are identical
+with the ones of the :ref:`dam_v006_base_scenario` example of |dam_v006| and
+the :ref:`dam_v007_base_scenario` example of |dam_v007|:
+
+.. integration-test::
+
+    >>> test('dam_v008_base_scenario')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -83,21 +113,21 @@ Integration examples:
     | 19.01. |    0.0 |           0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |
     | 20.01. |    0.0 |           0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |
 
-    .. raw:: html
+.. _dam_v008_spillway:
 
-        <a
-            href="dam_v008_ex1.html"
-            target="_blank"
-        >Click here to see the graph</a>
+spillway
+________
 
-    When we reuse the more realistic relationship between flood discharge
-    and stage of the second example on |dam_v007|, we again get the same
-    flood discharge time series:
+When we reuse the more realistic relationship between flood discharge
+and stage of the :ref:`dam_v007_spillway` example on |dam_v007|, we again
+get the same flood discharge time series:
+
+.. integration-test::
 
     >>> waterlevel2flooddischarge(ann(
     ...     weights_input=10.0, weights_output=50.0,
     ...     intercepts_hidden=-20.0, intercepts_output=0.0))
-    >>> test('dam_v008_ex2a')
+    >>> test('dam_v008_spillway')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -121,42 +151,41 @@ Integration examples:
     | 19.01. |    0.0 |           0.0 |       0.112196 | 0.112196 |    1.385542 |    0.0 | 0.112196 |
     | 20.01. |    0.0 |           0.0 |       0.102307 | 0.102307 |    1.376702 |    0.0 | 0.102307 |
 
-    .. raw:: html
+.. _dam_v008_target_volume:
 
-        <a
-            href="dam_v008_ex2a.html"
-            target="_blank"
-        >Click here to see the graph</a>
+target volume
+_____________
 
-    During dry periods, application model |dam_v007| generally releases all
-    its water until the basin runs dry.  Application model |dam_v008| is
-    more complex, in that it allows to define target storage volumes.
-    |dam_v008| tries to control its outflow so that the actual volume
-    approximately equals the (potentially seasonally varying) target volume.
-    However, it cannot release arbitrary low or high amounts of water to
-    fulfil this task due to its priority to release a predefined minimum
-    amount of water (eventually due to ecological reasons) and its second
-    priority to not release to much water (eventually due to flood protection).
-    In the next example, we activate these mechanisms through changing some
-    related parameter values (also see the documentation on method
-    |Calc_ActualRelease_V3| for more detailed examples, including the
-    numerous corner cases):
+During dry periods, application model |dam_v007| generally releases all
+its water until the basin runs dry, as long as parameter |AllowedRelease|
+is larger than zero.  Application model |dam_v008| is more complex, in that
+it allows to define target storage volumes.  |dam_v008| tries to control
+its outflow so that the actual volume approximately equals the (potentially
+seasonally varying) target volume.  However, it cannot release arbitrary
+low or high amounts of water to fulfil this task due to its priority to
+release a predefined minimum amount of water (for ecological reasons) and
+its second priority to not release to much water (for flood protection).
+In this example, we activate these mechanisms through changing some related
+parameter values (also see the documentation on method |Calc_ActualRelease_V3|
+for more detailed examples, including the numerous corner cases):
 
-    >>> targetvolume(0.5)
-    >>> neardischargeminimumthreshold(0.1)
-    >>> allowedrelease(4.0)
-    >>> allowedwaterleveldrop(1.0)
+>>> targetvolume(0.5)
+>>> neardischargeminimumthreshold(0.1)
+>>> allowedrelease(4.0)
+>>> allowedwaterleveldrop(1.0)
 
-    Compared with application model |dam_v007|, |dam_v008| dampens the given
-    flood event less efficiently.  is less efficient.  |dam_v007| releases
-    all initial inflow, while |dam_v008| stores most of it until
-    it reaches the target volume of 0.5 million m³.  After peak flow,
-    |dam_v008| first releases its water as fast as allowed, but then again
-    tries to meet the target volume.  The slow negative trend away from the
-    target value at the end of the simulation period results from the lack
-    of inflow while there is still the necessity to release at least 0.1 m³/s:
+Compared with the :ref:`dam_v007_allowed_release` results of |dam_v007|,
+|dam_v008| dampens the given flood event less efficiently.  |dam_v007|
+releases all initial inflow, while |dam_v008| stores most of it until
+it reaches the target volume of 0.5 million m³.  After peak flow,
+|dam_v008| first releases its water as fast as allowed, but then again
+tries to meet the target volume.  The slow negative trend away from the
+target value at the end of the simulation period results from the lack
+of inflow while there is still the necessity to release at least 0.1 m³/s:
 
-    >>> test('dam_v008_ex2b')
+.. integration-test::
+
+    >>> test('dam_v008_target_volume')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.052009 |            0.0 |  0.05201 |   -0.004494 |    0.0 |  0.05201 |
@@ -180,24 +209,24 @@ Integration examples:
     | 19.01. |    0.0 |      0.011247 |       0.000013 |  0.01126 |    0.483569 |    0.0 |  0.01126 |
     | 20.01. |    0.0 |      0.010295 |       0.000013 | 0.010308 |    0.482678 |    0.0 | 0.010308 |
 
-    .. raw:: html
+.. _dam_v008_sharp_transitions:
 
-        <a
-            href="dam_v008_ex2b.html"
-            target="_blank"
-        >Click here to see the graph</a>
+sharp transitions
+_________________
 
-    Due to smoothing, the above results deviate from the ones one would
-    expect from LARSIM simulations to some degree.  However, if we set both
-    "target range" parameters to zero (like one does not set the LARSIM option
-    "TALSPERRE SOLLRANGE") and both "tolerance" parameters to zero (to
-    disable any smoothing), we should principally get more similar results:
+Due to smoothing, the above results deviate from the ones one would
+expect from `LARSIM`_ simulations to some degree.  However, if we set both
+"target range" parameters to zero (like one does not set the `LARSIM`_ option
+"TALSPERRE SOLLRANGE") and both "tolerance" parameters to zero (to
+disable any smoothing), we should get more similar results:
+
+.. integration-test::
 
     >>> targetrangeabsolute(0.0)
     >>> targetrangerelative(0.0)
     >>> volumetolerance(0.0)
     >>> dischargetolerance(0.0)
-    >>> test('dam_v008_ex2c')
+    >>> test('dam_v008_sharp_transitions')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.004167 |            0.0 | 0.004167 |    -0.00036 |    0.0 | 0.004167 |
@@ -221,21 +250,22 @@ Integration examples:
     | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.427465 |    0.0 | 0.100008 |
     | 20.01. |    0.0 |           0.1 |       0.000007 | 0.100007 |    0.418824 |    0.0 | 0.100007 |
 
-    .. raw:: html
+.. _dam_v008_higher_accuracy:
 
-        <a
-            href="dam_v008_ex2c.html"
-            target="_blank"
-        >Click here to see the graph</a>
+higher accuracy
+_______________
 
-    The first water volume in the last example is negative, which is a
-    result of the limited numerical accuracy of the underlying integration
-    algorithm.  We can decrease such errors through defining smaller error
-    tolerance values, but at the risk of relevant increases in computation
-    times (especially in case one does apply zero smoothing values):
+The first water volume calculated in the :ref:`dam_v008_sharp_transitions`
+example is negative, which is the result of the limited numerical accuracy of
+the underlying integration algorithm.  We can decrease such errors through
+defining smaller error tolerance values, but at the risk of relevant
+increases in computation times (especially in case one does apply zero
+smoothing values):
+
+.. integration-test::
 
     >>> solver.abserrormax(1e-6)
-    >>> test('dam_v008_ex2d')
+    >>> test('dam_v008_higher_accuracy')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -259,30 +289,30 @@ Integration examples:
     | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.427685 |    0.0 | 0.100008 |
     | 20.01. |    0.0 |           0.1 |       0.000007 | 0.100007 |    0.419044 |    0.0 | 0.100007 |
 
-    .. raw:: html
+.. _dam_v008_target_range:
 
-        <a
-            href="dam_v008_ex2d.html"
-            target="_blank"
-        >Click here to see the graph</a>
+target range
+____________
 
-    In the last example, the behaviour of the reservoir always changes
-    abruptly when the actual volume transcends the target volume. According
-    to its documentation, LARSIM then predicts unrealistic jumps in discharge.
-    To solve this issue, LARSIM offers the "TALSPERRE SOLLRANGE" option,
-    which ensures smoother transitions between 80 % and 120 % of the target
-    volume, accomplished by linear interpolation.  |dam_v008| should never
-    output similar jumps as it controls the correctness of its results.
-    As a drawback, correcting these jumps (which still occur "unseeable" and
-    possibly multiple within the affected simulation time steps) costs time.
-    Hence, at least when using small smoothing parameter values, "v8" can
-    also benefits from this approach.  You can define the range of
-    interpolation freely via parameter |TargetRangeRelative| depending on
-    your specific needs.  The final example corresponds to the original
-    "TALSPERRE SOLLRANGE"-configuration:
+In the last example, the behaviour of the reservoir always changes abruptly
+when the actual volume transcends the target volume. According to its
+documentation, `LARSIM`_ then predicts unrealistic jumps in discharge.
+To solve this issue, `LARSIM`_ offers the "TALSPERRE SOLLRANGE" option,
+which ensures smoother transitions between 80 % and 120 % of the target
+volume, accomplished by linear interpolation.  |dam_v008| should never
+output similar jumps as it controls the correctness of its results.
+As a drawback, correcting these jumps (which still occur "unseeable" and
+possibly multiple times within each affected simulation time step) costs
+computation time.  Hence, at least when using small smoothing parameter
+values, |dam_v008| can also benefit from this approach.  You can define
+the range of interpolation freely via parameters |TargetRangeAbsolute| and
+|TargetRangeRelative| depending on your specific needs.  Setting the latter
+to 0.2 corresponds to the original "TALSPERRE SOLLRANGE"-configuration:
+
+.. integration-test::
 
     >>> targetrangerelative(0.2)
-    >>> test('dam_v008_ex2e')
+    >>> test('dam_v008_target_range')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -305,13 +335,6 @@ Integration examples:
     | 18.01. |    0.0 |           0.1 |       0.000009 | 0.100009 |    0.443399 |    0.0 | 0.100009 |
     | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.434758 |    0.0 | 0.100008 |
     | 20.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.426117 |    0.0 | 0.100008 |
-
-    .. raw:: html
-
-        <a
-            href="dam_v008_ex2e.html"
-            target="_blank"
-        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy

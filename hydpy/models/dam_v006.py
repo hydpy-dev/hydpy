@@ -1,88 +1,162 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-"""Controlled lake (SEEG) version of HydPy-Dam.
+"""Controlled lake version of HydPy-Dam.
 
-Conceptionally, |dam_v006| corresponds to the "controlled lake" model of
-LARSIM (selectable via the "SEEG" option) and therefore to application model
-|llake_v1|.  On the technical side, it contrasts to |llake_v1|.  Like for
-all models of the HydPy-D family, we implemented its methods as continuous
-ordinary differential equations. Please read the documentation on the
-application model |dam_v001| to get an understanding of the basics of
-application model |dam_v006|.  Especially, you should read how to set proper
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
+
+Conceptionally, |dam_v006| is similar to the "controlled lake" model of
+`LARSIM`_ (selectable via the "SEEG" option).  It simulates flood retention
+processes only and neglects losses due to evaporation.
+
+One can regard |dam_v006| as controlled in two ways.  First, it allows
+for seasonal modifications of the rating curve via parameter
+|WaterLevel2FloodDischarge|; second, it allows to restrict the speed of
+the water level decrease during periods with little inflow via parameter
+|AllowedWaterLevelDrop|.
+
+Like all models of the HydPy-D family, |dam_v006| solves its underlying
+continuous ordinary differential equations with an error-adaptive numerical
+integration method.  Hence, simulation speed, robustness, and accuracy
+depend both on the configuration of the parameters of the model equations
+and the underlying solver.  We discuss these topics in more detail in the
+documentation on the application model |dam_v001|.  Before the first usage
+of any HydPy-Dam model, you should at least read how to set proper
 smoothing parameter values and how to configure the artificial neural
-networks used to model the relationships between stage and volume and
-between discharge and stage.
+networks used to model the relationships between stage and volume
+(|WaterVolume2WaterLevel|) and between discharge and stage
+(|WaterLevel2FloodDischarge|).
 
-Integration examples:
+Integration tests
+=================
 
-    We shortly repeat the first and the second example of the documentation
-    on application model |llake_v1| (but use|dam_v006|, of course).  The
-    "spatial" setting is identical, except that |dam_v006| allows for only
-    one inlet node:
+We are going to perform all example calculations over 20 days:
 
-    >>> from hydpy import pub, Node, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
-    >>> from hydpy.models.dam_v006 import *
-    >>> parameterstep('1d')
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> lake = Element('lake', inlets=input_, outlets=output)
-    >>> lake.model = model
-    >>> from hydpy import IntegrationTest
-    >>> test = IntegrationTest(lake,
-    ...                        inits=[(states.watervolume, 0.0)])
-    >>> test.dateformat = '%d.%m.'
+>>> from hydpy import pub
+>>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
 
-    As in the examples on |llake_v1|, we use (approximately) linear
-    relationships between |WaterLevel| and |WaterVolume| and
-    |FloodDischarge| and |WaterLevel|, respectively (you can inspect
-    the degree of linearity via method |anntools.SeasonalANN.plot|):
+Now, we prepare a |dam_v006| model instance in the usual manner:
 
-    >>> watervolume2waterlevel(
-    ...     weights_input=1e-6, weights_output=4.e6,
-    ...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
-    >>> waterlevel2flooddischarge(ann(
-    ...     weights_input=1e-6, weights_output=4e7,
-    ...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
+>>> from hydpy.models.dam_v006 import *
+>>> parameterstep('1d')
 
-    For the first example, we set the |AllowedWaterLevelDrop| to the
-    very large value of 10 m/d, to make sure this possible restriction
-    does not affect the calculated lake outflow:
+Next, we embed this model instance into an |Element|, being connected
+to one inlet |Node| (`input_`) and one outlet |Node| (`output`):
 
-    >>> allowedwaterleveldrop(10.0)
+>>> from hydpy import Element
+>>> element = Element('element', inlets='input_', outlets='output')
+>>> element.model = model
 
-    Additionally, we set the value of the related smoothing parameter
-    |DischargeTolerance| to 0.1 m³/s:
+To execute the following examples conveniently, we prepare a test function
+object and change some of its default output settings:
 
-    >>> dischargetolerance(0.1)
+>>> from hydpy import IntegrationTest
+>>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
+>>> IntegrationTest.plotting_options.axis2 = states.watervolume
+>>> test = IntegrationTest(element)
+>>> test.dateformat = '%d.%m.'
 
-    The purpose of parameter |CatchmentArea| is to allow to determine
-    reasonable default values for the parameter |AbsErrorMax| automatically,
-    controlling the accuracy of the numerical integration process:
+|WaterVolume| is the only state sequence of |dam_v006|.  We set its initial
+value for each example to zero:
 
-    >>> catchmentarea(86.4)
-    >>> from hydpy import round_
-    >>> round_(solver.abserrormax.INIT)
-    0.01
-    >>> parameters.update()
-    >>> solver.abserrormax
-    abserrormax(0.01)
+>>> test.inits = [(states.watervolume, 0.0)]
 
-    The inflow data is identical to the data of the example on application
-    model |llake_v1| but supplied via one node only:
+|dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume|
+to be constant over time.  To allow for maximum flexibility, it uses
+parameter |WaterVolume2WaterLevel|, which extends the artificial neural
+network parameter |anntools.ANN|.  For simplicity, we enforce an
+(approximately) linear relation between |WaterLevel| and |WaterVolume| in
+the relevant range of values (as shown in the following graph):
 
-    >>> input_.sequences.sim.series = [
-    ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
-    ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+>>> watervolume2waterlevel(
+...     weights_input=1e-6, weights_output=4.e6,
+...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+>>> watervolume2waterlevel.plot(0.0, 1.0)
 
-    In the documentation on application model |llake_v1|, we calculate this
-    first test case twice, choosing an internal integration step size of
-    1 day and one hour in the first and the fourth example, respectively.
-    The results of |dam_v006|, using its standard solver parameterisation,
-    are more similar to the ones of the more accurate results of the hourly
-    internal step size:
+.. testsetup::
 
-    >>> test('dam_v006_ex1a')
+    >>> import os
+    >>> from matplotlib import pyplot
+    >>> from hydpy.docs import figs
+    >>> pyplot.savefig(
+    ...     os.path.join(
+    ...         figs.__path__[0],
+    ...         'dam_v006_watervolume2waterlevel.png',
+    ...     ),
+    ... )
+    >>> pyplot.close()
+
+.. image:: dam_v006_watervolume2waterlevel.png
+   :width: 400
+
+|dam_v006| uses parameter |WaterLevel2FloodDischarge| (which extends
+parameter |anntools.SeasonalANN|) to allow for annual changes in the
+relationship between |FloodDischarge| and |WaterLevel|.  Please read the
+documentation on class |anntools.SeasonalANN| on how to model seasonal
+patterns.  Here, we again keep things as simple as possible and define
+a single (approximately) linear relationship which applies for the whole year:
+
+>>> waterlevel2flooddischarge(ann(
+...     weights_input=1e-6, weights_output=4e7,
+...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
+>>> waterlevel2flooddischarge.plot(0.0, 1.0)
+
+.. testsetup::
+
+    >>> pyplot.savefig(
+    ...     os.path.join(
+    ...         figs.__path__[0],
+    ...         'dam_v006_waterlevel2flooddischarge.png',
+    ...     ),
+    ... )
+    >>> pyplot.close()
+
+.. image:: dam_v006_waterlevel2flooddischarge.png
+   :width: 400
+
+Additionally, we set the value of the related smoothing parameter
+|DischargeTolerance| to 0.1 m³/s (this is a value we can recommend
+for many cases -- see the documentation on application model |dam_v001|
+on how to fine-tune such smoothing parameter to your needs):
+
+>>> dischargetolerance(0.1)
+
+Finally, we define the ingoing flood wave, starting and ending with zero
+discharge:
+
+>>> element.inlets.input_.sequences.sim.series = [
+...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
+...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+.. _dam_v006_base_scenario:
+
+base scenario
+_____________
+
+For our first example, we set the |AllowedWaterLevelDrop| to |numpy.inf|,
+to make sure this possible restriction does never affect the calculated
+lake outflow:
+
+>>> allowedwaterleveldrop(inf)
+
+The only purpose of parameter |CatchmentArea| is to determine reasonable
+default values for the parameter |AbsErrorMax| automatically, controlling
+the accuracy of the numerical integration process:
+
+>>> catchmentarea(86.4)
+>>> from hydpy import round_
+>>> round_(solver.abserrormax.INIT)
+0.01
+>>> parameters.update()
+>>> solver.abserrormax
+abserrormax(0.01)
+
+The following test results show the expected storage retention pattern.
+The sums of inflow and outflow are nearly identical, and the maximum of
+the outflow graph intersects with the falling limb of the inflow graph:
+
+.. integration-test::
+
+    >>> test('dam_v006_base_scenario')
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -106,28 +180,28 @@ Integration examples:
     | 19.01. |    0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |
     | 20.01. |    0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |
 
-    .. raw:: html
+|dam_v006| achieves this sufficiently high accuracy with 174 calls to
+its underlying system of differential equations, which averages to less
+than nine calls per day:
 
-        <a
-            href="dam_v006_ex1a.html"
-            target="_blank"
-        >Click here to see the graph</a>
+>>> model.numvars.nmb_calls
+174
 
-    |dam_v006| achieves this sufficiently high accuracy with 174 calls to
-    the system of differential equations, which averages to less than nine
-    calls per day:
+.. _dam_v006_low_accuracy:
 
-    >>> model.numvars.nmb_calls
-    174
+low accuracy
+____________
 
-    Through increasing the numerical tolerance, e.g. setting |AbsErrorMax|
-    to 0.1 m³/s, we can gain some additional speedups without relevant
-    deteriorations of the results (|dam_v006| usually achieves higher
-    accuracies than indicated by the actual tolerance value):
+Through increasing the numerical tolerance, e.g. setting |AbsErrorMax|
+to 0.1 m³/s, we can gain some additional speedups without relevant
+deteriorations of the results (|dam_v006| usually achieves higher
+accuracies than indicated by the actual tolerance value):
+
+.. integration-test::
 
     >>> model.numvars.nmb_calls = 0
     >>> solver.abserrormax(0.1)
-    >>> test('dam_v006_ex1b')
+    >>> test('dam_v006_low_accuracy')
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -151,26 +225,24 @@ Integration examples:
     | 19.01. |    0.0 |       0.001396 | 0.001396 |    0.000125 |    0.0 | 0.001396 |
     | 20.01. |    0.0 |       0.000711 | 0.000711 |    0.000064 |    0.0 | 0.000711 |
 
-    .. raw:: html
+>>> model.numvars.nmb_calls
+104
 
-        <a
-            href="dam_v006_ex1b.html"
-            target="_blank"
-        >Click here to see the graph</a>
+.. _dam_v006_water_level_drop:
 
-    >>> model.numvars.nmb_calls
-    104
+water level drop
+________________
 
-    After setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow
-    hydrograph shows the same plateau in its falling limb as in the results
-    of application model |llake_v1|.  Again, there a better agreement to
-    the more precise results accomplished by an hourly stepsize (example 5)
-    instead of a daily stepsize (example 2):
+When setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow
+hydrograph shows a plateau in its falling limb.  This plateau is placed in
+the period where little inflow occurs, but the potential outflow
+(|FloodDischarge|) is still high due to large amounts of stored water:
 
-    >>> model.numvars.nmb_calls = 0
-    >>> solver.abserrormax(0.01)
+.. integration-test::
+
     >>> allowedwaterleveldrop(0.1)
-    >>> test('dam_v006_ex2')
+    >>> solver.abserrormax(0.01)
+    >>> test('dam_v006_water_level_drop')
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -193,23 +265,6 @@ Integration examples:
     | 18.01. |    0.0 |        0.03147 |  0.03147 |    0.001826 |    0.0 |  0.03147 |
     | 19.01. |    0.0 |       0.010371 | 0.010371 |     0.00093 |    0.0 | 0.010371 |
     | 20.01. |    0.0 |       0.005282 | 0.005282 |    0.000474 |    0.0 | 0.005282 |
-
-    .. raw:: html
-
-        <a
-            href="dam_v006_ex2.html"
-            target="_blank"
-        >Click here to see the graph</a>
-
-    Considering the number of calls, |dam_v006| is quite efficient, again:
-
-    >>> model.numvars.nmb_calls
-    132
-
-    However, when comparing it to the number of calls of |llake_v1|, one
-    must take the additional overhead of the integration algorithm and the
-    smoothing of the (formerly) discontinuous differential equations
-    into account.
 """
 # import...
 # ...from HydPy

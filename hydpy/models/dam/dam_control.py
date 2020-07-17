@@ -61,6 +61,9 @@ class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
     water level and the highest possible water release used to relieve
     the dam during high flow conditions [-]."""
 
+    XLABEL = 'water level [m]'
+    YLABEL = 'possible remote relieve [m³/s]'
+
 
 class RemoteRelieveTolerance(parametertools.Parameter):
     """A tolerance value for the "possible remote relieve" [m³/s]."""
@@ -152,10 +155,16 @@ class WaterVolume2WaterLevel(anntools.ANN):
     """Artificial neural network describing the relationship between
     water level and water volume [-]."""
 
+    XLABEL = 'water volume [million m³]'
+    YLABEL = 'water level [m]'
+
 
 class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
+
+    XLABEL = 'water level [m]'
+    YLABEL = 'flood discharge [m³/s]'
 
 
 class AllowedWaterLevelDrop(parametertools.Parameter):

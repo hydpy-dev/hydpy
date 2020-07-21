@@ -307,12 +307,6 @@ hydpy.models.hland.hland_control.ZoneType
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
                         with warnings.catch_warnings():
-                            warnings.filterwarnings(
-                                'error', module=modulename)
-                            warnings.filterwarnings(
-                                'error', category=UserWarning)
-                            warnings.filterwarnings(
-                                'ignore', category=ImportWarning)
                             doctest.testmod(
                                 module, extraglobs={'testing': True},
                                 optionflags=doctest.ELLIPSIS)

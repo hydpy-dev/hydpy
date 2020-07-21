@@ -15,12 +15,7 @@ from hydpy.auxs import statstools
 pyplot = exceptiontools.OptionalImport(
     'pyplot', ['matplotlib.pyplot'], locals())
 integrate = exceptiontools.OptionalImport(
-    'integrate',
-    ['scipy.integrate'],
-    locals(),
-    ['import warnings',
-     'from scipy import integrate',
-     'warnings.filterwarnings("error", category=integrate.IntegrationWarning)'])
+    'integrate', ['scipy.integrate'], locals())
 
 
 class MA:
@@ -140,13 +135,10 @@ class MA:
     RuntimeError: Not able to detect a turning point in the impulse response \
 defined by the MA coefficients 1.0, 1.0, 1.0.
 
-    The next example requires reactivating the warning suppressed above
-    (and under Python 2.7 some registry clearing):
+    The next example requires reactivating the warning suppressed above:
 
     >>> warnings.filterwarnings(
     ...     'error', category=integrate.IntegrationWarning)
-    >>> from scipy.integrate import quadpack
-    >>> quadpack.__warningregistry__ = {}
 
     The MA coefficients need to be approximated numerically.  For very
     spiky response function, the underlying integration algorithm might

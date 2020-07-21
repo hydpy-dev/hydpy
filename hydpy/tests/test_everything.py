@@ -159,30 +159,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                             module='hydpy',
                         )
                         warnings.filterwarnings(
-                            action='error',
-                            category=UserWarning,
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            category=ImportWarning,
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            message='numpy.dtype size changed',
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            message='numpy.ufunc size changed',
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            message='elementwise',
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            message='the imp module is deprecated',
-                        )
-                        warnings.filterwarnings(
                             action='ignore',
                             message='tostring',
                         )

@@ -14,7 +14,6 @@ import os
 import pkgutil
 import warnings
 # ...from site-packages
-warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 # ...from HydPy
@@ -105,16 +104,8 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
 
-warnings.resetwarnings()
-# Due to a Cython problem:
-warnings.filterwarnings('ignore', category=ImportWarning)
-warnings.filterwarnings('always', category=HydPyDeprecationWarning)
-warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 warnings.filterwarnings('ignore', r'elementwise comparison failed')
-warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
-warnings.filterwarnings('ignore', r'numpy.ufunc size changed')
 warnings.filterwarnings('ignore', r'tostring')
-
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:
 try:

@@ -76,6 +76,7 @@ from hydpy.auxs.statstools import calc_mean_time
 from hydpy.auxs.statstools import calc_mean_time_deviation
 from hydpy.auxs.statstools import corr
 from hydpy.auxs.statstools import evaluationtable
+from hydpy.auxs.statstools import filter_series
 from hydpy.auxs.statstools import hsepd
 from hydpy.auxs.statstools import hsepd_manual
 from hydpy.auxs.statstools import hsepd_pdf
@@ -83,7 +84,7 @@ from hydpy.auxs.statstools import kge
 from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import nse_log
 from hydpy.auxs.statstools import prepare_arrays
-from hydpy.auxs.statstools import r_squared
+from hydpy.auxs.statstools import corr2
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
 from hydpy.auxs.xmltools import run_simulation
@@ -182,6 +183,7 @@ __all__ = ['aggregate_series',
            'calc_mean_time_deviation',
            'corr',
            'evaluationtable',
+           'filter_series',
            'hsepd',
            'hsepd_manual',
            'hsepd_pdf',
@@ -189,7 +191,7 @@ __all__ = ['aggregate_series',
            'nse',
            'nse_log',
            'prepare_arrays',
-           'r_squared',
+           'corr2',
            'std_ratio',
            'XMLInterface',
            'run_simulation',

@@ -436,7 +436,7 @@ type(s) for +=: 'int' and 'str'
             info = kwargs.copy()
             info['self'] = instance
             argnames = inspect.getfullargspec(wrapped).args
-            if argnames[0] == 'self':
+            if argnames and (argnames[0] == 'self'):
                 argnames = argnames[1:]
             for argname, arg in zip(argnames, args):
                 info[argname] = arg

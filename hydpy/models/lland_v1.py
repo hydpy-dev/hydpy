@@ -37,6 +37,8 @@ models on arbitrary simulation step sizes.  But application model |lland_v1|
 one has to be aware that the Turc-Wendling equation for calculating reference
 evaporation targets daily time steps only.
 
+.. _lland_v1_integration_tests:
+
 Integration tests
 =================
 

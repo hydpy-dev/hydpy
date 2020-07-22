@@ -495,6 +495,16 @@ def _compare_variables_function_generator(
         """Wrapper for comparison functions for class |Variable|."""
         if self is other:
             return method_string in ('__eq__', '__le__', '__ge__')
+        try:
+            ls = len(self)
+            lo = len(other)
+            if (ls != 1) and (lo != 1) and (ls != lo):
+                if method_string == '__eq__':
+                    return False
+                if method_string == '__ne__':
+                    return True
+        except TypeError:
+            pass
         method = getattr(self.value, method_string)
         try:
             if hasattr(type(other), '__hydpy__get_value__'):

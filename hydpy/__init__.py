@@ -104,7 +104,6 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
 
-warnings.filterwarnings('ignore', r'elementwise comparison failed')
 warnings.filterwarnings('ignore', r'tostring')
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:

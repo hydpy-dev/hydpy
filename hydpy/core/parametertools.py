@@ -4,6 +4,7 @@ of the parameters of hydrological models."""
 # import...
 # ...from standard library
 import inspect
+import textwrap
 import time
 from typing import *
 # ...from site-packages
@@ -41,8 +42,8 @@ def get_controlfileheader(
     >>> from hydpy.core.parametertools import get_controlfileheader, Parameter
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
     >>> print(get_controlfileheader(model='no model class',
-    ...                          parameterstep='-1h',
-    ...                          simulationstep=Period('1h')))
+    ...                             parameterstep='-1h',
+    ...                             simulationstep=Period('1h')))
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.no model class import *
@@ -69,6 +70,10 @@ def get_controlfileheader(
     parameterstep('1d')
     <BLANKLINE>
     <BLANKLINE>
+
+    .. testsetup::
+
+        >>> del pub.timegrids
     """
     with Parameter.parameterstep(parameterstep):
         if simulationstep is None:
@@ -140,17 +145,21 @@ class Parameters:
     ...     print(subpars.name)
     control
     derived
+    >>> len(model.parameters)
+    2
     """
 
     model: 'modeltools.Model'
     control: 'SubParameters'
     derived: 'SubParameters'
+    fixed: 'SubParameters'
     solver: 'SubParameters'
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
         self.control = self._prepare_subpars('control', kwargs)
         self.derived = self._prepare_subpars('derived', kwargs)
+        self.fixed = self._prepare_subpars('fixed', kwargs)
         self.solver = self._prepare_subpars('solver', kwargs)
 
     def _prepare_subpars(self, shortname, kwargs):
@@ -264,34 +273,34 @@ function `save_controls` directly.  But in complete HydPy applications, \
 it is usally assumed to be consistent with the name of the element \
 handling the model.
         """
-        if self.control:
-            variable2auxfile = getattr(auxfiler, str(self.model), None)
-            lines = [get_controlfileheader(
-                self.model, parameterstep, simulationstep)]
-            with Parameter.parameterstep(parameterstep):
-                for par in self.control:
-                    if variable2auxfile:
-                        auxfilename = variable2auxfile.get_filename(par)
-                        if auxfilename:
-                            lines.append(
-                                f"{par.name}(auxfile='{auxfilename}')\n")
-                            continue
-                    lines.append(repr(par) + '\n')
-            text = ''.join(lines)
-            if filepath:
-                with open(filepath, mode='w', encoding='utf-8') as controlfile:
-                    controlfile.write(text)
-            else:
-                filename = objecttools.devicename(self)
-                if filename == '?':
-                    raise RuntimeError(
-                        'To save the control parameters of a model to a file, '
-                        'its filename must be known.  This can be done, by '
-                        'passing a filename to function `save_controls` '
-                        'directly.  But in complete HydPy applications, it is '
-                        'usally assumed to be consistent with the name of the '
-                        'element handling the model.')
-                hydpy.pub.controlmanager.save_file(filename, text)
+        variable2auxfile = getattr(auxfiler, str(self.model), None)
+        lines = [get_controlfileheader(
+            self.model, parameterstep, simulationstep)]
+        with Parameter.parameterstep(parameterstep):
+            for par in self.control:
+                if variable2auxfile:
+                    auxfilename = variable2auxfile.get_filename(par)
+                    if auxfilename:
+                        lines.append(
+                            f"{par.name}(auxfile='{auxfilename}')\n")
+                        continue
+                lines.append(repr(par) + '\n')
+        text = ''.join(lines)
+        if filepath:
+            with open(filepath, mode='w', encoding='utf-8') as controlfile:
+                controlfile.write(text)
+        else:
+            filename = objecttools.devicename(self)
+            if filename == '?':
+                raise RuntimeError(
+                    'To save the control parameters of a model to a file, '
+                    'its filename must be known.  This can be done, by '
+                    'passing a filename to function `save_controls` '
+                    'directly.  But in complete HydPy applications, it is '
+                    'usally assumed to be consistent with the name of the '
+                    'element handling the model.')
+            hydpy.pub.controlmanager.save_file(filename, text)
+
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects
@@ -348,16 +357,19 @@ no value has been defined so far.
             yield subpars
 
     def __iter__(self) -> Iterator['SubParameters']:
-        for subpars in (self.control, self.derived, self.solver):
+        for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
                 yield subpars
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
     def __dir__(self) -> List[str]:
         """
         >>> from hydpy.models.hstream_v1 import *
         >>> parameterstep()
         >>> dir(model.parameters)
-        ['control', 'derived', 'model', 'save_controls', \
+        ['control', 'derived', 'fixed', 'model', 'save_controls', \
 'secondary_subpars', 'solver', 'update', 'verify']
         """
         return objecttools.dir_(self)
@@ -626,8 +638,6 @@ class Simulationstep(_Stepsize):
 
     .. testsetup::
 
-        >>> from hydpy import pub
-        >>> del pub.timegrids
         >>> from hydpy.core.parametertools import Parameter
         >>> Parameter.simulationstep.delete()
         Period()
@@ -729,8 +739,6 @@ class Parameter(variabletools.Variable[SubParameters]):
 
     .. testsetup::
 
-        >>> from hydpy import pub
-        >>> del pub.timegrids
         >>> from hydpy.core.parametertools import Parameter
         >>> Parameter.simulationstep.delete()
         Period()
@@ -1102,8 +1110,6 @@ shape (2) into shape (2,3)
 
         .. testsetup::
 
-            >>> from hydpy import pub
-            >>> del pub.timegrids
             >>> from hydpy.core.parametertools import Parameter
             >>> Parameter.simulationstep.delete()
             Period()
@@ -1133,16 +1139,20 @@ parameter and a simulation time step size first.
         >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
         >>> Parameter.get_timefactor()
         0.5
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         try:
             parfactor = hydpy.pub.timegrids.parfactor
         except RuntimeError:
             if not (cls.parameterstep and cls.simulationstep):
                 raise RuntimeError(
-                    f'To calculate the conversion factor for adapting '
-                    f'the values of the time-dependent parameters, '
-                    f'you need to define both a parameter and a simulation '
-                    f'time step size first.')
+                    'To calculate the conversion factor for adapting '
+                    'the values of the time-dependent parameters, '
+                    'you need to define both a parameter and a simulation '
+                    'time step size first.')
             date1 = timetools.Date('2000.01.01')
             date2 = date1 + cls.simulationstep
             parfactor = timetools.Timegrids(timetools.Timegrid(
@@ -1158,11 +1168,6 @@ parameter and a simulation time step size first.
         """Change and return the given value(s) in accordance with
         |Parameter.get_timefactor| and the type of time-dependence
         of the actual parameter subclass.
-
-        .. testsetup::
-
-            >>> from hydpy import pub
-            >>> del pub.timegrids
 
         For the same conversion factor returned by method
         |Parameter.get_timefactor|, method |Parameter.apply_timefactor|
@@ -1215,11 +1220,6 @@ parameter and a simulation time step size first.
         See the explanations on method Parameter.apply_timefactor| to
         understand the following examples:
 
-        .. testsetup::
-
-            >>> from hydpy import pub
-            >>> del pub.timegrids
-
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):
         ...     TIME = None
@@ -1269,11 +1269,6 @@ implement method `update`.
 
         |Parameter.compress_repr| raises a |NotImplementedError| when
         failing to find a compressed representation.
-
-        .. testsetup::
-
-            >>> from hydpy import pub
-            >>> del pub.timegrids
 
         For the following examples, we define a 1-dimensional sequence
         handling time-dependent floating-point values:
@@ -1418,7 +1413,7 @@ implement method `update`.
 'fastaccess', 'get_submask', 'get_timefactor', 'initinfo', 'mask', 'name', \
 'parameterstep', 'refweights', 'revert_timefactor', 'shape', \
 'simulationstep', 'strict_valuehandling', 'subpars', 'subvars', 'trim', \
-'update', 'value', 'values', 'verify']
+'unit', 'update', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 
@@ -1528,8 +1523,6 @@ class ZipParameter(Parameter):
 
     .. testsetup::
 
-        >>> from hydpy import pub
-        >>> del pub.timegrids
         >>> from hydpy.core.parametertools import Parameter
         >>> Parameter.simulationstep.delete()
         Period()
@@ -1752,8 +1745,6 @@ class SeasonalParameter(Parameter):
 
     .. testsetup::
 
-        >>> from hydpy import pub
-        >>> del pub.timegrids
         >>> from hydpy.core.parametertools import Parameter
         >>> Parameter.simulationstep.delete()
         Period()
@@ -1888,6 +1879,10 @@ the following error occurred: While trying to convert the value(s) \
 `[ 1.  2.]` to a numpy ndarray with shape `(366, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
 shape (2) into shape (366,3)
+
+    .. testsetup::
+
+        >>> del pub.timegrids
     """
     TYPE = float
 
@@ -2005,6 +2000,10 @@ shape (2) into shape (366,3)
                [ 1. ,  2. ,  3. ],
                [ nan,  nan,  nan],
                [ nan,  nan,  nan]])
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         self._toy2values = {toy: self._toy2values[toy] for toy
                             in sorted(self._toy2values.keys())}
@@ -2094,6 +2093,10 @@ shape (2) into shape (366,3)
         -1.0
         >>> round_(result[1])
         1.0
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         xnew = timetools.TOY(date)
         xys = list(self)
@@ -2111,8 +2114,6 @@ shape (2) into shape (366,3)
 
         .. testsetup::
 
-            >>> from hydpy import pub
-            >>> del pub.timegrids
             >>> from hydpy.core.parametertools import Parameter
             >>> Parameter.simulationstep.delete()
             Period()
@@ -2275,8 +2276,212 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         >>> dir(par)   # doctest: +ELLIPSIS
         [... 'subvars', 'toy_1_1_0_0_0', 'toy_3_1_0_0_0', \
 'toy_7_1_0_0_0', 'trim', ...]
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
+
+
+class KeywordParameter1D(Parameter):
+    """Base class for 1-dimensional model parameters with values depending
+    on one factor.
+
+    When subclassing from |KeywordParameter1D| one needs to define the
+    class attribute `ENTRYNAMES`.  A typical use case is that `ENTRYNAMES`
+    defines seasons like the months or, as in our example, half-years:
+
+    >>> from hydpy.core.parametertools import KeywordParameter1D
+    >>> class IsHot(KeywordParameter1D):
+    ...     TYPE = bool
+    ...     TIME = None
+    ...     ENTRYNAMES = ('winter', 'summer')
+
+    Usually, |KeywordParameter1D| objects prepare their shape automatically.
+    However, to simplify this test case, we define it manually:
+
+    >>> ishot = IsHot(None)
+    >>> ishot.shape = 2
+
+    You can pass all parameter values both via positional or keyword arguments:
+
+    >>> ishot(True)
+    >>> ishot
+    ishot(True)
+
+    >>> ishot(False, True)
+    >>> ishot
+    ishot(winter=False, summer=True)
+
+    >>> ishot(winter=True, summer=False)
+    >>> ishot
+    ishot(winter=True, summer=False)
+    >>> ishot.values
+    array([ True, False], dtype=bool)
+
+    We check the given keyword arguments for correctness and completeness:
+
+    >>> ishot(winter=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `ishot` of element `?` via keyword \
+arguments, each string defined in `ENTRYNAMES` must be used as a keyword, \
+but the following keywords are not: `summer`.
+
+    >>> ishot(winter=True, summer=False, spring=True, autumn=False)
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `ishot` of element `?` via keyword \
+arguments, each keyword must be defined in `ENTRYNAMES`, but the following \
+keywords are not: `spring and autumn`.
+
+    Class |KeywordParameter1D| implements attribute access, including
+    specialised error messages:
+
+    >>> ishot.winter, ishot.summer = ishot.summer, ishot.winter
+    >>> ishot
+    ishot(winter=False, summer=True)
+
+    >>> ishot.spring
+    Traceback (most recent call last):
+    ...
+    AttributeError: Parameter `ishot` of element `?` does not handle an \
+attribute named `spring`.
+
+    >>> ishot.shape = 1
+    >>> ishot.summer
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to retrieve a value from parameter `ishot` of \
+element `?` via the attribute `summer`, the following error occurred: \
+index 1 is out of bounds for axis 0 with size 1
+
+    >>> ishot.summer = True
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to assign a new value to parameter `ishot` of \
+element `?` via attribute `summer`, the following error occurred: \
+index 1 is out of bounds for axis 0 with size 1
+    """
+    NDIM = 1
+    ENTRYNAMES: ClassVar[Tuple[str, ...]]
+
+    strict_valuehandling: ClassVar[bool] = False
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self.shape = len(self.ENTRYNAMES)
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError:
+            for (idx, key) in enumerate(self.ENTRYNAMES):
+                try:
+                    self.values[idx] = self.apply_timefactor(kwargs[key])
+                except KeyError:
+                    err = (key for key in self.ENTRYNAMES if key not in kwargs)
+                    raise ValueError(
+                        f'When setting parameter '
+                        f'{objecttools.elementphrase(self)} via keyword '
+                        f'arguments, each string defined '
+                        f'in `ENTRYNAMES` must be used as a keyword, '
+                        f'but the following keywords are not: '
+                        f'`{objecttools.enumeration(err)}`.')
+            if len(kwargs) != len(self.ENTRYNAMES):
+                err = (key for key in kwargs if key not in self.ENTRYNAMES)
+                raise ValueError(
+                    f'When setting parameter '
+                    f'{objecttools.elementphrase(self)} via keyword '
+                    f'arguments, each keyword must be defined in '
+                    f'`ENTRYNAMES`, but the following keywords are not: '
+                    f'`{objecttools.enumeration(err)}`.'
+                )
+
+    def __getattr__(self, key):
+        if key in self.ENTRYNAMES:
+            try:
+                return self.values[self.ENTRYNAMES.index(key)]
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to retrieve a value from parameter '
+                    f'{objecttools.elementphrase(self)} via the '
+                    f'attribute `{key}`')
+        raise AttributeError(
+            f'Parameter {objecttools.elementphrase(self)} does '
+            f'not handle an attribute named `{key}`.')
+
+    def __setattr__(self, key, values):
+        if key in self.ENTRYNAMES:
+            try:
+                self.values[self.ENTRYNAMES.index(key)] = values
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to assign a new value to parameter '
+                    f'{objecttools.elementphrase(self)} via attribute `{key}`')
+        else:
+            super().__setattr__(key, values)
+
+    def __repr__(self):
+        lines = self.commentrepr
+        values = self.revert_timefactor(self.values)
+        prefix = f'{self.name}('
+        if len(numpy.unique(values)) == 1:
+            lines.append(f'{prefix}{objecttools.repr_(values[0])})')
+        else:
+            blanks = ' '*len(prefix)
+            string = ', '.join(f'{key}={objecttools.repr_(value)}'
+                               for key, value in zip(self.ENTRYNAMES, values))
+            nmb = max(70-len(prefix), 30)
+            for idx, substring in enumerate(textwrap.wrap(string, nmb)):
+                if idx:
+                    lines.append(f'{blanks}{substring}')
+                else:
+                    lines.append(f'{prefix}{substring}')
+            lines[-1] += ')'
+        return '\n'.join(lines)
+
+    def __dir__(self):
+        """
+        >>> from hydpy.core.parametertools import KeywordParameter1D
+        >>> class Season(KeywordParameter1D):
+        ...     TYPE = bool
+        ...     TIME = None
+        ...     ENTRYNAMES = ('winter', 'summer')
+        >>> dir(Season(None))   # doctest: +ELLIPSIS
+        [...'subvars', 'summer', 'trim', ... 'verify', 'winter']
+        """
+        return tuple(objecttools.dir_(self)) + self.ENTRYNAMES
+
+
+class MonthParameter(KeywordParameter1D):
+    """Base class for parameters which values depend on the actual month.
+
+    Please see the documentation on class |KeywordParameter1D| on how to
+    use |MonthParameter| objects and class |lland_control.WG2Z| of base
+    model |lland| as an example implementation:
+
+    >>> from hydpy.models.lland import *
+    >>> simulationstep('12h')
+    >>> parameterstep('1d')
+    >>> wg2z(3.0, 2.0, 1.0, 0.0, -1.0, -2.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0)
+    >>> wg2z
+    wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+         aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
+
+    Note that attribute access provides access to the "real" values related
+    to the current simulation time step:
+
+    >>> wg2z.feb
+    2.0
+    >>> wg2z.feb = 4.0
+    >>> wg2z
+    wg2z(jan=3.0, feb=4.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+         aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
+    """
+    ENTRYNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
 
 
 class KeywordParameter2D(Parameter):
@@ -2416,21 +2621,20 @@ a normal attribute nor a row or column related attribute named `wrong`.
                   False, False])
     """
     NDIM = 2
-    ROWNAMES: Tuple[str, ...]
-    COLNAMES: Tuple[str, ...]
+    ROWNAMES: ClassVar[Tuple[str, ...]]
+    COLNAMES: ClassVar[Tuple[str, ...]]
 
     strict_valuehandling: ClassVar[bool] = False
 
-    def __init__(self, subvars):
-        if not hasattr(type(self), '_ROWCOLMAPPINGS'):
-            rownames = self.ROWNAMES
-            colnames = self.COLNAMES
-            rowcolmappings = {}
-            for (idx, rowname) in enumerate(rownames):
-                for (jdx, colname) in enumerate(colnames):
-                    rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
-            type(self)._ROWCOLMAPPINGS = rowcolmappings
-        super().__init__(subvars)
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        rownames = cls.ROWNAMES
+        colnames = cls.COLNAMES
+        rowcolmappings = {}
+        for (idx, rowname) in enumerate(rownames):
+            for (jdx, colname) in enumerate(colnames):
+                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+        cls._ROWCOLMAPPINGS = rowcolmappings
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -2442,7 +2646,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         except NotImplementedError:
             for (idx, key) in enumerate(self.ROWNAMES):
                 try:
-                    values = kwargs[key]
+                    self.values[idx, :] = self.apply_timefactor(kwargs[key])
                 except KeyError:
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
@@ -2452,18 +2656,6 @@ a normal attribute nor a row or column related attribute named `wrong`.
                         f'in `ROWNAMES` must be used as a keyword, '
                         f'but the following keywords are not: '
                         f'`{objecttools.enumeration(miss)}`.')
-                self.values[idx, :] = values
-
-    def __repr__(self):
-        lines = self.commentrepr
-        prefix = f'{self.name}('
-        blanks = ' '*len(prefix)
-        for (idx, key) in enumerate(self.ROWNAMES):
-            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
-            lines.append(objecttools.assignrepr_list(self.values[idx, :],
-                                                     subprefix, 75) + ',')
-        lines[-1] = lines[-1][:-1] + ')'
-        return '\n'.join(lines)
 
     def __getattr__(self, key):
         if key in self.ROWNAMES:
@@ -2525,6 +2717,18 @@ a normal attribute nor a row or column related attribute named `wrong`.
         else:
             super().__setattr__(key, values)
 
+    def __repr__(self):
+        lines = self.commentrepr
+        values = self.revert_timefactor(self.values)
+        prefix = f'{self.name}('
+        blanks = ' '*len(prefix)
+        for (idx, key) in enumerate(self.ROWNAMES):
+            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
+            lines.append(objecttools.assignrepr_list(
+                values[idx, :], subprefix, 75) + ',')
+        lines[-1] = lines[-1][:-1] + ')'
+        return '\n'.join(lines)
+
     def __dir__(self):
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
@@ -2538,8 +2742,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
 'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
 'strict_valuehandling'...]
         """
-        return (objecttools.dir_(self) + list(self.ROWNAMES) +
-                list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
+        return (tuple(objecttools.dir_(self)) + self.ROWNAMES +
+                self.COLNAMES + tuple(self._ROWCOLMAPPINGS.keys()))
 
 
 class RelSubweightsMixin:
@@ -2683,6 +2887,74 @@ parameter value must be given, but is not.
         else:
             lines.append(f'{self.name}(left={values[0]}, right={values[1]})')
         return '\n'.join(lines)
+
+
+class FixedParameter(Parameter):
+    """Base class for defining parameters with fixed values.
+
+    Model model-users usually do not modify the values of |FixedParameter|
+    objects.  Hence, such objects prepare their "initial" values automatically
+    whenever possible, even when option |Options.usedefaultvalues| is disabled.
+    """
+
+    @property
+    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+        """A |tuple| always containing the fixed value and |True|, except
+        for time-dependent parameters and incomplete time-information.
+
+        .. testsetup::
+
+            >>> from hydpy.core.parametertools import Parameter
+            >>> Parameter.simulationstep.delete()
+            Period()
+
+        >>> from hydpy.core.parametertools import FixedParameter
+        >>> class Par(FixedParameter):
+        ...   NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+        ...   INIT = 100.0
+        >>> par = Par(None)
+        >>> par.initinfo
+        (nan, False)
+        >>> par.parameterstep = '1d'
+        >>> par.simulationstep = '12h'
+        >>> par.initinfo
+        (50.0, True)
+        """
+        try:
+            with self.parameterstep('1d'):
+                return self.apply_timefactor(self.INIT), True
+        except (AttributeError, RuntimeError):
+            return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
+
+    def restore(self) -> None:
+        """Restore the original parameter value.
+
+        Method |FixedParameter.restore| is relevant for testing mainly.
+        Note that it might be necessary to call it after changing the
+        simulation step size, as shown in the following example using
+        the parameter |lland_fixed.LambdaG| of base model |lland|:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep('1d')
+        >>> parameterstep('1d')
+        >>> from hydpy import round_
+        >>> fixed.lambdag
+        lambdag(0.05184)
+        >>> round_(fixed.lambdag.value)
+        0.05184
+        >>> simulationstep('12h')
+        >>> fixed.lambdag
+        lambdag(0.10368)
+        >>> round_(fixed.lambdag.value)
+        0.05184
+        >>> fixed.lambdag.restore()
+        >>> fixed.lambdag
+        lambdag(0.05184)
+        >>> round_(fixed.lambdag.value)
+        0.02592
+        """
+        with self.parameterstep('1d'):
+            self(self.INIT)
 
 
 class SolverParameter(Parameter):
@@ -2862,6 +3134,48 @@ class SecondsParameter(Parameter):
         self.value = self.simulationstep.seconds
 
 
+class HoursParameter(Parameter):
+    """The length of the actual simulation step size in hours [h]."""
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0., None)
+
+    def update(self) -> None:
+        """Take the number of hours from the current simulation time step.
+
+        >>> from hydpy.core.parametertools import HoursParameter
+        >>> hoursparameter = HoursParameter(None)
+        >>> hoursparameter.parameterstep = '1d'
+        >>> hoursparameter.simulationstep = '12h'
+        >>> hoursparameter.update()
+        >>> hoursparameter
+        hoursparameter(12.0)
+        """
+        self.value = self.simulationstep.hours
+
+
+class DaysParameter(Parameter):
+    """The length of the actual simulation step size in days [d]."""
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0., None)
+
+    def update(self) -> None:
+        """Take the number of days from the current simulation time step.
+
+        >>> from hydpy.core.parametertools import DaysParameter
+        >>> daysparameter = DaysParameter(None)
+        >>> daysparameter.parameterstep = '1d'
+        >>> daysparameter.simulationstep = '12h'
+        >>> daysparameter.update()
+        >>> daysparameter
+        daysparameter(0.5)
+        """
+        self.value = self.simulationstep.days
+
+
 class TOYParameter(Parameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
@@ -2881,6 +3195,10 @@ class TOYParameter(Parameter):
         >>> toyparameter.update()
         >>> toyparameter
         toyparameter(57, 58, 59, 60, 61)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         # pylint: disable=no-member
         # pylint does not understand descriptors well enough, so far
@@ -2908,6 +3226,10 @@ class MOYParameter(Parameter):
         >>> moyparameter.update()
         >>> moyparameter
         moyparameter(1, 1, 1, 2, 2)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         # pylint: disable=no-member
         # pylint does not understand descriptors well enough, so far
@@ -2935,6 +3257,10 @@ class DOYParameter(Parameter):
         >>> doyparameter.update()
         >>> doyparameter
         doyparameter(57, 58, 59, 60, 61)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         # pylint: disable=no-member
         # pylint does not understand descriptors well enough, so far
@@ -2945,7 +3271,7 @@ class DOYParameter(Parameter):
 
 class SCTParameter(Parameter):
     """References the |Indexer.standardclocktime| array provided by the
-    instance of class |Indexer| available in module |pub| [-]."""
+    instance of class |Indexer| available in module |pub| [h]."""
     NDIM = 1
     TYPE = float
     TIME = None
@@ -2961,7 +3287,11 @@ class SCTParameter(Parameter):
         >>> sctparameter = SCTParameter(None)
         >>> sctparameter.update()
         >>> sctparameter
-        sctparameter(77400.0, 81000.0, 84600.0, 1800.0, 5400.0, 9000.0)
+        sctparameter(21.5, 22.5, 23.5, 0.5, 1.5, 2.5)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         # pylint: disable=no-member
         # pylint does not understand descriptors well enough, so far

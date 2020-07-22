@@ -14,7 +14,6 @@ import os
 import pkgutil
 import warnings
 # ...from site-packages
-warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 # ...from HydPy
@@ -53,7 +52,9 @@ from hydpy.core.testtools import IntegrationTest
 from hydpy.core.testtools import Open
 from hydpy.core.testtools import TestIO
 from hydpy.core.testtools import UnitTest
+from hydpy.core.testtools import update_integrationtests
 from hydpy.core.variabletools import INT_NAN
+from hydpy.core.variabletools import sort_variables
 from hydpy.auxs.armatools import ARMA
 from hydpy.auxs.armatools import MA
 from hydpy.auxs.anntools import ANN
@@ -67,17 +68,22 @@ from hydpy.core.itemtools import SetItem
 from hydpy.auxs.networktools import RiverBasinNumber
 from hydpy.auxs.networktools import RiverBasinNumbers
 from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+from hydpy.auxs.statstools import aggregate_series
 from hydpy.auxs.statstools import bias_abs
 from hydpy.auxs.statstools import bias_rel
 from hydpy.auxs.statstools import calc_mean_time
 from hydpy.auxs.statstools import calc_mean_time_deviation
 from hydpy.auxs.statstools import corr
 from hydpy.auxs.statstools import evaluationtable
+from hydpy.auxs.statstools import filter_series
 from hydpy.auxs.statstools import hsepd
 from hydpy.auxs.statstools import hsepd_manual
 from hydpy.auxs.statstools import hsepd_pdf
+from hydpy.auxs.statstools import kge
 from hydpy.auxs.statstools import nse
+from hydpy.auxs.statstools import nse_log
 from hydpy.auxs.statstools import prepare_arrays
+from hydpy.auxs.statstools import corr2
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
 from hydpy.auxs.xmltools import run_simulation
@@ -98,15 +104,7 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
 
-warnings.resetwarnings()
-# Due to a Cython problem:
-warnings.filterwarnings('ignore', category=ImportWarning)
-warnings.filterwarnings('always', category=HydPyDeprecationWarning)
-warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
-warnings.filterwarnings('ignore', r'elementwise comparison failed')
-warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
-warnings.filterwarnings('ignore', r'numpy.ufunc size changed')
-
+warnings.filterwarnings('ignore', r'tostring')
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:
 try:
@@ -124,7 +122,8 @@ pub.scriptfunctions['start_server'] = start_server
 pub.scriptfunctions['test_everything'] = test_everything
 pub.scriptfunctions['xml_replace'] = xml_replace
 
-__all__ = ['config',
+__all__ = ['aggregate_series',
+           'config',
            'pub',
            'Auxfiler',
            'Element',
@@ -150,7 +149,9 @@ __all__ = ['config',
            'Open',
            'TestIO',
            'INT_NAN',
+           'sort_variables',
            'UnitTest',
+           'update_integrationtests',
            'ARMA',
            'MA',
            'ANN',
@@ -172,11 +173,15 @@ __all__ = ['config',
            'calc_mean_time_deviation',
            'corr',
            'evaluationtable',
+           'filter_series',
            'hsepd',
            'hsepd_manual',
            'hsepd_pdf',
+           'kge',
            'nse',
+           'nse_log',
            'prepare_arrays',
+           'corr2',
            'std_ratio',
            'XMLInterface',
            'run_simulation',

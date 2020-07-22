@@ -495,6 +495,16 @@ def _compare_variables_function_generator(
         """Wrapper for comparison functions for class |Variable|."""
         if self is other:
             return method_string in ('__eq__', '__le__', '__ge__')
+        try:
+            ls = len(self)
+            lo = len(other)
+            if (ls != 1) and (lo != 1) and (ls != lo):
+                if method_string == '__eq__':
+                    return False
+                if method_string == '__ne__':
+                    return True
+        except TypeError:
+            pass
         method = getattr(self.value, method_string)
         try:
             if hasattr(type(other), '__hydpy__get_value__'):
@@ -931,6 +941,21 @@ operands could not be broadcast together with shapes (2,) (3,)...
     >>> pub.options.reprcomments = False
     >>> var
     var(3.0)
+
+    During initialisation, each |Variable| subclass tries to extract its
+    unit from its docstring:
+
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge [m³/s].'}).unit
+    'm³/s'
+
+    For missing or poorly written docstrings, we set `unit` to "?":
+
+    >>> type('Var', (Variable,), {}).unit
+    '?'
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge ]m³/s[.'}).unit
+    '?'
+    >>> type('Var', (Variable,), {'__doc__': 'Discharge m³/s].'}).unit
+    '?'
     """
     # Subclasses need to define...
     NDIM: int
@@ -946,6 +971,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     __hydpy__subclasscounter__ = 1
 
+    name: str
+    unit: str
     fastaccess: Union[
         'FastAccess',
         typingtools.FastAccessParameterProtocol,
@@ -962,9 +989,21 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     def __init_subclass__(cls):
         cls.name = cls.__name__.lower()
+        cls.unit = cls._get_unit()
         subclasscounter = Variable.__hydpy__subclasscounter__ + 1
         Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
+
+    @classmethod
+    def _get_unit(cls) -> str:
+        descr = objecttools.description(cls)
+        idx1 = descr.find('[')+1
+        idx2 = descr.find(']')
+        if 0 < idx1 < idx2:
+            return descr[idx1:idx2]
+        return '?'
+
+
 
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:
@@ -1811,6 +1850,28 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def __repr__(self):
         return to_repr(self, self.value)
+
+
+def sort_variables(
+        variables: Iterable[Type[typingtools.VariableProtocol]]
+) -> Tuple[Type[typingtools.VariableProtocol], ...]:
+    """Sort the given |Variable| subclasses by their initialisation order.
+
+    When defined in one module, the initialisation order corresponds the
+    order within the file:
+
+    >>> from hydpy import classname, sort_variables
+    >>> from hydpy.models.hland.hland_control import Area, NmbZones, ZoneType
+    >>> from hydpy import classname
+    >>> for var in sort_variables([NmbZones, ZoneType, Area]):
+    ...     print(classname(var))
+    Area
+    NmbZones
+    ZoneType
+    """
+    return tuple(var_ for (idx, var_) in sorted(
+        (var_.__hydpy__subclasscounter__, var_) for var_ in variables
+    ))
 
 
 class SubVariables(Generic[GroupType]):

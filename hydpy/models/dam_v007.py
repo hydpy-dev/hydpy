@@ -1,56 +1,73 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-"""Retention basin (RUEC) version of HydPy-Dam.
+"""Retention basin version of HydPy-Dam.
 
-|dam_v007| is a simple "retention basin" model, like the one selectable
-via by the "RUEC" option of LARSIM.  Therefore, it resembles |dam_v006|,
-which corresponds to LARSIM's "SEEG" option.  The description of the
-(numerical)  implementation differences between |dam_v006| and "SEEG"
-also holds for the differences between |dam_v007| and "RUEC".
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Integration examples:
+|dam_v007| is a simple "retention basin" model, similar to the "RUEC"
+model of `LARSIM`_.  One can understand it as an extension of |dam_v006|,
+and it partly requires equal specifications.  Hence, before continuing
+please first read the documentation on |dam_v006|.
 
-    We create the same test set as for application model |dam_v006|,
-    including an identical inflow series and an identical relationship
-    between stage and volume as well as between flood discharge and stage:
+In extension to |dam_v006|, |dam_v007| implements the control parameter
+|AllowedRelease| (and the related parameters |WaterLevelMinimumThreshold|
+and |WaterLevelMinimumTolerance|).  Usually, one takes the discharge
+not causing any harm downstream as the "allowed release", making |dam_v007|
+behave like a retention basin without active control.  However, one can
+vary the allowed release seasonally (|AllowedRelease| inherits from class
+|SeasonalParameter|).
 
-    >>> from hydpy import pub, Node, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
-    >>> from hydpy.models.dam_v007 import *
-    >>> parameterstep('1d')
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> lake = Element('lake', inlets=input_, outlets=output)
-    >>> lake.model = model
-    >>> from hydpy import IntegrationTest
-    >>> test = IntegrationTest(lake,
-    ...                        inits=[(states.watervolume, 0.0)])
-    >>> test.dateformat = '%d.%m.'
+In contrast to |dam_v006|, |dam_v007| does not allow to restrict the speed
+of the water level decrease during periods with little inflow and thus does
+not use the parameter |AllowedWaterLevelDrop|.
 
-    >>> watervolume2waterlevel(
-    ...     weights_input=1e-6, weights_output=4.e6,
-    ...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+Integration tests
+=================
+
+We create the same test set as for application model |dam_v006|,
+including an identical inflow series and an identical relationship
+between stage and volume:
+
+>>> from hydpy import IntegrationTest, Element, pub
+>>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+>>> parameterstep('1d')
+>>> element = Element('element', inlets='input_', outlets='output')
+>>> element.model = model
+>>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
+>>> IntegrationTest.plotting_options.axis2 = states.watervolume
+>>> test = IntegrationTest(element)
+>>> test.dateformat = '%d.%m.'
+>>> test.inits = [(states.watervolume, 0.0)]
+>>> watervolume2waterlevel(
+...     weights_input=1e-6, weights_output=4.e6,
+...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+>>> catchmentarea(86.4)
+>>> element.inlets.input_.sequences.sim.series = [
+...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
+...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+.. _dam_v007_base_scenario:
+
+base scenario
+_____________
+
+To show that |dam_v007| extends |dam_v006| correctly, we also define the
+same quasi-linear relation between discharge and stage used throughout the
+integration tests of |dam_v006| and additionally set the allowed release to
+0 m³/s (which makes the values of the two water-related control parameters
+irrelevant).  As expected, |dam_v007| now calculates outflow values
+identical with the ones of the :ref:`dam_v006_base_scenario` example of
+|dam_v006| (where |AllowedWaterLevelDrop| is |numpy.inf|):
+
+.. integration-test::
+
     >>> waterlevel2flooddischarge(ann(
     ...     weights_input=1e-6, weights_output=4e7,
     ...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
-    >>> catchmentarea(86.4)
-
-    >>> input_.sequences.sim.series = [
-    ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
-    ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-    In the first example, we set the allowed release to 0 m³/s (which makes
-    the values of the two water-related control parameters irrelevant).
-
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
     >>> waterlevelminimumthreshold(0.0)
-
-    Now only flood discharge (due to an activation of the spillway) can
-    occur, and the results are identical with the ones of the first example
-    on application mode |dam_v006|:
-
-    >>> test('dam_v007_ex1')
+    >>> test('dam_v007_base_scenario')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -74,27 +91,42 @@ Integration examples:
     | 19.01. |    0.0 |           0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |
     | 20.01. |    0.0 |           0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |
 
-    .. raw:: html
+.. _dam_v007_spillway:
 
-        <iframe
-            src="dam_v007_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+spillway
+________
 
-    In the second example, we introduce a more realistic relationship
-    between flood discharge and stage.  Now, the spillway starts to become
-    relevant when the water volume exceeds around 1.4 million m³:
+Now, we introduce a more realistic relationship between flood discharge
+and stage, where the spillway of the retention basin starts to become
+relevant when the water volume exceeds about 1.4 million m³:
 
-    >>> waterlevel2flooddischarge(ann(
-    ...     weights_input=10.0, weights_output=50.0,
-    ...     intercepts_hidden=-20.0, intercepts_output=0.0))
+>>> waterlevel2flooddischarge(ann(
+...     weights_input=10.0, weights_output=50.0,
+...     intercepts_hidden=-20.0, intercepts_output=0.0))
+>>> waterlevel2flooddischarge.plot(0.0, 2.0)
 
-    The initially available storage volume of about 1.4 million m³ reduces
-    the peak flow to 7.3 m³/s:
+.. testsetup::
 
-    >>> test('dam_v007_ex2a')
+    >>> import os
+    >>> from matplotlib import pyplot
+    >>> from hydpy.docs import figs
+    >>> pyplot.savefig(
+    ...     os.path.join(
+    ...         figs.__path__[0],
+    ...         'dam_v007_waterlevel2flooddischarge.png',
+    ...     ),
+    ... )
+    >>> pyplot.close()
+
+.. image:: dam_v007_waterlevel2flooddischarge.png
+   :width: 400
+
+The initially available storage volume of about 1.4 million m³ reduces
+the peak flow to 7.3 m³/s:
+
+.. integration-test::
+
+    >>> test('dam_v007_spillway')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -118,24 +150,23 @@ Integration examples:
     | 19.01. |    0.0 |           0.0 |       0.112196 | 0.112196 |    1.385542 |    0.0 | 0.112196 |
     | 20.01. |    0.0 |           0.0 |       0.102307 | 0.102307 |    1.376702 |    0.0 | 0.102307 |
 
-    .. raw:: html
+.. _dam_v007_allowed_release:
 
-        <iframe
-            src="dam_v007_ex2a.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+allowed release
+_______________
 
-    In the last example, |dam_v007| could not handle a second event following
-    the first one similarly well, as the spillway does not release the
-    remaining water.  Setting the allowed release to 4 m³/s solves this
-    problem and also decreases the amount of water stored during the beginning
-    of the event and thus further reduces the peak flow to 4.6 m³/s:
+In the :ref:`dam_v007_spillway` example, |dam_v007| would not handle a
+second event following the first one similarly well, due to the retention
+basin not releasing the remaining 1.4 million m³ water.  Setting the allowed
+release to 4 m³/s solves this problem and also decreases the amount of water
+stored during the beginning of the event and thus further reduces the peak
+flow to 4.6 m³/s:
+
+.. integration-test::
 
     >>> allowedrelease(4.0)
     >>> waterlevelminimumthreshold(0.1)
-    >>> test('dam_v007_ex2b')
+    >>> test('dam_v007_allowed_release')
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.037088 |            0.0 | 0.037088 |   -0.003204 |    0.0 | 0.037088 |
@@ -159,23 +190,14 @@ Integration examples:
     | 19.01. |    0.0 |      0.038376 |            0.0 | 0.038376 |   -0.002506 |    0.0 | 0.038376 |
     | 20.01. |    0.0 |      0.033349 |            0.0 | 0.033349 |   -0.005387 |    0.0 | 0.033349 |
 
-    .. raw:: html
-
-        <iframe
-            src="dam_v007_ex2b.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
-
-    The initial and final water volumes shown in the last table are slightly
-    negative, which is due to the periods of zero inflow in combination
-    with the value of parameter |WaterLevelMinimumTolerance| set to
-    0.1 m.  One could avoid such negative values by increasing the value
-    of parameter |WaterLevelMinimumThreshold| or decreasing the value of
-    parameter |WaterLevelMinimumTolerance|.  Theoretically, one could set
-    |WaterLevelMinimumTolerance| to zero, but at the cost of potentially
-    increased computation times.
+The initial and final water volumes shown in the last table are slightly
+negative, which is due to the periods of zero inflow in combination with
+the value of parameter |WaterLevelMinimumTolerance| set to 0.1 m.  One
+could avoid such negative values by increasing parameter
+|WaterLevelMinimumThreshold| or decreasing parameter
+|WaterLevelMinimumTolerance|.  Theoretically, one could set
+|WaterLevelMinimumTolerance| to zero, but at the cost of potentially
+increased computation times.
 """
 # import...
 # ...from HydPy
@@ -215,6 +237,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

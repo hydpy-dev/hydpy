@@ -37,3 +37,4 @@ test.py
 make_hydpy_installer.cfg
 lib/*
 temp/*
+hydpy/docs/bibliography/refs.bib.bak

@@ -1477,11 +1477,11 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for further information.
         """
         return {
-            f'Number of nodes': len(self.nodes),
-            f'Number of elements': len(self.elements),
-            f'Number of end nodes': len(self.endnodes),
-            f'Number of distinct networks': len(self.segregatednetworks),
-            f'Applied node variables': self.variables
+            'Number of nodes': len(self.nodes),
+            'Number of elements': len(self.elements),
+            'Number of end nodes': len(self.endnodes),
+            'Number of distinct networks': len(self.segregatednetworks),
+            'Applied node variables': self.variables
         }
 
     def print_networkproperties(self) -> None:
@@ -1722,18 +1722,6 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return sels1
 
     @property
-    def _directedgraph(self) -> networkx.DiGraph:
-        digraph = networkx.DiGraph()
-        digraph.add_nodes_from(self.elements)
-        digraph.add_nodes_from(self.nodes)
-        for element in self.elements:
-            for node in itertools.chain(element.inlets, element.inputs):
-                digraph.add_edge(node, element)
-            for node in element.outlets:
-                digraph.add_edge(element, node)
-        return digraph
-
-    @property
     def variables(self) -> List[str]:
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
@@ -1837,7 +1825,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        self.deviceorder = list(networkx.topological_sort(self._directedgraph))
+        self.deviceorder = list(
+            networkx.topological_sort(create_directedgraph(self)))
 
     @property
     def methodorder(self) -> List[Callable]:
@@ -2171,3 +2160,17 @@ Use method `simulate` instead.
         """An alternative method for |HydPy.load_modelseries| specialised
         for observation sequences of nodes."""
         self.nodes.load_obsseries()
+
+
+def create_directedgraph(devices: typingtools.DevicesHandlerProtocol) \
+        -> networkx.DiGraph:
+    """Create a directed graph based on the given devices."""
+    digraph = networkx.DiGraph()
+    digraph.add_nodes_from(devices.elements)
+    digraph.add_nodes_from(devices.nodes)
+    for element in devices.elements:
+        for node in itertools.chain(element.inlets, element.inputs):
+            digraph.add_edge(node, element)
+        for node in element.outlets:
+            digraph.add_edge(element, node)
+    return digraph

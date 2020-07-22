@@ -114,3 +114,6 @@ class VG2QG(anntools.ANN):
     Abflusses einer Gewässerteilstrecke von deren aktuller Wasserspeicherung
     (artificial neural network describing the relationship between
     total discharge and water storage of individual channel subsections [-]."""
+
+    XLABEL = 'vg [million m³]'
+    YLABEL = 'qg [m³/s]'

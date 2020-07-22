@@ -52,7 +52,7 @@ Integration examples:
     and add some `natural` discharge of the subcatchment between the dam
     and the cross section (a picture would be helpful).
 
-    We define four nodes.  The `input` node is used to define the inflow into
+    We define four nodes.  The `input_` node is used to define the inflow into
     the dam and the `natural` node is used to define the additional discharge
     of the subcatchment.  The `output` node receives the (unmodified) outflow
     out of dam and the `remote` node receives both the routed outflow of the
@@ -109,7 +109,7 @@ Integration examples:
     is prepared:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -227,12 +227,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex02:
 
@@ -277,12 +275,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex03:
 
@@ -324,12 +320,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex04:
 
@@ -373,12 +367,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex05:
 
@@ -419,12 +411,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex5.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex06:
 
@@ -466,12 +456,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex6.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> solver.abserrormax(1e-2)
 
@@ -515,12 +503,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex7.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex08_1:
 
@@ -571,12 +557,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex8_1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex08_2:
 
@@ -613,12 +597,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex8_2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex8_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> restricttargetedrelease(True)
 
@@ -667,12 +649,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex9.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex9.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     This behaviour of the dam model is due to method |Calc_ActualRelease_V1|
     being involved in the set of differential equation that are solved
@@ -736,12 +716,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex10.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     So the fluctuation seems to be gone, but there is still some
     inaccuracy in the results.  Note that the last outflow value is smaller
@@ -812,12 +790,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex11.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex11.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex12:
 
@@ -860,12 +836,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex12.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex12.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Such negative effects due to information delay cannot be circumvented
     easily, unless one would solve the differential equations of all models
@@ -971,12 +945,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex13.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     For a more precise evaluation, you can compare the outflow of the dam
     with the following results of the linear storage cascade with only
@@ -1039,12 +1011,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex14.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex14.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     However, this improvement in accuracy increases the computation time
     significantly.  Now 10.5 calls were required on average:
@@ -1101,12 +1071,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex15.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex15.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     The following calculations show that the dam model reaches the required
     numerical for this extreme parameterizations:
@@ -1182,6 +1150,7 @@ class Model(modeltools.ELSModel):
         dam_model.Update_LoggedOutflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

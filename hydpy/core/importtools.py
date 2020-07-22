@@ -71,6 +71,9 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
         if 'Masks' in namespace:
             model.masks = namespace['Masks'](model)
             namespace['masks'] = model.masks
+        for submodelclass in namespace['Model'].SUBMODELS:
+            submodel = submodelclass(model)
+            setattr(model, submodel.name, submodel)
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:
@@ -245,6 +248,9 @@ def prepare_model(module: Union[types.ModuleType, str],
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
         model.masks = module.Masks(model)
+    for submodelclass in module.Model.SUBMODELS:
+        submodel = submodelclass(model)
+        setattr(model, submodel.name, submodel)
     return model
 
 

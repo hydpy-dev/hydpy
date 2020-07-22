@@ -77,7 +77,6 @@ Integration tests:
     and prints their results for the given sequences:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 900
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.p, inputs.t, fluxes.qt)
     >>> test = IntegrationTest(land)
@@ -138,8 +137,8 @@ Integration tests:
     ...               (states.lz, 10.0),
     ...               (logs.quh, 0.05))
 
-    As mentioned above, the values of the input sequences |P|,
-    |hland_inputs.T|, and |EPN| are taken from :ref:`here <lland_v2_ex1>`.
+    As mentioned above, the values of the input sequences |P|, |hland_inputs.T|,
+    and |EPN| are taken from :ref:`here <lland_v2_acker_summer>`.
     For educational purposes, unrealistically high values of |EPN| are
     used again.  For the sake of simplicity, the values of |TN| are assumed
     to be constantly 1 °C below the values of |hland_inputs.T|:
@@ -300,12 +299,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex1.html"
-            width="100%"
-            height="930px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex2:
 
@@ -421,12 +418,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex2.html"
-            width="100%"
-            height="930px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex3:
 
@@ -544,12 +539,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex3.html"
-            width="100%"
-            height="930px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex4:
 
@@ -674,12 +667,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex4.html"
-            width="100%"
-            height="930px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _hland_v1_ex5:
 
@@ -806,12 +797,10 @@ Integration tests:
 
     .. raw:: html
 
-        <iframe
-            src="hland_v1_ex5.html"
-            width="100%"
-            height="930px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hland_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
@@ -861,6 +850,7 @@ class Model(modeltools.AdHocModel):
         hland_model.Pass_Q_v1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 class Masks(masktools.Masks):

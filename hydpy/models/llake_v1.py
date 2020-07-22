@@ -115,12 +115,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     When the maximum water drop is set to 0.1 m/d, the resulting
     outflow hydrograph shows a plateau in its falling limb.  This
@@ -157,12 +155,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the above example, the water balance is still maintained.  This
     is not the case for the last example, where 1 m³/s is subtracted
@@ -198,12 +194,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the following, the given examples above repeated.  The only
     parameter that will be altered is the internal simulation step size,
@@ -245,12 +239,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Repetition of the second experiment:
 
@@ -282,12 +274,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex5.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Repetition of the third experiment:
 
@@ -319,13 +309,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex6.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="llake_v1_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from standard library
@@ -358,6 +345,7 @@ class Model(modeltools.AdHocModel):
         llake_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

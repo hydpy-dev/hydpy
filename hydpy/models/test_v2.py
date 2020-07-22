@@ -37,6 +37,7 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

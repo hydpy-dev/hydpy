@@ -53,8 +53,7 @@ Integration examples:
     making the simulation results as comparable as possible:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 250
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -118,12 +117,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v003_ex7.html"
-            width="100%"
-            height="280px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v003_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v003_ex08:
 
@@ -166,12 +163,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v003_ex8_1.html"
-            width="100%"
-            height="280px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v003_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v003_ex10:
 
@@ -223,13 +218,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v003_ex10.html"
-            width="100%"
-            height="280px"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="dam_v003_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v003_ex13:
 
@@ -280,12 +272,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v003_ex13.html"
-            width="100%"
-            height="280px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v003_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...
@@ -334,6 +324,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_ActualRemoteRelease_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

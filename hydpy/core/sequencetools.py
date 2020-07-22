@@ -80,6 +80,8 @@ class Sequences:
     states
     logs
     outlets
+    >>> len(sequences)
+    5
 
     Class |Sequences| provides some methods related to reading and
     writing time-series data, which (directly or indirectly) call the
@@ -465,7 +467,7 @@ neither a filename is given nor does the model know its master element.
             if self.states or self.logs:
                 con = hydpy.pub.controlmanager
                 lines = [
-                    f'# -*- coding: utf-8 -*-\n\n',
+                    '# -*- coding: utf-8 -*-\n\n',
                     f'from hydpy.models.{self.model} import *\n\n',
                     f'controlcheck(projectdir="{con.projectdir}", '
                     f'controldir="{con.currentdir}", '
@@ -529,6 +531,9 @@ neither a filename is given nor does the model know its master element.
                         self.aides, self.outlets, self.senders):
             if subseqs:
                 yield subseqs
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
     def __dir__(self) -> List[str]:
         """
@@ -839,13 +844,13 @@ class Sequence(variabletools.Variable):
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model('lland_v1', '1d')
-    >>> model.sequences.aides.epw.shape
+    >>> model.sequences.fluxes.q.shape
     ()
-    >>> sfa = model.sequences.aides.sfa
-    >>> sfa.shape
+    >>> evpo = model.sequences.fluxes.evpo
+    >>> evpo.shape
     Traceback (most recent call last):
     ...
-    AttributeError: Shape information for variable `sfa` can only be \
+    AttributeError: Shape information for variable `evpo` can only be \
 retrieved after it has been defined.
 
     For high numbers of entries, the string representation puts the
@@ -853,20 +858,20 @@ retrieved after it has been defined.
     executable under Python 3.6; this behaviour changes as soon
     as Python 3.7 becomes the oldest supported version):
 
-    >>> sfa.shape = (255,)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa(nan, nan, ..., nan, nan)
-    >>> sfa.shape = (256,)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa([nan, nan, ..., nan, nan])
+    >>> evpo.shape = (255,)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo(nan, nan, ..., nan, nan)
+    >>> evpo.shape = (256,)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo([nan, nan, ..., nan, nan])
 
     For consistency with the usage of |Parameter| subclasses, |Sequence|
     objects are also "callable" for setting their values (but in a much
     less and flexible manner):
 
-    >>> sfa(2.0)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa([2.0, 2.0, ..., 2.0, 2.0])
+    >>> evpo(2.0)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo([2.0, 2.0, ..., 2.0, 2.0])
 
     Under the hood, class |Sequence| also prepares some attributes
     of its class |FastAccessSequence| object, used for performing
@@ -875,7 +880,7 @@ retrieved after it has been defined.
     the name of the sequence and the name of the original attribute
     in lower case letters.  We take `NDIM` as an example:
 
-    >>> sfa.fastaccess._sfa_ndim
+    >>> evpo.fastaccess._evpo_ndim
     1
 
     Some of these attributes require updating under some situations.
@@ -883,8 +888,8 @@ retrieved after it has been defined.
     a "length" attribute, which needs to be updated each time the
     sequence's shape changes:
 
-    >>> sfa.fastaccess._sfa_length
-    0
+    >>> evpo.fastaccess._evpo_length
+    256
     """
     TYPE: Type[float] = float
     INIT: float = 0.0
@@ -990,10 +995,10 @@ retrieved after it has been defined.
         >>> from hydpy.core.sequencetools import Sequence
         >>> sequence = Sequence(None)
         >>> dir(sequence)
-        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', \
-'availablemasks', 'average_values', 'commentrepr', 'fastaccess', \
-'get_submask', 'initinfo', 'mask', 'name', 'refweights', 'shape', \
-'strict_valuehandling', 'subseqs', 'subvars', 'value', 'values', 'verify']
+        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', 'availablemasks', \
+'average_values', 'commentrepr', 'fastaccess', 'get_submask', 'initinfo', \
+'mask', 'name', 'refweights', 'shape', 'strict_valuehandling', 'subseqs', \
+'subvars', 'unit', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 
@@ -3122,9 +3127,9 @@ broadcast input array from shape (2) into shape (1)
         try:
             if not self.__isready:
                 raise AttributeError(
-                    f'Proper connections are missing (which could '
-                    f'result in segmentation faults when using it, '
-                    f'so please be careful).')
+                    'Proper connections are missing (which could '
+                    'result in segmentation faults when using it, '
+                    'so please be careful).')
             if isinstance(self.fastaccess, FastAccessModelSequence):
                 value = getattr(self.fastaccess, self.name)[:]
                 if self.NDIM == 0:
@@ -3240,7 +3245,7 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
             try:
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
-                return self._get_fastaccessattribute(f'length_0'),
+                return self._get_fastaccessattribute('length_0'),
         except BaseException:
             raise objecttools.augment_excmessage(
                 f'While trying to query the shape of link sequence'

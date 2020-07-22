@@ -66,7 +66,7 @@ class Calc_AdjustedWindSpeed_V1(modeltools.Method):
 class Calc_SaturationVapourPressure_V1(modeltools.Method):
     """Calculate the saturation vapour pressure.
 
-    Basic equation (`Allen`_):
+    Basic equation (`Allen`_, equation 11):
       :math:`SaturationVapourPressure = 0.6108 \\cdot
       \\exp(\\frac{17.27 \\cdot AirTemperature}{AirTemperature + 237.3})`
 
@@ -351,9 +351,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
 
     Basic equations (`Allen`_, equations 31 to 33):
       :math:`SolarTimeAngle =
-      \\pi / 12 \\cdot
-      ((SCT \\cdot 60 \\cdot 60 + (Longitude - UTCLongitude) / 15 + S_c)
-      - 12)` \n
+      \\pi / 12 \\cdot ((SCT + (Longitude - UTCLongitude) / 15 + S_c) - 12)` \n
 
       :math:`S_c = 0.1645 \\cdot sin(2 \\cdot b) -
       0.1255 \\cdot cos(b) - 0.025 \\cdot sin(b)` \n
@@ -369,7 +367,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy import pub, round_, UnitTest
+        >>> from hydpy import pub, round_
         >>> pub.timegrids = '2000-09-03', '2000-09-04', '1h'
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -415,7 +413,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
             .025*modelutils.sin(d_b)
         )
         flu.solartimeangle = d_pi/12. * (
-            (der.sct[model.idx_sim]/60./60. +
+            (der.sct[model.idx_sim] +
              (con.longitude-der.utclongitude)/15.+d_sc) - 12.
         )
 
@@ -425,17 +423,15 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
     Basic equation for daily simulation steps (`Allen`_, equation 21):
       :math:`ExternalTerrestrialRadiation =
-      \\frac{Seconds}{\\pi} \\cdot
-      \\frac{4.92}{60 \\cdot 60} \\cdot
+      \\frac{Seconds \\ 4.92}{\\pi \\ 60 \\cdot 60} \\cdot
       EarthSunDistance \\cdot (
       SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +
       cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)
       )`
 
-    Basic equation for hourly simulation steps (`Allen`_, eq. 28 to 30):
+    Basic equation for (sub)hourly simulation steps (`Allen`_, eq. 28 to 30):
       :math:`ExternalTerrestrialRadiation =
-      \\frac{12 \\cdot Seconds}{\\pi \\cdot 60 \\cdot 60} \\cdot 4.92 \\cdot
-      EarthSunDistance \\cdot (
+      \\frac{12 \\cdot 4.92}{\\pi} \\cdot EarthSunDistance \\cdot (
       (\\omega_2 - \\omega_1) \\cdot sin(LatitudeRad) \\cdot
       sin(SolarDeclination) +
       cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot
@@ -474,7 +470,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         >>> derived.doy.shape = 24
         >>> derived.doy(246)
         >>> derived.sct.shape = 24
-        >>> derived.sct = numpy.linspace(1800.0, 84600.0, 24)
+        >>> derived.sct = numpy.linspace(0.5, 23.5, 24)
         >>> sum_ = 0.0
         >>> from hydpy import round_
         >>> for hour in range(24):
@@ -519,6 +515,49 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
         >>> round_(sum_)
         32.139663
+
+        For sub-daily simulation time steps, the results of method
+        |Calc_ExtraterrestrialRadiation_V1| are most accurate for the shortest
+        time steps.  On the other hand, they can be (extremely) inaccurate
+        for timesteps between one hour and one day.  We demonstrate this by
+        comparing the sum of the sub-daily values of different step sizes with
+        the directly calculated daily value (note the apparent total fail of
+        method |Calc_ExtraterrestrialRadiation_V1| for a step size of 720
+        minutes):
+
+        >>> for minutes in [1, 5, 15, 30, 60, 90, 120, 144, 160,
+        ...                 180, 240, 288, 360, 480, 720, 1440]:
+        ...     derived.seconds(minutes*60)
+        ...     nmb = int(1440/minutes)
+        ...     derived.doy.shape = nmb
+        ...     derived.doy(246)
+        ...     derived.sct.shape = nmb
+        ...     derived.sct = numpy.linspace(
+        ...         minutes/60/2, 24-minutes/60/2, nmb)
+        ...     sum_ = 0.0
+        ...     for idx in range(nmb):
+        ...         model.idx_sim = idx
+        ...         model.calc_solartimeangle_v1()
+        ...         model.calc_extraterrestrialradiation_v1()
+        ...         sum_ += fluxes.extraterrestrialradiation
+        ...     print(minutes, end=': ')
+        ...     round_(sum_-32.173851)
+        1: -0.000054
+        5: -0.000739
+        15: -0.008646
+        30: -0.034188
+        60: -0.034188
+        90: -0.034188
+        120: -0.034188
+        144: -1.246615
+        160: -0.823971
+        180: -0.034188
+        240: -3.86418
+        288: -2.201488
+        360: -0.034188
+        480: -3.86418
+        720: -32.173851
+        1440: 0.0
     """
     DERIVEDPARAMETERS = (
         evap_derived.Seconds,
@@ -538,13 +577,12 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_pi = 3.141592653589793
-        d_g = 0.0820/60
-        if der.seconds <= 60.*60.:
+        if der.seconds < 60.*60.*24.:
             d_delta = d_pi*der.seconds/60./60./24.
             d_omega1 = flu.solartimeangle-d_delta
             d_omega2 = flu.solartimeangle+d_delta
             flu.extraterrestrialradiation = max(
-                12.*der.seconds/d_pi*d_g*flu.earthsundistance*(
+                12.*4.92/d_pi*flu.earthsundistance*(
                     ((d_omega2-d_omega1) *
                      modelutils.sin(der.latituderad) *
                      modelutils.sin(flu.solardeclination)
@@ -558,7 +596,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
             )
         else:
             flu.extraterrestrialradiation = \
-                der.seconds/d_pi*d_g*flu.earthsundistance*(
+                der.seconds*.0820/60./d_pi*flu.earthsundistance*(
                     (flu.sunsethourangle *
                      modelutils.sin(der.latituderad) *
                      modelutils.sin(flu.solardeclination)
@@ -651,7 +689,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         d_pi = 3.141592653589793
         d_hours = der.seconds/60./60.
         d_days = d_hours/24.
-        if d_hours <= 1.:
+        if d_hours < 24.:
             if flu.solartimeangle <= 0.:
                 d_thresh = -flu.solartimeangle-d_pi*d_days
             else:
@@ -934,13 +972,20 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> derived.nmblogentries(1)
         >>> inputs.airtemperature = 22.1
         >>> fluxes.actualvapourpressure = 2.1
-        >>> logs.loggedglobalradiation.shape = 1
-        >>> logs.loggedclearskysolarradiation.shape = 1
-        >>> logs.loggedglobalradiation = 14.5
-        >>> logs.loggedclearskysolarradiation = 18.8
+        >>> fluxes.clearskysolarradiation = 18.8
+        >>> fluxes.globalradiation = 14.5
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
         netlongwaveradiation(3.531847)
+
+        >>> fluxes.clearskysolarradiation = 0.0
+        >>> logs.loggedclearskysolarradiation.shape = 1
+        >>> logs.loggedclearskysolarradiation = 12.0
+        >>> logs.loggedglobalradiation.shape = 1
+        >>> logs.loggedglobalradiation = 10.0
+        >>> model.calc_netlongwaveradiation_v1()
+        >>> fluxes.netlongwaveradiation
+        netlongwaveradiation(3.959909)
     """
     DERIVEDPARAMETERS = (
         evap_derived.NmbLogEntries,
@@ -983,7 +1028,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 class Calc_NetRadiation_V1(modeltools.Method):
     """Calculate the total net radiation.
 
-    Basic equation (`Allen`_):
+    Basic equation (`Allen`_, equation 40):
       :math:`NetRadiation = NetShortwaveRadiation-NetLongwaveRadiation`
 
     Example:
@@ -1027,13 +1072,12 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
     Examples:
 
-        For simulation time steps not longer than one hour, we define all
-        steps with a positive |NetRadiation| to be part of the daylight
-        period and all steps with a negative |NetRadiation| to be part of
-        the nighttime period.  In case the summed |NetRadiation| of all
-        daylight steps is five times as high as the absolute summed
-        |NetRadiation| of all nighttime steps, the total |SoilHeatFlux|
-        is zero:
+        For simulation time steps shorter one day, we define all steps with
+        a positive |NetRadiation| to be part of the daylight period and all
+        steps with a negative |NetRadiation| to be part of the nighttime
+        period.  In case the summed |NetRadiation| of all daylight steps is
+        five times as high as the absolute summed |NetRadiation| of all
+        nighttime steps, the total |SoilHeatFlux| is zero:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1047,14 +1091,12 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         >>> fluxes.soilheatflux
         soilheatflux(-1.0)
 
-        For any simulation step size large than one hour, method
+        For any simulation step size of least one day, method
         |Calc_SoilHeatFlux_V1| sets the |SoilHeatFlux| to zero, which
-        is suggested by `Allen`_ for daily simulation steps only
-        (so be aware that function |Calc_SoilHeatFlux_V1| does not give
-        the best results for intermediate (e.g. 12 hours) or larger
-        step sizes (e.g. one month)):
+        is suggested by `Allen`_ for daily simulation steps only:
 
-        >>> derived.seconds(60*60+1)
+
+        >>> derived.seconds(60*60*24)
         >>> fluxes.netradiation = 10.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
@@ -1063,6 +1105,10 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
+
+        Hence, be aware that function |Calc_SoilHeatFlux_V1| does not give
+        the best results for intermediate (e.g. 12 hours) or larger
+        step sizes (e.g. one month).
     """
     DERIVEDPARAMETERS = (
         evap_derived.Seconds,
@@ -1077,7 +1123,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if der.seconds <= 60*60:
+        if der.seconds < 60.*60.*24.:
             if flu.netradiation >= 0.:
                 flu.soilheatflux = .1*flu.netradiation
             else:
@@ -1260,3 +1306,4 @@ class Model(modeltools.AdHocModel):
         Pass_ReferenceEvapotranspiration_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()

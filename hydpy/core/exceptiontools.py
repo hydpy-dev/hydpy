@@ -59,12 +59,10 @@ specific functionalities.
             name: str,
             modules: List[str],
             namespace: Dict[str, Any],
-            hooks: Tuple[str, ...] = ()) \
-            -> None:
+    ) -> None:
         self._name = name
         self._modules = modules
         self._namespace = namespace
-        self._hooks = hooks
 
     def __getattr__(self, name: str) -> Any:
         if name == '__wrapped__':
@@ -77,8 +75,6 @@ specific functionalities.
                 break
             except ImportError:
                 pass
-        for hook in self._hooks:
-            exec(hook)
         if module:
             return getattr(module, name)
         raise OptionalModuleNotAvailable(

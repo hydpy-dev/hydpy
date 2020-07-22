@@ -280,9 +280,9 @@ if install:
             except BaseException:
                 print_('\t!!! failed !!!')
 
-    # Copy the generated bokeh plots into the original docs subpackage
+    # Copy the generated plotly plots into the original docs subpackage
     # (on Travis-CI: for including them into the online-documentation).
-    print_('\nCopy bokeh plots backwards:')
+    print_('\nCopy plotly plots backwards:')
     path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html_')
     import hydpy.docs.html_
     for filename in os.listdir(hydpy.docs.html_.__path__[0]):

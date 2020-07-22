@@ -140,11 +140,15 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
 
+    # pylint: disable=not-callable
+    # pylint usually understands that all options are callable
+    # but, for unknown reasons, not in the following line:
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries()
         elements.prepare_inputseries()
         elements.prepare_fluxseries()
         elements.prepare_stateseries()
+    # pylint: enable=not-callable
 
     def init_values(seq, value1_):
         value2_ = value1_ + len(seq.series.flatten())

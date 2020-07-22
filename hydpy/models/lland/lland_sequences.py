@@ -52,7 +52,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> parameterstep('1d')
     >>> nhru(4)
     >>> lnk(ACKER, GLETS, VERS, SEE)
-    >>> nfk(100.0)
+    >>> wmax(100.0)
     >>> derived.absfhru(10.0, 20.0, 30.0, 40.0)
     >>> states.bowa(50.0, 20.0, 40.0, 10.0)
     >>> from hydpy import round_

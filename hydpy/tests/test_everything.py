@@ -80,11 +80,16 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
         ('Python', 'Cython'), alldoctests,
         allsuccessfuldoctests, allfaileddoctests):
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
-        if (('__init__.py' not in filenames_) or
-                dirpath.endswith('tests') or
-                dirpath.endswith('autogen') or
-                dirpath.endswith('__pycache__') or
-                dirpath.endswith('build')):
+        is_package = '__init__.py' in filenames_
+        if '__init__.py' not in filenames_:
+            continue
+        if (dirpath.endswith('tests') or
+                dirpath.endswith('docs') or
+                dirpath.endswith('sphinx') or
+                dirpath.endswith('autogen')):
+            continue
+        if (dirpath.endswith('build') or
+                dirpath.endswith('__pycache__')):
             continue
         filenames_ = filter_filenames(filenames_)
         packagename = dirpath.replace(os.sep, '.')+'.'
@@ -103,12 +108,19 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
             try:
                 if name[-4:] in ('.rst', '.pyx'):
                     suite.addTest(
-                        doctest.DocFileSuite(name, module_relative=False,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocFileSuite(
+                            name,
+                            module_relative=False,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
                 else:
                     suite.addTest(
-                        doctest.DocTestSuite(module,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocTestSuite(
+                            module,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
                     raise exc
@@ -143,20 +155,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                     with warnings.catch_warnings(), \
                             open(os.devnull, 'w') as file_:
                         warnings.filterwarnings(
-                            'error', module='hydpy')
+                            action='error',
+                            module='hydpy',
+                        )
                         warnings.filterwarnings(
-                            'error', category=UserWarning)
-                        warnings.filterwarnings(
-                            'ignore', category=ImportWarning)
-                        warnings.filterwarnings(
-                            'ignore', message="numpy.dtype size changed")
-                        warnings.filterwarnings(
-                            'ignore', message="numpy.ufunc size changed")
-                        warnings.filterwarnings(
-                            'ignore', r'elementwise')
-                        warnings.filterwarnings(
-                            'ignore',
-                            message='the imp module is deprecated')
+                            action='ignore',
+                            message='tostring',
+                        )
                         runner = unittest.TextTestRunner(stream=file_)
                         testresult = runner.run(suite)
                         doctests[name] = testresult

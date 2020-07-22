@@ -120,5 +120,6 @@ Sections :ref:`core` covers the basic functionalities of the
    modelcollection
    development
    Example Projects <examples>
+   Bibliography <zbibliography>
 
 

@@ -106,6 +106,7 @@ class Model(conv_model.Model):
         conv_model.Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

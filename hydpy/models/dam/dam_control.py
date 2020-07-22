@@ -9,7 +9,7 @@ from hydpy.auxs import anntools
 
 
 class CatchmentArea(parametertools.Parameter):
-    """Size of the catchment draining into the dam [km2]."""
+    """Size of the catchment draining into the dam [km²]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
@@ -60,6 +60,9 @@ class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
     """Artificial neural network describing the relationship between
     water level and the highest possible water release used to relieve
     the dam during high flow conditions [-]."""
+
+    XLABEL = 'water level [m]'
+    YLABEL = 'possible remote relieve [m³/s]'
 
 
 class RemoteRelieveTolerance(parametertools.Parameter):
@@ -152,10 +155,16 @@ class WaterVolume2WaterLevel(anntools.ANN):
     """Artificial neural network describing the relationship between
     water level and water volume [-]."""
 
+    XLABEL = 'water volume [million m³]'
+    YLABEL = 'water level [m]'
+
 
 class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
+
+    XLABEL = 'water level [m]'
+    YLABEL = 'flood discharge [m³/s]'
 
 
 class AllowedWaterLevelDrop(parametertools.Parameter):
@@ -188,7 +197,7 @@ class TargetRangeAbsolute(parametertools.Parameter):
 
 class TargetRangeRelative(parametertools.Parameter):
     """The relative interpolation range related to parameter |TargetVolume|
-    [Mio. m³]."""
+    [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 

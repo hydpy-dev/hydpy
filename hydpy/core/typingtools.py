@@ -28,7 +28,7 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
-Vector = Mapping[int, float]
+Vector = MutableMapping[int, float]
 
 
 class IterableNonString(abc.ABC):
@@ -64,9 +64,7 @@ class DevicesHandlerProtocol(Protocol):
 class VariableProtocol(Protocol):
     """Protocol to identify objects as "variables"."""
 
-    @property
-    def name(self) -> str:
-        """The name of the actual variable object."""
+    name: str
 
     # def __init__(
     #         self,

@@ -143,4 +143,5 @@ As you can see, a few lines of code are often enough to let *HydPy* execute
 complex tasks in a standard-manner.  However, *HydPy* offers a fine level
 of control, allowing you to define specific workflows solving individual
 problems.  Take your time to understand these first examples fully and
-then follow the more detailed explanations mentioned above.
+then follow the more detailed explanations in the documentation on the
+|HydPy| class.

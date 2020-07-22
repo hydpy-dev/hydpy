@@ -97,7 +97,6 @@ Integration tests:
 
     >>> parameters.update()
     >>> test = IntegrationTest(element)
-    >>> IntegrationTest.plotting_options.height = 550
     >>> IntegrationTest.plotting_options.activated = [
     ...     fluxes.referenceevapotranspiration]
     >>> test.dateformat = '%Y-%d-%m %H:00'
@@ -177,13 +176,10 @@ Integration tests:
     
     .. raw:: html
 
-        <iframe
-            src="evap_v001_ex2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="evap_v001_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
@@ -223,6 +219,7 @@ class Model(modeltools.AdHocModel):
         evap_model.Pass_ReferenceEvapotranspiration_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

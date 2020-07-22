@@ -20,6 +20,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install netcdf4!=1.5.3"
   - "%PYTHON%\\python.exe -m pip install networkx"
   - "%PYTHON%\\python.exe -m pip install pandas"
+  - "%PYTHON%\\python.exe -m pip install plotly"
   - "%PYTHON%\\python.exe -m pip install pynsist"
   - "%PYTHON%\\python.exe -m pip install setuptools"
   - "%PYTHON%\\python.exe -m pip install typing_extensions"

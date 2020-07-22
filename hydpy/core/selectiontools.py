@@ -6,9 +6,12 @@
 import copy
 import types
 from typing import *
+# ...from site-packages
+import networkx
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
+from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -468,6 +471,18 @@ attribute 'nodes'
         self.nodes = devicetools.Nodes(nodes).copy()
         self.elements = devicetools.Elements(elements).copy()
 
+    def _check_device(self, device, type_of_device):
+        if isinstance(device, devicetools.Node):
+            device = self.nodes[device.name]
+        elif isinstance(device, devicetools.Element):
+            device = self.elements[device.name]
+        else:
+            raise TypeError(
+                f'Either a `Node` or an `Element` object is required as the '
+                f'"{type_of_device} device", but the given `device` value '
+                f'is of type `{type(device).__name__}`.')
+        return device
+
     def search_upstream(self, device: devicetools.Device,
                         name: str = 'upstream') -> 'Selection':
         """Return the network upstream of the given starting point, including
@@ -496,7 +511,7 @@ attribute 'nodes'
         >>> test.search_upstream(1)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to determine the upstream network of \
+        TypeError: While trying to determine an upstream network of \
 selection `test`, the following error occurred: Either a `Node` or \
 an `Element` object is required as the "outlet device", but the given \
 `device` value is of type `int`.
@@ -504,7 +519,7 @@ an `Element` object is required as the "outlet device", but the given \
         >>> pub.selections.headwaters.search_upstream(hp.nodes.lahn_3)
         Traceback (most recent call last):
         ...
-        KeyError: "While trying to determine the upstream network of \
+        KeyError: "While trying to determine an upstream network of \
 selection `headwaters`, the following error occurred: 'No node named \
 `lahn_3` available.'"
 
@@ -537,35 +552,23 @@ selection `headwaters`, the following error occurred: 'No node named \
                   elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
         """
         try:
-            selection = Selection(name)
-            if isinstance(device, devicetools.Node):
-                node = self.nodes[device.name]
-                return self.__get_nextnode(node, selection)
-            if isinstance(device, devicetools.Element):
-                element = self.elements[device.name]
-                return self.__get_nextelement(element, selection)
-            raise TypeError(
-                f'Either a `Node` or an `Element` object is required '
-                f'as the "outlet device", but the given `device` value '
-                f'is of type `{type(device).__name__}`.')
+            device = self._check_device(device, 'outlet')
+            devices = networkx.ancestors(
+                G=hydpytools.create_directedgraph(self),
+                source=device,
+            )
+            devices.add(device)
+            return Selection(
+                name=name,
+                nodes=[device for device in devices
+                       if isinstance(device, devicetools.Node)],
+                elements=[device for device in devices
+                          if isinstance(device, devicetools.Element)],
+            )
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to determine the upstream network of '
+                f'While trying to determine an upstream network of '
                 f'selection `{self.name}`')
-
-    def __get_nextnode(self, node, selection):
-        if (node not in selection.nodes) and (node in self.nodes):
-            selection.nodes += node
-            for element in node.entries:
-                selection = self.__get_nextelement(element, selection)
-        return selection
-
-    def __get_nextelement(self, element, selection):
-        if (element not in selection.elements) and (element in self.elements):
-            selection.elements += element
-            for node in element.inlets:
-                selection = self.__get_nextnode(node, selection)
-        return selection
 
     def select_upstream(self, device: devicetools.Device) -> 'Selection':
         """Restrict the current selection to the network upstream of the given
@@ -589,6 +592,118 @@ selection `headwaters`, the following error occurred: 'No node named \
         upstream = self.search_upstream(device)
         self.nodes -= upstream.nodes
         self.elements -= upstream.elements
+        return self
+
+    def search_downstream(self, device: devicetools.Device,
+                          name: str = 'downstream') -> 'Selection':
+        """Return the network downstream of the given starting point,
+        including the starting point itself.
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, _ = prepare_full_example_2()
+
+        You can pass both |Node| and |Element| objects and, optionally,
+        the name of the newly created |Selection| object:
+
+        >>> test = pub.selections.complete.copy('test')
+        >>> test.search_downstream(hp.nodes.lahn_1)
+        Selection("downstream",
+                  nodes=("lahn_1", "lahn_2", "lahn_3"),
+                  elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+        >>> test.search_downstream(
+        ...     hp.elements.land_lahn_1, 'DOWNSTREAM')
+        Selection("DOWNSTREAM",
+                  nodes=("lahn_1", "lahn_2", "lahn_3"),
+                  elements=("land_lahn_1", "stream_lahn_1_lahn_2",
+                            "stream_lahn_2_lahn_3"))
+
+        Wrong device specifications result in errors like the following:
+
+        >>> test.search_downstream(1)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to determine a downstream network of \
+selection `test`, the following error occurred: Either a `Node` or \
+an `Element` object is required as the "inlet device", but the given \
+`device` value is of type `int`.
+
+        >>> pub.selections.headwaters.search_downstream(hp.nodes.lahn_3)
+        Traceback (most recent call last):
+        ...
+        KeyError: "While trying to determine a downstream network of \
+selection `headwaters`, the following error occurred: 'No node named \
+`lahn_3` available.'"
+
+        Method |Selection.select_downstream| restricts the current selection
+        to the one determined with the method |Selection.search_upstream|:
+
+        >>> test.select_downstream(hp.nodes.lahn_1)
+        Selection("test",
+                  nodes=("lahn_1", "lahn_2", "lahn_3"),
+                  elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+
+        On the contrary, the method |Selection.deselect_downstream| restricts
+        the current selection to all devices not determined by method
+        |Selection.search_downstream|:
+
+        >>> complete = pub.selections.complete.deselect_downstream(
+        ...     hp.nodes.lahn_1)
+        >>> complete
+        Selection("complete",
+                  nodes="dill",
+                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                            "land_lahn_3", "stream_dill_lahn_2"))
+
+        If necessary, include the "inlet device" manually afterwards:
+
+        >>> complete.nodes += hp.nodes.lahn_1
+        >>> complete
+        Selection("complete",
+                  nodes=("dill", "lahn_1"),
+                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                            "land_lahn_3", "stream_dill_lahn_2"))
+        """
+        try:
+            device = self._check_device(device, 'inlet')
+            devices = networkx.descendants(
+                G=hydpytools.create_directedgraph(self),
+                source=device,
+            )
+            devices.add(device)
+            return Selection(
+                name=name,
+                nodes=[device for device in devices
+                       if isinstance(device, devicetools.Node)],
+                elements=[device for device in devices
+                          if isinstance(device, devicetools.Element)],
+            )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to determine a downstream network of '
+                f'selection `{self.name}`')
+
+    def select_downstream(self, device: devicetools.Device) -> 'Selection':
+        """Restrict the current selection to the network downstream of the
+        given starting point, including the starting point itself.
+
+        See the documentation on method |Selection.search_downstream| for
+        additional information.
+        """
+        downstream = self.search_downstream(device)
+        self.nodes = downstream.nodes
+        self.elements = downstream.elements
+        return self
+
+    def deselect_downstream(self, device: devicetools.Device) -> 'Selection':
+        """Remove the network downstream of the given starting point from the
+        current selection, including the starting point itself.
+
+        See the documentation on method |Selection.search_downstream| for
+        additional information.
+        """
+        downstream = self.search_downstream(device)
+        self.nodes -= downstream.nodes
+        self.elements -= downstream.elements
         return self
 
     def search_modeltypes(self, *models: ModelTypesArg,

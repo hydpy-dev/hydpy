@@ -1936,7 +1936,11 @@ class Calc_ActualRelease_V2(modeltools.Method):
         dam_control.WaterLevelMinimumThreshold,
     )
     DERIVEDPARAMETERS = (
+        dam_derived.TOY,
         dam_derived.WaterLevelMinimumSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_aides.WaterLevel,
     )
     RESULTSEQUENCES = (
         dam_fluxes.ActualRelease,
@@ -3548,3 +3552,4 @@ class Model(modeltools.ELSModel):
         Calc_RequiredRemoteSupply_V1,
         Pass_RequiredRemoteSupply_V1,
     )
+    SUBMODELS = ()

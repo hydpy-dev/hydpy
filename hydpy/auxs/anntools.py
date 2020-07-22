@@ -77,11 +77,22 @@ class _ANNArrayProperty(propertytools.DependentProperty):
 class BaseANN:
     """Base for implementing artificial neural networks classes."""
 
+    XLABEL: str
+    YLABEL: str
+
     def __init_subclass__(cls):
         cls.name = cls.__name__.lower()
         subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
         variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
+
+    def _update_labels(self):
+        xlabel = getattr(self, 'XLABEL', None)
+        if xlabel:
+            pyplot.xlabel(xlabel)
+        ylabel = getattr(self, 'YLABEL', None)
+        if ylabel:
+            pyplot.ylabel(ylabel)
 
 
 class ANN(BaseANN):
@@ -1037,8 +1048,15 @@ parameter `ann` of element `?` has not been defined so far.
     def __repr__(self):
         return self.assignrepr(prefix='')
 
-    def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
-             **kwargs) -> None:
+    def plot(
+            self,
+            xmin: float,
+            xmax: float,
+            idx_input: int = 0,
+            idx_output: int = 0,
+            points: int = 100,
+            **kwargs,
+    ) -> None:
         """Plot the relationship between a particular input (`idx_input`)
         and a particular output (`idx_output`) variable described by the
         actual |anntools.ANN| object.
@@ -1058,6 +1076,7 @@ parameter `ann` of element `?` has not been defined so far.
             self.calculate_values()
             ys_[idx] = self.outputs[idx_output]
         pyplot.plot(xs_, ys_, **kwargs)
+        self._update_labels()
 
 
 def ann(**kwargs) -> ANN:
@@ -1758,6 +1777,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
                       label=str(toy),
                       **kwargs)
         pyplot.legend()
+        self._update_labels()
 
     def __getattribute__(self, name):
         if name.startswith('toy_'):

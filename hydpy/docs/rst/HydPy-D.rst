@@ -71,12 +71,13 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    dam_v001
    dam_v002
    dam_v003
    dam_v004
    dam_v005
-   dam_v006
-   dam_v007
-   dam_v008
+   dam_v006 (controlled lake) <dam_v006>
+   dam_v007 (retention basin) <dam_v007>
+   dam_v008 (reservoir) <dam_v008>

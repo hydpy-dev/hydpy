@@ -47,8 +47,7 @@ Integration examples:
     object of node `remote`:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 200
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -109,12 +108,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex7.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
@@ -156,12 +153,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex8_1.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -246,12 +241,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex13.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...
@@ -297,6 +290,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

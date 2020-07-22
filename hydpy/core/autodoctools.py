@@ -26,8 +26,10 @@ import typing
 from typing import *
 import unittest
 # ...from site-packages
+# import matplotlib    actual import below
 import numpy
-import scipy
+# import pandas    actual import below
+# import scipy    actual import below
 # ...from HydPy
 import hydpy
 from hydpy import auxs
@@ -785,10 +787,14 @@ class Substituter:
 def prepare_mainsubstituter():
     """Prepare and return a |Substituter| object for the main `__init__`
     file of *HydPy*."""
+    # pylint: disable=import-outside-toplevel
+    import matplotlib
+    import pandas
+    import scipy
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
                    os, sys, time, collections, itertools, subprocess, scipy,
-                   typing, platform, math, mimetypes):
+                   typing, platform, math, mimetypes, pandas, matplotlib):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
         for _, name, _ in pkgutil.walk_packages(subpackage.__path__):

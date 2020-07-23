@@ -33,6 +33,8 @@ values for different use-cases.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 We create the same test set as for application models |dam_v006| and
 |dam_v007|, including an identical inflow series and an identical
 relationship between stage and volume:

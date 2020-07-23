@@ -42,6 +42,8 @@ evaporation targets daily time steps only.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 We perform all integration tests over five days, including an extreme
 precipitation.  Despite the mentioned limitation of the Turc-Wendling
 equation, we select an hourly simulation step size, which reveals more

@@ -36,7 +36,10 @@ process equations:
 
 .. image:: HydPy-H-Land_Version-1.png
 
-Integration tests:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following integration tests are based on the data used for testing
     application model |lland_v2|.  Hopefully, this eases drawing comparisons

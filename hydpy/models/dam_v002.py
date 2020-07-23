@@ -11,7 +11,10 @@ The following explanations focus on this difference.  For further
 information on the usage of |dam_v002| please read the documentation
 on model |dam_v001|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     Each of the following examples is a repetition of an example performed
     to demonstrate the functionality of model |dam_v001|.  To achieve

@@ -16,6 +16,8 @@ performance cost.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 .. _lstream_v002_main_channel_flow:
 
 main channel flow

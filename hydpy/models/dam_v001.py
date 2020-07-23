@@ -36,7 +36,10 @@ increased computations times are to be expected.  This is explained
 in some detail at the end of this section.
 
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following examples are performed over a period of 20 days:
 

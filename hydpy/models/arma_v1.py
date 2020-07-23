@@ -39,7 +39,10 @@ But you are free to define other parameters, e.g. those of the
 ARMA coefficients or pure MA coefficients only, as described in the
 following examples.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following tests are performed over a period of 20 hours:
 

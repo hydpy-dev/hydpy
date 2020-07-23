@@ -24,6 +24,8 @@ not use the parameter |AllowedWaterLevelDrop|.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 We create the same test set as for application model |dam_v006|,
 including an identical inflow series and an identical relationship
 between stage and volume:

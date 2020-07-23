@@ -11,7 +11,10 @@ is supposed to supply water to different locations (e.g. to a drinking
 water treatment plant).  Hence |dam_v002| releases its output only via
 one path and |dam_v003| splits its output into two separate paths.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     To test the functionalities of |dam_v002|, four integration examples
     of |dam_v001| are recalculated.  We again make use of these examples

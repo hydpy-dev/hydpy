@@ -20,7 +20,10 @@ the calculation of the longwave radiation, which fails during polar nights
 (again, contributions are welcome).
 
 
-Integration tests:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     For the following tests, we prepare an instance of application model
     |evap_v001| and assign it to |Element| `element`, which we connect

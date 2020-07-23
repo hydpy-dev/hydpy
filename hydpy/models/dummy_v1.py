@@ -5,7 +5,10 @@ Version 1 of the dummy model serves as a temporary placeholder model.
 In each simulation step, it simply sums up its inputs and hands the
 resulting value to the downstream node without modifications.
 
-Integration test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We prepare a simulation period of three days:
 

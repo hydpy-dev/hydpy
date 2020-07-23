@@ -29,6 +29,8 @@ networks used to model the relationships between stage and volume
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 We are going to perform all example calculations over 20 days:
 
 >>> from hydpy import pub

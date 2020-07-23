@@ -75,6 +75,8 @@ In our experience, 0.1 m serves as a good compromise value in most cases.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 .. _lstream_v001_main_channel_flow:
 
 main channel flow

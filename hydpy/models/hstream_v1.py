@@ -9,7 +9,10 @@ coefficients (parameters |C1|, |C2|, and |C3|) control attenuation
 (parameter |Damp|).  For |NmbSegments| only integer values are allowed,
 which is why the translation time cannot be varied continuously.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 20 hours:
 

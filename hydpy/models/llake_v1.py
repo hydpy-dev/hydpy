@@ -23,7 +23,10 @@ to vary in time, as explained for the outflow vector.
 Note that the accuracy of the results calculated by lake_v1 depend
 on the internal step size parameter |MaxDT|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following calculations are performed over a period of 20 days:
 

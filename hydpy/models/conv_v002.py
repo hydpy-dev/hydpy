@@ -6,7 +6,10 @@ Version 2 of HydPy-C performs simple inverse distance weighted interpolations
 between an arbitrary number of models (or data files) providing output and an
 arbitrary number of models requiring input.
 
-Integration test:
+Integration tests
+=================
+
+.. how_to_understand_integration_tests::
 
 We perform the following examples over a simulation period of 3 days:
 

@@ -16,6 +16,8 @@ not rely on Turc-Wendling, we can apply it on arbitrary simulation step sizes.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 The following integration tests are recalculations of the tests performed
 for |lland_v1| (you can click on the captions to go to the related tests
 of |lland_v1|). Their purpose is to show that both models function in an

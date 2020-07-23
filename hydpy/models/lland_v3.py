@@ -67,6 +67,8 @@ other, the need to fine-tune some parameters via calibration might arise.
 Integration tests
 =================
 
+.. how_to_understand_integration_tests::
+
 Many of the following integration tests are similar to the integration tests
 performed for the application model |lland_v1|.  When there are no substantial
 differences, we do not repeat our explanations, so please note the respective

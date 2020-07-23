@@ -40,6 +40,7 @@ extensions = [
     'sphinxcontrib.bibtex',
     'sphinxcontrib.fulltoc',
     'integrationtest_extension',
+    'defaultlinks_extension',
 ]
 
 autoclass_content = 'class'

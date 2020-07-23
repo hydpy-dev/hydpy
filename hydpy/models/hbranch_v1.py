@@ -9,7 +9,10 @@ arbitrary variables.  Calculations are performed for each branch
 individually by linear interpolation (or extrapolation) following
 tabulated supporting points.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 10 hours:
 

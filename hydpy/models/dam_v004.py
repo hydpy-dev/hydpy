@@ -2,15 +2,18 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 4 of HydPy-Dam
 
-    Application model |dam_v004| is an extension if model |dam_v003|.
-    Both models are able to discharge water into the channel downstream
-    and to remote locations.  The difference is that |dam_v003|
-    can discharge water only to a single remote location, e.g. to a
-    drinking water treatment plant, while |dam_v004| is also able to
-    discharge water to a separate remote location independently, e.g.
-    to relieve water during high flow conditions.
+Application model |dam_v004| is an extension if model |dam_v003|.
+Both models are able to discharge water into the channel downstream
+and to remote locations.  The difference is that |dam_v003|
+can discharge water only to a single remote location, e.g. to a
+drinking water treatment plant, while |dam_v004| is also able to
+discharge water to a separate remote location independently, e.g.
+to relieve water during high flow conditions.
 
-    Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following examples are based on the ones of application model
     |dam_v003|, which in turn are taken from the documentation on

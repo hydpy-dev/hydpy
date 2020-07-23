@@ -24,7 +24,10 @@ to relieve the other location (possibly another dam) during floods.
 acceptable `relieve discharge` and passes that information to one single
 or to two separate remote locations.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following integration examples build upon some of the examples
     performed to demonstrate the functionality of model |dam_v001|.

@@ -385,7 +385,7 @@ of the following classes: Node and str.
 
     def __new__(cls, *values: MayNonerable2[DeviceType, str],
                 mutable: bool = True):
-        if len(values) == 1 and isinstance(values[0], cls):
+        if len(values) == 1 and isinstance(values[0], Devices):
             return values[0]
         self = super().__new__(cls)
         dict_ = vars(self)
@@ -524,6 +524,7 @@ immutable Nodes objects is not allowed.
 
     @property
     def keywords(self) -> Set[str]:
+        # noinspection PyCallingNonCallable
         """A set of all keywords of all handled devices.
 
         In addition to attribute access via device names, |Nodes| and
@@ -1356,6 +1357,7 @@ class Device(Generic[DevicesTypeUnbound]):
 
 
 class Node(Device[Nodes]):
+    # noinspection PyPropertyAccess
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for
@@ -1444,6 +1446,8 @@ immutable Elements objects is not allowed.
 
     @property
     def variable(self) -> Union[str, Type[sequencetools.InputSequence]]:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyPropertyAccess
         """The variable handled by the actual |Node| object.
 
         By default, we suppose that nodes route discharge:
@@ -1550,6 +1554,7 @@ the value `oldobs` was given, but only the following values are allowed: \
                 model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
+        # noinspection PyUnresolvedReferences
         """Return the |Double| object appropriate for the given |Element|
         input or output group and the actual |Node.deploymode|.
 
@@ -2454,6 +2459,8 @@ _selection: Mapping = {Node: {}, Element: {}}
 
 @contextlib.contextmanager
 def clear_registries_temporarily():
+    # noinspection PyTypeChecker
+    # noinspection PyProtectedMember
     """Context manager for clearing the current |Node|, |Element|, and
     |FusedVariable| registries .
 

@@ -143,11 +143,10 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                         opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
                         Par.parameterstep.delete(), \
-                        Par.simulationstep.delete():
+                        Par.simulationstep.delete(), \
+                        devicetools.clear_registries_temporarily():
                     del pub.projectname
                     del pub.timegrids
-                    devicetools.Node.clear_all()
-                    devicetools.Element.clear_all()
                     testtools.IntegrationTest.plotting_options = \
                         testtools.PlottingOptions()
                     if name[-4:] in ('.rst', '.pyx'):

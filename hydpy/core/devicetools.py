@@ -76,6 +76,7 @@ False
 # import...
 # ...from standard library
 import abc
+import contextlib
 import copy
 import itertools
 import warnings
@@ -2451,30 +2452,55 @@ _registry: Mapping = {Node: {}, Element: {}}
 _selection: Mapping = {Node: {}, Element: {}}
 
 
-def gather_registries() -> Tuple[Dict, Mapping, Mapping]:
-    """Get and clear the current |Node| and |Element| registries.
+@contextlib.contextmanager
+def clear_registries_temporarily():
+    """Context manager for clearing the current |Node|, |Element|, and
+    |FusedVariable| registries .
 
-    Function |gather_registries| is thought to be used by class |Tester| only.
+    Function |gather_registries| is thought to be used by class |Tester|.
+
+    >>> from hydpy.core import devicetools
+    >>> registries = (devicetools._id2devices,
+    ...               devicetools._registry[devicetools.Node],
+    ...               devicetools._registry[devicetools.Element],
+    ...               devicetools._selection[devicetools.Node],
+    ...               devicetools._selection[devicetools.Element])
+    >>> for idx, registry in enumerate(registries):
+    ...     registry.clear()
+    ...     registry[idx] = idx+1
+
+    >>> with devicetools.clear_registries_temporarily():
+    ...     for registry in registries:
+    ...         print(registry)
+    {}
+    {}
+    {}
+    {}
+    {}
+    >>> for registry in registries:
+    ...     print(registry)
+    ...     registry.clear()
+    {0: 1}
+    {1: 2}
+    {2: 3}
+    {3: 4}
+    {4: 5}
     """
-    id2devices = copy.copy(_id2devices)
-    registry = copy.copy(_registry)
-    selection = copy.copy(_selection)
-    dict_ = globals()
-    dict_['_id2devices'] = {}
-    dict_['_registry'] = {Node: {}, Element: {}}
-    dict_['_selection'] = {Node: {}, Element: {}}
-    return id2devices, registry, selection
-
-
-def reset_registries(dicts: Tuple[Dict, Mapping, Mapping]):
-    """Reset the current |Node| and |Element| registries.
-
-    Function |reset_registries| is thought to be used by class |Tester| only.
-    """
-    dict_ = globals()
-    dict_['_id2devices'] = dicts[0]
-    dict_['_registry'] = dicts[1]
-    dict_['_selection'] = dicts[2]
+    registries = (
+        _id2devices,
+        _registry[Node],
+        _registry[Element],
+        _selection[Node],
+        _selection[Element],
+    )
+    copies = tuple(copy.copy(registry) for registry in registries)
+    try:
+        for registry in registries:
+            registry.clear()
+        yield
+    finally:
+        for registry, copy_ in zip(registries, copies):
+            registry.update(copy_)
 
 
 def _get_pandasindex():

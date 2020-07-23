@@ -294,13 +294,13 @@ hydpy.models.hland.hland_control.ZoneType
                         opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
-                        par.simulationstep.delete():
+                        par.simulationstep.delete(), \
+                        devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
                     projectname = hydpy.pub.get('projectname')
                     del hydpy.pub.projectname
                     timegrids = hydpy.pub.get('timegrids')
                     del hydpy.pub.timegrids
-                    registry = devicetools.gather_registries()
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()
                     try:
@@ -314,7 +314,6 @@ hydpy.models.hland.hland_control.ZoneType
                         hydpy.pub.projectname = projectname
                         if timegrids is not None:
                             hydpy.pub.timegrids = timegrids
-                        devicetools.reset_registries(registry)
                         IntegrationTest.plotting_options = plotting_options
                         hydpy.dummies.clear()
 

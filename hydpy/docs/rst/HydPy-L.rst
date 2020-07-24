@@ -12,7 +12,7 @@ HydPy-L (LARSIM)
 ================
 
 *HydPy* implements a close but not exact emulation of the central routines
-of the ´LARSIM`_ model, applied by many forecasting centres in Germany and
+of the `LARSIM`_ model, applied by many forecasting centres in Germany and
 some neighbouring countries.  The version 1 application models of *HydPy-L*
 agree very well with a LARSIM configuration called LARSIM-ME ("ME" stands
 for Middle Europe), used by the `German Federal Institute of Hydrology (BfG)`_

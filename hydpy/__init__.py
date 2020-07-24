@@ -13,6 +13,7 @@ import importlib
 import os
 import pkgutil
 import warnings
+from typing import *
 # ...from site-packages
 import numpy
 from numpy import nan
@@ -30,6 +31,7 @@ from hydpy.cythons.autogen import configutils
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
 from hydpy.core.devicetools import Elements
+from hydpy.core.devicetools import FusedVariable
 from hydpy.core.devicetools import Node
 from hydpy.core.devicetools import Nodes
 from hydpy.core.exceptiontools import HydPyDeprecationWarning
@@ -128,6 +130,7 @@ __all__ = ['aggregate_series',
            'Auxfiler',
            'Element',
            'Elements',
+           'FusedVariable',
            'Node',
            'Nodes',
            'HydPy',
@@ -196,6 +199,8 @@ __all__ = ['aggregate_series',
            'await_server',
            'start_server']
 
+inputsequence2alias: Dict[sequencetools.InputSequence, str] = {}
+
 for moduleinfo in pkgutil.walk_packages(models.__path__):
     if moduleinfo.ispkg:
         modulepath = f'hydpy.models.{moduleinfo.name}.{moduleinfo.name}_inputs'
@@ -207,6 +212,7 @@ for moduleinfo in pkgutil.walk_packages(models.__path__):
             if ((getattr(member, '__module__', None) == modulepath)
                     and issubclass(member, sequencetools.InputSequence)):
                 alias = f'{moduleinfo.name}_{member.__name__}'
+                inputsequence2alias[member] = alias
                 locals()[alias] = member
                 __all__.append(alias)
 

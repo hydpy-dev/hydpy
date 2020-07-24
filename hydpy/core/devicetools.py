@@ -109,6 +109,10 @@ ElementsConstrArg = MayNonerable2['Element', str]
 NodeConstrArg = Union['Node', str]
 ElementConstrArg = Union['Element', str]
 
+NodeVariableType = Optional[
+    Union[str, Type[sequencetools.InputSequence], 'FusedVariable']
+]
+
 
 class Keywords(set):
     """Set of keyword arguments used to describe and search for |Element| and
@@ -234,6 +238,218 @@ define a valid variable identifier.  ...
                 sorted(self), 'Keywords(', width=70) + ')'
 
     __dir__ = objecttools.dir_
+
+
+_registry_fusedvariable: Dict[str, 'FusedVariable'] = {}
+
+
+class FusedVariable:
+    # noinspection PyUnresolvedReferences
+    """Combines input sequences of different models, dealing with the same
+    property, into a single variable.
+
+    Class |FusedVariable| is one possible type of the `variable` property
+    of class |Node|.  One needs it under relatively rare and complicated
+    circumstances only. Hence, we explain it for a concrete example
+
+    Assume, we use |conv_v001| to interpolate the air temperature for a
+    specific location.  We use this temperature as input to the |evap_v001|
+    model, which uses this (and other meteorological data) to calculate
+    potential evapotranspiration.  Finally, we further pass the output
+    of |evap_v001| as input to |lland_v2|, which uses it to calculate the
+    actual evapotranspiration.
+
+    So far, there is no need to use class |FusedVariable|.  However,
+    |lland_v2| requires temperature data itself for modelling snow processes,
+    introducing the problem that we need to use the same data (the output
+    |conv_v001|) as the input of two differently named input sequences
+    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_v001|
+    and |lland_v2|, respectively).
+
+    Often, we could solve such problems by increasing network-complexity.
+    Here, |conv_v001| could interpolate the air temperature for the same
+    location twice and pass it to different nodes, one being the input to
+    |evap_v001| and the other one to |lland_v2|.  The more general and
+    prefered strategy is to use class |FusedVariable| instead.
+
+    For our concrete example, we create the fused variable `T`, which
+    combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for
+    convenience, we import their globally available aliases):
+
+    >>> from hydpy import evap_AirTemperature, FusedVariable, lland_TemL
+    >>> T = FusedVariable('T', evap_AirTemperature, lland_TemL)
+
+    Now we can construct the network.  Node `t1` handles the original
+    temperature and serves as the input node to element `conv_v001`.
+    We define the (arbitrarily selected) string `Temp` to be its
+    variable. Node `t2` handles the interpolated temperature and
+    serves as the outlet node of element `element_conv` and the input
+    node to elements `element_evap` and `element_lland`.  `t2` thus
+    receives the fused variable:
+
+    >>> from hydpy import Node, Element
+    >>> t1 = Node('t1', variable='Temp')
+    >>> t2 = Node('t2', variable=T)
+    >>> e = Node('e', variable='E')
+    >>> element_conv = Element('element_conv',
+    ...                        inlets=t1,
+    ...                        outlets=t2)
+    >>> element_evap = Element('element_evap',
+    ...                        inputs=t2,
+    ...                        outlets=e)
+    >>> element_lland = Element('element_lland',
+    ...                         inputs=t2,
+    ...                         outlets='node_q')
+
+    Now we can prepare the different model objects and assign them to their
+    corresponding elements (note that parameters |conv_control.InputCoordinates|
+    and |conv_control.OutputCoordinates| of |conv_v001| first require
+    information on the location of the relevant nodes):
+
+    >>> from hydpy import prepare_model
+    >>> model_conv = prepare_model('conv_v001')
+    >>> model_conv.parameters.control.inputcoordinates(t1=(0, 0))
+    >>> model_conv.parameters.control.outputcoordinates(t2=(1, 1))
+    >>> model_conv.parameters.control.maxnmbinputs(1)
+    >>> model_conv.parameters.update()
+    >>> element_conv.model = model_conv
+    >>> element_evap.model = prepare_model('evap_v001')
+    >>> element_lland.model = prepare_model('lland_v2')
+
+    We assign a temperature value to node `t1`:
+
+    >>> t1.sequences.sim = -273.15
+
+    Model |conv_v001| now can perform a simulation step and pass its
+    output to node `t2`:
+
+    >>> element_conv.model.simulate(0)
+    >>> t2.sequences.sim
+    sim(-273.15)
+
+    Without further configuration, |evap_v001| and |lland_v2| cannot perform
+    any simulation steps.  Hence, we just call their |Model.load_data|
+    methods to show that their input sequences are well connected to the
+    |Sim| sequence of node `t2` and receive the correct data:
+
+    >>> element_evap.model.load_data()
+    >>> element_evap.model.sequences.inputs.airtemperature
+    airtemperature(-273.15)
+    >>> element_lland.model.load_data()
+    >>> element_lland.model.sequences.inputs.teml
+    teml(-273.15)
+
+    When defining fused variables, class |FusedVariable| performs some
+    registration behind the scenes, similar as classes |Node| and |Element|
+    do.  Again, the name works as the identifier, and we force the same fused
+    variable to exist only once, even when defined in different selection
+    files repeatedly.  Hence, when we repeat the definition from above,
+    we get the same object:
+
+    >>> Test = FusedVariable('T', evap_AirTemperature, lland_TemL)
+    >>> T is Test
+    True
+
+    Changing the member sequences of an existing fused variable is not allowed:
+
+    >>> from hydpy import hland_T
+    >>> FusedVariable('T', hland_T, lland_TemL)
+    Traceback (most recent call last):
+    ...
+    ValueError: The input sequences combined by a FusedVariable object cannot \
+be changed.  The already defined sequences of the fused variable `T` are \
+`evap_AirTemperature and lland_TemL` instead of `hland_T and lland_TemL`.  \
+Keep in mind, that `name` is the unique identifier for fused objects.
+
+    Defining additional fused variables with the same member sequences does
+    not seem advisable, but is allowed:
+
+    >>> Temp = FusedVariable('Temp', evap_AirTemperature, lland_TemL)
+    >>> T is Temp
+    False
+
+    To get an overview of the already existing fused variables, call
+    method |FusedVariable.get_registry|:
+
+    >>> len(FusedVariable.get_registry())
+    2
+
+    Principally, you can clear the registry via method
+    |FusedVariable.clear_registry|, but remember it does not remove
+    |FusedVariable| objects from the running process being otherwise
+    referenced:
+
+    >>> FusedVariable.clear_registry()
+    >>> FusedVariable.get_registry()
+    ()
+    >>> t2.variable
+    FusedVariable('T', evap_AirTemperature, lland_TemL)
+
+    .. testsetup::
+
+        >>> Node.clear_all()
+        >>> Element.clear_all()
+    """
+    _name: str
+    _aliases: Tuple[str]
+    _variables: Tuple[sequencetools.InputSequence]
+    _alias2variable: Dict[str, sequencetools.InputSequence]
+
+    def __new__(
+            cls,
+            name: str,
+            *sequences: sequencetools.InputSequence,
+    ):
+        self = super().__new__(cls)
+        aliases = tuple(hydpy.inputsequence2alias[seq] for seq in sequences)
+        idxs = numpy.argsort(aliases)
+        aliases = tuple(aliases[idx] for idx in idxs)
+        variables = tuple(sequences[idx] for idx in idxs)
+        fusedvariable = _registry_fusedvariable.get(name)
+        if fusedvariable:
+            if variables == fusedvariable._variables:
+                return fusedvariable
+            raise ValueError(
+                f'The input sequences combined by a {type(self).__name__} '
+                f'object cannot be changed.  The already defined sequences '
+                f'of the fused variable `{name}` are '
+                f'`{objecttools.enumeration(fusedvariable._aliases)}` '
+                f'instead of `{objecttools.enumeration(aliases)}`.  Keep in '
+                f'mind, that `name` is the unique identifier for fused objects.'
+            )
+        self._name = name
+        self._aliases = aliases
+        self._variables = variables
+        _registry_fusedvariable[name] = self
+        self._alias2variable = dict(zip(self._aliases, self._variables))
+        return self
+
+    @classmethod
+    def get_registry(cls) -> Tuple['FusedVariable', ...]:
+        """Get all |FusedVariable| objects initialised so far."""
+        return tuple(_registry_fusedvariable.values())
+
+    @classmethod
+    def clear_registry(cls) -> None:
+        """Clear the registry from all |FusedVariable| objects initialised
+        so far.
+
+        Use this method only for good reasons!
+        """
+        return _registry_fusedvariable.clear()
+
+    def __iter__(self) -> Iterator[sequencetools.InputSequence]:
+        for variable in self._variables:
+            yield variable
+
+    def __contains__(self, item: sequencetools.InputSequence) -> bool:
+        return (item in self._variables) or (type(item) in self._variables)
+
+    def __str__(self) -> str:
+        return self._name
+
+    def __repr__(self) -> str:
+        return f'FusedVariable(\'{self._name}\', {", ".join(self._aliases)})'
 
 
 class Devices(Generic[DeviceType]):
@@ -1397,10 +1613,11 @@ immutable Elements objects is not allowed.
     """
 
     def __init__(
-            self, value: NodeConstrArg,
-            variable: Optional[
-                Union[str, Type[sequencetools.InputSequence]]] = None,
-            keywords: MayNonerable1[str] = None):
+            self,
+            value: NodeConstrArg,
+            variable: NodeVariableType = None,
+            keywords: MayNonerable1[str] = None,
+    ):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if 'new_instance' in vars(self):
@@ -1445,7 +1662,7 @@ immutable Elements objects is not allowed.
         return vars(self)['exits']
 
     @property
-    def variable(self) -> Union[str, Type[sequencetools.InputSequence]]:
+    def variable(self) -> NodeVariableType:
         # noinspection PyUnresolvedReferences
         # noinspection PyPropertyAccess
         """The variable handled by the actual |Node| object.
@@ -1474,6 +1691,15 @@ immutable Elements objects is not allowed.
         >>> from hydpy import hland_P
         >>> Node('test4', variable=hland_P)
         Node("test4", variable=hland_P)
+
+        For some complex *HydPy* projects, one may need to fall back on
+        |FusedVariable| objects.  The string representation then relies
+        on the name of the fused variable:
+
+        >>> from hydpy import FusedVariable, lland_Nied
+        >>> Precipitation = FusedVariable('Precip', hland_P, lland_Nied)
+        >>> Node('test5', variable=Precipitation)
+        Node("test5", variable=Precip)
 
         To avoid confusion, one cannot change property |Node.variable|:
 
@@ -1786,6 +2012,8 @@ the given group name `test`.
         variable = self.variable
         if isinstance(variable, str):
             variable = f'"{variable}"'
+        elif isinstance(variable, FusedVariable):
+            variable = str(variable)
         else:
             variable = (f'{variable.__module__.split(".")[2]}_'
                         f'{variable.__name__}')
@@ -2464,17 +2692,27 @@ def clear_registries_temporarily():
     """Context manager for clearing the current |Node|, |Element|, and
     |FusedVariable| registries .
 
-    Function |gather_registries| is thought to be used by class |Tester|.
+    Function |clear_registries_temporarily| is only available for testing
+    purposes.
+
+    These are the relevant registries for the currently initialised |Node|,
+    |Element|, and |FusedVariable| objects:
 
     >>> from hydpy.core import devicetools
     >>> registries = (devicetools._id2devices,
     ...               devicetools._registry[devicetools.Node],
     ...               devicetools._registry[devicetools.Element],
     ...               devicetools._selection[devicetools.Node],
-    ...               devicetools._selection[devicetools.Element])
+    ...               devicetools._selection[devicetools.Element],
+    ...               devicetools._registry_fusedvariable)
+
+    We first clear them and, just for testing, insert some numbers:
+
     >>> for idx, registry in enumerate(registries):
     ...     registry.clear()
     ...     registry[idx] = idx+1
+
+    Within the `with` block, all registries are empty:
 
     >>> with devicetools.clear_registries_temporarily():
     ...     for registry in registries:
@@ -2484,6 +2722,11 @@ def clear_registries_temporarily():
     {}
     {}
     {}
+    {}
+
+    Before leaving the `with` block, the |clear_registries_temporarily|
+    method restores the contents of each dictionary:
+
     >>> for registry in registries:
     ...     print(registry)
     ...     registry.clear()
@@ -2492,6 +2735,7 @@ def clear_registries_temporarily():
     {2: 3}
     {3: 4}
     {4: 5}
+    {5: 6}
     """
     registries = (
         _id2devices,
@@ -2499,6 +2743,7 @@ def clear_registries_temporarily():
         _registry[Element],
         _selection[Node],
         _selection[Element],
+        _registry_fusedvariable,
     )
     copies = tuple(copy.copy(registry) for registry in registries)
     try:

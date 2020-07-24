@@ -20,6 +20,7 @@ from typing import *
 import numpy
 # ...from HydPy
 from hydpy import conf
+from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -27,7 +28,6 @@ from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.cythons import modelutils
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
     from hydpy.core import masktools
 
 
@@ -364,20 +364,19 @@ to any sequences: in2.
         gets data from the related node; otherwise, it uses its individually
         managed data, usually read from a file.
 
-
         We demonstrate this functionality by focussing on the input sequences
         |hland_inputs.T| and |hland_inputs.P| of application model |hland_v1|.
         |hland_inputs.T| uses its own data (which we define manually, but we
         could read it from a file as well), whereas |hland_inputs.P| gets its
         data from node `inp1`.  This functionality requires to tell the node
-        which sequence it should connect to, which we do by passing
-        the sequence type to the `variable` keyword:
+        which sequence it should connect to, which we do by passing the
+        sequence type (or the globally available alias `hland_P`) to the
+        `variable` keyword:
 
-        >>> from hydpy import pub
-        >>> from hydpy.models.hland.hland_inputs import P
+        >>> from hydpy import hland_P, pub
         >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
 
-        >>> inp1 = Node('inp1', variable=P)
+        >>> inp1 = Node('inp1', variable=hland_P)
         >>> element8 = Element('element8',
         ...                    outlets=out1,
         ...                    inputs=inp1)
@@ -392,17 +391,63 @@ to any sequences: in2.
         >>> element8.model.sequences.inputs.p
         p(9.0)
 
+        Instead of using single |InputSequence| subclasses, one can create
+        and apply fused variables, combining multiple |InputSequence|
+        subclasses (see the documentation on class |FusedVariable| for more
+        information and a more realistic example):
+
+        >>> from hydpy import FusedVariable, lland_Nied
+        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
+        >>> inp2 = Node('inp2', variable=Precip)
+        >>> element9 = Element('element9',
+        ...                    outlets=out1,
+        ...                    inputs=inp2)
+        >>> element9.model = prepare_model('hland_v1')
+        >>> element9.prepare_inputseries()
+        >>> inp2.sequences.sim(9.0)
+        >>> element9.model.load_data()
+        >>> element9.model.sequences.inputs.p
+        p(9.0)
+
+        Method |Model.connect| reports if one of the given fused variables
+        does not find a fitting input sequence:
+
+        >>> from hydpy import lland_TemL
+        >>> Wrong = FusedVariable('Wrong', lland_Nied, lland_TemL)
+        >>> inp3 = Node('inp3', variable=Wrong)
+        >>> element10 = Element('element10',
+        ...                     outlets=out1,
+        ...                     inputs=inp3)
+        >>> element10.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to build the node connection of the \
+`input` sequences of the model handled by element `element10`, the following \
+error occurred: None of the input sequences of model `hland_v1` is among \
+the sequences of the fused variable `Wrong` of node `inp3`.
+
         .. testsetup::
 
-            >>> from hydpy import Node, Element
             >>> Node.clear_all()
             >>> Element.clear_all()
+            >>> FusedVariable.clear_registry()
         """
         try:
             group = 'inputs'
             for node in self.element.inputs:
-                name = node.variable.__name__.lower()
-                sequence = getattr(self.sequences.inputs, name)
+                if isinstance(node.variable, devicetools.FusedVariable):
+                    for sequence in self.sequences.inputs:
+                        if sequence in node.variable:
+                            break
+                    else:
+                        raise RuntimeError(
+                            f'None of the input sequences of model `{self}` '
+                            f'is among the sequences of the fused variable '
+                            f'`{node.variable}` of node `{node.name}`.'
+                        )
+                else:
+                    name = node.variable.__name__.lower()
+                    sequence = getattr(self.sequences.inputs, name)
                 sequence.set_pointer(node.get_double(group))
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)

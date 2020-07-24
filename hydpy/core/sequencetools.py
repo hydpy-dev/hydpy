@@ -2396,13 +2396,13 @@ class InputSequence(ModelSequence):
     both types of input data sources at the same time works well and that
     the different |Node.deploymode| options are supported:
 
-    >>> from hydpy import (Element, HydPy, Node, print_values,
-    ...                    pub, Selection, TestIO)
-    >>> from hydpy.models.hland.hland_inputs import T, P
+    >>> from hydpy import (
+    ...     Element, FusedVariable, hland_T, hland_P, HydPy, Node,
+    ...     print_values, pub, Selection, TestIO)
     >>> hp = HydPy('LahnH')
     >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
-    >>> node_t = Node('node_t', variable=T)
-    >>> node_p = Node('node_p', variable=P)
+    >>> node_t = Node('node_t', variable=hland_T)
+    >>> node_p = Node('node_p', variable=FusedVariable('Precip', hland_P))
     >>> node_q = Node('node_q')
     >>> land_dill = Element('land_dill',
     ...                     inputs=[node_t, node_p],

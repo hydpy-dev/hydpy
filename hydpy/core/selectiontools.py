@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import copy
+import inspect
 import types
 from typing import *
 # ...from site-packages
@@ -15,6 +16,7 @@ from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import sequencetools
 from hydpy.core import typingtools
 
 ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
@@ -1042,11 +1044,12 @@ requires string as left operand, not list
         The `write_defaultnodes` argument does only affect nodes handling
         the default variable `Q`:
 
-        >>> from hydpy import Node, hland_P, hland_T
+        >>> from hydpy import FusedVariable, hland_P, hland_T, lland_Nied, Node
+        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node('test1', variable='X'))
         >>> nodes.add_device(Node('test2', variable=hland_T))
-        >>> nodes.add_device(Node('test3', variable=hland_P))
+        >>> nodes.add_device(Node('test3', variable=Precip))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
         ...         'test.py', write_defaultnodes=False)
@@ -1054,14 +1057,17 @@ requires string as left operand, not list
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy import Node, Element, hland_P, hland_T
+        from hydpy import Node, Element, FusedVariable
+        from hydpy import hland_P, hland_T, lland_Nied
+        <BLANKLINE>
+        Precip = FusedVariable('Precip', hland_P, lland_Nied)
         <BLANKLINE>
         <BLANKLINE>
         Node("test1", variable="X")
         <BLANKLINE>
         Node("test2", variable=hland_T)
         <BLANKLINE>
-        Node("test3", variable=hland_P)
+        Node("test3", variable=Precip)
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1073,20 +1079,34 @@ requires string as left operand, not list
                 keywords="catchment")
         <BLANKLINE>
         """
-        aliases = []
+        aliases: Set[str] = set()
+        fusedvariables: Set[devicetools.FusedVariable] = set()
         for variable in self.nodes.variables:
-            if not isinstance(variable, str):
-                aliases.append(f'{variable.__module__.split(".")[2]}_'
-                               f'{variable.__name__}')
+            if (inspect.isclass(variable) and
+                    issubclass(variable, sequencetools.InputSequence)):
+                aliases.add(hydpy.inputsequence2alias[variable])
+            if isinstance(variable, devicetools.FusedVariable):
+                fusedvariables.add(variable)
+        for fusedvariable in fusedvariables:
+            for sequence in fusedvariable:
+                aliases.add(hydpy.inputsequence2alias[sequence])
         if filepath is None:
             filepath = self.name + '.py'
         with open(filepath, 'w', encoding="utf-8") as file_:
             file_.write('# -*- coding: utf-8 -*-\n')
             file_.write('\nfrom hydpy import Node, Element')
+            if fusedvariables:
+                file_.write(', FusedVariable')
             if aliases:
-                file_.write(f', {", ".join(sorted(aliases))}\n\n')
+                file_.write(
+                    f'\nfrom hydpy import {", ".join(sorted(aliases))}\n\n'
+                )
             else:
                 file_.write('\n\n')
+            for fusedvariable in fusedvariables:
+                file_.write(f'{fusedvariable} = {repr(fusedvariable)}\n')
+            if fusedvariables:
+                file_.write('\n')
             written = False
             for node in self.nodes:
                 if write_defaultnodes or (node.variable != 'Q'):

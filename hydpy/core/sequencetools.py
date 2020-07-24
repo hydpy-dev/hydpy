@@ -3809,7 +3809,7 @@ class FastAccessModelSequence(FastAccessSequence):
                     values = values[0]
             elif ramflag:
                 values = self._get_attribute(name, 'array')[idx]
-            if diskflag or ramflag:
+            if diskflag or ramflag or inputflag:
                 if ndim == 0:
                     setattr(self, name, values)
                 else:

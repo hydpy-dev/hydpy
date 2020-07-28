@@ -125,57 +125,55 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                 if exc.args[-1] != 'has no docstrings':
                     raise exc
             else:
+                del pub.projectname
+                del pub.timegrids
+                del parametertools.Parameter(None).parameterstep
+                del parametertools.Parameter(None).simulationstep
                 opt = pub.options
                 opt.usecython = mode == 'Cython'
-                Par = parametertools.Parameter
-                # pylint: disable=not-callable
-                with opt.ellipsis(0), \
-                        opt.flattennetcdf(False), \
-                        opt.isolatenetcdf(False), \
-                        opt.printincolor(False), \
-                        opt.printprogress(False), \
-                        opt.reprcomments(False), \
-                        opt.reprdigits(6), \
-                        opt.timeaxisnetcdf(1), \
-                        opt.usedefaultvalues(False), \
-                        opt.utclongitude(15), \
-                        opt.utcoffset(60), \
-                        opt.warnsimulationstep(False), \
-                        opt.warntrim(False), \
-                        Par.parameterstep.delete(), \
-                        Par.simulationstep.delete(), \
+                opt.ellipsis = 0
+                opt.flattennetcdf = False
+                opt.isolatenetcdf = False
+                opt.printincolor = False
+                opt.printprogress = False
+                opt.reprcomments = False
+                opt.reprdigits = 6
+                opt.timeaxisnetcdf = 1
+                opt.usedefaultvalues = False
+                opt.utclongitude = 15
+                opt.utcoffset = 60
+                opt.warnsimulationstep = False
+                opt.warntrim = False
+                testtools.IntegrationTest.plotting_options = \
+                    testtools.PlottingOptions()
+                if name[-4:] in ('.rst', '.pyx'):
+                    name = name[name.find('hydpy'+os.sep):]
+                with warnings.catch_warnings(), \
+                        open(os.devnull, 'w') as file_, \
                         devicetools.clear_registries_temporarily():
-                    del pub.projectname
-                    del pub.timegrids
-                    testtools.IntegrationTest.plotting_options = \
-                        testtools.PlottingOptions()
-                    if name[-4:] in ('.rst', '.pyx'):
-                        name = name[name.find('hydpy'+os.sep):]
-                    with warnings.catch_warnings(), \
-                            open(os.devnull, 'w') as file_:
-                        warnings.filterwarnings(
-                            action='error',
-                            module='hydpy',
-                        )
-                        warnings.filterwarnings(
-                            action='ignore',
-                            message='tostring',
-                        )
-                        runner = unittest.TextTestRunner(stream=file_)
-                        testresult = runner.run(suite)
-                        doctests[name] = testresult
-                    doctests[name].nmbproblems = (
-                        len(testresult.errors) +
-                        len(testresult.failures))
-                    hydpy.dummies.clear()
-                    problems = testresult.errors + testresult.failures
-                    if problems:
-                        print(f'\nDetailed error information on module {name}:')
-                        for idx, problem in enumerate(problems):
-                            print(f'    Error no. {idx+1}:')
-                            print(f'        {problem[0]}')
-                            for line in problem[1].split('\n'):
-                                print(f'        {line}')
+                    warnings.filterwarnings(
+                        action='error',
+                        module='hydpy',
+                    )
+                    warnings.filterwarnings(
+                        action='ignore',
+                        message='tostring',
+                    )
+                    runner = unittest.TextTestRunner(stream=file_)
+                    testresult = runner.run(suite)
+                    doctests[name] = testresult
+                doctests[name].nmbproblems = (
+                    len(testresult.errors) +
+                    len(testresult.failures))
+                hydpy.dummies.clear()
+                problems = testresult.errors + testresult.failures
+                if problems:
+                    print(f'\nDetailed error information on module {name}:')
+                    for idx, problem in enumerate(problems):
+                        print(f'    Error no. {idx+1}:')
+                        print(f'        {problem[0]}')
+                        for line in problem[1].split('\n'):
+                            print(f'        {line}')
     successfuldoctests.update({name: runner for (name, runner)
                                in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

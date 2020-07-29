@@ -317,7 +317,7 @@ following ones are supported: `monthly` (default) and `daily`.
         )
     if stepsize == 'daily':
         rule = '86400s'
-        base = (
+        offset = (
             timetools.Date(f'2000-01-01 {basetime}') -
             timetools.Date('2000-01-01')
         ).seconds
@@ -330,7 +330,7 @@ following ones are supported: `monthly` (default) and `daily`.
         )
     elif stepsize == 'monthly':
         rule = 'MS'
-        base = 0
+        offset = 0
         firstdate_expanded = tg.firstdate-'31d'
         lastdate_expanded = tg.lastdate+'31d'
     else:
@@ -362,7 +362,7 @@ following ones are supported: `monthly` (default) and `daily`.
     )
     resampler = dataframe_expanded.resample(
         rule=rule,
-        base=int(base),
+        offset=f'{offset}s',
     )
     try:
         df_resampled_expanded = resampler.apply(lambda x: function(x.values))

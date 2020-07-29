@@ -792,13 +792,51 @@ no value is passed to argument `sim`.
 
 
 @overload
-def nse(
+def rmse(
         *,
         sim: Sequence[float],
         obs: Sequence[float],
         skip_nan: bool = ...,
 ) -> numpy.ndarray:
     """node as argument"""
+
+
+@overload
+def rmse(
+        *,
+        node: devicetools.Node,
+        skip_nan: bool = ...,
+) -> float:
+    """sim and obs as arguments"""
+
+
+@objecttools.excmessage_decorator(
+    'calculate the root-mean-square error')
+def rmse(
+        *,
+        sim: Optional[Sequence[float]] = None,
+        obs: Optional[Sequence[float]] = None,
+        node: Optional[devicetools.Node] = None,
+        skip_nan: bool = False,
+) -> float:
+    """ Calculate the root-mean-square error.
+
+    >>> from hydpy import rmse, round_
+    >>> rmse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    0.0
+    >>> round_(rmse(sim=[1.0, 2.0, 3.0], obs=[0.5, 2.0, 4.5]))
+    0.912871
+
+    See the documentation on function |prepare_arrays| for some
+    additional instructions for using |rmse|.
+    """
+    sim, obs = prepare_arrays(
+        sim=sim,
+        obs=obs,
+        node=node,
+        skip_nan=skip_nan,
+    )
+    return numpy.sqrt(numpy.mean((sim-obs)**2))
 
 
 @overload

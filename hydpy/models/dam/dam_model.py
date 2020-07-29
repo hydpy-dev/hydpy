@@ -5,6 +5,7 @@
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.cythons import modelutils
 from hydpy.cythons.autogen import smoothutils
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
@@ -1960,9 +1961,9 @@ class Calc_ActualRelease_V2(modeltools.Method):
 
 
 class Calc_ActualRelease_V3(modeltools.Method):
-    """Calculate an actual water release that tries change the water storage
-    into the direction of the actual target volume without violating the
-    required minimum and the allowed maximum flow.
+    """Calculate an actual water release that tries to change the water
+    storage into the direction of the actual target volume without
+    violating the required minimum and the allowed maximum flow.
 
     Used auxiliary methods:
       |smooth_logistic1|
@@ -1987,8 +1988,6 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...              _04_1_12=0.0, _10_31_12=0.0)
         >>> neardischargeminimumthreshold(_11_1_12=3.0, _03_31_12=3.0,
         ...                               _04_1_12=0.0, _10_31_12=0.0)
-        >>> targetrangeabsolute(0.1)
-        >>> targetrangerelative(0.2)
         >>> derived.toy.update()
 
         >>> from hydpy import UnitTest
@@ -2001,7 +2000,6 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
         >>> model.idx_sim = pub.timegrids.init['2001-03-31']
         >>> aides.alloweddischarge = 6.0
-        >>> fluxes.inflow = 4.0
 
         >>> def set_tolerances(value):
         ...     volumetolerance(value)
@@ -2010,9 +2008,59 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...     derived.volumesmoothparlog2.update()
         ...     derived.dischargesmoothpar.update()
 
-        Standard case, without smoothing:
+        >>> def apply_targetrange(flag):
+        ...     if flag:
+        ...         targetrangeabsolute(0.1)
+        ...         targetrangerelative(0.2)
+        ...     else:
+        ...         targetrangeabsolute(0.0)
+        ...         targetrangerelative(0.0)
 
+        Standard case, without smoothing, without interpolation:
+
+        >>> fluxes.inflow = 4.0
         >>> set_tolerances(0.0)
+        >>> apply_targetrange(False)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           4.0 |
+        |  17 |         5.1 |           6.0 |
+        |  18 |         5.2 |           6.0 |
+        |  19 |         5.3 |           6.0 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        Standard case, without smoothing, with interpolation:
+
+        >>> fluxes.inflow = 4.0
+        >>> set_tolerances(0.0)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2048,9 +2096,52 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
-        Standard case, moderate smoothing:
+        Standard case, moderate smoothing, without interpolation:
 
+        >>> fluxes.inflow = 4.0
         >>> set_tolerances(0.1)
+        >>> apply_targetrange(False)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |      3.000001 |
+        |  14 |         4.8 |      3.000102 |
+        |  15 |         4.9 |          3.01 |
+        |  16 |         5.0 |           4.0 |
+        |  17 |         5.1 |          5.98 |
+        |  18 |         5.2 |      5.999796 |
+        |  19 |         5.3 |      5.999998 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+
+        Standard case, moderate smoothing, with interpolation:
+
+        >>> fluxes.inflow = 4.0
+        >>> set_tolerances(0.1)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2063,20 +2154,20 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |   7 |         4.1 |          3.11 |
         |   8 |         4.2 |      3.201974 |
         |   9 |         4.3 |      3.300369 |
-        |  10 |         4.4 |      3.400068 |
-        |  11 |         4.5 |      3.500013 |
-        |  12 |         4.6 |      3.600002 |
-        |  13 |         4.7 |           3.7 |
-        |  14 |         4.8 |       3.79998 |
-        |  15 |         4.9 |         3.899 |
+        |  10 |         4.4 |      3.400067 |
+        |  11 |         4.5 |           3.5 |
+        |  12 |         4.6 |      3.599933 |
+        |  13 |         4.7 |      3.699632 |
+        |  14 |         4.8 |      3.798047 |
+        |  15 |         4.9 |        3.8913 |
         |  16 |         5.0 |           4.0 |
-        |  17 |         5.1 |         4.199 |
-        |  18 |         5.2 |      4.399979 |
-        |  19 |         5.3 |      4.599999 |
-        |  20 |         5.4 |      4.799995 |
-        |  21 |         5.5 |      4.999975 |
-        |  22 |         5.6 |      5.199864 |
-        |  23 |         5.7 |      5.399262 |
+        |  17 |         5.1 |        4.2177 |
+        |  18 |         5.2 |      4.403907 |
+        |  19 |         5.3 |      4.600737 |
+        |  20 |         5.4 |      4.800134 |
+        |  21 |         5.5 |           5.0 |
+        |  22 |         5.6 |      5.199866 |
+        |  23 |         5.7 |      5.399263 |
         |  24 |         5.8 |      5.596051 |
         |  25 |         5.9 |          5.78 |
         |  26 |         6.0 |      5.918035 |
@@ -2086,9 +2177,53 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |      5.999864 |
         |  31 |         6.5 |      5.999975 |
 
-        Inflow smaller than minimum release, without smoothing:
+        Inflow smaller than minimum release, without smoothing, without
+        interpolation:
 
+        >>> fluxes.inflow = 2.0
         >>> set_tolerances(0.0)
+        >>> apply_targetrange(False)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |           6.0 |
+        |  18 |         5.2 |           6.0 |
+        |  19 |         5.3 |           6.0 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        Inflow smaller than minimum release, without smoothing, with
+        interpolation:
+
+        >>> fluxes.inflow = 2.0
+        >>> set_tolerances(0.0)
+        >>> apply_targetrange(True)
         >>> fluxes.inflow = 2.0
         >>> test()
         | ex. | watervolume | actualrelease |
@@ -2125,9 +2260,12 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
-        Inflow smaller than minimum release, moderate smoothing:
+        Inflow smaller than minimum release, moderate smoothing, without
+        interpolation:
 
+        >>> fluxes.inflow = 2.0
         >>> set_tolerances(0.1)
+        >>> apply_targetrange(False)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2143,16 +2281,57 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  10 |         4.4 |           3.0 |
         |  11 |         4.5 |           3.0 |
         |  12 |         4.6 |           3.0 |
-        |  13 |         4.7 |      2.999999 |
-        |  14 |         4.8 |      2.999939 |
-        |  15 |         4.9 |         2.997 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
         |  16 |         5.0 |           3.0 |
-        |  17 |         5.1 |         3.297 |
-        |  18 |         5.2 |      3.599939 |
-        |  19 |         5.3 |      3.899998 |
-        |  20 |         5.4 |      4.199993 |
-        |  21 |         5.5 |      4.499962 |
-        |  22 |         5.6 |      4.799796 |
+        |  17 |         5.1 |          5.97 |
+        |  18 |         5.2 |      5.999694 |
+        |  19 |         5.3 |      5.999997 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        Inflow smaller than minimum release, moderate smoothing, with
+        interpolation:
+
+        >>> fluxes.inflow = 2.0
+        >>> set_tolerances(0.1)
+        >>> apply_targetrange(True)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |      3.000001 |
+        |  15 |         4.9 |        3.0003 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |        3.3267 |
+        |  18 |         5.2 |      3.605861 |
+        |  19 |         5.3 |      3.901105 |
+        |  20 |         5.4 |      4.200201 |
+        |  21 |         5.5 |           4.5 |
+        |  22 |         5.6 |      4.799799 |
         |  23 |         5.7 |      5.098894 |
         |  24 |         5.8 |      5.394077 |
         |  25 |         5.9 |          5.67 |
@@ -2163,10 +2342,53 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |      5.999796 |
         |  31 |         6.5 |      5.999962 |
 
-        Inflow larger than maximum release, without smoothing:
+        Inflow larger than maximum release, without smoothing, without
+        interpolation:
 
-        >>> set_tolerances(0.0)
         >>> fluxes.inflow = 7.0
+        >>> set_tolerances(0.0)
+        >>> apply_targetrange(False)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           6.0 |
+        |  17 |         5.1 |           6.0 |
+        |  18 |         5.2 |           6.0 |
+        |  19 |         5.3 |           6.0 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        Inflow larger than maximum release, without smoothing, with
+        interpolation:
+
+        >>> fluxes.inflow = 7.0
+        >>> set_tolerances(0.0)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2202,31 +2424,34 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
-        Inflow larger than maximum release, moderate smoothing:
+        Inflow larger than maximum release, moderate smoothing, without
+        interpolation:
 
+        >>> fluxes.inflow = 7.0
+        >>> apply_targetrange(False)
         >>> set_tolerances(0.1)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
-        |   1 |         3.5 |      3.000038 |
-        |   2 |         3.6 |      3.000204 |
-        |   3 |         3.7 |      3.001106 |
-        |   4 |         3.8 |      3.005923 |
-        |   5 |         3.9 |          3.03 |
-        |   6 |         4.0 |      3.122948 |
-        |   7 |         4.1 |          3.33 |
-        |   8 |         4.2 |      3.605923 |
-        |   9 |         4.3 |      3.901106 |
-        |  10 |         4.4 |      4.200204 |
-        |  11 |         4.5 |      4.500038 |
-        |  12 |         4.6 |      4.800007 |
-        |  13 |         4.7 |      5.100002 |
-        |  14 |         4.8 |      5.400061 |
-        |  15 |         4.9 |         5.703 |
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |      3.000003 |
+        |  14 |         4.8 |      3.000306 |
+        |  15 |         4.9 |          3.03 |
         |  16 |         5.0 |           6.0 |
-        |  17 |         5.1 |         6.003 |
-        |  18 |         5.2 |      6.000061 |
-        |  19 |         5.3 |      6.000001 |
+        |  17 |         5.1 |           6.0 |
+        |  18 |         5.2 |           6.0 |
+        |  19 |         5.3 |           6.0 |
         |  20 |         5.4 |           6.0 |
         |  21 |         5.5 |           6.0 |
         |  22 |         5.6 |           6.0 |
@@ -2240,10 +2465,53 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
-        Maximum release smaller than minimum release, without smoothing:
+        Inflow larger than maximum release, moderate smoothing, with
+        interpolation:
 
-        >>> set_tolerances(0.0)
+        >>> fluxes.inflow = 7.0
+        >>> apply_targetrange(True)
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |      3.000038 |
+        |   2 |         3.6 |      3.000204 |
+        |   3 |         3.7 |      3.001106 |
+        |   4 |         3.8 |      3.005923 |
+        |   5 |         3.9 |          3.03 |
+        |   6 |         4.0 |      3.122948 |
+        |   7 |         4.1 |          3.33 |
+        |   8 |         4.2 |      3.605923 |
+        |   9 |         4.3 |      3.901106 |
+        |  10 |         4.4 |      4.200201 |
+        |  11 |         4.5 |           4.5 |
+        |  12 |         4.6 |      4.799799 |
+        |  13 |         4.7 |      5.098895 |
+        |  14 |         4.8 |      5.394139 |
+        |  15 |         4.9 |        5.6733 |
+        |  16 |         5.0 |           6.0 |
+        |  17 |         5.1 |        5.9997 |
+        |  18 |         5.2 |      5.999999 |
+        |  19 |         5.3 |           6.0 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        Maximum release smaller than minimum release, without smoothing,
+        with interpolation:
+
         >>> aides.alloweddischarge = 1.0
+        >>> set_tolerances(0.0)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2279,9 +2547,12 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           3.0 |
         |  31 |         6.5 |           3.0 |
 
-        Maximum release smaller than minimum release, moderate smoothing:
+        Maximum release smaller than minimum release, moderate smoothing,
+        with interpolation:
 
+        >>> aides.alloweddischarge = 1.0
         >>> set_tolerances(0.1)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2295,14 +2566,14 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |   8 |         4.2 |      3.008277 |
         |   9 |         4.3 |       3.01231 |
         |  10 |         4.4 |      3.016396 |
-        |  11 |         4.5 |      3.020492 |
-        |  12 |         4.6 |       3.02459 |
-        |  13 |         4.7 |      3.028688 |
-        |  14 |         4.8 |      3.032783 |
-        |  15 |         4.9 |      3.036516 |
-        |  16 |         5.0 |      3.020491 |
-        |  17 |         5.1 |      3.000451 |
-        |  18 |         5.2 |      3.000005 |
+        |  11 |         4.5 |      3.020491 |
+        |  12 |         4.6 |      3.024587 |
+        |  13 |         4.7 |      3.028673 |
+        |  14 |         4.8 |      3.032702 |
+        |  15 |         4.9 |       3.03611 |
+        |  16 |         5.0 |      3.040983 |
+        |  17 |         5.1 |      3.000406 |
+        |  18 |         5.2 |      3.000004 |
         |  19 |         5.3 |           3.0 |
         |  20 |         5.4 |           3.0 |
         |  21 |         5.5 |           3.0 |
@@ -2326,9 +2597,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
         >>> model.idx_sim = pub.timegrids.init['2001-04-01']
         >>> fluxes.inflow = 0.0
 
-        Zero values, without smoothing:
+        Zero values, without smoothing, with interpolation:
 
         >>> set_tolerances(0.0)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2354,9 +2626,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  20 |         1.4 |           1.0 |
         |  21 |         1.5 |           1.0 |
 
-        Zero values, moderate smoothing:
+        Zero values, moderate smoothing, with interpolation:
 
         >>> set_tolerances(0.1)
+        >>> apply_targetrange(True)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2364,10 +2637,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |   2 |        -0.4 |           0.0 |
         |   3 |        -0.3 |           0.0 |
         |   4 |        -0.2 |      0.000004 |
-        |   5 |        -0.1 |      0.000373 |
+        |   5 |        -0.1 |       0.00042 |
         |   6 |         0.0 |      0.032478 |
-        |   7 |         0.1 |      0.942391 |
-        |   8 |         0.2 |      0.999809 |
+        |   7 |         0.1 |      0.941985 |
+        |   8 |         0.2 |        0.9998 |
         |   9 |         0.3 |      0.999998 |
         |  10 |         0.4 |           1.0 |
         |  11 |         0.5 |           1.0 |
@@ -2410,6 +2683,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         new = model.sequences.states.fastaccess_new
         aid = model.sequences.aides.fastaccess
+        # some general preparations:
         idx_toy = der.toy[model.idx_sim]
         d_target = con.targetvolume[idx_toy]
         d_range = max(
@@ -2424,11 +2698,12 @@ class Calc_ActualRelease_V3(modeltools.Method):
             aid.alloweddischarge,
             der.dischargesmoothpar
         )
-        d_factor = smoothutils.smooth_logistic2(
+        # calculate the release for too-high water volumes:
+        d_factor = smoothutils.smooth_logistic3(
             (new.watervolume-d_target+d_range)/d_range,
             der.volumesmoothparlog2,
         )
-        d_bound = smoothutils.smooth_min1(
+        d_upperbound = smoothutils.smooth_min1(
             d_qmax,
             flu.inflow,
             der.dischargesmoothpar
@@ -2437,15 +2712,16 @@ class Calc_ActualRelease_V3(modeltools.Method):
             (1.-d_factor)*d_qmin +
             d_factor*smoothutils.smooth_max1(
                 d_qmin,
-                d_bound,
+                d_upperbound,
                 der.dischargesmoothpar,
             )
         )
-        d_factor = smoothutils.smooth_logistic2(
+        # calculate the release for too-low water volumes:
+        d_factor = smoothutils.smooth_logistic3(
             (d_target+d_range-new.watervolume)/d_range,
             der.volumesmoothparlog2,
         )
-        d_bound = smoothutils.smooth_max1(
+        d_neutral = smoothutils.smooth_max1(
             d_qmin,
             flu.inflow,
             der.dischargesmoothpar
@@ -2454,15 +2730,33 @@ class Calc_ActualRelease_V3(modeltools.Method):
             (1.-d_factor)*d_qmax +
             d_factor*smoothutils.smooth_min1(
                 d_qmax,
-                d_bound,
+                d_neutral,
                 der.dischargesmoothpar,
             )
         )
+        # combine both releases smoothly:
         d_weight = smoothutils.smooth_logistic1(
             d_target-new.watervolume,
             der.volumesmoothparlog1
         )
-        flu.actualrelease = d_weight*d_release1 + (1.-d_weight)*d_release2
+        flu.actualrelease = d_weight*d_release1+(1.-d_weight)*d_release2
+        # the realease calculated so far may depend on the smoothing-degree,
+        # even when the actual volume meets the target volume; the following
+        # equations are supposed to correct this:
+        if der.volumesmoothparlog1 > 0.:
+            d_weight = modelutils.exp(
+                -((new.watervolume-d_target)/der.volumesmoothparlog1)**2
+            )
+        else:
+            d_weight = 0.
+        d_neutral = smoothutils.smooth_max1(
+            d_upperbound,
+            d_qmin,
+            der.dischargesmoothpar
+        )
+        flu.actualrelease = d_weight*d_neutral+(1.-d_weight)*flu.actualrelease
+        # for good measure, prevent negative release and storage overdrying
+        # explictly:
         flu.actualrelease = smoothutils.smooth_max1(
             flu.actualrelease,
             0.,

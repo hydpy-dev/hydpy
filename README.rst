@@ -13,7 +13,51 @@
 .. _`NetCDF-CF`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html
 
 .. figure:: hydpy/docs/figs/HydPy_Logo_Text.png
-    :alt: HydPy logo
+   :alt: HydPy logo
+
+
+.. image:: https://img.shields.io/pypi/v/HydPy
+   :alt: PyPI
+   :target: https://pypi.org/project/HydPy/
+.. image:: https://img.shields.io/pypi/v/HydPy?label=download
+   :alt: Releases
+   :target: https://github.com/hydpy-dev/hydpy/releases
+.. image:: https://img.shields.io/badge/docs-latest-informational
+   :alt: Documentation
+   :target: https://hydpy-dev.github.io/hydpy/index.html
+
+\
+
+.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
+   :alt: Travis (.org) branch
+   :target: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=develop
+   :alt: Travis (.org) branch
+   :target: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
+   :alt: Travis (.org)
+   :target: https://travis-ci.org/hydpy-dev/hydpy
+
+\
+
+.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
+   :alt: AppVeyor branch
+   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
+.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/develop?label=develop
+   :alt: AppVeyor branch
+   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
+.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest
+   :alt: AppVeyor
+   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s
+
+\
+
+.. image:: https://img.shields.io/github/issues-raw/hydpy-dev/hydpy
+   :alt: GitHub issues
+   :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aopen+is%3Aissue
+.. image:: https://img.shields.io/github/issues-closed-raw/hydpy-dev/hydpy?label=closed
+   :alt: GitHub closed issues
+   :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aissue+is%3Aclosed
 
 *HydPy* is an interactive framework for developing and applying
 different types of hydrological models, originally developed

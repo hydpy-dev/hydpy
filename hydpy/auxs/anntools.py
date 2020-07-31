@@ -61,7 +61,10 @@ class _ANNArrayProperty(propertytools.DependentProperty):
             try:
                 cann = self.__obj2cann[obj]
                 shape = getattr(obj, self.__shape)
-                array = numpy.full(shape, value, dtype=float)
+                if self.name == 'activation':
+                    array = numpy.full(shape, value, dtype=int)
+                else:
+                    array = numpy.full(shape, value, dtype=float)
                 setattr(cann, self.name, array)
             except BaseException:
                 descr = ' '.join(reversed(self.name.split('_')))
@@ -72,7 +75,10 @@ class _ANNArrayProperty(propertytools.DependentProperty):
 
     def __fdel(self, obj):
         cann = self.__obj2cann[obj]
-        array = numpy.zeros(getattr(obj, self.__shape))
+        if self.name == 'activation':
+            array = numpy.ones(getattr(obj, self.__shape), dtype=int)
+        else:
+            array = numpy.zeros(getattr(obj, self.__shape), dtype=float)
         setattr(cann, self.name, array)
 
 
@@ -101,11 +107,13 @@ class ANN(BaseANN):
     # noinspection PyTypeChecker,PyUnresolvedReferences
     """Multi-layer feed-forward artificial neural network.
 
-    The applied activation function is the logistic function:
+    By default, class |anntools.ANN| uses the logistic function
+    :math:`f(x) = \\frac{1}{1+exp(-x)}` to calculate the activation of
+    the neurons of the hidden layer.  Alternatively, one can select the
+    identity function :math:`f(x) = x`.  See property |anntools.ANN.activation|
+    for more information on how to do this.
 
-      :math:`f(x) = \\frac{1}{1+exp(-x)}`
-
-    Usually, one uses class |anntools.ANN| for the derivation of very
+    Usually, one applies class |anntools.ANN| for the derivation of very
     complex control parameters.  Its original purpose was to allow for
     defining arbitrary continuous relationships between the water stored
     in a dam and the associated water stage (see model |dam_v001|).
@@ -293,9 +301,9 @@ class ANN(BaseANN):
     precisely  one input is `True`, which is the solution for the XOR-problem:
 
     >>> ann
-    ann(nmb_inputs=2,
+    ann(
+        nmb_inputs=2,
         nmb_neurons=(2, 1),
-        nmb_outputs=1,
         weights_input=[[1000.0, 500.0],
                        [1000.0, 500.0]],
         weights_hidden=[[[1000.0],
@@ -303,7 +311,8 @@ class ANN(BaseANN):
         weights_output=[[1.0]],
         intercepts_hidden=[[-750.0, -750.0],
                            [-750.0, nan]],
-        intercepts_output=[0.0])
+        intercepts_output=[0.0],
+    )
 
     The following calculation confirms the proper configuration of our network:
 
@@ -435,9 +444,18 @@ attribute `nmb_inputs` first.
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
 
-    def __call__(self, nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
-                 weights_input=None, weights_output=None, weights_hidden=None,
-                 intercepts_hidden=None, intercepts_output=None) -> None:
+    def __call__(
+            self,
+            nmb_inputs=1,
+            nmb_neurons=(1,),
+            nmb_outputs=1,
+            weights_input=None,
+            weights_output=None,
+            weights_hidden=None,
+            intercepts_hidden=None,
+            intercepts_output=None,
+            activation=None,
+    ) -> None:
         self.nmb_inputs = nmb_inputs
         self.nmb_outputs = nmb_outputs
         self.nmb_neurons = nmb_neurons
@@ -446,6 +464,7 @@ attribute `nmb_inputs` first.
         self.weights_output = weights_output
         self.intercepts_hidden = intercepts_hidden
         self.intercepts_output = intercepts_output
+        self.activation = activation
         del self.inputs
         del self.outputs
         del self.output_derivatives
@@ -459,6 +478,7 @@ attribute `nmb_inputs` first.
             del self.weights_output
             del self.intercepts_hidden
             del self.intercepts_output
+            del self.activation
             del self.inputs
             del self.outputs
             del self.output_derivatives
@@ -824,6 +844,118 @@ broadcast input array from shape (3,3) into shape (2,3)
         """)
 
     @property
+    def shape_activation(self) -> Tuple[int, int]:
+        # noinspection PyTypeChecker,PyUnresolvedReferences
+        """The shape of the array defining the activation function for each
+        neuron of the hidden layers.
+
+        The first integer value is to the number of hidden layers;
+        the second integer value is the maximum number of neurons of
+        all hidden layers:
+
+        >>> from hydpy import ANN
+        >>> ann = ANN(None)
+        >>> ann(nmb_inputs=6, nmb_neurons=(4, 3, 2), nmb_outputs=6)
+        >>> ann.shape_activation
+        (3, 4)
+        """
+        return self.nmb_layers, self.__max_nmb_neurons
+
+    activation = _ANNArrayProperty(
+        protected=__protectedproperties,
+        doc="""Indices for selecting suitable activation functions for the
+        neurons of the hidden layers.
+        
+        By default, |anntools.ANN| uses the logistic function for calculating 
+        the activation of the neurons of the hidden layers and uses the 
+        identity function for the output nodes.  However, property 
+        |anntools.ANN.activation| allows defining other activation functions 
+        for the hidden neurons individually.  So far, one can only select the
+        identity function as an alternative -- others might follow. 
+        
+        Similar to the main documentation on class |anntools.ANN|, we define a
+        relatively complex network to show that both the "normal" and
+        the derivative calculations work.  This time, we set the activation
+        function explicitly.  "1" stands for the logistic function, which
+        we first use for all hidden neurons:
+        
+        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import round_
+        >>> ann = ANN(None)
+        >>> ann(nmb_inputs=2,
+        ...     nmb_neurons=(2, 2),
+        ...     nmb_outputs=2,
+        ...     weights_input=[[0.2, -0.1],
+        ...                    [-1.7, 0.6]],
+        ...     weights_hidden=[[[-.5, 1.0],
+        ...                      [0.4, 2.4]]],
+        ...     weights_output=[[0.8, -0.9],
+        ...                     [0.5, -0.4]],
+        ...     intercepts_hidden=[[0.9, 0.0],
+        ...                        [-0.4, -0.2]],
+        ...     intercepts_output=[1.3, -2.0],
+        ...     activation=[[1, 1],
+        ...                 [1, 1]])    
+        >>> ann.inputs = -0.1,  1.3
+        >>> ann.calculate_values()
+        >>> round_(ann.outputs)
+        2.074427, -2.734692
+        >>> for idx_input in range(2):
+        ...     ann.calculate_derivatives(idx_input)
+        ...     round_(ann.output_derivatives)
+        -0.006199, 0.006571
+        0.039804, -0.044169
+        
+        In the next example, we want to apply the identity function for the
+        second neuron of the first hidden layer.  Therefore, we pass its 
+        index value "0" to the corresponding |anntools.ANN.activation| entry:
+        
+        >>> ann.activation[0, 1] = 0
+        >>> ann
+        ann(
+            nmb_inputs=2,
+            nmb_neurons=(2, 2),
+            nmb_outputs=2,
+            weights_input=[[0.2, -0.1],
+                           [-1.7, 0.6]],
+            weights_hidden=[[[-0.5, 1.0],
+                             [0.4, 2.4]]],
+            weights_output=[[0.8, -0.9],
+                            [0.5, -0.4]],
+            intercepts_hidden=[[0.9, 0.0],
+                               [-0.4, -0.2]],
+            intercepts_output=[1.3, -2.0],
+            activation=[[1, 0],
+                        [1, 1]],
+        )
+        
+        The agreement between the analytical and the numerical derivatives 
+        gives us confidence everything works fine:
+             
+        >>> ann.calculate_values()
+        >>> round_(ann.outputs)
+        2.097633, -2.755885
+        >>> for idx_input in range(2):
+        ...     ann.calculate_derivatives(idx_input)
+        ...     round_(ann.output_derivatives)
+        -0.022873, 0.021941
+        0.140774, -0.137139
+        >>> d_input = 1e-8
+        >>> for idx_input in range(2):
+        ...     input_ = ann.inputs[idx_input]
+        ...     ann.inputs[idx_input] = input_-d_input/2.0
+        ...     ann.calculate_values()
+        ...     values0 = ann.outputs.copy()
+        ...     ann.inputs[idx_input] = input_+d_input/2.0
+        ...     ann.calculate_values()
+        ...     values1 = ann.outputs.copy()
+        ...     ann.inputs[idx_input] = input_
+        ...     round_((values1-values0)/d_input)
+        -0.022873, 0.021941
+        0.140774, -0.137139
+        """)
+
+    @property
     def shape_inputs(self) -> Tuple[int]:
         # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the input values.
@@ -1046,29 +1178,32 @@ parameter `ann` of element `?` has not been defined so far.
                 'parameter %s has not been defined so far.'
                 % objecttools.elementphrase(self))
 
-    def assignrepr(self, prefix) -> str:
+    def assignrepr(self, prefix, indent=0) -> str:
         """Return a string representation of the actual |anntools.ANN| object
         prefixed with the given string."""
-        prefix = '%s%s(' % (prefix, self.name)
-        blanks = len(prefix)*' '
-        lines = [
-            objecttools.assignrepr_value(
-                self.nmb_inputs, '%snmb_inputs=' % prefix)+',',
-            objecttools.assignrepr_tuple(
-                self.nmb_neurons, '%snmb_neurons=' % blanks)+',',
-            objecttools.assignrepr_value(
-                self.nmb_outputs, '%snmb_outputs=' % blanks)+',',
-            objecttools.assignrepr_list2(
-                self.weights_input, '%sweights_input=' % blanks)+',']
+        blanks = (indent+4)*' '
+        lines = [f'{prefix}{self.name}(']
+        if self.nmb_inputs != 1:
+            lines.append(f'{blanks}nmb_inputs={self.nmb_inputs},')
+        if self.nmb_neurons != (1,):
+            lines.append(f'{blanks}nmb_neurons={self.nmb_neurons},')
+        if self.nmb_outputs != 1:
+            lines.append(f'{blanks}nmb_outputs={self.nmb_outputs},')
+        lines.append(objecttools.assignrepr_list2(
+            self.weights_input, f'{blanks}weights_input=')+',')
         if self.nmb_layers > 1:
             lines.append(objecttools.assignrepr_list3(
-                self.weights_hidden, '%sweights_hidden=' % blanks)+',')
+                self.weights_hidden, f'{blanks}weights_hidden=')+',')
         lines.append(objecttools.assignrepr_list2(
-            self.weights_output, '%sweights_output=' % blanks)+',')
+            self.weights_output, f'{blanks}weights_output=')+',')
         lines.append(objecttools.assignrepr_list2(
-            self.intercepts_hidden, '%sintercepts_hidden=' % blanks)+',')
+            self.intercepts_hidden, f'{blanks}intercepts_hidden=')+',')
         lines.append(objecttools.assignrepr_list(
-            self.intercepts_output, '%sintercepts_output=' % blanks)+')')
+            self.intercepts_output, f'{blanks}intercepts_output=')+',')
+        if numpy.any(self.activation != 1):
+            lines.append(objecttools.assignrepr_list2(
+                self.activation, f'{blanks}activation=')+',')
+        lines.append(f'{indent*" "})')
         return '\n'.join(lines)
 
     def __repr__(self):
@@ -1118,13 +1253,12 @@ def ann(**kwargs) -> ANN:
     >>> from hydpy import ann
     >>> ann1 = ann()
     >>> ann1
-    ann(nmb_inputs=1,
-        nmb_neurons=(1,),
-        nmb_outputs=1,
+    ann(
         weights_input=[[0.0]],
         weights_output=[[0.0]],
         intercepts_hidden=[[0.0]],
-        intercepts_output=[0.0])
+        intercepts_output=[0.0],
+    )
 
     Of course, you can change any parameter value:
 
@@ -1132,13 +1266,12 @@ def ann(**kwargs) -> ANN:
     ...            weights_input=4.0, weights_output=3.0,
     ...            intercepts_hidden=-16.0, intercepts_output=-1.0)
     >>> ann2
-    ann(nmb_inputs=1,
-        nmb_neurons=(1,),
-        nmb_outputs=1,
+    ann(
         weights_input=[[4.0]],
         weights_output=[[3.0]],
         intercepts_hidden=[[-16.0]],
-        intercepts_output=[-1.0])
+        intercepts_output=[-1.0],
+    )
 
     The following line clarifies that we initialised two independent
     |anntools.ANN| objects (instead of changing the values of an existing
@@ -1189,27 +1322,26 @@ class SeasonalANN(BaseANN):
     problem, as class |anntools.SeasonalANN| performs time sorting internally:
 
     >>> seasonalann
-    seasonalann(toy_1_1_12_0_0=ann(nmb_inputs=1,
-                                   nmb_neurons=(1,),
-                                   nmb_outputs=1,
-                                   weights_input=[[0.0]],
-                                   weights_output=[[0.0]],
-                                   intercepts_hidden=[[0.0]],
-                                   intercepts_output=[1.0]),
-                toy_3_1_12_0_0=ann(nmb_inputs=1,
-                                   nmb_neurons=(1,),
-                                   nmb_outputs=1,
-                                   weights_input=[[0.0]],
-                                   weights_output=[[0.0]],
-                                   intercepts_hidden=[[0.0]],
-                                   intercepts_output=[-1.0]),
-                toy_7_1_12_0_0=ann(nmb_inputs=1,
-                                   nmb_neurons=(1,),
-                                   nmb_outputs=1,
-                                   weights_input=[[4.0]],
-                                   weights_output=[[3.0]],
-                                   intercepts_hidden=[[-16.0]],
-                                   intercepts_output=[-1.0]))
+    seasonalann(
+        toy_1_1_12_0_0=ann(
+            weights_input=[[0.0]],
+            weights_output=[[0.0]],
+            intercepts_hidden=[[0.0]],
+            intercepts_output=[1.0],
+        ),
+        toy_3_1_12_0_0=ann(
+            weights_input=[[0.0]],
+            weights_output=[[0.0]],
+            intercepts_hidden=[[0.0]],
+            intercepts_output=[-1.0],
+        ),
+        toy_7_1_12_0_0=ann(
+            weights_input=[[4.0]],
+            weights_output=[[3.0]],
+            intercepts_hidden=[[-16.0]],
+            intercepts_output=[-1.0],
+        ),
+    )
 
     One can easily plot the resulting graphs of all networks:
 
@@ -1385,14 +1517,16 @@ but the given value is `13`.
     ...         weights_input=0.0, weights_output=0.0,
     ...         intercepts_hidden=0.0, intercepts_output=1.0))
     >>> seasonalann
-    seasonalann(ann(nmb_inputs=2,
-                    nmb_neurons=(1,),
-                    nmb_outputs=1,
-                    weights_input=[[0.0],
-                                   [0.0]],
-                    weights_output=[[0.0]],
-                    intercepts_hidden=[[0.0]],
-                    intercepts_output=[1.0]))
+    seasonalann(
+        ann(
+            nmb_inputs=2,
+            weights_input=[[0.0],
+                           [0.0]],
+            weights_output=[[0.0]],
+            intercepts_hidden=[[0.0]],
+            intercepts_output=[1.0],
+        )
+    )
 
     >>> seasonalann(
     ...     ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,
@@ -1475,13 +1609,12 @@ requires `2` input and `1` output values.
 
     >>> seasonalann.toy_1_1_12 = jan
     >>> seasonalann.toy_1_1_12
-    ann(nmb_inputs=1,
-        nmb_neurons=(1,),
-        nmb_outputs=1,
+    ann(
         weights_input=[[0.0]],
         weights_output=[[0.0]],
         intercepts_hidden=[[0.0]],
-        intercepts_output=[1.0])
+        intercepts_output=[1.0],
+    )
     >>> del seasonalann.toy_1_1_12
 
     These are the error messages related to attribute access problems:
@@ -1871,19 +2004,16 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
     def __repr__(self):
         if not self:
-            return self.name+'()'
+            return f'{self.name}()'
+        lines = [f'{self.name}(']
         if (len(self) == 1) and (self.toys[0] == timetools.TOY('1_1_0_0_0')):
-            return self.anns[0].assignrepr('%s(' % self.name) + ')'
-        lines = []
-        blanks = ' '*(len(self.name)+1)
-        for idx, (toy, ann_) in enumerate(self):
-            if idx == 0:
-                prefix = '%s(%s=' % (self.name, toy)
-            else:
-                prefix = '%s%s=' % (blanks, toy)
-            lines.append(ann_.assignrepr(prefix))
-        lines[-1] += ')'
-        return ',\n'.join(lines)
+            lines.append(self.anns[0].assignrepr('    ', 4))
+        else:
+            for toy, ann_ in self:
+                line = ann_.assignrepr(f'    {toy}=', 4)
+                lines.append(f'{line},')
+        lines.append(')')
+        return '\n'.join(lines)
 
     def __len__(self):
         return len(self._toy2ann)

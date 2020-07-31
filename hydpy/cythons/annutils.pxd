@@ -17,12 +17,15 @@ cdef class ANN(object):
     cdef public double[:, :, :] weights_hidden
     cdef public double[:, :] intercepts_hidden
     cdef public double[:] intercepts_output
+    cdef public int[:, :] activation
     cdef public double[:] inputs
     cdef public double[:] outputs
     cdef public double[:, :] neurons
     cdef public double[:] output_derivatives
     cdef public double[:, :] neuron_derivatives
 
+    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron) nogil
+    cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) nogil
     cpdef inline void calculate_values(self) nogil
     cpdef inline void calculate_derivatives(self, int idx_input) nogil
 

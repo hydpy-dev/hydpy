@@ -13,6 +13,7 @@ class ANN:
     weights_hidden: numpy.ndarray
     intercepts_hidden: numpy.ndarray
     intercepts_output: numpy.ndarray
+    activation: numpy.ndarray
     inputs: numpy.ndarray
     outputs: numpy.ndarray
     neurons: numpy.ndarray

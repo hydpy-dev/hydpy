@@ -87,6 +87,11 @@ class RestrictTargetedRelease(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
 
 
+class WaterVolumeMinimumThreshold(parametertools.SeasonalParameter):
+    """The minimum operating water volume of the dam [million m³]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+
+
 class WaterLevelMinimumThreshold(parametertools.Parameter):
     """The minimum operating water level of the dam [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

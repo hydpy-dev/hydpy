@@ -80,6 +80,7 @@ activating the spillway and thus becoming "flood discharge":
 >>> neardischargeminimumthreshold.values = -100.0
 >>> targetrangeabsolute(0.1)
 >>> targetrangerelative(0.2)
+>>> watervolumeminimumthreshold(0.0)
 >>> volumetolerance(0.1)
 >>> dischargetolerance(0.1)
 >>> allowedrelease(100.0)
@@ -337,6 +338,43 @@ to 0.2 corresponds to the original "TALSPERRE SOLLRANGE"-configuration:
     | 18.01. |    0.0 |           0.1 |       0.000009 | 0.100009 |    0.443399 |    0.0 | 0.100009 |
     | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.434758 |    0.0 | 0.100008 |
     | 20.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.426117 |    0.0 | 0.100008 |
+
+minimum volume
+______________
+
+In all examples above, the dam would run dry entirely after a certain
+amount of time to fulfil the downstream demand defined by parameter
+|NearDischargeMinimumThreshold|.  Usually, this is neither desired
+nor technically possible.  The following example shows that the parameter
+|WaterVolumeMinimumThreshold| allows setting a minimum amount of water
+below which no release occurs:
+
+.. integration-test::
+
+    >>> watervolumeminimumthreshold(0.45)
+    >>> test('dam_v008_minimum_volume')
+    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
+    -------------------------------------------------------------------------------------------------
+    | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
+    | 02.01. |    1.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |      0.0 |
+    | 03.01. |    6.0 |      1.019739 |       0.000006 | 1.019745 |    0.516694 |    6.0 | 1.019745 |
+    | 04.01. |   12.0 |           4.0 |        0.00262 |  4.00262 |    1.207668 |   12.0 |  4.00262 |
+    | 05.01. |   10.0 |           4.0 |       0.486752 | 4.486752 |    1.684012 |   10.0 | 4.486752 |
+    | 06.01. |    6.0 |           4.0 |        2.01706 |  6.01706 |    1.682538 |    6.0 |  6.01706 |
+    | 07.01. |    3.0 |           4.0 |       0.904657 | 4.904657 |    1.517976 |    3.0 | 4.904657 |
+    | 08.01. |    2.0 |           4.0 |       0.176827 | 4.176827 |    1.329898 |    2.0 | 4.176827 |
+    | 09.01. |    1.0 |           4.0 |       0.021725 | 4.021725 |    1.068821 |    1.0 | 4.021725 |
+    | 10.01. |    0.0 |           4.0 |       0.001265 | 4.001265 |    0.723112 |    0.0 | 4.001265 |
+    | 11.01. |    0.0 |      2.476314 |       0.000044 | 2.476358 |    0.509154 |    0.0 | 2.476358 |
+    | 12.01. |    0.0 |      0.160853 |       0.000015 | 0.160869 |    0.495255 |    0.0 | 0.160869 |
+    | 13.01. |    0.0 |           0.1 |       0.000014 | 0.100014 |    0.486614 |    0.0 | 0.100014 |
+    | 14.01. |    0.0 |           0.1 |       0.000013 | 0.100013 |    0.477973 |    0.0 | 0.100013 |
+    | 15.01. |    0.0 |           0.1 |       0.000012 | 0.100012 |    0.469332 |    0.0 | 0.100012 |
+    | 16.01. |    0.0 |           0.1 |       0.000011 | 0.100011 |    0.460691 |    0.0 | 0.100011 |
+    | 17.01. |    0.0 |           0.1 |        0.00001 |  0.10001 |     0.45205 |    0.0 |  0.10001 |
+    | 18.01. |    0.0 |      0.023728 |       0.000009 | 0.023737 |    0.449999 |    0.0 | 0.023737 |
+    | 19.01. |    0.0 |           0.0 |       0.000009 | 0.000009 |    0.449998 |    0.0 | 0.000009 |
+    | 20.01. |    0.0 |           0.0 |       0.000009 | 0.000009 |    0.449998 |    0.0 | 0.000009 |
 """
 # import...
 # ...from HydPy

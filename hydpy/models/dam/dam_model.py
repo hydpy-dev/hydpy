@@ -1988,6 +1988,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...              _04_1_12=0.0, _10_31_12=0.0)
         >>> neardischargeminimumthreshold(_11_1_12=3.0, _03_31_12=3.0,
         ...                               _04_1_12=0.0, _10_31_12=0.0)
+        >>> watervolumeminimumthreshold(0.0)
         >>> derived.toy.update()
 
         >>> from hydpy import UnitTest
@@ -2660,6 +2661,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         dam_control.TargetRangeAbsolute,
         dam_control.TargetRangeRelative,
         dam_control.NearDischargeMinimumThreshold,
+        dam_control.WaterVolumeMinimumThreshold,
     )
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
@@ -2763,7 +2765,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
             der.dischargesmoothpar
         )
         flu.actualrelease *= smoothutils.smooth_logistic1(
-            new.watervolume,
+            new.watervolume-con.watervolumeminimumthreshold[idx_toy],
             der.volumesmoothparlog1
         )
 

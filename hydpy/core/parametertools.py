@@ -2244,27 +2244,28 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                     f'"time of year" named `{name}`.')
 
     def __repr__(self):
+
+        def assignrepr(value_, prefix_):
+            if self.NDIM == 1:
+                return objecttools.assignrepr_value(value_, prefix_)
+            return objecttools.assignrepr_list(value_, prefix_, width=79)
+
         if not self:
             return f'{self.name}()'
         if self.NDIM == 1:
-            assign = objecttools.assignrepr_value
-        elif self.NDIM == 2:
-            assign = objecttools.assignrepr_list
+            assignrepr = objecttools.assignrepr_value
+        else:
+            assignrepr = objecttools.assignrepr_list
         toy0 = timetools.TOY0
         if (len(self) == 1) and (toy0 in self._toy2values):
-            prefix = f'{self.name}('
-            return f'{assign(self._toy2values[toy0], prefix, width=79)})'
+            return f'{assignrepr(self._toy2values[toy0], f"{self.name}(")})'
         lines = []
         blanks = ' '*(len(self.name)+1)
         for idx, (toy, value) in enumerate(self):
             if idx == 0:
-                prefix = f'{self.name}({toy}='
+                lines.append(assignrepr(value, f'{self.name}({toy}='))
             else:
-                prefix = f'{blanks}{toy}='
-            if self.NDIM == 1:
-                lines.append(assign(value, prefix))
-            else:
-                lines.append(assign(value, prefix, width=79))
+                lines.append(assignrepr(value, f'{blanks}{toy}='))
         lines[-1] += ')'
         return ',\n'.join(lines)
 

@@ -2245,27 +2245,23 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
 
     def __repr__(self):
 
-        def assignrepr(value_, prefix_):
+        def _assignrepr(value_, prefix_):
             if self.NDIM == 1:
                 return objecttools.assignrepr_value(value_, prefix_)
             return objecttools.assignrepr_list(value_, prefix_, width=79)
 
         if not self:
             return f'{self.name}()'
-        if self.NDIM == 1:
-            assignrepr = objecttools.assignrepr_value
-        else:
-            assignrepr = objecttools.assignrepr_list
         toy0 = timetools.TOY0
         if (len(self) == 1) and (toy0 in self._toy2values):
-            return f'{assignrepr(self._toy2values[toy0], f"{self.name}(")})'
+            return f'{_assignrepr(self._toy2values[toy0], f"{self.name}(")})'
         lines = []
         blanks = ' '*(len(self.name)+1)
         for idx, (toy, value) in enumerate(self):
             if idx == 0:
-                lines.append(assignrepr(value, f'{self.name}({toy}='))
+                lines.append(_assignrepr(value, f'{self.name}({toy}='))
             else:
-                lines.append(assignrepr(value, f'{blanks}{toy}='))
+                lines.append(_assignrepr(value, f'{blanks}{toy}='))
         lines[-1] += ')'
         return ',\n'.join(lines)
 

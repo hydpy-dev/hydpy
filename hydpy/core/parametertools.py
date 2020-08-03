@@ -1786,7 +1786,7 @@ class SeasonalParameter(Parameter):
     ...
     ValueError: While trying to define the seasonal parameter value `par` \
 of element `?` for time of year `_a`, the following error occurred: \
-While trying to initialise a TOY object based on argument `value `_a` \
+While trying to initialise a TOY object based on argument value `_a` \
 of type `str`, the following error occurred: While trying to retrieve \
 the month, the following error occurred: For TOY (time of year) objects, \
 all properties must be of type `int`, but the value `a` of type `str` \
@@ -1858,16 +1858,19 @@ following error occurred: float() argument must be a string or a number...
 pair for the seasonal parameter `par` of element `?`, the \
 following error occurred: could not broadcast input array from shape (2) \
 into shape (3)
-    >>> par.toy_1_1_0_0_0 = [1., 2., 3.]
-    >>> par
-    par(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
 
-    You can overwrite all handled values by passing a positional
-    argument:
+    If you do not require seasonally varying parameter values in a specific
+    situation, you can pass a single positional argument:
 
     >>> par(5.0)
     >>> par
-    par(toy_1_1_0_0_0=[5.0, 5.0, 5.0])
+    par([5.0, 5.0, 5.0])
+
+    Note that class |SeasonalParameter| associates the given value(s) to the
+    "first" time of the year, internally:
+
+    >>> par.toys
+    (TOY('1_1_0_0_0'),)
 
     Incompatible positional arguments result in errors like the following:
 
@@ -2109,6 +2112,11 @@ shape (2) into shape (366,3)
             x1, y1 = xys[0]
         return y0 + (y1-y0) / (x1 - x0) * (xnew - x0)
 
+    @property
+    def toys(self) -> Tuple[timetools.TOY, ...]:
+        """A sorted |tuple| of all contained |TOY| objects."""
+        return tuple(sorted(self._toy2values.keys()))
+
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
@@ -2242,6 +2250,10 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
             assign = objecttools.assignrepr_value
         elif self.NDIM == 2:
             assign = objecttools.assignrepr_list
+        toy0 = timetools.TOY0
+        if (len(self) == 1) and (toy0 in self._toy2values):
+            prefix = f'{self.name}('
+            return f'{assign(self._toy2values[toy0], prefix, width=79)})'
         lines = []
         blanks = ' '*(len(self.name)+1)
         for idx, (toy, value) in enumerate(self):
@@ -2275,7 +2287,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
         >>> dir(par)   # doctest: +ELLIPSIS
         [... 'subvars', 'toy_1_1_0_0_0', 'toy_3_1_0_0_0', \
-'toy_7_1_0_0_0', 'trim', ...]
+'toy_7_1_0_0_0', 'toys', 'trim', ...]
 
         .. testsetup::
 

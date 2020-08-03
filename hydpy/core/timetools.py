@@ -2630,11 +2630,19 @@ class TOY:
     Ill-defined constructor arguments result in error messages like
     the following:
 
+    >>> TOY('something')
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to initialise a TOY object based on argument \
+value `something` of type `str`, the following error occurred: When passing \
+a prefixed string, you need to define at least the month.
+
+
     >>> TOY('2_30_4_5_6')
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise a TOY object based on argument \
-`value `2_30_4_5_6` of type `str`, the following error occurred: While \
+value `2_30_4_5_6` of type `str`, the following error occurred: While \
 trying to retrieve the day, the following error occurred: The value of \
 property `day` of the actual TOY (time of year) object must lie within \
 the range `(1, 29)`, as the month has already been set to `2`, but the \
@@ -2744,6 +2752,10 @@ has already been set to `31`.
             else:
                 values = value.split('_')
                 if not values[0].isdigit():
+                    if values[0] and (len(values) == 1):
+                        raise ValueError(
+                            'When passing a prefixed string, you need '
+                            'to define at least the month.')
                     del values[0]
                 for prop in self._PROPERTIES:
                     try:
@@ -2761,7 +2773,7 @@ has already been set to `31`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a TOY object based on '
-                f'argument `{objecttools.value_of_type(value)}')
+                f'argument {objecttools.value_of_type(value)}')
 
     def __setattr__(self, name: str, value: int) -> None:
         if name not in self._PROPERTIES:
@@ -2995,3 +3007,6 @@ has already been set to `31`.
     def __repr__(self):
         return "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
                                       in self._PROPERTIES.keys())
+
+
+TOY0 = TOY('1_1_0_0_0')

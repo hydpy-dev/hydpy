@@ -1506,7 +1506,7 @@ of element `?` has not been properly prepared so far.
     ...
     ValueError: While trying to add a season specific neural network to \
 parameter `seasonalann` of element `?`, the following error occurred: \
-While trying to initialise a TOY object based on argument `value `_13_1_12` \
+While trying to initialise a TOY object based on argument value `_13_1_12` \
 of type `str`, the following error occurred: While trying to retrieve \
 the month, the following error occurred: The value of property `month` \
 of TOY (time of year) objects must lie within the range `(1, 12)`, \
@@ -2006,7 +2006,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
         if not self:
             return f'{self.name}()'
         lines = [f'{self.name}(']
-        if (len(self) == 1) and (self.toys[0] == timetools.TOY('1_1_0_0_0')):
+        if (len(self) == 1) and (self.toys[0] == timetools.TOY0):
             lines.append(self.anns[0].assignrepr('    ', 4))
         else:
             for toy, ann_ in self:

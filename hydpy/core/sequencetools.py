@@ -589,6 +589,10 @@ class SubSequences(variabletools.SubVariables[Sequences]):
     should not subclass |SubSequences| directly but specialised subclasses
     like |sequencetools.FluxSequences| or |sequencetools.StateSequences|
     instead.
+
+    .. testsetup::
+
+        >>> Node.clear_all()
     """
 
     @property
@@ -3319,8 +3323,17 @@ class NodeSequence(IOSequence):
         >>> from hydpy import Node
         >>> Node('test_node_1', 'T').sequences.sim.descr_sequence
         'sim_t'
+
+        >>> from hydpy import hland_T, FusedVariable, lland_TemL
+        >>> Temp = FusedVariable('Temp', hland_T, lland_TemL)
+        >>> Node('test_node_2', Temp).sequences.sim.descr_sequence
+        'sim_temp'
+
+        .. testsetup::
+
+            >>> Node.clear_all()
         """
-        return f'{self.name}_{self.subseqs.node.variable.lower()}'
+        return f'{self.name}_{str(self.subseqs.node.variable).lower()}'
 
     @property
     def descr_device(self) -> str:
@@ -3330,6 +3343,10 @@ class NodeSequence(IOSequence):
         >>> from hydpy import Node
         >>> Node('test_node_2').sequences.sim.descr_device
         'test_node_2'
+
+        .. testsetup::
+
+            >>> Node.clear_all()
         """
         return self.subseqs.node.name
 
@@ -3386,6 +3403,10 @@ float() argument must be a string or a number, not 'tuple'
         AttributeError: While trying to query the value of sequence `sim` \
 of node `node`, the following error occurred: \
 'Sim' object has no attribute 'fastaccess'
+
+        .. testsetup::
+
+            >>> Node.clear_all()
         """
         try:
             return getattr(self.fastaccess, self.name)[0]
@@ -3661,6 +3682,10 @@ class NodeSequences(IOSequences):
     >>> node = Node('node')
     >>> node.sequences.node
     Node("node", variable="Q")
+
+    .. testsetup::
+
+        >>> Node.clear_all()
     """
     CLASSES: Tuple[Type[Sim], Type[Obs]] = (Sim, Obs)
 

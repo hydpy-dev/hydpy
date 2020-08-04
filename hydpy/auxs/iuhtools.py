@@ -37,7 +37,7 @@ class ParameterIUH:
         self.name = name
         self._name = '_'+name
         self.type_ = type_
-        self.__doc__ = (f'Instantaneous unit hydrograph parameter '
+        self.__doc__ = (f'Instantaneous unit hydrograph parameter: '
                         f'{name if doc is None else str(doc)}')
 
     def __get__(self, obj, type_=None):
@@ -274,8 +274,9 @@ class TranslationDiffusionEquation(IUH):
 
       :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`
 
-    There are three primary parameter whichs values need to be defined by
-    the user:
+    There are three primary parameter, |TranslationDiffusionEquation.u|,
+    |TranslationDiffusionEquation.d|, and |TranslationDiffusionEquation.x|,
+    whichs values need to be defined by the user:
 
     >>> from hydpy import TranslationDiffusionEquation
     >>> tde = TranslationDiffusionEquation(u=5., d=15., x=50.)
@@ -393,14 +394,16 @@ arguments of the instantaneous unit hydrograph class \
 keyword arguments.  But instead of the primary parameter names `d, u, and x` \
 the following keywords were given: d and u.
     """
-    u = PrimaryParameterIUH('u', doc='Wave velocity.')
-    d = PrimaryParameterIUH('d', doc='Diffusion coefficient.')
-    x = PrimaryParameterIUH('x', doc='Routing distance.')
+    u = PrimaryParameterIUH('u', doc='Wave velocity [L/T].')
+    d = PrimaryParameterIUH('d', doc='Diffusion coefficient [L²/T].')
+    x = PrimaryParameterIUH('x', doc='Routing distance [L].')
     a = SecondaryParameterIUH('a', doc='Distance related coefficient.')
     b = SecondaryParameterIUH('b', doc='Velocity related coefficient.')
 
     def calc_secondary_parameters(self):
-        """Determine the values of the secondary parameters `a` and `b`."""
+        """Determine the values of the secondary parameters
+         |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.
+         """
         self.a = self.x/(2.*self.d**.5)
         self.b = self.u/(2.*self.d**.5)
 
@@ -428,7 +431,8 @@ class LinearStorageCascade(IUH):
     with:
       :math:`c = \\frac{1}{k \\cdot \\gamma(n)}`
 
-    After defining the values of the two primary parameters, the function
+    After defining the values of the two primary parameters
+    |LinearStorageCascade.n| and |LinearStorageCascade.k|, the function
     object can be applied:
 
     >>> from hydpy import LinearStorageCascade
@@ -441,13 +445,14 @@ class LinearStorageCascade(IUH):
     0.122042, 0.028335, 0.004273, 0.00054
 
     """
-    n = PrimaryParameterIUH('n', doc='Number of linear storages.')
+    n = PrimaryParameterIUH('n', doc='Number of linear storages [-].')
     k = PrimaryParameterIUH(
-        'k', doc='Time of concentration of each individual storage.')
+        'k', doc='Time of concentration of each individual storage [T].')
     c = SecondaryParameterIUH('c', doc='Proportionality factor.')
 
     def calc_secondary_parameters(self):
-        """Determine the value of the secondary parameter `c`."""
+        """Determine the value of the secondary parameter
+        |LinearStorageCascade.c|."""
         self.c = 1./(self.k*special.gamma(self.n))
 
     def __call__(self, t) -> numpy.ndarray:

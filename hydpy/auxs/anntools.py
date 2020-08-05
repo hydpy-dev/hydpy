@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements rudimentary artificial neural network tools
-required for some models implemented in the HydPy framework.
+required for some models implemented in the *HydPy* framework.
 
 The relevant models apply some of the neural network features during
 simulation runs, which is why we implement these features in the Cython
@@ -110,8 +110,9 @@ class ANN(BaseANN):
     By default, class |anntools.ANN| uses the logistic function
     :math:`f(x) = \\frac{1}{1+exp(-x)}` to calculate the activation of
     the neurons of the hidden layer.  Alternatively, one can select the
-    identity function :math:`f(x) = x`.  See property |anntools.ANN.activation|
-    for more information on how to do this.
+    identity function :math:`f(x) = x` or a variant of the logistic
+    function for filtering specific inputs.  See property
+    |anntools.ANN.activation| for more information on how to do this.
 
     Usually, one applies class |anntools.ANN| for the derivation of very
     complex control parameters.  Its original purpose was to allow for
@@ -870,11 +871,47 @@ broadcast input array from shape (3,3) into shape (2,3)
         the activation of the neurons of the hidden layers and uses the 
         identity function for the output nodes.  However, property 
         |anntools.ANN.activation| allows defining other activation functions 
-        for the hidden neurons individually.  So far, one can only select the
-        identity function as an alternative -- others might follow. 
+        for the hidden neurons individually.  So far, one can select the
+        identity function and a "filter version" of the logistic function
+        as alternatives -- others might follow. 
         
-        Similar to the main documentation on class |anntools.ANN|, we define a
-        relatively complex network to show that both the "normal" and
+        Assume a neuron receives input :math:`i_1` and :math:`i_2` from 
+        two nodes of the input layer or its upstream hidden layer.  We 
+        weight these input values as usual:
+        
+            :math:`x_1 = c + w_1 \\cdot i_1 + w_2 \\cdot i_2`
+        
+        When selecting the identity function through setting the index value 
+        "0", the activation of the considered neuron is:
+            
+            :math:`a_1 = x_1`
+        
+        Using the identity function is helpful for educational examples
+        and for bypassing input through one layer without introducing
+        nonlinearity.
+        
+        When selecting the logistic function through setting the index value 
+        "1", the activation of the considered neuron is:
+        
+            :math:`a_1 = 1-\\frac{1}{1+exp(x_1)}`
+        
+        The logistic function is a standard function for constructing neural 
+        networks.  It allows to approximate any relationship within a specific 
+        range and accuracy, provided the neural network is large enough.
+        
+        When selecting the "filter version" of the logistic function through 
+        setting the index value "2", the activation of the considered neuron 
+        is:
+        
+            :math:`a_1 = 1-\\frac{1}{1+exp(x_1)} \\cdot i_1`
+            
+        "Filter version" means that our neuron now filters the input of the 
+        single input node placed at the corresponding position of its layer.  
+        This activation function helps force the output of a neural network 
+        to be zero but never negative beyond a certain threshold.          
+        
+        Similar to the main documentation on class |anntools.ANN|, we define 
+        a relatively complex network to show that both the "normal" and
         the derivative calculations work.  This time, we set the activation
         function explicitly.  "1" stands for the logistic function, which
         we first use for all hidden neurons:
@@ -907,10 +944,11 @@ broadcast input array from shape (3,3) into shape (2,3)
         0.039804, -0.044169
         
         In the next example, we want to apply the identity function for the
-        second neuron of the first hidden layer.  Therefore, we pass its 
-        index value "0" to the corresponding |anntools.ANN.activation| entry:
+        second neuron of the first hidden layer and the first neuron of the
+        second hidden layer.  Therefore, we pass its index value "0" to the 
+        corresponding |anntools.ANN.activation| entries:
         
-        >>> ann.activation[0, 1] = 0
+        >>> ann.activation = [[1, 0], [0, 1]]
         >>> ann
         ann(
             nmb_inputs=2,
@@ -926,7 +964,7 @@ broadcast input array from shape (3,3) into shape (2,3)
                                [-0.4, -0.2]],
             intercepts_output=[1.3, -2.0],
             activation=[[1, 0],
-                        [1, 1]],
+                        [0, 1]],
         )
         
         The agreement between the analytical and the numerical derivatives 
@@ -934,12 +972,12 @@ broadcast input array from shape (3,3) into shape (2,3)
              
         >>> ann.calculate_values()
         >>> round_(ann.outputs)
-        2.097633, -2.755885
+        1.584373, -2.178468
         >>> for idx_input in range(2):
         ...     ann.calculate_derivatives(idx_input)
         ...     round_(ann.output_derivatives)
-        -0.022873, 0.021941
-        0.140774, -0.137139
+        -0.056898, 0.060219
+        0.369807, -0.394801
         >>> d_input = 1e-8
         >>> for idx_input in range(2):
         ...     input_ = ann.inputs[idx_input]
@@ -951,8 +989,34 @@ broadcast input array from shape (3,3) into shape (2,3)
         ...     values1 = ann.outputs.copy()
         ...     ann.inputs[idx_input] = input_
         ...     round_((values1-values0)/d_input)
-        -0.022873, 0.021941
-        0.140774, -0.137139
+        -0.056898, 0.060219
+        0.369807, -0.394801
+        
+        Finally, we perform the same check for the "filter version" of the
+        logistic function:
+        
+        >>> ann.activation = [[1, 2], [2, 1]]
+        >>> ann.calculate_values()
+        >>> round_(ann.outputs)
+        1.825606, -2.445682
+        >>> for idx_input in range(2):
+        ...     ann.calculate_derivatives(idx_input)
+        ...     round_(ann.output_derivatives)
+        0.009532, -0.011236
+        -0.001715, 0.02872
+        >>> d_input = 1e-8
+        >>> for idx_input in range(2):
+        ...     input_ = ann.inputs[idx_input]
+        ...     ann.inputs[idx_input] = input_-d_input/2.0
+        ...     ann.calculate_values()
+        ...     values0 = ann.outputs.copy()
+        ...     ann.inputs[idx_input] = input_+d_input/2.0
+        ...     ann.calculate_values()
+        ...     values1 = ann.outputs.copy()
+        ...     ann.inputs[idx_input] = input_
+        ...     round_((values1-values0)/d_input)
+        0.009532, -0.011236
+        -0.001715, 0.02872
         """)
 
     @property

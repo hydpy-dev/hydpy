@@ -24,7 +24,7 @@ cdef class ANN(object):
     cdef public double[:] output_derivatives
     cdef public double[:, :] neuron_derivatives
 
-    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron) nogil
+    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron, double input_) nogil
     cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) nogil
     cpdef inline void calculate_values(self) nogil
     cpdef inline void calculate_derivatives(self, int idx_input) nogil

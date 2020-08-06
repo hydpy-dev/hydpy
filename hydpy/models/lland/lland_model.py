@@ -13,6 +13,7 @@ from hydpy.cythons import modelutils
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_derived
 from hydpy.models.lland import lland_fixed
+from hydpy.models.lland import lland_inlets
 from hydpy.models.lland import lland_inputs
 from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
@@ -21,6 +22,61 @@ from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
 from hydpy.models.lland.lland_constants import \
     WASSER, FLUSS, SEE, VERS, LAUBW, MISCHW, NADELW
+
+
+class Pick_QZ_V1(modeltools.Method):
+    """Query the current inflow from all inlet nodes.
+
+    Basic equation:
+      :math:`QZ = \\sum Q_{inlets}`
+    """
+    REQUIREDSEQUENCES = (
+        lland_inlets.Q,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QZ,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.qz = 0.
+        for idx in range(inl.len_q):
+            flu.qz += inl.q[idx][0]
+
+
+class Calc_QZH_V1(modeltools.Method):
+    """Calculate the inflow in mm.
+
+    Basic equation:
+       :math:`QZH = QZ / QFactor`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.qfactor(2.0)
+        >>> fluxes.qz = 6.0
+        >>> model.calc_qzh_v1()
+        >>> fluxes.qzh
+        qzh(3.0)
+    """
+    DERIVEDPARAMETERS = (
+        lland_derived.QFactor,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.QZ,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QZH,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qzh = flu.qz/der.qfactor
 
 
 class Update_LoggedTemL_V1(modeltools.Method):
@@ -8329,21 +8385,22 @@ class Calc_QDGA2_V1(modeltools.Method):
 class Calc_QAH_V1(modeltools.Method):
     """Calculate the final runoff in mm.
 
-    Note that, in case there are water areas of type |WASSER|, their |NKor|
-    values are added and their |EvPo| values are subtracted from the
-    "potential" runoff value, if possible.  This can result in problematic
-    modifications of simulated runoff series. It seems advisable to use the
-    water types |FLUSS| and |SEE| instead.
-
     Basic equation:
-       :math:`QAH = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
+       :math:`QAH = QZH + QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
+
+    In case there are water areas of type |WASSER|, their |NKor| values are
+    added and their |EvPo| values are subtracted from the "potential" runoff
+    value, if possible.  This can result in problematic modifications of
+    simulated runoff series. It seems advisable to use the water types
+    |FLUSS| and |SEE| instead.
 
     Examples:
 
-        When there are no water areas in the respective subbasin (we
-        choose arable land |ACKER| arbitrarily), the different runoff
-        components are simply summed up:
+        When there are no water areas in the respective subbasin (we choose
+        arable land |ACKER| arbitrarily), the inflow (|QZH|) and the different
+        runoff components (|QBGA|, |QIGA1|, |QIGA2|, |QDGA1|, and |QDGA2|)
+        are simply summed up:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -8352,10 +8409,11 @@ class Calc_QAH_V1(modeltools.Method):
         >>> fhru(0.5, 0.2, 0.3)
         >>> negq(False)
         >>> states.qbga = 0.1
-        >>> states.qiga1 = 0.3
-        >>> states.qiga2 = 0.5
-        >>> states.qdga1 = 0.7
-        >>> states.qdga2 = 0.9
+        >>> states.qiga1 = 0.2
+        >>> states.qiga2 = 0.3
+        >>> states.qdga1 = 0.4
+        >>> states.qdga2 = 0.5
+        >>> fluxes.qzh = 1.0
         >>> fluxes.nkor = 10.0
         >>> fluxes.evi = 4.0, 5.0, 3.0
         >>> model.calc_qah_v1()
@@ -8408,7 +8466,7 @@ class Calc_QAH_V1(modeltools.Method):
 
         >>> control.lnk(FLUSS, SEE, NADELW)
         >>> states.qbga = -1.0
-        >>> states.qdga2 = -1.5
+        >>> states.qdga2 = -1.9
         >>> fluxes.evi = 4.0, 5.0, 3.0
         >>> model.calc_qah_v1()
         >>> fluxes.qah
@@ -8451,6 +8509,7 @@ class Calc_QAH_V1(modeltools.Method):
         lland_states.QDGA1,
         lland_states.QDGA2,
         lland_fluxes.NKor,
+        lland_fluxes.QZH,
     )
     UPDATEDSEQUENCES = (
         lland_fluxes.EvI,
@@ -8464,7 +8523,7 @@ class Calc_QAH_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.qah = sta.qbga + sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
+        flu.qah = flu.qzh+sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
         if (not con.negq) and (flu.qah < 0.):
             d_area = 0.
             for k in range(con.nhru):
@@ -8559,7 +8618,9 @@ class PegasusTempSSurface(roottools.Pegasus):
 
 class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Land."""
-    INLET_METHODS = ()
+    INLET_METHODS = (
+        Pick_QZ_V1,
+    )
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         Return_AdjustedWindSpeed_V1,
@@ -8583,6 +8644,7 @@ class Model(modeltools.AdHocModel):
         Return_TempSSurface_V1,
     )
     RUN_METHODS = (
+        Calc_QZH_V1,
         Update_LoggedTemL_V1,
         Calc_TemLTag_V1,
         Update_LoggedRelativeHumidity_V1,

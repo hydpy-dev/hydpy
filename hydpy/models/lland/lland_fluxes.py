@@ -11,6 +11,16 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland import lland_sequences
 
 
+class QZ(sequencetools.FluxSequence):
+    """Zufluss in das Teilgebiet (inflow into the subcatchment) [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
+class QZH(sequencetools.FluxSequence):
+    """Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm]."""
+    NDIM, NUMERIC = 0, False
+
+
 class TemLTag(sequencetools.FluxSequence):
     """Tageswert der Lufttemperatur (daily air temperature) [°C]."""
     NDIM, NUMERIC = 0, False

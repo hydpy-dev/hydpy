@@ -53,17 +53,21 @@ class NHRU(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
+        skip = parametertools.MonthParameter
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
-                if (par.NDIM == 1 and
-                        (not isinstance(par, parametertools.MonthParameter))):
+                if (par.NDIM == 1) and (not isinstance(par, skip)):
                     par.shape = self.value
                 if isinstance(par, KapGrenz):
                     par.shape = self.value, 2
+        skip = (
+            sequencetools.LogSequence,
+            sequencetools.LinkSequence,
+            parametertools.MOYParameter,
+        )
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (((seq.NDIM == 1) and (seq.name != 'moy') and
-                     not isinstance(seq, sequencetools.LogSequence)) or
+                if ((seq.NDIM == 1) and (not isinstance(seq, skip)) or
                         isinstance(seq, lland_logs.WET0)):
                     seq.shape = self.value
 

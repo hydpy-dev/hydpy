@@ -841,14 +841,14 @@ class Sequence(variabletools.Variable):
     sequence classes from |Sequence| directly but from the "final"
     subclasses provided in module |sequencetools| (e.g. |FluxSequence|).
 
-    From the model developer perspective and especially from the
-    user perspective, |Sequence| is only a small extension of its base
-    class |Variable|.  One relevant extension is that (only the) 0-dimensional
+    From the model developer perspective and especially from the user
+    perspective, |Sequence| is only a small extension of its base class
+    |Variable|.  One relevant extension is that (only the) 0-dimensional
     sequence objects come with a predefined shape:
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model('lland_v1', '1d')
-    >>> model.sequences.fluxes.q.shape
+    >>> model.sequences.fluxes.qa.shape
     ()
     >>> evpo = model.sequences.fluxes.evpo
     >>> evpo.shape

@@ -8326,8 +8326,8 @@ class Calc_QDGA2_V1(modeltools.Method):
             )
 
 
-class Calc_Q_V1(modeltools.Method):
-    """Calculate the final runoff.
+class Calc_QAH_V1(modeltools.Method):
+    """Calculate the final runoff in mm.
 
     Note that, in case there are water areas of type |WASSER|, their |NKor|
     values are added and their |EvPo| values are subtracted from the
@@ -8336,7 +8336,7 @@ class Calc_Q_V1(modeltools.Method):
     water types |FLUSS| and |SEE| instead.
 
     Basic equation:
-       :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
+       :math:`QAH = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
 
     Examples:
@@ -8358,23 +8358,23 @@ class Calc_Q_V1(modeltools.Method):
         >>> states.qdga2 = 0.9
         >>> fluxes.nkor = 10.0
         >>> fluxes.evi = 4.0, 5.0, 3.0
-        >>> model.calc_q_v1()
-        >>> fluxes.q
-        q(2.5)
+        >>> model.calc_qah_v1()
+        >>> fluxes.qah
+        qah(2.5)
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
 
         The defined values of interception evaporation do not show any
         impact on the result of the given example, the predefined values
         for sequence |EvI| remain unchanged.  But when we define the first
-        hydrological as a water area (|WASSER|), |Calc_Q_V1| add the adjusted
-        precipitaton (|NKor|) to and subtracts the interception evaporation
-        (|EvI|) from |lland_fluxes.Q|:
+        hydrological as a water area (|WASSER|), |Calc_QAH_V1| adds the
+        adjusted precipitaton (|NKor|) to and subtracts the interception
+        evaporation (|EvI|) from |lland_fluxes.QAH|:
 
         >>> control.lnk(WASSER, VERS, NADELW)
-        >>> model.calc_q_v1()
-        >>> fluxes.q
-        q(5.5)
+        >>> model.calc_qah_v1()
+        >>> fluxes.qah
+        qah(5.5)
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
 
@@ -8390,9 +8390,9 @@ class Calc_Q_V1(modeltools.Method):
 
         >>> control.lnk(WASSER, WASSER, NADELW)
         >>> fluxes.nkor = 0.0
-        >>> model.calc_q_v1()
-        >>> fluxes.q
-        q(0.0)
+        >>> model.calc_qah_v1()
+        >>> fluxes.qah
+        qah(0.0)
         >>> fluxes.evi
         evi(3.333333, 4.166667, 3.0)
 
@@ -8402,7 +8402,7 @@ class Calc_Q_V1(modeltools.Method):
         should be more realistic in most cases (especially for type |SEE|,
         representing lakes not directly connected to the stream network).
         But it could also, at least for very dry periods, result in negative
-        outflow values. We avoid this by setting |lland_fluxes.Q|
+        outflow values. We avoid this by setting |lland_fluxes.QAH|
         to zero and adding the truncated negative outflow value to the |EvI|
         value of all response units of type |FLUSS| and |SEE|:
 
@@ -8410,9 +8410,9 @@ class Calc_Q_V1(modeltools.Method):
         >>> states.qbga = -1.0
         >>> states.qdga2 = -1.5
         >>> fluxes.evi = 4.0, 5.0, 3.0
-        >>> model.calc_q_v1()
-        >>> fluxes.q
-        q(0.0)
+        >>> model.calc_qah_v1()
+        >>> fluxes.qah
+        qah(0.0)
         >>> fluxes.evi
         evi(2.571429, 3.571429, 3.0)
 
@@ -8423,7 +8423,7 @@ class Calc_Q_V1(modeltools.Method):
         as long as the adjustment of |EvI| is rarely triggered.  When in
         doubt about this, check sequences |EvPo| and |EvI| of all |FLUSS|
         and |SEE| units for possible discrepancies.  Also note that
-        |lland_fluxes.Q| might perform unnecessary corrections when you
+        |lland_fluxes.QAH| might perform unnecessary corrections when you
         combine water type |WASSER| with water type |SEE| or |FLUSS|.
 
         For some model configurations, negative discharges for dry conditions
@@ -8432,9 +8432,9 @@ class Calc_Q_V1(modeltools.Method):
 
         >>> negq(True)
         >>> fluxes.evi = 4.0, 5.0, 3.0
-        >>> model.calc_q_v1()
-        >>> fluxes.q
-        q(-1.0)
+        >>> model.calc_qah_v1()
+        >>> fluxes.qah
+        qah(-1.0)
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
     """
@@ -8456,7 +8456,7 @@ class Calc_Q_V1(modeltools.Method):
         lland_fluxes.EvI,
     )
     RESULTSEQUENCES = (
-        lland_fluxes.Q,
+        lland_fluxes.QAH,
     )
 
     @staticmethod
@@ -8464,8 +8464,8 @@ class Calc_Q_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.q = sta.qbga + sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-        if (not con.negq) and (flu.q < 0.):
+        flu.qah = sta.qbga + sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
+        if (not con.negq) and (flu.qah < 0.):
             d_area = 0.
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
@@ -8473,33 +8473,63 @@ class Calc_Q_V1(modeltools.Method):
             if d_area > 0.:
                 for k in range(con.nhru):
                     if con.lnk[k] in (FLUSS, SEE):
-                        flu.evi[k] += flu.q/d_area
-            flu.q = 0.
+                        flu.evi[k] += flu.qah/d_area
+            flu.qah = 0.
         d_epw = 0.
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
-                flu.q += con.fhru[k]*flu.nkor[k]
+                flu.qah += con.fhru[k]*flu.nkor[k]
                 d_epw += con.fhru[k]*flu.evi[k]
-        if (flu.q > d_epw) or con.negq:
-            flu.q -= d_epw
+        if (flu.qah > d_epw) or con.negq:
+            flu.qah -= d_epw
         elif d_epw > 0.:
             for k in range(con.nhru):
                 if con.lnk[k] == WASSER:
-                    flu.evi[k] *= flu.q/d_epw
-            flu.q = 0.
+                    flu.evi[k] *= flu.qah/d_epw
+            flu.qah = 0.
 
 
-class Pass_Q_V1(modeltools.Method):
-    """Update the outlet link sequence.
+class Calc_QA_V1(modeltools.Method):
+    """Calculate the final runoff in m³/s.
 
     Basic equation:
-       :math:`Q_{outlets} = QFactor \\cdot Q_{fluxes}`
+       :math:`QA = QFactor \\cdot QAH`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.qfactor(2.0)
+        >>> fluxes.qah = 3.0
+        >>> model.calc_qa_v1()
+        >>> fluxes.qa
+        qa(6.0)
     """
     DERIVEDPARAMETERS = (
         lland_derived.QFactor,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.Q,
+        lland_fluxes.QAH,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QA,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qa = der.qfactor*flu.qah
+
+
+class Pass_QA_V1(modeltools.Method):
+    """Update the outlet link sequence.
+
+    Basic equation:
+       :math:`Q_{outlets} = QA`
+    """
+    REQUIREDSEQUENCES = (
+        lland_fluxes.QA,
     )
     RESULTSEQUENCES = (
         lland_outlets.Q,
@@ -8507,10 +8537,9 @@ class Pass_Q_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += der.qfactor*flu.q
+        out.q[0] += flu.qa
 
 
 class PegasusESnow(roottools.Pegasus):
@@ -8651,10 +8680,11 @@ class Model(modeltools.AdHocModel):
         Calc_QIGA2_V1,
         Calc_QDGA1_V1,
         Calc_QDGA2_V1,
-        Calc_Q_V1,
+        Calc_QAH_V1,
+        Calc_QA_V1,
     )
     OUTLET_METHODS = (
-        Pass_Q_V1,
+        Pass_QA_V1,
     )
     SENDER_METHODS = ()
     SUBMODELS = (

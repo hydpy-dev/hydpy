@@ -524,6 +524,11 @@ class QDGZ(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Q(sequencetools.FluxSequence):
-    """Gesamtabfluss des Teilgebiets (runoff at the catchment outlet) [mm]."""
+class QAH(sequencetools.FluxSequence):
+    """Abflussspende des Teilgebiets (runoff at the catchment outlet) [mm]."""
+    NDIM, NUMERIC = 0, False
+
+
+class QA(sequencetools.FluxSequence):
+    """Abfluss des Teilgebiets (runoff at the catchment outlet) [m³/s]."""
     NDIM, NUMERIC = 0, False

@@ -1603,20 +1603,20 @@ def check_methodorder(
 
     To show how |check_methodorder| reports errors, we modify the
     `RESULTSEQUENCES` tuples of methods |lland_model.Calc_TKor_V1|,
-    |lland_model.Calc_DryAirPressure_V1|, and |lland_model.Calc_Q_V1|:
+    |lland_model.Calc_DryAirPressure_V1|, and |lland_model.Calc_QA_V1|:
 
     >>> from hydpy.models.lland.lland_model import (
-    ...     Calc_TKor_V1, Calc_DryAirPressure_V1, Calc_Q_V1)
+    ...     Calc_TKor_V1, Calc_DryAirPressure_V1, Calc_QA_V1)
     >>> results_tkor = Calc_TKor_V1.RESULTSEQUENCES
     >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
-    >>> results_q = Calc_Q_V1.RESULTSEQUENCES
+    >>> results_qa = Calc_QA_V1.RESULTSEQUENCES
     >>> Calc_TKor_V1.RESULTSEQUENCES = ()
     >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
-    >>> Calc_Q_V1.RESULTSEQUENCES += results_tkor
+    >>> Calc_QA_V1.RESULTSEQUENCES += results_tkor
 
     Now, none of the relevant models calculates the value of sequence
     |lland_fluxes.DryAirPressure|.  For |lland_fluxes.TKor|, there is
-    still a method (|lland_model.Calc_Q_V1|) calculating its values,
+    still a method (|lland_model.Calc_QA_V1|) calculating its values,
     but at a too-late stage of the simulation step:
 
     >>> print(check_methodorder(Model))    # doctest: +ELLIPSIS
@@ -1635,7 +1635,7 @@ which are not among the result sequences of any of its predecessors: TKor
 
     >>> Calc_TKor_V1.RESULTSEQUENCES = results_tkor
     >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
-    >>> Calc_Q_V1.RESULTSEQUENCES = results_q
+    >>> Calc_QA_V1.RESULTSEQUENCES = results_qa
     >>> print(check_methodorder(Model))
     <BLANKLINE>
     """

@@ -68,6 +68,7 @@ class IndexProperty:
 
 
 class Idx_Sim(IndexProperty):
+    # noinspection PyUnresolvedReferences
     """The simulation step index.
 
     Some model methods require to know the index of the current simulation
@@ -102,6 +103,7 @@ class Idx_HRU(IndexProperty):
 
 
 class Model:
+    # noinspection PyUnresolvedReferences
     """Base class for all hydrological models.
 
     Class |Model| provides everything to create a usable application
@@ -231,6 +233,7 @@ a group of masks (at the moment).
                     setattr(self, shortname, method)
 
     def connect(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Connect all |LinkSequence| objects and the selected
         |InputSequence| objects of the actual model to the
         corresponding |NodeSequence| objects.
@@ -432,8 +435,8 @@ the sequences of the fused variable `Wrong` of node `inp3`.
             >>> Element.clear_all()
             >>> FusedVariable.clear_registry()
         """
+        group = 'inputs'
         try:
-            group = 'inputs'
             for node in self.element.inputs:
                 if isinstance(node.variable, devicetools.FusedVariable):
                     for sequence in self.sequences.inputs:
@@ -1072,6 +1075,7 @@ class ELSModel(SolverModel):
         self.update_outlets()
 
     def solve(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Solve all `FULL_ODE_METHODS` in parallel.
 
         Implementing numerical integration algorithms that (hopefully)
@@ -1515,6 +1519,7 @@ class ELSModel(SolverModel):
         self.get_sum_fluxes()
 
     def calculate_single_terms(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1530,6 +1535,7 @@ class ELSModel(SolverModel):
             method.__call__(self)
 
     def calculate_full_terms(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1547,6 +1553,8 @@ class ELSModel(SolverModel):
             method.__call__(self)
 
     def get_point_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Load the states corresponding to the actual stage.
 
         >>> from hydpy import round_
@@ -1589,6 +1597,8 @@ class ELSModel(SolverModel):
             state.new = temp[idx]
 
     def set_point_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the states corresponding to the actual stage.
 
         >>> from hydpy import print_values
@@ -1622,6 +1632,8 @@ class ELSModel(SolverModel):
         self._set_states(self.numvars.idx_stage, 'points')
 
     def set_result_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the final states of the actual method.
 
         >>> from hydpy import print_values
@@ -1661,6 +1673,8 @@ class ELSModel(SolverModel):
             temp[idx] = state.new
 
     def get_sum_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Get the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -1687,6 +1701,8 @@ class ELSModel(SolverModel):
             flux(getattr(fluxes.fastaccess, f'_{flux.name}_sum'))
 
     def set_point_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the fluxes corresponding to the actual stage.
 
         >>> from hydpy import print_values
@@ -1718,6 +1734,8 @@ class ELSModel(SolverModel):
         self._set_fluxes(self.numvars.idx_stage, 'points')
 
     def set_result_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the final fluxes of the actual method.
 
         >>> from hydpy import print_values
@@ -1756,6 +1774,8 @@ class ELSModel(SolverModel):
             temp[idx] = flux
 
     def integrate_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Perform a dot multiplication between the fluxes and the
         A coefficients associated with the different stages of the
         actual method.
@@ -1803,6 +1823,8 @@ class ELSModel(SolverModel):
                  numpy.dot(coefs, points[:self.numvars.idx_method]))
 
     def reset_sum_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Set the sum of the fluxes calculated so far to zero.
 
         >>> from hydpy.models.test_v1 import *
@@ -1832,6 +1854,8 @@ class ELSModel(SolverModel):
                 setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
 
     def addup_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Add up the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -1861,6 +1885,8 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f'_{flux.name}_sum', sum_)
 
     def calculate_error(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Estimate the numerical error based on the relevant fluxes
         calculated by the current and the last method.
 
@@ -1959,6 +1985,7 @@ class ELSModel(SolverModel):
                     self.numvars.relerror, numpy.max(numpy.abs(reldiff)))
 
     def extrapolate_error(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Estimate the numerical error expected when applying all methods
         available based on the results of the current and the last method.
 

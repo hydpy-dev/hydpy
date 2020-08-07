@@ -463,7 +463,7 @@ the sequences of the fused variable `Wrong` of node `inp3`.
         applied_nodes = []
         for seq in links:
             selected_nodes = tuple(node for node in available_nodes
-                                   if node.variable.lower() == seq.name)
+                                   if str(node.variable).lower() == seq.name)
             if seq.NDIM == 0:
                 if not selected_nodes:
                     raise RuntimeError(

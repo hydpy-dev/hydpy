@@ -1735,15 +1735,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.variables
         ['Q']
 
-        >>> from hydpy import Node
-        >>> hp.nodes += Node('test', variable='T')
+        >>> from hydpy import FusedVariable, hland_T, Node
+        >>> hp.nodes += Node('test', variable=FusedVariable('T', hland_T))
         >>> hp.variables
-        ['Q', 'T']
+        ['Q', FusedVariable('T', hland_T)]
         """
         variables = set([])
         for node in self.nodes:
             variables.add(node.variable)
-        return sorted(variables)
+        return sorted(variables, key=str)
 
     def open_files(self, idx: int = 0) -> None:
         """Open all required internal time series files.

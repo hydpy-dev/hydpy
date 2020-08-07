@@ -465,7 +465,7 @@ the sequences of the fused variable `Wrong` of node `inp3`.
             selected_nodes = tuple(node for node in available_nodes
                                    if str(node.variable).lower() == seq.name)
             if seq.NDIM == 0:
-                if not selected_nodes:
+                if (not selected_nodes) and (available_nodes != 1):
                     raise RuntimeError(
                         f'Sequence {objecttools.elementphrase(seq)} '
                         f'cannot be connected due to no available node '

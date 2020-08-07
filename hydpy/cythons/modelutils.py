@@ -276,7 +276,9 @@ import types
 from typing import *
 # ...third party modules
 import numpy
+# noinspection PyUnresolvedReferences
 from numpy import inf    # pylint: disable=unused-import
+# noinspection PyUnresolvedReferences
 from numpy import nan    # pylint: disable=unused-import
 # ...from HydPy
 import hydpy
@@ -425,6 +427,7 @@ class Cythonizer:
             setattr(self, key, value)
 
     def finalise(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Test and cythonize the relevant model eventually.
 
         Method |Cythonizer.finalise| might call method |Cythonizer.cythonize|
@@ -678,6 +681,7 @@ class Cythonizer:
 
     @property
     def pysourcefiles(self) -> List[str]:
+        # noinspection PyUnresolvedReferences
         """All relevant source files of the actual model.
 
         We consider source files to be relevant if they are part of the
@@ -966,6 +970,7 @@ class PyxWriter:
 
     @property
     def cythondistutilsoptions(self) -> List[str]:
+        # noinspection PyTypeChecker
         """Cython and Distutils option lines.
 
         Use the configuration options "FASTCYTHON" and "PROFILECYTHON" to
@@ -1994,6 +1999,7 @@ class PyxWriter:
         return lines
 
     def write_stubfile(self):
+        # noinspection PyUnresolvedReferences
         """Write a stub file for the actual base or application model.
 
         At the moment, *HydPy* creates model objects quite dynamically.
@@ -2132,6 +2138,7 @@ class FuncConverter:
 
     @property
     def argnames(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The argument names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2141,10 +2148,12 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
+        # noinspection PyUnresolvedReferences
         return inspect.getargs(self.func.__code__)[0]
 
     @property
     def varnames(self) -> Tuple[str, ...]:
+        # noinspection PyTypeChecker
         """The variable names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2154,11 +2163,13 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'inp', 'flu', 'k')
         """
+        # noinspection PyUnresolvedReferences
         return tuple(vn if vn != 'model' else 'self'
                      for vn in self.func.__code__.co_varnames)
 
     @property
     def locnames(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The variable names of the handled function except for
         the argument names.
 
@@ -2173,6 +2184,7 @@ class FuncConverter:
 
     @property
     def subgroupnames(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The complete names of the subgroups relevant for the current
         function.
 
@@ -2196,6 +2208,7 @@ class FuncConverter:
 
     @property
     def subgroupshortcuts(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The abbreviated names of the subgroups relevant for the current
         function.
 
@@ -2210,6 +2223,7 @@ class FuncConverter:
 
     @property
     def untypedvarnames(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The names of the untyped variables used in the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2224,6 +2238,7 @@ class FuncConverter:
 
     @property
     def untypedarguments(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The names of the untyped arguments used by the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2240,6 +2255,7 @@ class FuncConverter:
 
     @property
     def untypedinternalvarnames(self) -> List[str]:
+        # noinspection PyTypeChecker
         """The names of the untyped variables used in the current function
         except for those of the arguments.
 
@@ -2279,13 +2295,13 @@ class FuncConverter:
         lines = code.splitlines()
         self.remove_imath_operators(lines)
         del lines[0]   # remove @staticmethod
-        lines = [l[4:] for l in lines]   # unindent
+        lines = [line[4:] for line in lines]   # unindent
         argnames = self.argnames
         argnames[0] = 'self'
         lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
-        lines = [l.split('#')[0] for l in lines]
-        lines = [l for l in lines if 'fastaccess' not in l]
-        lines = [l.rstrip() for l in lines if l.rstrip()]
+        lines = [line.split('#')[0] for line in lines]
+        lines = [line for line in lines if 'fastaccess' not in line]
+        lines = [line.rstrip() for line in lines if line.rstrip()]
         return Lines(*lines)
 
     @staticmethod
@@ -2338,6 +2354,7 @@ class FuncConverter:
 
     @property
     def pyxlines(self) -> List[str]:
+        # noinspection PyUnresolvedReferences
         """Cython code lines of the current function.
 
         Assumptions:
@@ -2399,6 +2416,7 @@ self, double value, double[:] values)  nogil:
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].lower()
+        # noinspection PyUnresolvedReferences
         annotations = self.func.__annotations__
         lines[0] = lines[0].replace(
             'def ', f'cpdef inline {TYPE2STR[annotations["return"]]} ')

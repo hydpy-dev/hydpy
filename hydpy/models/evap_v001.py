@@ -19,21 +19,25 @@ are welcome, of course).  There is also a geographic restriction due to
 the calculation of the longwave radiation, which fails during polar nights
 (again, contributions are welcome).
 
-
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-For the following tests, we prepare an instance of application model
-|evap_v001| and assign it to |Element| `element`, which we connect
-to |Node| `node`:
+Application model |evap_v001| does not calculate runoff and thus does not
+define an outlet sequence.  Hence, we need to manually select an output
+sequence, which usually is |ReferenceEvapotranspiration|.  We import
+its globally available alias and prepare the corresponding output node:
+
+>>> from hydpy import Element, evap_ReferenceEvapotranspiration, Node
+>>> node = Node('node', variable=evap_ReferenceEvapotranspiration)
+
+Now we can prepare an instance of |evap_v001| and assign it to an element
+connected to the prepared node:
 
 >>> from hydpy.models.evap_v001 import *
 >>> parameterstep()
->>> from hydpy import Element, Node
->>> node = Node('node', variable='E')
->>> element = Element('element', outlets=node)
+>>> element = Element('element', outputs=node)
 >>> element.model = model
 
 daily simulation
@@ -217,9 +221,7 @@ class Model(modeltools.AdHocModel):
         evap_model.Calc_ReferenceEvapotranspiration_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        evap_model.Pass_ReferenceEvapotranspiration_V1,
-    )
+    OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELS = ()
 

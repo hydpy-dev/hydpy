@@ -2,7 +2,7 @@
 # pylint: disable=wrong-import-position
 # due to using the HydPy class `OptionalImports` for importing site-packages
 """
-HydPy
+*HydPy*
 
 An interactive framework for the developement and a application of
 hydrological models.
@@ -201,24 +201,32 @@ __all__ = ['aggregate_series',
            'await_server',
            'start_server']
 
-inputsequence2alias: Dict[sequencetools.InputSequence, str] = {}
+sequence2alias: Dict[sequencetools.InOutSequence, str] = {}
 
+_select = (
+    sequencetools.InputSequence,
+    sequencetools.FluxSequence,
+    sequencetools.StateSequence,
+)
 for moduleinfo in pkgutil.walk_packages(models.__path__):
     if moduleinfo.ispkg:
-        modulepath = f'hydpy.models.{moduleinfo.name}.{moduleinfo.name}_inputs'
-        try:
-            module = importlib.import_module(modulepath)
-        except ModuleNotFoundError:
-            continue
-        for member in vars(module).values():
-            if ((getattr(member, '__module__', None) == modulepath)
-                    and issubclass(member, sequencetools.InputSequence)):
-                alias = f'{moduleinfo.name}_{member.__name__}'
-                inputsequence2alias[member] = alias
-                locals()[alias] = member
-                __all__.append(alias)
+        for group in ('inputs', 'fluxes', 'states'):
+            modulepath = \
+                f'hydpy.models.{moduleinfo.name}.{moduleinfo.name}_{group}'
+            try:
+                module = importlib.import_module(modulepath)
+            except ModuleNotFoundError:
+                continue
+            for member in vars(module).values():
+                if ((getattr(member, '__module__', None) == modulepath)
+                        and issubclass(member, _select) and
+                        member.NDIM == 0):
+                    alias = f'{moduleinfo.name}_{member.__name__}'
+                    sequence2alias[member] = alias
+                    locals()[alias] = member
+                    __all__.append(alias)
 
-
+# noinspection PyUnresolvedReferences
 if config.USEAUTODOC:
     from hydpy import auxs
     from hydpy import core

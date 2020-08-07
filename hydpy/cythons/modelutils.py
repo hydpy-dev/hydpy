@@ -1141,8 +1141,16 @@ class PyxWriter:
                 lines.extend(self.set_pointer(subseqs))
                 lines.extend(self.get_value(subseqs))
                 lines.extend(self.set_value(subseqs))
-            if isinstance(subseqs, sequencetools.InputSequences):
+            if isinstance(
+                    subseqs,
+                    (
+                        sequencetools.InputSequences,
+                        sequencetools.OutputSequences,
+                    ),
+            ):
                 lines.extend(self.set_pointer(subseqs))
+            if isinstance(subseqs, sequencetools.OutputSequences):
+                lines.extend(self.update_outputs(subseqs))
         return lines
 
     @staticmethod
@@ -1158,6 +1166,9 @@ class PyxWriter:
         if isinstance(seq, sequencetools.InputSequence):
             lines.add(1, f'cdef public bint _{seq.name}_inputflag')
             lines.add(1, f'cdef double *_{seq.name}_inputpointer')
+        elif isinstance(seq, sequencetools.OutputSequence):
+            lines.add(1, f'cdef public bint _{seq.name}_outputflag')
+            lines.add(1, f'cdef double *_{seq.name}_outputpointer')
         return lines
 
     @staticmethod
@@ -1276,12 +1287,15 @@ class PyxWriter:
         return lines
 
     def set_pointer(self,
-                    subseqs: Union[sequencetools.InputSequence,
+                    subseqs: Union[sequencetools.InputSequences,
+                                   sequencetools.OutputSequences,
                                    sequencetools.LinkSequences]) -> List[str]:
-        """Set pointer statements for all input and link sequences."""
+        """Set pointer statements for all input, output, and link sequences."""
         lines = Lines()
         if isinstance(subseqs, sequencetools.InputSequences):
             lines.extend(self.set_pointerinput(subseqs))
+        elif isinstance(subseqs, sequencetools.OutputSequences):
+            lines.extend(self.set_pointeroutput(subseqs))
         else:
             for seq in subseqs:
                 if seq.NDIM == 0:
@@ -1405,6 +1419,28 @@ class PyxWriter:
             lines.add(3, f'self._{seq.name}_inputpointer = value.p_value')
         return lines
 
+    def set_pointeroutput(
+            self,
+            subseqs: Union[sequencetools.OutputSequences],
+    ) -> List[str]:
+        """Set pointer statements for output sequences."""
+        print('            . set_pointeroutput')
+        lines = Lines()
+        lines.add(1, 'cpdef inline set_pointeroutput'
+                     '(self, str name, pointerutils.PDouble value):')
+        subseqs = self._filter_outputsequences(subseqs)
+        if subseqs:
+            for seq in subseqs:
+                lines.add(2, f'if name == "{seq.name}":')
+                lines.add(3, f'self._{seq.name}_outputpointer = value.p_value')
+        else:
+            lines.add(2, 'pass')
+        return lines
+
+    @staticmethod
+    def _filter_outputsequences(subseqs):
+        return [subseq for subseq in subseqs if not subseq.NDIM]
+
     @property
     def numericalparameters(self) -> List[str]:
         """Numeric parameter declaration lines."""
@@ -1488,6 +1524,7 @@ class PyxWriter:
         lines.extend(self.update_outlets)
         lines.extend(self.update_receivers)
         lines.extend(self.update_senders)
+        lines.extend(self.update_outputs_model)
         return lines
 
     @property
@@ -1530,6 +1567,8 @@ class PyxWriter:
                 lines.add(2, 'self.new2old()')
         if self.model.OUTLET_METHODS:
             lines.add(2, 'self.update_outlets()')
+        if self.model.sequences.fluxes or self.model.sequences.states:
+            lines.add(2, 'self.update_outputs()')
         return lines
 
     @property
@@ -1689,6 +1728,51 @@ class PyxWriter:
         return self._call_methods('update_senders',
                                   self.model.SENDER_METHODS,
                                   True)
+
+    @property
+    def update_outputs_model(self) -> List[str]:
+        """Lines of the model method with the same name (except the `_model`
+        suffix)."""
+        lines = Lines()
+        add = lines.add
+        methodheader = get_methodheader(
+            'update_outputs',
+            nogil=True,
+            idxarg=False,
+        )
+        add(1, methodheader)
+        fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
+        states = self._filter_outputsequences(self.model.sequences.states)
+        if fluxes:
+            add(2, 'self.sequences.fluxes.update_outputs()')
+        if states:
+            add(2, 'self.sequences.states.update_outputs()')
+        if not (fluxes or states):
+            add(2, 'pass')
+        return lines
+
+    def update_outputs(
+            self,
+            subseqs: sequencetools.OutputSequences,
+    ) -> List[str]:
+        """Lines of the subsequences method with the same name."""
+        lines = Lines()
+        add = lines.add
+        methodheader = get_methodheader(
+            'update_outputs',
+            nogil=True,
+            idxarg=False,
+        )
+        add(1, methodheader)
+        subseqs = self._filter_outputsequences(subseqs)
+        if subseqs:
+            for seq in subseqs:
+                name = seq.name
+                add(2, f'if self._{name}_outputflag:')
+                add(3, f'self._{name}_outputpointer[0] = self.{name}')
+        else:
+            add(2, 'pass')
+        return lines
 
     def calculate_single_terms(self, model: 'modeltools.SolverModel') \
             -> List[str]:

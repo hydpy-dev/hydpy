@@ -140,6 +140,46 @@ class FastAccessModelSequenceProtocol(Protocol):
         |True|) or to disk (with |IOSequence.diskflag|)."""
 
 
+class FastAccessInputSequenceProtocol(Protocol):
+    """The protocol of Cython extension classes for replacing
+    the Python surrogate class |FastAccessModelSequence| when
+    used by |InputSequence| objects.
+
+    Class |Cythonizer| generates the actual, model specific
+    implementations automatically.
+    """
+
+    def set_pointerinput(
+            self,
+            name: str,
+            pdouble: 'pointerutils.PDouble',
+    ) -> None:
+        """Use the given |PDouble| object as the pointer for the
+        0-dimensional |InputSequence| object with the given name."""
+
+
+class FastAccessOutputSequenceProtocol(Protocol):
+    """The protocol of Cython extension classes for replacing
+    the Python surrogate class |FastAccessModelSequence| when
+    used by |OutputSequence| objects.
+
+    Class |Cythonizer| generates the actual, model specific
+    implementations automatically.
+    """
+
+    def set_pointeroutput(
+            self,
+            name: str,
+            pdouble: 'pointerutils.PDouble',
+    ) -> None:
+        """Use the given |PDouble| object as the pointer for the
+        0-dimensional |OutputSequence| object with the given name."""
+
+    def update_outputs(self) -> None:
+        """Pass the internal data of all sequences with activated output flag.
+        """
+
+
 class FastAccessLinkSequenceProtocol(FastAccessModelSequenceProtocol):
     """The protocol of Cython extension classes for replacing
     the Python surrogate class |FastAccessModelSequence| when

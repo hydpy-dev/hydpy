@@ -234,9 +234,9 @@ a group of masks (at the moment).
 
     def connect(self) -> None:
         # noinspection PyUnresolvedReferences
-        """Connect all |LinkSequence| objects and the selected
-        |InputSequence| objects of the actual model to the
-        corresponding |NodeSequence| objects.
+        """Connect all |LinkSequence| objects and the selected |InputSequence|
+        and |OutputSequence| objects of the actual model to the corresponding
+        |NodeSequence| objects.
 
         You cannot connect any sequences until the |Model| object itself
         is connected to an |Element| object referencing the required |Node|
@@ -362,27 +362,36 @@ to any sequences: in2.
         nodes.  Such connections are relatively hard requirements
         (|hstream_v1| definitively needs inflow provided from a node,
         which the node itself typically receives from another model).
-        In contrast, connections between input sequences and nodes are
-        optional.  If one defines such a connection, the input sequence
-        gets data from the related node; otherwise, it uses its individually
-        managed data, usually read from a file.
+        In contrast, connections between input or output sequences and nodes
+        are optional.  If one defines such a connection for an input sequence,
+        it receives data from the related node; otherwise, it uses its
+        individually managed data, usually read from a file.  If one defines
+        such a connection for an output sequence, it passes its internal
+        data to the related node; otherwise, nothing happens.
 
         We demonstrate this functionality by focussing on the input sequences
-        |hland_inputs.T| and |hland_inputs.P| of application model |hland_v1|.
+        |hland_inputs.T| and |hland_inputs.P| and the output sequences
+        |hland_fluxes.Q0| and |hland_states.UZ| of application model |hland_v1|.
         |hland_inputs.T| uses its own data (which we define manually, but we
         could read it from a file as well), whereas |hland_inputs.P| gets its
-        data from node `inp1`.  This functionality requires to tell the node
-        which sequence it should connect to, which we do by passing the
-        sequence type (or the globally available alias `hland_P`) to the
-        `variable` keyword:
+        data from node `inp1`.  Flux sequence |hland_fluxes.Q0| and state
+        sequence |hland_states.UZ| pass their data to two separate output
+        nodes, whereas all other fluxes and states do not.  This functionality
+        requires to tell each node which sequence it should connect to, which
+        we do by passing the sequence types (or the globally available aliases
+        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword
+        of different node objects:
 
-        >>> from hydpy import hland_P, pub
+        >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
         >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
 
         >>> inp1 = Node('inp1', variable=hland_P)
+        >>> outp1 = Node('outp1', variable=hland_Q0)
+        >>> outp2 = Node('outp2', variable=hland_UZ)
         >>> element8 = Element('element8',
         ...                    outlets=out1,
-        ...                    inputs=inp1)
+        ...                    inputs=inp1,
+        ...                    outputs=[outp1, outp2])
         >>> element8.model = prepare_model('hland_v1')
         >>> element8.prepare_inputseries()
         >>> element8.model.idx_sim = 2
@@ -393,27 +402,40 @@ to any sequences: in2.
         t(3.0)
         >>> element8.model.sequences.inputs.p
         p(9.0)
+        >>> element8.model.sequences.fluxes.q0 = 99.0
+        >>> element8.model.sequences.states.uz = 999.0
+        >>> element8.model.update_outputs()
+        >>> outp1.sequences.sim
+        sim(99.0)
+        >>> outp2.sequences.sim
+        sim(999.0)
 
-        Instead of using single |InputSequence| subclasses, one can create
-        and apply fused variables, combining multiple |InputSequence|
-        subclasses (see the documentation on class |FusedVariable| for more
-        information and a more realistic example):
+        Instead of using single |InputSequence| and |OutputSequence|
+        subclasses, one can create and apply fused variables, combining
+        multiple subclasses (see the documentation on class |FusedVariable|
+        for more information and a more realistic example):
 
-        >>> from hydpy import FusedVariable, lland_Nied
+        >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
         >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
         >>> inp2 = Node('inp2', variable=Precip)
+        >>> FastRunoff = FusedVariable('FastRunoff', hland_Q0, lland_QDGZ)
+        >>> outp3 = Node('outp3', variable=FastRunoff)
         >>> element9 = Element('element9',
         ...                    outlets=out1,
-        ...                    inputs=inp2)
+        ...                    inputs=inp2,
+        ...                    outputs=outp3)
         >>> element9.model = prepare_model('hland_v1')
-        >>> element9.prepare_inputseries()
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data()
         >>> element9.model.sequences.inputs.p
         p(9.0)
+        >>> element9.model.sequences.fluxes.q0 = 99.0
+        >>> element9.model.update_outputs()
+        >>> outp3.sequences.sim
+        sim(99.0)
 
         Method |Model.connect| reports if one of the given fused variables
-        does not find a fitting input sequence:
+        does not find a fitting sequence:
 
         >>> from hydpy import lland_TemL
         >>> Wrong = FusedVariable('Wrong', lland_Nied, lland_TemL)
@@ -424,10 +446,62 @@ to any sequences: in2.
         >>> element10.model = prepare_model('hland_v1')
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
+        TypeError: While trying to build the node connection of the \
 `input` sequences of the model handled by element `element10`, the following \
 error occurred: None of the input sequences of model `hland_v1` is among \
 the sequences of the fused variable `Wrong` of node `inp3`.
+
+        >>> outp4 = Node('outp4', variable=Wrong)
+        >>> element11 = Element('element11',
+        ...                     outlets=out1,
+        ...                     outputs=outp4)
+        >>> element11.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the \
+`output` sequences of the model handled by element `element11`, the \
+following error occurred: None of the output sequences of model `hland_v1` \
+is among the sequences of the fused variable `Wrong` of node `outp4`.
+
+        Selecting wrong sequences results in the following errors messages:
+
+        >>> outp5 = Node('outp5', variable=hland_Q0)
+        >>> element12 = Element('element12',
+        ...                     outlets=out1,
+        ...                     inputs=outp5)
+        >>> element12.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element12`, the following error \
+occurred: No input sequence of model hland_v1` is named `q0`.
+
+        >>> inp5 = Node('inp5', variable=hland_P)
+        >>> element13 = Element('element13',
+        ...                     outlets=out1,
+        ...                     outputs=inp5)
+        >>> element13.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `output` \
+sequences of the model handled by element `element13`, the following error \
+occurred: No flux or state sequence of model `hland_v1` is named `p`.
+
+        So far, you can build connections to 0-dimensional output sequences
+        only:
+
+        >>> from hydpy.models.hland.hland_fluxes import PC
+        >>> outp6 = Node('outp6', variable=PC)
+        >>> element14 = Element('element14',
+        ...                     outlets=out1,
+        ...                     outputs=outp6)
+        >>> element14.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `output` \
+sequences of the model handled by element `element14`, the following error \
+occurred: Only connections with 0-dimensional output sequences are supported, \
+but sequence `pc` is 1-dimensional.
 
         .. testsetup::
 
@@ -443,14 +517,52 @@ the sequences of the fused variable `Wrong` of node `inp3`.
                         if sequence in node.variable:
                             break
                     else:
-                        raise RuntimeError(
+                        raise TypeError(
                             f'None of the input sequences of model `{self}` '
                             f'is among the sequences of the fused variable '
                             f'`{node.variable}` of node `{node.name}`.'
                         )
                 else:
                     name = node.variable.__name__.lower()
-                    sequence = getattr(self.sequences.inputs, name)
+                    try:
+                        sequence = getattr(self.sequences.inputs, name)
+                    except AttributeError:
+                        raise TypeError(
+                            f'No input sequence of model '
+                            f'{self}` is named `{name}`.'
+                        )
+                sequence.set_pointer(node.get_double(group))
+            group = 'outputs'
+            for node in self.element.outputs:
+                if isinstance(node.variable, devicetools.FusedVariable):
+                    for sequence in itertools.chain(
+                            self.sequences.fluxes,
+                            self.sequences.states,
+                    ):
+                        if sequence in node.variable:
+                            break
+                    else:
+                        raise TypeError(
+                            f'None of the output sequences of model `{self}` '
+                            f'is among the sequences of the fused variable '
+                            f'`{node.variable}` of node `{node.name}`.'
+                        )
+                else:
+                    name = node.variable.__name__.lower()
+                    sequence = getattr(self.sequences.fluxes, name, None)
+                    if sequence is None:
+                        sequence = getattr(self.sequences.states, name, None)
+                    if sequence is None:
+                        raise TypeError(
+                            f'No flux or state sequence of model '
+                            f'`{self}` is named `{name}`.'
+                        )
+                if sequence.NDIM > 0:
+                    raise TypeError(
+                        f'Only connections with 0-dimensional output '
+                        f'sequences are supported, but sequence '
+                        f'`{sequence.name}` is {sequence.NDIM}-dimensional.'
+                    )
                 sequence.set_pointer(node.get_double(group))
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)
@@ -458,7 +570,8 @@ the sequences of the fused variable `Wrong` of node `inp3`.
             objecttools.augment_excmessage(
                 f'While trying to build the node connection of '
                 f'the `{group[:-1]}` sequences of the model handled '
-                f'by element `{objecttools.devicename(self)}`')
+                f'by element `{objecttools.devicename(self)}`'
+            )
 
     def _connect_subgroup(self, group: str) -> None:
         available_nodes = getattr(self.element, group)
@@ -654,6 +767,16 @@ the sequences of the fused variable `Wrong` of node `inp3`.
         """
         if self.sequences:
             self.sequences.states.new2old()
+
+    def update_outputs(self) -> None:
+        """Call method |OutputSequences.update_outputs| of subattributes
+        `sequences.fluxes` and `sequences.states`.
+
+        When working in Cython mode, the standard model import overrides
+        this generic Python version with a model-specific Cython version.
+        """
+        self.sequences.fluxes.update_outputs()
+        self.sequences.states.update_outputs()
 
     @classmethod
     def get_methods(cls) -> Iterator[Method]:
@@ -880,6 +1003,7 @@ class AdHocModel(Model):
         self.run()
         self.new2old()
         self.update_outlets()
+        self.update_outputs()
 
     def run(self) -> None:
         """Call all methods defined as "RUN_METHODS" in the defined order.
@@ -1073,6 +1197,7 @@ class ELSModel(SolverModel):
         self.update_inlets()
         self.solve()
         self.update_outlets()
+        self.update_outputs()
 
     def solve(self) -> None:
         # noinspection PyUnresolvedReferences

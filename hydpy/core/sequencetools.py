@@ -30,6 +30,9 @@ if TYPE_CHECKING:
     from hydpy.core import typingtools
 
 
+InOutSequence = Union['InputSequence', 'OutputSequence']
+
+
 class InfoArray(numpy.ndarray):
     """|numpy| |numpy.ndarray| subclass that stores and tries to keep
     an additional `info` attribute.
@@ -712,8 +715,10 @@ class ModelIOSequences(IOSequences, ModelSequences):
     """Base class for handling model-related subgroups of |IOSequence| objects.
     """
 
-    fastaccess: Union['FastAccessModelSequence',
-                      'typingtools.FastAccessModelSequenceProtocol']
+    fastaccess: Union[
+        'FastAccessModelSequence',
+        'typingtools.FastAccessModelSequenceProtocol',
+    ]
 
     def load_data(self, idx: int) -> None:
         """Call method |FastAccessModelSequence.load_data| of the
@@ -729,8 +734,29 @@ class ModelIOSequences(IOSequences, ModelSequences):
 class InputSequences(ModelIOSequences):
     """Base class for handling |InputSequence| objects."""
 
+    fastaccess: Union[
+        'FastAccessModelSequence',
+        'typingtools.FastAccessInputSequenceProtocol',
+    ]
 
-class FluxSequences(ModelIOSequences):
+
+class OutputSequences(ModelIOSequences):
+    """Base class for handling |OutputSequence| objects."""
+
+    fastaccess: Union[
+        'FastAccessModelSequence',
+        'typingtools.FastAccessOutputSequenceProtocol',
+    ]
+
+    def update_outputs(self) -> None:
+        """Call method |FastAccessOutputSequenceProtocol.update_outputs|
+        of the |FastAccessOutputSequenceProtocol| object handled as
+        attribute `fastaccess`."""
+        if self:
+            self.fastaccess.update_outputs()
+
+
+class FluxSequences(OutputSequences):
     """Base class for handling |FluxSequence| objects."""
 
     @property
@@ -761,7 +787,7 @@ class FluxSequences(ModelIOSequences):
                 yield flux
 
 
-class StateSequences(ModelIOSequences):
+class StateSequences(OutputSequences):
     """Base class for handling |StateSequence| objects."""
 
     fastaccess_new: Union['FastAccessModelSequence',
@@ -2412,7 +2438,7 @@ class InputSequence(ModelSequence):
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data,
-    which is possible in two ways: either by providing their ndividually
+    which is possible in two ways: either by providing their individually
     managed data (usually read from file) or data shared with an input
     node (usually calculated by another model).  This flexibility allows,
     for example, to let application model |hland_v1| read already
@@ -2490,7 +2516,13 @@ class InputSequence(ModelSequence):
 
         >>> Element.clear_all()
         >>> Node.clear_all()
+        >>> FusedVariable.clear_registry()
     """
+
+    fastaccess: Union[
+        'FastAccessModelSequence',
+        'typingtools.FastAccessInputSequenceProtocol',
+    ]
 
     filetype_ext = _FileType()
     dirpath_ext = _DirPathProperty()
@@ -2504,7 +2536,7 @@ class InputSequence(ModelSequence):
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
 
-        Method |LinkSequence.set_pointer| should be of relevance for
+        Method |InputSequence.set_pointer| should be of relevance for
         framework developers and eventually for some model developers
         only.
         """
@@ -2517,8 +2549,8 @@ class InputSequence(ModelSequence):
 
     @property
     def inputflag(self) -> bool:
-        """A flag telling if the actual |InputSequence| object queries its
-        input data from an input node (|True|) or uses ndividually managed
+        """A flag telling if the actual |InputSequence| object queries
+        its data from an input node (|True|) or uses individually managed
         data, usually read from a data file (|False|).
 
         See the main documentation on class |InputSequence| for further
@@ -2527,7 +2559,153 @@ class InputSequence(ModelSequence):
         return self._get_fastaccessattribute('inputflag')
 
 
-class FluxSequence(ModelSequence):
+class OutputSequence(ModelSequence):
+    # noinspection PyUnresolvedReferences
+    """Base class for |FluxSequence| and |StateSequence|.
+
+    |OutputSequence| subclasses implement an optional output mechanism.
+    Generally, as all instances of |ModelSequence| subclasses, output
+    sequences handle values calculated within a simulation time step.
+    With an activated |OutputSequence.outputflag|, they also pass their
+    internal values to an output node (see the documentation on class
+    |Element|), which makes them accessible to other models.
+
+    This output mechanism (coupling |OutputSequence| objects with output nodes)
+    is rather new, and we might adjust the relevant interfaces in the future.
+    Additionally, it works for 0-dimensional output sequences only so far.
+    As soon as we finally settled things, we improve the following example
+    and place it more prominently.  In short, it shows that everything works
+    well for the different |Node.deploymode| options:
+
+    >>> from hydpy import (
+    ...     Element, hland_Perc, hland_Q0, hland_Q1, hland_UZ, HydPy, Node,
+    ...     print_values, pub, Selection, TestIO)
+    >>> hp = HydPy('LahnH')
+    >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+    >>> node_q0 = Node('node_q0', variable=hland_Q0)
+    >>> node_q1 = Node('node_q1', variable=hland_Q1)
+    >>> node_perc = Node('node_perc', variable=hland_Perc)
+    >>> node_uz = Node('node_uz', variable=hland_UZ)
+    >>> node_q = Node('node_q')
+    >>> land_dill = Element('land_dill',
+    ...                     outlets=node_q,
+    ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
+    >>> sel = Selection('sel',
+    ...                 nodes=[node_q0, node_q1, node_perc, node_uz],
+    ...                 elements=[land_dill])
+
+    >>> from hydpy.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> import os
+    >>> with TestIO():
+    ...     os.chdir('LahnH/control/default')
+    ...     with open('land_dill.py') as controlfile:
+    ...         exec(controlfile.read(), {}, locals())
+    ...     parameters.update()
+    ...     land_dill.model = model
+
+    >>> model.sequences.fluxes.q0.outputflag
+    True
+    >>> model.sequences.fluxes.q1.outputflag
+    True
+    >>> model.sequences.fluxes.perc.outputflag
+    True
+    >>> model.sequences.fluxes.qt.outputflag
+    False
+    >>> model.sequences.states.uz.outputflag
+    True
+    >>> model.sequences.states.lz.outputflag
+    False
+
+    >>> hp.update_devices(sel)
+    >>> with TestIO():
+    ...     hp.load_conditions()
+
+    >>> hp.prepare_inputseries()
+    >>> with TestIO():
+    ...     hp.load_inputseries()
+    >>> hp.prepare_fluxseries()
+    >>> hp.prepare_stateseries()
+    >>> hp.nodes.prepare_allseries()
+
+    >>> node_q0.deploymode = 'oldsim'
+    >>> node_q0.sequences.sim.series = 1.0
+    >>> node_q0.sequences.obs.series = 2.0
+    >>> node_q1.deploymode = 'obs'
+    >>> node_q1.sequences.obs.series = 3.0
+    >>> node_perc.deploymode = 'newsim'
+    >>> node_perc.sequences.obs.series = 4.0
+    >>> node_uz.sequences.obs.series = 5.0
+
+    >>> hp.simulate()
+
+    >>> print_values(node_q0.sequences.sim.series)
+    1.0, 1.0, 1.0, 1.0, 1.0
+    >>> print_values(node_q0.sequences.obs.series)
+    2.0, 2.0, 2.0, 2.0, 2.0
+
+    >>> print_values(model.sequences.fluxes.q1.series)
+    0.531056, 0.54036, 0.549021, 0.557038, 0.564481
+    >>> print_values(node_q1.sequences.sim.series)
+    0.531056, 0.54036, 0.549021, 0.557038, 0.564481
+    >>> print_values(node_q1.sequences.obs.series)
+    3.0, 3.0, 3.0, 3.0, 3.0
+
+    >>> print_values(model.sequences.fluxes.perc.series)
+    0.698932, 0.695842, 0.693764, 0.691013, 0.688866
+    >>> print_values(node_perc.sequences.sim.series)
+    0.698932, 0.695842, 0.693764, 0.691013, 0.688866
+    >>> print_values(node_perc.sequences.obs.series)
+    4.0, 4.0, 4.0, 4.0, 4.0
+
+    >>> print_values(model.sequences.states.uz.series)
+    5.629406, 4.370395, 3.339112, 2.455376, 1.667827
+    >>> print_values(node_uz.sequences.sim.series)
+    5.629406, 4.370395, 3.339112, 2.455376, 1.667827
+    >>> print_values(node_uz.sequences.obs.series)
+    5.0, 5.0, 5.0, 5.0, 5.0
+
+    .. testsetup::
+
+        >>> Element.clear_all()
+        >>> Node.clear_all()
+    """
+
+    fastaccess: Union[
+        'FastAccessModelSequence',
+        'typingtools.FastAccessOutputSequenceProtocol',
+    ]
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self._set_fastaccessattribute('outputflag', False)
+
+    def set_pointer(self, double: pointerutils.Double) -> None:
+        """Prepare a pointer referencing the given |Double| object.
+
+        Method |OutputSequence.set_pointer| should be of relevance for
+        framework developers and eventually for some model developers
+        only.
+        """
+        pdouble = pointerutils.PDouble(double)
+        if isinstance(self.fastaccess, FastAccessModelSequence):
+            self._set_fastaccessattribute('outputpointer', pdouble)
+        else:
+            self.fastaccess.set_pointeroutput(self.name, pdouble)
+        self._set_fastaccessattribute('outputflag', True)
+
+    @property
+    def outputflag(self) -> bool:
+        """A flag telling if the actual |OutputSequence| object passes its
+        data to an output node (|True|) or not (|False|).
+
+        See the main documentation on class |OutputSequence| for further
+        information.
+        """
+        return self._get_fastaccessattribute('outputflag')
+
+
+class FluxSequence(OutputSequence):
     """Base class for flux sequences of |Model| objects."""
 
     filetype_ext = _FileType()
@@ -2694,7 +2872,7 @@ class ConditionSequence(Sequence):
             self(*self._oldargs)
 
 
-class StateSequence(ConditionSequence, ModelSequence):
+class StateSequence(ConditionSequence, OutputSequence):
     """Base class for state sequences of |Model| objects.
 
     Each |StateSequence| object is capable in handling states at two
@@ -3896,6 +4074,15 @@ class FastAccessModelSequence(FastAccessSequence):
                 self._get_attribute(name, 'file').write(raw)
             elif self._get_attribute(name, 'ramflag'):
                 self._get_attribute(name, 'array')[idx] = actual
+
+    def update_outputs(self):
+        """Pass the internal data of all sequences with activated output flag.
+        """
+        for name in self:
+            outputflag = self._get_attribute(name, 'outputflag', False)
+            if outputflag:
+                actual = getattr(self, name)
+                self._get_attribute(name, 'outputpointer')[0] = actual
 
 
 class FastAccessNodeSequence(FastAccessSequence):

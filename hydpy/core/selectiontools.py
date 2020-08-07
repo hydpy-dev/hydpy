@@ -1003,7 +1003,7 @@ requires string as left operand, not list
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy import Node, Element
+        from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
         Node("dill", variable="Q",
@@ -1029,7 +1029,7 @@ requires string as left operand, not list
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy import Node, Element
+        from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1044,12 +1044,17 @@ requires string as left operand, not list
         The `write_defaultnodes` argument does only affect nodes handling
         the default variable `Q`:
 
-        >>> from hydpy import FusedVariable, hland_P, hland_T, lland_Nied, Node
+        >>> from hydpy import FusedVariable, Node
+        >>> from hydpy import hland_P, hland_T, lland_Nied
+        >>> from hydpy import hland_Perc, hland_Q0, hland_Q1
         >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
+        >>> Runoff = FusedVariable('Runoff', hland_Q0, hland_Q1)
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node('test1', variable='X'))
         >>> nodes.add_device(Node('test2', variable=hland_T))
         >>> nodes.add_device(Node('test3', variable=Precip))
+        >>> nodes.add_device(Node('test4', variable=hland_Perc))
+        >>> nodes.add_device(Node('test5', variable=Runoff))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
         ...         'test.py', write_defaultnodes=False)
@@ -1057,10 +1062,11 @@ requires string as left operand, not list
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy import Node, Element, FusedVariable
-        from hydpy import hland_P, hland_T, lland_Nied
+        from hydpy import Element, FusedVariable, Node
+        from hydpy import hland_P, hland_Q0, hland_Q1, hland_T, lland_Nied
         <BLANKLINE>
         Precip = FusedVariable('Precip', hland_P, lland_Nied)
+        Runoff = FusedVariable('Runoff', hland_Q0, hland_Q1)
         <BLANKLINE>
         <BLANKLINE>
         Node("test1", variable="X")
@@ -1068,6 +1074,10 @@ requires string as left operand, not list
         Node("test2", variable=hland_T)
         <BLANKLINE>
         Node("test3", variable=Precip)
+        <BLANKLINE>
+        Node("test4", variable=hland_Perc)
+        <BLANKLINE>
+        Node("test5", variable=Runoff)
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1084,26 +1094,27 @@ requires string as left operand, not list
         for variable in self.nodes.variables:
             if (inspect.isclass(variable) and
                     issubclass(variable, sequencetools.InputSequence)):
-                aliases.add(hydpy.inputsequence2alias[variable])
+                aliases.add(hydpy.sequence2alias[variable])
             if isinstance(variable, devicetools.FusedVariable):
                 fusedvariables.add(variable)
         for fusedvariable in fusedvariables:
             for sequence in fusedvariable:
-                aliases.add(hydpy.inputsequence2alias[sequence])
+                aliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
             filepath = self.name + '.py'
         with open(filepath, 'w', encoding="utf-8") as file_:
             file_.write('# -*- coding: utf-8 -*-\n')
-            file_.write('\nfrom hydpy import Node, Element')
             if fusedvariables:
-                file_.write(', FusedVariable')
+                file_.write('\nfrom hydpy import Element, FusedVariable, Node')
+            else:
+                file_.write('\nfrom hydpy import Element, Node')
             if aliases:
                 file_.write(
                     f'\nfrom hydpy import {", ".join(sorted(aliases))}\n\n'
                 )
             else:
                 file_.write('\n\n')
-            for fusedvariable in fusedvariables:
+            for fusedvariable in sorted(fusedvariables, key=str):
                 file_.write(f'{fusedvariable} = {repr(fusedvariable)}\n')
             if fusedvariables:
                 file_.write('\n')

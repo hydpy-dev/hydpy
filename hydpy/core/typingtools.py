@@ -11,9 +11,6 @@ import numpy
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
-    from hydpy.core import parametertools
-    from hydpy.core import sequencetools
-    from hydpy.core import timetools
     from hydpy.cythons.autogen import pointerutils
 
 T = TypeVar('T')

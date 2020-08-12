@@ -26,13 +26,14 @@ ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
 
 
 class HydPy:
+    # noinspection PyUnresolvedReferences
     """The main class for managing *HydPy* projects.
 
     In typical *HydPy* projects, one prepares a single instance of class
     |HydPy|.  This instance, which we name "hp" throughout this
     documentation instead of "hydpy" to avoid a naming collision with
     the `hydpy` site-package, provides many convenience methods to perform
-    task like reading time series data or starting simulation runs.
+    task like reading time-series data or starting simulation runs.
     Additionally, it serves as a root to access most of the details of
     a *HydPy* project, allowing for more granular control over the
     framework features.
@@ -282,7 +283,7 @@ be required to prepare the model properly.
     initialisation period, which is the first of January at zero
     o'clock).  By default and for reasons of memory storage efficiency,
     sequences generally handle the currently relevant values only
-    instead of complete time series:
+    instead of complete time-series:
 
     >>> model.sequences.inputs.t
     t(nan)
@@ -300,7 +301,7 @@ be required to prepare the model properly.
     this is different for input sequences like |hland_inputs.T|.
     Time variable properties like the air temperature are external
     forcings. Hence they must be available over the whole simulation
-    period apriori.  Such complete time series can be made available
+    period apriori.  Such complete time-series can be made available
     via property |IOSequence.series| of class |IOSequence|, which
     has not happened for any sequence so far:
 
@@ -310,7 +311,7 @@ be required to prepare the model properly.
     AttributeError: Sequence `t` of element `land_dill` is not \
 requested to make any internal data available.
 
-    Before loading time series data, we need to reserve the required
+    Before loading time-series data, we need to reserve the required
     memory storage.  We do this for all sequences at ones (not only
     the |ModelSequence| objects but also the |NodeSequence| objects
     as the |Sim| instance handled by node `dill`) through calling
@@ -345,8 +346,8 @@ requested to make any internal data available.
     >>> hp.nodes.dill.sequences.sim.series
     InfoArray([ nan,  nan,  nan,  nan])
 
-    So far, each time series array is empty.  The `LahnH` example
-    project provides time series files for the input sequences only,
+    So far, each time-series array is empty.  The `LahnH` example
+    project provides time-series files for the input sequences only,
     which is the minimum requirement for starting a simulation run.
     We use method |HydPy.load_inputseries| to load this data:
 
@@ -362,9 +363,9 @@ requested to make any internal data available.
 
     >>> hp.simulate()
 
-    The time series arrays of all sequences now contain calculated
+    The time-series arrays of all sequences now contain calculated
     values --- except those of input sequence |hland_inputs.T|, of course
-    (for state sequence |hland_states.SM|, we show the time series
+    (for state sequence |hland_states.SM|, we show the time-series
     of the first hydrological response unit only):
 
     >>> round_(model.sequences.inputs.t.series)
@@ -383,7 +384,7 @@ requested to make any internal data available.
     series value is the actual one for each |Sequence| object.  This
     mechanism allows, for example, to write the final states of soil
     moisture sequence |hland_states.SM| and use them as initial
-    conditions later, even if its complete time series were not available:
+    conditions later, even if its complete time-series were not available:
 
     >>> model.sequences.inputs.t
     t(-5.968849)
@@ -399,13 +400,13 @@ requested to make any internal data available.
     >>> hp.nodes.dill.sequences.sim
     sim(6.00763)
 
-    In many applications, the simulated time series is the result
+    In many applications, the simulated time-series is the result
     we are interested in.  Hence we close our explanations with some
     detailed examples on this topic that also cover the potential
     problem of limited rapid access storage availability.
 
     By default, the *HydPy* framework does not overwrite already
-    existing time series files.  You can change such settings via
+    existing time-series files.  You can change such settings via
     the |SequenceManager| object available in module |pub| (module
     |pub| also handles |ControlManager| and |ConditionManager| objects
     for settings related to reading and writing control files and
@@ -419,15 +420,15 @@ requested to make any internal data available.
     >>> with TestIO():
     ...     hp.save_allseries()
 
-    Next, we show how the reading of time series works.  We first set the
-    time series values of all considered sequences to zero for this purpose:
+    Next, we show how the reading of time-series works.  We first set the
+    time-series values of all considered sequences to zero for this purpose:
 
     >>> model.sequences.inputs.t.series = 0.0
     >>> model.sequences.states.sm.series = 0.0
     >>> model.sequences.inputs.t.series = 0.0
     >>> hp.nodes.dill.sequences.sim.series = 0.
 
-    Now we can reload the time series of all relevant sequences.
+    Now we can reload the time-series of all relevant sequences.
     However, doing so would result in a warning due to incomplete
     data (for example, of the observation data handled by the
     |Obs| sequence objects, which is not available in the `LahnH`
@@ -436,7 +437,7 @@ requested to make any internal data available.
     public options handled by the instance of class |Options|
     available as another attribute of module |pub|.  We again
     use a "with block", making sure the option is changed only
-    temporarily while loading the time series (this time not by
+    temporarily while loading the time-series (this time not by
     executing method |HydPy.load_allseries| but by the more
     specific methods |HydPy.load_inputseries|, |HydPy.load_fluxseries|,
     |HydPy.load_stateseries|, and |HydPy.load_simseries|):
@@ -447,7 +448,7 @@ requested to make any internal data available.
     ...     hp.load_stateseries()
     ...     hp.load_simseries()
 
-    The read time series data equals the previously written one:
+    The read time-series data equals the previously written one:
 
     >>> round_(model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849
@@ -475,7 +476,7 @@ requested to make any internal data available.
        236.244147, 234.972621)
 
     Using the node sequence |Sim| as an example, we also show the
-    inverse functionality of changing time series values:
+    inverse functionality of changing time-series values:
 
     >>> hp.nodes.dill.sequences.sim = 0.0
     >>> hp.nodes.dill.sequences.save_data(2)
@@ -487,13 +488,13 @@ requested to make any internal data available.
     sim(8.842278)
 
     In the examples above, we keep all data in rapid access memory,
-    which can be problematic when handling long time series in huge
+    which can be problematic when handling long time-series in huge
     *HydPy* projects.  When in trouble, first try to prepare only those
-    time series which are strictly required (very often, it is
+    time-series which are strictly required (very often, it is
     sufficient to call |HydPy.prepare_inputseries|,
     |HydPy.load_inputseries|, and |HydPy.prepare_simseries| only).
     If this does not work in your project, you can choose to handle
-    some time series on disk instead, which unavoidably increases
+    some time-series on disk instead, which unavoidably increases
     computation times immensely.  To prepare the necessary space on
     disk, assign |False| to the `ramflag` argument of method
     |HydPy.prepare_allseries| or its more specific counterparts:
@@ -505,7 +506,7 @@ requested to make any internal data available.
     ...     hp.prepare_simseries(ramflag=False)
     ...     hp.prepare_obsseries(ramflag=False)
 
-    By doing so, you lose the previously available time series information:
+    By doing so, you lose the previously available time-series information:
 
     >>> with TestIO():
     ...     round_(model.sequences.inputs.t.series)
@@ -523,7 +524,7 @@ requested to make any internal data available.
     ...     round_(hp.nodes.dill.sequences.sim.series)
     nan, nan, nan, nan
 
-    (Re)Loading the initial conditions and the input time series
+    (Re)Loading the initial conditions and the input time-series
     and (re)performing the simulation run results, as to be expected,
     in the same simulation results:
 
@@ -548,8 +549,8 @@ requested to make any internal data available.
     ...     round_(hp.nodes.dill.sequences.sim.series)
     11.658511, 8.842278, 7.103614, 6.00763
 
-    Writing and reading from external time series files also works
-    in combination with handling internal time series data on disk:
+    Writing and reading from external time-series files also works
+    in combination with handling internal time-series data on disk:
 
     >>> with TestIO():
     ...     hp.save_inputseries()
@@ -585,7 +586,7 @@ requested to make any internal data available.
     11.658511, 8.842278, 7.103614, 6.00763
 
     Besides computation times, it usually makes no difference whether
-    one handles internal time series data in RAM or on disk.  However,
+    one handles internal time-series data in RAM or on disk.  However,
     there are some subtle differences when one dives into the details.
     Above, we have shown the possibility to (re)load the states of
     arbitrary simulation time steps when working in RAM.  The same is
@@ -742,7 +743,7 @@ at the moment.
         ...     hp.prepare_everything()
 
         Now you can start a simulation run and inspect the calculated
-        time series of all relevant sequences.  We take the discharge
+        time-series of all relevant sequences.  We take the discharge
         values of the flux sequence |hland_fluxes.QT| of |Element| object
         `land_dill` and of the node sequence |Sim| of |Node| object `dill`
         as examples, which provide the same information in different
@@ -822,7 +823,9 @@ defined at the moment.
         """
         hydpy.pub.selections = selectiontools.Selections()
         hydpy.pub.selections += hydpy.pub.networkmanager.load_files()
-        self.update_devices(hydpy.pub.selections.complete)
+        self.update_devices(
+            selection=hydpy.pub.selections.complete,
+        )
 
     def prepare_models(self) -> None:
         """Read all control files related to the current |Element| objects,
@@ -1361,6 +1364,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
     @property
     def conditions(self) -> ConditionsType:
+        # noinspection PyUnresolvedReferences,PyTypeChecker
         """A nested dictionary, containing the values of all condition
         sequences of all currently handled models.
 
@@ -1722,7 +1726,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return sels1
 
     @property
-    def variables(self) -> List[str]:
+    def variables(self) -> List[devicetools.NodeVariableType]:
+        # noinspection PyUnresolvedReferences
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
 
@@ -1746,9 +1751,9 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return sorted(variables, key=str)
 
     def open_files(self, idx: int = 0) -> None:
-        """Open all required internal time series files.
+        """Open all required internal time-series files.
 
-        This method is only required when storing internal time series
+        This method is only required when storing internal time-series
         data on disk.  See the main documentation on class |HydPy| for
         further information.
         """
@@ -1756,18 +1761,42 @@ one value needed to be trimmed.  The old and the new value(s) are \
         self.nodes.open_files(idx=idx)
 
     def close_files(self) -> None:
-        """Close all previously opened internal time series files.
+        """Close all previously opened internal time-series files.
 
-        This method is only required when storing internal time series
+        This method is only required when storing internal time-series
         data on disk.  See the main documentation on class |HydPy| for
         further information.
         """
         self.elements.close_files()
         self.nodes.close_files()
 
+    @overload
+    def update_devices(self) -> None:
+        """No input"""
+
+    @overload
     def update_devices(
             self,
-            selection: Optional[typingtools.DevicesHandlerProtocol] = None
+            *,
+            selection: typingtools.DevicesHandlerProtocol,
+    ) -> None:
+        """Selection as input"""
+
+    @overload
+    def update_devices(
+            self,
+            *,
+            nodes: devicetools.NodesConstrArg,
+            elements: devicetools.NodesConstrArg,
+    ) -> None:
+        """Devices as input"""
+
+    def update_devices(
+            self,
+            *,
+            selection=None,
+            nodes=None,
+            elements=None,
     ) -> None:
         """Determine the order, in which method |HydPy.simulate| processes
         the currently relevant |Node| and |Element| objects.
@@ -1783,14 +1812,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         The safest approach to "activate" another selection is to use
-        the method |HydPy.update_devices|:
+        the method |HydPy.update_devices|.  The first option is to pass
+        a complete |Selection| object:
 
         >>> pub.selections.headwaters
         Selection("headwaters",
                   nodes=("dill", "lahn_1"),
                   elements=("land_dill", "land_lahn_1"))
 
-        >>> hp.update_devices(pub.selections.headwaters)
+        >>> hp.update_devices(selection=pub.selections.headwaters)
         >>> hp.nodes
         Nodes("dill", "lahn_1")
         >>> hp.elements
@@ -1807,26 +1837,111 @@ one value needed to be trimmed.  The old and the new value(s) are \
         land_dill
         dill
 
-        *HydPy* projects supposed for calculating groundwater recharge
-        or for testing may not define any |Node| objects:
+        Second, you can pass some nodes only, which by the way removes the
+        old elements:
+
+        >>> hp.update_devices(nodes='dill')
+        >>> hp.nodes
+        Nodes("dill")
+        >>> hp.elements
+        Elements()
+        >>> for device in hp.deviceorder:
+        ...     print(device)
+        dill
+
+        Third, you can pass some elements only, which by the way removes the
+        old nodes:
+
+        >>> hp.update_devices(elements=['land_lahn_1', 'land_dill'])
+        >>> hp.nodes
+        Nodes()
+        >>> hp.elements
+        Elements("land_dill", "land_lahn_1")
+        >>> for device in hp.deviceorder:
+        ...     print(device)
+        land_lahn_1
+        land_dill
+
+        Fourth, you can pass nodes and elements at the same time:
+
+        >>> hp.update_devices(nodes='dill',
+        ...                   elements=['land_lahn_1', 'land_dill'])
+        >>> hp.nodes
+        Nodes("dill")
+        >>> hp.elements
+        Elements("land_dill", "land_lahn_1")
+        >>> for device in hp.deviceorder:
+        ...     print(device)
+        land_lahn_1
+        land_dill
+        dill
+
+        Fifth, you can pass no argument at all, which only updates the
+        device order:
 
         >>> del hp.nodes.dill
-        >>> hp.elements.land_dill.outlets.mutable = True
-        >>> del hp.elements.land_dill.outlets.dill
-        >>> del hp.nodes.lahn_1
-        >>> hp.elements.land_lahn_1.outlets.mutable = True
-        >>> del hp.elements.land_lahn_1.outlets.lahn_1
+        >>> for device in hp.deviceorder:
+        ...     print(device)
+        land_lahn_1
+        land_dill
+        dill
         >>> hp.update_devices()
         >>> for device in hp.deviceorder:
         ...     print(device)
         land_lahn_1
         land_dill
+
+        Method |HydPy.update_devices| does not allow to pass single devices
+        and devices contained within a selection at the same time:
+
+        >>> hp.update_devices(selection=pub.selections.headwaters,
+        ...                   nodes='dill')
+        Traceback (most recent call last):
+        ...
+        ValueError: Method `update_devices` of class `HydPy` does not allow \
+to use both the `selection` argument and the `nodes` or  the `elements` \
+argument at the same time.
+
+        >>> hp.update_devices(selection=pub.selections.headwaters,
+        ...                   elements=['land_lahn_1', 'land_dill'])
+        Traceback (most recent call last):
+        ...
+        ValueError: Method `update_devices` of class `HydPy` does not allow \
+to use both the `selection` argument and the `nodes` or  the `elements` \
+argument at the same time.
         """
-        if selection is not None:
+        selection_given = selection is not None
+        devices_given = (nodes is not None) or (elements is not None)
+        if selection_given and devices_given:
+            raise ValueError(
+                'Method `update_devices` of class `HydPy` does not allow '
+                'to use both the `selection` argument and the `nodes` or  '
+                'the `elements` argument at the same time.'
+            )
+        if selection_given:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        self.deviceorder = list(
-            networkx.topological_sort(create_directedgraph(self)))
+        if devices_given:
+            del self.nodes
+            # noinspection PyUnboundLocalVariable
+            if nodes is None:
+                nodes = devicetools.Nodes()
+            # noinspection PyUnboundLocalVariable
+            self.nodes = nodes
+            del self.elements
+            # noinspection PyUnboundLocalVariable
+            if elements is None:
+                elements = devicetools.Elements()
+            # noinspection PyUnboundLocalVariable
+            self.elements = elements
+        # noinspection PyTypeChecker
+        devices = networkx.topological_sort(create_directedgraph(self))
+        nodes = self.nodes.names
+        elements = self.elements.names
+        self.deviceorder = [
+            device for device in devices
+            if (device.name in nodes) or (device.name in elements)
+        ]
 
     @property
     def methodorder(self) -> List[Callable]:
@@ -1907,7 +2022,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         After justing the both |Timegrid.firstdate| and |Timegrid.lastdate|
         of the `sim` |Timegrid| to the second half of the initialisation
-        period, |HydPy.simulate| completes the time series:
+        period, |HydPy.simulate| completes the time-series:
 
         >>> pub.timegrids.sim.firstdate = '1996-01-03'
         >>> pub.timegrids.sim.lastdate = '1996-01-05'
@@ -2029,7 +2144,7 @@ Use method `simulate` instead.
             exceptiontools.HydPyDeprecationWarning)
 
     def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Allow all current |IOSequence| objects to handle time series
+        """Allow all current |IOSequence| objects to handle time-series
         data via property |IOSequence.series|, depending on argument
         `ramflag` either in RAM (|True|) on disk (|False|).
 
@@ -2074,7 +2189,7 @@ Use method `simulate` instead.
         self.nodes.prepare_obsseries(ramflag=ramflag)
 
     def save_allseries(self) -> None:
-        """Write the time series data of all current |IOSequence| objects
+        """Write the time-series data of all current |IOSequence| objects
         at once to the external data file(s).
 
         See the main documentation on class |HydPy| for further information.
@@ -2118,7 +2233,7 @@ Use method `simulate` instead.
         self.nodes.save_obsseries()
 
     def load_allseries(self) -> None:
-        """Read the time series data of all current |IOSequence| objects
+        """Read the time-series data of all current |IOSequence| objects
         at once from the external data file(s).
 
         See the main documentation on class |HydPy| for further information.

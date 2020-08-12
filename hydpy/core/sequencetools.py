@@ -2453,9 +2453,8 @@ class InputSequence(ModelSequence):
     both types of input data sources at the same time works well and that
     the different |Node.deploymode| options are supported:
 
-    >>> from hydpy import (
-    ...     Element, FusedVariable, hland_T, hland_P, HydPy, Node,
-    ...     print_values, pub, Selection, TestIO)
+    >>> from hydpy import (Element, FusedVariable, hland_T, hland_P, HydPy,
+    ...                    Node, print_values, pub, TestIO)
     >>> hp = HydPy('LahnH')
     >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
     >>> node_t = Node('node_t', variable=hland_T)
@@ -2464,9 +2463,6 @@ class InputSequence(ModelSequence):
     >>> land_dill = Element('land_dill',
     ...                     inputs=[node_t, node_p],
     ...                     outlets=node_q)
-    >>> sel = Selection('sel',
-    ...                 nodes=[node_t, node_p, node_q],
-    ...                 elements=[land_dill])
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -2485,7 +2481,7 @@ class InputSequence(ModelSequence):
     >>> model.sequences.inputs.epn.inputflag
     False
 
-    >>> hp.update_devices(sel)
+    >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
     >>> hp.prepare_inputseries()
     >>> hp.prepare_fluxseries()
     >>> with TestIO():
@@ -2577,9 +2573,8 @@ class OutputSequence(ModelSequence):
     and place it more prominently.  In short, it shows that everything works
     well for the different |Node.deploymode| options:
 
-    >>> from hydpy import (
-    ...     Element, hland_Perc, hland_Q0, hland_Q1, hland_UZ, HydPy, Node,
-    ...     print_values, pub, Selection, TestIO)
+    >>> from hydpy import (Element, hland_Perc, hland_Q0, hland_Q1, hland_UZ,
+    ...                    HydPy, Node, print_values, pub, Selection, TestIO)
     >>> hp = HydPy('LahnH')
     >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
     >>> node_q0 = Node('node_q0', variable=hland_Q0)
@@ -2590,9 +2585,6 @@ class OutputSequence(ModelSequence):
     >>> land_dill = Element('land_dill',
     ...                     outlets=node_q,
     ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
-    >>> sel = Selection('sel',
-    ...                 nodes=[node_q0, node_q1, node_perc, node_uz],
-    ...                 elements=[land_dill])
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -2617,7 +2609,8 @@ class OutputSequence(ModelSequence):
     >>> model.sequences.states.lz.outputflag
     False
 
-    >>> hp.update_devices(sel)
+    >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
+    ...                   elements=land_dill)
     >>> with TestIO():
     ...     hp.load_conditions()
 

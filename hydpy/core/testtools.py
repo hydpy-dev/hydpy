@@ -31,7 +31,6 @@ from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
-from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
@@ -527,7 +526,9 @@ class IntegrationTest(Test):
         hydpytools.HydPy.nmb_instances = 0
         self.hydpy = hydpytools.HydPy()
         self.hydpy.update_devices(
-            selectiontools.Selection('test', self.nodes, self.elements))
+            nodes=self.nodes,
+            elements=self.elements,
+        )
         self._src = None
 
     @overload

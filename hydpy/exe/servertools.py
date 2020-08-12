@@ -372,7 +372,9 @@ class ServerState:
         write('Read all network files')
         hp.prepare_network()
         write('Activate the selected network')
-        hp.update_devices(interface.fullselection)
+        hp.update_devices(
+            selection=interface.fullselection,
+        )
         write('Read the required control files')
         hp.prepare_models()
         write('Read the required condition files')

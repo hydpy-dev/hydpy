@@ -535,6 +535,7 @@ class LogFileInterface:
 
     def __init__(self, logfile: IO, logstyle: str, infotype: str):
         self.logfile = logfile
+        self._infotype = infotype
         try:
             stdtype2string = self.style2infotype2string[logstyle]
         except KeyError:
@@ -545,12 +546,26 @@ class LogFileInterface:
                 f'Please choose one of the following: {styles}.')
         self._string = stdtype2string[infotype]
 
+    def _ignore(self, substring: str) -> bool:
+        """Tell if a substring should be ignored.
+
+        So far, we only ignore warning lines like `# -*- coding: utf-8 -*-`
+        which occur when using Python 3.6 and 3.7 but not when using Python 3.8.
+        """
+        return \
+            (self._infotype == 'warning') and substring.strip().startswith('#')
+
     def write(self, string: str) -> None:
         """Write the given string as explained in the main documentation
         on class |LogFileInterface|."""
-        self.logfile.write('\n'.join(
-            f'{self._string}{substring}' if substring else ''
-            for substring in string.split('\n')))
+
+        self.logfile.write(
+            '\n'.join(
+                f'{self._string}{substring}' if substring else ''
+                for substring in string.split('\n')
+                if not self._ignore(substring)
+            )
+        )
 
     def __getattr__(self, name):
         return getattr(self.logfile, name)

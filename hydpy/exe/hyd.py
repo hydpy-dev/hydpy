@@ -142,7 +142,6 @@ The same is true for warning messages:
 Start to execute the commands ['import_warnings', \
 "warnings.warn('it_stumbles')"] for testing purposes...
 ...UserWarning: it stumbles
-  #...
 
 And the same is true for printed messages:
 
@@ -168,7 +167,6 @@ info: Start to execute the commands ["print('it_works')", 'import_warnings', \
 testing purposes.
 info: it works
 warning: ...UserWarning: it stumbles
-warning:   # -*- coding: utf-8 -*-
 error: Invoking hyd.py with arguments `exec_commands, \
 print('it_works');import_warnings;warnings.warn('it_stumbles');\
 raise_RuntimeError('it_fails'), logstyle=prefixed` resulted in \

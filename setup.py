@@ -192,6 +192,7 @@ setup(name='HydPy',
           'Operating System :: Microsoft :: Windows',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering'
       ],

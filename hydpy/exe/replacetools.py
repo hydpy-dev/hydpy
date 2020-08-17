@@ -138,7 +138,7 @@ for marker `e4`.
 
     >>> from hydpy import run_subprocess
     >>> with TestIO():
-    ...     run_subprocess(
+    ...     result = run_subprocess(
     ...         'hyd.py xml_replace test1 e2="Element 2" e3_=3')
     template file: test1.xmlt
     target file: test1.xml

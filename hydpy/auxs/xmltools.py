@@ -32,7 +32,7 @@ the command line, we pass the required text to function |run_subprocess|:
 >>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
 >>> with TestIO():    # doctest: +ELLIPSIS
-...     run_subprocess('hyd.py run_simulation LahnH single_run.xml')
+...     result = run_subprocess('hyd.py run_simulation LahnH single_run.xml')
 Start HydPy project `LahnH` (...).
 Read configuration file `single_run.xml` (...).
 Interpret the defined options (...).

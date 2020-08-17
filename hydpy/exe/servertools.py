@@ -51,7 +51,7 @@ on how to use *HydPy* via command line):
 >>> from hydpy import run_subprocess, TestIO
 >>> with TestIO():
 ...     process = run_subprocess(command, blocking=False, verbose=False)
-...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+...     result = run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
 The *HydPy* server should now be running on port 8080.  You can use any
 HTTP client to check it is working.  For example, you can print the
@@ -424,7 +424,8 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess(
+    ...         'hyd.py await_server 8080 10', verbose=False)
 
     We define a test function simplifying sending the following requests,
     offering two optional arguments.  Without passing a value to `id_`,
@@ -1225,7 +1226,7 @@ def await_server(port, seconds):
 
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     run_subprocess('hyd.py await_server 8080 0.1')
+    ...     result = run_subprocess('hyd.py await_server 8080 0.1')
     Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \
 the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
@@ -1237,7 +1238,8 @@ the following error:
     ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess(
+    ...         'hyd.py await_server 8080 10', verbose=False)
 
     >>> from urllib import request
     >>> _ = request.urlopen('http://localhost:8080/close_server')

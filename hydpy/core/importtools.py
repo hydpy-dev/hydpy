@@ -330,7 +330,7 @@ def controlcheck(
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write('\\n'.join(lines))
     ...     print()
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     <BLANKLINE>
     ...
     While trying to set the value(s) of variable `sm`, the following error \
@@ -439,7 +439,7 @@ the following error occurred: ...
 
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
 
     If the directory name does imply the initialisation date to be within
     January 2000 instead of July 2000, we correctly get the following warning:
@@ -449,7 +449,7 @@ the following error occurred: ...
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     For variable `inzp` at least one value needed to be trimmed.  \
@@ -470,7 +470,7 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     text = text.replace(text_old, text_new)
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
 
     Default condition directory names do not contain any information about
     the simulation step size.  Hence, one needs to define it explicitly for
@@ -483,7 +483,7 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     text = text.replace('stepsize="1d"', '')
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     To apply function `controlcheck` requires time information for some \
@@ -506,7 +506,7 @@ as function arguments.
     ...     text = text.replace('firstdate="2100-07-15"', 'stepsize="1d"')
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     To apply function `controlcheck` requires time information for some \

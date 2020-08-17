@@ -640,10 +640,10 @@ class IntegrationTest(Test):
 
         Passing an ill-defined format string leads to the following error:
 
-        >>> tester.dateformat = '%'
+        >>> tester.dateformat = 999
         Traceback (most recent call last):
         ...
-        ValueError: The given date format `%` is not a valid format \
+        ValueError: The given date format `999` is not a valid format \
 string for `datetime` objects.  Please read the documentation on module \
 datetime of the Python standard library for for further information.
 

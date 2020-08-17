@@ -1,4 +1,4 @@
-#!python3
+#!/usr/bin/env python
 """The script for executing HydPy workflows.
 
 .. _`Python Launcher for Windows`: \

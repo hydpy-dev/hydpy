@@ -1385,7 +1385,8 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been set yet.
+        RuntimeError: For variable `var`, 1 required value has not been \
+set yet: var(nan).
 
         Example on a 2-dimensional |Variable|:
 
@@ -1397,29 +1398,38 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 2 required values \
-have not been set yet.
+        RuntimeError: For variable `var`, 2 required values have not been \
+set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask = var.mask
         >>> Var.mask[0, 1] = False
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been set yet.
+        RuntimeError: For variable `var`, 1 required value has not been \
+set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask[1, 1] = False
         >>> var.verify()
         """
-        nmbnan: int = numpy.sum(numpy.isnan(
-            numpy.array(self.value)[self.mask]))
+        valueready = self.__valueready
+        try:
+            self.__valueready = True
+            # noinspection PyTypeChecker
+            nmbnan: int = numpy.sum(
+                numpy.isnan(
+                    numpy.array(self.value)[self.mask]
+                )
+            )
+        finally:
+            self.__valueready = valueready
         if nmbnan:
-            if nmbnan == 1:
-                text = 'value has'
-            else:
-                text = 'values have'
+            text = 'value has' if nmbnan == 1 else 'values have'
             raise RuntimeError(
                 f'For variable {objecttools.devicephrase(self)}, '
-                f'{nmbnan} required {text} not been set yet.')
+                f'{nmbnan} required {text} not been set yet: '
+                f'{objecttools.flatten_repr(self)}.'
+            )
 
     @property
     def refweights(self) -> 'Variable':

@@ -301,14 +301,14 @@ handling the model.
                     'element handling the model.')
             hydpy.pub.controlmanager.save_file(filename, text)
 
-
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects
         handled by the actual model.
 
         When calling method |Parameters.verify| directly after initialising
-        model |hstream_v1| (without using default values), it raises an
-        |AttributeError|, due to undefined control parameter values:
+        model |hstream_v1| (without using default values), it raises a
+        |RuntimeError| due to the undefined value of control parameter
+        |hstream_control.Lag|:
 
         >>> from hydpy.models.hstream_v1 import *
         >>> parameterstep('1d')
@@ -316,18 +316,27 @@ handling the model.
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `lag`, no value has been defined so far.
+        RuntimeError: For variable `lag`, 1 required value has not been \
+set yet: lag(?).
 
-        After defining suitable control parameter values, the derived
-        parameters are still not ready:
+        Assigning a value to |hstream_control.Lag| is not sufficient:
 
         >>> model.parameters.control.lag(0.0)
+        >>> model.parameters.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For variable `damp`, 1 required value has not been \
+set yet: damp(?).
+
+        After also defining a suitable value for parameter
+        |hstream_control.Damp|, the derived parameters are still not ready:
+
         >>> model.parameters.control.damp(0.0)
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `nmbsegments`, \
-no value has been defined so far.
+        RuntimeError: For variable `c1`, 1 required value has not been \
+set yet: c1(?).
 
         After updating the derived parameters, method |Parameters.verify|
         has no reason to complain anymore:

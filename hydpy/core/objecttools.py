@@ -24,6 +24,9 @@ if TYPE_CHECKING:
 _builtinnames = set(dir(builtins))
 
 T = TypeVar('T')
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')
+T3 = TypeVar('T3')
 ReprArg = Union[numbers.Number,
                 Iterable[numbers.Number],
                 Iterable[Iterable[numbers.Number]]]
@@ -1388,8 +1391,38 @@ arguments `lfill` and `rfill`.  This is not allowed.
         print(string, **kwargs)
 
 
-def extract(values: Any, types_: Tuple[Type, ...], skip: bool = False) \
-        -> Iterator[Any]:
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1]],
+        skip: bool = ...,
+) -> Iterator[T1]:
+    """Extract all objects of one defined type."""
+
+
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1], Type[T2]],
+        skip: bool = ...,
+) -> Iterator[Union[T1, T2]]:
+    """Extract all objects of two defined types."""
+
+
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1], Type[T2], Type[T3]],
+        skip: bool = ...,
+) -> Iterator[Union[T1, T2, T3]]:
+    """Extract all objects of three defined types."""
+
+
+def extract(
+        values,
+        types_,
+        skip=False,
+):
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions

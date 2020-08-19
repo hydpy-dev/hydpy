@@ -190,7 +190,7 @@ class ASInz(lland_sequences.State1DSequence):
 class QDGZ1(sequencetools.StateSequence):
     """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
     the less responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGZ2(sequencetools.StateSequence):
@@ -220,7 +220,7 @@ class QBGZ(sequencetools.StateSequence):
 class QDGA1(sequencetools.StateSequence):
     """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from
     the less responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA2(sequencetools.StateSequence):

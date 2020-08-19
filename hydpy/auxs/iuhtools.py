@@ -275,7 +275,7 @@ class TranslationDiffusionEquation(IUH):
 
       :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`
 
-    There are three primary parameter, |TranslationDiffusionEquation.u|,
+    There are three primary parameters, |TranslationDiffusionEquation.u|,
     |TranslationDiffusionEquation.d|, and |TranslationDiffusionEquation.x|,
     whichs values need to be defined by the user:
 

@@ -63,6 +63,15 @@ from hydpy.auxs.armatools import MA
 from hydpy.auxs.anntools import ANN
 from hydpy.auxs.anntools import ann
 from hydpy.auxs.anntools import SeasonalANN
+from hydpy.auxs.calibtools import Add
+from hydpy.auxs.calibtools import Adaptor
+from hydpy.auxs.calibtools import CalibrationInterface
+from hydpy.auxs.calibtools import Multiply
+from hydpy.auxs.calibtools import Replace
+from hydpy.auxs.calibtools import ReplaceIUH
+from hydpy.auxs.calibtools import Rule
+from hydpy.auxs.calibtools import SumAdaptor
+from hydpy.auxs.calibtools import TargetFunction
 from hydpy.auxs.iuhtools import LinearStorageCascade
 from hydpy.auxs.iuhtools import TranslationDiffusionEquation
 from hydpy.core.itemtools import AddItem
@@ -163,6 +172,15 @@ __all__ = ['aggregate_series',
            'ANN',
            'ann',
            'SeasonalANN',
+           'Adaptor',
+           'Add',
+           'CalibrationInterface',
+           'Multiply',
+           'Replace',
+           'ReplaceIUH',
+           'Rule',
+           'SumAdaptor',
+           'TargetFunction',
            'LinearStorageCascade',
            'TranslationDiffusionEquation',
            'AddItem',

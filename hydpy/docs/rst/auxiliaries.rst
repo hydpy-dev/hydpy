@@ -18,6 +18,7 @@ what purpose it could serve.
 
    anntools
    armatools
+   calibtools
    iuhtools
    networktools
    roottools

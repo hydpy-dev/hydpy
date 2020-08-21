@@ -18,7 +18,7 @@ class Calc_QPIn_V1(modeltools.Method):
 
     Examples:
 
-        Initialize an arma model with three different response functions:
+        Initialise an |arma| model with three different response functions:
 
         >>> from hydpy.models.arma import *
         >>> parameterstep()
@@ -31,51 +31,51 @@ class Calc_QPIn_V1(modeltools.Method):
         functions and their successive differences:
 
         >>> derived.maxq(0.0, 2.0, 6.0)
-        >>> derived.diffq(2., 4.)
+        >>> derived.diffq(2.0, 4.0)
 
-        The first six examples are performed for inflow values ranging from
-        0 to 12 m³/s:
+        The first seven examples deal with inflow values ranging from
+        -1 to 12 m³/s (note that |arma| even routes negative discharges,
+        which are below the 0 m²/s threshold):
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model, model.calc_qpin_v1,
-        ...     last_example=6,
+        ...     last_example=7,
         ...     parseqs=(fluxes.qin, fluxes.qpin))
-        >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
+        >>> test.nexts.qin = -1.0, 0.0, 1.0, 2.0, 4.0, 6.0, 12.0
         >>> test()
-        | ex. |  qin |           qpin |
-        -------------------------------
-        |   1 |  0.0 | 0.0  0.0   0.0 |
-        |   2 |  1.0 | 1.0  0.0   0.0 |
-        |   3 |  2.0 | 2.0  0.0   0.0 |
-        |   4 |  4.0 | 2.0  2.0   0.0 |
-        |   5 |  6.0 | 2.0  4.0   0.0 |
-        |   6 | 12.0 | 2.0  4.0   6.0 |
+        | ex. |  qin |            qpin |
+        --------------------------------
+        |   1 | -1.0 | -1.0  0.0   0.0 |
+        |   2 |  0.0 |  0.0  0.0   0.0 |
+        |   3 |  1.0 |  1.0  0.0   0.0 |
+        |   4 |  2.0 |  2.0  0.0   0.0 |
+        |   5 |  4.0 |  2.0  2.0   0.0 |
+        |   6 |  6.0 |  2.0  4.0   0.0 |
+        |   7 | 12.0 |  2.0  4.0   6.0 |
 
-
-        The following two additional examples are just supposed to
-        demonstrate method |Calc_QPIn_V1| also functions properly if
-        there is only one response function, wherefore total discharge
-        does not need to be divided:
+        The following two additional examples are demonstrate that method
+        |Calc_QPIn_V1| also functions properly if there is only one response
+        function, wherefore there is no need to divide the total discharge:
 
         >>> derived.nmb = 1
         >>> derived.maxq.shape = 1
         >>> derived.diffq.shape = 0
         >>> fluxes.qpin.shape = 1
-        >>> derived.maxq(0.)
+        >>> derived.maxq(0.0)
 
         >>> test = UnitTest(
         ...     model, model.calc_qpin_v1,
-        ...     first_example=7, last_example=8,
+        ...     first_example=8, last_example=10,
         ...                 parseqs=(fluxes.qin,
         ...                          fluxes.qpin))
-        >>> test.nexts.qin = 0., 12.
+        >>> test.nexts.qin = -1.0, 0.0, 12.0
         >>> test()
         | ex. |  qin | qpin |
         ---------------------
-        |   7 |  0.0 |  0.0 |
-        |   8 | 12.0 | 12.0 |
-
+        |   8 | -1.0 | -1.0 |
+        |   9 |  0.0 |  0.0 |
+        |  10 | 12.0 | 12.0 |
     """
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
@@ -88,18 +88,25 @@ class Calc_QPIn_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QPIn,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmb-1):
             if flu.qin < der.maxq[idx]:
-                flu.qpin[idx] = 0.
+                if idx == 0:
+                    flu.qpin[idx] = flu.qin
+                else:
+                    flu.qpin[idx] = 0.
             elif flu.qin < der.maxq[idx+1]:
                 flu.qpin[idx] = flu.qin-der.maxq[idx]
             else:
                 flu.qpin[idx] = der.diffq[idx]
-        flu.qpin[der.nmb-1] = max(flu.qin-der.maxq[der.nmb-1], 0.)
+        if der.nmb == 1:
+            flu.qpin[0] = flu.qin
+        else:
+            flu.qpin[der.nmb-1] = max(flu.qin-der.maxq[der.nmb-1], 0.)
 
 
 class Update_LogIn_V1(modeltools.Method):
@@ -152,6 +159,7 @@ class Update_LogIn_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         arma_logs.LogIn,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -216,6 +224,7 @@ class Calc_QMA_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QMA,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -283,6 +292,7 @@ class Calc_QAR_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QAR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -328,6 +338,7 @@ class Calc_QPOut_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QPOut,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -391,6 +402,7 @@ class Update_LogOut_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         arma_logs.LogOut,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -433,6 +445,7 @@ class Calc_QOut_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QOut,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -450,6 +463,7 @@ class Pick_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_fluxes.QIn,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -467,6 +481,7 @@ class Pass_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (
         arma_outlets.Q,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess

@@ -28,8 +28,13 @@ class _MaskDescriptor:
 class BaseMask(numpy.ndarray):
     """Base class for defining |CustomMask| and |DefaultMask| classes."""
 
+    name: str
+
     def __new__(cls, array=None, **kwargs):
         return cls.array2mask(array, **kwargs)
+
+    def __init_subclass__(cls):
+        cls.name = cls.__name__.lower()
 
     @classmethod
     def array2mask(cls, array=None, **kwargs):

@@ -7,9 +7,9 @@
 import typing
 # ...from site-packages
 import numpy
-from matplotlib import pyplot
 # ...from HydPy
 from hydpy.auxs import roottools
+from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.cythons import smoothutils
@@ -22,6 +22,8 @@ from hydpy.models.lstream import lstream_states
 from hydpy.models.lstream import lstream_aides
 from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
+pyplot = exceptiontools.OptionalImport(
+    'pyplot', ['matplotlib.pyplot'], locals())
 
 
 class Pick_Q_V1(modeltools.Method):

@@ -1949,20 +1949,22 @@ argument at the same time.
         simulation time step, ordered in a correct execution sequence.
 
         Property |HydPy.methodorder| should be of interest for framework
-        developers only..
+        developers only.
         """
         funcs = []
         for node in self.nodes:
-            if node.deploymode == 'oldsim':
+            if node.deploymode in ('oldsim', 'obs_oldsim'):
                 funcs.append(node.sequences.fastaccess.load_simdata)
-            elif node.deploymode == 'obs':
+            if node.deploymode in ('obs', 'obs_newsim', 'obs_oldsim'):
                 funcs.append(node.sequences.fastaccess.load_obsdata)
         for node in self.nodes:
-            if node.deploymode != 'oldsim':
+            if node.deploymode not in ('oldsim', 'obs_oldsim'):
                 funcs.append(node.sequences.fastaccess.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)
+            elif device.deploymode in ('obs_newsim', 'obs_oldsim'):
+                funcs.append(device.sequences.fastaccess.fill_obsdata)
         for element in self.elements:
             if element.senders:
                 funcs.append(element.model.update_senders)
@@ -1972,7 +1974,7 @@ argument at the same time.
         for element in self.elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploymode != 'oldsim':
+            if node.deploymode not in ('oldsim', 'obs_oldsim'):
                 funcs.append(node.sequences.fastaccess.save_simdata)
         return funcs
 
@@ -1998,8 +2000,7 @@ argument at the same time.
 
         After resetting the initial conditions via method
         |HydPy.reset_conditions|, we repeat the simulation run and get
-        the same results (usually, one would change, for example,
-        some parameter values to calculate different results, of course):
+        the same results:
 
         >>> hp.reset_conditions()
         >>> hp.simulate()
@@ -2031,8 +2032,8 @@ argument at the same time.
 
         In the above examples, each |Model| object (handled by an |Element|
         object) passes its simulated values via a |Node| object to its
-        downstream |Model| object.  There are two options to deviate from
-        this default behaviour, that can be changed for each node
+        downstream |Model| object.  There are four ways to deviate from
+        this default behaviour, that can be selected for each node
         individually via the property |Node.deploymode|.  We focus on node
         `lahn_2` in the following, being the upstream neighbour of node
         `lahn_3`.  So far, its deploy mode is `newsim`, meaning that the
@@ -2059,8 +2060,8 @@ argument at the same time.
 
         After performing another simulation run (over the whole
         initialisation period, again), the modified discharge values of
-        node `lahn_2` are unchanged.  The simulated values of node `
-        lahn_3` are, compared to the `newsim` runs, decreased by 10 m³/s
+        node `lahn_2` are unchanged.  The simulated values of node
+        `lahn_3` are, compared to the `newsim` runs, decreased by 10 m³/s
         (there is no time delay or dampening of the discharge values
         between both nodes due to the |hstream_control.Lag| time of
         application model |hstream_v1| being smaller than the simulation
@@ -2100,9 +2101,60 @@ argument at the same time.
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
         11.593767, 10.059687, 8.961813, 8.197047
 
-        The last example shows that resetting option
-        |Node.deploymode| to `newsim` results in the default
-        behaviour of the method |HydPy.simulate|, again:
+        Unfortunately, observation time series are often incomplete.  *HydPy*
+        generally uses |numpy| |numpy.nan| to represent missing values.
+        Passing |numpy.nan| inputs to a model usually results in |numpy.nan|
+        outputs.  Hence, after assigning |numpy.nan| to some entries of the
+        observation series of node `lahn_2`, the simulation series of node
+        `lahn_3` also contains |numpy.nan| values:
+
+        >>> from numpy import nan
+        >>> with pub.options.checkseries(False):
+        ...     hp.nodes.lahn_2.sequences.obs.series= 0.0, nan, 0.0, nan
+        >>> hp.reset_conditions()
+        >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
+        >>> hp.simulate()
+        >>> round_(hp.nodes.lahn_2.sequences.obs.series)
+        0.0, nan, 0.0, nan
+        >>> round_(hp.nodes.lahn_2.sequences.sim.series)
+        42.19966, 27.098027, 22.873371, 20.178247
+        >>> round_(hp.nodes.lahn_3.sequences.sim.series)
+        11.593767, nan, 8.961813, nan
+
+        To avoid the calculation of |numpy.nan| values, one can select the
+        fourth option `obs_newsim`.  Now the priority for node `lahn_2` is
+        to deploy its observed values.  However, for each missing observation,
+        it deploys its newly simulated value instead:
+
+        >>> hp.nodes.lahn_2.deploymode = 'obs_newsim'
+        >>> hp.reset_conditions()
+        >>> hp.simulate()
+        >>> round_(hp.nodes.lahn_2.sequences.obs.series)
+        0.0, nan, 0.0, nan
+        >>> round_(hp.nodes.lahn_2.sequences.sim.series)
+        42.19966, 27.098027, 22.873371, 20.178247
+        >>> round_(hp.nodes.lahn_3.sequences.sim.series)
+        11.593767, 37.157714, 8.961813, 28.375294
+
+        The fifth option `obs_oldsim` serves the same purpose as option
+        `obs_newsim` but uses already available "old" simulation results
+        as substitutes:
+
+        >>> hp.nodes.lahn_2.deploymode = 'obs_oldsim'
+        >>> hp.reset_conditions()
+        >>> hp.nodes.lahn_2.sequences.sim.series = (
+        ...     32.19966, 17.098027, 12.873371, 10.178247)
+        >>> hp.simulate()
+        >>> round_(hp.nodes.lahn_2.sequences.obs.series)
+        0.0, nan, 0.0, nan
+        >>> round_(hp.nodes.lahn_2.sequences.sim.series)
+        32.19966, 17.098027, 12.873371, 10.178247
+        >>> round_(hp.nodes.lahn_3.sequences.sim.series)
+        11.593767, 27.157714, 8.961813, 18.375294
+
+        The last example shows that resetting option |Node.deploymode|
+        to `newsim` results in the default behaviour of the method
+        |HydPy.simulate|, again:
 
         >>> hp.nodes.lahn_2.deploymode = 'newsim'
         >>> hp.reset_conditions()

@@ -559,7 +559,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
 
     Each |SubSequences| object has a `fastaccess` attribute.  When
     working in pure Python mode, this is an instance either of class
-    |FastAccessModelSequence| or |FastAccessNodeSequence|:
+    |FastAccessModelSequence| or |sequencetools.FastAccessNodeSequence|:
 
     >>> from hydpy import classname, Node, prepare_model, pub
     >>> with pub.options.usecython(False):
@@ -3939,13 +3939,13 @@ class NodeSequences(IOSequences):
         self.load_obsdata(idx)
 
     def load_simdata(self, idx: int) -> None:
-        """Call method |FastAccessNodeSequence.load_simdata| of the
-        current `fastaccess` attribute."""
+        """Call method |sequencetools.FastAccessNodeSequence.load_simdata|
+        of the current `fastaccess` attribute."""
         self.fastaccess.load_simdata(idx)
 
     def load_obsdata(self, idx: int) -> None:
-        """Call method |FastAccessNodeSequence.load_obsdata| of the
-        current `fastaccess` attribute."""
+        """Call method |sequencetools.FastAccessNodeSequence.load_obsdata|
+        of the current `fastaccess` attribute."""
         self.fastaccess.load_obsdata(idx)
 
     def save_data(self, idx: int) -> None:
@@ -3954,13 +3954,14 @@ class NodeSequences(IOSequences):
         self.save_simdata(idx)
 
     def save_simdata(self, idx: int) -> None:
-        """Call method |FastAccessNodeSequence.save_simdata| of the
-        current `fastaccess` attribute."""
+        """Call method |sequencetools.FastAccessNodeSequence.save_simdata|
+        of the current `fastaccess` attribute."""
         self.fastaccess.save_simdata(idx)
 
 
 class FastAccessSequence(variabletools.FastAccess):
-    """Base class for |FastAccessModelSequence| and |FastAccessNodeSequence|."""
+    """Base class for |FastAccessModelSequence| and
+    |sequencetools.FastAccessNodeSequence|."""
 
     def _get_attribute(self, name, suffix, default=None):
         return getattr(self, f'_{name}_{suffix}', default)
@@ -4093,12 +4094,10 @@ class FastAccessNodeSequence(FastAccessSequence):
     """|sequencetools.FastAccessModelSequence| like object specialised for
     |Node| objects.
 
-    In contrast to |FastAccessModelSequence|, |FastAccessNodeSequence| only
-    needs to handle a fixed number of sequences, |Sim| and |Obs|. It thus
-    can define the related attributes explicitly.
-
-    Note that there is no cythonized version of class |FastAccessNodeSequence|
-    available so far.  Adding such a version could result in some speedups.
+    In contrast to |FastAccessModelSequence|,
+    |sequencetools.FastAccessNodeSequence| only needs to handle a fixed
+    number of sequences, |Sim| and |Obs|. It thus can define the related
+    attributes explicitly.
     """
 
     sim: pointerutils.Double
@@ -4137,8 +4136,17 @@ class FastAccessNodeSequence(FastAccessSequence):
             self.obs[0] = struct.unpack('d', raw)[0]
 
     # noinspection PyUnusedLocal
-    def reset(self, idx: int = 0):
+    def reset(self, idx: int = 0) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with the other reset methods.
         """Reset the actual value of the simulation sequence to zero."""
         self.sim[0] = 0.
+
+    # noinspection PyUnusedLocal
+    def fill_obsdata(self, idx: int = 0) -> None:
+        """Use the current sim value for the current obs value if obs is
+        |numpy.nan|."""
+        # pylint: disable=unused-argument
+        # required for consistincy with the other reset methods.
+        if numpy.isnan(self.obs[0]):
+            self.obs[0] = self.sim[0]

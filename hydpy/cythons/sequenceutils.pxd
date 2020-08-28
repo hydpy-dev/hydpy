@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# !python
+# cython: language_level=3
+# cython: boundscheck=False
+# cython: wraparound=False
+# cython: initializedcheck=False
+# cython: cdivision=True
 """This module defines the Cython declarations related to module
 |sequencetools|.
 """
@@ -12,10 +19,10 @@ cdef class FastAccessNodeSequence:
 
     cdef public pointerutils.Double sim
     cdef public pointerutils.Double obs
-    cdef public int _sim_ndim
-    cdef public int _obs_ndim
-    cdef public int _sim_length
-    cdef public int _obs_length
+    cdef public numpy.int32_t _sim_ndim
+    cdef public numpy.int32_t _obs_ndim
+    cdef public numpy.int32_t _sim_length
+    cdef public numpy.int32_t _obs_length
     cdef public double[:] _sim_array
     cdef public double[:] _obs_array
     cdef public bint _sim_ramflag
@@ -27,9 +34,10 @@ cdef class FastAccessNodeSequence:
     cdef FILE *_sim_file
     cdef FILE *_obs_file
 
-    cpdef void open_files(self, int idx)
+    cpdef void open_files(self, numpy.int32_t idx)
     cpdef void close_files(self)
-    cpdef void load_simdata(self, int idx)
+    cpdef void load_simdata(self, numpy.int32_t idx)
     cpdef void save_simdata(self, idx: int)
-    cpdef void load_obsdata(self, int idx)
-    cpdef void reset(self, int idx)
+    cpdef void load_obsdata(self, numpy.int32_t idx)
+    cpdef void reset(self, numpy.int32_t idx)
+    cpdef void fill_obsdata(self, numpy.int32_t idx)

@@ -29,3 +29,6 @@ class FastAccessNodeSequence:
 
     def reset(self, idx: int) -> None:
         ...
+
+    def fill_obsdata(self, idx: int) -> None:
+        ...

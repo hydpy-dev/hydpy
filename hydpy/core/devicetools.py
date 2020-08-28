@@ -81,6 +81,7 @@ import copy
 import itertools
 import warnings
 from typing import *
+from typing_extensions import Literal
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -1773,8 +1774,14 @@ Keep in mind, that `name` is the unique identifier of node objects.
         return vars(self)['variable']
 
     @property
-    def deploymode(self) -> str:
-        """Defines the kind of information a |Node| object offers.
+    def deploymode(self) -> Literal[
+            'newsim',
+            'oldsim',
+            'obs',
+            'obs_newsim',
+            'obs_oldsim',
+    ]:
+        """Defines the kind of information a node offers its exit elements.
 
         *HydPy* supports the following modes:
 
@@ -1793,13 +1800,24 @@ Keep in mind, that `name` is the unique identifier of node objects.
             a node is supposed to deploy simulated values which have been
             calculated in a previous simulation run and stored in a sequence
             file.
+          * obs_newsim: Combination of mode `obs` and `newsim`.  Mode
+            `obs_newsim` gives priority to the provision of observation
+            values.  New simulation values serve as a replacement for
+            missing observed values.
+          * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode
+            `obs_oldsim` gives priority to the provision of observation
+            values.  Old simulation values serve as a replacement for
+            missing observed values.
 
-        The technical difference between modes `obs` and `oldsim` is that
+        One relevant difference between modes `obs` and `oldsim` is that
         the external values are either handled by the `obs` or the `sim`
         sequence object.  Hence, if you select the `oldsim` mode, the
         values of the upstream elements calculated within the current
         simulation are not available (e.g. for parameter calibration)
-        after the simulation is finished.
+        after the simulation finishes.
+
+        Please refer to the documentation on method |HydPy.simulate| of
+        class |HydPy|, which provides for some application examples.
 
         >>> from hydpy import Node
         >>> node = Node('test')
@@ -1811,24 +1829,35 @@ Keep in mind, that `name` is the unique identifier of node objects.
         >>> node.deploymode = 'oldsim'
         >>> node.deploymode
         'oldsim'
+        >>> node.deploymode = 'obs_newsim'
+        >>> node.deploymode
+        'obs_newsim'
+        >>> node.deploymode = 'obs_oldsim'
+        >>> node.deploymode
+        'obs_oldsim'
+        >>> node.deploymode = 'newsim'
+        >>> node.deploymode
+        'newsim'
         >>> node.deploymode = 'oldobs'
         Traceback (most recent call last):
         ...
         ValueError: When trying to set the routing mode of node `test`, \
 the value `oldobs` was given, but only the following values are allowed: \
-`newsim`, `obs` and `oldsim`.
+`newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`.
         """
         return vars(self)['deploymode']
 
     @deploymode.setter
     def deploymode(self, value: str) -> None:
-        if value == 'oldsim':
+        if value in ('oldsim', 'obs_oldsim'):
             self.__blackhole = pointerutils.Double(0.)
-        elif value not in ('newsim', 'obs'):
+        elif value not in ('newsim', 'obs', 'obs_newsim', 'obs_oldsim'):
             raise ValueError(
                 f'When trying to set the routing mode of node `{self.name}`, '
                 f'the value `{value}` was given, but only the following '
-                f'values are allowed: `newsim`, `obs` and `oldsim`.')
+                f'values are allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, '
+                f'and `obs_oldsim`.'
+            )
         vars(self)['deploymode'] = value
         for element in itertools.chain(self.entries, self.exits):
             model = getattr(element, 'model')
@@ -1902,11 +1931,11 @@ the value `oldobs` was given, but only the following values are allowed: \
 the given group name `test`.
         """
         if group in ('inlets', 'receivers', 'inputs'):
-            if self.deploymode != 'obs':
+            if not self.deploymode.startswith('obs'):
                 return self.sequences.fastaccess.sim
             return self.sequences.fastaccess.obs
         if group in ('outlets', 'senders', 'outputs'):
-            if self.deploymode != 'oldsim':
+            if self.deploymode not in ('oldsim', 'obs_oldsim'):
                 return self.sequences.fastaccess.sim
             return self.__blackhole
         raise ValueError(

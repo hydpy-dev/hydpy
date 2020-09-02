@@ -1085,7 +1085,8 @@ class _IOProperty(propertytools.DefaultProperty):
             raise RuntimeError(
                 f'For sequence {objecttools.devicephrase(obj)} attribute '
                 f'{self.name} cannot be determined.  Either set it manually '
-                'or prepare `pub.sequencemanager` correctly.')
+                'or prepare `pub.sequencemanager` correctly.'
+            ) from None
         return getattr(manager, self.__attr_manager)
 
 
@@ -1573,7 +1574,8 @@ or prepare `pub.sequencemanager` correctly.
                 f'For sequence {objecttools.devicephrase(self)} '
                 f'the directory of the internal data file cannot '
                 f'be determined.  Either set it manually or prepare '
-                f'`pub.sequencemanager` correctly.')
+                f'`pub.sequencemanager` correctly.'
+            ) from None
 
     @propertytools.DefaultProperty
     def filepath_ext(self) -> str:
@@ -1832,12 +1834,14 @@ the model associated with element `?`, the following error occurred: \
         try:
             numericshape = [self.subseqs.seqs.model.numconsts.nmb_stages]
         except AttributeError:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'The `numericshape` of a sequence like `{self.name}` depends '
                 f'on the configuration of the actual integration algorithm.  '
                 f'While trying to query the required configuration data '
                 f'`nmb_stages` of the model associated with element '
-                f'`{objecttools.devicename(self)}`')
+                f'`{objecttools.devicename(self)}`'
+            )
+        # noinspection PyUnboundLocalVariable
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
@@ -1902,9 +1906,11 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         try:
             sequencemanager = hydpy.pub.sequencemanager
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to load the external time-series '
-                f'data of {objecttools.devicephrase(self)}')
+                f'data of {objecttools.devicephrase(self)}'
+            )
+        # noinspection PyUnboundLocalVariable
         sequencemanager.load_file(self)
 
     def adjust_series(
@@ -2181,9 +2187,10 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         try:
             sequencemanager = hydpy.pub.sequencemanager
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to save the external time-series '
                 f'data of {objecttools.devicephrase(self)}')
+        # noinspection PyUnboundLocalVariable
         sequencemanager.save_file(self)
 
     def save_mean(self, *args, **kwargs) -> None:
@@ -3337,7 +3344,8 @@ broadcast input array from shape (2) into shape (1)
                 raise AttributeError(
                     'Proper connections are missing (which could '
                     'result in segmentation faults when using it, '
-                    'so please be careful).')
+                    'so please be careful).'
+                )
             if isinstance(self.fastaccess, FastAccessModelSequence):
                 value = getattr(self.fastaccess, self.name)[:]
                 if self.NDIM == 0:
@@ -3345,9 +3353,10 @@ broadcast input array from shape (2) into shape (1)
                 return numpy.asarray(value, dtype=float)
             return self.fastaccess.get_value(self.name)
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to query the value(s) of link '
-                f'sequence {objecttools.elementphrase(self)}')
+                f'sequence {objecttools.elementphrase(self)}'
+            )
 
     def __hydpy__set_value__(self, value):
         try:
@@ -3359,7 +3368,8 @@ broadcast input array from shape (2) into shape (1)
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to assign the value(s) {value} to '
-                f'link sequence {objecttools.elementphrase(self)}')
+                f'link sequence {objecttools.elementphrase(self)}'
+            )
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
 
@@ -3455,9 +3465,10 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
             except AttributeError:
                 return self._get_fastaccessattribute('length_0'),
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to query the shape of link sequence'
-                f'{objecttools.elementphrase(self)}')
+                f'{objecttools.elementphrase(self)}'
+            )
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
         try:

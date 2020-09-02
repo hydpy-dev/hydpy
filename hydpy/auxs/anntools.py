@@ -2005,22 +2005,23 @@ neural network `seasonalann` of element `?` none has been defined so far.
         pyplot.legend()
         self._update_labels()
 
-    def __getattribute__(self, name):
+    def __getattr__(self, name):
         if name.startswith('toy_'):
             try:
                 try:
                     return self._toy2ann[timetools.TOY(name)]
                 except KeyError:
                     raise AttributeError(
-                        'No neural network is registered under '
-                        'a TOY object named `%s`.'
-                        % timetools.TOY(name))
+                        f'No neural network is registered under a '
+                        f'TOY object named `{timetools.TOY(name)}`.'
+                    ) from None
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to look up for a neural network '
-                    'handled by the seasonal neural network collection '
-                    '`%s` of element `%s` based on name `%s`'
-                    % (self.name, objecttools.devicename(self), name))
+                    f'While trying to look up for a neural network handled '
+                    f'by the seasonal neural network collection `{self.name}` '
+                    f'of element `{objecttools.devicename(self)}` based on '
+                    f'name `{name}`'
+                )
         else:
             return object.__getattribute__(self, name)
 
@@ -2050,16 +2051,17 @@ neural network `seasonalann` of element `?` none has been defined so far.
                     del self._toy2ann[timetools.TOY(name)]
                 except KeyError:
                     raise AttributeError(
-                        'No neural network is registered under '
-                        'a TOY object named `%s`.'
-                        % timetools.TOY(name))
+                        f'No neural network is registered under a '
+                        f'TOY object named `{timetools.TOY(name)}`.'
+                    ) from None
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to remove a new neural network from '
-                    'the seasonal neural network collection `%s` of '
-                    'element `%s` based on name `%s`'
-                    % (self.name, objecttools.devicename(self), name))
+                    f'While trying to remove a new neural network from the '
+                    f'seasonal neural network collection `{self.name}` of '
+                    f'element `{objecttools.devicename(self)}` based on '
+                    f'name `{name}`'
+                )
         else:
             object.__delattr__(self, name)
 

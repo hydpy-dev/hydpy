@@ -364,7 +364,7 @@ invalid literal for int() with base 10: '0X'
         try:
             style, format_ = cls._lastformatstring
             return style, strptime(substring, format_)
-        except ValueError:
+        except ValueError as exc:
             for (style, format_) in cls.formatstrings.items():
                 for dummy in range(4):
                     try:
@@ -375,7 +375,8 @@ invalid literal for int() with base 10: '0X'
                         format_ = format_[:-3]
             raise ValueError(
                 f'The given string `{string}` does not agree '
-                f'with any of the supported format styles.')
+                f'with any of the supported format styles.'
+            ) from exc
 
     @staticmethod
     def _modify_date(date: datetime_.datetime, offset: str, string: str) \
@@ -396,9 +397,10 @@ invalid literal for int() with base 10: '0X'
                 minutes=factor*minutes-hydpy.pub.options.utcoffset)
             return date - delta
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to apply the time zone offset '
-                f'defined by string `{string}`')
+                f'defined by string `{string}`'
+            )
 
     @classmethod
     def from_array(cls, array: numpy.ndarray) -> 'Date':
@@ -771,11 +773,13 @@ occurred: No other decimal fraction of a second than "0" allowed.
             except ValueError:
                 raise ValueError(
                     f'The given argument `{value}` cannot be '
-                    f'interpreted as a month.')
+                    f'interpreted as a month.'
+                ) from None
         if not 0 < refmonth < 13:
             raise ValueError(
                 f'The reference month must be a value between one '
-                f'(January) and twelve (December) but `{value}` is given')
+                f'(January) and twelve (December) but `{value}` is given'
+            )
         type(self)._firstmonth_wateryear = refmonth
 
     @property
@@ -1261,7 +1265,8 @@ Instead, the last character is `D`.
                 f'All characters of the given period string, '
                 f'except the last one which represents the unit, '
                 f'need to define an integer number.  Instead, '
-                f'these characters are `{period[:-1]}`.')
+                f'these characters are `{period[:-1]}`.'
+            ) from None
         unit = period[-1]
         if unit == 'd':
             return datetime_.timedelta(number, 0)
@@ -1274,7 +1279,8 @@ Instead, the last character is `D`.
         raise ValueError(
             f'The last character of the given period string needs to '
             f'be either `d` (days), `h` (hours), `m` (minutes),  or `s` '
-            f'(seconds).  Instead, the last character is `{unit}`.')
+            f'(seconds).  Instead, the last character is `{unit}`.'
+        )
 
     @classmethod
     def from_seconds(cls, seconds: int) -> 'Period':
@@ -1866,7 +1872,8 @@ are required, but the given array consist of 12 entries/rows only.
             raise IndexError(
                 f'To define a Timegrid instance via an array, 13 '
                 f'numbers are required, but the given array '
-                f'consist of {len(array)} entries/rows only.')
+                f'consist of {len(array)} entries/rows only.'
+            ) from None
 
     def to_array(self) -> numpy.ndarray:
         """Return a 1-dimensional |numpy| |numpy.ndarray| storing the
@@ -2473,36 +2480,42 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to verify the initialisation '
-                f'time grid `{self.init}`')
+                f'time grid `{self.init}`'
+            )
         try:
             self.sim.verify()
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to verify the simulation '
-                f'time grid `{self.init}`')
+                f'time grid `{self.init}`'
+            )
         if self.init.firstdate > self.sim.firstdate:
             raise ValueError(
                 f'The first date of the initialisation period '
                 f'(`{self.init.firstdate}`) must not be later '
                 f'than the first date of the simulation period '
-                f'(`{self.sim.firstdate}`).')
+                f'(`{self.sim.firstdate}`).'
+            )
         if self.init.lastdate < self.sim.lastdate:
             raise ValueError(
                 f'The last date of the initialisation period '
                 f'(`{self.init.lastdate}`) must not be earlier '
                 f'than the last date of the simulation period '
-                f'(`{self.sim.lastdate}`).')
+                f'(`{self.sim.lastdate}`).'
+            )
         if self.init.stepsize != self.sim.stepsize:
             raise ValueError(
                 f'The initialisation stepsize (`{self.init.stepsize}`) '
                 f'must be identical with the simulation stepsize '
-                f'(`{self.sim.stepsize}`).')
+                f'(`{self.sim.stepsize}`).'
+            )
         try:
             self.init[self.sim.firstdate]
-        except ValueError:
+        except ValueError as exc:
             raise ValueError(
                 f'The simulation time grid `{self.sim}` is not properly '
-                f'alligned on the initialisation time grid `{self.init}`.')
+                f'alligned on the initialisation time grid `{self.init}`.'
+            ) from exc
 
     @property
     def simindices(self) -> Tuple[int, int]:
@@ -2780,14 +2793,16 @@ has already been set to `31`.
             raise AttributeError(
                 f'TOY (time of year) objects only allow to set the '
                 f'properties {objecttools.enumeration(self._PROPERTIES.keys())}'
-                f', but `{name}` is given.')
+                f', but `{name}` is given.'
+            )
         try:
             value = int(value)
         except ValueError:
             raise ValueError(
                 f'For TOY (time of year) objects, all properties must be of '
                 f'type `int`, but the {objecttools.value_of_type(value)} '
-                f'given for property `{name}` cannot be converted to `int`.')
+                f'given for property `{name}` cannot be converted to `int`.'
+            ) from None
         if (name == 'day') and hasattr(self, 'month'):
             bounds = (1, calendar.monthrange(2000, self.month)[1])
             if not bounds[0] <= value <= bounds[1]:
@@ -2795,7 +2810,8 @@ has already been set to `31`.
                     f'The value of property `day` of the actual TOY '
                     f'(time of year) object must lie within the range '
                     f'`{bounds}`, as the month has already been set to '
-                    f'`{self.month}`, but the given value is `{value}`.')
+                    f'`{self.month}`, but the given value is `{value}`.'
+                )
         elif (name == 'month') and hasattr(self, 'day'):
             bounds = (1, calendar.monthrange(2000, value)[1])
             if not bounds[0] <= self.day <= bounds[1]:
@@ -2803,14 +2819,16 @@ has already been set to `31`.
                     f'The value of property `month` of the actual TOY '
                     f'(time of year) object must not be the given value '
                     f'`{value}`, as the day has already been set to '
-                    f'`{self.day}`.')
+                    f'`{self.day}`.'
+                )
         else:
             bounds = self._PROPERTIES[name]
             if not bounds[0] <= value <= bounds[1]:
                 raise ValueError(
                     f'The value of property `{name}` of TOY (time of '
                     f'year) objects must lie within the range `{bounds}`, '
-                    f'but the given value is `{value}`.')
+                    f'but the given value is `{value}`.'
+                )
         super().__setattr__(name, value)
         vars(self)['seconds_passed'] = None
         vars(self)['seconds_left'] = None

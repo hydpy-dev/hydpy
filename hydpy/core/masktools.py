@@ -363,18 +363,22 @@ following error occurred: The given key is neither a `string` a `mask` type.
                 if key in self:
                     return key
                 raise RuntimeError(
-                    'The key does not define an available mask.')
+                    'The key does not define an available mask.'
+                )
             if isinstance(key, str):
                 try:
                     return getattr(self, key.lower())
                 except AttributeError:
                     raise RuntimeError(
-                        'The key does not define an available mask.')
+                        'The key does not define an available mask.'
+                    ) from None
             raise TypeError(
-                'The given key is neither a `string` a `mask` type.')
+                'The given key is neither a `string` a `mask` type.'
+            )
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to retrieve a mask based on key `{repr(_key)}`')
+                f'While trying to retrieve a mask based on key `{repr(_key)}`'
+            )
 
     def __repr__(self):
         lines = []

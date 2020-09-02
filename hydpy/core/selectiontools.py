@@ -220,7 +220,8 @@ Selections objects, single Selection objects, or iterables containing \
             raise AttributeError(
                 f'The actual Selections object handles neither a normal '
                 f'attribute nor a Selection object called `{key}` that '
-                f'could be returned.')
+                f'could be returned.'
+            ) from None
 
     def __setattr__(self, name, value):
         if isinstance(value, Selection):
@@ -235,7 +236,8 @@ Selections objects, single Selection objects, or iterables containing \
             raise AttributeError(
                 f'The actual Selections object handles neither a normal '
                 f'attribute nor a Selection object called `{key}` that '
-                f'could be deleted.')
+                f'could be deleted.'
+            ) from None
 
     def __getitem__(self, key: str) -> 'Selection':
         try:
@@ -244,7 +246,8 @@ Selections objects, single Selection objects, or iterables containing \
             raise KeyError(
                 f'The actual Selections object does not handle '
                 f'a Selection object called `{key}` that could '
-                f'be returned.')
+                f'be returned.'
+            ) from None
 
     def __setitem__(self, key: 'str', value: 'Selection') -> None:
         if key != value.name:
@@ -263,7 +266,8 @@ Selections objects, single Selection objects, or iterables containing \
             raise KeyError(
                 f'The actual Selections object does not handle '
                 f'a Selection object called `{key}` that could '
-                f'be deleted.')
+                f'be deleted.'
+            ) from None
 
     def __contains__(self, value: Union[str, 'Selection']) -> bool:
         try:
@@ -290,7 +294,8 @@ Selections objects, single Selection objects, or iterables containing \
                 f'Binary operations on Selections objects are defined for '
                 f'other Selections objects, single Selection objects, or '
                 f'iterables containing `Selection` objects, but the type of '
-                f'the given argument is `{type(value).__name__}`.')
+                f'the given argument is `{type(value).__name__}`.'
+            ) from None
 
     def __add__(self, other: typingtools.Mayberable1['Selection']) \
             -> 'Selections':

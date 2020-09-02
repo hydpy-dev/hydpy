@@ -1003,15 +1003,18 @@ shape (2) into shape (2,3)
             while frame:
                 namespace = frame.f_locals
                 try:
-                    subnamespace = {'model': namespace['model'],
-                                    'focus': self}
+                    subnamespace = {
+                        'model': namespace['model'],
+                        'focus': self,
+                    }
                     break
                 except KeyError:
                     frame = frame.f_back
             else:
                 raise RuntimeError(
                     'Cannot determine the corresponding model.  Use the '
-                    '`auxfile` keyword in usual parameter control files only.')
+                    '`auxfile` keyword in usual parameter control files only.'
+                )
             filetools.ControlManager.read2dict(auxfile, subnamespace)
             subself = subnamespace[self.name]
             try:
@@ -1019,11 +1022,13 @@ shape (2) into shape (2,3)
             except AttributeError:
                 raise RuntimeError(
                     f'The selected auxiliary file does not define '
-                    f'value(s) for parameter `{self.name}`.')
+                    f'value(s) for parameter `{self.name}`.'
+                ) from None
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to extract information for parameter '
-                f'`{self.name}` from file `{auxfile}`')
+                f'`{self.name}` from file `{auxfile}`'
+            )
 
     @property
     def subpars(self) -> SubParameters:
@@ -1161,7 +1166,8 @@ parameter and a simulation time step size first.
                     'To calculate the conversion factor for adapting '
                     'the values of the time-dependent parameters, '
                     'you need to define both a parameter and a simulation '
-                    'time step size first.')
+                    'time step size first.'
+                ) from None
             date1 = timetools.Date('2000.01.01')
             date2 = date1 + cls.simulationstep
             parfactor = timetools.Timegrids(timetools.Timegrid(
@@ -1696,11 +1702,13 @@ The given keywords are incomplete and no default value is available.
             except KeyError:
                 raise TypeError(
                     f'Keyword `{key}` is not among the '
-                    f'available model constants.')
+                    f'available model constants.'
+                ) from None
         if check and (counter < len(relidxs)):
             raise TypeError(
                 'The given keywords are incomplete '
-                'and no default value is available.')
+                'and no default value is available.'
+            )
         values[:] = self.apply_timefactor(values)
         self.trim()
 
@@ -2220,7 +2228,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
             raise AttributeError(
                 f'Seasonal parameter {objecttools.elementphrase(self)} '
                 f'has neither a normal attribute nor does it handle a '
-                f'"time of year" named `{name}`.')
+                f'"time of year" named `{name}`.'
+            ) from None
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -2235,7 +2244,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 objecttools.augment_excmessage(
                     f'While trying to add a new or change an existing '
                     f'toy-value pair for the seasonal parameter '
-                    f'{objecttools.elementphrase(self)}')
+                    f'{objecttools.elementphrase(self)}'
+                )
         else:
             super().__setattr__(name, value)
 
@@ -2250,7 +2260,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 raise AttributeError(
                     f'Seasonal parameter {objecttools.elementphrase(self)} '
                     f'has neither a normal attribute nor does it handle a '
-                    f'"time of year" named `{name}`.')
+                    f'"time of year" named `{name}`.'
+                ) from None
 
     def __repr__(self):
 
@@ -2406,7 +2417,8 @@ index 1 is out of bounds for axis 0 with size 1
                         f'arguments, each string defined '
                         f'in `ENTRYNAMES` must be used as a keyword, '
                         f'but the following keywords are not: '
-                        f'`{objecttools.enumeration(err)}`.')
+                        f'`{objecttools.enumeration(err)}`.'
+                    ) from None
             if len(kwargs) != len(self.ENTRYNAMES):
                 err = (key for key in kwargs if key not in self.ENTRYNAMES)
                 raise ValueError(
@@ -2415,7 +2427,7 @@ index 1 is out of bounds for axis 0 with size 1
                     f'arguments, each keyword must be defined in '
                     f'`ENTRYNAMES`, but the following keywords are not: '
                     f'`{objecttools.enumeration(err)}`.'
-                )
+                ) from None
 
     def __getattr__(self, key):
         if key in self.ENTRYNAMES:
@@ -2425,10 +2437,12 @@ index 1 is out of bounds for axis 0 with size 1
                 objecttools.augment_excmessage(
                     f'While trying to retrieve a value from parameter '
                     f'{objecttools.elementphrase(self)} via the '
-                    f'attribute `{key}`')
+                    f'attribute `{key}`'
+                )
         raise AttributeError(
             f'Parameter {objecttools.elementphrase(self)} does '
-            f'not handle an attribute named `{key}`.')
+            f'not handle an attribute named `{key}`.'
+        )
 
     def __setattr__(self, key, values):
         if key in self.ENTRYNAMES:
@@ -2437,7 +2451,8 @@ index 1 is out of bounds for axis 0 with size 1
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to assign a new value to parameter '
-                    f'{objecttools.elementphrase(self)} via attribute `{key}`')
+                    f'{objecttools.elementphrase(self)} via attribute `{key}`'
+                )
         else:
             super().__setattr__(key, values)
 
@@ -2673,7 +2688,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                         f'related keyword arguments, each string defined '
                         f'in `ROWNAMES` must be used as a keyword, '
                         f'but the following keywords are not: '
-                        f'`{objecttools.enumeration(miss)}`.')
+                        f'`{objecttools.enumeration(miss)}`.'
+                    ) from None
 
     def __getattr__(self, key):
         if key in self.ROWNAMES:
@@ -2683,7 +2699,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to retrieve values from parameter '
                     f'{objecttools.elementphrase(self)} via the row '
-                    f'related attribute `{key}`')
+                    f'related attribute `{key}`'
+                )
         if key in self.COLNAMES:
             try:
                 return self.values[:, self.COLNAMES.index(key)]
@@ -2691,7 +2708,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to retrieve values from parameter '
                     f'{objecttools.elementphrase(self)} via the column '
-                    f'related attribute `{key}`')
+                    f'related attribute `{key}`'
+                )
         if key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
             try:
@@ -2700,11 +2718,13 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to retrieve values from parameter '
                     f'{objecttools.elementphrase(self)} via the row '
-                    f'and column related attribute `{key}`')
+                    f'and column related attribute `{key}`'
+                )
         raise AttributeError(
             f'Parameter {objecttools.elementphrase(self)} does neither '
             f'handle a normal attribute nor a row or column related '
-            f'attribute named `{key}`.')
+            f'attribute named `{key}`.'
+        )
 
     def __setattr__(self, key, values):
         if key in self.ROWNAMES:
@@ -2714,7 +2734,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to assign new values to parameter '
                     f'{objecttools.elementphrase(self)} via the row '
-                    f'related attribute `{key}`')
+                    f'related attribute `{key}`'
+                )
         elif key in self.COLNAMES:
             try:
                 self.values[:, self.COLNAMES.index(key)] = values
@@ -2722,7 +2743,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to assign new values to parameter '
                     f'{objecttools.elementphrase(self)} via the column '
-                    f'related attribute `{key}`')
+                    f'related attribute `{key}`'
+                )
         elif key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
             try:
@@ -2731,7 +2753,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 objecttools.augment_excmessage(
                     f'While trying to assign new values to parameter '
                     f'{objecttools.elementphrase(self)} via the row '
-                    f'and column related attribute `{key}`')
+                    f'and column related attribute `{key}`'
+                )
         else:
             super().__setattr__(key, values)
 
@@ -2864,7 +2887,8 @@ parameter value must be given, but is not.
                     f'When setting the values of parameter '
                     f'{objecttools.elementphrase(self)} via keyword '
                     f'arguments, either `left` or `l` for the "left" '
-                    f'parameter value must be given, but is not.')
+                    f'parameter value must be given, but is not.'
+                ) from None
             self.left = left
             right = kwargs.get('right', kwargs.get('r'))
             if right is None:
@@ -2872,7 +2896,8 @@ parameter value must be given, but is not.
                     f'When setting the values of parameter '
                     f'{objecttools.elementphrase(self)} via keyword '
                     f'arguments, either `right` or `r` for the "right" '
-                    f'parameter value must be given, but is not.')
+                    f'parameter value must be given, but is not.'
+                ) from None
             self.right = right
 
     def __hydpy__connect_variable2subgroup__(self) -> None:

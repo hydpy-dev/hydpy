@@ -308,7 +308,7 @@ following ones are supported: `monthly` (default) and `daily`.
             raise ValueError(
                 f'Module `numpy` does not provide a function named '
                 f'`{function}`.'
-            )
+            ) from None
     tg = hydpy.pub.timegrids.init
     if tg.stepsize > '1d':
         raise ValueError(
@@ -367,10 +367,11 @@ following ones are supported: `monthly` (default) and `daily`.
     try:
         df_resampled_expanded = resampler.apply(lambda x: function(x.values))
     except BaseException:
-        raise objecttools.augment_excmessage(
+        objecttools.augment_excmessage(
             f'While trying to perform the aggregation based '
             f'on method `{function.__name__}`'
         )
+    # noinspection PyUnboundLocalVariable
     idx0 = df_resampled_expanded.first_valid_index()
     idx1 = df_resampled_expanded.last_valid_index()
     df_resampled_stripped = df_resampled_expanded.loc[idx0:idx1]

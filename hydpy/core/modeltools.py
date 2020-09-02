@@ -530,7 +530,7 @@ but sequence `pc` is 1-dimensional.
                         raise TypeError(
                             f'No input sequence of model '
                             f'{self}` is named `{name}`.'
-                        )
+                        ) from None
                 sequence.set_pointer(node.get_double(group))
             group = 'outputs'
             for node in self.element.outputs:

@@ -1480,7 +1480,8 @@ the following classes: str and int.
                 types_, converter=lambda x: x.__name__)
             raise TypeError(
                 f'The given (sub)value `{repr(values)}` is not an '
-                f'instance of the following classes: {enum}.')
+                f'instance of the following classes: {enum}.'
+            ) from None
 
 
 def enumeration(values, converter=str, default=''):

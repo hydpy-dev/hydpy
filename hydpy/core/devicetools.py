@@ -743,16 +743,19 @@ immutable Nodes objects is not allowed.
                 except KeyError:
                     raise ValueError(
                         f'The actual {type(self).__name__} '
-                        f'object does not handle such a device.')
+                        f'object does not handle such a device.'
+                    ) from None
                 del _id2devices[_device][id(self)]
             else:
                 raise RuntimeError(
                     f'Removing devices from immutable '
-                    f'{type(self).__name__} objects is not allowed.')
+                    f'{type(self).__name__} objects is not allowed.'
+                )
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to remove the device `{device}` from a '
-                f'{type(self).__name__} object')
+                f'{type(self).__name__} object'
+            )
 
     @property
     def names(self) -> Tuple[str, ...]:
@@ -973,14 +976,16 @@ which is in conflict with using their names as identifiers.
                 f'The actual {type(self).__name__} object does not '
                 f'handle a {self.get_contentclass().__name__} object '
                 f'named `{name}` which could be removed, and deleting '
-                f'other attributes is not supported.')
+                f'other attributes is not supported.'
+            ) from None
 
     def __getitem__(self, name: str) -> DeviceType:
         try:
             return self._name2device[name]
         except KeyError:
             raise KeyError(
-                f'No node named `{name}` available.')
+                f'No node named `{name}` available.'
+            ) from None
 
     def __setitem__(self, name: str, value: DeviceType):
         self._name2device[name] = value
@@ -2623,7 +2628,8 @@ requested but not been prepared so far.
                 raise RuntimeError(
                     'The initialisation period has not been defined via '
                     'attribute `timegrids` of module `pub` yet but might '
-                    'be required to prepare the model properly.')
+                    'be required to prepare the model properly.'
+                ) from None
             with hydpy.pub.options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry)

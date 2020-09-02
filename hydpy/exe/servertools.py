@@ -877,26 +877,28 @@ but have not been calculated so far.
                 if line:
                     key, value = line.split('=')
                     self._inputs[key.strip()] = value.strip()
-            except BaseException:
+            except BaseException as exc:
                 self._statuscode = 400
                 raise RuntimeError(
                     f'The POST method `{self._externalname}` received a '
                     f'wrongly formated data body.  The following line has been '
-                    f'extracted but cannot be further processed: `{line}`.')
+                    f'extracted but cannot be further processed: `{line}`.'
+                ) from exc
 
     @property
     def _id(self) -> str:
         return self._get_queryparameter('id')
 
     def _get_queryparameter(self, name) -> str:
+        query = urllib.parse.urlparse(self.path).query
         try:
-            query = urllib.parse.urlparse(self.path).query
             return urllib.parse.parse_qs(query)[name][0]
         except KeyError:
             self._statuscode = 400
             raise RuntimeError(
                 f'For the {self._requesttype} method `{self._externalname}` '
-                f'no query parameter `{name}` is given.')
+                f'no query parameter `{name}` is given.'
+            ) from None
 
     @property
     def _externalname(self) -> str:
@@ -912,7 +914,8 @@ but have not been calculated so far.
         except AttributeError:
             self._statuscode = 400
             raise RuntimeError(
-                f'No method `{name}` available.')
+                f'No method `{name}` available.'
+            ) from None
 
     def _apply_method(self, method) -> None:
         try:
@@ -1087,7 +1090,8 @@ but have not been calculated so far.
                 raise RuntimeError(
                     f'Conditions for ID `{self._id}` and time point '
                     f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
-                    f'but have not been calculated so far.')
+                    f'but have not been calculated so far.'
+                ) from None
             state.hp.conditions = state.init_conditions
 
     def GET_save_conditionvalues(self) -> None:
@@ -1174,7 +1178,8 @@ but have not been calculated so far.
             except KeyError:
                 self._statuscode = 500
                 raise RuntimeError(
-                    f'A value for {typename} item `{item.name}` is missing.')
+                    f'A value for {typename} item `{item.name}` is missing.'
+                ) from None
             item.value = eval(value)
             item.update_variables()
 

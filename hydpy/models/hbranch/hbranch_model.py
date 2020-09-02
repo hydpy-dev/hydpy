@@ -249,11 +249,12 @@ of element `branch`.
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
-                double = outlet.get_double('outlets')
             except AttributeError:
                 raise RuntimeError(
                     f'Model {objecttools.elementphrase(self)} tried '
                     f'to connect to an outlet node named `{name}`, '
                     f'which is not an available outlet node of element '
-                    f'`{self.element.name}`.')
+                    f'`{self.element.name}`.'
+                ) from None
+            double = outlet.get_double('outlets')
             self.sequences.outlets.branched.set_pointer(double, idx)

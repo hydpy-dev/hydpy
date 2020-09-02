@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import abc
+import copy
 import os
 import runpy
 import shutil
@@ -16,6 +17,7 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
@@ -754,7 +756,8 @@ the following error occurred: ...
                 info = runpy.run_path(path)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to load the network file `{path}`')
+                    f'While trying to load the network file `{path}`'
+                )
             try:
                 node: devicetools.Node = info['Node']
                 element: devicetools.Element = info['Element']
@@ -765,7 +768,8 @@ the following error occurred: ...
             except KeyError as exc:
                 raise RuntimeError(
                     f'The class {exc.args[0]} cannot be loaded from the '
-                    f'network file `{path}`.')
+                    f'network file `{path}`.'
+                ) from None
 
         selections += selectiontools.Selection(
             'complete',
@@ -938,7 +942,8 @@ pass its name or the responsible Element object.
             else:
                 raise RuntimeError(
                     'When trying to load a control file you must either '
-                    'pass its name or the responsible Element object.')
+                    'pass its name or the responsible Element object.'
+                )
         type(self)._workingpath = self.currentpath
         info = {}
         if element:
@@ -966,6 +971,7 @@ pass its name or the responsible Element object.
         if not filename.endswith('.py'):
             filename += '.py'
         path = os.path.join(cls._workingpath, filename)
+        parameterstep = copy.copy(parametertools.Parameter.parameterstep)
         try:
             if path not in cls._registry:
                 with open(path) as file_:
@@ -973,12 +979,16 @@ pass its name or the responsible Element object.
             exec(cls._registry[path], {}, info)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to load the control file `{path}`')
+                f'While trying to load the control file `{path}`'
+            )
+        finally:
+            parametertools.Parameter.parameterstep(parameterstep)
         if 'model' not in info:
             raise RuntimeError(
                 f'Model parameters cannot be loaded from control file '
                 f'`{path}`.  Please refer to the HydPy documentation '
-                f'on how to prepare control files properly.')
+                f'on how to prepare control files properly.'
+            )
 
     @classmethod
     def clear_registry(cls) -> None:
@@ -1100,9 +1110,10 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
             return self.currentpath
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 'While trying to determine the currently relevant '
-                'input path for loading conditions file')
+                'input path for loading conditions file'
+            )
         finally:
             self._currentdir = currentdir
 
@@ -1120,9 +1131,10 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
             return self.currentpath
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 'While trying to determine the currently relevant '
-                'output path for saving conditions file')
+                'output path for saving conditions file'
+            )
         finally:
             self._currentdir = currentdir
 

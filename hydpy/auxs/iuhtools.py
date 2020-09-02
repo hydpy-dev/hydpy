@@ -50,7 +50,8 @@ class ParameterIUH:
             raise TypeError(
                 f'The value `{value}` of type `{type(value).__name__}` could '
                 f'not be converted to type `{self.type_.__name__}` of the '
-                f'instantaneous unit hydrograph parameter `{self.name}`.')
+                f'instantaneous unit hydrograph parameter `{self.name}`.'
+            ) from None
 
 
 class PrimaryParameterIUH(ParameterIUH):

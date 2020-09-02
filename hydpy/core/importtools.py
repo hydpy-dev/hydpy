@@ -562,13 +562,14 @@ as function arguments.
             os.chdir(cwd)
         try:
             model.parameters.update()
-        except exceptiontools.AttributeNotReady:
+        except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
                 'To apply function `controlcheck` requires time '
                 'information for some model types.  Please define '
                 'the `Timegrids` object of module `pub` manually '
                 'or pass the required information (`stepsize` and '
-                'eventually `firstdate`) as function arguments.')
+                'eventually `firstdate`) as function arguments.'
+            ) from exc
 
         namespace['model'] = model
         for name in ('states', 'logs'):

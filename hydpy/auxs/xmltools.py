@@ -188,9 +188,10 @@ def _query_selections(xmlelement: ElementTree.Element) \
             selections.append(getattr(hydpy.pub.selections, name))
         except AttributeError:
             raise NameError(
-                f'The XML configuration file tries to defines a selection '
+                f'The XML configuration file tries to define a selection '
                 f'using the text `{name}`, but the actual project does not '
-                f' handle such a `Selection` object.')
+                f' handle such a `Selection` object.'
+            ) from None
     return selectiontools.Selections(*selections)
 
 
@@ -210,10 +211,11 @@ def _query_devices(xmlelement: ElementTree.Element) -> selectiontools.Selection:
                 selection.nodes += getattr(nodes, name)
             except AttributeError:
                 raise NameError(
-                    f'The XML configuration file tries to defines additional '
+                    f'The XML configuration file tries to define additional '
                     f'devices using the text `{name}`, but the complete '
                     f'selection of the actual project does neither handle a '
-                    f'`Node` or `Element` object with such a name or keyword.')
+                    f'`Node` or `Element` object with such a name or keyword.'
+                ) from None
     return selection
 
 
@@ -627,7 +629,7 @@ correctly refer to one of the available XML schema files \
         >>> interface.selections
         Traceback (most recent call last):
         ...
-        NameError: The XML configuration file tries to defines a selection \
+        NameError: The XML configuration file tries to define a selection \
 using the text `head_waters`, but the actual project does not  handle such \
 a `Selection` object.
         """
@@ -654,7 +656,7 @@ a `Selection` object.
         >>> interface.devices
         Traceback (most recent call last):
         ...
-        NameError: The XML configuration file tries to defines additional \
+        NameError: The XML configuration file tries to define additional \
 devices using the text `land_lahn1`, but the complete selection of the \
 actual project does neither handle a `Node` or `Element` object with such \
 a name or keyword.

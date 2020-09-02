@@ -837,13 +837,15 @@ is given.
                 raise ValueError(
                     f'Parameter {objecttools.elementphrase(self)} does not '
                     f'accept multiple keyword arguments, but the following '
-                    f'are given: {objecttools.enumeration(kwargs.keys())}')
+                    f'are given: {objecttools.enumeration(kwargs.keys())}'
+                ) from None
             if 'option' not in kwargs:
                 raise ValueError(
                     f'Besides the standard keyword arguments, parameter '
                     f'{objecttools.elementphrase(self)} does only support '
                     f'the keyword argument `option`, but `{tuple(kwargs)[0]}` '
-                    f'is given.')
+                    f'is given.'
+                ) from None
             con = self.subpars
             self.values = 0.
             if kwargs['option'] == 'FK/2_FK':
@@ -1124,7 +1126,7 @@ element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
         ...
         UserWarning: Due to the given values for the keyword arguments \
 `tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of \
-element `?` has been set to an unrealistic value of `0.000134 hours`.
+element `?` has been set to an unrealistic value of 0.000134 hours.
 
         Additionally, exceptions for missing (or wrong) keywords are
         implemented
@@ -1152,25 +1154,27 @@ must be given.
                 raise ValueError(
                     'For the alternative calculation of parameter `tind`, '
                     'values for all three keyword keyword arguments `tal`, '
-                    '`hot`, and `hut` must be given.')
+                    '`hot`, and `hut` must be given.'
+                ) from None
             if (tal <= 0.) or (hot <= hut):
                 raise ValueError(
-                    'For the alternative calculation of parameter '
-                    '`tind`, the value assigned to keyword argument '
-                    '`tal` must be greater then zero and the one of '
-                    '`hot` must be greater than the one of `hut`.  '
-                    'However, for element %s, the values `%s`, `%s` '
-                    'and `%s` were given respectively.'
-                    % (objecttools.devicename(self), tal, hot, hut))
+                    f'For the alternative calculation of parameter `tind`, '
+                    f'the value assigned to keyword argument `tal` must be '
+                    f'greater then zero and the one of `hot` must be greater '
+                    f'than the one of `hut`.  However, for element '
+                    f'{objecttools.devicename(self)}, the values `{tal}`, '
+                    f'`{hot}` and `{hut}` were given respectively.'
+                ) from None
             self.value = (.868*tal**3/(hot-hut))**.385
             if (self > 1000.) or (self < .001):
                 warnings.warn(
-                    'Due to the given values for the keyword arguments '
-                    '`tal` (%s), `hot` (%s) and `hut` (%s), parameter '
-                    '`tind` of element `%s` has been set to an '
-                    'unrealistic value of `%s hours`.'
-                    % (tal, hot, hut, objecttools.devicename(self),
-                       objecttools.repr_(self.value)))
+                    f'Due to the given values for the keyword arguments '
+                    f'`tal` ({tal}), `hot` ({hot}) and `hut` ({hut}), '
+                    f'parameter `tind` of element '
+                    f'`{objecttools.devicename(self)}` has been set to an '
+                    f'unrealistic value of {objecttools.repr_(self.value)} '
+                    f'hours.'
+                )
             self.value *= timetools.Period('1h')/self.simulationstep
 
 

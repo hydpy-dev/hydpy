@@ -1163,14 +1163,16 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
                 if len(value) > 1:
                     raise ValueError(
                         f'{len(value)} values are assigned to the scalar '
-                        f'variable {objecttools.devicephrase(self)}.')
+                        f'variable {objecttools.devicephrase(self)}.'
+                    )
                 value = value[0]
             try:
                 value = self.TYPE(value)
             except BaseException:
                 raise TypeError(
                     f'The given value `{value}` cannot be converted '
-                    f'to type `{self.TYPE.__name__}`.')
+                    f'to type `{self.TYPE.__name__}`.'
+                ) from None
         return value
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
@@ -2012,7 +2014,8 @@ variable `testvar`.
             raise AttributeError(
                 f'Collection object {objecttools.devicephrase(self)} '
                 f'does neither handle a variable nor another attribute '
-                f'named {name}.')
+                f'named {name}.'
+            ) from None
 
     def __setattr__(self, name, value):
         variable = self._name2variable.get(name)

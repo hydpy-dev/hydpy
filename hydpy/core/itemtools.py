@@ -588,10 +588,11 @@ together with shapes (2,) (3,)...
             try:
                 result = base.value + value
             except BaseException:
-                raise objecttools.augment_excmessage(
+                objecttools.augment_excmessage(
                     f'When trying to add the value(s) `{value}` of '
                     f'AddItem `{self.name}` and the value(s) `{base.value}` '
-                    f'of variable {objecttools.devicephrase(base)}')
+                    f'of variable {objecttools.devicephrase(base)}'
+                )
             self.update_variable(target, result)
 
 

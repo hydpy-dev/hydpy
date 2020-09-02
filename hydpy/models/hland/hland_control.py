@@ -320,18 +320,20 @@ of parameter `alpha` must be defined beforehand.
     def __call__(self, *args, **kwargs):
         try:
             super().__call__(*args, **kwargs)
-        except NotImplementedError:
+        except NotImplementedError as exc:
             counter = ('khq' in kwargs) + ('hq' in kwargs)
             if counter == 0:
                 raise ValueError(
                     f'For parameter {objecttools.elementphrase(self)} a '
                     f'value can be set directly or indirectly by using '
-                    f'the keyword arguments `khq` and `hq`.')
+                    f'the keyword arguments `khq` and `hq`.'
+                ) from exc
             if counter == 1:
                 raise ValueError(
                     f'For the alternative calculation of parameter '
                     f'{objecttools.elementphrase(self)}, at least the '
-                    f'keywords arguments `khq` and `hq` must be given.')
+                    f'keywords arguments `khq` and `hq` must be given.'
+                ) from exc
             alpha = float(kwargs.get(
                 'alpha', getattr(self.subpars.alpha, 'value', numpy.nan)))
             if numpy.isnan(alpha):
@@ -339,7 +341,8 @@ of parameter `alpha` must be defined beforehand.
                     f'For the alternative calculation of parameter '
                     f'{objecttools.elementphrase(self)}, either the '
                     f'keyword argument `alpha` must be given or the value '
-                    f'of parameter `alpha` must be defined beforehand.')
+                    f'of parameter `alpha` must be defined beforehand.'
+                ) from exc
             khq = float(kwargs['khq'])
             hq = float(kwargs['hq'])
             self(hq/((hq/khq)**(alpha+1.)))

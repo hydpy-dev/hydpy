@@ -155,14 +155,15 @@ occurred: Keyword `feld` is not among the available model constants.
         except TypeError as exc:
             if 'relative' in kwargs:
                 if len(kwargs) == 1:
-                    self(float(kwargs['relative'])*self.subpars.wmax)
+                    self(float(kwargs['relative']) * self.subpars.wmax)
                 else:
                     raise TypeError(
                         f'While trying to set the values of parameter '
                         f'{objecttools.elementphrase(self)} with arguments '
                         f'`{objecttools.enumeration(kwargs.keys())}`:  '
                         f'It is not allowed to use keyword `relative` and '
-                        f'other keywords at the same time.')
+                        f'other keywords at the same time.'
+                    ) from None
             else:
                 raise exc
 

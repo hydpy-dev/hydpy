@@ -426,8 +426,9 @@ def query_variable(ncfile, name) -> 'netcdf4.Variable':
         return ncfile[name]
     except (IndexError, KeyError):
         raise OSError(
-            'NetCDF file `%s` does not contain variable `%s`.'
-            % (get_filepath(ncfile), name))
+            f'NetCDF file `{get_filepath(ncfile)}` does not contain '
+            f'variable `{name}`.'
+        ) from None
 
 
 def query_timegrid(ncfile) -> timetools.Timegrid:
@@ -1038,7 +1039,8 @@ named `state_bowa`.
             raise AttributeError(
                 f'The NetCDFFile object `{self.name}` does '
                 f'neither handle a NetCDF variable named `{name}` '
-                f'nor does it define a member named `{name}`.')
+                f'nor does it define a member named `{name}`.'
+            ) from None
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_
@@ -1066,11 +1068,10 @@ class Subdevice2Index:
             return self.dict_[name_subdevice]
         except KeyError:
             raise OSError(
-                'No data for sequence `%s` and (sub)device `%s` '
-                'in NetCDF file `%s` available.'
-                % (self.name_sequence,
-                   name_subdevice,
-                   self.name_ncfile))
+                f'No data for sequence `{self.name_sequence}` and '
+                f'(sub)device `{name_subdevice}` in NetCDF file '
+                f'`{self.name_ncfile}` available.'
+            ) from None
 
 
 class NetCDFVariableBase(abc.ABC):
@@ -1396,10 +1397,10 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             return _NetCDFVariableInfo(self.sequences[name], self.arrays[name])
         except KeyError:
             raise AttributeError(
-                'The NetCDFVariable object `%s` does neither handle '
-                'time series data under the (sub)device name `%s` '
-                'nor does it define a member named `%s`.'
-                % (self.name, name, name))
+                f'The NetCDFVariable object `{self.name}` does neither '
+                f'handle time series data under the (sub)device name '
+                f'`{name}` nor does it define a member named `{name}`.'
+            ) from None
 
     def __dir__(self):
         return objecttools.dir_(self) + list(self.sequences.keys())

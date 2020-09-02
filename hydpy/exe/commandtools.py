@@ -436,7 +436,8 @@ def execute_scriptfunction() -> Optional[int]:
         except IndexError:
             raise ValueError(
                 'The first positional argument defining the function '
-                'to be called is missing.')
+                'to be called is missing.'
+            ) from None
         try:
             func = hydpy.pub.scriptfunctions[funcname]
         except KeyError:
@@ -444,7 +445,8 @@ def execute_scriptfunction() -> Optional[int]:
                 sorted(hydpy.pub.scriptfunctions.keys()))
             raise ValueError(
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
-                f'Choose one of the following instead: {available_funcs}.')
+                f'Choose one of the following instead: {available_funcs}.'
+            ) from None
         argspec = inspect.getfullargspec(func)
         args_possible = argspec.args
         if argspec.defaults:
@@ -543,7 +545,8 @@ class LogFileInterface:
                 sorted(self.style2infotype2string.keys()))
             raise ValueError(
                 f'The given log file style {logstyle} is not available.  '
-                f'Please choose one of the following: {styles}.')
+                f'Please choose one of the following: {styles}.'
+            ) from None
         self._string = stdtype2string[infotype]
 
     def _ignore(self, substring: str) -> bool:

@@ -69,7 +69,8 @@ basin number.
         except ValueError:
             raise ValueError(
                 f'The given value `{value}` could not be '
-                f'interpreted as a river basin number.')
+                f'interpreted as a river basin number.'
+            ) from None
 
     @property
     def is_rivermouth(self) -> bool:

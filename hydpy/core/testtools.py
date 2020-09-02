@@ -660,12 +660,13 @@ datetime of the Python standard library for for further information.
     def dateformat(self, dateformat: str) -> None:
         try:
             datetime.datetime(2000, 1, 1).strftime(dateformat)
-        except BaseException:
+        except BaseException as exc:
             raise ValueError(
                 f'The given date format `{dateformat}` is not a valid '
                 f'format string for `datetime` objects.  Please read '
                 f'the documentation on module datetime of the Python '
-                f'standard library for for further information.')
+                f'standard library for for further information.'
+            ) from exc
         vars(self)['dateformat'] = dateformat
 
     @staticmethod

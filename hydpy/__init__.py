@@ -48,6 +48,7 @@ from hydpy.core.timetools import Date
 from hydpy.core.timetools import Period
 from hydpy.core.timetools import Timegrid
 from hydpy.core.timetools import Timegrids
+from hydpy.core.timetools import TOY
 from hydpy.core.testtools import make_abc_testable
 from hydpy.core.testtools import NumericalDifferentiator
 from hydpy.core.testtools import IntegrationTest
@@ -147,6 +148,7 @@ __all__ = ['aggregate_series',
            'Period',
            'Timegrid',
            'Timegrids',
+           'TOY',
            'make_abc_testable',
            'NumericalDifferentiator',
            'IntegrationTest',

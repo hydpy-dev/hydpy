@@ -17,6 +17,7 @@ typing_extensions
 scipy
 sphinx
 sphinxcontrib-bibtex
+sphinxcontrib-fulltoc
 wheel
 wrapt
 xmlschema

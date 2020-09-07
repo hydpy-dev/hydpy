@@ -29,7 +29,6 @@ from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import objecttools
-from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -266,7 +265,6 @@ hydpy.models.hland.hland_control.ZoneType
                            '1d'))
         """
         opt = hydpy.pub.options
-        par = parametertools.Parameter
         color = 34 if hydpy.pub.options.usecython else 36
         with printtools.PrintStyle(color=color, font=4):
             print(
@@ -292,8 +290,8 @@ hydpy.models.hland.hland_control.ZoneType
                         opt.utcoffset(60), \
                         opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
-                        par.parameterstep.delete(), \
-                        par.simulationstep.delete(), \
+                        opt.parameterstep(timetools.Period('1d')), \
+                        opt.simulationstep(timetools.Period()), \
                         devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
                     projectname = hydpy.pub.get('projectname')

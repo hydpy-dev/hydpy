@@ -496,15 +496,22 @@ correctly refer to one of the available XML schema files \
         """Update the |Options| object available in module |pub| with the
         values defined in the `options` XML element.
 
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.timegrids
+            >>> del pub.options.simulationstep
+
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import pub
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
+        >>> pub.options.ellipsis = 0
+        >>> pub.options.parameterstep = '1h'
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
-        >>> pub.options.ellipsis = 0
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
         >>> pub.options
@@ -516,10 +523,12 @@ correctly refer to one of the available XML schema files \
             flattennetcdf -> 1
             forcecompiling -> 0
             isolatenetcdf -> 1
+            parameterstep -> Period('1d')
             printprogress -> 0
             printincolor -> 0
             reprcomments -> 0
             reprdigits -> 6
+            simulationstep -> Period()
             skipdoctests -> 0
             timeaxisnetcdf -> 0
             trimvariables -> 1

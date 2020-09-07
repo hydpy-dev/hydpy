@@ -202,15 +202,26 @@ be required to prepare the model properly.
     >>> model.name
     'hland_v1'
 
-    All control parameter values, defined in the corresponding control
-    file, are correctly set.  As an example, we show the values of
-    control parameter |hland_control.IcMax|, which in this case
-    defines different values for hydrological response units of
-    type |hland_constants.FIELD| (1.0 mm) and of type
-    |hland_constants.FOREST| (1.5 mm):
+    All control parameter values, defined in the corresponding control file,
+    are correctly set.  As an example, we show the values of control parameter
+    |hland_control.IcMax|, which in this case defines different values for
+    hydrological response units of type |hland_constants.FIELD| (1.0 mm) and
+    of type |hland_constants.FOREST| (1.5 mm):
 
     >>> model.parameters.control.icmax
     icmax(field=1.0, forest=1.5)
+
+    The appearance (or "string representation") of all parameters that have a
+    unit with a time reference (we call these parameters "time-dependent")
+    like |hland_control.PercMax| depends on the current setting of option
+    |Options.parameterstep|, which is one day by default (see the documentation
+    on class |Parameter| for more information on dealing with time-dependent
+    parameters subclasses):
+
+    >>> model.parameters.control.percmax
+    percmax(1.39636)
+    >>> pub.options.parameterstep('1h')
+    Period('1d')
 
     The values of the derived parameters, which need to be calculated
     before starting a simulation run based on the control parameters
@@ -629,7 +640,12 @@ requested to make any internal data available.
     def __init__(self, projectname: Optional[str] = None):
         self._nodes = None
         self._elements = None
-        self.deviceorder = []
+        self.deviceorder: List[
+            Union[
+                devicetools.Node,
+                devicetools.Element,
+            ]
+        ] = []
         if projectname is not None:
             hydpy.pub.projectname = projectname
             hydpy.pub.networkmanager = filetools.NetworkManager()
@@ -830,6 +846,11 @@ defined at the moment.
         """Read all control files related to the current |Element| objects,
         initialise the defined models, and prepare their parameter values.
 
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.options.parameterstep
+
         First, we call function |prepare_full_example_1| to prepare the
         `LahnH` example project:
 
@@ -950,6 +971,11 @@ Use method `prepare_models` instead.
             simulationstep: Optional[timetools.PeriodConstrArg] = None,
             auxfiler: Optional['auxfiletools.Auxfiler'] = None) -> None:
         """Write the control files of all current |Element| objects.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.options.parameterstep
 
         We use the `LahnH` example project to demonstrate how to write
         a complete set of parameter control files.  For convenience, we
@@ -1131,12 +1157,19 @@ Use method `prepare_models` instead.
         damp(auxfile='stream')
         <BLANKLINE>
         """
-        self.elements.save_controls(parameterstep=parameterstep,
-                                    simulationstep=simulationstep,
-                                    auxfiler=auxfiler)
+        self.elements.save_controls(
+            parameterstep=parameterstep,
+            simulationstep=simulationstep,
+            auxfiler=auxfiler,
+        )
 
     def load_conditions(self):
         """Load all currently relevant initial conditions.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.options.parameterstep
 
         The following examples demonstrate both the functionality of
         method |HydPy.load_conditions| and |HydPy.save_conditions| based

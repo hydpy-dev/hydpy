@@ -4,7 +4,6 @@
 # import...
 # ...from standard library
 import abc
-import copy
 import os
 import runpy
 import shutil
@@ -17,7 +16,6 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
-from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
@@ -880,6 +878,7 @@ class ControlManager(FileManager):
         ...     controlmanager.projectdir = 'LahnH'
         ...     results = controlmanager.load_file(filename='land_dill')
 
+
         >>> results['control']
         area(692.3)
         nmbzones(12)
@@ -971,18 +970,16 @@ pass its name or the responsible Element object.
         if not filename.endswith('.py'):
             filename += '.py'
         path = os.path.join(cls._workingpath, filename)
-        parameterstep = copy.copy(parametertools.Parameter.parameterstep)
-        try:
-            if path not in cls._registry:
-                with open(path) as file_:
-                    cls._registry[path] = file_.read()
-            exec(cls._registry[path], {}, info)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f'While trying to load the control file `{path}`'
-            )
-        finally:
-            parametertools.Parameter.parameterstep(parameterstep)
+        with hydpy.pub.options.parameterstep(None):
+            try:
+                if path not in cls._registry:
+                    with open(path) as file_:
+                        cls._registry[path] = file_.read()
+                exec(cls._registry[path], {}, info)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to load the control file `{path}`'
+                )
         if 'model' not in info:
             raise RuntimeError(
                 f'Model parameters cannot be loaded from control file '

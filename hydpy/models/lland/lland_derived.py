@@ -95,7 +95,7 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
 
             >>> del pub.timegrids
         """
-        nmb = '1d'/self.simulationstep
+        nmb = '1d'/hydpy.pub.options.simulationstep
         if nmb % 1:
             raise ValueError(
                 f'The value of parameter {objecttools.elementphrase(self)} '
@@ -493,7 +493,7 @@ class QFactor(parametertools.Parameter):
         qfactor(0.115741)
         """
         con = self.subpars.pars.control
-        self.value = con.ft*1000./self.simulationstep.seconds
+        self.value = con.ft*1000./hydpy.pub.options.simulationstep.seconds
 
 
 class NFk(lland_parameters.ParameterSoil):

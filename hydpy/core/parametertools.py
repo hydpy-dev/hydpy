@@ -30,7 +30,8 @@ time.strptime('1999', '%Y')
 def get_controlfileheader(
         model: Union[str, 'modeltools.Model'],
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None) -> str:
+        simulationstep: Optional[timetools.PeriodConstrArg] = None
+) -> str:
     """Return the header of a regular or auxiliary parameter control file.
 
     The header contains the default coding information, the import command
@@ -39,7 +40,7 @@ def get_controlfileheader(
     The first example shows that, if you pass the model argument as a
     string, you have to take care that this string makes sense:
 
-    >>> from hydpy.core.parametertools import get_controlfileheader, Parameter
+    >>> from hydpy.core.parametertools import get_controlfileheader
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
     >>> print(get_controlfileheader(model='no model class',
     ...                             parameterstep='-1h',
@@ -59,7 +60,6 @@ def get_controlfileheader(
     |Timegrids| object contained in the module |pub| when necessary:
 
     >>> model = prepare_model('lland_v1')
-    >>> _ = Parameter.parameterstep('1d')
     >>> pub.timegrids = '2000.01.01', '2001.01.01', '1h'
     >>> print(get_controlfileheader(model=model))
     # -*- coding: utf-8 -*-
@@ -75,15 +75,16 @@ def get_controlfileheader(
 
         >>> del pub.timegrids
     """
-    with Parameter.parameterstep(parameterstep):
+    options = hydpy.pub.options
+    with options.parameterstep(parameterstep):
         if simulationstep is None:
-            simulationstep = Parameter.simulationstep
+            simulationstep = hydpy.pub.options.simulationstep
         else:
             simulationstep = timetools.Period(simulationstep)
         return (f"# -*- coding: utf-8 -*-\n\n"
                 f"from hydpy.models.{model} import *\n\n"
                 f"simulationstep('{simulationstep}')\n"
-                f"parameterstep('{Parameter.parameterstep}')\n\n")
+                f"parameterstep('{options.parameterstep}')\n\n")
 
 
 class IntConstant(int):
@@ -276,7 +277,7 @@ handling the model.
         variable2auxfile = getattr(auxfiler, str(self.model), None)
         lines = [get_controlfileheader(
             self.model, parameterstep, simulationstep)]
-        with Parameter.parameterstep(parameterstep):
+        with hydpy.pub.options.parameterstep(parameterstep):
             for par in self.control:
                 if variable2auxfile:
                     auxfilename = variable2auxfile.get_filename(par)
@@ -478,246 +479,6 @@ class SubParameters(variabletools.SubVariables[Parameters]):
         return type(self).__name__[:-10].lower()
 
 
-class _Period(timetools.Period):
-    """Extends class |Period| with context manager functionalities.
-
-    To be used by classes |Parameterstep| and |Simulationstep| only.
-    """
-
-    def __init__(self, stepsize=None):
-        self.stepsize = stepsize
-        self.timedelta = stepsize.period
-        self.old_period = timetools.Period(self)
-        self.__doc__ = stepsize.__doc__
-
-    def __enter__(self):
-        return self
-
-    def __call__(self, stepsize):
-        if stepsize is not None:
-            self.timedelta = stepsize
-            self.stepsize.period.timedelta = stepsize
-        return self
-
-    def __exit__(self, type_, value, traceback):
-        self.stepsize.period = self.old_period
-
-    def check(self) -> None:
-        """Raise a |RuntimeError|, if no (parameter or simulation)
-        step size is defined at the moment.
-
-        For details, see the documentation on class |Parameterstep|.
-        """
-        if not self:
-            raise RuntimeError(self.stepsize.EXC_MESSAGE)
-
-    def delete(self) -> '_Period':
-        """Delete the current (parameter or simulation) step size information.
-
-        For details, see the documentation on class |Parameterstep|.
-        """
-        del self.timedelta
-        del self.stepsize.period.timedelta
-        return self
-
-
-class _Stepsize(timetools.Period):
-    """Base class of the descriptor classes |Parameterstep| and
-    |Simulationstep|."""
-
-    def __init__(self):
-        self.period = timetools.Period()
-
-    def __set__(self, obj, value):
-        self(value)
-
-    def __delete__(self, obj):
-        del self.period.timedelta
-
-    def __call__(self, value: timetools.PeriodConstrArg) -> None:
-        try:
-            period = timetools.Period(value)
-            if period >= '1s':
-                self.period = period
-            else:
-                raise ValueError(
-                    'The smallest step size allowed is one second.')
-        except BaseException:
-            objecttools.augment_excmessage(
-                f'While trying to (re)define the general {self.name} '
-                f'size with { objecttools.value_of_type(value)}')
-
-    @property
-    def name(self) -> str:
-        """The class name in lower case letters.
-
-        >>> from hydpy.core.parametertools import Parameterstep
-        >>> Parameterstep().name
-        'parameterstep'
-        """
-        return type(self).__name__.lower()
-
-
-class Parameterstep(_Stepsize):
-    """The actual parameter time step size.
-
-    Usually, one defines the time step size of the units of
-    time-dependent parameters within control files via function
-    |parameterstep|, but it can also be changed interactively
-    with the help of any |Parameter| object:
-
-    >>> from hydpy.core.parametertools import Parameter
-    >>> parameter = Parameter(None)
-    >>> parameter.parameterstep = '1d'
-    >>> parameter.parameterstep
-    Period('1d')
-
-    Note that setting the step size affects all parameters!
-
-    Getting the step size via the |Parameter| subclasses themselves
-    also works fine, but use a method call instead of an assignment to
-    change the step size to prevent from overwriting the descriptor:
-
-    >>> Parameter.parameterstep
-    Period('1d')
-    >>> Parameter.parameterstep('2d')
-    Period('2d')
-
-    Unreasonable assignments result in error messages like the following:
-
-    >>> parameter.parameterstep = '0d'
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to (re)define the general parameterstep size \
-with value `0d` of type `str`, the following error occurred: The smallest \
-step size allowed is one second.
-
-    After deleting the parameter step size, we receive an empty
-    |Period| object:
-
-    >>> del parameter.parameterstep
-    >>> ps = parameter.parameterstep
-    >>> ps
-    Period()
-
-    In case you prefer an exception instead of an empty |Period| object,
-    call its `check` method:
-
-    >>> ps.check()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: No general parameter step size has been defined.
-
-    Use Pythons `with` statement for temporary step size changes:
-
-    >>> parameter.parameterstep = '1d'
-    >>> with parameter.parameterstep('2h'):
-    ...     print(repr(parameter.parameterstep))
-    Period('2h')
-    >>> parameter.parameterstep
-    Period('1d')
-
-    Passing |None| means "change nothing in this context" (useful for
-    defining functions with optional `parameterstep` arguments):
-
-    >>> with parameter.parameterstep(None):
-    ...     print(repr(parameter.parameterstep))
-    Period('1d')
-    >>> parameter.parameterstep
-    Period('1d')
-
-    Use the `with` statement in combination with method `delete` to
-    delete the stepsize temporarily:
-
-    >>> with parameter.parameterstep.delete():
-    ...     print(repr(parameter.parameterstep))
-    Period()
-    >>> parameter.parameterstep
-    Period('1d')
-    """
-
-    EXC_MESSAGE = 'No general parameter step size has been defined.'
-
-    def __get__(self, obj, cls) -> _Period:
-        return _Period(self)
-
-
-class Simulationstep(_Stepsize):
-    """The actual (or surrogate) simulation time step size.
-
-    .. testsetup::
-
-        >>> from hydpy.core.parametertools import Parameter
-        >>> Parameter.simulationstep.delete()
-        Period()
-
-    Usually, the simulation step size is defined globally in module
-    |pub| via a |Timegrids| object, or locally via function |simulationstep|
-    in separate control files.  However, you can also change it
-    interactively with the help of |Parameter| objects.
-
-    Generally, the documentation on class |Parameterstep| also holds
-    for class |Simulationstep|.  The following explanations focus on
-    the differences only.
-
-    As long as no actual or surrogate simulation time step is defined, an
-    empty period object is returned, which can be used to raise the
-    following exception:
-
-    >>> from hydpy.core.parametertools import Parameter
-    >>> parameter = Parameter(None)
-    >>> ps = parameter.simulationstep
-    >>> ps
-    Period()
-    >>> ps.check()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Neither a global simulation time grid nor a general \
-simulation step size to be used as a surrogate for testing purposes has \
-been defined.
-
-    For testing or documentation purposes, you can set a surrogate step size:
-
-    >>> parameter.simulationstep = '1d'
-    >>> parameter.simulationstep
-    Period('1d')
-
-    When working with complete HydPy applications, changing the simulation
-    step size would be highly error-prone.  Hence, being defined globally
-    within the |pub| module, predefined surrogate values are ignored:
-
-    >>> from hydpy import pub
-    >>> pub.timegrids = '2000.01.01', '2001.01.01', '2h'
-    >>> parameter.simulationstep
-    Period('2h')
-
-    This priority remains unchanged, even when one tries to set a surrogate
-    value after the |Timegrid| object has been defined:
-
-    >>> parameter.simulationstep = '5s'
-    >>> parameter.simulationstep
-    Period('2h')
-
-    One has to delete the |Timegrid| object to make the surrogate simulation
-    step size accessible:
-
-    >>> del pub.timegrids
-    >>> parameter.simulationstep
-    Period('5s')
-    """
-    EXC_MESSAGE = ('Neither a global simulation time grid nor a general '
-                   'simulation step size to be used as a surrogate for '
-                   'testing purposes has been defined.')
-
-    def __get__(self, obj, cls) -> _Period:
-        period = _Period(self)
-        try:
-            period.timedelta = hydpy.pub.timegrids.stepsize
-        except RuntimeError:
-            pass
-        return period
-
-
 class Parameter(variabletools.Variable[SubParameters]):
     """Base class for model parameters.
 
@@ -748,10 +509,9 @@ class Parameter(variabletools.Variable[SubParameters]):
 
     .. testsetup::
 
-        >>> from hydpy.core.parametertools import Parameter
-        >>> Parameter.simulationstep.delete()
-        Period()
-        
+        >>> from hydpy import pub
+        >>> del pub.options.simulationstep
+
     Let us first prepare a new parameter class without time-dependency
     (indicated by assigning |None|) and initialise it:
 
@@ -858,8 +618,8 @@ keyword arguments are given, which is ambiguous.
 
     >>> par = Par(None)
     >>> par.shape = (2,)
-    >>> par.parameterstep = '1d'
-    >>> par.simulationstep = '2d'
+    >>> pub.options.parameterstep = '1d'
+    >>> pub.options.simulationstep = '2d'
 
     Now you can pass one single value, an iterable containing two
     values, or two separate values as positional arguments, to set
@@ -908,7 +668,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     the string representation of |Parameter| handling time-dependent values
     without a risk to change the actual values relevant for simulation:
 
-    >>> with par.parameterstep('2d'):
+    >>> with pub.options.parameterstep('2d'):
     ...     print(par)
     ...     print(repr(par.values))
     par(0.0, 6.0)
@@ -963,9 +723,6 @@ shape (2) into shape (2,3)
     fastaccess: Union[
         'FastAccessParameter',
         'typingtools.FastAccessParameterProtocol']
-
-    parameterstep = Parameterstep()
-    simulationstep = Simulationstep()
 
     def __call__(self, *args, **kwargs):
         if args and kwargs:
@@ -1097,8 +854,8 @@ shape (2) into shape (2,3)
         For time-dependent parameter values, the `INIT` attribute is assumed
         to be related to a |Parameterstep| of one day:
 
-        >>> test.parameterstep = '2d'
-        >>> test.simulationstep = '12h'
+        >>> pub.options.parameterstep = '2d'
+        >>> pub.options.simulationstep = '12h'
         >>> Test.INIT = 2.0
         >>> Test.TIME = True
         >>> test = prepare()
@@ -1109,7 +866,7 @@ shape (2) into shape (2,3)
         """
         init = self.INIT
         if (init is not None) and hydpy.pub.options.usedefaultvalues:
-            with Parameter.parameterstep('1d'):
+            with hydpy.pub.options.parameterstep('1d'):
                 return self.apply_timefactor(init), True
         return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
 
@@ -1124,9 +881,9 @@ shape (2) into shape (2,3)
 
         .. testsetup::
 
-            >>> from hydpy.core.parametertools import Parameter
-            >>> Parameter.simulationstep.delete()
-            Period()
+            >>> from hydpy import pub
+            >>> del pub.options.simulationstep
+            >>> del pub.options.parameterstep
 
         Method |Parameter.get_timefactor| raises the following error
         when time information is not available:
@@ -1141,8 +898,9 @@ parameter and a simulation time step size first.
 
         One can define both time step sizes directly:
 
-        >>> _ = Parameter.parameterstep('1d')
-        >>> _ = Parameter.simulationstep('6h')
+        >>> from hydpy import pub
+        >>> pub.options.parameterstep = '1d'
+        >>> pub.options.simulationstep = '6h'
         >>> Parameter.get_timefactor()
         0.25
 
@@ -1159,9 +917,12 @@ parameter and a simulation time step size first.
             >>> del pub.timegrids
         """
         try:
+            parameterstep = hydpy.pub.options.parameterstep
+            parameterstep.check()
             parfactor = hydpy.pub.timegrids.parfactor
         except RuntimeError:
-            if not (cls.parameterstep and cls.simulationstep):
+            options = hydpy.pub.options
+            if not (options.parameterstep and options.simulationstep):
                 raise RuntimeError(
                     'To calculate the conversion factor for adapting '
                     'the values of the time-dependent parameters, '
@@ -1169,10 +930,10 @@ parameter and a simulation time step size first.
                     'time step size first.'
                 ) from None
             date1 = timetools.Date('2000.01.01')
-            date2 = date1 + cls.simulationstep
+            date2 = date1 + options.simulationstep
             parfactor = timetools.Timegrids(timetools.Timegrid(
-                date1, date2, cls.simulationstep)).parfactor
-        return parfactor(cls.parameterstep)
+                date1, date2, options.simulationstep)).parfactor
+        return parfactor(parameterstep)
 
     def trim(self, lower=None, upper=None) -> None:
         """Apply function |trim| of module |variabletools|."""
@@ -1193,8 +954,9 @@ parameter and a simulation time step size first.
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):
         ...     TIME = None
-        >>> Par.parameterstep = '1d'
-        >>> Par.simulationstep = '6h'
+        >>> from hydpy import pub
+        >>> pub.options.parameterstep = '1d'
+        >>> pub.options.simulationstep = '6h'
 
         |None| means the value(s) of the parameter are not time-dependent
         (e.g. maximum storage capacity).  Hence, |Parameter.apply_timefactor|
@@ -1309,8 +1071,9 @@ implement method `update`.
         Due to the time-dependence of the values of our test class,
         we need to specify a parameter and a simulation time step:
 
-        >>> test.parameterstep = '1d'
-        >>> test.simulationstep = '8h'
+        >>> from hydpy import pub
+        >>> pub.options.parameterstep = '1d'
+        >>> pub.options.simulationstep = '8h'
 
         Compression succeeds when all required values are identical:
 
@@ -1426,9 +1189,8 @@ implement method `update`.
         ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'apply_timefactor', \
 'availablemasks', 'average_values', 'commentrepr', 'compress_repr', \
 'fastaccess', 'get_submask', 'get_timefactor', 'initinfo', 'mask', 'name', \
-'parameterstep', 'refweights', 'revert_timefactor', 'shape', \
-'simulationstep', 'strict_valuehandling', 'subpars', 'subvars', 'trim', \
-'unit', 'update', 'value', 'values', 'verify']
+'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', \
+'subpars', 'subvars', 'trim', 'unit', 'update', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 
@@ -1538,9 +1300,8 @@ class ZipParameter(Parameter):
 
     .. testsetup::
 
-        >>> from hydpy.core.parametertools import Parameter
-        >>> Parameter.simulationstep.delete()
-        Period()
+        >>> from hydpy import pub
+        >>> del pub.options.simulationstep
 
     To see how base class |ZipParameter| works, we need to create some
     additional subclasses.  First, we need a parameter defining the
@@ -1587,8 +1348,9 @@ class ZipParameter(Parameter):
     ...     mask = Land()
     ...     landtype = landtype
     >>> par = Par(None)
-    >>> par.parameterstep = '1d'
-    >>> par.simulationstep = '12h'
+    >>> from hydpy import pub
+    >>> pub.options.parameterstep = '1d'
+    >>> pub.options.simulationstep = '12h'
 
     For parameters with zero-length or with unprepared or identical
     parameter values, the string representation looks as usual:
@@ -1762,9 +1524,8 @@ class SeasonalParameter(Parameter):
 
     .. testsetup::
 
-        >>> from hydpy.core.parametertools import Parameter
-        >>> Parameter.simulationstep.delete()
-        Period()
+        >>> from hydpy import pub
+        >>> del pub.options.simulationstep
 
     For the following examples, we assume a simulation step size of one day:
 
@@ -2139,9 +1900,8 @@ shape (2) into shape (366,3)
 
         .. testsetup::
 
-            >>> from hydpy.core.parametertools import Parameter
-            >>> Parameter.simulationstep.delete()
-            Period()
+            >>> from hydpy import pub
+            >>> del pub.options.simulationstep
 
         Setting the shape of |SeasonalParameter| objects differs from
         setting the shape of other |Variable| subclasses, due to handling
@@ -2169,7 +1929,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         replaces this arbitrary value by the number of simulation
         steps fitting into a leap year:
 
-        >>> par.simulationstep = '1d'
+        >>> from hydpy import pub
+        >>> pub.options.simulationstep = '1d'
         >>> par.shape = (123,)
         >>> par.shape
         (366,)
@@ -2191,7 +1952,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         For simulation steps not cleanly fitting into a leap year,
         the ceil-operation determines the number of entries:
 
-        >>> par.simulationstep = '100d'
+        >>> pub.options.simulationstep = '100d'
         >>> par.shape = (None, 3)
         >>> par.shape
         (4, 3)
@@ -2203,7 +1964,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
             shape_ = list(shape)
         else:
             shape_ = [-1]
-        if not self.simulationstep:
+        simulationstep = hydpy.pub.options.simulationstep
+        if not simulationstep:
             raise RuntimeError(
                 f'It is not possible the set the shape of the seasonal '
                 f'parameter {objecttools.elementphrase(self)} at the '
@@ -2211,8 +1973,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 f'first.  However, in complete HydPy projects this step'
                 f'size is indirectly defined via `pub.timegrids.stepsize` '
                 f'automatically.')
-        shape_[0] = int(numpy.ceil(
-            timetools.Period('366d') / self.simulationstep))
+        shape_[0] = int(numpy.ceil(timetools.Period('366d')/simulationstep))
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
         super().__hydpy__set_shape__(shape_)
 
@@ -2299,7 +2060,6 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         ...     TIME = None
         >>> par = Par(None)
         >>> par.NDIM = 1
-        >>> par.simulationstep = '1d'
         >>> par.shape = (None,)
         >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
         >>> dir(par)   # doctest: +ELLIPSIS
@@ -2947,9 +2707,8 @@ class FixedParameter(Parameter):
 
         .. testsetup::
 
-            >>> from hydpy.core.parametertools import Parameter
-            >>> Parameter.simulationstep.delete()
-            Period()
+            >>> from hydpy import pub
+            >>> del pub.options.simulationstep
 
         >>> from hydpy.core.parametertools import FixedParameter
         >>> class Par(FixedParameter):
@@ -2958,13 +2717,14 @@ class FixedParameter(Parameter):
         >>> par = Par(None)
         >>> par.initinfo
         (nan, False)
-        >>> par.parameterstep = '1d'
-        >>> par.simulationstep = '12h'
+        >>> from hydpy import pub
+        >>> pub.options.parameterstep = '1d'
+        >>> pub.options.simulationstep = '12h'
         >>> par.initinfo
         (50.0, True)
         """
         try:
-            with self.parameterstep('1d'):
+            with hydpy.pub.options.parameterstep('1d'):
                 return self.apply_timefactor(self.INIT), True
         except (AttributeError, RuntimeError):
             return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
@@ -2996,7 +2756,7 @@ class FixedParameter(Parameter):
         >>> round_(fixed.lambdag.value)
         0.02592
         """
-        with self.parameterstep('1d'):
+        with hydpy.pub.options.parameterstep('1d'):
             self(self.INIT)
 
 
@@ -3166,15 +2926,16 @@ class SecondsParameter(Parameter):
     def update(self) -> None:
         """Take the number of seconds from the current simulation time step.
 
+        >>> from hydpy import pub
         >>> from hydpy.core.parametertools import SecondsParameter
         >>> secondsparameter = SecondsParameter(None)
-        >>> secondsparameter.parameterstep = '1d'
-        >>> secondsparameter.simulationstep = '12h'
-        >>> secondsparameter.update()
-        >>> secondsparameter
+        >>> with pub.options.parameterstep('1d'):
+        ...     with pub.options.simulationstep('12h'):
+        ...         secondsparameter.update()
+        ...         secondsparameter
         secondsparameter(43200.0)
         """
-        self.value = self.simulationstep.seconds
+        self.value = hydpy.pub.options.simulationstep.seconds
 
 
 class HoursParameter(Parameter):
@@ -3187,15 +2948,16 @@ class HoursParameter(Parameter):
     def update(self) -> None:
         """Take the number of hours from the current simulation time step.
 
+        >>> from hydpy import pub
         >>> from hydpy.core.parametertools import HoursParameter
         >>> hoursparameter = HoursParameter(None)
-        >>> hoursparameter.parameterstep = '1d'
-        >>> hoursparameter.simulationstep = '12h'
-        >>> hoursparameter.update()
+        >>> with pub.options.parameterstep('1d'):
+        ...     with pub.options.simulationstep('12h'):
+        ...         hoursparameter.update()
         >>> hoursparameter
         hoursparameter(12.0)
         """
-        self.value = self.simulationstep.hours
+        self.value = hydpy.pub.options.simulationstep.hours
 
 
 class DaysParameter(Parameter):
@@ -3208,15 +2970,16 @@ class DaysParameter(Parameter):
     def update(self) -> None:
         """Take the number of days from the current simulation time step.
 
+        >>> from hydpy import pub
         >>> from hydpy.core.parametertools import DaysParameter
         >>> daysparameter = DaysParameter(None)
-        >>> daysparameter.parameterstep = '1d'
-        >>> daysparameter.simulationstep = '12h'
-        >>> daysparameter.update()
+        >>> with pub.options.parameterstep('1d'):
+        ...     with pub.options.simulationstep('12h'):
+        ...         daysparameter.update()
         >>> daysparameter
         daysparameter(0.5)
         """
-        self.value = self.simulationstep.days
+        self.value = hydpy.pub.options.simulationstep.days
 
 
 class TOYParameter(Parameter):

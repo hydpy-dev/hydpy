@@ -290,11 +290,11 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
-        par = parametertools.Parameter
+        options = hydpy.pub.options
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
-                with par.parameterstep(parameterstep), \
-                         par.simulationstep(simulationstep):
+                with options.parameterstep(parameterstep), \
+                         options.simulationstep(simulationstep):
                     lines = [parametertools.get_controlfileheader(
                         modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):

@@ -6,6 +6,7 @@
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy.core import parametertools
 # ...from hland
 from hydpy.models.hland import hland_parameters
@@ -323,5 +324,7 @@ class QFactor(parametertools.Parameter):
         >>> derived.qfactor
         qfactor(1.157407)
         """
-        self(self.subpars.pars.control.area*1000. /
-             self.subpars.qfactor.simulationstep.seconds)
+        self(
+            self.subpars.pars.control.area*1000. /
+            hydpy.pub.options.simulationstep.seconds
+        )

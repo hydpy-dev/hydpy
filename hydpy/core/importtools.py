@@ -26,18 +26,18 @@ from hydpy.core.typingtools import *
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
-    Function |parameterstep| should usually be applied in a line
-    immediately behind the model import.  Defining the step size of
-    time-dependent parameters is a prerequisite to access any
-    model-specific parameter.
+    Function |parameterstep| should usually be applied in a line immediately
+    behind the model import or behind calling function |simulationstep|.
+    Defining the step size of time-dependent parameters is a prerequisite to
+    access any model-specific parameter.
 
-    Note that |parameterstep| implements some namespace magic utilizing
+    Note that |parameterstep| implements some namespace magic utilising
     the module |inspect|, which makes things a little complicated for
-    framework developers, but it eases the definition of parameter
+    framework developers.  Still it eases the definition of parameter
     control files for framework users.
     """
     if timestep is not None:
-        parametertools.Parameter.parameterstep(timestep)
+        hydpy.pub.options.parameterstep = timestep
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
@@ -216,7 +216,7 @@ def prepare_model(module: Union[types.ModuleType, str],
     |prepare_model| properly.
     """
     if timestep is not None:
-        parametertools.Parameter.parameterstep(timetools.Period(timestep))
+        hydpy.pub.options.parameterstep = timetools.Period(timestep)
     try:
         model = module.Model()
     except AttributeError:
@@ -255,14 +255,14 @@ def prepare_model(module: Union[types.ModuleType, str],
 
 
 def simulationstep(timestep) -> None:
-    """ Define a simulation time step size for testing purposes within a
+    """Define a simulation time step size for testing purposes within a
     parameter control file.
 
     Using |simulationstep| only affects the values of time-dependent
     parameters, when `pub.timegrids.stepsize` is not defined.  It thus
-    does not influence usual hydpy simulations at all.  Use it to check
+    does not influence usual *HydPy* simulations at all.  Use it to check
     your parameter control files.  Write it in a line immediately behind
-    the line calling function |parameterstep|.
+    the model import.
 
     To clarify its purpose, function |simulationstep| raises a warning
     when executed from within a control file:
@@ -275,15 +275,16 @@ def simulationstep(timestep) -> None:
     >>> from hydpy import pub
     >>> with pub.options.warnsimulationstep(True):
     ...     from hydpy.models.hland_v1 import *
-    ...     parameterstep('1d')
     ...     simulationstep('1h')
+    ...     parameterstep('1d')
     Traceback (most recent call last):
     ...
     UserWarning: Note that the applied function `simulationstep` is intended \
 for testing purposes only.  When doing a HydPy simulation, parameter values \
 are initialised based on the actual simulation time step as defined under \
 `pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.
-    >>> k4.simulationstep
+
+    >>> pub.options.simulationstep
     Period('1h')
     """
     if hydpy.pub.options.warnsimulationstep:
@@ -293,7 +294,7 @@ are initialised based on the actual simulation time step as defined under \
             'values are initialised based on the actual simulation time step '
             'as defined under `pub.timegrids.stepsize` and the value given '
             'to `simulationstep` is ignored.')
-    parametertools.Parameter.simulationstep(timestep)
+    hydpy.pub.options.simulationstep = timestep
 
 
 def controlcheck(

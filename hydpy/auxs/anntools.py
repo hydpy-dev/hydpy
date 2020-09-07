@@ -14,6 +14,7 @@ from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -427,9 +428,6 @@ attribute `nmb_inputs` first.
     TYPE = 'annutils.ANN'
     TIME = None
     SPAN = (None, None)
-
-    parameterstep = parametertools.Parameter.__dict__['parameterstep']
-    simulationstep = parametertools.Parameter.__dict__['simulationstep']
 
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
@@ -1723,9 +1721,6 @@ been given, but a value of type `ANN` is required.
     TIME = None
     SPAN = (None, None)
 
-    parameterstep = parametertools.Parameter.__dict__['parameterstep']
-    simulationstep = parametertools.Parameter.__dict__['simulationstep']
-
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
         self.subpars = subvars
@@ -1935,7 +1930,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
         except TypeError:
             pass
         shp = list(shape)
-        shp[0] = timetools.Period('366d')/self.simulationstep
+        shp[0] = timetools.Period('366d')/hydpy.pub.options.simulationstep
         shp[0] = int(numpy.ceil(round(shp[0], 10)))
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(
             shp, dtype=float)
@@ -2087,16 +2082,15 @@ neural network `seasonalann` of element `?` none has been defined so far.
     def __dir__(self):
         # noinspection PyTypeChecker,PyUnresolvedReferences
         """
-        >>> from hydpy import SeasonalANN, ann
+        >>> from hydpy import ann, pub, SeasonalANN
         >>> seasonalann = SeasonalANN(None)
-        >>> seasonalann(ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
-        ...                 weights_input=0.0, weights_output=0.0,
-        ...                 intercepts_hidden=0.0, intercepts_output=1.0))
-        >>> from hydpy.core.objecttools import assignrepr_values
-        >>> print(assignrepr_values(sorted(dir(seasonalann)), '', 70))
-        NDIM, SPAN, TIME, TYPE, anns, calculate_values, fastaccess, inputs,
-        name, nmb_inputs, nmb_outputs, outputs, parameterstep, plot, ratios,
-        refresh, shape, simulationstep, subpars, subvars, toy_1_1_0_0_0, toys,
-        verify
+        >>> seasonalann(
+        ...     ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...         weights_input=0.0, weights_output=0.0,
+        ...         intercepts_hidden=0.0, intercepts_output=1.0))
+        >>> print(*dir(seasonalann))
+        NDIM SPAN TIME TYPE anns calculate_values fastaccess inputs name \
+nmb_inputs nmb_outputs outputs plot ratios refresh shape subpars subvars \
+toy_1_1_0_0_0 toys verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]

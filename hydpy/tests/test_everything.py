@@ -71,7 +71,6 @@ XSDWriter().write_xsd()
 pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
-from hydpy.core import parametertools
 from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
@@ -127,17 +126,17 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
             else:
                 del pub.projectname
                 del pub.timegrids
-                del parametertools.Parameter(None).parameterstep
-                del parametertools.Parameter(None).simulationstep
                 opt = pub.options
                 opt.usecython = mode == 'Cython'
                 opt.ellipsis = 0
                 opt.flattennetcdf = False
                 opt.isolatenetcdf = False
+                del pub.options.parameterstep
                 opt.printincolor = False
                 opt.printprogress = False
                 opt.reprcomments = False
                 opt.reprdigits = 6
+                del pub.options.simulationstep
                 opt.timeaxisnetcdf = 1
                 opt.usedefaultvalues = False
                 opt.utclongitude = 15

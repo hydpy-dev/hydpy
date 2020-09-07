@@ -861,7 +861,8 @@ is given.
                 raise ValueError(
                     f'Parameter {objecttools.elementphrase(self)} supports '
                     f'the options `FK`, `0_WMax/10`, and `FK/2_FK`, but '
-                    f'`{kwargs["option"]}` is given.')
+                    f'`{kwargs["option"]}` is given.'
+                ) from None
 
 
 class Beta(lland_parameters.ParameterSoil):
@@ -1175,7 +1176,8 @@ must be given.
                     f'unrealistic value of {objecttools.repr_(self.value)} '
                     f'hours.'
                 )
-            self.value *= timetools.Period('1h')/self.simulationstep
+            self.value *= \
+                timetools.Period('1h')/hydpy.pub.options.simulationstep
 
 
 class EQB(parametertools.Parameter):

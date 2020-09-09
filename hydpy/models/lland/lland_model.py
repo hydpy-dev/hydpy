@@ -3694,8 +3694,8 @@ class Calc_G_V1(modeltools.Method):
         >>> parameterstep()
 
         We define five hydrological respose units, of which only the first
-        four ones need further parameterisation, as method |Calc_G_V1|
-        generally sets |G| to zero for all kinds of water areas:
+        four need further parameterisation, as method |Calc_G_V1| generally
+        sets |G| to zero for all kinds of water areas:
 
         >>> nhru(6)
         >>> lnk(BODEN, OBSTB, OBSTB, LAUBW, NADELW, WASSER)
@@ -4816,7 +4816,7 @@ class Update_ESnow_V1(modeltools.Method):
 
     For a thin snow cover, small absolute changes in its energy content
     result in extreme temperature changes, which makes the above calculation
-    stiff.  Furthermore, the nonlinearity of the term :math:` WSurf(ESnow(t))`
+    stiff.  Furthermore, the nonlinearity of the term :math:`WSurf(ESnow(t))`
     prevents from finding an analytical solution of the problem.  This is why
     we apply the A-stable Backward Euler method.  Through our simplified
     approach of taking only one variable (|ESnow|) into account, we can solve

@@ -536,7 +536,7 @@ class WSurf(lland_sequences.Flux1DSequence):
     """Wärmestrom von der Schneedecke zur Schneeoberfläche (heat flux from
     the snow layer to the snow surface) [MJ/m²].
 
-    With positive values, the snow-layer gains heat from the atmosphere.
+    With positive values, the snow-layer looses heat to the atmosphere.
     """
 
     NDIM, NUMERIC = 1, False

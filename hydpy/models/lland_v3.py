@@ -20,7 +20,7 @@ radiation into account explicitly.  The third difference is that |lland_v3|
 models the soil temperature to simulate the effect of soil water freezing on
 runoff generation.  We created |lland_v3| on behalf of the `German Federal
 Institute of Hydrology (BfG)`_ in the context of optimising the control of
-the Kiel Channel (Nord-Ostsee-Kanal).
+the Kiel Canal (Nord-Ostsee-Kanal).
 
 The following list summarises the main components of |lland_v3|:
 
@@ -301,7 +301,7 @@ perform some related optimisations later.):
 .. _lland_v3_acker_routing_daily:
 
 :ref:`acre (routing) <lland_v1_acker_routing>`
-______________________________________________
+----------------------------------------------
 
 The following calculation shows the possibility to route inflowing runoff,
 discussed in the documentation of |lland_v1|:

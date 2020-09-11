@@ -1590,6 +1590,7 @@ class Calc_ContriArea_V1(modeltools.Method):
       :math:`ContriArea = \\left( \\frac{SM}{FC} \\right)^{Beta}`
 
     Examples:
+
         Four zones are initialized, but only the first two zones
         of type field and forest are taken into account in the calculation
         of the relative contributing area of the catchment (even, if also
@@ -1680,17 +1681,14 @@ class Calc_ContriArea_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        flu.contriarea = 1.
         if con.resparea and (der.relsoilarea > 0.):
-            flu.contriarea = 0.
             for k in range(con.nmbzones):
                 if con.zonetype[k] in (FIELD, FOREST):
                     if con.fc[k] > 0.:
-                        flu.contriarea += (der.relsoilzonearea[k] *
-                                           (sta.sm[k]/con.fc[k])**con.beta[k])
-                    else:
-                        flu.contriarea += der.relsoilzonearea[k]
-        else:
-            flu.contriarea = 1.
+                        flu.contriarea *= \
+                            (sta.sm[k]/con.fc[k])**der.relsoilzonearea[k]
+            flu.contriarea **= con.beta[k]
 
 
 class Calc_Q0_Perc_UZ_V1(modeltools.Method):

@@ -969,10 +969,10 @@ class AdHocModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill.sequences.sim)
         ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.658511)
-        sim(8.842278)
-        sim(7.103614)
-        sim(6.00763)
+        sim(11.78038)
+        sim(8.901179)
+        sim(7.131072)
+        sim(6.017787)
         >>> hp.nodes.dill.sequences.sim.series
         InfoArray([ nan,  nan,  nan,  nan])
 
@@ -986,7 +986,7 @@ class AdHocModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.658511, 8.842278, 7.103614, 6.00763
+        11.78038, 8.901179, 7.131072, 6.017787
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.

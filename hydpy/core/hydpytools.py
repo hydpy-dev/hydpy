@@ -386,10 +386,10 @@ requested to make any internal data available.
     184.926173, 184.603966, 184.386666, 184.098541
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     By comparison, you see that the lastly calculated (or read) time
     series value is the actual one for each |Sequence| object.  This
@@ -406,10 +406,10 @@ requested to make any internal data available.
        235.597338, 234.329294)
 
     >>> model.sequences.fluxes.qt
-    qt(6.00763)
+    qt(6.017787)
 
     >>> hp.nodes.dill.sequences.sim
-    sim(6.00763)
+    sim(6.017787)
 
     In many applications, the simulated time-series is the result
     we are interested in.  Hence we close our explanations with some
@@ -468,10 +468,10 @@ requested to make any internal data available.
     184.926173, 184.603966, 184.386666, 184.098541
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     We mentioned the possibility for more granular control of
     *HydPy* by using the different objects handled by the |HydPy|
@@ -492,11 +492,11 @@ requested to make any internal data available.
     >>> hp.nodes.dill.sequences.sim = 0.0
     >>> hp.nodes.dill.sequences.save_data(2)
     >>> round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 0.0, 6.00763
+    11.78038, 8.901179, 0.0, 6.017787
 
     >>> hp.nodes.dill.sequences.load_data(1)
     >>> hp.nodes.dill.sequences.sim
-    sim(8.842278)
+    sim(8.901179)
 
     In the examples above, we keep all data in rapid access memory,
     which can be problematic when handling long time-series in huge
@@ -554,11 +554,11 @@ requested to make any internal data available.
 
     >>> with TestIO():
     ...     round_(model.sequences.fluxes.qt.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     >>> with TestIO():
     ...     round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     Writing and reading from external time-series files also works
     in combination with handling internal time-series data on disk:
@@ -590,11 +590,11 @@ requested to make any internal data available.
 
     >>> with TestIO():
     ...     round_(model.sequences.fluxes.qt.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     >>> with TestIO():
     ...     round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 7.103614, 6.00763
+    11.78038, 8.901179, 7.131072, 6.017787
 
     Besides computation times, it usually makes no difference whether
     one handles internal time-series data in RAM or on disk.  However,
@@ -623,14 +623,14 @@ requested to make any internal data available.
     ...     hp.nodes.dill.sequences.save_data(-999)
     ...     hp.nodes.dill.sequences.close_files()
     ...     round_(hp.nodes.dill.sequences.sim.series)
-    11.658511, 8.842278, 0.0, 6.00763
+    11.78038, 8.901179, 0.0, 6.017787
 
     >>> with TestIO():
     ...     hp.nodes.dill.sequences.open_files(1)
     ...     hp.nodes.dill.sequences.load_data(-999)
     ...     hp.nodes.dill.sequences.close_files()
     >>> hp.nodes.dill.sequences.sim
-    sim(8.842278)
+    sim(8.901179)
     """
 
     _nodes: Optional[devicetools.Nodes]
@@ -766,9 +766,9 @@ at the moment.
 
         >>> hp.simulate()
         >>> round_(hp.elements.land_dill.model.sequences.fluxes.qt.series)
-        11.658511, 8.842278, 7.103614, 6.00763
+        11.78038, 8.901179, 7.131072, 6.017787
         >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.658511, 8.842278, 7.103614, 6.00763
+        11.78038, 8.901179, 7.131072, 6.017787
         """
         self.prepare_network()
         self.prepare_models()
@@ -1370,7 +1370,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.simulate()
         >>> from hydpy import print_values
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
 
         Just repeating the simulation gives different results due to
         applying the final states of the first simulation run as the
@@ -1378,7 +1378,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        26.21469, 25.063443, 24.238632, 23.317984
+        26.218473, 25.039964, 24.205384, 23.296241
 
         Calling |HydPy.reset_conditions| first allows repeating the
         first simulation run exactly multiple times:
@@ -1386,11 +1386,11 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
         """
         self.elements.reset_conditions()
 
@@ -1422,7 +1422,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> pub.timegrids.sim.lastdate = '1996-02-20'
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
-        70.292046, 94.076568, nan, nan
+        70.553509, 94.344086, nan, nan
 
         At the end of the preparation run, a snow layer is covering the
         Lahn catchment.  In the `lahn_1` subcatchment, this snow layer
@@ -1444,7 +1444,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.simulate()
         >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(first[48:52])
-        0.0, 0.0, 84.986676, 63.834078
+        0.0, 0.0, 85.150677, 63.902098
 
         To exactly repeat the last simulation run, we assign the
         memorised conditions to property |HydPy.conditions|:
@@ -1464,7 +1464,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.simulate()
         >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(second[48:52])
-        0.0, 0.0, 84.986676, 63.834078
+        0.0, 0.0, 85.150677, 63.902098
         >>> all(first == second)
         True
 
@@ -2029,7 +2029,7 @@ argument at the same time.
         >>> hp.simulate()
         >>> from hydpy import round_
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
 
         After resetting the initial conditions via method
         |HydPy.reset_conditions|, we repeat the simulation run and get
@@ -2038,7 +2038,7 @@ argument at the same time.
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
 
         Simulation runs do not need to cover the whole initialisation
         period at once.  After setting the |Timegrid.lastdate| property
@@ -2051,7 +2051,7 @@ argument at the same time.
         >>> pub.timegrids.sim.lastdate = '1996-01-03'
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 0.0, 0.0
+        54.043745, 37.320814, 0.0, 0.0
 
         After justing the both |Timegrid.firstdate| and |Timegrid.lastdate|
         of the `sim` |Timegrid| to the second half of the initialisation
@@ -2061,7 +2061,7 @@ argument at the same time.
         >>> pub.timegrids.sim.lastdate = '1996-01-05'
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
 
         In the above examples, each |Model| object (handled by an |Element|
         object) passes its simulated values via a |Node| object to its
@@ -2087,7 +2087,7 @@ argument at the same time.
         simulated series of node `lahn_2` by 10 m³/s:
 
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        42.19966, 27.098027, 22.873371, 20.178247
+        42.3697, 27.210443, 22.930066, 20.20133
         >>> hp.nodes.lahn_2.deploymode = 'oldsim'
         >>> hp.nodes.lahn_2.sequences.sim.series -= 10.0
 
@@ -2105,9 +2105,9 @@ argument at the same time.
         >>> pub.timegrids.sim.lastdate = '1996-01-05'
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        32.19966, 17.098027, 12.873371, 10.178247
+        32.3697, 17.210443, 12.930066, 10.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        43.793428, 27.157714, 21.835184, 18.375294
+        44.043745, 27.320814, 21.922053, 18.413644
 
         The third option is `obs`, where node `lahn_2` receives
         and stores the values from its upstream models but passes
@@ -2130,9 +2130,9 @@ argument at the same time.
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
         0.0, 0.0, 0.0, 0.0
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        42.19966, 27.098027, 22.873371, 20.178247
+        42.3697, 27.210443, 22.930066, 20.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        11.593767, 10.059687, 8.961813, 8.197047
+        11.674045, 10.110371, 8.991987, 8.212314
 
         Unfortunately, observation time series are often incomplete.  *HydPy*
         generally uses |numpy| |numpy.nan| to represent missing values.
@@ -2150,9 +2150,9 @@ argument at the same time.
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
         0.0, nan, 0.0, nan
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        42.19966, 27.098027, 22.873371, 20.178247
+        42.3697, 27.210443, 22.930066, 20.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        11.593767, nan, 8.961813, nan
+        11.674045, nan, 8.991987, nan
 
         To avoid the calculation of |numpy.nan| values, one can select the
         fourth option `obs_newsim`.  Now the priority for node `lahn_2` is
@@ -2165,9 +2165,9 @@ argument at the same time.
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
         0.0, nan, 0.0, nan
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        42.19966, 27.098027, 22.873371, 20.178247
+        42.3697, 27.210443, 22.930066, 20.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        11.593767, 37.157714, 8.961813, 28.375294
+        11.674045, 37.320814, 8.991987, 28.413644
 
         The fifth option `obs_oldsim` serves the same purpose as option
         `obs_newsim` but uses already available "old" simulation results
@@ -2176,14 +2176,14 @@ argument at the same time.
         >>> hp.nodes.lahn_2.deploymode = 'obs_oldsim'
         >>> hp.reset_conditions()
         >>> hp.nodes.lahn_2.sequences.sim.series = (
-        ...     32.19966, 17.098027, 12.873371, 10.178247)
+        ...     32.3697, 17.210443, 12.930066, 10.20133)
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
         0.0, nan, 0.0, nan
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        32.19966, 17.098027, 12.873371, 10.178247
+        32.3697, 17.210443, 12.930066, 10.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        11.593767, 27.157714, 8.961813, 18.375294
+        11.674045, 27.320814, 8.991987, 18.413644
 
         The last example shows that resetting option |Node.deploymode|
         to `newsim` results in the default behaviour of the method
@@ -2193,9 +2193,9 @@ argument at the same time.
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
-        42.19966, 27.098027, 22.873371, 20.178247
+        42.3697, 27.210443, 22.930066, 20.20133
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        54.043745, 37.320814, 31.922053, 28.413644
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         self.open_files(idx_start)

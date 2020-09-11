@@ -2645,23 +2645,23 @@ class OutputSequence(ModelSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_values(model.sequences.fluxes.q1.series)
-    0.531056, 0.54036, 0.549021, 0.557038, 0.564481
+    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
     >>> print_values(node_q1.sequences.sim.series)
-    0.531056, 0.54036, 0.549021, 0.557038, 0.564481
+    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
     >>> print_values(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_values(model.sequences.fluxes.perc.series)
-    0.698932, 0.695842, 0.693764, 0.691013, 0.688866
+    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
     >>> print_values(node_perc.sequences.sim.series)
-    0.698932, 0.695842, 0.693764, 0.691013, 0.688866
+    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
     >>> print_values(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_values(model.sequences.states.uz.series)
-    5.629406, 4.370395, 3.339112, 2.455376, 1.667827
+    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
     >>> print_values(node_uz.sequences.sim.series)
-    5.629406, 4.370395, 3.339112, 2.455376, 1.667827
+    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
     >>> print_values(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 

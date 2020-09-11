@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for executing HydPy workflows based on
+"""This module provides features for executing *HydPy* workflows based on
 XML configuration files.
 
 .. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
@@ -7,7 +7,7 @@ XML configuration files.
 At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
-the HydPy project you want to work with is available in your current
+the *HydPy* project you want to work with is available in your current
 working directory and contains an XML configuration file (as `single_run.xml`
 in the example project folder `LahnH`).  This configuration file must
 agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
@@ -87,7 +87,7 @@ the suffix `_mean`:
 >>> with TestIO(clear_all=True):
 ...     print_values((numpy.load(
 ...         'LahnH/series/output/lahn_1_sim_q_mean.npy')[13:]))
-9.621296, 8.503069, 7.774927, 7.34503, 7.15879
+9.647824, 8.517795, 7.781311, 7.344944, 7.153142
 """
 # import...
 # ...from standard library

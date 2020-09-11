@@ -133,7 +133,7 @@ run so far.  We catch up on this by calling the method |HydPy.simulate|:
 Now, we can inspect the freshly calculated discharge values:
 
 >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-53.793428, 37.157714, 31.835184, 28.375294
+54.043745, 37.320814, 31.922053, 28.413644
 
 You could now write the results to file, print them into a figure,
 evaluate them statistically, or -- if you don't like them -- change

@@ -361,5 +361,5 @@ class MaxBaz(parametertools.Parameter):
 
 
 class Abstr(parametertools.Parameter):
-    """Abstraction of water from computed outflow [mm/T]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    """Abstraction of water from computed outflow [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)

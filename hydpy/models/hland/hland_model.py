@@ -2274,7 +2274,7 @@ class Calc_QT_V1(modeltools.Method):
     """Calculate the total discharge after possible abstractions.
 
     Basic equation:
-        :math:`QT = max(OutUH - Abstr, 0)`
+        :math:`QT = max(QFactor \\cdot OutUH - Abstr, 0)`
 
     Examples:
 
@@ -2284,30 +2284,34 @@ class Calc_QT_V1(modeltools.Method):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> abstr(2.0)
-        >>> fluxes.outuh = 2.0
+        >>> abstr(1.0)
+        >>> derived.qfactor(0.5)
+        >>> fluxes.outuh = 4.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(1.0)
-        >>> fluxes.outuh = 1.0
+        >>> fluxes.outuh = 2.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(0.0)
-        >>> fluxes.outuh = 0.5
+        >>> fluxes.outuh = 1.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(0.0)
 
         Note that "negative abstractions" are allowed:
 
-        >>> abstr(-2.0)
-        >>> fluxes.outuh = 1.0
+        >>> abstr(-1.0)
+        >>> fluxes.outuh = 2.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(2.0)
     """
     CONTROLPARAMETERS = (
         hland_control.Abstr,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.QFactor,
     )
     REQUIREDSEQUENCES = (
         hland_fluxes.OutUH,
@@ -2319,19 +2323,13 @@ class Calc_QT_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qt = max(flu.outuh-con.abstr, 0.)
+        flu.qt = max(der.qfactor*flu.outuh-con.abstr, 0.)
 
 
 class Pass_Q_v1(modeltools.Method):
-    """Update the outlet link sequence.
-
-    Basic equation:
-      :math:`Q = QFactor \\cdot QT`
-    """
-    DERIVEDPARAMETERS = (
-        hland_derived.QFactor,
-    )
+    """Update the outlet link sequence."""
     REQUIREDSEQUENCES = (
         hland_fluxes.QT,
     )
@@ -2341,10 +2339,9 @@ class Pass_Q_v1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += der.qfactor*flu.qt
+        out.q[0] += flu.qt
 
 
 class Model(modeltools.AdHocModel):

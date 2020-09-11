@@ -717,7 +717,7 @@ A value for condition item `sm_lahn_1` is missing.
     |HydPyServer.GET_savedgetitemvalues|, respectively:
 
     >>> test('getitemvalues')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
+    land_dill_fluxes_qt = 7.726602
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
     ...
@@ -747,7 +747,7 @@ A value for condition item `sm_lahn_1` is missing.
     respectively:
 
     >>> test('savedgetitemvalues', id_='?')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
+    land_dill_fluxes_qt = 7.726602
     ...
     >>> test('savedparameteritemvalues', id_='?')    # doctest: +ELLIPSIS
     alpha = 1.0

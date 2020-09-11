@@ -375,7 +375,7 @@ requested to make any internal data available.
     184.926173, 184.603966, 184.386666, 184.098541
 
     >>> round_(model.sequences.fluxes.qt.series)
-    1.454998, 1.103529, 0.886541, 0.749761
+    11.658511, 8.842278, 7.103614, 6.00763
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
     11.658511, 8.842278, 7.103614, 6.00763
@@ -395,7 +395,7 @@ requested to make any internal data available.
        235.597338, 234.329294)
 
     >>> model.sequences.fluxes.qt
-    qt(0.749761)
+    qt(6.00763)
 
     >>> hp.nodes.dill.sequences.sim
     sim(6.00763)
@@ -457,7 +457,7 @@ requested to make any internal data available.
     184.926173, 184.603966, 184.386666, 184.098541
 
     >>> round_(model.sequences.fluxes.qt.series)
-    1.454998, 1.103529, 0.886541, 0.749761
+    11.658511, 8.842278, 7.103614, 6.00763
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
     11.658511, 8.842278, 7.103614, 6.00763
@@ -543,7 +543,7 @@ requested to make any internal data available.
 
     >>> with TestIO():
     ...     round_(model.sequences.fluxes.qt.series)
-    1.454998, 1.103529, 0.886541, 0.749761
+    11.658511, 8.842278, 7.103614, 6.00763
 
     >>> with TestIO():
     ...     round_(hp.nodes.dill.sequences.sim.series)
@@ -579,7 +579,7 @@ requested to make any internal data available.
 
     >>> with TestIO():
     ...     round_(model.sequences.fluxes.qt.series)
-    1.454998, 1.103529, 0.886541, 0.749761
+    11.658511, 8.842278, 7.103614, 6.00763
 
     >>> with TestIO():
     ...     round_(hp.nodes.dill.sequences.sim.series)
@@ -746,12 +746,11 @@ at the moment.
         time-series of all relevant sequences.  We take the discharge
         values of the flux sequence |hland_fluxes.QT| of |Element| object
         `land_dill` and of the node sequence |Sim| of |Node| object `dill`
-        as examples, which provide the same information in different
-        units (mm/d and m³/s, respectively):
+        as examples, which provide the same information:
 
         >>> hp.simulate()
         >>> round_(hp.elements.land_dill.model.sequences.fluxes.qt.series)
-        1.454998, 1.103529, 0.886541, 0.749761
+        11.658511, 8.842278, 7.103614, 6.00763
         >>> round_(hp.nodes.dill.sequences.sim.series)
         11.658511, 8.842278, 7.103614, 6.00763
         """

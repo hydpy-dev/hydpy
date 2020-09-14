@@ -1508,19 +1508,29 @@ def enumeration(values, converter=str, default=''):
     >>> enumeration(('text', 3, []), converter=classname)
     'str, int, and list'
 
-    Furthermore, you can define a default string that is returned
-    in case an empty iterable is given:
+    You can define a default string that is returned in case an empty
+    iterable is given:
 
     >>> enumeration((), default='nothing')
     'nothing'
+
+    Functin |enumeration| respects option |Options.ellipsis|:
+
+    >>> from hydpy import pub
+    >>> with pub.options.ellipsis(3):
+    ...     enumeration(range(10))
+    '0, 1, 2, ..., 7, 8, and 9'
     """
-    values = tuple(converter(value) for value in values)
+    values = list(converter(value) for value in values)
     if not values:
         return default
     if len(values) == 1:
         return values[0]
     if len(values) == 2:
         return ' and '.join(values)
+    ellipsis_ = hydpy.pub.options.ellipsis
+    if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
+        values = values[:ellipsis_] + ['...'] + values[-ellipsis_:]
     return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 

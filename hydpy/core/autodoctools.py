@@ -743,7 +743,7 @@ class Substituter:
         are translated into replacement commands (only a few of them
         are shown):
 
-        >>> print(substituter.get_commands())
+        >>> print(substituter.get_commands())   # doctest: +ELLIPSIS
         .. |Options.autocompile| replace:: \
 :const:`~hydpy.core.optiontools.Options.autocompile`
         .. |Options.checkseries| replace:: \
@@ -762,6 +762,8 @@ class Substituter:
         >>> import inspect
         >>> source = inspect.getsource(objecttools)
         >>> print(substituter.get_commands(source))
+        .. |Options.ellipsis| replace:: \
+:const:`~hydpy.core.optiontools.Options.ellipsis`
         .. |Options.reprdigits| replace:: \
 :const:`~hydpy.core.optiontools.Options.reprdigits`
         """

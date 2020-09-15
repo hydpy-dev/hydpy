@@ -140,7 +140,6 @@ def find(root: ElementTree.Element, name: str, optional: Literal[True] = True) \
 def find(root: ElementTree.Element, name: str, optional: Literal[False]) \
         -> ElementTree.Element:
     """Non-optional version of function |find|."""
-# pylint: enable=unused-argument
 
 
 def find(root, name, optional=True):

@@ -2146,26 +2146,37 @@ class ELSModel(SolverModel):
         0.001
         >>> round_(model.numvars.extrapolated_relerror)
         0.0001
+
+        >>> model.numvars.abserror = 0.0
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_abserror)
+        0.0
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.0
         """
-        if self.numvars.idx_method > 2:
-            self.numvars.extrapolated_abserror = modelutils.exp(
-                modelutils.log(self.numvars.abserror) +
-                (modelutils.log(self.numvars.abserror) -
-                 modelutils.log(self.numvars.last_abserror)) *
-                (self.numconsts.nmb_methods-self.numvars.idx_method))
+        if self.numvars.abserror <= 0.:
+            self.numvars.extrapolated_abserror = 0.
+            self.numvars.extrapolated_relerror = 0.
         else:
-            self.numvars.extrapolated_abserror = -999.9
-        if self.numvars.use_relerror:
             if self.numvars.idx_method > 2:
-                self.numvars.extrapolated_relerror = modelutils.exp(
-                    modelutils.log(self.numvars.relerror) +
-                    (modelutils.log(self.numvars.relerror) -
-                     modelutils.log(self.numvars.last_relerror)) *
-                    (self.numconsts.nmb_methods - self.numvars.idx_method))
+                self.numvars.extrapolated_abserror = modelutils.exp(
+                    modelutils.log(self.numvars.abserror) +
+                    (modelutils.log(self.numvars.abserror) -
+                     modelutils.log(self.numvars.last_abserror)) *
+                    (self.numconsts.nmb_methods-self.numvars.idx_method))
             else:
-                self.numvars.extrapolated_relerror = -999.9
-        else:
-            self.numvars.extrapolated_relerror = modelutils.inf
+                self.numvars.extrapolated_abserror = -999.9
+            if self.numvars.use_relerror:
+                if self.numvars.idx_method > 2:
+                    self.numvars.extrapolated_relerror = modelutils.exp(
+                        modelutils.log(self.numvars.relerror) +
+                        (modelutils.log(self.numvars.relerror) -
+                         modelutils.log(self.numvars.last_relerror)) *
+                        (self.numconsts.nmb_methods - self.numvars.idx_method))
+                else:
+                    self.numvars.extrapolated_relerror = -999.9
+            else:
+                self.numvars.extrapolated_relerror = modelutils.inf
 
 
 class Submodel:

@@ -51,8 +51,9 @@ relationship between stage and volume:
 >>> test.inits = [(states.watervolume, 0.0)]
 >>> test.dateformat = '%d.%m.'
 >>> watervolume2waterlevel(
-...     weights_input=1e-6, weights_output=4.e6,
-...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+...     weights_input=1.0, weights_output=1.0,
+...     intercepts_hidden=0.0, intercepts_output=0.0,
+...     activation=0)
 >>> catchmentarea(86.4)
 >>> element.inlets.input_.sequences.sim.series = [
 ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
@@ -68,8 +69,9 @@ and stage used throughout the integration tests of |dam_v006| and in the
 :ref:`dam_v006_base_scenario` example of |dam_v007|:
 
 >>> waterlevel2flooddischarge(ann(
-...     weights_input=1e-6, weights_output=4e7,
-...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
+...     weights_input=1.0, weights_output=10.0,
+...     intercepts_hidden=0.0, intercepts_output=0.0,
+...     activation=0))
 
 Additionally, we set some of the remaining parameter values extremely high
 or low, to make sure that the reservoir stores all water except the one

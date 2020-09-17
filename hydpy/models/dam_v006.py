@@ -65,13 +65,14 @@ value for each example to zero:
 |dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume|
 to be constant over time.  To allow for maximum flexibility, it uses
 parameter |WaterVolume2WaterLevel|, which extends the artificial neural
-network parameter |anntools.ANN|.  For simplicity, we enforce an
-(approximately) linear relation between |WaterLevel| and |WaterVolume| in
-the relevant range of values (as shown in the following graph):
+network parameter |anntools.ANN|.  For simplicity, we enforce a linear
+relationship between |WaterLevel| and |WaterVolume| (as shown in the
+following graph):
 
 >>> watervolume2waterlevel(
-...     weights_input=1e-6, weights_output=4.e6,
-...     intercepts_hidden=0.0, intercepts_output=-4e6/2)
+...     weights_input=1.0, weights_output=1.0,
+...     intercepts_hidden=0.0, intercepts_output=0.0,
+...     activation=0)
 >>> watervolume2waterlevel.plot(0.0, 1.0)
 
 .. testsetup::
@@ -95,11 +96,12 @@ parameter |anntools.SeasonalANN|) to allow for annual changes in the
 relationship between |FloodDischarge| and |WaterLevel|.  Please read the
 documentation on class |anntools.SeasonalANN| on how to model seasonal
 patterns.  Here, we again keep things as simple as possible and define
-a single (approximately) linear relationship which applies for the whole year:
+a single linear relationship which applies for the whole year:
 
 >>> waterlevel2flooddischarge(ann(
-...     weights_input=1e-6, weights_output=4e7,
-...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
+...     weights_input=1.0, weights_output=10.0,
+...     intercepts_hidden=0.0, intercepts_output=0.0,
+...     activation=0))
 >>> waterlevel2flooddischarge.plot(0.0, 1.0)
 
 .. testsetup::

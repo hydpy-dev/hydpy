@@ -137,33 +137,54 @@ Integration tests
 
     Finally, we can set the parameter values of the dam model.  For the sake
     of simplicity, the relationship between water level and volume is assumed
-    to be linear in the range relevant for the following examples (between
-    0 to 25 m or 0 to 1e8 m³).  This is approximately true if with the
-    following configuration of the |WaterVolume2WaterLevel| parameter:
+    to be linear, which we accomplish by selecting the identity function as
+    the |anntools.ANN.activation| function of the |WaterVolume2WaterLevel|
+    parameter:
 
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> # This plot confirms the linearity of the defined relationship:
     >>> watervolume2waterlevel.plot(0.0, 100.0)
 
     .. testsetup::
 
+        >>> import os
         >>> from matplotlib import pyplot
+        >>> from hydpy.docs import figs
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_watervolume2waterlevel.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_watervolume2waterlevel.png
+       :width: 400
 
     To focus on the drought related algorithms solely we turn of the flood
     related processes.  This is accomplished by setting the weights and
     intercepts of the |WaterLevel2FloodDischarge| to zero:
 
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_1.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_1.png
+       :width: 400
 
     To confirm that the whole scenario is properly aranged, we also turn of
     of the drought related methods at first:
@@ -867,33 +888,32 @@ Integration tests
     >>> waterlevelminimumtolerance(0.0)
 
     To be able to compare the following numerical results of HydPy-Dam with
-    an analytical solution, we approximate a linear storage retetenion
-    process.  The relationship between water level and volume has already
-    been defined to be (approximately) linear in the range of 0 to 1e8 m³
-    or 0 to 25 m, respectively.  The relationship between flood discharge
-    and the water level is also approximately linear in this range, with a
-    discharge value of 62.5 m³/s for a water level 25 m:
+    an analytical solution, we define a linear storage retetenion process.
+    The relationship between water level and volume has already
+    been defined to be linear and we do the same for the relationship
+    between flood discharge and water level:
 
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_2.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_2.png
+       :width: 400
 
     Hence, for the given simulation step size, the linear storage
     coefficient is approximately 0.054 per day.
-
-    (Please be careful when defining such extremely large and small parameter
-    values for  |WaterVolume2WaterLevel| and |WaterLevel2FloodDischarge|.
-    Otherwise you might get into precision loss trouble, causing the
-    numerical calculations of the dam model to become very slow or the
-    results to be very inaccurate.  So either use `normal` parameter values
-    or check the precision of the results of `watervolume2waterlevel` and
-    |WaterLevel2FloodDischarge| manually before performing the actual
-    simulation runs.)
 
     Now a flood event needs to be defined:
 
@@ -1036,13 +1056,23 @@ Integration tests
 
     >>> solver.abserrormax(1e-2)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-4, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=250.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_3.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_3.png
+       :width: 400
 
     With this new parameterization of the dam model, the linear storage
     coefficient is approximately 5.4 per day.  This is why the following

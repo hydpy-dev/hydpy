@@ -574,6 +574,16 @@ from file `test`, the following error occurred: Cannot determine the \
 corresponding model.  Use the `auxfile` keyword in usual parameter \
 control files only.
 
+    Also note, that you cannot combine the `auxfile` keyword with any
+    other keyword:
+
+    >>> par(auxfile='test', x1=1, x2=2, x3=3)
+    Traceback (most recent call last):
+    ...
+    ValueError: It is not allowed to combine keyword `auxfile` with other \
+keywords, but for parameter `par` of element `?` also the following keywords \
+are used: x1, x2, and x3.
+
     Some |Parameter| subclasses support other keyword arguments.
     The standard error message for unsupported arguments is the following:
 
@@ -735,15 +745,25 @@ shape (2) into shape (2,3)
             raise ValueError(
                 f'For parameter {objecttools.elementphrase(self)} '
                 f'both positional and keyword arguments are given, '
-                f'which is ambiguous.')
+                f'which is ambiguous.'
+            )
         if not args and not kwargs:
             raise ValueError(
                 f'For parameter {objecttools.elementphrase(self)} neither '
-                f'a positional nor a keyword argument is given.')
-        if 'auxfile' in kwargs:
-            values = self._get_values_from_auxiliaryfile(kwargs['auxfile'])
+                f'a positional nor a keyword argument is given.'
+            )
+        auxfile = kwargs.pop('auxfile', None)
+        if auxfile:
+            if kwargs:
+                raise ValueError(
+                    f'It is not allowed to combine keyword `auxfile` with '
+                    f'other keywords, but for parameter '
+                    f'{objecttools.elementphrase(self)} also the following '
+                    f'keywords are used: '
+                    f'{objecttools.enumeration(kwargs.keys())}.'
+                )
+            values = self._get_values_from_auxiliaryfile(auxfile)
             self.values = self.apply_timefactor(values)
-            del kwargs['auxfile']
         elif args:
             if len(args) == 1:
                 args = args[0]
@@ -751,7 +771,8 @@ shape (2) into shape (2,3)
         else:
             raise NotImplementedError(
                 f'The value(s) of parameter {objecttools.elementphrase(self)} '
-                f'could not be set based on the given keyword arguments.')
+                f'could not be set based on the given keyword arguments.'
+            )
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, auxfile):

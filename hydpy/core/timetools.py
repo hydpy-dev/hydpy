@@ -158,12 +158,14 @@ the following error occurred: hour must be in 0..23
     """
 
     # These are the so far accepted date format strings.
-    formatstrings = collections.OrderedDict([
-        ('os', '%Y_%m_%d_%H_%M_%S'),
-        ('iso2', '%Y-%m-%d %H:%M:%S'),
-        ('iso1', '%Y-%m-%dT%H:%M:%S'),
-        ('din1', '%d.%m.%Y %H:%M:%S'),
-        ('din2', '%Y.%m.%d %H:%M:%S')])
+    formatstrings = dict(
+        os='%Y_%m_%d_%H_%M_%S',
+        iso2='%Y-%m-%d %H:%M:%S',
+        iso1='%Y-%m-%dT%H:%M:%S',
+        din1='%d.%m.%Y %H:%M:%S',
+        din2='%Y.%m.%d %H:%M:%S',
+        raw='%Y%m%d%H%M%S',
+    )
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
     _lastformatstring = 'os', formatstrings['os']
@@ -289,6 +291,11 @@ but for the given `datetime` object it is `2` instead.
         >>> Date('1997.11.01 00:00:00').style
         'din2'
 
+        The `raw` style avoids any unnecessary characters:
+
+        >>> Date('19971101000000').style
+        'raw'
+
         You are allowed to abbreviate the input strings:
 
         >>> for string in ('1996-11-01 00:00:00',
@@ -321,6 +328,12 @@ but for the given `datetime` object it is `2` instead.
         Traceback (most recent call last):
         ...
         ValueError: The given string `1997/11/01` does not agree with any \
+of the supported format styles.
+
+        >>> Date.from_string('1997111')
+        Traceback (most recent call last):
+        ...
+        ValueError: The given string `1997111` does not agree with any \
 of the supported format styles.
 
         >>> Date.from_string('1997-11-01 +0000001')
@@ -365,14 +378,26 @@ invalid literal for int() with base 10: '0X'
             style, format_ = cls._lastformatstring
             return style, strptime(substring, format_)
         except ValueError as exc:
-            for (style, format_) in cls.formatstrings.items():
-                for dummy in range(4):
-                    try:
-                        datetime = strptime(substring, format_)
-                        cls._lastformatstring = style, format_
-                        return style, datetime
-                    except ValueError:
-                        format_ = format_[:-3]
+            if substring.isdigit():
+                format_ = cls.formatstrings['raw'][:len(substring)-2]
+                try:
+                    datetime = strptime(substring, format_)
+                except ValueError:
+                    raise ValueError(
+                        f'The given string `{string}` does not agree '
+                        f'with any of the supported format styles.'
+                    ) from exc
+                cls._lastformatstring = 'raw', format_
+                return 'raw', datetime
+            for style, format_ in cls.formatstrings.items():
+                if style != 'raw':
+                    for _ in range(4):
+                        try:
+                            datetime = strptime(substring, format_)
+                            cls._lastformatstring = style, format_
+                            return style, datetime
+                        except ValueError:
+                            format_ = format_[:-3]
             raise ValueError(
                 f'The given string `{string}` does not agree '
                 f'with any of the supported format styles.'

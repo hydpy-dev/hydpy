@@ -101,13 +101,19 @@ class IntConstant(int):
 class Constants(dict):
     """Base class for defining integer constants for a specific model."""
 
+    value2name: Dict[int, str]
+    """Mapping from the the values of the constants to their names."""
+
     def __init__(self, *args, **kwargs):
         frame = inspect.currentframe().f_back
+        value2name = {}
         for (key, value) in frame.f_locals.items():
             if key.isupper() and isinstance(value, IntConstant):
                 kwargs[key] = value
-        dict.__init__(self, *args, **kwargs)
+                value2name[value] = key
+        super().__init__(self, *args, **kwargs)
         self.__module__ = frame.f_locals['__name__']
+        self.value2name = value2name
         self._prepare_docstrings(frame)
 
     def _prepare_docstrings(self, frame):

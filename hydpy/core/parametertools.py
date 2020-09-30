@@ -106,15 +106,16 @@ class Constants(dict):
 
     def __init__(self, *args, **kwargs):
         frame = inspect.currentframe().f_back
-        value2name = {}
-        for (key, value) in frame.f_locals.items():
-            if key.isupper() and isinstance(value, IntConstant):
-                kwargs[key] = value
-                value2name[value] = key
-        super().__init__(self, *args, **kwargs)
-        self.__module__ = frame.f_locals['__name__']
-        self.value2name = value2name
-        self._prepare_docstrings(frame)
+        self.__module__ = frame.f_locals.get('__name__')
+        if not (args or kwargs):
+            for (key, value) in frame.f_locals.items():
+                if key.isupper() and isinstance(value, IntConstant):
+                    kwargs[key] = value
+            super().__init__(**kwargs)
+            self._prepare_docstrings(frame)
+        else:
+            super().__init__(*args, **kwargs)
+        self.value2name = {value: key for key, value in self.items()}
 
     def _prepare_docstrings(self, frame):
         """Assign docstrings to the constants handled by |Constants|
@@ -1227,16 +1228,16 @@ class NameParameter(Parameter):
 
     For demonstration, we define the test class `LandType`, covering
     three different types of land covering.  For this purpose, we need
-    to prepare a dictionary (class attribute `CONSTANTS`), mapping the
-    land type names to identity values.  The entries of the `SPAN`
+    to prepare a dictionary of type |Constants| (class attribute `CONSTANTS`),
+    mapping the land type names to identity values.  The entries of the `SPAN`
     tuple should agree with the lowest and highest identity values.
     The class attributes `NDIM`, `TYPE`, and `TIME` are already set
     to `1`, `float`, and `None` by base class |NameParameter|:
 
-    >>> from hydpy.core.parametertools import NameParameter
+    >>> from hydpy.core.parametertools import Constants, NameParameter
     >>> class LandType(NameParameter):
     ...     SPAN = (1, 3)
-    ...     CONSTANTS = {'SOIL':  1, 'WATER': 2, 'GLACIER': 3}
+    ...     CONSTANTS = Constants(SOIL=1, WATER=2, GLACIER=3)
 
     Additionally, we make the constants available within the local
     namespace (which is usually done by importing the constants

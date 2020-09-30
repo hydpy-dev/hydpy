@@ -470,11 +470,11 @@ neither a filename is given nor does the model know its master element.
             if self.states or self.logs:
                 con = hydpy.pub.controlmanager
                 lines = [
-                    '# -*- coding: utf-8 -*-\n\n',
-                    f'from hydpy.models.{self.model} import *\n\n',
-                    f'controlcheck(projectdir="{con.projectdir}", '
-                    f'controldir="{con.currentdir}", '
-                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n']
+                    "# -*- coding: utf-8 -*-\n\n",
+                    f"from hydpy.models.{self.model} import *\n\n",
+                    f"controlcheck(projectdir=r'{con.projectdir}', "
+                    f"controldir='{con.currentdir}', "
+                    f"stepsize='{hydpy.pub.timegrids.stepsize}')\n\n"]
                 for seq in self.conditionsequences:
                     lines.append(repr(seq) + '\n')
                 filepath = os.path.join(

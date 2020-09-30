@@ -1360,7 +1360,6 @@ class ZipParameter(Parameter):
     world" example) but is supposed to focus on the response units of
     type `soil` or `glacier` only:
 
-
     >>> from hydpy.core.masktools import IndexMask
     >>> class Land(IndexMask):
     ...     RELEVANT_VALUES = (SOIL, GLACIER)
@@ -1465,6 +1464,43 @@ The given keywords are incomplete and no default value is available.
     ...     par(soil=-10.0, glacier=10.0)
     >>> par
     par(glacier=10.0, soil=0.0)
+
+    For convenience, you can get or set all values related to a specific
+    constant via attribute access:
+
+    >>> par.soil
+    array([ 0.,  0.])
+    >>> par.soil = 2.5
+    >>> par
+    par(glacier=10.0, soil=5.0)
+
+    Improper use of these "special attributes" results in errors like
+    the following:
+
+    >>> par.Soil
+    Traceback (most recent call last):
+    ...
+    AttributeError: `Soil` is neither a normal attribute of parameter \
+`par` of element `?` nor among the following special attributes: \
+soil, water, and glacier.
+
+    >>> par.soil = 'test'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying the set the value(s) of parameter `par` \
+of element `?` related to the special attribute `soil`, the following \
+error occurred: could not convert string to float: 'test'
+
+    .. testsetup::
+
+        >>> dir(par)
+        ['INIT', 'MODEL_CONSTANTS', 'NDIM', 'NOT_DEEPCOPYABLE_MEMBERS', \
+'SPAN', 'TIME', 'TYPE', 'apply_timefactor', 'availablemasks', \
+'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
+'get_submask', 'get_timefactor', 'glacier', 'initinfo', 'landtype', \
+'mask', 'name', 'refweights', 'revert_timefactor', 'shape', 'soil', \
+'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', \
+'value', 'values', 'verify', 'water']
     """
     NDIM = 1
     MODEL_CONSTANTS: Dict[str, int]
@@ -1479,9 +1515,13 @@ The given keywords are incomplete and no default value is available.
                 objecttools.augment_excmessage(
                     f'While trying to set the values of parameter '
                     f'{objecttools.elementphrase(self)} based on keyword '
-                    f'arguments `{objecttools.enumeration(kwargs)}`')
+                    f'arguments `{objecttools.enumeration(kwargs)}`'
+                )
 
-    def _own_call(self, kwargs: Dict[str, Any]) -> None:
+    def _own_call(
+            self,
+            kwargs: Dict[str, Any],
+    ) -> None:
         mask = self.mask
         self.values = numpy.nan
         values = self.values
@@ -1512,16 +1552,41 @@ The given keywords are incomplete and no default value is available.
         values[:] = self.apply_timefactor(values)
         self.trim()
 
-    def compress_repr(self) -> Optional[str]:
-        """Works as |Parameter.compress_repr|, but alternatively
-        tries to compress by following an external classification.
+    def __getattr__(self, name: str):
+        name_ = name.upper()
+        if (not name.islower()) or (name_ not in self.MODEL_CONSTANTS):
+            names = objecttools.enumeration(
+                key.lower() for key in self.MODEL_CONSTANTS.keys()
+            )
+            raise AttributeError(
+                f'`{name}` is neither a normal attribute of parameter '
+                f'{objecttools.elementphrase(self)} nor among the '
+                f'following special attributes: {names}.'
+            )
+        sel_constant = self.MODEL_CONSTANTS[name_]
+        used_constants = self.mask.refindices.values
+        return self.values[used_constants == sel_constant]
 
-        See the main documentation on class |ZipParameter| for
-        further information.
-        """
+    def __setattr__(self, name: str, value):
+        name_ = name.upper()
+        if name.islower() and (name_ in self.MODEL_CONSTANTS):
+            try:
+                sel_constant = self.MODEL_CONSTANTS[name_]
+                used_constants = self.mask.refindices.values
+                self.values[used_constants == sel_constant] = value
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying the set the value(s) of parameter '
+                    f'{objecttools.elementphrase(self)} related to the '
+                    f'special attribute `{name}`'
+                )
+        else:
+            super().__setattr__(name, value)
+
+    def __repr__(self) -> str:
         string = super().compress_repr()
         if string is not None:
-            return string
+            return f'{self.name}({string})'
         results = []
         mask = self.mask
         refindices = mask.refindices.values
@@ -1534,8 +1599,19 @@ The given keywords are incomplete and no default value is available.
                     results.append(
                         f'{key.lower()}={objecttools.repr_(unique[0])}')
                 elif length > 1:
-                    return None
-        return ', '.join(sorted(results))
+                    return super().__repr__()
+        string = objecttools.assignrepr_values(
+            values=sorted(results),
+            prefix=f'{self.name}(',
+            width=70,
+        )
+        return f'{string})'
+
+    def __dir__(self):
+        return (
+            super().__dir__() +
+            [key.lower() for key in self.MODEL_CONSTANTS.keys()]
+        )
 
 
 class SeasonalParameter(Parameter):

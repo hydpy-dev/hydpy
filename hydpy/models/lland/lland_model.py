@@ -3869,6 +3869,14 @@ class Calc_G_V1(modeltools.Method):
     layer, which is why we use its difference to :math:`G_D` for estimating
     the nighttime sum of the soil heat flux (:math:`G_N`).
 
+    .. note::
+
+       The sudden jumps of the soil heat flux calculated by method |Calc_G_V1|
+       sometimes result in strange-looking evapotranspiration time-series.
+       Hence, we do not use |Calc_G_V1| in any application model for now
+       but leave it for further discussions and use the simplified method
+       |Calc_G_V2| instead.
+
     Examples:
 
         To start as simple as possible, we perform the first test calculation
@@ -3897,8 +3905,8 @@ class Calc_G_V1(modeltools.Method):
         from the soil body to the soil surface) and a negative one for June
         (enery moves for the surface to the body):
 
-        >>> wg2z.mai=1.0
-        >>> wg2z.jun=-2.0
+        >>> wg2z.mai = 1.0
+        >>> wg2z.jun = -2.0
 
         The following derived parameters need to be updated:
 
@@ -4008,6 +4016,63 @@ class Calc_G_V1(modeltools.Method):
                     flu.possiblesunshineduration*d_gd_h +
                     (der.hours-flu.possiblesunshineduration)*d_gn_h
                 )
+
+
+class Calc_G_V2(modeltools.Method):
+    """Take the actual daily soil heat flux from parameter |WG2Z|.
+
+    Basic equations:
+      :math:`G = WG2Z`
+
+    .. note::
+
+       Method |Calc_G_V2| workaround.  We might remove it, as soon as the
+       shortcomings of method |Calc_G_V1| are fixed.
+
+    Examples:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-05-30 00:00', '2000-06-02 00:00', '1h'
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> lnk(ACKER, WASSER, FLUSS, SEE)
+        >>> wg2z.mai = 1.2
+        >>> wg2z.jun = -2.4
+        >>> derived.moy.update()
+        >>> derived.days.update()
+        >>> model.idx_sim = pub.timegrids.init['2000-05-31 23:00']
+        >>> model.calc_g_v2()
+        >>> fluxes.g
+        g(0.05, 0.0, 0.0, 0.0)
+        >>> model.idx_sim = pub.timegrids.init['2000-06-01 00:00']
+        >>> model.calc_g_v2()
+        >>> fluxes.g
+        g(-0.1, 0.0, 0.0, 0.0)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.WG2Z,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.Days,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.G,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (FLUSS, SEE, WASSER):
+                flu.g[k] = 0.
+            else:
+                flu.g[k] = der.days*con.wg2z[der.moy[model.idx_sim]]
 
 
 class Return_WG_V1(modeltools.Method):
@@ -8701,6 +8766,7 @@ class Model(modeltools.AdHocModel):
         Calc_NetShortwaveRadiationSnow_V1,
         Calc_DailyNetShortwaveRadiation_V1,
         Calc_G_V1,
+        Calc_G_V2,
         Calc_EvB_V2,
         Update_EBdn_V1,
         Update_ESnow_V1,

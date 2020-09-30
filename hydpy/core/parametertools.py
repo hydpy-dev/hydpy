@@ -1268,12 +1268,23 @@ class NameParameter(Parameter):
     >>> landtype
     landtype(SOIL, WATER, GLACIER, WATER, SOIL)
 
-    For high numbers of entries, the string representation puts the
+    For high numbers of entries, string representations are wrapped:
+
+    >>> landtype.shape = 22
+    >>> landtype(SOIL)
+    >>> landtype.values[0] = WATER
+    >>> landtype.values[-1] = GLACIER
+    >>> landtype
+    landtype(WATER, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
+             SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
+             SOIL, GLACIER)
+
+    For very high numbers of entries, the string representation puts the
     names of the constants within a list (to make the string representations
     executable under Python 3.6; this behaviour will change as soon
     as Python 3.7 becomes the oldest supported version):
 
-    >>> landtype.shape = 300
+    >>> landtype.shape = 256
     >>> landtype(SOIL)
     >>> landtype.values[0] = WATER
     >>> landtype.values[-1] = GLACIER
@@ -1283,29 +1294,28 @@ class NameParameter(Parameter):
     NDIM = 1
     TYPE = int
     TIME = None
-    CONSTANTS: Dict[str, int]
+    CONSTANTS: Constants
 
-    def compress_repr(self) -> str:
-        """Works as |Parameter.compress_repr|, but returns a
-        string with constant names instead of constant values.
-
-        See the main documentation on class |NameParameter| for
-        further information.
-        """
+    def __repr__(self) -> str:
         string = super().compress_repr()
         if string in ('?', '[]'):
-            return string
+            return f'{self.name}({string})'
         if string is None:
             values = self.values
         else:
             values = [int(string)]
-        invmap = {value: key for key, value in
-                  self.CONSTANTS.items()}
-        result = ', '.join(
-            invmap.get(value, repr(value)) for value in values)
+        get = self.CONSTANTS.value2name.get
+        names = tuple(get(value, repr(value)) for value in values)
         if len(self) > 255:
-            result = f'[{result}]'
-        return result
+            repr_ = objecttools.assignrepr_list
+        else:
+            repr_ = objecttools.assignrepr_values
+        string = repr_(
+            values=names,
+            prefix=f'{self.name}(',
+            width=70,
+        )
+        return f'{string})'
 
 
 class ZipParameter(Parameter):

@@ -882,8 +882,8 @@ class ControlManager(FileManager):
         >>> results['control']
         area(692.3)
         nmbzones(12)
-        zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, \
-FOREST, FIELD, FOREST, FIELD, FOREST)
+        zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
+                 FIELD, FOREST, FIELD, FOREST)
         zonearea(14.41, 7.06, 70.83, 84.36, 70.97, 198.0, 27.75, 130.0, 27.28,
                  56.94, 1.09, 3.61)
         zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)

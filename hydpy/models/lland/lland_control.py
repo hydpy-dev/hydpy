@@ -879,7 +879,7 @@ class FBeta(lland_parameters.ParameterSoil):
     INIT = 1.
 
 
-class RBeta(lland_parameters.ParameterSoil):
+class RBeta(parametertools.Parameter):
     """Boolscher Parameter der steuert, ob the Perkolation unterhalb der
      Feldkapazität auf Null reduziert wird (flag to indicate if seepage is
      reduced to zero below field capacity) [-]."""

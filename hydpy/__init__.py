@@ -34,6 +34,10 @@ from hydpy.core.devicetools import Elements
 from hydpy.core.devicetools import FusedVariable
 from hydpy.core.devicetools import Node
 from hydpy.core.devicetools import Nodes
+from hydpy.core.exceptiontools import AttributeNotReady
+from hydpy.core.exceptiontools import attrready
+from hydpy.core.exceptiontools import getattr_
+from hydpy.core.exceptiontools import hasattr_
 from hydpy.core.exceptiontools import HydPyDeprecationWarning
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model
@@ -144,6 +148,11 @@ __all__ = ['aggregate_series',
            'FusedVariable',
            'Node',
            'Nodes',
+           'AttributeNotReady',
+           'attrready',
+           'getattr_',
+           'hasattr_',
+           'HydPyDeprecationWarning',
            'HydPy',
            'prepare_model',
            'reverse_model_wildcard_import',

@@ -4,6 +4,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 
 
@@ -41,7 +42,11 @@ class AngstromConstant(parametertools.Parameter):
         angstromconstant(0.4)
         """
         if upper is None:
-            upper = getattr(self.subpars.angstromfactor, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.angstromfactor,
+                'value',
+                None,
+            )
             if upper is None:
                 upper = 1.
             else:
@@ -69,7 +74,11 @@ class AngstromFactor(parametertools.Parameter):
         angstromfactor(0.4)
         """
         if upper is None:
-            upper = getattr(self.subpars.angstromconstant, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.angstromconstant,
+                'value',
+                None,
+            )
             if upper is None:
                 upper = 1.
             else:

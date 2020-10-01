@@ -882,8 +882,8 @@ class Sequence(variabletools.Variable):
     >>> evpo.shape
     Traceback (most recent call last):
     ...
-    AttributeError: Shape information for variable `evpo` can only be \
-retrieved after it has been defined.
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `evpo` can only be retrieved after it has been defined.
 
     For high numbers of entries, the string representation puts the
     names of the constants within a list (to make the string representations

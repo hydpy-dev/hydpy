@@ -10,6 +10,7 @@ import warnings
 import numpy
 # ...from HydPy
 import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -401,7 +402,11 @@ class AngstromConstant(parametertools.MonthParameter):
         angstromconstant(0.6)
         """
         if upper is None:
-            upper = getattr(self.subpars.angstromfactor, 'values', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.angstromfactor,
+                'values',
+                None,
+            )
             if upper is not None:
                 upper = upper.copy()
                 idxs = numpy.isnan(upper)
@@ -436,7 +441,11 @@ class AngstromFactor(parametertools.MonthParameter):
         angstromfactor(0.6)
         """
         if upper is None:
-            upper = getattr(self.subpars.angstromconstant, 'values', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.angstromconstant,
+                'values',
+                None,
+            )
             if upper is not None:
                 upper = upper.copy()
                 idxs = numpy.isnan(upper)
@@ -589,9 +598,17 @@ class WMax(lland_parameters.ParameterSoil):
         wmax(60.0, 60.0, 90.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.fk, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.fk,
+                'value',
+                None,
+            )
             if lower is None:
-                lower = getattr(self.subpars.pwp, 'value', None)
+                lower = exceptiontools.getattr_(
+                    self.subpars.pwp,
+                    'value',
+                    None,
+                )
         super().trim(lower, upper)
 
 
@@ -626,9 +643,17 @@ class FK(lland_parameters.ParameterSoilThreshold):
         fk(20.0, 50.0, 80.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.pwp, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.pwp,
+                'value',
+                None,
+            )
         if upper is None:
-            upper = getattr(self.subpars.wmax, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.wmax,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -667,9 +692,17 @@ class PWP(lland_parameters.ParameterSoilThreshold):
         pwp(0.0, 50.0, 80.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.fk, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.fk,
+                'value',
+                None,
+            )
             if upper is None:
-                upper = getattr(self.subpars.wmax, 'value', None)
+                upper = exceptiontools.getattr_(
+                    self.subpars.wmax,
+                    'value',
+                    None,
+                )
         super().trim(lower, upper)
 
 
@@ -701,7 +734,11 @@ class PY(lland_parameters.ParameterSoilThreshold):
         py(0.0, 50.0, 100.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.wmax, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.wmax,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -959,7 +996,11 @@ Keyword `rdmin` is not among the available model constants.
         dmin(0.0, 0.0, 2.0, 4.0, 4.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.dmax, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.dmax,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1036,7 +1077,11 @@ Keyword `rdmax` is not among the available model constants.
         dmax(4.0, 4.0, 6.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.dmin, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.dmin,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1203,7 +1248,11 @@ class EQB(parametertools.Parameter):
         eqb(3.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.eqi1, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.eqi1,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1239,9 +1288,17 @@ class EQI1(parametertools.Parameter):
         eqi1(3.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.eqi2, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.eqi2,
+                'value',
+                None,
+            )
         if upper is None:
-            upper = getattr(self.subpars.eqb, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.eqb,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1277,9 +1334,17 @@ class EQI2(parametertools.Parameter):
         eqi2(3.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.eqd1, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.eqd1,
+                'value',
+                None,
+            )
         if upper is None:
-            upper = getattr(self.subpars.eqi1, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.eqi1,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1315,9 +1380,17 @@ class EQD1(parametertools.Parameter):
         eqd1(3.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.eqd2, 'value', None)
+            lower = exceptiontools.getattr_(
+                self.subpars.eqd2,
+                'value',
+                None,
+            )
         if upper is None:
-            upper = getattr(self.subpars.eqi2, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.eqi2,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 
@@ -1346,7 +1419,11 @@ class EQD2(parametertools.Parameter):
         eqd2(3.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.eqd1, 'value', None)
+            upper = exceptiontools.getattr_(
+                self.subpars.eqd1,
+                'value',
+                None,
+            )
         super().trim(lower, upper)
 
 

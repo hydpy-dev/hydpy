@@ -3,13 +3,11 @@
 
 In HydPy, parameter values are usually not shared between different
 model objects handled by different elements, even if the model objects
-model objects handled by different elements, even if the model objects
 are of the same type (e.g. HBV).  This offers flexibility in applying
-different parameterization schemes.  But very often, modellers prefer
+different parameterisation schemes.  But very often, modellers prefer
 to use a very limited amount of values for certain parameters (at least
 within hydrologically homogeneous regions).  Hence, the downside of
 this flexibility is that the same parameter values might be defined in
-hundreds or even thousands of parameter control files (one file for
 hundreds or even thousands of parameter control files (one file for
 each model/element).
 

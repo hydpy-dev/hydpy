@@ -7,9 +7,10 @@
 import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import parametertools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 
 
 class XPoints(parametertools.Parameter):
@@ -152,7 +153,7 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
     def __call__(self, *args, **kwargs):
         try:
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
-        except AttributeError:
+        except exceptiontools.AttributeNotReady:
             raise RuntimeError(
                 f'The shape of parameter {objecttools.elementphrase(self)} '
                 f'depends on the shape of parameter `xpoints`, which has '

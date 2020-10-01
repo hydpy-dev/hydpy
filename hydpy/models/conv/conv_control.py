@@ -29,8 +29,8 @@ class Coordinates(parametertools.Parameter):
     >>> inputcoordinates.values
     Traceback (most recent call last):
     ...
-    AttributeError: Shape information for variable `inputcoordinates` \
-can only be retrieved after it has been defined.
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `inputcoordinates` can only be retrieved after it has been defined.
 
     However, you usually do this automatically when assigning new
     values.  Use keyword arguments to define the names of the relevant

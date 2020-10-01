@@ -12,6 +12,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import timetools
@@ -200,9 +201,9 @@ class Parameters:
         >>> model.parameters.update()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to update parameter `nmbsegments` \
-of element `?`, the following error occurred: For variable `lag`, \
-no value has been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to update \
+parameter `nmbsegments` of element `?`, the following error occurred: For \
+variable `lag`, no value has been defined so far.
 
         With proper values both for parameter |hstream_control.Lag| and
         |hstream_control.Damp|, updating the derived parameters succeeds:
@@ -804,7 +805,7 @@ shape (2) into shape (2,3)
             subself = subnamespace[self.name]
             try:
                 return subself.__hydpy__get_value__()
-            except AttributeError:
+            except exceptiontools.AttributeNotReady:
                 raise RuntimeError(
                     f'The selected auxiliary file does not define '
                     f'value(s) for parameter `{self.name}`.'
@@ -1180,7 +1181,7 @@ implement method `update`.
         >>> test
         test([[]])
         """
-        if not hasattr(self, 'value'):
+        if not exceptiontools.attrready(self, 'value'):
             return '?'
         if not self:
             return f"{self.NDIM * '['}{self.NDIM * ']'}"
@@ -1201,7 +1202,7 @@ implement method `update`.
             islong = (len(self) > 255) if (values is None) else False
             return variabletools.to_repr(self, values, islong)
         lines = self.commentrepr
-        if hasattr(self, 'value'):
+        if exceptiontools.attrready(self, 'value'):
             value = self.revert_timefactor(self.value)
         else:
             value = '?'

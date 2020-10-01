@@ -17,6 +17,7 @@ from typing import *
 import numpy
 # ...from HydPy
 import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import typingtools
@@ -569,9 +570,9 @@ class Variable(Generic[SubgroupType]):
     >>> var + 1.0
     Traceback (most recent call last):
     ...
-    AttributeError: While trying to add variable `var` and `float` instance \
-`1.0`, the following error occurred: For variable `var`, no value has been \
-defined so far.
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to add \
+variable `var` and `float` instance `1.0`, the following error occurred: \
+For variable `var`, no value has been defined so far.
 
     In general, the examples above are valid for the following binary
     operations:
@@ -1033,7 +1034,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
         >>> var.value
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `var`, no value has been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, \
+no value has been defined so far.
 
         Property |Variable.value| tries to normalise assigned values and
         raises an error, if not possible:
@@ -1079,21 +1081,22 @@ to type `float`.
         >>> var.value
         Traceback (most recent call last):
         ...
-        AttributeError: Shape information for variable `var` can only be \
-retrieved after it has been defined.
+        hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `var` can only be retrieved after it has been defined.
 
         >>> var.value = 2
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to set the value(s) of variable `var`, \
-the following error occurred: Shape information for variable `var` can only \
-be retrieved after it has been defined.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to set the \
+value(s) of variable `var`, the following error occurred: Shape information \
+for variable `var` can only be retrieved after it has been defined.
 
         >>> var.shape = (2, 3)
         >>> var.value
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `var`, no values have been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, \
+no values have been defined so far.
 
         >>> var.value = 2
         >>> var.value
@@ -1122,9 +1125,10 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
             getattr(self.fastaccess, self.name, None))
         if value is None:
             substring = 'values have' if self.NDIM else 'value has'
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 f'For variable {objecttools.devicephrase(self)}, '
-                f'no {substring} been defined so far.')
+                f'no {substring} been defined so far.'
+            )
         return value
 
     def __hydpy__set_value__(self, value) -> None:
@@ -1205,8 +1209,8 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         >>> var.shape
         Traceback (most recent call last):
         ...
-        AttributeError: Shape information for variable `var` can only be \
-retrieved after it has been defined.
+        hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `var` can only be retrieved after it has been defined.
 
         For multidimensional objects, assigning shape information (as a
         |tuple| of |int| values) prepares the required array automatically.
@@ -1233,7 +1237,9 @@ retrieved after it has been defined.
         >>> var.values
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `var`, no values have been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, no \
+values have been defined so far.
+
         >>> var.fastaccess.var
         array([ nan,  nan,  nan])
 
@@ -1246,12 +1252,13 @@ retrieved after it has been defined.
         TypeError: While trying create a new numpy ndarray for \
 variable `var`, the following error occurred: 'str' object cannot \
 be interpreted as an integer
-        >>> hasattr(var, 'shape')
+        >>> from hydpy import attrready
+        >>> attrready(var, 'shape')
         False
         >>> var.fastaccess.var
 
         >>> var.shape = (1,)
-        >>> hasattr(var, 'shape')
+        >>> attrready(var, 'shape')
         True
 
         >>> var.shape = (2, 3)
@@ -1259,7 +1266,7 @@ be interpreted as an integer
         ...
         ValueError: Variable `var` is 1-dimensional, but the given \
 shape indicates `2` dimensions.
-        >>> hasattr(var, 'shape')
+        >>> attrready(var, 'shape')
         False
         >>> var.fastaccess.var
 
@@ -1279,7 +1286,8 @@ shape indicates `2` dimensions.
         >>> var.value
         Traceback (most recent call last):
         ...
-        AttributeError: For variable `var`, no value has been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, \
+no value has been defined so far.
 
         >>> var.shape = ()
         >>> var.shape
@@ -1302,7 +1310,7 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.shape
         ()
         >>> var.shape = ()
-        >>> hasattr(var, 'value')
+        >>> attrready(var, 'value')
         False
         >>> var.fastaccess.var
         -999999
@@ -1319,10 +1327,11 @@ as `var` can only be `()`, but `(2,)` is given.
             if self.__shapeready:
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 f'Shape information for variable '
                 f'{objecttools.devicephrase(self)} can only '
-                f'be retrieved after it has been defined.')
+                f'be retrieved after it has been defined.'
+            )
         return ()
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
@@ -1439,7 +1448,8 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         when required."""
         raise AttributeError(
             f'Variable {objecttools.devicephrase(self)} does '
-            f'not define any weighting coefficients.')
+            f'not define any weighting coefficients.'
+        )
 
     def average_values(self, *args, **kwargs) -> float:
         """Average the actual values of the |Variable| object.

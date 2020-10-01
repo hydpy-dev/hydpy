@@ -4,6 +4,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 
@@ -50,7 +51,7 @@ cannot be changed, but this was attempted for element `?`.
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape):
-        if hasattr(self, 'shape'):
+        if exceptiontools.attrready(self, 'shape'):
             raise AttributeError(
                 f'The shape of parameter `{self.name}` cannot be '
                 f'changed, but this was attempted for element '

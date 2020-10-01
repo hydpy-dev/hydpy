@@ -8,6 +8,7 @@ from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 if TYPE_CHECKING:
     from hydpy.core import parametertools
@@ -205,7 +206,7 @@ determined as long as parameter `zonetype` is not prepared properly.
         Soil([ True,  True, False, False])
         """
         indices = cls.get_refindices(variable)
-        if numpy.min(getattr(indices, 'values', 0)) < 1:
+        if numpy.min(exceptiontools.getattr_(indices, 'values', 0)) < 1:
             raise RuntimeError(
                 f'The mask of parameter {objecttools.elementphrase(variable)} '
                 f'cannot be determined as long as parameter `{indices.name}` '

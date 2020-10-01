@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 # ...from hland
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_parameters
@@ -335,7 +336,8 @@ of parameter `alpha` must be defined beforehand.
                     f'keywords arguments `khq` and `hq` must be given.'
                 ) from exc
             alpha = float(kwargs.get(
-                'alpha', getattr(self.subpars.alpha, 'value', numpy.nan)))
+                'alpha', exceptiontools.getattr_(
+                    self.subpars.alpha, 'value', numpy.nan)))
             if numpy.isnan(alpha):
                 raise RuntimeError(
                     f'For the alternative calculation of parameter '

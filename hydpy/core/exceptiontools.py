@@ -10,11 +10,135 @@ from hydpy.core import objecttools
 
 
 class HydPyDeprecationWarning(DeprecationWarning):
-    """Warning for deprecated HydPy features."""
+    """Warning for deprecated *HydPy* features."""
 
 
-class AttributeNotReady(AttributeError):
-    """The attribute is principally defined, but must be prepared first."""
+class AttributeNotReady(RuntimeError):
+    """The attribute is principally defined but  so far unprepared."""
+
+
+def attrready(
+        obj: Any,
+        name: str,
+) -> bool:
+    """Return |False| when trying the access the attribute of the given object
+    results in an |AttributeNotReady| error and otherwise return |True|.
+
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one
+    tries to access them before they are correctly set.  You can use method
+    |attrready| to find out the current state of such properties without
+    doing the related exception handling on your own:
+
+    >>> from hydpy import attrready
+    >>> from hydpy.core.parametertools import Parameter
+    >>> class Par(Parameter):
+    ...     NDIM, TYPE = 1, float
+    >>> par = Par(None)
+    >>> attrready(par, 'NDIM')
+    True
+    >>> attrready(par, 'ndim')
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Par' object has no attribute 'ndim'
+    >>> attrready(par, 'shape')
+    False
+    >>> par.shape = 2
+    >>> attrready(par, 'shape')
+    True
+    """
+    try:
+        getattr(obj, name)
+    except AttributeNotReady:
+        return False
+    return True
+
+
+def hasattr_(
+        obj: Any,
+        name: str,
+) -> bool:
+    """Return |True| or |False| whether the object has an attribute with the
+    given name or not.
+
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one
+    tries to access them before they are correctly set, which also happens
+    when one applies function |hasattr| to find out if the related object
+    handles the property at all.  Function |hasattr_| extends function
+    |hasattr| by also catching |AttributeNotReady| errors:
+
+    >>> from hydpy import hasattr_
+    >>> from hydpy.core.parametertools import Parameter
+    >>> class Par(Parameter):
+    ...     NDIM, TYPE = 1, float
+    >>> par = Par(None)
+    >>> hasattr_(par, 'NDIM')
+    True
+    >>> hasattr_(par, 'ndim')
+    False
+    >>> hasattr_(par, 'shape')
+    True
+    >>> par.shape = 2
+    >>> attrready(par, 'shape')
+    True
+    """
+    try:
+        return hasattr(obj, name)
+    except AttributeNotReady:
+        return True
+
+
+_GETATTR_NO_DEFAULT = type('_GETATTR_NO_DEFAULT', (), {})
+
+
+def getattr_(
+        obj: Any,
+        name: str,
+        default: Any = _GETATTR_NO_DEFAULT,
+) -> bool:
+    """Return the attribute with the given name or, if it does not exist,
+    the default value, if available.
+
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one
+    tries to access them before they are correctly set, which also happens
+    when one applies function |getattr| with default values.  Function
+    |getattr_| extends function |getattr| by also returning the default
+    value when an |AttributeNotReady| error occurs:
+
+    >>> from hydpy import getattr_
+    >>> from hydpy.core.parametertools import Parameter
+    >>> class Par(Parameter):
+    ...     NDIM, TYPE = 1, float
+    >>> par = Par(None)
+    >>> getattr_(par, 'NDIM')
+    1
+    >>> getattr_(par, 'NDIM', 2)
+    1
+    >>> getattr_(par, 'ndim')
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Par' object has no attribute 'ndim'
+    >>> getattr_(par, 'ndim', 2)
+    2
+
+    >>> getattr_(par, 'shape')
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `par` can only be retrieved after it has been defined.
+    >>> getattr_(par, 'shape', (4,))
+    (4,)
+    >>> par.shape = 2
+    >>> getattr_(par, 'shape')
+    (2,)
+    >>> getattr_(par, 'shape', (4,))
+    (2,)
+    """
+    if default == _GETATTR_NO_DEFAULT:
+        return getattr(obj, name)
+    try:
+        return getattr(obj, name, default)
+    except AttributeNotReady:
+        return default
 
 
 class OptionalModuleNotAvailable(ImportError):

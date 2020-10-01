@@ -212,7 +212,8 @@ class AdjustedGlobalRadiation(sequencetools.FluxSequence):
 class G(lland_sequences.Flux1DSequence):
     """"MORECS" Bodenwärmestrom ("MORECS" soil heat flux) [MJ/m²].
 
-    With positive values, the soil gains heat from the atmosphere.
+    With positive values, the soil looses heat to the atmosphere or the
+    snow-layer.
     """
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()

@@ -1003,8 +1003,6 @@ operands could not be broadcast together with shapes (2,) (3,)...
             return descr[idx1:idx2]
         return '?'
 
-
-
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """To be called by the |SubVariables| object when preparing a

@@ -112,7 +112,7 @@ class WG2Z(parametertools.MonthParameter):
     INIT = 0.
 
 
-class FVF(lland_parameters.ParameterComplete):
+class FVF(parametertools.Parameter):
     """Frostversiegelungsfaktor zur Ermittelung des Frostversiegelungsgrades
     (frost sealing factor for determination of the degree of frost sealing
     FVG) [-]."""
@@ -120,7 +120,7 @@ class FVF(lland_parameters.ParameterComplete):
     INIT = 0.5
 
 
-class BSFF(lland_parameters.ParameterComplete):
+class BSFF(parametertools.Parameter):
     """Exponent zur Ermittelung des Frostversieglungsgrades (frost sealing
     exponent for determination of degree of frost sealing FVG) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -337,14 +337,14 @@ class SnowAgingFactor(parametertools.Parameter):
     INIT = 0.35
 
 
-class RefreezeFlag(lland_parameters.ParameterSoil):
+class RefreezeFlag(parametertools.Parameter):
     """Flag um wiedergefrieren zu aktivieren (flag to activate refreezing)
     [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (False, True)
     INIT = 0
 
 
-class KTSchnee(lland_parameters.ParameterSoil):
+class KTSchnee(parametertools.Parameter):
     """Effektive Wärmeleitfähigkeit der obersten Schneeschicht (effective
     thermal conductivity of the top snow layer) [MJ/m²/K/T].
 

@@ -173,7 +173,7 @@ class Options:
     1
     """
 
-    autocompile = _Option(True)
+    autocompile = _Option(False)
     """A True/False flag for enabling/disabling the automatic conversion of 
     pure Python models to computationally more efficient Cython models 
     whenever a existing Cython model may be outdated."""

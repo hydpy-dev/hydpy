@@ -1927,7 +1927,10 @@ agree with the complete set of relevant elements (element1 and element2).
             #         parameter(((), iuh.ma.coefs))
             setattr(iuh, self.name, self.value)
             if self.update_parameters:
-                parameter(iuh.arma.coefs)
+                if iuh.x < .2:
+                    parameter(((), (1.,)))
+                else:
+                    parameter(iuh.arma.coefs)
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.

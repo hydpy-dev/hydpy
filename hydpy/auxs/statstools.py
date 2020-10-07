@@ -843,6 +843,16 @@ def rmse(
 @overload
 def nse(
         *,
+        sim: Sequence[float],
+        obs: Sequence[float],
+        skip_nan: bool = ...,
+) -> numpy.ndarray:
+    """node as argument"""
+
+
+@overload
+def nse(
+        *,
         node: devicetools.Node,
         skip_nan: bool = ...,
 ) -> float:

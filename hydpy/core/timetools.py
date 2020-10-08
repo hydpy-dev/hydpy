@@ -2268,11 +2268,6 @@ class Timegrids:
     >>> timegrids == Timegrids('2000-01-01', '2001-01-01', '1d')
     True
 
-    Also, you can pass another |Timegrids| object:
-
-    >>> timegrids == Timegrids(timegrids)
-    True
-
     To define a simulation time grid different from the initialisation
     time grid, pass them as two individual |Timegrid| objects:
 
@@ -2295,30 +2290,72 @@ class Timegrids:
              '2000-07-01 00:00:00',
              '1d')
 
+    Class |Timegrids| supports keyword arguments:
+
+    >>> Timegrid(firstdate='2000-01-01 00:00:00',
+    ...          lastdate='2001-01-01 00:00:00',
+    ...          stepsize='1d')
+    Timegrid('2000-01-01 00:00:00',
+             '2001-01-01 00:00:00',
+             '1d')
+
+    >>> Timegrid('2000-01-01 00:00:00',
+    ...          '2001-01-01 00:00:00',
+    ...          stepsize='1d')
+    Timegrid('2000-01-01 00:00:00',
+             '2001-01-01 00:00:00',
+             '1d')
+
+    >>> Timegrids(init=Timegrid('2000-01-01 00:00:00',
+    ...                         '2001-01-01 00:00:00',
+    ...                         '1d'),
+    ...           sim=Timegrid('2000-01-01 00:00:00',
+    ...                        '2000-07-01 00:00:00',
+    ...                        '1d'))
+    Timegrids(Timegrid('2000-01-01 00:00:00',
+                       '2001-01-01 00:00:00',
+                       '1d'),
+              Timegrid('2000-01-01 00:00:00',
+                       '2000-07-01 00:00:00',
+                       '1d'))
+
     Wrong arguments should result in understandable error messages:
 
     >>> Timegrids(1, 2, 3, 4)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define a new Timegrids object based on \
+    TypeError: While trying to define a new `Timegrids` object based on the \
 arguments `1, 2, 3, and 4`, the following error occurred: Initialising \
 `Timegrids` objects requires one, two, or three arguments but `4` are given.
 
     >>> Timegrids('wrong')
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `wrong`, the following error occurred: When passing a single \
-argument to the constructor of class `Timegrids`, the argument must be \
-a `Timegrid` or a `Timegrids` object, but a `str` is given.
+    ValueError: While trying to define a new `Timegrids` object based on the \
+arguments `wrong`, the following error occurred: Initialising a `Timegrids` \
+object either requires one or two `Timegrid` objects or two dates objects \
+(of type `Date`, `datetime`, or `str`) and one period object (of type \
+`Period`, `timedelta`, or `str`), but objects of the types `str, None, \
+and None` are given.
 
-    >>> Timegrids('very', 'wrong')
+    >>> Timegrids(wrong=Timegrid('2000-01-01', '2001-01-01', '1d'))
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `very and wrong`, the following error occurred: When passing \
-two arguments to the constructor of class `Timegrids`, both argument \
-must be `Timegrid` object, but the first one is of type `str`.
+    TypeError: While trying to define a new `Timegrids` object based on the \
+arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, \
+the following error occurred: Initialising class `Timegrids` does not \
+support the following given keywords: `wrong`.
+
+    >>> Timegrids(
+    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
+    ...     init=Timegrid('2000-01-01', '2001-01-01', '1d'))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to define a new `Timegrids` object based on the \
+arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d') and \
+Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, the following \
+error occurred: There is a conflict between the given positional and keyword \
+arguments.
 
     Two |Timegrids| objects are equal if both the respective initialisation
     and simulation periods are equal:
@@ -2339,49 +2376,97 @@ must be `Timegrid` object, but the first one is of type `str`.
     False
     """
 
-    def __new__(cls, *args: Union[Timegrid, DateConstrArg, PeriodConstrArg]):
-        if (len(args) == 1) and isinstance(args[0], Timegrids):
-            return args[0]
-        return super().__new__(cls)
+    init: Timegrid
+    """|Timegrid| object covering the whole initialisation period."""
+    sim: Timegrid
+    """|Timegrid| object covering the actual simulation period only."""
 
-    def __init__(self, *args: Any):
+    @overload
+    def __init__(
+        self,
+        init: Timegrid,
+        sim: Optional[Timegrid],
+    ):
+        """from timegrids"""
+
+    @overload
+    def __init__(
+        self,
+        firstdate: DateConstrArg,
+        lastdate: DateConstrArg,
+        stepsize: PeriodConstrArg,
+    ):
+        """from timegrid constructor arguments"""
+
+    def __init__(self, *args, **kwargs):
+        values = list(args)+list(kwargs.values())
         try:
-            nmbargs = len(args)
-            if not nmbargs or nmbargs > 3:
-                raise ValueError(
+            if not 1 <= len(values) <= 3:
+                raise TypeError(
                     f'Initialising `Timegrids` objects requires one, two, '
-                    f'or three arguments but `{nmbargs}` are given.')
-            if nmbargs == 1:
-                if isinstance(args[0], Timegrids):
-                    pass
-                elif isinstance(args[0], Timegrid):
-                    self.init = args[0]
-                    self.sim = copy.deepcopy(args[0])
-                else:
-                    raise TypeError(
-                        f'When passing a single argument to the constructor '
-                        f'of class `Timegrids`, the argument must be a '
-                        f'`Timegrid` or a `Timegrids` object, but a '
-                        f'`{type(args[0]).__name__}` is given.')
-            elif nmbargs == 2:
-                for idx, arg in enumerate(args):
-                    if not isinstance(arg, Timegrid):
-                        number = 'second' if idx else 'first'
+                    f'or three arguments but `{len(values)}` are given.'
+                )
+            arguments = [None, None, None]
+            for idx, arg in enumerate(args):
+                arguments[idx] = arg
+            for idx, name in (
+                (0, 'init'),
+                (1, 'sim'),
+                (0, 'firstdate'),
+                (1, 'lastdate'),
+                (2, 'stepsize'),
+            ):
+                value = kwargs.pop(name, None)
+                if value is not None:
+                    if arguments[idx] is None:
+                        arguments[idx] = value
+                    else:
                         raise TypeError(
-                            f'When passing two arguments to the constructor '
-                            f'of class `Timegrids`, both argument must be '
-                            f'`Timegrid` object, but the {number} one is of '
-                            f'type `{type(args[0]).__name__}`.')
-                self.init = args[0]
-                self.sim = args[1]
-            elif nmbargs == 3:
-                self.init = Timegrid(args[0], args[1], args[2])
-                self.sim = Timegrid(args[0], args[1], args[2])
+                            'There is a conflict between the given '
+                            'positional and keyword arguments.'
+                        )
+            if kwargs:
+                raise TypeError(
+                    f'Initialising class `Timegrids` does not support the '
+                    f'following given keywords: '
+                    f'`{objecttools.enumeration(kwargs.keys())}`.'
+                )
+            arg1, arg2, arg3 = arguments
+            if (
+                    isinstance(arg1, Timegrid) and
+                    ((arg2 is None) or isinstance(arg2, Timegrid)) and
+                    (arg3 is None)
+            ):
+                self.init = copy.deepcopy(arg1)
+                if arg2 is None:
+                    self.sim = copy.deepcopy(arg1)
+                else:
+                    self.sim = copy.deepcopy(arg2)
+            elif (
+                    isinstance(arg1, (Date, datetime_.datetime, str)) and
+                    isinstance(arg2, (Date, datetime_.datetime, str)) and
+                    isinstance(arg3, (Period, datetime_.timedelta, str))
+            ):
+                self.init = Timegrid(arg1, arg2, arg3)
+                self.sim = Timegrid(arg1, arg2, arg3)
+            else:
+                types_ = objecttools.enumeration(
+                    'None' if arg is None else type(arg).__name__
+                    for arg in arguments
+                )
+                raise ValueError(
+                    f'Initialising a `Timegrids` object either requires one '
+                    f'or two `Timegrid` objects or two dates objects (of '
+                    f'type `Date`, `datetime`, or `str`) and one period '
+                    f'object (of type `Period`, `timedelta`, or `str`), '
+                    f'but objects of the types `{types_}` are given.'
+                )
             self.verify()
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to define a new Timegrids object based on '
-                f'arguments `{objecttools.enumeration(args)}`')
+                f'While trying to define a new `Timegrids` object based on '
+                f'the arguments `{objecttools.enumeration(values)}`'
+            )
 
     @property
     def stepsize(self) -> Period:
@@ -2432,8 +2517,8 @@ must be `Timegrid` object, but the first one is of type `str`.
         ...     Timegrid('2000-01-01', '2002-01-01', '1d'))
         Traceback (most recent call last):
         ...
-        ValueError: While trying to define a new Timegrids object based \
-on arguments `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d') \
+        ValueError: While trying to define a new `Timegrids` object based on \
+the arguments `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d') \
 and Timegrid('2000-01-01 00:00:00', '2002-01-01 00:00:00', '1d')`, the \
 following error occurred: The first date of the initialisation period \
 (`2001-01-01 00:00:00`) must not be later than the first date of the \
@@ -2585,6 +2670,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         24.0
         """
         return self.stepsize / Period(stepsize)
+
+    def __iter__(self) -> Iterator[Timegrid]:
+        yield self.init
+        yield self.sim
 
     def __eq__(self, other: Any) -> bool:
         try:

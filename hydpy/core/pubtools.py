@@ -55,7 +55,7 @@ class TimegridsProperty(
     >>> pub.timegrids = '2000-01-01', '2010-01-01', '1d'
 
     The given date and period information applies both for the
-    |Timegrids.init| and the |Timegrids.sim| |Timegrid| object:
+    |Timegrids.init| and the |Timegrids.sim| attribute:
 
     >>> pub.timegrids.init
     Timegrid('2000-01-01 00:00:00',
@@ -116,11 +116,12 @@ module `pub` is not defined at the moment.
     >>> pub.timegrids = None
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `None`, the following error occurred: When passing a single \
-argument to the constructor of class `Timegrids`, the argument must be \
-a `Timegrid` or a `Timegrids` object, but a `NoneType` is given.
-
+    ValueError: While trying to define a new `Timegrids` object based on the \
+arguments `None`, the following error occurred: Initialising a `Timegrids` \
+object either requires one or two `Timegrid` objects or two dates objects \
+(of type `Date`, `datetime`, or `str`) and one period object (of type \
+`Period`, `timedelta`, or `str`), but objects of the types `None, None, and \
+None` are given.
 
     >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
     >>> pub.timegrids

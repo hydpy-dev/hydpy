@@ -14,7 +14,7 @@ from hydpy.core import timetools
 
 
 def _get_timegrids(func):
-    timegrids = hydpy.pub.get('timegrids')
+    timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
     if timegrids is None:
         name = func.__name__[1:]
         raise exceptiontools.AttributeNotReady(
@@ -130,7 +130,7 @@ period is `5`.
         self.timegrids = None
 
     def call_fget(self, obj) -> numpy.ndarray:
-        timegrids = hydpy.pub.get('timegrids')
+        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
             self.timegrids = copy.deepcopy(timegrids)
@@ -141,7 +141,9 @@ period is `5`.
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
-        self.timegrids = copy.deepcopy(hydpy.pub.get('timegrids'))
+        self.timegrids = copy.deepcopy(
+            exceptiontools.getattr_(hydpy.pub, 'timegrids')
+        )
 
     def call_fdel(self, obj):
         self.fdel()
@@ -164,7 +166,7 @@ period is `5`.
                 f'The `{name}` index array of an Indexer object must be '
                 f'1-dimensional.  However, the given value has interpreted '
                 f'as a {array.ndim}-dimensional object.')
-        timegrids = hydpy.pub.get('timegrids')
+        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids')
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(

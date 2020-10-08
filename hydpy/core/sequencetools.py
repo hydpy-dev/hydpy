@@ -1038,7 +1038,12 @@ variable `evpo` can only be retrieved after it has been defined.
         return objecttools.dir_(self)
 
 
-class _IOProperty(propertytools.DefaultProperty):
+class _IOProperty(
+    propertytools.DefaultProperty[
+        propertytools.InputType,
+        propertytools.OutputType,
+    ]
+):
 
     DOCSTRING: ClassVar[str]
 
@@ -1090,23 +1095,23 @@ class _IOProperty(propertytools.DefaultProperty):
         return getattr(manager, self.__attr_manager)
 
 
-class _FileType(_IOProperty):
+class _FileType(_IOProperty[str, str]):
 
     DOCSTRING = 'Ending of the external data file.'
 
 
-class _DirPathProperty(_IOProperty):
+class _DirPathProperty(_IOProperty[str, str]):
 
     DOCSTRING = 'Absolute path of the directory of the external data file.'
 
 
-class _AggregationProperty(_IOProperty):
+class _AggregationProperty(_IOProperty[str, str]):
 
     DOCSTRING = ('Type of aggregation performed when writing the '
                  'time-series data to an external data file.')
 
 
-class _OverwriteProperty(_IOProperty):
+class _OverwriteProperty(_IOProperty[bool, bool]):
 
     DOCSTRING = ('True/False flag indicating if overwriting an existing '
                  'data file is allowed or not.')
@@ -1899,8 +1904,8 @@ the model associated with element `?`, the following error occurred: \
         >>> ModelSequence(None).load_ext()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to load the external time-series \
-data of `modelsequence`, the following error occurred: \
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to load the \
+external time-series data of `modelsequence`, the following error occurred: \
 Attribute sequencemanager of module `pub` is not defined at the moment.
         """
         try:
@@ -2180,8 +2185,8 @@ simulation time step is `1d`.
         >>> ModelSequence(None).save_ext()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to save the external time-series \
-data of `modelsequence`, the following error occurred: \
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to save the \
+external time-series data of `modelsequence`, the following error occurred: \
 Attribute sequencemanager of module `pub` is not defined at the moment.
         """
         try:

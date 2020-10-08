@@ -533,7 +533,10 @@ as function arguments.
                         os.path.split(os.getcwd())[0])[0])[-1])
         dirpath = os.path.abspath(os.path.join(
             '..', '..', '..', projectdir, 'control', controldir))
-        if hydpy.pub.get('timegrids') is None and stepsize is not None:
+        if not (
+                exceptiontools.attrready(hydpy.pub, 'timegrids') or
+                (stepsize is None)
+        ):
             if firstdate is None:
                 try:
                     firstdate = timetools.Date.from_string(

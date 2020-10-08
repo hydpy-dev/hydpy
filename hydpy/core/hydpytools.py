@@ -804,8 +804,8 @@ at the moment.
         >>> pub.selections
         Traceback (most recent call last):
         ...
-        RuntimeError: Attribute selections of module `pub` is not \
-defined at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute selections \
+of module `pub` is not defined at the moment.
 
         By calling the method |HydPy.prepare_network|, one loads all three
         network files into separate |Selection| objects, all handled

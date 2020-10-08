@@ -294,9 +294,17 @@ hydpy.models.hland.hland_control.ZoneType
                         opt.simulationstep(timetools.Period()), \
                         devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
-                    projectname = hydpy.pub.get('projectname')
+                    projectname = exceptiontools.getattr_(
+                        hydpy.pub,
+                        'projectname',
+                        None,
+                    )
                     del hydpy.pub.projectname
-                    timegrids = hydpy.pub.get('timegrids')
+                    timegrids = exceptiontools.getattr_(
+                        hydpy.pub,
+                        'timegrids',
+                        None,
+                    )
                     del hydpy.pub.timegrids
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()

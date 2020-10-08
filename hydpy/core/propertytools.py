@@ -12,6 +12,9 @@ from typing import *
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
+InputType = TypeVar('InputType')
+OutputType = TypeVar('OutputType')
+
 
 def fgetdummy(*args):
     """The "unready" default `fget` function of class |BaseProperty| objects.
@@ -70,23 +73,15 @@ should never been called, but has been called with argument(s): arg1.
         f'{objecttools.enumeration(args)}.')
 
 
-class BaseProperty(abc.ABC):
+class BaseProperty(Generic[InputType, OutputType]):
     # noinspection PyUnresolvedReferences
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
     |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which allow
     to add custom functionalities (e.g. caching) besides the standard
-    functionalities of properties:
-
-    >>> from hydpy.core.propertytools import BaseProperty
-    >>> BaseProperty()
-    Traceback (most recent call last):
-    ...
-    TypeError: Can't instantiate abstract class BaseProperty with abstract \
-methods call_fdel, call_fget, call_fset
-
-    The following concrete class mimics the behaviour of class |property|:
+    functionalities of properties.  The following concrete class mimics
+    the behaviour of class |property|:
 
     >>> from hydpy.core.propertytools import fgetdummy, fsetdummy, fdeldummy
     >>> class ConcreteProperty(BaseProperty):
@@ -157,21 +152,30 @@ methods call_fdel, call_fget, call_fset
     fset: Callable
     fdel: Callable
     objtype: Any
-    module: types.ModuleType
+    module: Optional[types.ModuleType]
     name: str
     __doc__: str
 
     def __set_name__(self, objtype, name) -> None:
         self.objtype: Any = objtype
         self.module = inspect.getmodule(objtype)
-        if not hasattr(self.module, '__test__'):
-            self.module.__dict__['__test__'] = dict()
+        if self.module is not None:
+            if not hasattr(self.module, '__test__'):
+                self.module.__dict__['__test__'] = dict()
         self.name: str = name
         doc = getattr(self, '__doc__')
         if doc:
             self.set_doc(doc)
 
-    def __get__(self, obj, objtype=None) -> Any:
+    @overload
+    def __get__(self, obj: None, objtype) -> 'BaseProperty':
+        """get the property"""
+
+    @overload
+    def __get__(self, obj, objtype) -> OutputType:
+        """get the value"""
+
+    def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         if self.fget is fgetdummy:
@@ -180,7 +184,7 @@ methods call_fdel, call_fget, call_fset
                 f'{objecttools.devicephrase(obj)} is not gettable.')
         return self.call_fget(obj)
 
-    def __set__(self, obj, value) -> None:
+    def __set__(self, obj, value: InputType) -> None:
         if self.fset is fsetdummy:
             raise AttributeError(
                 f'Attribute `{self.name}` of object '
@@ -204,11 +208,11 @@ methods call_fdel, call_fget, call_fset
             self.module.__dict__['__test__'][ref] = doc
 
     @abc.abstractmethod
-    def call_fget(self, obj) -> Any:
+    def call_fget(self, obj) -> OutputType:
         """Method for implementing special getter functionalities."""
 
     @abc.abstractmethod
-    def call_fset(self, obj, value) -> None:
+    def call_fset(self, obj, value: InputType) -> None:
         """Method for implementing special setter functionalities."""
 
     @abc.abstractmethod
@@ -233,7 +237,7 @@ methods call_fdel, call_fget, call_fset
         return self
 
 
-class ProtectedProperty(BaseProperty):
+class ProtectedProperty(BaseProperty[InputType, OutputType]):
     # noinspection PyUnresolvedReferences
     """|property| like class which prevents getting an attribute
     before setting it.
@@ -316,7 +320,7 @@ class ProtectedProperty(BaseProperty):
         self.fset = fsetdummy
         self.fdel = fdeldummy
 
-    def call_fget(self, obj) -> Any:
+    def call_fget(self, obj) -> OutputType:
         """Call `fget` when ready, otherwise raise an exception."""
         if self.isready(obj):
             return self.fget(obj)
@@ -324,7 +328,7 @@ class ProtectedProperty(BaseProperty):
             f'Attribute `{self.name}` of object '
             f'{objecttools.devicephrase(obj)} has not been prepared so far.')
 
-    def call_fset(self, obj, value) -> None:
+    def call_fset(self, obj, value: InputType) -> None:
         """Call `fset` and mark the attribute as ready."""
         self.fset(obj, value)
         vars(obj)[self.name] = True
@@ -339,6 +343,10 @@ class ProtectedProperty(BaseProperty):
         property is ready for the given object.  If the object is
         unknow, |ProtectedProperty| returns |False|."""
         return vars(obj).get(self.name, False)
+
+
+class ProtectedPropertyStr(ProtectedProperty[str, str]):
+    """|ProtectedProperty| for handling |str| objects."""
 
 
 class ProtectedProperties:
@@ -394,7 +402,7 @@ class ProtectedProperties:
         return self.__properties.__iter__()
 
 
-class DependentProperty(BaseProperty):
+class DependentProperty(BaseProperty[InputType, OutputType]):
     # noinspection PyUnresolvedReferences
     """|property| like class which prevents accessing a dependent
     attribute before other attributes have been prepared.
@@ -482,20 +490,26 @@ attribute `x` first.
                     f'so far.  At least, you have to prepare attribute '
                     f'`{req.name}` first.')
 
-    def call_fget(self, obj) -> Any:
+    def call_fget(self, obj) -> OutputType:
+        """Call `fget` when all required attributes are ready,
+        otherwise raise an |AttributeNotReady| error."""
         self.__check(obj)
         return self.fget(obj)
 
-    def call_fset(self, obj, value) -> None:
+    def call_fset(self, obj, value: InputType) -> None:
+        """Call `fset` when all required attributes are ready,
+        otherwise raise an |AttributeNotReady| error."""
         self.__check(obj)
         self.fset(obj, value)
 
     def call_fdel(self, obj) -> None:
+        """Call `fdel` when all required attributes are ready,
+        otherwise raise an |AttributeNotReady| error."""
         self.__check(obj)
         self.fdel(obj)
 
 
-class DefaultProperty(BaseProperty):
+class DefaultProperty(BaseProperty[InputType, OutputType]):
     # noinspection PyUnresolvedReferences
     """|property| like class which uses the getter function to return
     a default value unless a custom value is available.
@@ -586,7 +600,7 @@ class DefaultProperty(BaseProperty):
         self.fdel = self._fdel
         self.set_doc(fget.__doc__)
 
-    def call_fget(self, obj) -> Any:
+    def call_fget(self, obj) -> OutputType:
         """Return the predefined custom value when available, otherwise,
         the value defined by the getter function."""
         custom = vars(obj).get(self.name)
@@ -594,7 +608,7 @@ class DefaultProperty(BaseProperty):
             return self.fget(obj)
         return custom
 
-    def call_fset(self, obj, value) -> None:
+    def call_fset(self, obj, value: InputType) -> None:
         """Store the given custom value and call the setter function."""
         vars(obj)[self.name] = self.fset(obj, value)
 

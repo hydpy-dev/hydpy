@@ -28,7 +28,12 @@ if TYPE_CHECKING:
     from matplotlib import pyplot
 
 
-class _ANNArrayProperty(propertytools.DependentProperty):
+class _ANNArrayProperty(
+    propertytools.DependentProperty[
+        numpy.ndarray,
+        numpy.ndarray,
+    ]
+):
 
     __obj2cann = weakref.WeakKeyDictionary()
 
@@ -485,7 +490,7 @@ attribute `nmb_inputs` first.
             del self.neuron_derivatives
 
     @propertytools.ProtectedProperty
-    def nmb_inputs(self) -> int:
+    def nmb_inputs(self) -> int:    # pylint: disable=method-hidden
         # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of input nodes.
 
@@ -510,7 +515,7 @@ attribute `nmb_inputs` first.
         pass
 
     @propertytools.ProtectedProperty
-    def nmb_outputs(self) -> int:
+    def nmb_outputs(self) -> int:    # pylint: disable=method-hidden
         # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of output nodes.
 
@@ -542,7 +547,7 @@ of object `ann` has not been prepared so far.
         pass
 
     @propertytools.ProtectedProperty
-    def nmb_neurons(self) -> Tuple[int, ...]:
+    def nmb_neurons(self) -> Tuple[int, ...]:    # pylint: disable=method-hidden
         # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of neurons of the hidden layers.
 

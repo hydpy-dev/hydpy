@@ -257,28 +257,33 @@ for moduleinfo in pkgutil.walk_packages(models.__path__):
 
 # noinspection PyUnresolvedReferences
 if config.USEAUTODOC:
-    from hydpy import auxs
-    from hydpy import core
-    from hydpy import cythons
-    from hydpy import exe
-    from hydpy.core import autodoctools
-    substituter = autodoctools.prepare_mainsubstituter()
-    for subpackage in (auxs, core, cythons, exe):
-        for filename in os.listdir(subpackage.__path__[0]):
-            if filename.endswith('.py') and not filename.startswith('_'):
-                module = importlib.import_module(
-                    f'{subpackage.__name__}.{filename[:-3]}')
-                autodoctools.autodoc_module(module)
-    autodoctools.autodoc_module(importlib.import_module('hydpy.examples'))
-    with pub.options.autocompile(False):
-        for filename in os.listdir(models.__path__[0]):
-            path = os.path.join(models.__path__[0], filename)
-            if os.path.isdir(path) and not filename.startswith('_'):
-                module = importlib.import_module(
-                    f'{models.__name__}.{filename}')
-                autodoctools.autodoc_basemodel(module)
-        for filename in os.listdir(models.__path__[0]):
-            if filename.endswith('.py') and not filename.startswith('_'):
-                module = importlib.import_module(
-                    f'{models.__name__}.{filename[:-3]}')
-                autodoctools.autodoc_applicationmodel(module)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore',
+            category=FutureWarning,
+        )
+        from hydpy import auxs
+        from hydpy import core
+        from hydpy import cythons
+        from hydpy import exe
+        from hydpy.core import autodoctools
+        substituter = autodoctools.prepare_mainsubstituter()
+        for subpackage in (auxs, core, cythons, exe):
+            for filename in os.listdir(subpackage.__path__[0]):
+                if filename.endswith('.py') and not filename.startswith('_'):
+                    module = importlib.import_module(
+                        f'{subpackage.__name__}.{filename[:-3]}')
+                    autodoctools.autodoc_module(module)
+        autodoctools.autodoc_module(importlib.import_module('hydpy.examples'))
+        with pub.options.autocompile(False):
+            for filename in os.listdir(models.__path__[0]):
+                path = os.path.join(models.__path__[0], filename)
+                if os.path.isdir(path) and not filename.startswith('_'):
+                    module = importlib.import_module(
+                        f'{models.__name__}.{filename}')
+                    autodoctools.autodoc_basemodel(module)
+            for filename in os.listdir(models.__path__[0]):
+                if filename.endswith('.py') and not filename.startswith('_'):
+                    module = importlib.import_module(
+                        f'{models.__name__}.{filename[:-3]}')
+                    autodoctools.autodoc_applicationmodel(module)

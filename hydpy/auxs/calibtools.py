@@ -1339,7 +1339,7 @@ a rule object named `fc`.
             uppers: Iterable[float],
             parameterstep: Optional[timetools.PeriodConstrArg] = None,
             selections: Optional[
-                Union[selectiontools.Selections, Iterable[str]]
+                Iterable[Union[selectiontools.Selection, str]]
             ] = None,
             model: Optional[Union[types.ModuleType, str]] = None,
     ) -> None:

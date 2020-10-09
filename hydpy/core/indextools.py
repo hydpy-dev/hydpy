@@ -122,6 +122,7 @@ period is `5`.
     """
 
     def __init__(self, fget):
+        super().__init__()
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel

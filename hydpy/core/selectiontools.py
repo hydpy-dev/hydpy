@@ -168,7 +168,7 @@ Selections objects, single Selection objects, or iterables containing \
 
     @property
     def names(self) -> Tuple[str, ...]:
-        """A |tuple| containing the names of the actual |Selection| objects.
+        """The names of the actual |Selection| objects.
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
@@ -181,8 +181,7 @@ Selections objects, single Selection objects, or iterables containing \
 
     @property
     def nodes(self) -> devicetools.Nodes:
-        """A |set| containing the |Node| objects of all handled
-        |Selection| objects.
+        """The |Node| objects of all handled |Selection| objects.
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
@@ -198,8 +197,7 @@ Selections objects, single Selection objects, or iterables containing \
 
     @property
     def elements(self) -> devicetools.Elements:
-        """A |set| containing the |Node| objects of all handled
-        |Selection| objects.
+        """The |Element| objects of all handled |Selection| objects.
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
@@ -212,6 +210,34 @@ Selections objects, single Selection objects, or iterables containing \
         for selection in self:
             elements += selection.elements
         return elements
+
+    def find(self, device: devicetools.Device) -> 'Selections':
+        """Return all |Selection| objects containing the given |Node| or
+        |Element| object.
+
+        >>> from hydpy import Elements, Nodes, Selection, Selections
+        >>> nodes = Nodes('n1', 'n2', 'n3')
+        >>> elements = Elements('e1', 'e2')
+        >>> selections = Selections(
+        ...     Selection('s1', ['n1', 'n2'], ['e1']),
+        ...     Selection('s2', ['n1']))
+        >>> selections.find(nodes.n1)
+        Selections("s1", "s2")
+        >>> selections.find(nodes.n2)
+        Selections("s1")
+        >>> selections.find(nodes.n3)
+        Selections()
+        >>> selections.find(elements.e1)
+        Selections("s1")
+        >>> selections.find(elements.e2)
+        Selections()
+        """
+        attr = 'nodes' if isinstance(device, devicetools.Node) else 'elements'
+        selections = (
+            selection for selection in self
+            if device in getattr(selection, attr)
+        )
+        return Selections(*selections)
 
     def __getattr__(self, key):
         try:

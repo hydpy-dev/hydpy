@@ -337,7 +337,13 @@ class Substituter:
             self.blacklist = set()
 
     @staticmethod
-    def consider_member(name_member, member, module, class_=None):
+    def consider_member(
+            name_member: str,
+            member: Any,
+            module,
+            class_=None,
+            ignore: Optional[Dict[str, any]] = None,
+    ):
         """Return |True| if the given member should be added to the
         substitutions. If not return |False|.
 
@@ -388,7 +394,7 @@ class Substituter:
         ...     'Node', hydpy.Node, hydpy)
         False
 
-        For descriptor instances (with method `__get__`) beeing members
+        For descriptor instances (with method `__get__`) being members
         of classes should be added:
 
         >>> from hydpy.auxs import anntools
@@ -396,7 +402,21 @@ class Substituter:
         ...     'shape_neurons', anntools.ANN.shape_neurons,
         ...     anntools, anntools.ANN)
         True
+
+        You can decide to ignore certain members:
+
+        >>> Substituter.consider_member(
+        ...     'shape_neurons', anntools.ANN.shape_neurons,
+        ...     anntools, anntools.ANN, {'test': 1.0})
+        True
+        >>> Substituter.consider_member(
+        ...     'shape_neurons', anntools.ANN.shape_neurons,
+        ...     anntools, anntools.ANN,
+        ...     {'shape_neurons': anntools.ANN.shape_neurons})
+        False
         """
+        if ignore and (name_member in ignore):
+            return False
         if name_member.startswith('_'):
             return False
         if inspect.ismodule(member):
@@ -571,25 +591,42 @@ class Substituter:
         >>> import numpy
         >>> substituter.add_module(numpy)
 
-        Firstly, the module itself is added:
+        First, the module itself is added:
 
         >>> substituter.find('|numpy|')
         |numpy| :mod:`~numpy`
 
-        Secondly, constants like |numpy.nan| are added:
+        Second, constants like |numpy.nan| are added:
 
         >>> substituter.find('|numpy.nan|')
         |numpy.nan| :const:`~numpy.nan`
 
-        Thirdly, functions like |numpy.clip| are added:
+        Third, functions like |numpy.clip| are added:
 
         >>> substituter.find('|numpy.clip|')
         |numpy.clip| :func:`~numpy.clip`
 
-        Fourthly, clases line |numpy.ndarray| are added:
+        Fourth, clases line |numpy.ndarray| are added:
 
         >>> substituter.find('|numpy.ndarray|')
         |numpy.ndarray| :class:`~numpy.ndarray`
+
+        Method |Substituter.add_module| also searches for available
+        annotations:
+
+        >>> from hydpy.core import timetools
+        >>> substituter.add_module(timetools)
+        >>> substituter.find('Timegrids.init')
+        |Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
+        |timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
+
+        >>> from hydpy.auxs import calibtools
+        >>> substituter.add_module(calibtools)
+        >>> substituter.find('ReplaceIUH.update_parameters')
+        |ReplaceIUH.update_parameters| \
+:attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
+        |calibtools.ReplaceIUH.update_parameters| \
+:attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
 
         When adding Cython modules, the `cython` flag should be set |True|:
 
@@ -611,34 +648,42 @@ class Substituter:
             if self.consider_member(
                     name_member, member, module):
                 role = self.get_role(member, cython)
-                short = ('|%s|'
-                         % name_member)
-                medium = ('|%s.%s|'
-                          % (name_module,
-                             name_member))
-                long = (':%s:`~%s.%s`'
-                        % (role,
-                           module.__name__,
-                           name_member))
+                short = f'|{name_member}|'
+                medium = f'|{name_module}.{name_member}|'
+                long = f':{role}:`~{module.__name__}.{name_member}`'
                 self.add_substitution(short, medium, long, module)
                 if inspect.isclass(member):
+                    annotations = getattr(member, '__annotations__', {})
                     for name_submember, submember in vars(member).items():
                         if self.consider_member(
-                                name_submember, submember, module, member):
+                                name_member=name_submember,
+                                member=submember,
+                                module=module,
+                                class_=member,
+                                ignore=annotations,
+                        ):
                             role = self.get_role(submember, cython)
-                            short = ('|%s.%s|'
-                                     % (name_member,
-                                        name_submember))
-                            medium = ('|%s.%s.%s|'
-                                      % (name_module,
-                                         name_member,
-                                         name_submember))
-                            long = (':%s:`~%s.%s.%s`'
-                                    % (role,
-                                       module.__name__,
-                                       name_member,
-                                       name_submember))
+                            short = f'|{name_member}.{name_submember}|'
+                            medium = (
+                                f'|{name_module}.{name_member}.'
+                                f'{name_submember}|'
+                            )
+                            long = (
+                                f':{role}:`~{module.__name__}.'
+                                f'{name_member}.{name_submember}`'
+                            )
                             self.add_substitution(short, medium, long, module)
+                    for name_submember, submember in annotations.items():
+                        short = f'|{name_member}.{name_submember}|'
+                        medium = (
+                            f'|{name_module}.{name_member}.'
+                            f'{name_submember}|'
+                        )
+                        long = (
+                            f':attr:`~{module.__name__}.'
+                            f'{name_member}.{name_submember}`'
+                        )
+                        self.add_substitution(short, medium, long, module)
 
     def add_modules(self, package):
         """Add the modules of the given package without their members."""

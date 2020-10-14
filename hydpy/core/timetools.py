@@ -2385,7 +2385,7 @@ arguments.
     def __init__(
         self,
         init: Timegrid,
-        sim: Optional[Timegrid],
+        sim: Optional[Timegrid] = ...,
     ):
         """from timegrids"""
 

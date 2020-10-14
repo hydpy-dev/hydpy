@@ -2341,8 +2341,13 @@ index 1 is out of bounds for axis 0 with size 1
             blanks = ' '*len(prefix)
             string = ', '.join(f'{key}={objecttools.repr_(value)}'
                                for key, value in zip(self.ENTRYNAMES, values))
-            nmb = max(70-len(prefix), 30)
-            for idx, substring in enumerate(textwrap.wrap(string, nmb)):
+            for idx, substring in enumerate(
+                    textwrap.wrap(
+                        text=string,
+                        width=max(70-len(prefix), 30),
+                        break_long_words=False,
+                    )
+            ):
                 if idx:
                     lines.append(f'{blanks}{substring}')
                 else:

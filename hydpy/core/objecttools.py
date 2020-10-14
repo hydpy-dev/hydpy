@@ -799,7 +799,11 @@ def print_values(values: Iterable[Any], width: int = 70) -> None:
     10, 11, 12, 13, 14, 15, 16,
     17, 18, 19, 20
     """
-    for line in textwrap.wrap(repr_values(values), width=width):
+    for line in textwrap.wrap(
+            text=repr_values(values),
+            width=width,
+            break_long_words=False,
+    ):
         print(line)
 
 
@@ -889,9 +893,11 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
     """
     ellipsis_ = hydpy.pub.options.ellipsis
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
-        string = (repr_values(values[:ellipsis_]) +
-                  ', ...,' +
-                  repr_values(values[-ellipsis_:]))
+        string = (
+            f'{repr_values(values[:ellipsis_])}'
+            f', ...,'
+            f'{repr_values(values[-ellipsis_:])}'
+        )
     else:
         string = repr_values(values)
     blanks = ' '*len(prefix)
@@ -900,7 +906,11 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
         _fakeend = 0
     else:
         width -= len(prefix)
-        wrapped = textwrap.wrap(string+'_'*_fakeend, width)
+        wrapped = textwrap.wrap(
+            text=string+'_'*_fakeend,
+            width=width,
+            break_long_words=False,
+        )
     if not wrapped:
         wrapped = ['']
     lines = []
@@ -942,7 +952,11 @@ class _AssignReprBracketed:
             return assignrepr_value(values[0], prefix)
         if nmb_values:
             string = assignrepr_values(
-                values, prefix+self._brackets[0], width, 1) + self._brackets[1]
+                values=values,
+                prefix=prefix+self._brackets[0],
+                width=width,
+                _fakeend=1,
+            ) + self._brackets[1]
             if (len(values) == 1) and (self._brackets[1] == ')'):
                 return string[:-1] + ',)'
             return string

@@ -1864,8 +1864,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         |Variable.commentrepr| is empty.
         """
         if hydpy.pub.options.reprcomments:
-            return [f'# {line}' for line in
-                    textwrap.wrap(objecttools.description(self), 72)]
+            return [
+                f'# {line}' for line in
+                    textwrap.wrap(
+                        text=objecttools.description(self),
+                        width=72,
+                        break_long_words=False,
+                    )
+            ]
         return []
 
     def __repr__(self):

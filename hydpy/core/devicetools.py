@@ -2109,7 +2109,10 @@ the given group name `test`.
             with objecttools.repr_.preserve_strings(True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     line = objecttools.assignrepr_list(
-                        sorted(self.keywords), subprefix, width=70)
+                        values=sorted(self.keywords),
+                        prefix=subprefix,
+                        width=70,
+                    )
             lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)

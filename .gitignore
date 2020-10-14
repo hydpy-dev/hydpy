@@ -8,6 +8,7 @@ venv
 *.c
 *.h
 temp
+hydpy/conf/mimetypes.txt
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
 hydpy/cythons/autogen/*.pyi

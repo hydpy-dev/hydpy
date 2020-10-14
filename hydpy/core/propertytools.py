@@ -627,3 +627,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
 
     def _fdel(self, obj) -> None:
         """Do nothing."""
+
+
+class DefaultPropertyStr(DefaultProperty[str, str]):
+    """|DefaultProperty| for handling |str| objects."""

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements masking features to define which entries of
-|Parameter| or |Sequence| arrays are relevant and which are not."""
+|Parameter| or |Sequence_| arrays are relevant and which are not."""
 # import...
 # ...from standard library
 import inspect

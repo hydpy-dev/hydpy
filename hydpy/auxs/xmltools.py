@@ -1967,7 +1967,7 @@ class XSDWriter:
 
     @staticmethod
     def get_sequenceinsertion(
-            sequence: sequencetools.Sequence, indent: int) -> str:
+            sequence: sequencetools.Sequence_, indent: int) -> str:
         """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter

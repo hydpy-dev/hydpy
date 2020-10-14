@@ -1315,10 +1315,12 @@ class PyxWriter:
         print('            . set_pointer0d')
         lines = Lines()
         lines.add(1, 'cpdef inline set_pointer0d'
-                     '(self, str name, pointerutils.PDouble value):')
+                     '(self, str name, pointerutils.Double value):')
+        lines.add(2, 'cdef pointerutils.PDouble pointer = '
+                     'pointerutils.PDouble(value)')
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self.{seq.name} = value.p_value')
+            lines.add(3, f'self.{seq.name} = pointer.p_value')
         return lines
 
     @staticmethod
@@ -1400,10 +1402,12 @@ class PyxWriter:
         print('            . set_pointer1d')
         lines = Lines()
         lines.add(1, 'cpdef inline set_pointer1d'
-                     '(self, str name, pointerutils.PDouble value, int idx):')
+                     '(self, str name, pointerutils.Double value, int idx):')
+        lines.add(2, 'cdef pointerutils.PDouble pointer = '
+                     'pointerutils.PDouble(value)')
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self.{seq.name}[idx] = value.p_value')
+            lines.add(3, f'self.{seq.name}[idx] = pointer.p_value')
             lines.add(3, f'self._{seq.name}_ready[idx] = 1')
         return lines
 
@@ -2122,9 +2126,11 @@ class PyxWriter:
                 f'import hydpy\n'
                 f'from {base} import *\n'
                 f'from hydpy.core.parametertools import (\n'
+                f'  FastAccess,)\n'
+                f'from hydpy.core.parametertools import (\n'
                 f'  Parameters, FastAccessParameter)\n'
                 f'from hydpy.core.sequencetools import (\n'
-                f'    Sequences, FastAccessModelSequence)\n\n'
+                f'    Sequences,)\n\n'
             )
             for group in self.model.parameters:
                 classname = f'FastAccess{group.name.capitalize()}Parameters'
@@ -2151,7 +2157,7 @@ class PyxWriter:
             for group in self.model.sequences:
                 classname = f'FastAccess{type(group).__name__}'
                 stubfile.write(
-                    f'\n\nclass {classname}(FastAccessModelSequence):\n'
+                    f'\n\nclass {classname}(FastAccess):\n'
                 )
                 for partype in group.CLASSES:
                     stubfile.write(

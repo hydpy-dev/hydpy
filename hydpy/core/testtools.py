@@ -396,7 +396,7 @@ class Test:
             for dummy in range(len(parseq)-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
-                    isinstance(parseq, sequencetools.Sequence)):
+                    isinstance(parseq, sequencetools.Sequence_)):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -1682,7 +1682,7 @@ def check_selectedvariables(
         method: 'modeltools.Method',
         indent: int = 0,
 ) -> str:
-    """Perform consistency checks regarding the |Parameter| and |Sequence|
+    """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
     The purpose of this function is to help model developers to ensure

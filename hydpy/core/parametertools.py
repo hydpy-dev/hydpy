@@ -148,7 +148,7 @@ class Parameters:
     False
 
     Iterations makes only the non-empty subgroups available, which
-    are actually handling |Sequence| objects:
+    are actually handling |Sequence_| objects:
 
     >>> for subpars in model.parameters:
     ...     print(subpars.name)
@@ -393,7 +393,18 @@ set yet: c1(?).
         return objecttools.dir_(self)
 
 
-class SubParameters(variabletools.SubVariables[Parameters]):
+class FastAccessParameter(variabletools.FastAccess):
+    """Used as a surrogate for typed Cython classes handling parameters
+    when working in pure Python mode."""
+
+
+class SubParameters(
+    variabletools.SubVariables[
+        Parameters,
+        'Parameter',
+        FastAccessParameter,
+    ],
+):
     """Base class for handling subgroups of model parameters.
 
     When trying to implement a new model, one has to define its
@@ -449,28 +460,24 @@ class SubParameters(variabletools.SubVariables[Parameters]):
     """
 
     pars: Parameters
-    fastaccess: Union[
-        'FastAccessParameter', 'typingtools.FastAccessParameterProtocol']
-    _cls_fastaccess: Optional[Type[
-        'typingtools.FastAccessParameterProtocol']]
     _cymodel: Optional['typingtools.CyModelProtocol']
+    _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
             self,
             master: Parameters,
-            cls_fastaccess: Optional[Type[
-                'typingtools.FastAccessParameterProtocol']] = None,
+            cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
             cymodel: Optional['typingtools.CyModelProtocol'] = None):
         self.pars = master
-        self._cls_fastaccess = cls_fastaccess
         self._cymodel = cymodel
-        super().__init__(master)
+        super().__init__(
+            master=master,
+            cls_fastaccess=cls_fastaccess,
+        )
 
     def __hydpy__initialise_fastaccess__(self) -> None:
-        if (self._cls_fastaccess is None) or (self._cymodel is None):
-            self.fastaccess = FastAccessParameter()
-        else:
-            self.fastaccess = self._cls_fastaccess()
+        super().__hydpy__initialise_fastaccess__()
+        if self._cls_fastaccess and self._cymodel:
             setattr(self._cymodel.parameters, self.name, self.fastaccess)
 
     @property
@@ -487,7 +494,12 @@ class SubParameters(variabletools.SubVariables[Parameters]):
         return type(self).__name__[:-10].lower()
 
 
-class Parameter(variabletools.Variable[SubParameters]):
+class Parameter(
+    variabletools.Variable[
+        SubParameters,
+        FastAccessParameter,
+    ]
+):
     """Base class for model parameters.
 
     In *HydPy*, each kind of model parameter is represented by a unique
@@ -738,9 +750,7 @@ shape (2) into shape (2,3)
     """
     TIME: Optional[bool]
 
-    fastaccess: Union[
-        'FastAccessParameter',
-        'typingtools.FastAccessParameterProtocol']
+    _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __call__(self, *args, **kwargs):
         if args and kwargs:
@@ -822,7 +832,7 @@ shape (2) into shape (2,3)
         return self.subvars
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
-        self.fastaccess = self.subvars.fastaccess
+        super().__hydpy__connect_variable2subgroup__()
         if self.NDIM:
             setattr(self.fastaccess, self.name, None)
         else:
@@ -960,8 +970,13 @@ parameter and a simulation time step size first.
                 ) from None
             date1 = timetools.Date('2000.01.01')
             date2 = date1 + options.simulationstep
-            parfactor = timetools.Timegrids(timetools.Timegrid(
-                date1, date2, options.simulationstep)).parfactor
+            parfactor = timetools.Timegrids(
+                timetools.Timegrid(
+                    firstdate=date1,
+                    lastdate=date2,
+                    stepsize=options.simulationstep,
+                ),
+            ).parfactor
         return parfactor(parameterstep)
 
     def trim(self, lower=None, upper=None) -> None:
@@ -1308,14 +1323,17 @@ class NameParameter(Parameter):
         get = self.CONSTANTS.value2name.get
         names = tuple(get(value, repr(value)) for value in values)
         if len(self) > 255:
-            repr_ = objecttools.assignrepr_list
+            string = objecttools.assignrepr_list(
+                values=names,
+                prefix=f'{self.name}(',
+                width=70,
+            )
         else:
-            repr_ = objecttools.assignrepr_values
-        string = repr_(
-            values=names,
-            prefix=f'{self.name}(',
-            width=70,
-        )
+            string = objecttools.assignrepr_values(
+                values=names,
+                prefix=f'{self.name}(',
+                width=70,
+            )
         return f'{string})'
 
 
@@ -3257,8 +3275,3 @@ class UTCLongitudeParameter(Parameter):
         utclongitudeparameter(0)
         """
         self(hydpy.pub.options.utclongitude)
-
-
-class FastAccessParameter(variabletools.FastAccess):
-    """Used as a surrogate for typed Cython classes handling parameters
-    when working in pure Python mode."""

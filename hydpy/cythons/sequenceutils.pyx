@@ -46,7 +46,7 @@ cdef class FastAccessNodeSequence:
         elif self._sim_diskflag:
             fread(&self.sim.value, 8, 1, self._sim_file)
 
-    cpdef void save_simdata(self, idx: int):
+    cpdef void save_simdata(self, numpy.int32_t idx):
         """Save the last sim sequence value (of the given index)."""
         if self._sim_ramflag:
             self._sim_array[idx] = self.sim.value
@@ -59,6 +59,24 @@ cdef class FastAccessNodeSequence:
             self.obs.value = self._obs_array[idx]
         elif self._obs_diskflag:
             fread(&self.obs.value, 8, 1, self._obs_file)
+
+    cpdef void load_data(self, numpy.int32_t idx):
+        """Call both method `load_simdata` and method `load_obsdata`."""
+        if self._sim_ramflag:
+            self.sim.value = self._sim_array[idx]
+        elif self._sim_diskflag:
+            fread(&self.sim.value, 8, 1, self._sim_file)
+        if self._obs_ramflag:
+            self.obs.value = self._obs_array[idx]
+        elif self._obs_diskflag:
+            fread(&self.obs.value, 8, 1, self._obs_file)
+
+    cpdef void save_data(self, numpy.int32_t idx):
+        """Alias for method `save_simdata`."""
+        if self._sim_ramflag:
+            self._sim_array[idx] = self.sim.value
+        elif self._sim_diskflag:
+            fwrite(&self.sim.value, 8, 1, self._sim_file)
 
     cpdef void reset(self, numpy.int32_t idx):
         """Reset the actual value of the simulation sequence to zero."""

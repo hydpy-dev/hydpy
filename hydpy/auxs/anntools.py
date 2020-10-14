@@ -1734,11 +1734,6 @@ been given, but a value of type `ANN` is required.
         self.__sann = None
         self._do_refresh = True
 
-    def __hydpy__connect_variable2subgroup__(self) -> None:
-        """Connect the actual |anntools.SeasonalANN| object with the given
-        |SubParameters| object."""
-        self.fastaccess = self.subpars.fastaccess
-
     def __call__(self, *args, **kwargs) -> None:
         self._toy2ann.clear()
         self._do_refresh = False
@@ -1772,6 +1767,12 @@ been given, but a value of type `ANN` is required.
         finally:
             self._do_refresh = True
             self.refresh()
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        """Connect the actual |anntools.SeasonalANN| object with the given
+        |SubParameters| object."""
+        self.fastaccess = self.subpars.fastaccess
+        setattr(self.fastaccess, self.name, self.__sann)
 
     def refresh(self) -> None:
         # noinspection PyTypeChecker,PyUnresolvedReferences

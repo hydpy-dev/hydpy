@@ -10,7 +10,6 @@ import numpy
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
-from hydpy.core import variabletools
 
 
 class Coordinates(parametertools.Parameter):
@@ -74,7 +73,7 @@ Node("in3", variable="Q"))
     """
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    def __init__(self, subvars: variabletools.SubgroupType):
+    def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)
         self.nodes: Tuple[devicetools.Node, ...] = ()
 

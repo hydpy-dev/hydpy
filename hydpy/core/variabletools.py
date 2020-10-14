@@ -20,21 +20,33 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
-from hydpy.core import typingtools
 if TYPE_CHECKING:
+    from hydpy.core import devicetools
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
+    from hydpy.cythons.autogen import pointerutils
+    from hydpy.cythons.autogen import sequenceutils
 
 
 GroupType = TypeVar(
     'GroupType',
-    'parametertools.Parameters', 'sequencetools.Sequences')
+    'parametertools.Parameters',
+    'sequencetools.Sequences',
+    'devicetools.Node',
+)
+SubVariablesType = TypeVar(
+    'SubVariablesType',
+    bound='SubVariables',
+)
+VariableType = TypeVar(
+    'VariableType',
+    bound='Variable',
+)
+FastAccessType = TypeVar(
+    'FastAccessType',
+    bound='FastAccess',
 
-
-SubgroupType = TypeVar(
-    'SubgroupType',
-    'parametertools.SubParameters', 'sequencetools.SubSequences')
-
+)
 
 INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating point values
@@ -52,7 +64,7 @@ def trim(self: 'Variable', lower=None, upper=None) -> None:
     Instead, some |Variable| subclasses implement their own `trim`
     methods relying on function |trim|.  Model developers should
     implement individual `trim` methods for their |Parameter| or
-    |Sequence| subclasses when their boundary values depend on the
+    |Sequence_| subclasses when their boundary values depend on the
     actual project configuration (one example is soil moisture;
     its lowest possible value should possibly be zero in all cases,
     but its highest possible value could depend on another parameter
@@ -71,7 +83,7 @@ def trim(self: 'Variable', lower=None, upper=None) -> None:
     ...     SPAN = 1.0, 3.0
     ...     trim = trim
     ...     initinfo = 2.0, False
-    ...     __hydpy__connect_variable2subgroup__ = None
+    ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
     First, we enable the printing of warning messages raised by function
     |trim|:
@@ -522,8 +534,25 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable(Generic[SubgroupType]):
-    """Base class for |Parameter| and |Sequence|.
+class FastAccess:
+    """Used as a surrogate for typed Cython classes handling parameters or
+    sequences when working in pure Python mode."""
+
+    def _get_attribute(self, name, suffix, default=None):
+        return getattr(self, f'_{name}_{suffix}', default)
+
+    def _set_attribute(self, name, suffix, value):
+        return setattr(self, f'_{name}_{suffix}', value)
+
+    def __iter__(self):
+        """Iterate over all sequence names."""
+        for key in vars(self).keys():
+            if not key.startswith('_'):
+                yield key
+
+
+class Variable(Generic[SubVariablesType, FastAccessType]):
+    """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
     and `TYPE`, defining the dimensionality and the type of the values
@@ -532,18 +561,18 @@ class Variable(Generic[SubgroupType]):
 
     Class |Variable| implements methods for arithmetic calculations,
     comparisons and type conversions.  See the  following examples on
-    how to do math with HydPys |Parameter| and |Sequence| objects.
+    how to do math with HydPys |Parameter| and |Sequence_| objects.
 
     We start with demonstrating the supported mathematical operations
     on 0-dimensional |Variable| objects handling |float| values:
 
     >>> import numpy
-    >>> from hydpy.core.variabletools import Variable
+    >>> from hydpy.core.variabletools import FastAccess, Variable
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     __hydpy__connect_variable2subgroup__ = None
     ...     initinfo = 0.0, False
+    ...     _CLS_FASTACCESS_PYTHON = FastAccess
     >>> var = Var(None)
 
     You can perform additions both with other |Variable| objects and
@@ -967,6 +996,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     INIT: Union[int, float, bool, None] = None
 
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
     strict_valuehandling: ClassVar[bool] = True
 
@@ -974,21 +1004,19 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     name: str
     unit: str
-    fastaccess: Union[
-        'FastAccess',
-        typingtools.FastAccessParameterProtocol,
-        typingtools.FastAccessModelSequenceProtocol]
-    subvars: SubgroupType
+    fastaccess: FastAccessType
+    subvars: SubVariablesType
 
     mask = masktools.DefaultMask()
 
-    def __init__(self, subvars: SubgroupType):
+    def __init__(self, subvars: SubVariablesType):
         self.subvars = subvars
-        self.fastaccess = FastAccess()
+        self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self.__valueready = False
         self.__shapeready = False
 
     def __init_subclass__(cls):
+        super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()
         subclasscounter = Variable.__hydpy__subclasscounter__ + 1
@@ -1004,14 +1032,22 @@ operands could not be broadcast together with shapes (2,) (3,)...
             return descr[idx1:idx2]
         return '?'
 
-    @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """To be called by the |SubVariables| object when preparing a
         new |Variable| object."""
+        self.fastaccess = self.subvars.fastaccess
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> Tuple[
+        Union[
+            float,
+            int,
+            bool,
+            'pointerutils.Double',
+        ],
+        bool,
+    ]:
         """To be overridden."""
 
     def __hydpy__get_value__(self):
@@ -1023,8 +1059,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
         Without making use of default values (see below), trying to
         query the actual value of a freshly initialised |Variable|
@@ -1200,8 +1236,8 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         >>> class Var(Variable):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
         Initially, the shape of a new |Variable| object is unknown:
 
@@ -1277,8 +1313,8 @@ shape indicates `2` dimensions.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = int
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
         >>> var = Var(None)
         >>> var.shape
@@ -1383,8 +1419,8 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 0.0, False
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> var = Var(None)
         >>> import numpy
         >>> var.shape = ()
@@ -1465,8 +1501,8 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         ...     TYPE = float
         ...     refweigths = None
         ...     availablemasks = None
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = None
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> sm = SoilMoisture(None)
         >>> sm.value = 200.0
         >>> sm.average_values()
@@ -1496,8 +1532,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
-        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = None
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_values()
@@ -1627,6 +1663,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     @property
     def availablemasks(self) -> masktools.Masks:
         """A |Masks| object provided by the corresponding |Model| object."""
+        # ToDo: does not work for NodeSequence
         return self.subvars.vars.model.masks
 
     def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
@@ -1879,8 +1916,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
 
 def sort_variables(
-        variables: Iterable[Type[typingtools.VariableProtocol]]
-) -> Tuple[Type[typingtools.VariableProtocol], ...]:
+        variables: Iterable[Type[VariableType]],
+) -> Tuple[Type[VariableType], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds the
@@ -1900,23 +1937,23 @@ def sort_variables(
     ))
 
 
-class SubVariables(Generic[GroupType]):
+class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     """Base class for |SubParameters| and |SubSequences|.
 
     Each subclass of class |SubVariables| is thought for handling a certain
-    group of |Parameter| or |Sequence| objects.  One specific example is
+    group of |Parameter| or |Sequence_| objects.  One specific example is
     subclass |sequencetools.InputSequences|, collecting all |InputSequence|
     objects of a specific hydrological model.
 
     For the following examples, we first prepare a (not fully
     functional) |Variable| subclass:
 
-    >>> from hydpy.core.variabletools import SubVariables, Variable
+    >>> from hydpy.core.variabletools import FastAccess, SubVariables, Variable
     >>> class TestVar(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     __hydpy__connect_variable2subgroup__ = lambda self: None
     ...     initinfo = 0.0, False
+    ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
     Out test |SubVariables| subclass is thought to handle only this
     single |Variable| subclass, indicated by putting it into the
@@ -1924,9 +1961,9 @@ class SubVariables(Generic[GroupType]):
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
-    ...     def __hydpy__initialise_fastaccess__(self):
-    ...         return None
     ...     name = 'subvars'
+    ...     _CLS_FASTACCESS_PYTHON = FastAccess
+
 
     After initialisation, |SubVariables| objects reference their master
     object (either a |Parameters| or a |Sequences| object), passed to their
@@ -1982,6 +2019,17 @@ variable nor another attribute named wrong.
 the following error occurred: 5 values are assigned to the scalar \
 variable `testvar`.
 
+    Alternatively, you can item-access a variable:
+
+    >>> subvars['testvar']
+    testvar(3.0)
+
+    >>> subvars['wrong']
+    Traceback (most recent call last):
+    ...
+    AttributeError: Collection object `subvars` does not handle a variable \
+named `wrong`.
+
     Class |SubVariables| supporte iteration and the application of the
     |len| operator:
 
@@ -1991,19 +2039,21 @@ variable `testvar`.
     >>> len(subvars)
     1
     """
-    CLASSES: Tuple[Type[typingtools.VariableProtocol], ...]
+    CLASSES: Tuple[Type[VariableType], ...]
     vars: GroupType
-    _name2variable: Dict[str, typingtools.VariableProtocol] = {}
-    fastaccess: Union[
-        'FastAccess',
-        typingtools.FastAccessParameterProtocol,
-        typingtools.FastAccessModelSequenceProtocol]
-    _cls_fastaccess: Optional[Union[
-        Type[typingtools.FastAccessParameterProtocol],
-        Type[typingtools.FastAccessModelSequenceProtocol]]]
+    _name2variable: Dict[str, VariableType] = {}
+    fastaccess: FastAccessType
+    _cls_fastaccess: Optional[Type[FastAccessType]] = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
-    def __init__(self, master: Any):
+    def __init__(
+            self: SubVariablesType,
+            master: GroupType,
+            cls_fastaccess: Optional[Type[FastAccessType]] = None
+    ):
         self.vars = master
+        if cls_fastaccess:
+            self._cls_fastaccess = cls_fastaccess
         self.__hydpy__initialise_fastaccess__()
         self._name2variable = {}
         for cls in self.CLASSES:
@@ -2016,12 +2066,24 @@ variable `testvar`.
     def name(self) -> str:
         """To be overridden."""
 
-    @abc.abstractmethod
     def __hydpy__initialise_fastaccess__(self) -> None:
-        """To be overridden.  Must create a `fastaccess` attribute and build
-        the required connections to the related cythonized model eventually."""
+        """Create a `fastaccess` attribute and build the required connections
+        to the related cythonized model eventually."""
+        if (self._cls_fastaccess is None) or (self._cymodel is None):
+            self.fastaccess = self._CLS_FASTACCESS_PYTHON()
+        else:
+            self.fastaccess = self._cls_fastaccess()
 
-    def __getattr__(self, name):
+    def __getitem__(self, item) -> VariableType:
+        try:
+            return self._name2variable[item]
+        except KeyError:
+            raise AttributeError(
+                f'Collection object {objecttools.devicephrase(self)} '
+                f'does not handle a variable named `{item}`.'
+            ) from None
+
+    def __getattr__(self, name) -> VariableType:
         try:
             return self._name2variable[name]
         except KeyError:
@@ -2038,14 +2100,14 @@ variable `testvar`.
         else:
             variable.__hydpy__set_value__(value)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[VariableType]:
         for variable in self._name2variable.values():
             yield variable
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.CLASSES)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         lines = []
         if hydpy.pub.options.reprcomments:
             lines.append(f'# {type(self).__name__} object defined '
@@ -2058,26 +2120,29 @@ variable `testvar`.
                 lines.append(f'{variable.name}(?)')
         return '\n'.join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.variabletools import SubVariables, Variable
         >>> class TestVar(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     __hydpy__connect_variable2subgroup__ = lambda self: None
         ...     initinfo = 0.0, False
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     __hydpy__initialise_fastaccess__ = lambda self: None
         ...     name = None
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> dir(TestSubVars(None))
-        ['CLASSES', 'name', 'testvar', 'vars']
+        ['CLASSES', 'fastaccess', 'name', 'testvar', 'vars']
         """
         return objecttools.dir_(self) + list(self._name2variable.keys())
 
 
-def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
-        -> str:
+def to_repr(
+        self: Variable,
+        values,
+        brackets1d: Optional[bool] = False,
+) -> str:
     """Return a valid string representation for the given |Variable|
     object.
 
@@ -2089,8 +2154,8 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = int
-    ...     __hydpy__connect_variable2subgroup__ = None
     ...     initinfo = 1.0, False
+    ...     _CLS_FASTACCESS_PYTHON = FastAccess
     >>> var = Var(None)
     >>> var.value = 2
     >>> var
@@ -2144,8 +2209,3 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
     else:
         string = objecttools.assignrepr_list2(values, prefix, 72) + ')'
     return '\n'.join(self.commentrepr + [string])
-
-
-class FastAccess:
-    """Used as a surrogate for typed Cython classes handling parameters or
-    sequences when working in pure Python mode."""

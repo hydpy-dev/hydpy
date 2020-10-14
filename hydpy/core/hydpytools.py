@@ -392,7 +392,7 @@ requested to make any internal data available.
     11.78038, 8.901179, 7.131072, 6.017787
 
     By comparison, you see that the lastly calculated (or read) time
-    series value is the actual one for each |Sequence| object.  This
+    series value is the actual one for each |Sequence_| object.  This
     mechanism allows, for example, to write the final states of soil
     moisture sequence |hland_states.SM| and use them as initial
     conditions later, even if its complete time-series were not available:

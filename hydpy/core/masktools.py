@@ -255,9 +255,6 @@ must be overridden, which is not the case for class `IndexMask`.
 class Masks:
     """Base class for handling groups of masks.
 
-    Attributes:
-      * model: The parent |Model| object.
-
     |Masks| subclasses are basically just containers, which are defined
     similar as |SubParameters| and |SubSequences| subclasses:
 
@@ -266,7 +263,7 @@ class Masks:
     >>> class Masks(Masks):
     ...     CLASSES = (IndexMask,
     ...                DefaultMask)
-    >>> masks = Masks(None)
+    >>> masks = Masks()
 
     The contained mask classes are available via attribute access in
     lower case letters:
@@ -319,8 +316,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
     """
     CLASSES: Tuple[Type[BaseMask], ...]
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         for cls in self.CLASSES:
             setattr(self, cls.__name__.lower(), cls)
 
@@ -330,7 +326,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
 
         >>> from hydpy.core.masktools import Masks
         >>> Masks.CLASSES = ()
-        >>> Masks(None).name
+        >>> Masks().name
         'masks'
         >>> del Masks.CLASSES
         """
@@ -352,7 +348,8 @@ following error occurred: The given key is neither a `string` a `mask` type.
             pass
         raise TypeError(
             f'The given {objecttools.value_of_type(mask)} is '
-            f'neither a Mask class nor a Mask instance.')
+            f'neither a Mask class nor a Mask instance.'
+        )
 
     def __getitem__(self, key):
         _key = key
@@ -384,9 +381,23 @@ following error occurred: The given key is neither a `string` a `mask` type.
     def __repr__(self):
         lines = []
         for mask in self:
-            lines.append(f'{mask.__name__.lower()} of module '
-                         f'{mask.__module__}')
+            lines.append(
+                f'{mask.__name__.lower()} of module {mask.__module__}'
+            )
         return '\n'.join(lines)
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+class NodeMasks(Masks):
+    """|Masks| subclass for class |Node|.
+
+    At the moment, the purpose of class |NodeMasks| is to make the
+    implementation of |ModelSequence| and |NodeSequence| more similar.
+    It will become relevant for applications as soon as we support
+    1-dimensional node sequences.
+    """
+    CLASSES = (
+        DefaultMask,
+    )

@@ -1583,7 +1583,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     CLASSES = (FlatSoil,
         ...                DeepSoil,
         ...                Water)
-        >>> SoilMoisture.availablemasks = Masks(None)
+        >>> SoilMoisture.availablemasks = Masks()
 
         One can pass either the mask classes themselves or their names:
 
@@ -1624,7 +1624,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ...                DeepSoil,
         ...                Water,
         ...                AllOrNothing)
-        >>> SoilMoisture.availablemasks = Masks(None)
+        >>> SoilMoisture.availablemasks = Masks()
 
         Again, one can apply the mask class directly (but note that one
         has to pass the relevant variable as the first argument.):
@@ -1662,9 +1662,30 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def availablemasks(self) -> masktools.Masks:
-        """A |Masks| object provided by the corresponding |Model| object."""
-        # ToDo: does not work for NodeSequence
-        return self.subvars.vars.model.masks
+        """For |ModelSequence| objects, a |Masks| object provided by the
+        corresponding |Model| object; for |NodeSequence| object, a suitable
+        |DefaultMask|.
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+
+        >>> hp.elements['land_dill'].model.parameters.control.fc.availablemasks
+        complete of module hydpy.models.hland.hland_masks
+        land of module hydpy.models.hland.hland_masks
+        noglacier of module hydpy.models.hland.hland_masks
+        soil of module hydpy.models.hland.hland_masks
+        field of module hydpy.models.hland.hland_masks
+        forest of module hydpy.models.hland.hland_masks
+        ilake of module hydpy.models.hland.hland_masks
+        glacier of module hydpy.models.hland.hland_masks
+
+        >>> hp.nodes.dill.sequences.sim.availablemasks
+        defaultmask of module hydpy.core.masktools
+        """
+        model = getattr(self.subvars.vars, 'model', None)
+        if model:
+            return model.masks
+        return self.subvars.vars.masks
 
     def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
         """Get a sub-mask of the mask handled by the actual |Variable| object

@@ -747,7 +747,9 @@ class Substituter:
         >>> sub1.add_module(masktools)
         >>> sub1.find('Masks|')
         |Masks| :class:`~hydpy.core.masktools.Masks`
+        |NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
+        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         >>> sub2.find('Masks|')
 
         Through calling |Substituter.update_slaves|, the `medium2long`
@@ -756,8 +758,10 @@ class Substituter:
         >>> sub1.update_slaves()
         >>> sub2.find('Masks|')
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
+        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         >>> sub3.find('Masks|')
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
+        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         """
         if self.master is not None:
             self.master.medium2long.update(self.medium2long)

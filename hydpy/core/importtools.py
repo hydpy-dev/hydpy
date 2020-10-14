@@ -69,7 +69,7 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
         for seqs in model.sequences:
             namespace[seqs.name] = seqs
         if 'Masks' in namespace:
-            model.masks = namespace['Masks'](model)
+            model.masks = namespace['Masks']()
             namespace['masks'] = model.masks
         for submodelclass in namespace['Model'].SUBMODELS:
             submodel = submodelclass(model)
@@ -247,7 +247,7 @@ def prepare_model(module: Union[types.ModuleType, str],
     model.parameters = prepare_parameters(dict_)
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
-        model.masks = module.Masks(model)
+        model.masks = module.Masks()
     for submodelclass in module.Model.SUBMODELS:
         submodel = submodelclass(model)
         setattr(model, submodel.name, submodel)

@@ -87,6 +87,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
+from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
@@ -1667,6 +1668,8 @@ immutable Elements objects is not allowed.
     Instead, see the documentation on class |Element| on how to connect
     |Node| and |Element| objects properly.
     """
+
+    masks = masktools.NodeMasks()
 
     # noinspection PyUnusedLocal
     def __init__(

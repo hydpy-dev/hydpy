@@ -1172,11 +1172,13 @@ from object `wrong` of type `str`.
             raise TypeError(
                 f'The supplied argument must be either an instance of '
                 f'`Period`, `datetime.timedelta`, or `str`, but the '
-                f'given type is `{type(period).__name__}`.')
+                f'given type is `{type(period).__name__}`.'
+            )
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a `Period` '
-                f'object based argument `{period}`')
+                f'object based argument `{period}`'
+            )
 
     @classmethod
     def from_period(cls, period: 'Period') -> 'Period':
@@ -1468,6 +1470,23 @@ object at the moment.
         2.0
         """
         return self.timedelta.total_seconds() / 86400
+
+    def check(self) -> None:
+        """Raise a |RuntimeError| if the step size is undefined at the
+        moment.
+
+        >>> from hydpy import Period
+        >>> Period('1d').check()
+        >>> Period().check()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: No step size defined at the moment.
+        """
+        # pylint: disable=protected-access
+        if not self:
+            raise RuntimeError(
+                'No step size defined at the moment.'
+            )
 
     def __bool__(self) -> bool:
         return bool(getattr(self, 'timedelta', None))

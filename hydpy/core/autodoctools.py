@@ -798,10 +798,11 @@ class Substituter:
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
         ...
-        .. |optiontools.Options.warntrim| replace:: \
-:const:`~hydpy.core.optiontools.Options.warntrim`
-        .. |optiontools.Options| replace:: \
-:class:`~hydpy.core.optiontools.Options`
+        .. |optiontools.Options.autocompile| \
+replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
+        .. |optiontools.Options.checkseries| replace:: \
+:const:`~hydpy.core.optiontools.Options.checkseries`
+        ...
 
         Through passing a string (usually the source code of a file
         to be documented), only the replacement commands relevant for

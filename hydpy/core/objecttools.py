@@ -891,7 +891,7 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
          6, 7, 8, 9, 10,
          11, 12)
     """
-    ellipsis_ = hydpy.pub.options.ellipsis
+    ellipsis_ = int(hydpy.pub.options.ellipsis)
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
         string = (
             f'{repr_values(values[:ellipsis_])}'
@@ -1542,7 +1542,7 @@ def enumeration(values, converter=str, default=''):
         return values[0]
     if len(values) == 2:
         return ' and '.join(values)
-    ellipsis_ = hydpy.pub.options.ellipsis
+    ellipsis_ = int(hydpy.pub.options.ellipsis)
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
         values = values[:ellipsis_] + ['...'] + values[-ellipsis_:]
     return ', and '.join((', '.join(values[:-1]), values[-1]))

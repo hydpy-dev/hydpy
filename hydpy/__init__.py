@@ -70,6 +70,7 @@ from hydpy.auxs.anntools import SeasonalANN
 from hydpy.auxs.calibtools import Add
 from hydpy.auxs.calibtools import Adaptor
 from hydpy.auxs.calibtools import CalibrationInterface
+from hydpy.auxs.calibtools import FactorAdaptor
 from hydpy.auxs.calibtools import Multiply
 from hydpy.auxs.calibtools import Replace
 from hydpy.auxs.calibtools import ReplaceIUH
@@ -184,6 +185,7 @@ __all__ = ['aggregate_series',
            'Adaptor',
            'Add',
            'CalibrationInterface',
+           'FactorAdaptor',
            'Multiply',
            'Replace',
            'ReplaceIUH',

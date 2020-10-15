@@ -9,13 +9,14 @@
 import abc
 import types
 from typing import *
-from typing_extensions import Literal, Protocol
+from typing_extensions import Protocol
 # ...from site-packages
 import numpy
 # ...from hydpy
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
+from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import selectiontools
@@ -23,7 +24,7 @@ from hydpy.core import timetools
 from hydpy.auxs import iuhtools
 
 
-RuleArg = Union[Type['Rule'], Literal['Replace', 'Add', 'Multiply']]
+RuleType = TypeVar('RuleType', bound='Rule')
 
 
 class TargetFunction(Protocol):
@@ -54,22 +55,27 @@ class TargetFunction(Protocol):
 
 
 class Adaptor(Protocol):
-    """Protocol class for defining adoptors required by some |Rule| objects.
+    """Protocol class for defining adoptors required by |Replace| objects.
 
-    Often, one calibration parameter (represented by one |Rule| object)
-    depends on other calibration parameters (represented by other |Rule|
-    objects).  Please select an existing or define an individual adaptor
-    and assign it to a |Rule| object to introduce such dependencies.
+    Often, one calibration parameter (represented by one |Replace| object)
+    depends on other calibration parameters (represented by other |Replace|
+    objects) or other "real" parameter values.  Please select an existing
+    or define an individual adaptor and assign it to a |Replace| object to
+    introduce such dependencies.
 
-    See class |SumAdaptor| for a concrete example.
+    See class |SumAdaptor| or class |FactorAdaptor| for concrete examples.
     """
 
-    def __call__(self) -> float:
-        """Return the adapted value."""
+    def __call__(
+            self,
+            target: parametertools.Parameter,
+    ) -> None:
+        """Modify the value(s) of the given target |Parameter| object."""
 
 
 class SumAdaptor(Adaptor):
-    """Adaptor which returns the sum of the values of multiple |Rule| objects.
+    """Adaptor which calculates the sum of the values of multiple |Rule|
+    objects and assigns it to the value(s) of the target |Parameter| object.
 
     Class |SumAdaptor| helps to introduce "larger than" relationships between
     calibration parameters.  A common use-case is the time of concentration
@@ -108,27 +114,22 @@ class SumAdaptor(Adaptor):
     ... )
 
     To allow for non-fixed non-overlapping ranges, we can prepare a
-    |SumAdaptor| object, knowing both our |Rule| objects:
+    |SumAdaptor| object, knowing both our |Rule| objects, assign it
+    the direct runoff-related |Rule| object, and, for example, set its
+    lower boundary to zero:
 
-    >>> sumadaptor = SumAdaptor(k, k4)
-
-    This function object returns the sum of the values of all of its |Rule|
-    objects:
-
-    >>> sumadaptor()
-    0.6
-
-    We now can assign the |SumAdaptor| object to the direct runoff-related
-    |Rule| object and, for example, set its lower boundary to zero:
-
-    >>> k.adaptor = sumadaptor
+    >>> k.adaptor = SumAdaptor(k, k4)
     >>> k.lower = 0.0
 
-    The |Rule.adaptedvalue| of the |Rule| object, to be used during
-    calibration, is now the sum of the (original) values of both rules:
+    Calling method |Replace.apply_value| of the |Replace| objects makes
+    our |SumAdaptor| object apply the sum of the values of all of its
+    |Rule| objects:
 
-    >>> k.adaptedvalue
-    0.6
+    >>> control = hp.elements.land_dill.model.parameters.control
+    >>> k.apply_value()
+    >>> with pub.options.parameterstep('1d'):
+    ...     control.k
+    k(0.6)
     """
     _rules: Tuple['Rule', ...]
 
@@ -138,8 +139,172 @@ class SumAdaptor(Adaptor):
     ):
         self._rules = tuple(rules)
 
-    def __call__(self) -> float:
-        return sum(rule.value for rule in self._rules)
+    def __call__(
+            self,
+            target: parametertools.Parameter,
+    ) -> None:
+        target(sum(rule.value for rule in self._rules))
+
+
+class FactorAdaptor(Adaptor):
+    """Adaptor which calculates the product of the value of the parent
+    |Replace| object and the value(s) of a given reference |Parameter| object
+    and assigns it to the value(s) of the target |Parameter| object.
+
+    Class |FactorAdaptor| helps to respect dependencies between model
+    parameters.  If you, for example, aim at calibrating the permanent
+    wilting point (|lland_control.PWP|) of model |lland_v1|, you need to
+    make sure it always agrees with the maximum soil water storage
+    (|lland_control.WMax|).  Especially, one should avoid permanent wilting
+    points larger than total porosity.  Due to the high variability
+    of soil properties within most catchments, it is no real option to
+    define a fixed upper threshold for |lland_control.PWP|.  By using
+    class |FactorAdaptor| you can instead calibrate a multiplication
+    factor.  Setting the bounds of such a factor to 0.0 and 0.5, for example,
+    would result in |lland_control.PWP| values ranging from zero up to half
+    of |lland_control.WMax| for each respective response unit.
+
+    To show how class |FactorAdaptor| works, we select another use-case
+    based on the `Lahn` example project prepared by function
+    |prepare_full_example_2|:
+
+    >>> from hydpy.examples import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+
+    |hland_v1| calculates the "normal" potential snow-melt with the
+    degree-day factor |hland_control.CFMax|.  For glacial zones, it
+    also calculates a separate potential glacier-melt with the additional
+    degree-day factor |hland_control.GMelt|.  Suppose, we have
+    |hland_control.CFMax| readily available for the different hydrological
+    response units of the Lahn catchment.  We might find it useful to
+    calibrate |hland_control.GMelt| based on the spatial pattern of
+    |hland_control.CFMax|.  Therefore, we first define a |Replace| rule
+    for parameter |hland_control.GMelt|:
+
+    >>> from hydpy import Replace, FactorAdaptor
+    >>> gmelt = Replace(
+    ...     name='gmelt',
+    ...     parameter='gmelt',
+    ...     value=2.0,
+    ...     lower=0.5,
+    ...     upper=2.0,
+    ...     parameterstep='1d',
+    ...     model='hland_v1',
+    ... )
+
+    Second, we initialise a |FactorAdaptor| object based on target
+    rule `gmelt` and our reference parameter |hland_control.CFMax| and
+    assign it our rule object:
+
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, 'cfmax')
+
+    The `Dill` subcatchment, as the whole `Lahn` basin, does not contain
+    any glaciers.  Hence it defines (identical) |hland_control.CFMax|
+    values for the zones of type |hland_constants.FIELD| and
+    |hland_constants.FOREST|, but must not specify any value for
+    |hland_control.GMelt|:
+
+    >>> control = hp.elements.land_dill.model.parameters.control
+    >>> control.cfmax
+    cfmax(field=4.55853, forest=2.735118)
+    >>> control.gmelt
+    gmelt(nan)
+
+    Next, we call method |Replace.apply_value| of the |Replace| object to
+    apply the |FactorAdaptor| object on all relevant |hland_control.GMelt|
+    instances of the `Lahn` catchment:
+
+    >>> gmelt.adaptor(control.gmelt)
+
+    The string representation of the |hland_control.GMelt| instance of `Dill`
+    catchment seems to indicate nothing happened:
+
+    >>> control.gmelt
+    gmelt(nan)
+
+    However, inspecting the individual values of the respective response
+    units reveals the multiplication was successful:
+
+    >>> from hydpy import print_values
+    >>> print_values(control.gmelt.values)
+    9.11706, 5.470236, 9.11706, 5.470236, 9.11706, 5.470236, 9.11706,
+    5.470236, 9.11706, 5.470236, 9.11706, 5.470236
+
+    Calculating values for response units that do not require these
+    values can be misleading.  We can improve the situation by using
+    the masks provided by the respective model, in our example mask
+    |hland_masks.Glacier|.  To make this clearer, we set the  first six
+    response units to |hland_control.ZoneType| |hland_constants.GLACIER|:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> control.zonetype(GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER,
+    ...                  FIELD, FOREST, ILAKE, FIELD, FOREST, ILAKE)
+
+    We now can assign the |SumAdaptor| object to the direct runoff-related
+    |Replace| object and, for example, set its lower boundary to zero:
+
+    Now we create a new |FactorAdaptor| object, handling the same parameters
+    but also the |hland_masks.Glacier| mask:
+
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, 'cfmax', 'glacier')
+
+    To be able to see the results of our new adaptor object, we change the
+    values both of our reference parameter and our rule object:
+
+    >>> control.cfmax(field=5.0, forest=3.0, glacier=6.0)
+    >>> gmelt.value = 0.5
+
+    The string representation of our target parameter shows that the
+    glacier-related day degree factor of all glacier zones is now half as
+    large as the snow-related one:
+
+    >>> gmelt.apply_value()
+    >>> control.gmelt
+    gmelt(3.0)
+
+    Note that all remaining values (for zone types |hland_constants.FIELD|,
+    |hland_constants.FOREST|, and |hland_constants.ILAKE| are still the same.
+    This intended behaviour allows calibrating, for example, hydrological
+    response units of different types with different rule objects:
+
+    >>> print_values(control.gmelt.values)
+    3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 9.11706, 5.470236, 9.11706, 5.470236,
+    9.11706, 5.470236
+    """
+    _rule: 'Rule'
+    _reference: str
+    _mask: Optional[str]
+
+    def __init__(
+            self,
+            rule: 'Rule',
+            reference: Union[
+                Type[parametertools.Parameter],
+                parametertools.Parameter,
+                str
+            ],
+            mask: Optional[
+                Union[
+                    masktools.BaseMask,
+                    str,
+                ]
+            ] = None,
+    ):
+        self._rule = rule
+        self._reference = str(getattr(reference, 'name', reference))
+        self._mask = getattr(mask, 'name', mask) if mask else None
+
+    def __call__(
+            self,
+            target: parametertools.Parameter,
+    ) -> None:
+        ref = target.subpars[self._reference]
+        if self._mask:
+            mask = ref.get_submask(self._mask)
+            values = ref.values[mask] if ref.NDIM else ref.value
+            target.values[mask] = self._rule.value*values
+        else:
+            target.value = self._rule.value*ref.value
 
 
 class Rule(abc.ABC):
@@ -201,19 +366,17 @@ class Rule(abc.ABC):
     fc(200.0)
 
     Sometimes, one needs to make a difference between the original value
-    to be calibrated and the actually applied value.  Then, define an
-    |Adaptor| function and assign it to the relevant |Rule| object (see
-    the documentation on class |SumAdaptor| for a more realistic example):
+    to be calibrated and the actually applied value.  Therefore, (only)
+    the |Replace| class allows defining custom "adaptors". Prepare an
+    |Adaptor| function and assign it to the relevant |Replace| object (see
+    the documentation on class |SumAdaptor| or |FactorAdaptor| for more
+    realistic examples):
 
-    >>> rule.adaptor = lambda: 2.0*rule.value
+    >>> rule.adaptor = lambda target: target(2.0*rule.value)
 
     Now, our rule does not apply the original but the adapted calibration
     parameter value:
 
-    >>> rule.value
-    200.0
-    >>> rule.adaptedvalue
-    400.0
     >>> rule.apply_value()
     >>> fc
     fc(400.0)
@@ -261,9 +424,6 @@ class Rule(abc.ABC):
     ...     value=5.0,
     ...     model='hland_v1',
     ... )
-
-    To avoid confusion, the |Rule| object actually handles a copy of
-    |Options.parameterstep|:
 
     The |Rule| object internally handles, to avoid confusion, a copy of
     |Options.parameterstep|.
@@ -374,7 +534,6 @@ the following error occurred: Object `Selections("headwaters", \
     upper: float
     _value: float
     elements: devicetools.Elements
-    adaptor: Optional[Adaptor] = None
     _model: Optional[str]
     _parameter: str
     _parameterstep: Optional[timetools.Period]
@@ -391,8 +550,8 @@ the following error occurred: Object `Selections("headwaters", \
                 str
             ],
             value: float,
-            lower: Optional[float] = -numpy.inf,
-            upper: Optional[float] = numpy.inf,
+            lower: float = -numpy.inf,
+            upper: float = numpy.inf,
             parameterstep: Optional[timetools.PeriodConstrArg] = None,
             selections: Optional[
                 Iterable[Union[selectiontools.Selection, str]]
@@ -461,7 +620,7 @@ the following error occurred: Object `Selections("headwaters", \
 
     @property
     def value(self) -> float:
-        """The (original) calibration parameter value.
+        """The calibration parameter value.
 
         Property |Rule.value| checks that the given value adheres to the
         defined lower and upper boundaries:
@@ -509,44 +668,10 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
 
     @abc.abstractmethod
     def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter|
-        objects.
+        """Apply the current value on the relevant |Parameter| objects.
 
         To be overridden by the concrete subclasses.
         """
-
-    @property
-    def adaptedvalue(self) -> float:
-        """The current (original) value modified by relevant the |Adaptor|
-        object.
-
-        >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import Replace
-        >>> fc = Replace(
-        ...     name='fc',
-        ...     parameter='fc',
-        ...     value=100.0,
-        ...     model='hland_v1',
-        ... )
-        >>> fc.adaptor = lambda: 2.0*fc.value
-        >>> fc.adaptedvalue
-        200.0
-
-        With no available adaptor, |Rule.adaptedvalue| is identical with the
-        current original value:
-
-        >>> fc.adaptor = None
-        >>> fc.adaptedvalue
-        100.0
-        """
-        if self.adaptor:
-            # pylint: disable=not-callable
-            # doesn't pylint understand protocols?
-            # better use an abstract base class?
-            return self.adaptor()
-            # pylint: enable=not-callable
-        return self.value
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
@@ -581,8 +706,7 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
             self._parameter,
         ).TIME
 
-    @property
-    def parameterstep(self) -> Optional[timetools.Period]:
+    def _get_parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
         For non-time-dependent parameters, property |Rule.parameterstep|
@@ -590,8 +714,7 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
         """
         return self._parameterstep
 
-    @parameterstep.setter
-    def parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
         if self._time is None:
             self._parameterstep = None
         else:
@@ -607,6 +730,8 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
                         'it via option `parameterstep`.'
                     ) from None
             self._parameterstep = timetools.Period(value)
+
+    parameterstep = property(_get_parameterstep, _set_parameterstep)
 
     def assignrepr(
             self,
@@ -659,13 +784,23 @@ class Replace(Rule):
     See the documentation on class |Rule| for further information.
     """
 
-    def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter|
-        objects."""
+    adaptor: Optional[Adaptor] = None
 
+    def apply_value(self) -> None:
+        """Apply the current value on the relevant |Parameter| objects.
+
+        See the documentation on class |Rule| for further information.
+        """
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter in self:
-                parameter(self.adaptedvalue)
+                if self.adaptor:
+                    # pylint: disable=not-callable
+                    # doesn't pylint understand protocols?
+                    # better use an abstract base class?
+                    self.adaptor(parameter)
+                    # pylint: enable=not-callable
+                else:
+                    parameter(self.value)
 
 
 class Add(Rule):
@@ -678,7 +813,7 @@ class Add(Rule):
 
     The first example deals with the non-time-dependent parameter
     |hland_control.FC|.  The following |Add| object adds its current
-    (adapted) value to the original value of the parameter:
+    value to the original value of the parameter:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -689,19 +824,18 @@ class Add(Rule):
     ...     value=100.0,
     ...     model='hland_v1',
     ... )
-    >>> rule.adaptor = lambda: 2.0*rule.value
+    >>> rule.adaptor = lambda parameter: 2.0*rule.value
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
     >>> rule.apply_value()
     >>> fc
-    fc(406.0)
+    fc(306.0)
 
     The second example deals with the time-dependent parameter
     |hland_control.PercMax| and shows that everything works even for
     situations where the actual |Options.parameterstep| (2 days) differs
     from the current |Options.simulationstep| (1 day):
-
 
     >>> rule = Add(
     ...     name='percmax',
@@ -723,7 +857,7 @@ class Add(Rule):
         objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.adaptedvalue+orig)
+                parameter(self.value+orig)
 
 
 class Multiply(Rule):
@@ -736,8 +870,7 @@ class Multiply(Rule):
 
     The first example deals with the non-time-dependent parameter
     |hland_control.FC|.  The following |Multiply| object multiplies the
-    original value of the parameter by its current (adapted) calibration
-    factor:
+    original value of the parameter by its current calibration factor:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -748,13 +881,12 @@ class Multiply(Rule):
     ...     value=2.0,
     ...     model='hland_v1',
     ... )
-    >>> rule.adaptor = lambda: 2.0*rule.value
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
     >>> rule.apply_value()
     >>> fc
-    fc(824.0)
+    fc(412.0)
 
     The second example deals with the time-dependent parameter
     |hland_control.PercMax| and shows that everything works even for
@@ -780,10 +912,10 @@ class Multiply(Rule):
         objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.adaptedvalue*orig)
+                parameter(self.value*orig)
 
 
-class CalibrationInterface:
+class CalibrationInterface(Generic[RuleType]):
     # noinspection PyUnresolvedReferences
     """Interface for the coupling of *HydPy* to optimisation libraries like
     `NLopt`_.
@@ -814,8 +946,9 @@ class CalibrationInterface:
     one |Replace| rule related to parameter |hland_control.FC| and another
     one related to parameter |hland_control.PercMax| in one step:
 
+    >>> from hydpy import Replace
     >>> ci.make_rules(
-    ...     rule='Replace',
+    ...     rule=Replace,
     ...     names=['fc', 'percmax'],
     ...     parameters=['fc', 'percmax'],
     ...     values=[100.0, 5.0],
@@ -855,7 +988,6 @@ class CalibrationInterface:
 
     >>> len(ci)
     2
-    >>> from hydpy import Replace
     >>> ci.add_rules(
     ...     Replace(
     ...         name='damp',
@@ -1185,7 +1317,7 @@ interface (damp and fc) do not agree with the names in the header of logfile \
     _logfilepath: Optional[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
-    _rules: Dict[str, Rule]
+    _rules: Dict[str, RuleType]
     _elements: devicetools.Elements
 
     def __init__(
@@ -1203,7 +1335,7 @@ interface (damp and fc) do not agree with the names in the header of logfile \
 
     def add_rules(
             self,
-            *rules: Rule,
+            *rules: RuleType,
     ) -> None:
         # noinspection PyTypeChecker
         """Add some |Rule| objects to the actual |CalibrationInterface| object.
@@ -1252,7 +1384,7 @@ interface (damp and fc) do not agree with the names in the header of logfile \
             self._rules[rule.name] = rule
             self._update_elements_when_adding_a_rule(rule)
 
-    def remove_rules(self, *rules: Union[str, Rule]) -> None:
+    def remove_rules(self, *rules: Union[str, RuleType]) -> None:
         # noinspection PyTypeChecker
         """Remove some |Rule| objects from the actual |CalibrationInterface|
         object.
@@ -1317,21 +1449,20 @@ interface (damp and fc) do not agree with the names in the header of logfile \
 a rule object named `fc`.
         """
         for rule in rules:
-            if isinstance(rule, Rule):
-                rule = rule.name
+            rulename = getattr(rule, 'name', rule)
             try:
-                del self._rules[rule]
+                del self._rules[rulename]
             except KeyError:
                 raise RuntimeError(
                     f'The actual calibration interface object does '
-                    f'not handle a rule object named `{rule}`.'
+                    f'not handle a rule object named `{rulename}`.'
                 ) from None
         self._update_elements_when_deleting_a_rule()
 
     def make_rules(
             self,
             *,
-            rule: RuleArg,
+            rule: Type[RuleType],
             names: Iterable[str],
             parameters: Iterable[Union[parametertools.Parameter, str]],
             values: Iterable[float],
@@ -1344,72 +1475,7 @@ a rule object named `fc`.
             model: Optional[Union[types.ModuleType, str]] = None,
     ) -> None:
         # noinspection PyTypeChecker
-        """Create and store new |Rule| objects.
-
-        The main documentation on class |CalibrationInterface| explains
-        the usage of method |CalibrationInterface.make_rules| in some
-        detail.  The example shows the error message method
-        |CalibrationInterface.make_rules| raises in case of a wrong
-        `rule` argument:
-
-        >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import CalibrationInterface
-        >>> ci = CalibrationInterface(
-        ...     hp=hp,
-        ...     targetfunction=lambda hp_: None,
-        ... )
-        >>> ci.make_rules(
-        ...     rule='Insert',
-        ...     names=['fc', 'percmax'],
-        ...     parameters=['fc', 'percmax'],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     uppers=[200.0, 10.0],
-        ...     parameterstep='1d',
-        ...     model='hland_v1',
-        ... )
-        Traceback (most recent call last):
-        ...
-        ValueError: No rule of type `Insert` available.
-
-        To avoid passing wrong strings, you can pass the proper |Rule|
-        subclass itself:
-
-        >>> from hydpy import Replace
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     names=['fc', 'percmax'],
-        ...     parameters=['fc', 'percmax'],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     uppers=[200.0, 10.0],
-        ...     parameterstep='1d',
-        ...     model='hland_v1',
-        ... )
-        >>> ci.fc
-        Replace(
-            name='fc',
-            parameter='fc',
-            lower=50.0,
-            upper=200.0,
-            parameterstep=None,
-            value=100.0,
-            model='hland_v1',
-            selections=('complete',),
-        )
-        """
-        if isinstance(rule, str):
-            try:
-                rule = {
-                    'replace': Replace,
-                    'add': Add,
-                    'multiply': Multiply,
-                }[rule.lower()]
-            except KeyError:
-                raise ValueError(
-                    f'No rule of type `{rule}` available.'
-                ) from None
+        """Create and store new |Rule| objects."""
         pariter = objecttools.extract(
             values=parameters,
             types_=(parametertools.Parameter, str),
@@ -1498,6 +1564,7 @@ a rule object named `fc`.
             )
             # pylint: disable=not-an-iterable
         idx2name, idx2rule = {}, {}
+        parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
                 zip(
                     lines[0].split()[1:],
@@ -1567,7 +1634,7 @@ a rule object named `fc`.
 
     @property
     def values(self) -> Tuple[float, ...]:
-        """The (original) values of all handled |Rule| objects.
+        """The values of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for
         further information.
@@ -1659,11 +1726,11 @@ a rule object named `fc`.
     def __len__(self) -> int:
         return len(self._rules)
 
-    def __iter__(self) -> Iterator[Rule]:
+    def __iter__(self) -> Iterator[RuleType]:
         for rule in self._rules.values():
             yield rule
 
-    def __getattr__(self, item: str) -> Any:
+    def __getattr__(self, item: str) -> RuleType:
         try:
             return self._rules[item]
         except KeyError:
@@ -1672,7 +1739,7 @@ a rule object named `fc`.
                 f'normal attribute nor a rule object named `{item}`.'
             ) from None
 
-    def __getitem__(self, key: str) -> Rule:
+    def __getitem__(self, key: str) -> RuleType:
         try:
             return self._rules[key]
         except KeyError:
@@ -1692,13 +1759,13 @@ a rule object named `fc`.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import CalibrationInterface
-        >>> ci = CalibrationInterface(
+        >>> from hydpy import CalibrationInterface, Replace
+        >>> ci = CalibrationInterface[Replace](
         ...     hp=hp,
         ...     targetfunction=lambda hp_: None,
         ... )
         >>> ci.make_rules(
-        ...     rule='Replace',
+        ...     rule=Replace,
         ...     names=['fc', 'percmax'],
         ...     parameters=['fc', 'percmax'],
         ...     values=[100.0, 5.0],

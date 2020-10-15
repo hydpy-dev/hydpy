@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements tools for increasing the level of automation and
-standardisation of the online documentation generated with Sphinx.
-"""
+standardisation of the online documentation generated with Sphinx."""
 # import...
 # ...from standard library
 import builtins
@@ -422,6 +421,8 @@ class Substituter:
         if inspect.ismodule(member):
             return False
         real_module = getattr(member, '__module__', None)
+        if (module is not typing) and (name_member in typing.__all__):
+            return False
         if not real_module:
             return True
         if real_module != module.__name__:

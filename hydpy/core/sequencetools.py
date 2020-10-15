@@ -29,7 +29,14 @@ if TYPE_CHECKING:
     from hydpy.core import typingtools
 
 
-InOutSequence = Union['InputSequence', 'OutputSequence']
+InOutSequence = Union[
+    'InputSequence',
+    'OutputSequence',
+]
+TypesInOutSequence = Union[
+    Type['InputSequence'],
+    Type['OutputSequence'],
+]
 
 SequencesType = TypeVar(
     'SequencesType',

@@ -113,7 +113,7 @@ ElementConstrArg = Union['Element', str]
 
 NodeVariableType = Union[
     str,
-    Type[sequencetools.InOutSequence],
+    sequencetools.TypesInOutSequence,
     'FusedVariable',
 ]
 
@@ -421,13 +421,13 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
     """
     _name: str
     _aliases: Tuple[str]
-    _variables: Tuple[Type[sequencetools.InOutSequence]]
-    _alias2variable: Dict[str, Type[sequencetools.InOutSequence]]
+    _variables: Tuple[sequencetools.TypesInOutSequence, ...]
+    _alias2variable: Dict[str, sequencetools.TypesInOutSequence]
 
     def __new__(
             cls,
             name: str,
-            *sequences: sequencetools.InOutSequence,
+            *sequences: sequencetools.TypesInOutSequence,
     ):
         self = super().__new__(cls)
         aliases = tuple(hydpy.sequence2alias[seq] for seq in sequences)
@@ -468,14 +468,14 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
         """
         return _registry_fusedvariable.clear()
 
-    def __iter__(self) -> Iterator[Type[sequencetools.InOutSequence]]:
+    def __iter__(self) -> Iterator[sequencetools.TypesInOutSequence]:
         for variable in self._variables:
             yield variable
 
     def __contains__(
             self,
             item: Union[
-                Type[sequencetools.InOutSequence],
+                sequencetools.TypesInOutSequence,
                 sequencetools.InOutSequence,
             ],
     ) -> bool:

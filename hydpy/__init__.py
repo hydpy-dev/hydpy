@@ -232,7 +232,7 @@ __all__ = ['aggregate_series',
            'await_server',
            'start_server']
 
-sequence2alias: Dict[sequencetools.InOutSequence, str] = {}
+sequence2alias: Dict[sequencetools.TypesInOutSequence, str] = {}
 
 _select = (
     sequencetools.InputSequence,

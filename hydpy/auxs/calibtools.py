@@ -24,7 +24,10 @@ from hydpy.core import timetools
 from hydpy.auxs import iuhtools
 
 
-RuleType = TypeVar('RuleType', bound='Rule')
+RuleType = TypeVar(
+    'RuleType',
+    bound='Rule',
+)
 
 
 class TargetFunction(Protocol):
@@ -34,23 +37,22 @@ class TargetFunction(Protocol):
 
     The target functions must calculate and return a floating-point number
     reflecting the quality of the current parameterisation of the models of
-    the given |HydPy| object.  Often, as in the following example, the target
+    the current project.  Often, as in the following example, the target
     function relies on objective functions as |nse|, applied on the time
     series of the |Sim| and |Obs| sequences handled by the |HydPy| object:
 
-    >>> from hydpy import nse, TargetFunction
+    >>> from hydpy import HydPy, nse, TargetFunction
     >>> class Target(TargetFunction):
-    ...     def __call__(self, hp):
-    ...         return sum(nse(node=node) for node in hp.nodes)
-    >>> target = Target()
+    ...     def __init__(self, hp):
+    ...         self.hp = hp
+    ...     def __call__(self):
+    ...         return sum(nse(node=node) for node in self.hp.nodes)
+    >>> target = Target(HydPy())
 
     See the documentation on class |CalibrationInterface| for more information.
     """
 
-    def __call__(
-            self,
-            hp: hydpytools.HydPy,
-    ) -> float:
+    def __call__(self) -> float:
         """Return some kind of efficience criterion."""
 
 
@@ -530,10 +532,23 @@ the following error occurred: Object `Selections("headwaters", \
     """
 
     name: str
+    """The name of the |Rule| object.
+    
+    Often, the name of the target parameter, but this is arbitrary."""
     lower: float
+    """Lower boundary value.
+    
+    No lower boundary corresponds to minus |numpy.inf|.
+    """
     upper: float
-    _value: float
+    """Upper boundary value.
+
+    No upper boundary corresponds to plus |numpy.inf|.
+    """
     elements: devicetools.Elements
+    """The |Element| objects which handle the relevant target |Parameter|
+    instances."""
+    _value: float
     _model: Optional[str]
     _parameter: str
     _parameterstep: Optional[timetools.Period]
@@ -655,7 +670,10 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
         return self._value
 
     @value.setter
-    def value(self, value) -> None:
+    def value(
+            self,
+            value: float,
+    ) -> None:
         if self.lower <= value <= self.upper:
             self._value = value
         else:
@@ -714,7 +732,10 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
         """
         return self._parameterstep
 
-    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+    def _set_parameterstep(
+            self,
+            value: Optional[timetools.PeriodConstrArg],
+    ) -> None:
         if self._time is None:
             self._parameterstep = None
         else:
@@ -785,6 +806,12 @@ class Replace(Rule):
     """
 
     adaptor: Optional[Adaptor] = None
+    """An optional function object for customising individual calibration
+    strategies.
+    
+    See the documentation on the classes |Rule|, |SumAdaptor|, and 
+    |FactorAdaptor| for further information.
+    """
 
     def apply_value(self) -> None:
         """Apply the current value on the relevant |Parameter| objects.
@@ -939,7 +966,7 @@ class CalibrationInterface(Generic[RuleType]):
     >>> from hydpy import CalibrationInterface, nse
     >>> ci = CalibrationInterface(
     ...     hp=hp,
-    ...     targetfunction=lambda hp_: sum(nse(node=node) for node in hp_.nodes)
+    ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
     ... )
 
     Next, we use method |CalibrationInterface.make_rules|, which generates
@@ -1313,7 +1340,14 @@ interface (damp and fc) do not agree with the names in the header of logfile \
     """
 
     result: Optional[float]
+    """The last result calculated by the target function."""
     conditions: hydpytools.ConditionsType
+    """The |HydPy.conditions| of the given |HydPy| object.
+    
+    |CalibrationInterface| queries the conditions during its initialisation 
+    and uses them later to reset all relevant conditions before each new 
+    simulation run.
+    """
     _logfilepath: Optional[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
@@ -1345,7 +1379,7 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         >>> from hydpy import CalibrationInterface
         >>> ci = CalibrationInterface(
         ...     hp=hp,
-        ...     targetfunction=lambda hp_: None,
+        ...     targetfunction=lambda: None,
         ... )
         >>> from hydpy import Replace
         >>> ci.add_rules(
@@ -1394,7 +1428,7 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         >>> from hydpy import CalibrationInterface
         >>> ci = CalibrationInterface(
         ...     hp=hp,
-        ...     targetfunction=lambda hp_: None,
+        ...     targetfunction=lambda: None,
         ... )
         >>> from hydpy import Replace
         >>> ci.add_rules(
@@ -1700,7 +1734,7 @@ a rule object named `fc`.
         See the main documentation on class |CalibrationInterface| for
         further information.
         """
-        self.result = self._targetfunction(self._hp)
+        self.result = self._targetfunction()
         return self.result
 
     def perform_calibrationstep(
@@ -1762,7 +1796,7 @@ a rule object named `fc`.
         >>> from hydpy import CalibrationInterface, Replace
         >>> ci = CalibrationInterface[Replace](
         ...     hp=hp,
-        ...     targetfunction=lambda hp_: None,
+        ...     targetfunction=lambda: None,
         ... )
         >>> ci.make_rules(
         ...     rule=Replace,

@@ -8,6 +8,7 @@
 # ...from standard library
 import abc
 import types
+import warnings
 from typing import *
 from typing_extensions import Protocol
 # ...from site-packages
@@ -637,7 +638,7 @@ the following error occurred: Object `Selections("headwaters", \
     def value(self) -> float:
         """The calibration parameter value.
 
-        Property |Rule.value| checks that the given value adheres to the
+        Property |Rule.value| ensures that the given value adheres to the
         defined lower and upper boundaries:
 
         >>> from hydpy import Replace
@@ -653,19 +654,21 @@ the following error occurred: Object `Selections("headwaters", \
         ... )
 
         >>> rule.value = 0.0
-        Traceback (most recent call last):
-        ...
-        ValueError: The value of `Replace` object `fc` must not be smaller \
-than `50.0` or larger than `200.0`, but the given value is `0.0`.
-
-        >>> rule.value = 300.0
-        Traceback (most recent call last):
-        ...
-        ValueError: The value of `Replace` object `fc` must not be smaller \
-than `50.0` or larger than `200.0`, but the given value is `300.0`.
-
         >>> rule.value
-        100.0
+        50.0
+
+        With option |Options.warntrim| enabled (the default), property
+        |Rule.value| also emits a warning like the following:
+
+        >>> with pub.options.warntrim(True):
+        ...     rule.value = 300.0
+        Traceback (most recent call last):
+        ...
+        UserWarning: The value of the `Replace` object `fc` must not be \
+smaller than `50.0` or larger than `200.0`, but the given value is `300.0`.  \
+Applying the trimmed value `200.0` instead.
+        >>> rule.value
+        200.0
         """
         return self._value
 
@@ -677,12 +680,16 @@ than `50.0` or larger than `200.0`, but the given value is `300.0`.
         if self.lower <= value <= self.upper:
             self._value = value
         else:
-            raise ValueError(
-                f'The value of `{type(self).__name__}` object `{self}` '
-                f'must not be smaller than `{objecttools.repr_(self.lower)}` '
-                f'or larger than `{objecttools.repr_(self.upper)}`, but the '
-                f'given value is `{objecttools.repr_(value)}`.'
-            )
+            self._value = min(max(value, self.lower), self.upper)
+            if hydpy.pub.options.warntrim:
+                repr_ = objecttools.repr_
+                warnings.warn(
+                    f'The value of the `{type(self).__name__}` object '
+                    f'`{self}` must not be smaller than `{repr_(self.lower)}` '
+                    f'or larger than `{repr_(self.upper)}`, but the '
+                    f'given value is `{repr_(value)}`.  Applying the trimmed '
+                    f'value `{repr_(self._value)}` instead.'
+                )
 
     @abc.abstractmethod
     def apply_value(self) -> None:

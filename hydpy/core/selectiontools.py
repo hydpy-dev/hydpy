@@ -540,6 +540,11 @@ attribute 'nodes'
     >>> str(test)
     'test'
     """
+
+    name: str
+    nodes: devicetools.Nodes
+    elements: devicetools.Elements
+
     def __init__(
             self,
             name: str,
@@ -1277,7 +1282,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'add {_ERRORMESSAGE}')
     def __iadd__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> 'Selection':
         self.nodes += other.nodes
         self.elements += other.elements
@@ -1286,7 +1291,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'subtract {_ERRORMESSAGE}')
     def __isub__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> 'Selection':
         self.nodes -= other.nodes
         self.elements -= other.elements
@@ -1295,7 +1300,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __lt__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes < other.nodes) and
                 (self.elements < other.elements))
@@ -1303,7 +1308,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __le__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes <= other.nodes) and
                 (self.elements <= other.elements))
@@ -1311,7 +1316,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __eq__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes == other.nodes) and
                 (self.elements == other.elements))
@@ -1319,7 +1324,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __ne__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes != other.nodes) or
                 (self.elements != other.elements))
@@ -1327,7 +1332,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __ge__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes >= other.nodes) and
                 (self.elements >= other.elements))
@@ -1335,7 +1340,7 @@ hland_T, lland_Nied
     @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
     def __gt__(
             self,
-            other: typingtools.DevicesHandlerProtocol,
+            other: 'Selection',
     ) -> bool:
         return ((self.nodes > other.nodes) and
                 (self.elements >= other.elements))

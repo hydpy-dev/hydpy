@@ -9,6 +9,7 @@ from typing_extensions import Protocol
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
+    from hydpy.core import hydpytools
     from hydpy.cythons.autogen import pointerutils
 
 T = TypeVar('T')
@@ -47,13 +48,6 @@ class IterableNonString(abc.ABC):
         return (hasattr(subclass, '__iter__') and
                 not (isinstance(subclass, str) or
                      issubclass(subclass, str)))
-
-
-class DevicesHandlerProtocol(Protocol):
-    """Without concrete implementation."""
-
-    nodes: 'devicetools.Nodes'
-    elements: 'devicetools.Elements'
 
 
 class VariableProtocol(Protocol):
@@ -104,7 +98,6 @@ __all__ = [
     'MayNonerable2',
     'MayNonerable3',
     'Vector',
-    'DevicesHandlerProtocol',
     'VariableProtocol',
     'CyModelProtocol',
 ]

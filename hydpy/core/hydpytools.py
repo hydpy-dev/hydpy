@@ -637,7 +637,7 @@ requested to make any internal data available.
     _elements: Optional[devicetools.Elements]
     deviceorder: List[devicetools.Device]
 
-    def __init__(self, projectname: Optional[str] = None):
+    def __init__(self, projectname: Optional[str] = None) -> None:
         self._nodes = None
         self._elements = None
         self.deviceorder: List[
@@ -653,8 +653,7 @@ requested to make any internal data available.
             hydpy.pub.sequencemanager = filetools.SequenceManager()
             hydpy.pub.conditionmanager = filetools.ConditionManager()
 
-    @property
-    def nodes(self) -> devicetools.Nodes:
+    def _get_nodes(self) -> devicetools.Nodes:
         """The currently handled |Node| objects.
 
         You are allowed to get, set and delete the currently handled nodes:
@@ -684,19 +683,19 @@ at the moment.
         if nodes is None:
             raise AttributeError(
                 'The actual HydPy instance does not handle any '
-                'nodes at the moment.')
+                'nodes at the moment.'
+            )
         return nodes
 
-    @nodes.setter
-    def nodes(self, values):
+    def _set_nodes(self, values: devicetools.NodesConstrArg) -> None:
         self._nodes = devicetools.Nodes(values).copy()
 
-    @nodes.deleter
-    def nodes(self):
+    def _del_nodes(self) -> None:
         self._nodes = None
 
-    @property
-    def elements(self) -> devicetools.Elements:
+    nodes = property(_get_nodes, _set_nodes, _del_nodes)
+
+    def _get_elements(self) -> devicetools.Elements:
         """The currently handled |Element| objects.
 
         You are allowed to get, set and delete the currently handled elements:
@@ -728,16 +727,17 @@ at the moment.
         if elements is None:
             raise AttributeError(
                 'The actual HydPy instance does not handle any '
-                'elements at the moment.')
+                'elements at the moment.'
+            )
         return elements
 
-    @elements.setter
-    def elements(self, values):
+    def _set_elements(self, values: devicetools.ElementsConstrArg) -> None:
         self._elements = devicetools.Elements(values).copy()
 
-    @elements.deleter
-    def elements(self):
+    def _del_elements(self) -> None:
         self._elements = None
+
+    elements = property(_get_elements, _set_elements, _del_elements)
 
     def prepare_everything(self) -> None:
         """Convenience method to make the actual |HydPy| instance runnable.
@@ -943,7 +943,7 @@ to the HydPy documentation on how to prepare control files properly.
         """
         self.elements.prepare_models()
 
-    def init_models(self):
+    def init_models(self) -> None:
         """Deprecated! Use method |HydPy.prepare_models| instead.
 
         >>> from hydpy import HydPy
@@ -969,7 +969,8 @@ Use method `prepare_models` instead.
             self,
             parameterstep: Optional[timetools.PeriodConstrArg] = None,
             simulationstep: Optional[timetools.PeriodConstrArg] = None,
-            auxfiler: Optional['auxfiletools.Auxfiler'] = None) -> None:
+            auxfiler: Optional['auxfiletools.Auxfiler'] = None,
+    ) -> None:
         """Write the control files of all current |Element| objects.
 
         .. testsetup::
@@ -1163,7 +1164,7 @@ Use method `prepare_models` instead.
             auxfiler=auxfiler,
         )
 
-    def load_conditions(self):
+    def load_conditions(self) -> None:
         """Load all currently relevant initial conditions.
 
         .. testsetup::
@@ -1300,7 +1301,7 @@ Use method `prepare_models` instead.
         """
         self.elements.load_conditions()
 
-    def save_conditions(self):
+    def save_conditions(self) -> None:
         """Save all currently relevant final conditions.
 
         See the documentation on method |HydPy.load_conditions| for
@@ -1308,7 +1309,7 @@ Use method `prepare_models` instead.
         """
         self.elements.save_conditions()
 
-    def trim_conditions(self):
+    def trim_conditions(self) -> None:
         """Check all values of the condition sequences (|StateSequence|
         and |LogSequence| objects) for boundary violations and fix them
         if necessary.
@@ -1352,7 +1353,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         self.elements.trim_conditions()
 
-    def reset_conditions(self):
+    def reset_conditions(self) -> None:
         """Reset all currently relevant condition sequences.
 
         Method |HydPy.reset_conditions| is the most convenient way to
@@ -1501,7 +1502,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return self.elements.conditions
 
     @conditions.setter
-    def conditions(self, conditions):
+    def conditions(self, conditions: ConditionsType) -> None:
         self.elements.conditions = conditions
 
     @property
@@ -1549,7 +1550,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
             print(f'{key}: {value}')
 
     @property
-    def endnodes(self):
+    def endnodes(self) -> devicetools.Nodes:
         """All currently relevant |Node| objects which define a downstream
         endpoint of the network.
 
@@ -1803,14 +1804,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         self.nodes.close_files()
 
     @overload
-    def update_devices(self) -> None:
-        """No input"""
-
-    @overload
     def update_devices(
             self,
             *,
-            selection: typingtools.DevicesHandlerProtocol,
+            selection: 'selectiontools.Selection',
     ) -> None:
         """Selection as input"""
 
@@ -1818,8 +1815,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
     def update_devices(
             self,
             *,
-            nodes: devicetools.NodesConstrArg,
-            elements: devicetools.NodesConstrArg,
+            nodes: devicetools.NodesConstrArg = ...,
+            elements: devicetools.ElementsConstrArg = ...,
     ) -> None:
         """Devices as input"""
 
@@ -2361,8 +2358,9 @@ Use method `simulate` instead.
         self.nodes.load_obsseries()
 
 
-def create_directedgraph(devices: typingtools.DevicesHandlerProtocol) \
-        -> networkx.DiGraph:
+def create_directedgraph(
+        devices: Union[HydPy, 'selectiontools.Selection'],
+) -> networkx.DiGraph:
     """Create a directed graph based on the given devices."""
     digraph = networkx.DiGraph()
     digraph.add_nodes_from(devices.elements)

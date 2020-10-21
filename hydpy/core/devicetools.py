@@ -1051,25 +1051,25 @@ which is in conflict with using their names as identifiers.
             return getattr(set(self), func)(set(other))
         return NotImplemented
 
-    def __lt__(self, other):
+    def __lt__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__lt__')
 
-    def __le__(self, other):
+    def __le__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__le__')
 
-    def __eq__(self, other: Any):
+    def __eq__(self, other: Any) -> bool:
         return self.__compare(other, '__eq__')
 
-    def __ne__(self, other: Any):
+    def __ne__(self, other: Any) -> bool:
         return self.__compare(other, '__ne__')
 
-    def __ge__(self, other: DeviceType):
+    def __ge__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__ge__')
 
-    def __gt__(self, other: DeviceType):
+    def __gt__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__gt__')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr('')
 
     def assignrepr(self, prefix: str = '') -> str:
@@ -1081,7 +1081,7 @@ which is in conflict with using their names as identifiers.
                     self.names, prefix, width=70)
                 return repr_ + ')'
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """Just a regression test:
 
         >>> from hydpy import Node, Nodes

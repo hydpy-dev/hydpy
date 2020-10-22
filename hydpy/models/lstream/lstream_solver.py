@@ -31,7 +31,7 @@ class RelDTMin(parametertools.SolverParameter):
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
-    INIT = 0.001
+    INIT = 0.0
 
 
 class RelDTMax(parametertools.SolverParameter):

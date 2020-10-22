@@ -3,13 +3,11 @@
 
 In HydPy, parameter values are usually not shared between different
 model objects handled by different elements, even if the model objects
-model objects handled by different elements, even if the model objects
 are of the same type (e.g. HBV).  This offers flexibility in applying
-different parameterization schemes.  But very often, modellers prefer
+different parameterisation schemes.  But very often, modellers prefer
 to use a very limited amount of values for certain parameters (at least
 within hydrologically homogeneous regions).  Hence, the downside of
 this flexibility is that the same parameter values might be defined in
-hundreds or even thousands of parameter control files (one file for
 hundreds or even thousands of parameter control files (one file for
 each model/element).
 
@@ -187,12 +185,14 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
                     del self._dict[str(model)]
                 except KeyError:
                     raise AttributeError(
-                        f'The handler does not contain model `{model}`.')
+                        f'The handler does not contain model `{model}`.'
+                    ) from None
             return self
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to remove one or more models '
-                'from the actual auxiliary file handler')
+                'from the actual auxiliary file handler'
+            )
 
     @staticmethod
     def _get_models(values):
@@ -206,21 +206,24 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         except KeyError:
             raise AttributeError(
                 f'The actual auxiliary file handler does neither have a '
-                f'standard member nor does it handle a model named `{name}`.')
+                f'standard member nor does it handle a model named `{name}`.'
+            ) from None
 
     def __setattr__(self, name, value):
         raise AttributeError(
             'Auxiliary file handler do not support setting attributes.  '
-            'Use the `+=` operator to register additional models instead.')
+            'Use the `+=` operator to register additional models instead.'
+        )
 
     def __delattr__(self, name):
         raise AttributeError(
             'Auxiliary file handler do not support deleting attributes.  '
-            'Use the `-=` operator to remove registered models instead.')
+            'Use the `-=` operator to remove registered models instead.'
+        )
 
     def __iter__(self):
         for (key, value) in sorted(self._dict.items()):
-            yield (key, value)
+            yield key, value
 
     @property
     def modelnames(self):
@@ -285,11 +288,11 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
-        par = parametertools.Parameter
+        options = hydpy.pub.options
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
-                with par.parameterstep(parameterstep), \
-                         par.simulationstep(simulationstep):
+                with options.parameterstep(parameterstep), \
+                         options.simulationstep(simulationstep):
                     lines = [parametertools.get_controlfileheader(
                         modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):

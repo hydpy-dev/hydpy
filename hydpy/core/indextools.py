@@ -14,7 +14,7 @@ from hydpy.core import timetools
 
 
 def _get_timegrids(func):
-    timegrids = hydpy.pub.get('timegrids')
+    timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
     if timegrids is None:
         name = func.__name__[1:]
         raise exceptiontools.AttributeNotReady(
@@ -122,6 +122,7 @@ period is `5`.
     """
 
     def __init__(self, fget):
+        super().__init__()
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel
@@ -130,7 +131,7 @@ period is `5`.
         self.timegrids = None
 
     def call_fget(self, obj) -> numpy.ndarray:
-        timegrids = hydpy.pub.get('timegrids')
+        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
             self.timegrids = copy.deepcopy(timegrids)
@@ -141,7 +142,9 @@ period is `5`.
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
-        self.timegrids = copy.deepcopy(hydpy.pub.get('timegrids'))
+        self.timegrids = copy.deepcopy(
+            exceptiontools.getattr_(hydpy.pub, 'timegrids')
+        )
 
     def call_fdel(self, obj):
         self.fdel()
@@ -164,7 +167,7 @@ period is `5`.
                 f'The `{name}` index array of an Indexer object must be '
                 f'1-dimensional.  However, the given value has interpreted '
                 f'as a {array.ndim}-dimensional object.')
-        timegrids = hydpy.pub.get('timegrids')
+        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids')
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(
@@ -300,7 +303,7 @@ class Indexer:
     @IndexerProperty
     def standardclocktime(self):
         """Standard clock time at the midpoints of the initialisation time
-        steps in seconds.
+        steps in hours.
 
         Note that the standard clock time is not usable as an index.  Hence,
         we might later move property |Indexer.standardclocktime| somewhere
@@ -310,26 +313,26 @@ class Indexer:
         clock time for simulation step sizes of one day, one hour, one minute,
         and one second, respectively:
 
-        >>> from hydpy import pub
+        >>> from hydpy import pub, print_values
         >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
-        >>> list(pub.indexer.standardclocktime)
-        [43200.0, 43200.0, 43200.0, 43200.0, 43200.0]
+        >>> print_values(pub.indexer.standardclocktime)
+        12.0, 12.0, 12.0, 12.0, 12.0
 
         >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
-        >>> list(pub.indexer.standardclocktime)
-        [77400.0, 81000.0, 84600.0, 1800.0, 5400.0, 9000.0]
+        >>> print_values(pub.indexer.standardclocktime)
+        21.5, 22.5, 23.5, 0.5, 1.5, 2.5
 
         >>> pub.timegrids = '27.02.2004 23:57:0', '28.02.2004 00:03:00', '1m'
-        >>> list(pub.indexer.standardclocktime)
-        [86250.0, 86310.0, 86370.0, 30.0, 90.0, 150.0]
+        >>> print_values(pub.indexer.standardclocktime)
+        23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667
 
         >>> pub.timegrids = '27.02.2004 23:59:57', '28.02.2004 00:00:03', '1s'
-        >>> list(pub.indexer.standardclocktime)
-        [86397.5, 86398.5, 86399.5, 0.5, 1.5, 2.5]
+        >>> print_values(pub.indexer.standardclocktime)
+        23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694
         """
         # pylint: disable=no-self-use
         # pylint does not understand descriptors well enough, so far
         def _standardclocktime(date):
-            t0 = (date.hour*60+date.minute)*60+date.second
-            return t0 + hydpy.pub.timegrids.stepsize.seconds/2.
+            t0 = date.hour+(date.minute+date.second/60.)/60.
+            return t0 + hydpy.pub.timegrids.stepsize.hours/2.
         return _standardclocktime

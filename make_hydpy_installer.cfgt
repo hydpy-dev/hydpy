@@ -1,6 +1,6 @@
 [Application]
 name = HydPy
-version = 4.0a11-cp[auto]-win_amd64
+version = 4.0a14-cp[auto]-win_amd64
 entry_point = execute_exe:execute_scriptfunction
 console = true
 icon = logo.ico
@@ -36,11 +36,15 @@ pypi_wheels = numpy==[auto]
 	packaging==[auto]
 	attrs==[auto]
 	Pillow==[auto]
+	plotly==[auto]
+	retrying==[auto]
 	tornado==[auto]
 	networkx==[auto]
 	decorator==[auto]
 
 local_wheels = dist/*.whl
+
+extra_wheel_sources = extra_wheel_sources
 	
 packages = wrapt
 	bokeh

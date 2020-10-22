@@ -18,7 +18,7 @@ class Seconds(parametertools.SecondsParameter):
 
 
 class SCT(parametertools.SCTParameter):
-    """References the "global" standard clock time array [-]."""
+    """References the "global" standard clock time array [h]."""
 
 
 class UTCLongitude(parametertools.UTCLongitudeParameter):

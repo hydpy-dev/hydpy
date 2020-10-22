@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for executing HydPy workflows based on
+"""This module provides features for executing *HydPy* workflows based on
 XML configuration files.
 
 .. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
@@ -7,7 +7,7 @@ XML configuration files.
 At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
-the HydPy project you want to work with is available in your current
+the *HydPy* project you want to work with is available in your current
 working directory and contains an XML configuration file (as `single_run.xml`
 in the example project folder `LahnH`).  This configuration file must
 agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
@@ -32,7 +32,7 @@ the command line, we pass the required text to function |run_subprocess|:
 >>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
 >>> with TestIO():    # doctest: +ELLIPSIS
-...     run_subprocess('hyd.py run_simulation LahnH single_run.xml')
+...     result = run_subprocess('hyd.py run_simulation LahnH single_run.xml')
 Start HydPy project `LahnH` (...).
 Read configuration file `single_run.xml` (...).
 Interpret the defined options (...).
@@ -87,7 +87,7 @@ the suffix `_mean`:
 >>> with TestIO(clear_all=True):
 ...     print_values((numpy.load(
 ...         'LahnH/series/output/lahn_1_sim_q_mean.npy')[13:]))
-9.621296, 8.503069, 7.774927, 7.34503, 7.15879
+9.647824, 8.517795, 7.781311, 7.344944, 7.153142
 """
 # import...
 # ...from standard library
@@ -140,7 +140,6 @@ def find(root: ElementTree.Element, name: str, optional: Literal[True] = True) \
 def find(root: ElementTree.Element, name: str, optional: Literal[False]) \
         -> ElementTree.Element:
     """Non-optional version of function |find|."""
-# pylint: enable=unused-argument
 
 
 def find(root, name, optional=True):
@@ -188,9 +187,10 @@ def _query_selections(xmlelement: ElementTree.Element) \
             selections.append(getattr(hydpy.pub.selections, name))
         except AttributeError:
             raise NameError(
-                f'The XML configuration file tries to defines a selection '
+                f'The XML configuration file tries to define a selection '
                 f'using the text `{name}`, but the actual project does not '
-                f' handle such a `Selection` object.')
+                f' handle such a `Selection` object.'
+            ) from None
     return selectiontools.Selections(*selections)
 
 
@@ -210,10 +210,11 @@ def _query_devices(xmlelement: ElementTree.Element) -> selectiontools.Selection:
                 selection.nodes += getattr(nodes, name)
             except AttributeError:
                 raise NameError(
-                    f'The XML configuration file tries to defines additional '
+                    f'The XML configuration file tries to define additional '
                     f'devices using the text `{name}`, but the complete '
                     f'selection of the actual project does neither handle a '
-                    f'`Node` or `Element` object with such a name or keyword.')
+                    f'`Node` or `Element` object with such a name or keyword.'
+                ) from None
     return selection
 
 
@@ -248,7 +249,9 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write('Read all network files')
     hp.prepare_network()
     write('Activate the selected network')
-    hp.update_devices(interface.fullselection)
+    hp.update_devices(
+        selection=interface.fullselection,
+    )
     write('Read the required control files')
     hp.prepare_models()
     write('Read the required condition files')
@@ -492,15 +495,22 @@ correctly refer to one of the available XML schema files \
         """Update the |Options| object available in module |pub| with the
         values defined in the `options` XML element.
 
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.timegrids
+            >>> del pub.options.simulationstep
+
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import pub
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
+        >>> pub.options.ellipsis = 0
+        >>> pub.options.parameterstep = '1h'
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
-        >>> pub.options.ellipsis = 0
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
         >>> pub.options
@@ -512,10 +522,12 @@ correctly refer to one of the available XML schema files \
             flattennetcdf -> 1
             forcecompiling -> 0
             isolatenetcdf -> 1
+            parameterstep -> Period('1d')
             printprogress -> 0
             printincolor -> 0
             reprcomments -> 0
             reprdigits -> 6
+            simulationstep -> Period()
             skipdoctests -> 0
             timeaxisnetcdf -> 0
             trimvariables -> 1
@@ -625,7 +637,7 @@ correctly refer to one of the available XML schema files \
         >>> interface.selections
         Traceback (most recent call last):
         ...
-        NameError: The XML configuration file tries to defines a selection \
+        NameError: The XML configuration file tries to define a selection \
 using the text `head_waters`, but the actual project does not  handle such \
 a `Selection` object.
         """
@@ -652,7 +664,7 @@ a `Selection` object.
         >>> interface.devices
         Traceback (most recent call last):
         ...
-        NameError: The XML configuration file tries to defines additional \
+        NameError: The XML configuration file tries to define additional \
 devices using the text `land_lahn1`, but the complete selection of the \
 actual project does neither handle a `Node` or `Element` object with such \
 a name or keyword.
@@ -960,9 +972,9 @@ Please make sure your XML file follows the relevant XML schema.
             master = getattr(master, 'master', None)
             if master is None:
                 raise AttributeError(
-                    f'Unable to find a XML element named "selections".  '
-                    f'Please make sure your XML file follows the '
-                    f'relevant XML schema.')
+                    'Unable to find a XML element named "selections".  '
+                    'Please make sure your XML file follows the '
+                    'relevant XML schema.')
             selections = master.find('selections')
         return _query_selections(selections)
 
@@ -1009,9 +1021,9 @@ Please make sure your XML file follows the relevant XML schema.
             master = getattr(master, 'master', None)
             if master is None:
                 raise AttributeError(
-                    f'Unable to find a XML element named "devices".  '
-                    f'Please make sure your XML file follows the '
-                    f'relevant XML schema.')
+                    'Unable to find a XML element named "devices".  '
+                    'Please make sure your XML file follows the '
+                    'relevant XML schema.')
             devices = master.find('devices')
         return _query_devices(devices)
 
@@ -1861,7 +1873,7 @@ class XSDWriter:
                 f'{blanks}<element name="{name}"',
                 f'{blanks}         substitutionGroup="hpcb:sequenceGroup"',
                 f'{blanks}         type="hpcb:{name}Type"/>',
-                f'',
+                '',
                 f'{blanks}<complexType name="{name}Type">',
                 f'{blanks}    <complexContent>',
                 f'{blanks}        <extension base="hpcb:sequenceGroupType">',
@@ -1873,7 +1885,7 @@ class XSDWriter:
                 f'{blanks}        </extension>',
                 f'{blanks}    </complexContent>',
                 f'{blanks}</complexType>',
-                f''
+                ''
             ])
         return '\n'.join(subs)
 
@@ -1955,7 +1967,7 @@ class XSDWriter:
 
     @staticmethod
     def get_sequenceinsertion(
-            sequence: sequencetools.Sequence, indent: int) -> str:
+            sequence: sequencetools.Sequence_, indent: int) -> str:
         """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2037,7 +2049,7 @@ class XSDWriter:
                 f'{blanks}        </extension>',
                 f'{blanks}    </complexContent>',
                 f'{blanks}</complexType>',
-                f''])
+                ''])
         return '\n'.join(subs)
 
     @staticmethod
@@ -2102,7 +2114,7 @@ class XSDWriter:
             f'{blanks}        <attribute name="info" type="string"/>',
             f'{blanks}    </complexType>',
             f'{blanks}</element>',
-            f''])
+            ''])
         return '\n'.join(subs)
 
     @classmethod
@@ -2163,7 +2175,7 @@ class XSDWriter:
             cls.get_subgroupsiteminsertion(itemgroup, modelname, indent+2),
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
-            f'']
+            '']
         return '\n'.join(subs)
 
     @classmethod
@@ -2218,7 +2230,7 @@ class XSDWriter:
         subs.extend([
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
-            f''])
+            ''])
         return '\n'.join(subs)
 
     @classmethod

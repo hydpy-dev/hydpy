@@ -6,7 +6,10 @@ Version 1 of HydPy-C performs simple nearest-neighbour interpolations between
 an arbitrary number of models (or data files) providing output and an arbitrary
 number of models requiring input.
 
-Integration test:
+Integration tests
+=================
+
+.. how_to_understand_integration_tests::
 
 We perform the following examples over a simulation period of 3 days:
 
@@ -106,6 +109,7 @@ class Model(conv_model.Model):
         conv_model.Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

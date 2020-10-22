@@ -19,122 +19,134 @@ are welcome, of course).  There is also a geographic restriction due to
 the calculation of the longwave radiation, which fails during polar nights
 (again, contributions are welcome).
 
+Integration tests
+=================
 
-Integration tests:
+.. how_to_understand_integration_tests::
 
-    For the following tests, we prepare an instance of application model
-    |evap_v001| and assign it to |Element| `element`, which we connect
-    to |Node| `node`:
+Application model |evap_v001| does not calculate runoff and thus does not
+define an outlet sequence.  Hence, we need to manually select an output
+sequence, which usually is |ReferenceEvapotranspiration|.  We import
+its globally available alias and prepare the corresponding output node:
 
-    >>> from hydpy.models.evap_v001 import *
-    >>> parameterstep()
-    >>> from hydpy import Element, Node
-    >>> node = Node('node', variable='E')
-    >>> element = Element('element', outlets=node)
-    >>> element.model = model
+>>> from hydpy import Element, evap_ReferenceEvapotranspiration, Node
+>>> node = Node('node', variable=evap_ReferenceEvapotranspiration)
 
-    **Example 1**
+Now we can prepare an instance of |evap_v001| and assign it to an element
+connected to the prepared node:
 
-    The first example deals with a daily simulation time step.  We calculate
-    the reference evapotranspiration on 6 July in Uccle (Brussels, Belgium)
-    and take all parameter and input values from example 18 of `Allen`_:
+>>> from hydpy.models.evap_v001 import *
+>>> parameterstep()
+>>> element = Element('element', outputs=node)
+>>> element.model = model
 
-    >>> from hydpy import IntegrationTest, pub
-    >>> pub.timegrids = '2000-07-06', '2000-07-07', '1d'
-    >>> latitude(50.8)
-    >>> measuringheightwindspeed(10.0)
-    >>> angstromconstant(0.25)
-    >>> angstromfactor(0.5)
+daily simulation
+________________
 
-    >>> parameters.update()
-    >>> test = IntegrationTest(element)
-    >>> test.dateformat = '%Y-%d-%m'
+The first example deals with a daily simulation time step.  We calculate
+the reference evapotranspiration on 6 July in Uccle (Brussels, Belgium)
+and take all parameter and input values from example 18 of `Allen`_:
 
-    >>> inputs.airtemperature.series = 16.9
-    >>> inputs.relativehumidity.series = 73.0
-    >>> inputs.windspeed.series = 10.0*1000./60/60
-    >>> inputs.sunshineduration.series = 9.25
-    >>> inputs.atmosphericpressure.series = 100.1
+>>> from hydpy import IntegrationTest, pub
+>>> pub.timegrids = '2000-07-06', '2000-07-07', '1d'
+>>> latitude(50.8)
+>>> measuringheightwindspeed(10.0)
+>>> angstromconstant(0.25)
+>>> angstromfactor(0.5)
 
-    The calculated reference evapotranspiration is about 0.1 mm (3 %) smaller
-    than the one given by `Allen`_ (This discrepancy is mainly due
-    to different ways to calculate |SaturationVapourPressure|.  `Allen`_
-    calculates it both for the minimum and the maximum temperature and average
-    the results, while |evap_v001| applies the corresponding formula on the
-    average air temperature directly.  The first approach results in higher
-    pressure values due to the nonlinearity of the vapour pressure curve.
-    All other methodical differences show, at least in this example, less
-    severe impacts.):
+>>> parameters.update()
+>>> test = IntegrationTest(element)
+>>> test.dateformat = '%Y-%d-%m'
+
+>>> inputs.airtemperature.series = 16.9
+>>> inputs.relativehumidity.series = 73.0
+>>> inputs.windspeed.series = 10.0*1000./60/60
+>>> inputs.sunshineduration.series = 9.25
+>>> inputs.atmosphericpressure.series = 100.1
+
+The calculated reference evapotranspiration is about 0.1 mm (3 %) smaller
+than the one given by `Allen`_ (This discrepancy is mainly due
+to different ways to calculate |SaturationVapourPressure|.  `Allen`_
+calculates it both for the minimum and the maximum temperature and average
+the results, while |evap_v001| applies the corresponding formula on the
+average air temperature directly.  The first approach results in higher
+pressure values due to the nonlinearity of the vapour pressure curve.
+All other methodical differences show, at least in this example, less
+severe impacts.):
+
+.. integration-test::
 
     >>> test(update_parameters=False)
     |       date | airtemperature | relativehumidity | windspeed | sunshineduration | atmosphericpressure | adjustedwindspeed | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | earthsundistance | solardeclination | sunsethourangle | solartimeangle | extraterrestrialradiation | possiblesunshineduration | clearskysolarradiation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | psychrometricconstant | referenceevapotranspiration |     node |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-06-07 |           16.9 |             73.0 |  2.777778 |             9.25 |               100.1 |          2.077091 |                 1.925484 |                      0.122113 |             1.405603 |         0.967121 |         0.394547 |        2.106601 |            nan |                 41.047408 |                16.093247 |              30.785556 |       22.058369 |             16.984944 |             3.728238 |    13.256706 |          0.0 |              0.066567 |                    3.749139 | 3.749139 |
 
-    **Example 2**
+hourly simulation
+_________________
 
-    The second example deals with an hourly simulation over multiple time
-    steps.  We calculate the reference evapotranspiration from 30 September
-    to 1 October in N'Diaye (Senegal) and take (or try to derive as good as
-    possible) all parameter and input values from example 19 of
-    `Allen`_.
+The second example deals with an hourly simulation over multiple time
+steps.  We calculate the reference evapotranspiration from 30 September
+to 1 October in N'Diaye (Senegal) and take (or try to derive as good as
+possible) all parameter and input values from example 19 of
+`Allen`_.
 
-    Example 19 of `Allen`_ gives results for the intervals between
-    2 and 3 o'clock and between 14 and 15 o'clock only.  We assume these
-    clock times are referring to UTC-1:
+Example 19 of `Allen`_ gives results for the intervals between
+2 and 3 o'clock and between 14 and 15 o'clock only.  We assume these
+clock times are referring to UTC-1:
 
-    >>> pub.options.utcoffset = -60
-    >>> pub.options.utclongitude = -15
-    >>> pub.timegrids = '2001-09-30 02:00', '2001-10-01 15:00', '1h'
+>>> pub.options.utcoffset = -60
+>>> pub.options.utclongitude = -15
+>>> pub.timegrids = '2001-09-30 02:00', '2001-10-01 15:00', '1h'
 
-    We reuse the Ångström coefficients from the first example:
+We reuse the Ångström coefficients from the first example:
 
-    >>> latitude(16.0+0.13/60*100)
-    >>> longitude(-16.25)
-    >>> measuringheightwindspeed(2.0)
-    >>> angstromconstant(0.25)
-    >>> angstromfactor(0.5)
+>>> latitude(16.0+0.13/60*100)
+>>> longitude(-16.25)
+>>> measuringheightwindspeed(2.0)
+>>> angstromconstant(0.25)
+>>> angstromfactor(0.5)
 
-    >>> parameters.update()
-    >>> test = IntegrationTest(element)
-    >>> IntegrationTest.plotting_options.height = 550
-    >>> IntegrationTest.plotting_options.activated = [
-    ...     fluxes.referenceevapotranspiration]
-    >>> test.dateformat = '%Y-%d-%m %H:00'
+>>> parameters.update()
+>>> test = IntegrationTest(element)
+>>> IntegrationTest.plotting_options.activated = [
+...     fluxes.referenceevapotranspiration]
+>>> test.dateformat = '%Y-%d-%m %H:00'
 
-    We set constant input sequence values from the start of the simulation
-    period to the first interval and interpolate linearly between the first
-    and the second interval, which is also the end of the simulation period:
+We set constant input sequence values from the start of the simulation
+period to the first interval and interpolate linearly between the first
+and the second interval, which is also the end of the simulation period:
 
-    >>> import numpy
-    >>> def interpolate(sequence, value1, value2):
-    ...     sequence.series[:-13] = value1
-    ...     sequence.series[-13:] = numpy.linspace(value1, value2, 13)
+>>> import numpy
+>>> def interpolate(sequence, value1, value2):
+...     sequence.series[:-13] = value1
+...     sequence.series[-13:] = numpy.linspace(value1, value2, 13)
 
-    >>> interpolate(inputs.airtemperature, 28.0, 38.0)
-    >>> interpolate(inputs.relativehumidity, 90.0, 52.0)
-    >>> interpolate(inputs.windspeed, 1.9, 3.3)
-    >>> interpolate(inputs.atmosphericpressure, 100.1, 100.1)
+>>> interpolate(inputs.airtemperature, 28.0, 38.0)
+>>> interpolate(inputs.relativehumidity, 90.0, 52.0)
+>>> interpolate(inputs.windspeed, 1.9, 3.3)
+>>> interpolate(inputs.atmosphericpressure, 100.1, 100.1)
 
-    We define the end value of the sunshine duration in a way that the
-    relation between global radiation and clear sky radiation is
-    approximately 0.92, which is an intermediate result of `Allen`_:
+We define the end value of the sunshine duration in a way that the
+relation between global radiation and clear sky radiation is
+approximately 0.92, which is an intermediate result of `Allen`_:
 
-    >>> interpolate(inputs.sunshineduration, 0.8, 0.88)
+>>> interpolate(inputs.sunshineduration, 0.8, 0.88)
 
-    To avoid calculating |numpy.nan| values during the night periods within
-    the first 24 hours, we arbitrarily set the values of both log sequences
-    to one:
+To avoid calculating |numpy.nan| values during the night periods within
+the first 24 hours, we arbitrarily set the values of both log sequences
+to one:
 
-    >>> logs.loggedclearskysolarradiation = 1.0
-    >>> logs.loggedglobalradiation = 1.0
+>>> logs.loggedclearskysolarradiation = 1.0
+>>> logs.loggedglobalradiation = 1.0
 
-    Regarding reference evapotranspiration, the calculated values agree
-    within the precision given by `Allen`_ (The stronger agreement
-    compared with the above example is due to the consistent calculation
-    of the saturation vapour pressure.):
+Regarding reference evapotranspiration, the calculated values agree
+within the precision given by `Allen`_ (The stronger agreement
+compared with the above example is due to the consistent calculation
+of the saturation vapour pressure.):
 
-    >>> test('evap_v001_ex2', update_parameters=False)
+.. integration-test::
+
+    >>> test('evap_v001_hourly', update_parameters=False)
     |             date | airtemperature | relativehumidity | windspeed | sunshineduration | atmosphericpressure | adjustedwindspeed | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | earthsundistance | solardeclination | sunsethourangle | solartimeangle | extraterrestrialradiation | possiblesunshineduration | clearskysolarradiation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | psychrometricconstant | referenceevapotranspiration |      node |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2001-30-09 02:00 |           28.0 |             90.0 |       1.9 |              0.8 |               100.1 |               1.9 |                  3.77993 |                       0.22008 |             3.401937 |         0.999717 |        -0.070087 |        1.550377 |      -2.460182 |                       0.0 |                      0.0 |                    0.0 |             0.0 |                   0.0 |              0.13743 |     -0.13743 |    -0.068715 |              0.066567 |                   -0.000649 | -0.000649 |
@@ -174,16 +186,6 @@ Integration tests:
     | 2001-01-10 12:00 |      36.333333 |        58.333333 |  3.066667 |         0.866667 |               100.1 |          3.066667 |                 6.050517 |                      0.331151 |             3.529468 |         1.000283 |        -0.076994 |        1.548357 |       0.159193 |                  4.533018 |                      1.0 |               3.399763 |        3.097562 |              2.385123 |             0.126981 |     2.258142 |     0.225814 |              0.066567 |                    0.721384 |  0.721384 |
     | 2001-01-10 13:00 |      37.166667 |        55.166667 |  3.183333 |         0.873333 |               100.1 |          3.183333 |                 6.332002 |                      0.344456 |             3.493154 |         1.000283 |        -0.076994 |        1.548357 |       0.420993 |                  4.182199 |                      1.0 |               3.136649 |        2.871777 |              2.211268 |             0.131506 |     2.079762 |     0.207976 |              0.066567 |                    0.695112 |  0.695112 |
     | 2001-01-10 14:00 |           38.0 |             52.0 |       3.3 |             0.88 |               100.1 |               3.3 |                 6.624758 |                      0.358203 |             3.444874 |         1.000283 |        -0.076994 |        1.548357 |       0.682792 |                  3.539166 |                      1.0 |               2.654375 |        2.442025 |              1.880359 |             0.136924 |     1.743435 |     0.174343 |              0.066567 |                    0.627771 |  0.627771 |
-    
-    .. raw:: html
-
-        <iframe
-            src="evap_v001_ex2.html"
-            width="100%"
-            height="600px"
-            frameborder=0
-        ></iframe>
-
 """
 # import...
 # ...from HydPy
@@ -219,10 +221,9 @@ class Model(modeltools.AdHocModel):
         evap_model.Calc_ReferenceEvapotranspiration_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        evap_model.Pass_ReferenceEvapotranspiration_V1,
-    )
+    OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

@@ -11,7 +11,10 @@ The following explanations focus on this difference.  For further
 information on the usage of |dam_v002| please read the documentation
 on model |dam_v001|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     Each of the following examples is a repetition of an example performed
     to demonstrate the functionality of model |dam_v001|.  To achieve
@@ -47,8 +50,7 @@ Integration examples:
     object of node `remote`:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 200
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -66,11 +68,12 @@ Integration examples:
     than |dam_v001|, all parameter settings are identical:
 
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> neardischargeminimumthreshold(0.2)
     >>> neardischargeminimumtolerance(0.2)
@@ -109,12 +112,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex7.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
@@ -156,12 +157,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex8_1.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -212,8 +211,9 @@ Integration examples:
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
 
     >>> neardischargeminimumthreshold(0.0)
     >>> input_.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
@@ -246,12 +246,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex13.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...
@@ -282,6 +280,7 @@ class Model(modeltools.ELSModel):
     RECEIVER_METHODS = (
         dam_model.Pic_LoggedRequiredRemoteRelease_V1,
     )
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
@@ -296,6 +295,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

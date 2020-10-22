@@ -2,15 +2,18 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 4 of HydPy-Dam
 
-    Application model |dam_v004| is an extension if model |dam_v003|.
-    Both models are able to discharge water into the channel downstream
-    and to remote locations.  The difference is that |dam_v003|
-    can discharge water only to a single remote location, e.g. to a
-    drinking water treatment plant, while |dam_v004| is also able to
-    discharge water to a separate remote location independently, e.g.
-    to relieve water during high flow conditions.
+Application model |dam_v004| is an extension if model |dam_v003|.
+Both models are able to discharge water into the channel downstream
+and to remote locations.  The difference is that |dam_v003|
+can discharge water only to a single remote location, e.g. to a
+drinking water treatment plant, while |dam_v004| is also able to
+discharge water to a separate remote location independently, e.g.
+to relieve water during high flow conditions.
 
-    Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following examples are based on the ones of application model
     |dam_v003|, which in turn are taken from the documentation on
@@ -48,7 +51,7 @@
     disabled, which can be accomplished by the following settings:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -64,11 +67,12 @@
     ...     0.058622, 0.016958, 0.008447, 0.004155, 0.0]
     >>> allowed_relieve.sequences.sim.series = 0.0
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> neardischargeminimumthreshold(0.2)
     >>> neardischargeminimumtolerance(0.2)
@@ -116,12 +120,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`First modification of example 7 <dam_v003_ex07>`
 
@@ -177,12 +179,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Second modification of example 7 <dam_v003_ex07>`
 
@@ -233,12 +233,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Third modification of example 7 <dam_v003_ex07>`
 
@@ -274,12 +272,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex7_3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex7_3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 8 <dam_v003_ex08>`
 
@@ -333,12 +329,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex8.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex8.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 10 <dam_v003_ex10>`
 
@@ -381,12 +375,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex10.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Exact recalculation of example 13 <dam_v003_ex13>`
 
@@ -401,8 +393,9 @@
     >>> waterlevelminimumremotethreshold(0.0)
     >>> waterlevelminimumremotetolerance(0.0)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> neardischargeminimumthreshold(0.0)
     >>> inflow.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
@@ -434,12 +427,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex13.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Modification of example 13 <dam_v003_ex13>`
 
@@ -498,12 +489,10 @@
 
     .. raw:: html
 
-        <iframe
-            src="dam_v004_ex13_1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v004_ex13_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...
@@ -536,6 +525,9 @@ class Model(modeltools.ELSModel):
         dam_model.Pic_LoggedRequiredRemoteRelease_V2,
         dam_model.Pic_LoggedAllowedRemoteRelieve_V1,
     )
+    ADD_METHODS = (
+        dam_model.Fix_Min1_V1,
+    )
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
@@ -557,6 +549,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_ActualRemoteRelieve_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements so-called exchange items, simplifying the
-modification of the values of |Parameter| and |Sequence| objects."""
+modification of the values of |Parameter| and |Sequence_| objects."""
 # import...
 # ...from standard library
 import abc
@@ -14,7 +14,7 @@ from hydpy.core import variabletools
 
 
 class ExchangeSpecification:
-    """Specification of a specific |Parameter| or |Sequence| type.
+    """Specification of a specific |Parameter| or |Sequence_| type.
 
     |ExchangeSpecification| is a helper class for |ExchangeItem| and its
     subclasses. Its constructor interprets two strings (without any checks
@@ -85,8 +85,8 @@ class ExchangeSpecification:
 
 
 class ExchangeItem:
-    """Base class for exchanging values with multiple |Parameter| or |Sequence|
-    objects of a certain type."""
+    """Base class for exchanging values with multiple |Parameter| or
+    |Sequence_| objects of a certain type."""
 
     master: str
     targetspecs: ExchangeSpecification
@@ -236,8 +236,8 @@ handle a parameter of sequence subgroup named `wrong_group.
 
 
 class ChangeItem(ExchangeItem):
-    """Base class for changing the values of multiple |Parameter| or |Sequence|
-    objects of a specific type."""
+    """Base class for changing the values of multiple |Parameter| or
+    |Sequence_| objects of a specific type."""
 
     name: str
     ndim: int
@@ -387,7 +387,7 @@ occurred: The given value `None` cannot be converted to type `float`.
 
 class SetItem(ChangeItem):
     """Item for assigning |ChangeItem.value| to multiple |Parameter| or
-    |Sequence| objects of a specific type."""
+    |Sequence_| objects of a specific type."""
 
     def __init__(self, name, master, target, ndim):
         self.name = str(name)
@@ -588,16 +588,17 @@ together with shapes (2,) (3,)...
             try:
                 result = base.value + value
             except BaseException:
-                raise objecttools.augment_excmessage(
+                objecttools.augment_excmessage(
                     f'When trying to add the value(s) `{value}` of '
                     f'AddItem `{self.name}` and the value(s) `{base.value}` '
-                    f'of variable {objecttools.devicephrase(base)}')
+                    f'of variable {objecttools.devicephrase(base)}'
+                )
             self.update_variable(target, result)
 
 
 class GetItem(ExchangeItem):
-    """Base class for querying the values of multiple |Parameter| or |Sequence|
-    objects of a specific type."""
+    """Base class for querying the values of multiple |Parameter| or
+    |Sequence_| objects of a specific type."""
 
     def __init__(self, master: str, target: str):
         self.target = target.replace('.', '_')

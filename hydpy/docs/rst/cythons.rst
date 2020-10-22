@@ -34,9 +34,10 @@ offers other strategies to decrease computation times.
 .. toctree::
    :hidden:
 
-   modelutils
    annutils
    configutils
+   modelutils
    pointerutils
    sequenceutils
    smoothutils
+   rootutils

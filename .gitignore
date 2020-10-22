@@ -1,9 +1,14 @@
+venv
 *.spyderproject
 *.spyderworkspace
+.pydevproject
+.project
+.settings/*
 *.pyc
 *.c
 *.h
 temp
+hydpy/conf/mimetypes.txt
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
 hydpy/cythons/autogen/*.pyi
@@ -34,3 +39,4 @@ test.py
 make_hydpy_installer.cfg
 lib/*
 temp/*
+hydpy/docs/bibliography/refs.bib.bak

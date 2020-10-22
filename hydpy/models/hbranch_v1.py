@@ -9,7 +9,10 @@ arbitrary variables.  Calculations are performed for each branch
 individually by linear interpolation (or extrapolation) following
 tabulated supporting points.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 10 hours:
 
@@ -78,12 +81,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hbranch_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hbranch_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
@@ -106,6 +107,7 @@ class Model(hbranch_model.Model):
         hbranch_model.Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

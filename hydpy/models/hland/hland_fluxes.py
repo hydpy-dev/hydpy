@@ -140,5 +140,5 @@ class OutUH(sequencetools.FluxSequence):
 
 
 class QT(sequencetools.FluxSequence):
-    """Total model outflow [mm]."""
+    """Total model outflow [m³/s]."""
     NDIM, NUMERIC = 0, False

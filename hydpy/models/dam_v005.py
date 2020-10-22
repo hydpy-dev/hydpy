@@ -24,7 +24,10 @@ to relieve the other location (possibly another dam) during floods.
 acceptable `relieve discharge` and passes that information to one single
 or to two separate remote locations.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following integration examples build upon some of the examples
     performed to demonstrate the functionality of model |dam_v001|.
@@ -108,8 +111,7 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.model = model
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 370
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -119,11 +121,12 @@ Integration examples:
     ...            (stream1.model.sequences.logs.login, 0.0)))
     >>> test.dateformat = '%d.%m.'
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> nmblogentries(1)
     >>> remotedischargeminimum(1.4)
@@ -198,12 +201,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex7.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
    :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
 
@@ -236,7 +237,7 @@ Integration examples:
     | 13.01. |    0.1 |             1.285036 |               1.323559 |     0.076441 |     -0.023559 |              0.299482 |                  5.0 |             0.996865 |        0.299482 |             0.1 |           0.1 |             0.199482 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.199482 |        0.996865 |              1.1 |        1.285036 |
     | 14.01. |    0.1 |                  1.3 |               1.185036 |     0.214964 |      0.114964 |              0.585979 |                  5.0 |             0.996865 |        0.585979 |             0.1 |           0.1 |             0.485979 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.485979 |        0.996865 |              1.2 |             1.3 |
     | 15.01. |    0.1 |                  1.4 |                    1.2 |          0.2 |           0.1 |              0.557422 |                  5.0 |             0.996865 |        0.557422 |             0.1 |           0.1 |             0.457422 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.457422 |        0.996865 |              1.3 |             1.4 |
-    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |          -0.0 |                  0.35 |                  5.0 |             0.996865 |            0.35 |             0.1 |           0.1 |                 0.25 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |           0.25 |        0.996865 |              1.4 |             1.5 |
+    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |           0.0 |                  0.35 |                  5.0 |             0.996865 |            0.35 |             0.1 |           0.1 |                 0.25 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |           0.25 |        0.996865 |              1.4 |             1.5 |
     | 17.01. |    0.1 |                  1.6 |                    1.4 |          0.0 |          -0.1 |              0.142578 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |             0.042578 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.042578 |        0.996865 |              1.5 |             1.6 |
     | 18.01. |    0.1 |                  1.7 |                    1.5 |          0.0 |          -0.2 |              0.068641 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |                  0.0 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |            0.0 |        0.996865 |              1.6 |             1.7 |
     | 19.01. |    0.1 |                  1.8 |                    1.6 |          0.0 |          -0.3 |              0.029844 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |                  0.0 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |            0.0 |        0.996865 |              1.7 |             1.8 |
@@ -244,12 +245,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex8.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex8.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -287,12 +286,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex10.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 13 <dam_v001_ex13>`
 
@@ -309,8 +306,9 @@ Integration examples:
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> neardischargeminimumthreshold(0.0)
     >>> dam_inflow.sequences.sim.series = [
     ...     0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
@@ -344,12 +342,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex13.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from standard library
@@ -384,6 +380,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pic_TotalRemoteDischarge_V1,
         dam_model.Update_LoggedTotalRemoteDischarge_V1,
     )
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V2,
         dam_model.Calc_WaterLevel_V1,
@@ -406,6 +403,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_RequiredRemoteSupply_V1,
         dam_model.Pass_RequiredRemoteSupply_V1,
     )
+    SUBMODELS = ()
 
 
 tester = Tester()

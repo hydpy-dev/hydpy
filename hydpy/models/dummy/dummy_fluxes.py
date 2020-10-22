@@ -7,6 +7,6 @@
 from hydpy.core import sequencetools
 
 
-class E(sequencetools.OutletSequence):
-    """(Potential) Evapo(trans)piration [mm/T]."""
-    NDIM, NUMERIC = 0, False
+class Q(sequencetools.FluxSequence):
+    """Abfluss [m³/s]."""
+    NDIM, NUMERIC, SPAN = 0, False, (0., None)

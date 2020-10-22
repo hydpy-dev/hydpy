@@ -71,7 +71,6 @@ XSDWriter().write_xsd()
 pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
-from hydpy.core import parametertools
 from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
@@ -80,11 +79,16 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
         ('Python', 'Cython'), alldoctests,
         allsuccessfuldoctests, allfaileddoctests):
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
-        if (('__init__.py' not in filenames_) or
-                dirpath.endswith('tests') or
-                dirpath.endswith('autogen') or
-                dirpath.endswith('__pycache__') or
-                dirpath.endswith('build')):
+        is_package = '__init__.py' in filenames_
+        if '__init__.py' not in filenames_:
+            continue
+        if (dirpath.endswith('tests') or
+                dirpath.endswith('docs') or
+                dirpath.endswith('sphinx') or
+                dirpath.endswith('autogen')):
+            continue
+        if (dirpath.endswith('build') or
+                dirpath.endswith('__pycache__')):
             continue
         filenames_ = filter_filenames(filenames_)
         packagename = dirpath.replace(os.sep, '.')+'.'
@@ -103,75 +107,72 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
             try:
                 if name[-4:] in ('.rst', '.pyx'):
                     suite.addTest(
-                        doctest.DocFileSuite(name, module_relative=False,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocFileSuite(
+                            name,
+                            module_relative=False,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
                 else:
                     suite.addTest(
-                        doctest.DocTestSuite(module,
-                                             optionflags=doctest.ELLIPSIS))
+                        doctest.DocTestSuite(
+                            module,
+                            optionflags=doctest.ELLIPSIS,
+                        ),
+                    )
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
                     raise exc
             else:
+                del pub.projectname
+                del pub.timegrids
                 opt = pub.options
                 opt.usecython = mode == 'Cython'
-                Par = parametertools.Parameter
-                # pylint: disable=not-callable
-                with opt.ellipsis(0), \
-                        opt.flattennetcdf(False), \
-                        opt.isolatenetcdf(False), \
-                        opt.printincolor(False), \
-                        opt.printprogress(False), \
-                        opt.reprcomments(False), \
-                        opt.reprdigits(6), \
-                        opt.timeaxisnetcdf(1), \
-                        opt.usedefaultvalues(False), \
-                        opt.utclongitude(15), \
-                        opt.utcoffset(60), \
-                        opt.warnsimulationstep(False), \
-                        opt.warntrim(False), \
-                        Par.parameterstep.delete(), \
-                        Par.simulationstep.delete():
-                    del pub.projectname
-                    del pub.timegrids
-                    devicetools.Node.clear_all()
-                    devicetools.Element.clear_all()
-                    testtools.IntegrationTest.plotting_options = \
-                        testtools.PlottingOptions()
-                    if name[-4:] in ('.rst', '.pyx'):
-                        name = name[name.find('hydpy'+os.sep):]
-                    with warnings.catch_warnings(), \
-                            open(os.devnull, 'w') as file_:
-                        warnings.filterwarnings(
-                            'error', module='hydpy')
-                        warnings.filterwarnings(
-                            'error', category=UserWarning)
-                        warnings.filterwarnings(
-                            'ignore', category=ImportWarning)
-                        warnings.filterwarnings(
-                            'ignore', message="numpy.dtype size changed")
-                        warnings.filterwarnings(
-                            'ignore', message="numpy.ufunc size changed")
-                        warnings.filterwarnings(
-                            'ignore', r'elementwise')
-                        warnings.filterwarnings(
-                            'ignore',
-                            message='the imp module is deprecated')
-                        runner = unittest.TextTestRunner(stream=file_)
-                        testresult = runner.run(suite)
-                        doctests[name] = testresult
-                    doctests[name].nmbproblems = (
-                        len(testresult.errors) +
-                        len(testresult.failures))
-                    hydpy.dummies.clear()
-                    problems = testresult.errors + testresult.failures
-                    if problems:
-                        print(f'\nDetailed error information on module {name}:')
-                        for idx, problem in enumerate(problems):
-                            print(f'    Error no. {idx+1}:')
-                            print(f'        {problem[0]}')
-                            for line in problem[1].split('\n'):
-                                print(f'        {line}')
+                opt.ellipsis = 0
+                opt.flattennetcdf = False
+                opt.isolatenetcdf = False
+                del pub.options.parameterstep
+                opt.printincolor = False
+                opt.printprogress = False
+                opt.reprcomments = False
+                opt.reprdigits = 6
+                del pub.options.simulationstep
+                opt.timeaxisnetcdf = 1
+                opt.usedefaultvalues = False
+                opt.utclongitude = 15
+                opt.utcoffset = 60
+                opt.warnsimulationstep = False
+                opt.warntrim = False
+                testtools.IntegrationTest.plotting_options = \
+                    testtools.PlottingOptions()
+                if name[-4:] in ('.rst', '.pyx'):
+                    name = name[name.find('hydpy'+os.sep):]
+                with warnings.catch_warnings(), \
+                        open(os.devnull, 'w') as file_, \
+                        devicetools.clear_registries_temporarily():
+                    warnings.filterwarnings(
+                        action='error',
+                        module='hydpy',
+                    )
+                    warnings.filterwarnings(
+                        action='ignore',
+                        message='tostring',
+                    )
+                    runner = unittest.TextTestRunner(stream=file_)
+                    testresult = runner.run(suite)
+                    doctests[name] = testresult
+                doctests[name].nmbproblems = (
+                    len(testresult.errors) +
+                    len(testresult.failures))
+                hydpy.dummies.clear()
+                problems = testresult.errors + testresult.failures
+                if problems:
+                    print(f'\nDetailed error information on module {name}:')
+                    for idx, problem in enumerate(problems):
+                        print(f'    Error no. {idx+1}:')
+                        print(f'        {problem[0]}')
+                        for line in problem[1].split('\n'):
+                            print(f'        {line}')
     successfuldoctests.update({name: runner for (name, runner)
                                in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

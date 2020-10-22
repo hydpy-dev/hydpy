@@ -51,7 +51,7 @@ on how to use *HydPy* via command line):
 >>> from hydpy import run_subprocess, TestIO
 >>> with TestIO():
 ...     process = run_subprocess(command, blocking=False, verbose=False)
-...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+...     result = run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
 The *HydPy* server should now be running on port 8080.  You can use any
 HTTP client to check it is working.  For example, you can print the
@@ -140,29 +140,29 @@ In the first and simplest example, we perform a simulation throughout
 five days for an |hland_control.Alpha| value of 2:
 
 >>> do_everything('1a', '1996-01-01', '1996-01-06', 2.0)
-2.0: 35.250827, 7.774062, 5.035808, 4.513706, 4.251594
+2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874
 
 The second example shows interlocked simulation runs.  The first call
 only triggers a simulation run for the first initialised day:
 
 >>> do_everything('1b', '1996-01-01', '1996-01-02', 2.0)
-2.0: 35.250827
+2.0: 35.537828
 
 The second call repeats the first one with a different `id` value:
 
 >>> do_everything('2', '1996-01-01', '1996-01-02', 2.0)
-2.0: 35.250827
+2.0: 35.537828
 
 The third call covers the first three initialisation days:
 
 >>> do_everything('3', '1996-01-01', '1996-01-04', 2.0)
-2.0: 35.250827, 7.774062, 5.035808
+2.0: 35.537828, 7.741064, 5.018981
 
 The fourth call continues the simulation of the first call, covering
 the last four initialised days:
 
 >>> do_everything('1b', '1996-01-02', '1996-01-06', 2.0)
-2.0: 7.774062, 5.035808, 4.513706, 4.251594
+2.0: 7.741064, 5.018981, 4.501784, 4.238874
 
 The results of the very first call of function `do_everything` (with
 `id=1`) are identical with the pulled-together discharge values of the
@@ -174,15 +174,15 @@ The third example extends the second one on applying different parameter
 values:
 
 >>> do_everything('4', '1996-01-01', '1996-01-04', 2.0)
-2.0: 35.250827, 7.774062, 5.035808
+2.0: 35.537828, 7.741064, 5.018981
 >>> do_everything('5', '1996-01-01', '1996-01-04', 1.0)
-1.0: 11.658511, 8.842278, 7.103614
+1.0: 11.78038, 8.901179, 7.131072
 >>> do_everything('4', '1996-01-04', '1996-01-06', 2.0)
-2.0: 4.513706, 4.251594
+2.0: 4.501784, 4.238874
 >>> do_everything('5', '1996-01-04', '1996-01-06', 1.0)
-1.0: 6.00763, 5.313751
+1.0: 6.017787, 5.313211
 >>> do_everything('5', '1996-01-01', '1996-01-06', 1.0)
-1.0: 11.658511, 8.842278, 7.103614, 6.00763, 5.313751
+1.0: 11.78038, 8.901179, 7.131072, 6.017787, 5.313211
 
 The order in which function `do_everything` calls its subfunctions seems quite
 natural, but some tools might require do deviate from it.  For example,
@@ -196,17 +196,17 @@ such an order of execution:
 >>> set_itemvalues('7', '1996-01-01', '1996-01-03', 1.0)
 >>> simulate('7')
 >>> print_itemvalues('6')
-2.0: 35.250827, 7.774062
+2.0: 35.537828, 7.741064
 >>> print_itemvalues('7')
-1.0: 11.658511, 8.842278
+1.0: 11.78038, 8.901179
 >>> set_itemvalues('6', '1996-01-03', '1996-01-06', 2.0)
 >>> simulate('6')
 >>> set_itemvalues('7', '1996-01-03', '1996-01-06', 1.0)
 >>> simulate('7')
 >>> print_itemvalues('6')
-2.0: 5.035808, 4.513706, 4.251594
+2.0: 5.018981, 4.501784, 4.238874
 >>> print_itemvalues('7')
-1.0: 7.103614, 6.00763, 5.313751
+1.0: 7.131072, 6.017787, 5.313211
 
 .. note::
 
@@ -372,7 +372,9 @@ class ServerState:
         write('Read all network files')
         hp.prepare_network()
         write('Activate the selected network')
-        hp.update_devices(interface.fullselection)
+        hp.update_devices(
+            selection=interface.fullselection,
+        )
         write('Read the required control files')
         hp.prepare_models()
         write('Read the required condition files')
@@ -422,7 +424,8 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess(
+    ...         'hyd.py await_server 8080 10', verbose=False)
 
     We define a test function simplifying sending the following requests,
     offering two optional arguments.  Without passing a value to `id_`,
@@ -714,11 +717,11 @@ A value for condition item `sm_lahn_1` is missing.
     |HydPyServer.GET_savedgetitemvalues|, respectively:
 
     >>> test('getitemvalues')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
+    land_dill_fluxes_qt = 7.735543
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
     ...
-    dill_nodes_sim_series = [7.726602]
+    dill_nodes_sim_series = [7.735543]
     >>> test('savedgetitemvalues', id_='1')    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
     ...
@@ -744,7 +747,7 @@ A value for condition item `sm_lahn_1` is missing.
     respectively:
 
     >>> test('savedgetitemvalues', id_='?')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
+    land_dill_fluxes_qt = 7.735543
     ...
     >>> test('savedparameteritemvalues', id_='?')    # doctest: +ELLIPSIS
     alpha = 1.0
@@ -874,26 +877,28 @@ but have not been calculated so far.
                 if line:
                     key, value = line.split('=')
                     self._inputs[key.strip()] = value.strip()
-            except BaseException:
+            except BaseException as exc:
                 self._statuscode = 400
                 raise RuntimeError(
                     f'The POST method `{self._externalname}` received a '
                     f'wrongly formated data body.  The following line has been '
-                    f'extracted but cannot be further processed: `{line}`.')
+                    f'extracted but cannot be further processed: `{line}`.'
+                ) from exc
 
     @property
     def _id(self) -> str:
         return self._get_queryparameter('id')
 
     def _get_queryparameter(self, name) -> str:
+        query = urllib.parse.urlparse(self.path).query
         try:
-            query = urllib.parse.urlparse(self.path).query
             return urllib.parse.parse_qs(query)[name][0]
         except KeyError:
             self._statuscode = 400
             raise RuntimeError(
                 f'For the {self._requesttype} method `{self._externalname}` '
-                f'no query parameter `{name}` is given.')
+                f'no query parameter `{name}` is given.'
+            ) from None
 
     @property
     def _externalname(self) -> str:
@@ -909,7 +914,8 @@ but have not been calculated so far.
         except AttributeError:
             self._statuscode = 400
             raise RuntimeError(
-                f'No method `{name}` available.')
+                f'No method `{name}` available.'
+            ) from None
 
     def _apply_method(self, method) -> None:
         try:
@@ -997,7 +1003,7 @@ but have not been calculated so far.
 
     def GET_getitemtypes(self) -> None:
         """Get the types of all current exchange items supposed to return
-        the values of |Parameter| or |Sequence| objects or the time series
+        the values of |Parameter| or |Sequence_| objects or the time series
         of |IOSequence| objects."""
         for item in state.getitems:
             type_ = self._get_itemtype(item)
@@ -1084,7 +1090,8 @@ but have not been calculated so far.
                 raise RuntimeError(
                     f'Conditions for ID `{self._id}` and time point '
                     f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
-                    f'but have not been calculated so far.')
+                    f'but have not been calculated so far.'
+                ) from None
             state.hp.conditions = state.init_conditions
 
     def GET_save_conditionvalues(self) -> None:
@@ -1171,7 +1178,8 @@ but have not been calculated so far.
             except KeyError:
                 self._statuscode = 500
                 raise RuntimeError(
-                    f'A value for {typename} item `{item.name}` is missing.')
+                    f'A value for {typename} item `{item.name}` is missing.'
+                ) from None
             item.value = eval(value)
             item.update_variables()
 
@@ -1223,7 +1231,7 @@ def await_server(port, seconds):
 
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     run_subprocess('hyd.py await_server 8080 0.1')
+    ...     result = run_subprocess('hyd.py await_server 8080 0.1')
     Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \
 the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
@@ -1235,7 +1243,8 @@ the following error:
     ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess(
+    ...         'hyd.py await_server 8080 10', verbose=False)
 
     >>> from urllib import request
     >>> _ = request.urlopen('http://localhost:8080/close_server')

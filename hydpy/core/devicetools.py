@@ -76,19 +76,22 @@ False
 # import...
 # ...from standard library
 import abc
+import contextlib
 import copy
 import itertools
 import warnings
 from typing import *
+from typing_extensions import Literal
 # ...from site-packages
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core.typingtools import *
 from hydpy.core import exceptiontools
+from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
+from hydpy.core import typingtools
 from hydpy.cythons.autogen import pointerutils
 pandas = exceptiontools.OptionalImport(
     'pandas', ['pandas'], locals())
@@ -103,10 +106,16 @@ DeviceType = TypeVar('DeviceType', 'Node', 'Element')
 DevicesTypeBound = TypeVar('DevicesTypeBound', bound='Devices')
 DevicesTypeUnbound = TypeVar('DevicesTypeUnbound', 'Nodes', 'Elements')
 
-NodesConstrArg = MayNonerable2['Node', str]
-ElementsConstrArg = MayNonerable2['Element', str]
+NodesConstrArg = typingtools.MayNonerable2['Node', str]
+ElementsConstrArg = typingtools.MayNonerable2['Element', str]
 NodeConstrArg = Union['Node', str]
 ElementConstrArg = Union['Element', str]
+
+NodeVariableType = Union[
+    str,
+    sequencetools.TypesInOutSequence,
+    'FusedVariable',
+]
 
 
 class Keywords(set):
@@ -157,13 +166,14 @@ class Keywords(set):
         return sorted(keyword for keyword in self if name in keyword)
 
     def _check_keywords(self, names: Iterable[str]) -> None:
-        try:
-            for name in names:
+        for name in names:
+            try:
                 objecttools.valid_variable_identifier(name)
-        except ValueError:
-            objecttools.augment_excmessage(
-                f'While trying to add the keyword `{name}` '
-                f'to device {objecttools.devicename(self.device)}')
+            except ValueError:
+                objecttools.augment_excmessage(
+                    f'While trying to add the keyword `{name}` '
+                    f'to device {objecttools.devicename(self.device)}'
+                )
 
     def update(self, *names: Any) -> None:
         """Before updating, the given names are checked to be valid
@@ -233,6 +243,254 @@ define a valid variable identifier.  ...
                 sorted(self), 'Keywords(', width=70) + ')'
 
     __dir__ = objecttools.dir_
+
+
+_registry_fusedvariable: Dict[str, 'FusedVariable'] = {}
+
+
+class FusedVariable:
+    # noinspection PyUnresolvedReferences
+    """Combines |InputSequence| and |OutputSequence| subclasses of different
+    models, dealing with the same property, into a single variable.
+
+    Class |FusedVariable| is one possible type of the property |Node.variable|
+    of class |Node|.  We need it in some *HydPy* projects where the involved
+    models do not only pass runoff to each other but share other types of
+    data as well.  Each project-specific |FusedVariable| object serves as a
+    "meta-type", indicating which input and output sequences of the different
+    models correlate and are thus connectable with each other.
+
+    Using class |FusedVariable| is easiest to explain by a concrete example.
+    Assume, we use |conv_v001| to interpolate the air temperature for a
+    specific location.  We use this temperature as input to the |evap_v001|
+    model, which requires this and other meteorological data to calculate
+    potential evapotranspiration.  Further, we pass the calculated potential
+    evapotranspiration as input to |lland_v2| for calculating the actual
+    evapotranspiration.  Hence, we need to connect the output sequence
+    |evap_fluxes.ReferenceEvapotranspiration| of |evap_v001| with the input
+    sequence |lland_inputs.PET| of |lland_v2|.
+
+    Additionally, |lland_v2| requires temperature data itself for modelling
+    snow processes, introducing the problem that we need to use the same data
+    (the output of |conv_v001|) as the input of two differently named input
+    sequences (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for
+    |evap_v001| and |lland_v2|, respectively).
+
+    For our concrete example, we need to create two |FusedVariable| objects.
+    `E` combines |evap_fluxes.ReferenceEvapotranspiration| and
+    |lland_inputs.PET| and `T` combines |evap_inputs.AirTemperature| and
+    |lland_inputs.TemL| (for convenience, we import their globally
+    available aliases):
+
+    >>> from hydpy import FusedVariable
+    >>> from hydpy import evap_ReferenceEvapotranspiration, lland_PET
+    >>> E = FusedVariable('E', evap_ReferenceEvapotranspiration, lland_PET)
+    >>> from hydpy import evap_AirTemperature, lland_TemL
+    >>> T = FusedVariable('T', evap_AirTemperature, lland_TemL)
+
+    Now we can construct the network:
+
+     * Node `t1` handles the original temperature and serves as the input
+       node to element `conv`. We define the (arbitrarily selected) string
+       `Temp` to be its variable.
+     * Node `e` receives the potential evapotranspiration calculated by
+       element `evap` and passes it to element `lland`.  Node `e` thus
+       receives the fused variable `E`.
+     * Node `t2` handles the interpolated temperature and serves as the
+       outlet node of element `conv` and the input node to elements
+       `evap` and `lland`.  Node `t2` thus receives the fused variable `T`.
+
+    >>> from hydpy import Node, Element
+    >>> t1 = Node('t1', variable='Temp')
+    >>> t2 = Node('t2', variable=T)
+    >>> e = Node('e', variable=E)
+    >>> conv = Element('element_conv',
+    ...                inlets=t1,
+    ...                outlets=t2)
+    >>> evap = Element('element_evap',
+    ...                inputs=t2,
+    ...                outputs=e)
+    >>> lland = Element('element_lland',
+    ...                 inputs=(t2, e),
+    ...                 outlets='node_q')
+
+    Now we can prepare the different model objects and assign them to their
+    corresponding elements (note that parameters |conv_control.InputCoordinates|
+    and |conv_control.OutputCoordinates| of |conv_v001| first require
+    information on the location of the relevant nodes):
+
+    >>> from hydpy import prepare_model
+    >>> model_conv = prepare_model('conv_v001')
+    >>> model_conv.parameters.control.inputcoordinates(t1=(0, 0))
+    >>> model_conv.parameters.control.outputcoordinates(t2=(1, 1))
+    >>> model_conv.parameters.control.maxnmbinputs(1)
+    >>> model_conv.parameters.update()
+    >>> conv.model = model_conv
+    >>> evap.model = prepare_model('evap_v001')
+    >>> lland.model = prepare_model('lland_v2')
+
+    We assign a temperature value to node `t1`:
+
+    >>> t1.sequences.sim = -273.15
+
+    Model |conv_v001| now can perform a simulation step and pass its
+    output to node `t2`:
+
+    >>> conv.model.simulate(0)
+    >>> t2.sequences.sim
+    sim(-273.15)
+
+    Without further configuration, |evap_v001| cannot perform any simulation
+    steps.  Hence, we just call its |Model.load_data| method to show that
+    its input sequence |evap_inputs.AirTemperature| is well connected to the
+    |Sim| sequence of node `t2` and receives the correct data:
+
+    >>> evap.model.load_data()
+    >>> evap.model.sequences.inputs.airtemperature
+    airtemperature(-273.15)
+
+    The output sequence |evap_fluxes.ReferenceEvapotranspiration| is also
+    well connected.  Calling method |Model.update_outputs| passes its
+    (manually set) value to node `e`, respectively:
+
+    >>> evap.model.sequences.fluxes.referenceevapotranspiration = 999.9
+    >>> evap.model.update_outputs()
+    >>> e.sequences.sim
+    sim(999.9)
+
+    Finally, both input sequences |lland_inputs.TemL| and |lland_inputs.PET|
+    receive the current values of nodes `t2` and `e`:
+
+    >>> lland.model.load_data()
+    >>> lland.model.sequences.inputs.teml
+    teml(-273.15)
+    >>> lland.model.sequences.inputs.pet
+    pet(999.9)
+
+    When defining fused variables, class |FusedVariable| performs some
+    registration behind the scenes, similar as classes |Node| and |Element|
+    do.  Again, the name works as the identifier, and we force the same fused
+    variable to exist only once, even when defined in different selection
+    files repeatedly.  Hence, when we repeat the definition from above,
+    we get the same object:
+
+    >>> Test = FusedVariable('T', evap_AirTemperature, lland_TemL)
+    >>> T is Test
+    True
+
+    Changing the member sequences of an existing fused variable is not allowed:
+
+    >>> from hydpy import hland_T
+    >>> FusedVariable('T', hland_T, lland_TemL)
+    Traceback (most recent call last):
+    ...
+    ValueError: The sequences combined by a FusedVariable object cannot be \
+changed.  The already defined sequences of the fused variable `T` are \
+`evap_AirTemperature and lland_TemL` instead of `hland_T and lland_TemL`.  \
+Keep in mind, that `name` is the unique identifier for fused variable instances.
+
+
+    Defining additional fused variables with the same member sequences does
+    not seem advisable, but is allowed:
+
+    >>> Temp = FusedVariable('Temp', evap_AirTemperature, lland_TemL)
+    >>> T is Temp
+    False
+
+    To get an overview of the already existing fused variables, call
+    method |FusedVariable.get_registry|:
+
+    >>> len(FusedVariable.get_registry())
+    3
+
+    Principally, you can clear the registry via method
+    |FusedVariable.clear_registry|, but remember it does not remove
+    |FusedVariable| objects from the running process being otherwise
+    referenced:
+
+    >>> FusedVariable.clear_registry()
+    >>> FusedVariable.get_registry()
+    ()
+    >>> t2.variable
+    FusedVariable('T', evap_AirTemperature, lland_TemL)
+
+    .. testsetup::
+
+        >>> Node.clear_all()
+        >>> Element.clear_all()
+    """
+    _name: str
+    _aliases: Tuple[str]
+    _variables: Tuple[sequencetools.TypesInOutSequence, ...]
+    _alias2variable: Dict[str, sequencetools.TypesInOutSequence]
+
+    def __new__(
+            cls,
+            name: str,
+            *sequences: sequencetools.TypesInOutSequence,
+    ):
+        self = super().__new__(cls)
+        aliases = tuple(hydpy.sequence2alias[seq] for seq in sequences)
+        idxs = numpy.argsort(aliases)
+        aliases = tuple(aliases[idx] for idx in idxs)
+        variables = tuple(sequences[idx] for idx in idxs)
+        fusedvariable = _registry_fusedvariable.get(name)
+        if fusedvariable:
+            if variables == fusedvariable._variables:
+                return fusedvariable
+            raise ValueError(
+                f'The sequences combined by a {type(self).__name__} '
+                f'object cannot be changed.  The already defined sequences '
+                f'of the fused variable `{name}` are '
+                f'`{objecttools.enumeration(fusedvariable._aliases)}` '
+                f'instead of `{objecttools.enumeration(aliases)}`.  Keep in '
+                f'mind, that `name` is the unique identifier for fused '
+                f'variable instances.'
+            )
+        self._name = name
+        self._aliases = aliases
+        self._variables = variables
+        _registry_fusedvariable[name] = self
+        self._alias2variable = dict(zip(self._aliases, self._variables))
+        return self
+
+    @classmethod
+    def get_registry(cls) -> Tuple['FusedVariable', ...]:
+        """Get all |FusedVariable| objects initialised so far."""
+        return tuple(_registry_fusedvariable.values())
+
+    @classmethod
+    def clear_registry(cls) -> None:
+        """Clear the registry from all |FusedVariable| objects initialised
+        so far.
+
+        Use this method only for good reasons!
+        """
+        return _registry_fusedvariable.clear()
+
+    def __iter__(self) -> Iterator[sequencetools.TypesInOutSequence]:
+        for variable in self._variables:
+            yield variable
+
+    def __contains__(
+            self,
+            item: Union[
+                sequencetools.TypesInOutSequence,
+                sequencetools.InOutSequence,
+            ],
+    ) -> bool:
+        if isinstance(
+                item,
+                (sequencetools.InputSequence, sequencetools.OutputSequence),
+        ):
+            item = type(item)
+        return item in self._variables
+
+    def __str__(self) -> str:
+        return self._name
+
+    def __repr__(self) -> str:
+        return f'FusedVariable(\'{self._name}\', {", ".join(self._aliases)})'
 
 
 class Devices(Generic[DeviceType]):
@@ -382,9 +640,9 @@ of the following classes: Node and str.
     _shadowed_keywords: Set[str]
     forceiterable: bool = False
 
-    def __new__(cls, *values: MayNonerable2[DeviceType, str],
+    def __new__(cls, *values: typingtools.MayNonerable2[DeviceType, str],
                 mutable: bool = True):
-        if len(values) == 1 and isinstance(values[0], cls):
+        if len(values) == 1 and isinstance(values[0], Devices):
             return values[0]
         self = super().__new__(cls)
         dict_ = vars(self)
@@ -487,16 +745,19 @@ immutable Nodes objects is not allowed.
                 except KeyError:
                     raise ValueError(
                         f'The actual {type(self).__name__} '
-                        f'object does not handle such a device.')
+                        f'object does not handle such a device.'
+                    ) from None
                 del _id2devices[_device][id(self)]
             else:
                 raise RuntimeError(
                     f'Removing devices from immutable '
-                    f'{type(self).__name__} objects is not allowed.')
+                    f'{type(self).__name__} objects is not allowed.'
+                )
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to remove the device `{device}` from a '
-                f'{type(self).__name__} object')
+                f'{type(self).__name__} object'
+            )
 
     @property
     def names(self) -> Tuple[str, ...]:
@@ -523,6 +784,7 @@ immutable Nodes objects is not allowed.
 
     @property
     def keywords(self) -> Set[str]:
+        # noinspection PyCallingNonCallable
         """A set of all keywords of all handled devices.
 
         In addition to attribute access via device names, |Nodes| and
@@ -669,6 +931,7 @@ which is in conflict with using their names as identifiers.
             f'names as identifiers.')
 
     def __select_devices_by_keyword(self, name):
+        # noinspection PyArgumentList
         devices = type(self)(*(device for device in self
                                if name in device.keywords))
         vars(devices)['_shadowed_keywords'] = self._shadowed_keywords.copy()
@@ -680,6 +943,7 @@ which is in conflict with using their names as identifiers.
             name2device = self._name2device
             name2device = name2device[name]
             if self.forceiterable:
+                # noinspection PyArgumentList
                 return type(self)(name2device)
             return name2device
         except KeyError:
@@ -714,14 +978,16 @@ which is in conflict with using their names as identifiers.
                 f'The actual {type(self).__name__} object does not '
                 f'handle a {self.get_contentclass().__name__} object '
                 f'named `{name}` which could be removed, and deleting '
-                f'other attributes is not supported.')
+                f'other attributes is not supported.'
+            ) from None
 
     def __getitem__(self, name: str) -> DeviceType:
         try:
             return self._name2device[name]
         except KeyError:
             raise KeyError(
-                f'No node named `{name}` available.')
+                f'No node named `{name}` available.'
+            ) from None
 
     def __setitem__(self, name: str, value: DeviceType):
         self._name2device[name] = value
@@ -733,28 +999,34 @@ which is in conflict with using their names as identifiers.
         for (_, device) in sorted(self._name2device.items()):
             yield device
 
-    def __contains__(self, value: Mayberable2[DeviceType, str]):
+    def __contains__(self, value: typingtools.Mayberable2[DeviceType, str]):
         device = self.get_contentclass()(value)
         return device.name in self._name2device
 
     def __len__(self):
         return len(self._name2device)
 
-    def __add__(self: DevicesTypeBound, other: Mayberable2[DeviceType, str]) \
-            -> DevicesTypeBound:
+    def __add__(
+            self: DevicesTypeBound,
+            other: typingtools.Mayberable2[DeviceType, str],
+    ) -> DevicesTypeBound:
         new = copy.copy(self)
         for device in type(self)(other):
             new.add_device(device)
         return new
 
-    def __iadd__(self: DevicesTypeBound, other: Mayberable2[DeviceType, str]) \
-            -> DevicesTypeBound:
+    def __iadd__(
+            self: DevicesTypeBound,
+            other: typingtools.Mayberable2[DeviceType, str],
+    ) -> DevicesTypeBound:
         for device in type(self)(other):
             self.add_device(device)
         return self
 
-    def __sub__(self: DevicesTypeBound, other: Mayberable2[DeviceType, str]) \
-            -> DevicesTypeBound:
+    def __sub__(
+            self: DevicesTypeBound,
+            other: typingtools.Mayberable2[DeviceType, str],
+    ) -> DevicesTypeBound:
         new = copy.copy(self)
         for device in type(self)(other):
             try:
@@ -763,8 +1035,10 @@ which is in conflict with using their names as identifiers.
                 pass
         return new
 
-    def __isub__(self: DevicesTypeBound, other: Mayberable2[DeviceType, str]) \
-            -> DevicesTypeBound:
+    def __isub__(
+            self: DevicesTypeBound,
+            other: typingtools.Mayberable2[DeviceType, str],
+    ) -> DevicesTypeBound:
         for device in type(self)(other):
             try:
                 self.remove_device(device)
@@ -777,25 +1051,25 @@ which is in conflict with using their names as identifiers.
             return getattr(set(self), func)(set(other))
         return NotImplemented
 
-    def __lt__(self, other):
+    def __lt__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__lt__')
 
-    def __le__(self, other):
+    def __le__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__le__')
 
-    def __eq__(self, other: Any):
+    def __eq__(self, other: Any) -> bool:
         return self.__compare(other, '__eq__')
 
-    def __ne__(self, other: Any):
+    def __ne__(self, other: Any) -> bool:
         return self.__compare(other, '__ne__')
 
-    def __ge__(self, other: DeviceType):
+    def __ge__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__ge__')
 
-    def __gt__(self, other: DeviceType):
+    def __gt__(self, other: DevicesTypeBound) -> bool:
         return self.__compare(other, '__gt__')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr('')
 
     def assignrepr(self, prefix: str = '') -> str:
@@ -807,7 +1081,7 @@ which is in conflict with using their names as identifiers.
                     self.names, prefix, width=70)
                 return repr_ + ')'
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """Just a regression test:
 
         >>> from hydpy import Node, Nodes
@@ -905,7 +1179,7 @@ class Nodes(Devices['Node']):
                 seq.save_ext()
 
     @property
-    def variables(self) -> Set[str]:
+    def variables(self) -> Set[NodeVariableType]:
         """Return a set of the variables of all handled |Node| objects.
 
         >>> from hydpy import Node, Nodes
@@ -1294,6 +1568,7 @@ class Device(Generic[DevicesTypeUnbound]):
         vars(self)['name'] = name
         _registry[type(self)][self.name] = self
         for devices in _id2devices[self].values():
+            # noinspection PyTypeChecker
             devices[self.name] = self
 
     @classmethod
@@ -1340,7 +1615,7 @@ class Device(Generic[DevicesTypeUnbound]):
         return vars(self)['keywords']
 
     @keywords.setter
-    def keywords(self, keywords: Mayberable1[str]) -> None:
+    def keywords(self, keywords: typingtools.Mayberable1[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
         vars(self)['keywords'].update(*keywords)
 
@@ -1355,6 +1630,7 @@ class Device(Generic[DevicesTypeUnbound]):
 
 
 class Node(Device[Nodes]):
+    # noinspection PyPropertyAccess
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for
@@ -1393,11 +1669,15 @@ immutable Elements objects is not allowed.
     |Node| and |Element| objects properly.
     """
 
+    masks = masktools.NodeMasks()
+
+    # noinspection PyUnusedLocal
     def __init__(
-            self, value: NodeConstrArg,
-            variable: Optional[
-                Union[str, Type[sequencetools.InputSequence]]] = None,
-            keywords: MayNonerable1[str] = None):
+            self,
+            value: NodeConstrArg,
+            variable: NodeVariableType = None,
+            keywords: typingtools.MayNonerable1[str] = None,
+    ):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if 'new_instance' in vars(self):
@@ -1442,7 +1722,9 @@ immutable Elements objects is not allowed.
         return vars(self)['exits']
 
     @property
-    def variable(self) -> Union[str, Type[sequencetools.InputSequence]]:
+    def variable(self) -> NodeVariableType:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyPropertyAccess
         """The variable handled by the actual |Node| object.
 
         By default, we suppose that nodes route discharge:
@@ -1470,6 +1752,15 @@ immutable Elements objects is not allowed.
         >>> Node('test4', variable=hland_P)
         Node("test4", variable=hland_P)
 
+        For some complex *HydPy* projects, one may need to fall back on
+        |FusedVariable| objects.  The string representation then relies
+        on the name of the fused variable:
+
+        >>> from hydpy import FusedVariable, lland_Nied
+        >>> Precipitation = FusedVariable('Precip', hland_P, lland_Nied)
+        >>> Node('test5', variable=Precipitation)
+        Node("test5", variable=Precip)
+
         To avoid confusion, one cannot change property |Node.variable|:
 
         >>> node.variable = 'H'
@@ -1486,8 +1777,14 @@ Keep in mind, that `name` is the unique identifier of node objects.
         return vars(self)['variable']
 
     @property
-    def deploymode(self) -> str:
-        """Defines the kind of information a |Node| object offers.
+    def deploymode(self) -> Literal[
+            'newsim',
+            'oldsim',
+            'obs',
+            'obs_newsim',
+            'obs_oldsim',
+    ]:
+        """Defines the kind of information a node offers its exit elements.
 
         *HydPy* supports the following modes:
 
@@ -1506,13 +1803,24 @@ Keep in mind, that `name` is the unique identifier of node objects.
             a node is supposed to deploy simulated values which have been
             calculated in a previous simulation run and stored in a sequence
             file.
+          * obs_newsim: Combination of mode `obs` and `newsim`.  Mode
+            `obs_newsim` gives priority to the provision of observation
+            values.  New simulation values serve as a replacement for
+            missing observed values.
+          * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode
+            `obs_oldsim` gives priority to the provision of observation
+            values.  Old simulation values serve as a replacement for
+            missing observed values.
 
-        The technical difference between modes `obs` and `oldsim` is that
+        One relevant difference between modes `obs` and `oldsim` is that
         the external values are either handled by the `obs` or the `sim`
         sequence object.  Hence, if you select the `oldsim` mode, the
         values of the upstream elements calculated within the current
         simulation are not available (e.g. for parameter calibration)
-        after the simulation is finished.
+        after the simulation finishes.
+
+        Please refer to the documentation on method |HydPy.simulate| of
+        class |HydPy|, which provides for some application examples.
 
         >>> from hydpy import Node
         >>> node = Node('test')
@@ -1524,24 +1832,35 @@ Keep in mind, that `name` is the unique identifier of node objects.
         >>> node.deploymode = 'oldsim'
         >>> node.deploymode
         'oldsim'
+        >>> node.deploymode = 'obs_newsim'
+        >>> node.deploymode
+        'obs_newsim'
+        >>> node.deploymode = 'obs_oldsim'
+        >>> node.deploymode
+        'obs_oldsim'
+        >>> node.deploymode = 'newsim'
+        >>> node.deploymode
+        'newsim'
         >>> node.deploymode = 'oldobs'
         Traceback (most recent call last):
         ...
         ValueError: When trying to set the routing mode of node `test`, \
 the value `oldobs` was given, but only the following values are allowed: \
-`newsim`, `obs` and `oldsim`.
+`newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`.
         """
         return vars(self)['deploymode']
 
     @deploymode.setter
     def deploymode(self, value: str) -> None:
-        if value == 'oldsim':
+        if value in ('oldsim', 'obs_oldsim'):
             self.__blackhole = pointerutils.Double(0.)
-        elif value not in ('newsim', 'obs'):
+        elif value not in ('newsim', 'obs', 'obs_newsim', 'obs_oldsim'):
             raise ValueError(
                 f'When trying to set the routing mode of node `{self.name}`, '
                 f'the value `{value}` was given, but only the following '
-                f'values are allowed: `newsim`, `obs` and `oldsim`.')
+                f'values are allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, '
+                f'and `obs_oldsim`.'
+            )
         vars(self)['deploymode'] = value
         for element in itertools.chain(self.entries, self.exits):
             model = getattr(element, 'model')
@@ -1549,6 +1868,7 @@ the value `oldobs` was given, but only the following values are allowed: \
                 model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
+        # noinspection PyUnresolvedReferences
         """Return the |Double| object appropriate for the given |Element|
         input or output group and the actual |Node.deploymode|.
 
@@ -1614,16 +1934,17 @@ the value `oldobs` was given, but only the following values are allowed: \
 the given group name `test`.
         """
         if group in ('inlets', 'receivers', 'inputs'):
-            if self.deploymode != 'obs':
+            if not self.deploymode.startswith('obs'):
                 return self.sequences.fastaccess.sim
             return self.sequences.fastaccess.obs
-        if group in ('outlets', 'senders'):
-            if self.deploymode != 'oldsim':
+        if group in ('outlets', 'senders', 'outputs'):
+            if self.deploymode not in ('oldsim', 'obs_oldsim'):
                 return self.sequences.fastaccess.sim
             return self.__blackhole
         raise ValueError(
             f'Function `get_double` of class `Node` does not '
-            f'support the given group name `{group}`.')
+            f'support the given group name `{group}`.'
+        )
 
     def reset(self, idx: int = 0) -> None:
         # pylint: disable=unused-argument
@@ -1780,6 +2101,8 @@ the given group name `test`.
         variable = self.variable
         if isinstance(variable, str):
             variable = f'"{variable}"'
+        elif isinstance(variable, FusedVariable):
+            variable = str(variable)
         else:
             variable = (f'{variable.__module__.split(".")[2]}_'
                         f'{variable.__name__}')
@@ -1789,7 +2112,10 @@ the given group name `test`.
             with objecttools.repr_.preserve_strings(True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     line = objecttools.assignrepr_list(
-                        sorted(self.keywords), subprefix, width=70)
+                        values=sorted(self.keywords),
+                        prefix=subprefix,
+                        width=70,
+                    )
             lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
@@ -1804,26 +2130,31 @@ class Element(Device[Elements]):
 
     When preparing |Element| objects one links them to nodes of different
     "groups", each group of nodes implemented as an immutable |Nodes|
-    object.  |Element.inlets| and |Element.outlets| nodes handle, for
-    example, the inflow to and the outflow from the respective element.
-    |Element.receivers| and |Element.senders| nodes are thought for
-    information flow between arbitrary elements, for example, to inform a
-    |dam| model about the discharge at a gauge downstream.  |Element.inputs|
-    nodes provide optional input information, for example, interpolated
-    precipitation that could alternatively be read from files as well.
+    object:
 
-    You can select nodes either by passing them explicitly or through
-    passing their name both as single objects or as objects contained
+     * |Element.inlets| and |Element.outlets| nodes handle, for
+       example, the inflow to and the outflow from the respective element.
+     * |Element.receivers| and |Element.senders| nodes are thought for
+       information flow between arbitrary elements, for example, to inform a
+       |dam| model about the discharge at a gauge downstream.
+     * |Element.inputs| nodes provide optional input information, for example,
+       interpolated precipitation that could alternatively be read from files
+       as well.
+     * |Element.outputs| nodes query optional output information, for example,
+       the water level of a dam.
+
+    You can select the relevant nodes either by passing them explicitly or
+    through passing their name both as single objects or as objects contained
     within an iterable object:
 
     >>> from hydpy import Element, Node
     >>> Element('test',
     ...         inlets='inl1',
-    ...         outlets=Node('out1'),
+    ...         outlets=Node('outl1'),
     ...         receivers=('rec1', Node('rec2')))
     Element("test",
             inlets="inl1",
-            outlets="out1",
+            outlets="outl1",
             receivers=["rec1", "rec2"])
 
     Repeating such a statement with different nodes adds them to the
@@ -1833,13 +2164,15 @@ class Element(Device[Elements]):
     ...         inlets='inl1',
     ...         receivers=('rec2', 'rec3'),
     ...         senders='sen1',
-    ...         inputs='inp1')
+    ...         inputs='inp1',
+    ...         outputs='outp1')
     Element("test",
             inlets="inl1",
-            outlets="out1",
+            outlets="outl1",
             receivers=["rec1", "rec2", "rec3"],
             senders="sen1",
-            inputs="inp1")
+            inputs="inp1",
+            outputs="outp1")
 
     Subsequent adding of nodes also works via property access:
 
@@ -1849,57 +2182,160 @@ class Element(Device[Elements]):
     >>> test.receivers = ()
     >>> test.senders = 'sen2', Node('sen3')
     >>> test.inputs = []
+    >>> test.outputs = Node('outp2')
     >>> test
     Element("test",
             inlets=["inl1", "inl2"],
-            outlets="out1",
+            outlets="outl1",
             receivers=["rec1", "rec2", "rec3"],
             senders=["sen1", "sen2", "sen3"],
-            inputs="inp1")
+            inputs="inp1",
+            outputs=["outp1", "outp2"])
 
-    The properties verify that an element does not handle the same node
-    both within the `inlet`, `outlet`, or `inputs` group or within the
-    `receiver` or `sender` group twice:
+    The properties try to verify that all connections make sense.  For example,
+    an element should never handle an `inlet` node that it also handles as an
+    `outlet`, `input`, or `output` node:
 
-    >>> test.inlets = 'out1'
+    >>> test.inlets = 'outl1'
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given inlet node `out1` is already \
+    ValueError: For element `test`, the given inlet node `outl1` is already \
 defined as a(n) outlet node, which is not allowed.
+
     >>> test.inlets = 'inp1'
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given inlet node `inp1` is already \
 defined as a(n) input node, which is not allowed.
+
+    >>> test.inlets = 'outp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given inlet node `outp1` is already \
+defined as a(n) output node, which is not allowed.
+
+    Similar holds for the `outlet` nodes:
+
     >>> test.outlets = 'inl1'
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given outlet node `inl1` is already \
 defined as a(n) inlet node, which is not allowed.
+
     >>> test.outlets = 'inp1'
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given outlet node `inp1` is already \
 defined as a(n) input node, which is not allowed.
-    >>> test.inputs = 'inl1'
+
+    >>> test.outlets = 'outp1'
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `inl1` is already \
-defined as a(n) inlet node, which is not allowed.
-    >>> test.inputs = 'out1'
+    ValueError: For element `test`, the given outlet node `outp1` is already \
+defined as a(n) output node, which is not allowed.
+
+    The following restrictions hold for the `sender` nodes:
+
+    >>> test.senders = 'rec1'
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `out1` is already \
-defined as a(n) outlet node, which is not allowed.
+    ValueError: For element `test`, the given sender node `rec1` is already \
+defined as a(n) receiver node, which is not allowed.
+
+    >>> test.senders = 'inp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given sender node `inp1` is already \
+defined as a(n) input node, which is not allowed.
+
+    >>> test.senders = 'outp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given sender node `outp1` is already \
+defined as a(n) output node, which is not allowed.
+
+    The following restrictions hold for the `receiver` nodes:
+
     >>> test.receivers = 'sen1'
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given receiver node `sen1` is already \
 defined as a(n) sender node, which is not allowed.
-    >>> test.senders = 'rec1'
+
+    >>> test.receivers = 'inp1'
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given sender node `rec1` is already \
+    ValueError: For element `test`, the given receiver node `inp1` is already \
+defined as a(n) input node, which is not allowed.
+
+    >>> test.receivers = 'outp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given receiver node `outp1` is already \
+defined as a(n) output node, which is not allowed.
+
+    The following restrictions hold for the `input` nodes:
+
+    >>> test.inputs = 'outp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `outp1` is already \
+defined as a(n) output node, which is not allowed.
+
+    >>> test.inputs = 'inl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `inl1` is already \
+defined as a(n) inlet node, which is not allowed.
+
+    >>> test.inputs = 'outl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `outl1` is already \
+defined as a(n) outlet node, which is not allowed.
+
+    >>> test.inputs = 'sen1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `sen1` is already \
+defined as a(n) sender node, which is not allowed.
+
+    >>> test.inputs = 'rec1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `rec1` is already \
+defined as a(n) receiver node, which is not allowed.
+
+   The following restrictions hold for the `output` nodes:
+
+    >>> test.outputs = 'inp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given output node `inp1` is already \
+defined as a(n) input node, which is not allowed.
+
+    >>> test.outputs = 'inl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given output node `inl1` is already \
+defined as a(n) inlet node, which is not allowed.
+
+    >>> test.outputs = 'outl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given output node `outl1` is already \
+defined as a(n) outlet node, which is not allowed.
+
+    >>> test.outputs = 'sen1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given output node `sen1` is already \
+defined as a(n) sender node, which is not allowed.
+
+    >>> test.outputs = 'rec1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given output node `rec1` is already \
 defined as a(n) receiver node, which is not allowed.
 
     Note that the discussed |Nodes| objects are immutable by default,
@@ -1927,6 +2363,7 @@ is not allowed.
     Elements()
     """
 
+    # noinspection PyUnusedLocal
     def __init__(
             self, value: ElementConstrArg,
             inlets: NodesConstrArg = None,
@@ -1934,7 +2371,8 @@ is not allowed.
             receivers: NodesConstrArg = None,
             senders: NodesConstrArg = None,
             inputs: NodesConstrArg = None,
-            keywords: MayNonerable1[str] = None):
+            outputs: NodesConstrArg = None,
+            keywords: typingtools.MayNonerable1[str] = None):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if hasattr(self, 'new_instance'):
@@ -1943,9 +2381,15 @@ is not allowed.
             vars(self)['receivers'] = Nodes(mutable=False)
             vars(self)['senders'] = Nodes(mutable=False)
             vars(self)['inputs'] = Nodes(mutable=False)
-            self.__connections = (self.inlets, self.outlets,
-                                  self.receivers, self.senders,
-                                  self.inputs)
+            vars(self)['outputs'] = Nodes(mutable=False)
+            self.__connections = (
+                self.inlets,
+                self.outlets,
+                self.receivers,
+                self.senders,
+                self.inputs,
+                self.outputs,
+            )
             del vars(self)['new_instance']
         self.keywords = keywords  # type: ignore
         if inlets is not None:
@@ -1958,6 +2402,8 @@ is not allowed.
             self.senders = senders  # type: ignore
         if inputs is not None:
             self.inputs = inputs  # type: ignore
+        if outputs is not None:
+            self.outputs = outputs  # type: ignore
         # due to internal type conversion
         # see issue https://github.com/python/mypy/issues/3004
 
@@ -1975,7 +2421,8 @@ is not allowed.
                             f'For element `{self}`, the given '
                             f'{targetnodes[:-1]} node `{node}` is already '
                             f'defined as a(n) {incomp[:-1]} node, which is '
-                            f'not allowed.')
+                            f'not allowed.'
+                        )
                 elementgroup.add_device(node)
                 nodegroup: Elements = getattr(node, targetelements)
                 nodegroupmutable = nodegroup.mutable
@@ -1996,8 +2443,15 @@ is not allowed.
     @inlets.setter
     def inlets(self, values: NodesConstrArg):
         self.__update_group(
-            values, targetnodes='inlets', targetelements='exits',
-            incompatiblenodes=('outlets', 'inputs'))
+            values,
+            targetnodes='inlets',
+            targetelements='exits',
+            incompatiblenodes=(
+                'outlets',
+                'inputs',
+                'outputs',
+            ),
+        )
 
     @property
     def outlets(self) -> Nodes:
@@ -2008,8 +2462,15 @@ is not allowed.
     @outlets.setter
     def outlets(self, values: NodesConstrArg):
         self.__update_group(
-            values, targetnodes='outlets', targetelements='entries',
-            incompatiblenodes=('inlets', 'inputs'))
+            values,
+            targetnodes='outlets',
+            targetelements='entries',
+            incompatiblenodes=(
+                'inlets',
+                'inputs',
+                'outputs',
+            ),
+        )
 
     @property
     def receivers(self) -> Nodes:
@@ -2021,8 +2482,15 @@ is not allowed.
     @receivers.setter
     def receivers(self, values: NodesConstrArg):
         self.__update_group(
-            values, targetnodes='receivers', targetelements='exits',
-            incompatiblenodes=('senders',))
+            values,
+            targetnodes='receivers',
+            targetelements='exits',
+            incompatiblenodes=(
+                'senders',
+                'inputs',
+                'outputs',
+            ),
+        )
 
     @property
     def senders(self) -> Nodes:
@@ -2034,8 +2502,15 @@ is not allowed.
     @senders.setter
     def senders(self, values: NodesConstrArg):
         self.__update_group(
-            values, targetnodes='senders', targetelements='entries',
-            incompatiblenodes=('receivers',))
+            values,
+            targetnodes='senders',
+            targetelements='entries',
+            incompatiblenodes=(
+                'receivers',
+                'inputs',
+                'outputs',
+            ),
+        )
 
     @property
     def inputs(self) -> Nodes:
@@ -2047,8 +2522,39 @@ is not allowed.
     @inputs.setter
     def inputs(self, values: NodesConstrArg):
         self.__update_group(
-            values, targetnodes='inputs', targetelements='exits',
-            incompatiblenodes=('inlets', 'outlets'))
+            values,
+            targetnodes='inputs',
+            targetelements='exits',
+            incompatiblenodes=(
+                'inlets',
+                'outlets',
+                'senders',
+                'receivers',
+                'outputs',
+            ),
+        )
+
+    @property
+    def outputs(self) -> Nodes:
+        """Group of |Node| objects to which the handled |Model| object passes
+        its "internal" output values, available via sequences of type
+        |FluxSequence| or |StateSequence| (e.g. potential evaporation)."""
+        return vars(self)['outputs']
+
+    @outputs.setter
+    def outputs(self, values: NodesConstrArg):
+        self.__update_group(
+            values,
+            targetnodes='outputs',
+            targetelements='entries',
+            incompatiblenodes=(
+                'inlets',
+                'outlets',
+                'senders',
+                'receivers',
+                'inputs',
+            ),
+        )
 
     @classmethod
     def get_handlerclass(cls) -> Type[Elements]:
@@ -2057,6 +2563,7 @@ is not allowed.
 
     @property
     def model(self) -> 'modeltools.Model':
+        # noinspection PyUnresolvedReferences
         """The |Model| object handled by the actual |Element| object.
 
         Directly after their initialisation, elements do not know
@@ -2156,7 +2663,8 @@ requested but not been prepared so far.
                 raise RuntimeError(
                     'The initialisation period has not been defined via '
                     'attribute `timegrids` of module `pub` yet but might '
-                    'be required to prepare the model properly.')
+                    'be required to prepare the model properly.'
+                ) from None
             with hydpy.pub.options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry)
@@ -2199,7 +2707,7 @@ Use method `prepare_model` instead.
             exceptiontools.HydPyDeprecationWarning)
 
     @property
-    def variables(self) -> Set[str]:
+    def variables(self) -> Set[NodeVariableType]:
         """A set of all different |Node.variable| values of the |Node|
         objects directly connected to the actual |Element| object.
 
@@ -2219,7 +2727,7 @@ Use method `prepare_model` instead.
         >>> sorted(element.variables)
         ['X', 'Y1', 'Y2', 'Y3', 'Y4']
         """
-        variables: Set[str] = set()
+        variables = set()
         for connection in self.__connections:
             variables.update(connection.variables)
         return variables
@@ -2423,7 +2931,13 @@ Use method `prepare_model` instead.
                 blanks = ' ' * (len(prefix) + 8)
                 lines = [f'{prefix}Element("{self.name}",']
                 for groupname in (
-                        'inlets', 'outlets', 'receivers', 'senders', 'inputs'):
+                        'inlets',
+                        'outlets',
+                        'receivers',
+                        'senders',
+                        'inputs',
+                        'outputs',
+                ):
                     group = getattr(self, groupname, Node)
                     if group:
                         subprefix = f'{blanks}{groupname}='
@@ -2451,33 +2965,78 @@ _registry: Mapping = {Node: {}, Element: {}}
 _selection: Mapping = {Node: {}, Element: {}}
 
 
-def gather_registries() -> Tuple[Dict, Mapping, Mapping]:
-    """Get and clear the current |Node| and |Element| registries.
+@contextlib.contextmanager
+def clear_registries_temporarily():
+    # noinspection PyTypeChecker
+    # noinspection PyProtectedMember
+    """Context manager for clearing the current |Node|, |Element|, and
+    |FusedVariable| registries .
 
-    Function |gather_registries| is thought to be used by class |Tester| only.
+    Function |clear_registries_temporarily| is only available for testing
+    purposes.
+
+    These are the relevant registries for the currently initialised |Node|,
+    |Element|, and |FusedVariable| objects:
+
+    >>> from hydpy.core import devicetools
+    >>> registries = (devicetools._id2devices,
+    ...               devicetools._registry[devicetools.Node],
+    ...               devicetools._registry[devicetools.Element],
+    ...               devicetools._selection[devicetools.Node],
+    ...               devicetools._selection[devicetools.Element],
+    ...               devicetools._registry_fusedvariable)
+
+    We first clear them and, just for testing, insert some numbers:
+
+    >>> for idx, registry in enumerate(registries):
+    ...     registry.clear()
+    ...     registry[idx] = idx+1
+
+    Within the `with` block, all registries are empty:
+
+    >>> with devicetools.clear_registries_temporarily():
+    ...     for registry in registries:
+    ...         print(registry)
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+
+    Before leaving the `with` block, the |clear_registries_temporarily|
+    method restores the contents of each dictionary:
+
+    >>> for registry in registries:
+    ...     print(registry)
+    ...     registry.clear()
+    {0: 1}
+    {1: 2}
+    {2: 3}
+    {3: 4}
+    {4: 5}
+    {5: 6}
     """
-    id2devices = copy.copy(_id2devices)
-    registry = copy.copy(_registry)
-    selection = copy.copy(_selection)
-    dict_ = globals()
-    dict_['_id2devices'] = {}
-    dict_['_registry'] = {Node: {}, Element: {}}
-    dict_['_selection'] = {Node: {}, Element: {}}
-    return id2devices, registry, selection
-
-
-def reset_registries(dicts: Tuple[Dict, Mapping, Mapping]):
-    """Reset the current |Node| and |Element| registries.
-
-    Function |reset_registries| is thought to be used by class |Tester| only.
-    """
-    dict_ = globals()
-    dict_['_id2devices'] = dicts[0]
-    dict_['_registry'] = dicts[1]
-    dict_['_selection'] = dicts[2]
+    registries = (
+        _id2devices,
+        _registry[Node],
+        _registry[Element],
+        _selection[Node],
+        _selection[Element],
+        _registry_fusedvariable,
+    )
+    copies = tuple(copy.copy(registry) for registry in registries)
+    try:
+        for registry in registries:
+            registry.clear()
+        yield
+    finally:
+        for registry, copy_ in zip(registries, copies):
+            registry.update(copy_)
 
 
 def _get_pandasindex():
+    # noinspection PyProtectedMember
     """
     >>> from hydpy import pub
     >>> pub.timegrids = '2004.01.01', '2005.01.01', '1d'

@@ -1,5 +1,5 @@
 
-version: 4.0a11.{build}
+version: 4.0a14.{build}
 
 environment:
   PYPIPA:
@@ -7,9 +7,12 @@ environment:
   matrix:
     - PYTHON: "C:\\Python36-x64"
     - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Python38-x64"
 
 install:
-  - cinst nsis
+#  - cinst nsis
+  - ps: (new-object net.webclient).DownloadFile('https://downloads.sourceforge.net/project/nsis/NSIS%203/3.05/nsis-3.05-setup.exe', 'nsis-3.05-setup.exe')
+  - ps: nsis-3.05-setup.exe /S
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;C:\Users\appveyor\AppData\Local\HydPy\bin\;%PATH%
   - "%PYTHON%\\python.exe -m pip install --upgrade pip"
   - "%PYTHON%\\python.exe -m pip install cython"
@@ -20,6 +23,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install netcdf4!=1.5.3"
   - "%PYTHON%\\python.exe -m pip install networkx"
   - "%PYTHON%\\python.exe -m pip install pandas"
+  - "%PYTHON%\\python.exe -m pip install plotly"
   - "%PYTHON%\\python.exe -m pip install pynsist"
   - "%PYTHON%\\python.exe -m pip install setuptools"
   - "%PYTHON%\\python.exe -m pip install typing_extensions"

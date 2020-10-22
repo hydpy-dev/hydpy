@@ -1,5 +1,6 @@
 hydpy
 attrs
+black
 bokeh
 coverage
 Cython

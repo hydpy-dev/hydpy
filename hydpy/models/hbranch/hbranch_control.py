@@ -78,7 +78,7 @@ class YPoints(parametertools.Parameter):
         >>> reverse_model_wildcard_import()
 
     >>> from hydpy.models.hbranch import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> ypoints
     ypoints(?)
 
@@ -117,8 +117,8 @@ parameter `ypoints` of element `?` 2 values are given.
     name) each branch name must correspond to a |Node| name:
 
     >>> from hydpy import pub, Nodes
-    >>> pub.projectname = 'test'
-    >>> nodes = Nodes('branch1')
+    >>> pub.projectname = "test"
+    >>> nodes = Nodes("branch1")
     >>> ypoints(branch1=[1.0, 2.0],
     ...         branch2=[2.0, 4.0])
     Traceback (most recent call last):
@@ -128,9 +128,9 @@ to node `branch2`, but such a node is not available.
 
     A general exception message for some unexpected errors:
 
-    >>> nodes = Nodes('branch1', 'branch2')
+    >>> nodes = Nodes("branch1", "branch2")
     >>> ypoints(branch1=[1.0, 2.0],
-    ...         branch2='xy')
+    ...         branch2="xy")
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values for branch `branch2` of \

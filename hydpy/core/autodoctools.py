@@ -386,28 +386,24 @@ class Substituter:
 
         A constant like |numpy.nan| should be added:
 
-        >>> Substituter.consider_member(
-        ...     'nan', numpy.nan, numpy)
+        >>> Substituter.consider_member("nan", numpy.nan, numpy)
         True
 
         Members with a prefixed underscore should not be added:
 
-        >>> Substituter.consider_member(
-        ...     '_NoValue', numpy._NoValue, numpy)
+        >>> Substituter.consider_member("_NoValue", numpy._NoValue, numpy)
         False
 
         Members that are actually imported modules should not be added:
 
-        >>> Substituter.consider_member(
-        ...     'warnings', numpy.warnings, numpy)
+        >>> Substituter.consider_member("warnings", numpy.warnings, numpy)
         False
 
         Members that are actually defined in other modules should
         not be added:
 
         >>> numpy.Substituter = Substituter
-        >>> Substituter.consider_member(
-        ...     'Substituter', numpy.Substituter, numpy)
+        >>> Substituter.consider_member("Substituter", numpy.Substituter, numpy)
         False
         >>> del numpy.Substituter
 
@@ -415,15 +411,13 @@ class Substituter:
         (either from the standard library or from site-packages)
         should be added...
 
-        >>> Substituter.consider_member(
-        ...     'clip', numpy.clip, numpy)
+        >>> Substituter.consider_member("clip", numpy.clip, numpy)
         True
 
         ...but not members defined in *HydPy* submodules:
 
         >>> import hydpy
-        >>> Substituter.consider_member(
-        ...     'Node', hydpy.Node, hydpy)
+        >>> Substituter.consider_member("Node", hydpy.Node, hydpy)
         False
 
         For descriptor instances (with method `__get__`) being members
@@ -431,20 +425,18 @@ class Substituter:
 
         >>> from hydpy.auxs import anntools
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN)
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN)
         True
 
         You can decide to ignore certain members:
 
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN, {'test': 1.0})
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN,
+        ...     {"test": 1.0})
         True
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN,
-        ...     {'shape_neurons': anntools.ANN.shape_neurons})
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN,
+        ...     {"shape_neurons": anntools.ANN.shape_neurons})
         False
         """
         if ignore and (name_member in ignore):
@@ -527,11 +519,11 @@ class Substituter:
         short and medium descriptions are `var1` and `mod1.var1`:
 
         >>> import types
-        >>> module1 = types.ModuleType('hydpy.module1')
+        >>> module1 = types.ModuleType("hydpy.module1")
         >>> from hydpy.core.autodoctools import Substituter
         >>> substituter = Substituter()
         >>> substituter.add_substitution(
-        ...     'var1', 'mod1.var1', 'module1.variable1', module1)
+        ...     "var1", "mod1.var1", "module1.variable1", module1)
         >>> print(substituter.get_commands())
         .. var1 replace:: module1.variable1
         .. mod1.var1 replace:: module1.variable1
@@ -539,9 +531,9 @@ class Substituter:
         Adding `variable2` of `module2` has no effect on the predefined
         substitutions:
 
-        >>> module2 = types.ModuleType('hydpy.module2')
+        >>> module2 = types.ModuleType("hydpy.module2")
         >>> substituter.add_substitution(
-        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        ...     "var2", "mod2.var2", "module2.variable2", module2)
         >>> print(substituter.get_commands())
         .. var1 replace:: module1.variable1
         .. var2 replace:: module2.variable2
@@ -554,7 +546,7 @@ class Substituter:
         to `module1`) is removed:
 
         >>> substituter.add_substitution(
-        ...     'var1', 'mod2.var1', 'module2.variable1', module2)
+        ...     "var1", "mod2.var1", "module2.variable1", module2)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -565,7 +557,7 @@ class Substituter:
         result in any undesired side-effects:
 
         >>> substituter.add_substitution(
-        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        ...     "var2", "mod2.var2", "module2.variable2", module2)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -576,9 +568,9 @@ class Substituter:
         `medium2long` mapping is supported for modules not part of the
         *HydPy* package:
 
-        >>> module3 = types.ModuleType('module3')
+        >>> module3 = types.ModuleType("module3")
         >>> substituter.add_substitution(
-        ...     'var3', 'mod3.var3', 'module3.variable3', module3)
+        ...     "var3", "mod3.var3", "module3.variable3", module3)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -592,7 +584,7 @@ class Substituter:
 
         >>> import builtins
         >>> substituter.add_substitution(
-        ...     'str', 'blt.str', ':func:`~builtins.str`', builtins)
+        ...     "str", "blt.str", ":func:`~builtins.str`", builtins)
         >>> print(substituter.get_commands())
         .. str replace:: :func:`str`
         .. var2 replace:: module2.variable2
@@ -627,22 +619,22 @@ class Substituter:
 
         First, the module itself is added:
 
-        >>> substituter.find('|numpy|')
+        >>> substituter.find("|numpy|")
         |numpy| :mod:`~numpy`
 
         Second, constants like |numpy.nan| are added:
 
-        >>> substituter.find('|numpy.nan|')
+        >>> substituter.find("|numpy.nan|")
         |numpy.nan| :const:`~numpy.nan`
 
         Third, functions like |numpy.clip| are added:
 
-        >>> substituter.find('|numpy.clip|')
+        >>> substituter.find("|numpy.clip|")
         |numpy.clip| :func:`~numpy.clip`
 
         Fourth, clases line |numpy.ndarray| are added:
 
-        >>> substituter.find('|numpy.ndarray|')
+        >>> substituter.find("|numpy.ndarray|")
         |numpy.ndarray| :class:`~numpy.ndarray`
 
         Method |Substituter.add_module| also searches for available
@@ -650,13 +642,13 @@ class Substituter:
 
         >>> from hydpy.core import timetools
         >>> substituter.add_module(timetools)
-        >>> substituter.find('Timegrids.init')
+        >>> substituter.find("Timegrids.init")
         |Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
         |timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
 
         >>> from hydpy.auxs import calibtools
         >>> substituter.add_module(calibtools)
-        >>> substituter.find('ReplaceIUH.update_parameters')
+        >>> substituter.find("ReplaceIUH.update_parameters")
         |ReplaceIUH.update_parameters| \
 :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
         |calibtools.ReplaceIUH.update_parameters| \
@@ -666,7 +658,7 @@ class Substituter:
 
         >>> from hydpy.cythons import pointerutils
         >>> substituter.add_module(pointerutils, cython=True)
-        >>> substituter.find('set_pointer')
+        >>> substituter.find("set_pointer")
         |PPDouble.set_pointer| \
 :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
         |pointerutils.PPDouble.set_pointer| \
@@ -742,7 +734,7 @@ class Substituter:
         During initialization, all mappings handled by the master object
         are passed to its new slave:
 
-        >>> sub3.find('Node|')
+        >>> sub3.find("Node|")
         |Node| :class:`~hydpy.core.devicetools.Node`
         |devicetools.Node| :class:`~hydpy.core.devicetools.Node`
 
@@ -750,21 +742,21 @@ class Substituter:
 
         >>> from hydpy.core import hydpytools
         >>> sub3.add_module(hydpytools)
-        >>> sub3.find('HydPy|')
+        >>> sub3.find("HydPy|")
         |HydPy| :class:`~hydpy.core.hydpytools.HydPy`
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
-        >>> sub2.find('HydPy|')
+        >>> sub2.find("HydPy|")
 
         Through calling |Substituter.update_masters|, the `medium2long`
         mappings are passed from the slave to its master:
 
         >>> sub3.update_masters()
-        >>> sub2.find('HydPy|')
+        >>> sub2.find("HydPy|")
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
 
         Then each master object updates its own master object also:
 
-        >>> sub1.find('HydPy|')
+        >>> sub1.find("HydPy|")
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
 
         In reverse, subsequent updates of master objects to not affect
@@ -772,21 +764,21 @@ class Substituter:
 
         >>> from hydpy.core import masktools
         >>> sub1.add_module(masktools)
-        >>> sub1.find('Masks|')
+        >>> sub1.find("Masks|")
         |Masks| :class:`~hydpy.core.masktools.Masks`
         |NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
-        >>> sub2.find('Masks|')
+        >>> sub2.find("Masks|")
 
         Through calling |Substituter.update_slaves|, the `medium2long`
         mappings are passed the master to all of its slaves:
 
         >>> sub1.update_slaves()
-        >>> sub2.find('Masks|')
+        >>> sub2.find("Masks|")
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
-        >>> sub3.find('Masks|')
+        >>> sub3.find("Masks|")
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         """

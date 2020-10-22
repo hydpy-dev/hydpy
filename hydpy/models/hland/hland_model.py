@@ -34,7 +34,7 @@ class Calc_TC_V1(modeltools.Method):
         height and the second one 200 meters above:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(2)
         >>> zrelt(2.0)
         >>> zonez(2.0, 4.0)
@@ -77,7 +77,7 @@ class Calc_TMean_V1(modeltools.Method):
         as the second one:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(2)
         >>> derived.relzonearea(2.0/3.0, 1.0/3.0)
 
@@ -121,7 +121,7 @@ class Calc_FracRain_V1(modeltools.Method):
         temperature interval of mixed precipitation 2°C:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> tt(0.0)
         >>> ttint(2.0)
@@ -181,7 +181,7 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         different fractions of rainfall and total precipitation:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> fluxes.fracrain = 0.0, 0.25, 0.5, 0.75, 1.0
 
@@ -245,7 +245,7 @@ class Calc_PC_V1(modeltools.Method):
         of 5 mm has been measured at a gauge at an elevation of 300 m:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> zrelp(2.0)
         >>> zonez(3.0)
@@ -323,7 +323,7 @@ class Calc_EP_V1(modeltools.Method):
         for illustration purporses):
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(4)
         >>> etf(-0.5, 0.0, 0.1, 0.5)
         >>> inputs.tn = 20.0
@@ -393,8 +393,8 @@ class Calc_EPC_V1(modeltools.Method):
         value of 5 mm have been determined for each zone beforehand:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nmbzones(4)
         >>> zrele(2.0)
         >>> zonez(3.0)
@@ -474,7 +474,7 @@ class Calc_TF_Ic_V1(modeltools.Method):
         a 0.5 mm input of precipitation:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
         >>> icmax(2.0)
@@ -560,7 +560,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         a (corrected) potential evaporation of 0.5 mm is given:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
         >>> fluxes.epc = 0.5
@@ -638,7 +638,7 @@ class Calc_SP_WC_V1(modeltools.Method):
         different type receive a throughfall of 10mm:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(8)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD, FIELD)
         >>> fluxes.tf = 10.0
@@ -721,8 +721,8 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         and initial ice contents:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
         >>> cfmax(4.0)
@@ -835,8 +835,8 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         with different zone types and initial states:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
         >>> cfmax(4.0)
@@ -969,7 +969,7 @@ class Calc_In_WC_V1(modeltools.Method):
         capacity to 20% of the respective frozen water content:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
         >>> whc(0.2)
@@ -1064,8 +1064,8 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         of the last two zones is not above the threshold temperature:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nmbzones(7)
         >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, GLACIER, GLACIER, GLACIER)
         >>> gmelt(4.)
@@ -1135,7 +1135,7 @@ class Calc_R_SM_V1(modeltools.Method):
         of each zone is 10mm:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
         >>> fc(200.0)
@@ -1224,8 +1224,8 @@ class Calc_CF_SM_V1(modeltools.Method):
         capillary flow rate is 4mm/d:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
         >>> fc(200.0)
@@ -1371,7 +1371,7 @@ class Calc_EA_SM_V1(modeltools.Method):
          and interception evaporation are 2mm and 1mm respectively:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD)
         >>> fc(200.0)
@@ -1493,7 +1493,7 @@ class Calc_InUZ_V1(modeltools.Method):
         (area related to the total size of the subbasin except lake areas):
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(3)
         >>> zonetype(FIELD, ILAKE, GLACIER)
         >>> derived.rellandzonearea = 2.0/3.0, 0.0, 1.0/3.0
@@ -1551,7 +1551,7 @@ class Calc_ContriArea_V1(modeltools.Method):
         glaciers contribute to the inflow of the upper zone layer):
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(4)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
         >>> beta(2.0)
@@ -1667,8 +1667,8 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         one:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> recstep(2)
         >>> derived.dt = 1/recstep
         >>> percmax(2.0)
@@ -1860,7 +1860,7 @@ class Calc_LZ_V1(modeltools.Method):
         both field zones) is added to the lower zone storage:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(2)
         >>> zonetype(FIELD, FIELD)
         >>> derived.rellandarea = 1.0
@@ -1937,7 +1937,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         the associated theshold temperature is not exceeded:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, ILAKE)
         >>> ttice(-1.0)
@@ -2007,8 +2007,8 @@ class Calc_Q1_LZ_V1(modeltools.Method):
         As long as the lower zone storage is negative...
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> k4(0.2)
         >>> gamma(0.0)
         >>> states.lz = -2.0
@@ -2089,7 +2089,7 @@ class Calc_InUH_V1(modeltools.Method):
         subbasin, which is why the partial input of q0 is halved:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> derived.rellandarea = 0.5
         >>> fluxes.q0 = 4.0
         >>> fluxes.q1 = 1.0
@@ -2123,7 +2123,7 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
         step size:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> derived.uh.shape = 3
         >>> derived.uh = 0.3, 0.5, 0.2
         >>> logs.quh.shape = 3
@@ -2211,8 +2211,8 @@ class Calc_QT_V1(modeltools.Method):
         less then available results in:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> abstr(1.0)
         >>> derived.qfactor(0.5)
         >>> fluxes.outuh = 4.0

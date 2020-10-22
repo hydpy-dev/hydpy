@@ -56,7 +56,7 @@ class Responses(parametertools.Parameter):
     All ARMA models are available via attribute access and their attribute
     names are made available to function |dir|:
 
-    >>> 'th_1_0' in dir(responses)
+    >>> "th_1_0" in dir(responses)
     True
 
     Note that all iterables containing the AR and MA coefficients are

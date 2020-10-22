@@ -100,22 +100,22 @@ class SumAdaptor(Adaptor):
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Replace, SumAdaptor
     >>> k = Replace(
-    ...     name='k',
-    ...     parameter='k',
+    ...     name="k",
+    ...     parameter="k",
     ...     value=2.0**-1,
     ...     lower=5.0**-1,
     ...     upper=1.0**-1,
-    ...     parameterstep='1d',
-    ...     model='hland_v1',
+    ...     parameterstep="1d",
+    ...     model="hland_v1",
     ... )
     >>> k4 = Replace(
-    ...     name='k4',
-    ...     parameter='k4',
+    ...     name="k4",
+    ...     parameter="k4",
     ...     value=10.0**-1,
     ...     lower=100.0**-1,
     ...     upper=5.0**-1,
-    ...     parameterstep='1d',
-    ...     model='hland_v1',
+    ...     parameterstep="1d",
+    ...     model="hland_v1",
     ... )
 
     To allow for non-fixed non-overlapping ranges, we can prepare a
@@ -132,7 +132,7 @@ class SumAdaptor(Adaptor):
 
     >>> control = hp.elements.land_dill.model.parameters.control
     >>> k.apply_value()
-    >>> with pub.options.parameterstep('1d'):
+    >>> with pub.options.parameterstep("1d"):
     ...     control.k
     k(0.6)
     """
@@ -189,20 +189,20 @@ class FactorAdaptor(Adaptor):
 
     >>> from hydpy import Replace, FactorAdaptor
     >>> gmelt = Replace(
-    ...     name='gmelt',
-    ...     parameter='gmelt',
+    ...     name="gmelt",
+    ...     parameter="gmelt",
     ...     value=2.0,
     ...     lower=0.5,
     ...     upper=2.0,
-    ...     parameterstep='1d',
-    ...     model='hland_v1',
+    ...     parameterstep="1d",
+    ...     model="hland_v1",
     ... )
 
     Second, we initialise a |FactorAdaptor| object based on target
     rule `gmelt` and our reference parameter |hland_control.CFMax| and
     assign it our rule object:
 
-    >>> gmelt.adaptor = FactorAdaptor(gmelt, 'cfmax')
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
 
     The `Dill` subcatchment, as the whole `Lahn` basin, does not contain
     any glaciers.  Hence it defines (identical) |hland_control.CFMax|
@@ -252,7 +252,7 @@ class FactorAdaptor(Adaptor):
     Now we create a new |FactorAdaptor| object, handling the same parameters
     but also the |hland_masks.Glacier| mask:
 
-    >>> gmelt.adaptor = FactorAdaptor(gmelt, 'cfmax', 'glacier')
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax", "glacier")
 
     To be able to see the results of our new adaptor object, we change the
     values both of our reference parameter and our rule object:
@@ -328,10 +328,10 @@ class Rule(abc.ABC):
 
     >>> from hydpy import Replace
     >>> rule = Replace(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
 
     The following string representation shows us the full list of available
@@ -339,14 +339,14 @@ class Rule(abc.ABC):
 
     >>> rule
     Replace(
-        name='fc',
-        parameter='fc',
+        name="fc",
+        parameter="fc",
         lower=-inf,
         upper=inf,
         parameterstep=None,
         value=100.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
 
     The initial value of parameter |hland_control.FC| is 206 mm:
@@ -398,21 +398,21 @@ class Rule(abc.ABC):
     type |hland_control.FC| instead of the string `fc` this time):
 
     >>> Replace(
-    ...     name='fc',
+    ...     name="fc",
     ...     parameter=fc,
     ...     value=100.0,
-    ...     model='hland_v1',
-    ...     parameterstep='1d',
+    ...     model="hland_v1",
+    ...     parameterstep="1d",
     ... )
     Replace(
-        name='fc',
-        parameter='fc',
+        name="fc",
+        parameter="fc",
         lower=-inf,
         upper=inf,
         parameterstep=None,
         value=100.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
 
     For time-dependent parameters, the rule queries the current global
@@ -422,10 +422,10 @@ class Rule(abc.ABC):
 
     >>> from hydpy.models.hland.hland_control import PercMax
     >>> rule = Replace(
-    ...     name='percmax',
+    ...     name="percmax",
     ...     parameter=PercMax,
     ...     value=5.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
 
     The |Rule| object internally handles, to avoid confusion, a copy of
@@ -435,42 +435,42 @@ class Rule(abc.ABC):
     >>> pub.options.parameterstep = None
     >>> rule
     Replace(
-        name='percmax',
-        parameter='percmax',
+        name="percmax",
+        parameter="percmax",
         lower=-inf,
         upper=inf,
-        parameterstep='1d',
+        parameterstep="1d",
         value=5.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
     >>> rule.apply_value()
     >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
-    >>> with pub.options.parameterstep('1d'):
+    >>> with pub.options.parameterstep("1d"):
     ...     percmax
     percmax(5.0)
 
     Alternatively, you can pass a parameter step size yourself:
 
     >>> rule = Replace(
-    ...     name='percmax',
-    ...     parameter='percmax',
+    ...     name="percmax",
+    ...     parameter="percmax",
     ...     value=5.0,
-    ...     model='hland_v1',
-    ...     parameterstep='2d',
+    ...     model="hland_v1",
+    ...     parameterstep="2d",
     ... )
     >>> rule.apply_value()
-    >>> with pub.options.parameterstep('1d'):
+    >>> with pub.options.parameterstep("1d"):
     ...     percmax
     percmax(2.5)
 
     Missing parameter step-size information results in the following error:
 
     >>> Replace(
-    ...     name='percmax',
-    ...     parameter='percmax',
+    ...     name="percmax",
+    ...     parameter="percmax",
     ...     value=5.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
     Traceback (most recent call last):
     ...
@@ -484,10 +484,10 @@ assign it directly or define it via option `parameterstep`.
     object `pub.selections`:
 
     >>> rule = Replace(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
@@ -496,10 +496,10 @@ assign it directly or define it via option `parameterstep`.
     names (the latter requires them to be a member of `pub.selections`):
 
     >>> rule = Replace(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
-    ...     selections=[pub.selections.headwaters, 'nonheadwaters'],
+    ...     selections=[pub.selections.headwaters, "nonheadwaters"],
     ... )
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
@@ -508,8 +508,8 @@ assign it directly or define it via option `parameterstep`.
     elements handle the correct model instance yourself:
 
     >>> Replace(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
     ... )
     Traceback (most recent call last):
@@ -519,11 +519,11 @@ assign it directly or define it via option `parameterstep`.
 `stream_dill_lahn_2` does not define a control parameter named `fc`.
 
     >>> Replace(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
-    ...     model='hstream_v1',
-    ...     selections=[pub.selections.headwaters, 'nonheadwaters'],
+    ...     model="hstream_v1",
+    ...     selections=[pub.selections.headwaters, "nonheadwaters"],
     ... )
     Traceback (most recent call last):
     ...
@@ -638,12 +638,12 @@ the following error occurred: Object `Selections("headwaters", \
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> rule = Replace(
-        ...     name='fc',
-        ...     parameter='fc',
+        ...     name="fc",
+        ...     parameter="fc",
         ...     value=100.0,
         ...     lower=50.0,
         ...     upper=200.0,
-        ...     model='hland_v1',
+        ...     model="hland_v1",
         ... )
 
         >>> rule.value = 0.0
@@ -698,10 +698,10 @@ Applying the trimmed value `200.0` instead.
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import Replace
         >>> rule = Replace(
-        ...     name='fc',
-        ...     parameter='fc',
+        ...     name="fc",
+        ...     parameter="fc",
         ...     value=100.0,
-        ...     model='hland_v1',
+        ...     model="hland_v1",
         ... )
         >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
         >>> fc
@@ -763,18 +763,18 @@ Applying the trimmed value `200.0` instead.
         prefixed with the given string."""
 
         def _none_or_string(obj) -> str:
-            return f"'{obj}'" if obj else str(obj)
+            return f'"{obj}"' if obj else str(obj)
 
         blanks = (indent + 4) * " "
         selprefix = f"{blanks}selections="
         selline = objecttools.assignrepr_tuple(
-            values=tuple(f"'{sel}'" for sel in self._selections),
+            values=tuple(f'"{sel}"' for sel in self._selections),
             prefix=selprefix,
         )
         return (
             f"{prefix}{type(self).__name__}(\n"
-            f"{blanks}name='{self}',\n"
-            f"{blanks}parameter='{self._parameter}',\n"
+            f'{blanks}name="{self}",\n'
+            f'{blanks}parameter="{self._parameter}",\n'
             f"{blanks}lower={objecttools.repr_(self.lower)},\n"
             f"{blanks}upper={objecttools.repr_(self.upper)},\n"
             f"{blanks}parameterstep={_none_or_string(self.parameterstep)},\n"
@@ -846,10 +846,10 @@ class Add(Rule):
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
     >>> rule = Add(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=100.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
     >>> rule.adaptor = lambda parameter: 2.0*rule.value
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
@@ -865,11 +865,11 @@ class Add(Rule):
     from the current |Options.simulationstep| (1 day):
 
     >>> rule = Add(
-    ...     name='percmax',
-    ...     parameter='percmax',
+    ...     name="percmax",
+    ...     parameter="percmax",
     ...     value=5.0,
-    ...     model='hland_v1',
-    ...     parameterstep='2d',
+    ...     model="hland_v1",
+    ...     parameterstep="2d",
     ... )
     >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
     >>> percmax
@@ -903,10 +903,10 @@ class Multiply(Rule):
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
     >>> rule = Multiply(
-    ...     name='fc',
-    ...     parameter='fc',
+    ...     name="fc",
+    ...     parameter="fc",
     ...     value=2.0,
-    ...     model='hland_v1',
+    ...     model="hland_v1",
     ... )
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
@@ -921,11 +921,11 @@ class Multiply(Rule):
     from the current |Options.simulationstep| (1 day):
 
     >>> rule = Multiply(
-    ...     name='percmax',
-    ...     parameter='percmax',
+    ...     name="percmax",
+    ...     parameter="percmax",
     ...     value=2.0,
-    ...     model='hland_v1',
-    ...     parameterstep='2d',
+    ...     model="hland_v1",
+    ...     parameterstep="2d",
     ... )
     >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
     >>> percmax
@@ -977,37 +977,37 @@ class CalibrationInterface(Generic[RuleType]):
     >>> from hydpy import Replace
     >>> ci.make_rules(
     ...     rule=Replace,
-    ...     names=['fc', 'percmax'],
-    ...     parameters=['fc', 'percmax'],
+    ...     names=["fc", "percmax"],
+    ...     parameters=["fc", "percmax"],
     ...     values=[100.0, 5.0],
     ...     lowers=[50.0, 1.0],
     ...     uppers=[200.0, 10.0],
-    ...     parameterstep='1d',
-    ...     model='hland_v1',
+    ...     parameterstep="1d",
+    ...     model="hland_v1",
     ... )
 
     >>> print(ci)
     CalibrationInterface
     >>> ci
     Replace(
-        name='fc',
-        parameter='fc',
+        name="fc",
+        parameter="fc",
         lower=50.0,
         upper=200.0,
         parameterstep=None,
         value=100.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
     Replace(
-        name='percmax',
-        parameter='percmax',
+        name="percmax",
+        parameter="percmax",
         lower=1.0,
         upper=10.0,
-        parameterstep='1d',
+        parameterstep="1d",
         value=5.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
 
     You can also add existing rules via method |CalibrationInterface.add_rules|.
@@ -1018,13 +1018,13 @@ class CalibrationInterface(Generic[RuleType]):
     2
     >>> ci.add_rules(
     ...     Replace(
-    ...         name='damp',
-    ...         parameter='damp',
+    ...         name="damp",
+    ...         parameter="damp",
     ...         value=0.2,
     ...         lower=0.0,
     ...         upper=0.5,
-    ...         selections=['complete'],
-    ...         model='hstream_v1',
+    ...         selections=["complete"],
+    ...         model="hstream_v1",
     ...     )
     ... )
     >>> len(ci)
@@ -1034,14 +1034,14 @@ class CalibrationInterface(Generic[RuleType]):
 
     >>> ci.fc
     Replace(
-        name='fc',
-        parameter='fc',
+        name="fc",
+        parameter="fc",
         lower=50.0,
         upper=200.0,
         parameterstep=None,
         value=100.0,
-        model='hland_v1',
-        selections=('complete',),
+        model="hland_v1",
+        selections=("complete",),
     )
 
     >>> ci.FC
@@ -1050,19 +1050,19 @@ class CalibrationInterface(Generic[RuleType]):
     AttributeError: The actual calibration interface does neither \
 handle a normal attribute nor a rule object named `FC`.
 
-    >>> ci['damp']
+    >>> ci["damp"]
     Replace(
-        name='damp',
-        parameter='damp',
+        name="damp",
+        parameter="damp",
         lower=0.0,
         upper=0.5,
         parameterstep=None,
         value=0.2,
-        model='hstream_v1',
-        selections=('complete',),
+        model="hstream_v1",
+        selections=("complete",),
     )
 
-    >>> ci['Damp']
+    >>> ci["Damp"]
     Traceback (most recent call last):
     ...
     KeyError: 'The actual calibration interface does not handle a \
@@ -1207,9 +1207,9 @@ rule object named `Damp`.'
     |CalibrationInterface.prepare_logfile|:
 
     >>> with TestIO():
-    ...     ci.prepare_logfile(logfilepath='example_calibration.log',
-    ...                        objectivefunction='NSE',
-    ...                        documentation='Just a doctest example.')
+    ...     ci.prepare_logfile(logfilepath="example_calibration.log",
+    ...                        objectivefunction="NSE",
+    ...                        documentation="Just a doctest example.")
 
     To continue "manually", we now can call method
     |CalibrationInterface.update_logfile| to write the lastly calculated
@@ -1218,7 +1218,7 @@ rule object named `Damp`.'
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
     ...     ci.update_logfile()
-    ...     print(open('example_calibration.log').read())
+    ...     print(open("example_calibration.log").read())
     # Just a doctest example.
     <BLANKLINE>
     NSE           fc    percmax damp
@@ -1255,7 +1255,7 @@ rule object named `Damp`.'
     for the results of our optimiser:
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
-    ...     print(open('example_calibration.log').read())
+    ...     print(open("example_calibration.log").read())
     # Just a doctest example.
     <BLANKLINE>
     NSE           fc    percmax damp
@@ -1274,7 +1274,7 @@ rule object named `Damp`.'
 
     >>> with TestIO():
     ...     ci.read_logfile(
-    ...         logfilepath='example_calibration.log',
+    ...         logfilepath="example_calibration.log",
     ...         maximisation=True,
     ...     )
     >>> ci.fc.value
@@ -1294,7 +1294,7 @@ rule object named `Damp`.'
 
     >>> with TestIO():
     ...     ci.read_logfile(
-    ...         logfilepath='example_calibration.log',
+    ...         logfilepath="example_calibration.log",
     ...         maximisation=False,
     ...     )
     >>> ci.fc.value
@@ -1312,10 +1312,10 @@ rule object named `Damp`.'
     |CalibrationInterface.read_logfile| raises the following error whenever
     it detects inconsistencies:
 
-    >>> ci.percmax.parameterstep = '2d'
+    >>> ci.percmax.parameterstep = "2d"
     >>> with TestIO():
     ...     ci.read_logfile(
-    ...         logfilepath='example_calibration.log',
+    ...         logfilepath="example_calibration.log",
     ...         maximisation=True,
     ...     )
     Traceback (most recent call last):
@@ -1330,7 +1330,7 @@ rule object named `Damp`.'
     >>> ci.remove_rules(ci.percmax)
     >>> with TestIO():
     ...     ci.read_logfile(
-    ...         logfilepath='example_calibration.log',
+    ...         logfilepath="example_calibration.log",
     ...         maximisation=True,
     ...     )
     Traceback (most recent call last):
@@ -1385,16 +1385,16 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         >>> from hydpy import Replace
         >>> ci.add_rules(
         ...     Replace(
-        ...         name='fc',
-        ...         parameter='fc',
+        ...         name="fc",
+        ...         parameter="fc",
         ...         value=100.0,
-        ...         model='hland_v1',
+        ...         model="hland_v1",
         ...     ),
         ...     Replace(
-        ...         name='percmax',
-        ...         parameter='percmax',
+        ...         name="percmax",
+        ...         parameter="percmax",
         ...         value=5.0,
-        ...         model='hland_v1',
+        ...         model="hland_v1",
         ...     ),
         ... )
 
@@ -1403,10 +1403,10 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         object:
 
         >>> damp = Replace(
-        ...     name='damp',
-        ...     parameter='damp',
+        ...     name="damp",
+        ...     parameter="damp",
         ...     value=0.2,
-        ...     model='hstream_v1',
+        ...     model="hstream_v1",
         ... )
 
         >>> len(ci._elements)
@@ -1434,22 +1434,22 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         >>> from hydpy import Replace
         >>> ci.add_rules(
         ...     Replace(
-        ...         name='fc',
-        ...         parameter='fc',
+        ...         name="fc",
+        ...         parameter="fc",
         ...         value=100.0,
-        ...         model='hland_v1',
+        ...         model="hland_v1",
         ...     ),
         ...     Replace(
-        ...         name='percmax',
-        ...         parameter='percmax',
+        ...         name="percmax",
+        ...         parameter="percmax",
         ...         value=5.0,
-        ...         model='hland_v1',
+        ...         model="hland_v1",
         ...     ),
         ...     Replace(
-        ...         name='damp',
-        ...         parameter='damp',
+        ...         name="damp",
+        ...         parameter="damp",
         ...         value=0.2,
-        ...         model='hstream_v1',
+        ...         model="hstream_v1",
         ...     )
         ... )
 
@@ -1460,24 +1460,24 @@ interface (damp and fc) do not agree with the names in the header of logfile \
 
         >>> len(ci._elements)
         7
-        >>> ci.remove_rules(ci.fc, 'damp')
+        >>> ci.remove_rules(ci.fc, "damp")
         >>> ci
         Replace(
-            name='percmax',
-            parameter='percmax',
+            name="percmax",
+            parameter="percmax",
             lower=-inf,
             upper=inf,
-            parameterstep='1d',
+            parameterstep="1d",
             value=5.0,
-            model='hland_v1',
-            selections=('complete',),
+            model="hland_v1",
+            selections=("complete",),
         )
         >>> len(ci._elements)
         4
 
         Trying to remove a non-existing rule results in the following error:
 
-        >>> ci.remove_rules('fc')
+        >>> ci.remove_rules("fc")
         Traceback (most recent call last):
         ...
         RuntimeError: The actual calibration interface object does not handle \
@@ -1794,13 +1794,13 @@ a rule object named `fc`.
         ... )
         >>> ci.make_rules(
         ...     rule=Replace,
-        ...     names=['fc', 'percmax'],
-        ...     parameters=['fc', 'percmax'],
+        ...     names=["fc", "percmax"],
+        ...     parameters=["fc", "percmax"],
         ...     values=[100.0, 5.0],
         ...     lowers=[50.0, 1.0],
         ...     uppers=[200.0, 10.0],
-        ...     parameterstep='1d',
-        ...     model='hland_v1',
+        ...     parameterstep="1d",
+        ...     model="hland_v1",
         ... )
         >>> dir(ci)   # doctest: +ELLIPSIS
         ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', \
@@ -1832,11 +1832,11 @@ class ReplaceIUH(Rule):
     |Element| objects only:
 
     >>> from hydpy import Element, prepare_model, Selection
-    >>> element1 = Element('element1', inlets='in1', outlets='out1')
-    >>> element2 = Element('element2', inlets='in2', outlets='out2')
-    >>> complete = Selection('complete', elements=[element1, element2])
-    >>> element1.model = prepare_model('arma_v1')
-    >>> element2.model = prepare_model('arma_v1')
+    >>> element1 = Element("element1", inlets="in1", outlets="out1")
+    >>> element2 = Element("element2", inlets="in2", outlets="out2")
+    >>> complete = Selection("complete", elements=[element1, element2])
+    >>> element1.model = prepare_model("arma_v1")
+    >>> element2.model = prepare_model("arma_v1")
 
     We focus on class |TranslationDiffusionEquation| in the following.
     We create two separate instances and use to calculate the response
@@ -1861,16 +1861,16 @@ class ReplaceIUH(Rule):
 
     >>> from hydpy import ReplaceIUH
     >>> u = ReplaceIUH(
-    ...     name='u',
-    ...     parameter='responses',
+    ...     name="u",
+    ...     parameter="responses",
     ...     value=5.0,
     ...     lower=1.0,
     ...     upper=10.0,
     ...     selections=[complete],
     ... )
     >>> d = ReplaceIUH(
-    ...     name='d',
-    ...     parameter='responses',
+    ...     name="d",
+    ...     parameter="responses",
     ...     value=15.0,
     ...     lower=5.0,
     ...     upper=50.0,
@@ -2010,9 +2010,9 @@ agree with the complete set of relevant elements (element1 and element2).
         further information.
         """
         for parameter, iuh in zip(self, self._iuhs):
-            # entries = self.name.split('_')
+            # entries = self.name.split("_")
             # name = entries[0]
-            # threshold = '_'.join(entries[1:])
+            # threshold = "_".join(entries[1:])
             # setattr(iuh, self.name, self.value)
             # if self.update_parameters:
             #     try:

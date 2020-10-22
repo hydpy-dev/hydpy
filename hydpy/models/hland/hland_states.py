@@ -26,7 +26,7 @@ class Ic(hland_sequences.State1DSequence):
         """Trim upper values in accordance with :math:`IC \\leq ICMAX`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> icmax(2.0)
         >>> states.ic(-1.0, 0.0, 1.0, 2.0, 3.0)
@@ -51,7 +51,7 @@ class SP(hland_sequences.State1DSequence):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> whc(0.1)
         >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
@@ -84,7 +84,7 @@ class WC(hland_sequences.State1DSequence):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> whc(0.1)
         >>> states.sp = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
@@ -111,7 +111,7 @@ class SM(hland_sequences.State1DSequence):
         """Trim values in accordance with :math:`SM \\leq FC`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> fc(200.0)
         >>> states.sm(-100.0, 0.0, 100.0, 200.0, 300.0)
@@ -141,7 +141,7 @@ class LZ(sequencetools.StateSequence):
         the respective subbasin.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(2)
         >>> zonetype(FIELD, ILAKE)
         >>> states.lz(-1.0)

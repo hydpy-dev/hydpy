@@ -62,7 +62,7 @@ class Auxfiler:
     >>> from hydpy.models import lland_v1 as module
     >>> from hydpy.models import lland_v2
     >>> model = prepare_model(lland_v2)
-    >>> string = 'lstream_v001'
+    >>> string = "lstream_v001"
 
     All new model types can be added individually or in groups using the
     `+=` operator:
@@ -74,7 +74,7 @@ class Auxfiler:
 
     Wrong model specifications result in errors like the following one:
 
-    >>> aux += 'asdf'   # doc test: +SKIP
+    >>> aux += "asdf"   # doc test: +SKIP
     Traceback (most recent call last):
     ...
     ModuleNotFoundError: While trying to add one ore more models \
@@ -84,7 +84,7 @@ No module named 'hydpy.models.asdf'
     .. testsetup::
 
         >>> try:
-        ...     aux += 'asdf'
+        ...     aux += "asdf"
         ... except ImportError:
         ...     pass
 
@@ -247,10 +247,10 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         test target path:
 
         >>> from hydpy import pub
-        >>> pub.projectname = 'test'
+        >>> pub.projectname = "test"
         >>> from hydpy.core.filetools import ControlManager
         >>> class Test(ControlManager):
-        ...     currentpath = 'test_directory'
+        ...     currentpath = "test_directory"
         >>> pub.controlmanager = Test()
 
         Normally, the control files would be written to disk, of course.
@@ -261,8 +261,8 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         >>> from hydpy import Open
         >>> with Open():
         ...     dummies.aux.save(
-        ...         parameterstep='1d',
-        ...         simulationstep='12h')
+        ...         parameterstep="1d",
+        ...         simulationstep="12h")
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file1.py
         -----------------------------------
@@ -270,8 +270,8 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         <BLANKLINE>
         from hydpy.models.lland_v1 import *
         <BLANKLINE>
-        simulationstep('12h')
-        parameterstep('1d')
+        simulationstep("12h")
+        parameterstep("1d")
         <BLANKLINE>
         eqd1(200.0)
         <BLANKLINE>
@@ -283,8 +283,8 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         <BLANKLINE>
         from hydpy.models.lland_v2 import *
         <BLANKLINE>
-        simulationstep('12h')
-        parameterstep('1d')
+        simulationstep("12h")
+        parameterstep("1d")
         <BLANKLINE>
         eqd1(200.0)
         eqd2(100.0)
@@ -319,7 +319,7 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         """
         >>> from hydpy import print_values
         >>> aux = Auxfiler()
-        >>> aux += 'llake_v1', 'lland_v1', 'lstream_v001'
+        >>> aux += "llake_v1", "lland_v1", "lstream_v001"
         >>> print_values(dir(aux))
         llake_v1, lland_v1, lstream_v001, modelnames, save
         """
@@ -338,8 +338,8 @@ class Variable2Auxfile:
     >>> from hydpy import pub
     >>> pub.options.usedefaultvalues = True
     >>> from hydpy.models.lland_v1 import *
-    >>> simulationstep('1d')
-    >>> parameterstep('1d')
+    >>> simulationstep("1d")
+    >>> parameterstep("1d")
 
     Note that we made use of the `usedefaultvalues` option.
     Hence, all parameters used in the following examples have
@@ -507,7 +507,7 @@ variable handled by the actual Variable2AuxFile object.
 
         The first option is to pass auxiliary file names:
 
-        >>> v2af.remove('file1')
+        >>> v2af.remove("file1")
         >>> print_values(v2af.filenames)
         file2
         >>> print_values(v2af.variables)
@@ -536,7 +536,7 @@ variable handled by the actual Variable2AuxFile object.
         Passing an argument that equals neither a registered file name or a
         registered variable results in the following exception:
 
-        >>> v2af.remove('test')
+        >>> v2af.remove("test")
         Traceback (most recent call last):
         ...
         ValueError: While trying to remove the given object `test` of type \

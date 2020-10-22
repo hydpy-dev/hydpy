@@ -31,19 +31,19 @@ Integration tests
     `actual_supply` still handle variable `S`:
 
     >>> from hydpy import pub, Node, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
-    >>> inflow = Node('inflow', variable='Q')
-    >>> required_supply = Node('required_supply', variable='S')
-    >>> allowed_relieve = Node('allowed_relieve', variable='R')
-    >>> outflow = Node('release', variable='Q')
-    >>> actual_supply = Node('actual_supply', variable='S')
-    >>> actual_relieve = Node('actual_relieve', variable='R')
-    >>> dam = Element('dam',
+    >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
+    >>> inflow = Node("inflow", variable="Q")
+    >>> required_supply = Node("required_supply", variable="S")
+    >>> allowed_relieve = Node("allowed_relieve", variable="R")
+    >>> outflow = Node("release", variable="Q")
+    >>> actual_supply = Node("actual_supply", variable="S")
+    >>> actual_relieve = Node("actual_relieve", variable="R")
+    >>> dam = Element("dam",
     ...               inlets=inflow,
     ...               outlets=(outflow, actual_supply, actual_relieve),
     ...               receivers=(required_supply, allowed_relieve))
     >>> from hydpy.models.dam_v004 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> dam.model = model
 
     The first test calculation is supposed to show that model |dam_v004|
@@ -58,7 +58,7 @@ Integration tests
     ...     inits=((states.watervolume, 0.0),
     ...            (logs.loggedrequiredremoterelease, 0.005),
     ...            (logs.loggedallowedremoterelieve, 0.0)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
     >>> inflow.sequences.sim.series = 1.0
     >>> required_supply.sequences.sim.series = [
     ...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075,
@@ -94,7 +94,7 @@ Integration tests
     `actualremoterelease`) shows that both models can in fact be
     functionally identical:
 
-    >>> test('dam_v004_ex7')
+    >>> test("dam_v004_ex7")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 |            0.0 |      0.004792 |             0.0 |    1.0 | 0.191667 |        0.008588 |
@@ -153,7 +153,7 @@ Integration tests
     inaccuracy, which is explained in the documentation on application
     model |dam_v001|:
 
-    >>> test('dam_v004_ex7_1')
+    >>> test("dam_v004_ex7_1")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |                 100.0 |               0.005 |             0.2 |             0.2 |      0.191667 |                 0.0 |            0.0 | 0.191667 |    0.069408 |          0.005 |           0.0 |        0.008588 |    1.0 | 0.191667 |             0.0 |
@@ -207,7 +207,7 @@ Integration tests
     The imposed restriction of 0.5 m³/s results in a reduced relieve
     discharge between January, 9, and January, 11:
 
-    >>> test('dam_v004_ex7_2')
+    >>> test("dam_v004_ex7_2")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |              0.483333 |            0.004833 |             0.2 |             0.2 |      0.196667 |                 0.0 |            0.0 | 0.196667 |     0.06899 |       0.004833 |           0.0 |        0.008588 |    1.0 | 0.196667 |             0.0 |
@@ -246,7 +246,7 @@ Integration tests
     can be set to values larger than zero, e.g.:
 
     >>> remoterelievetolerance(0.2)
-    >>> test('dam_v004_ex7_3')
+    >>> test("dam_v004_ex7_3")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |              0.483333 |            0.004833 |             0.2 |             0.2 |      0.196667 |                 0.0 |            0.0 | 0.196667 |     0.06899 |       0.004833 |           0.0 |        0.008588 |    1.0 | 0.196667 |             0.0 |
@@ -303,7 +303,7 @@ Integration tests
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v004_ex8')
+    >>> test("dam_v004_ex8")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 |            0.0 |      0.004792 |             0.0 |    1.0 | 0.191667 |        0.008746 |
@@ -349,7 +349,7 @@ Integration tests
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test('dam_v004_ex10')
+    >>> test("dam_v004_ex10")
     |   date |   inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve |   inflow |  release | required_supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.038491 |             0.00012 |            0.0 | 0.038491 |    0.013944 |            0.0 |       0.00012 |             0.0 |      0.2 | 0.038491 |         0.01232 |
@@ -401,7 +401,7 @@ Integration tests
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> required_supply.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test('dam_v004_ex13')
+    >>> test("dam_v004_ex13")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |                  0.0 |                   0.0 |                 0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |            0.0 |      0.0 |         0.0 |            0.0 |           0.0 |             0.0 |    0.0 |      0.0 |             0.0 |
@@ -463,7 +463,7 @@ Integration tests
     exceeds 0.5 m³/s, and |AllowedRemoteRelieve| itself does
     never exceede 1 m³/s:
 
-    >>> test('dam_v004_ex13_1')
+    >>> test("dam_v004_ex13_1")
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.5 |                  0.0 |                   5.0 |                 0.0 |             0.0 |             0.0 |           0.0 |              0.0125 |      -0.001125 |      0.0 |    -0.00108 |            0.0 |        0.0125 |             0.0 |    0.0 |      0.0 |             0.5 |

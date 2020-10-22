@@ -44,7 +44,7 @@ Integration tests
     The following examples are performed over a period of 20 days:
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+    >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
     The first examples are supposed to demonstrate how drought events at a
     cross section far downstream are reduced by the corresponding methods of
@@ -62,10 +62,10 @@ Integration tests
     dam and the additional discharge of the subcatchment:
 
     >>> from hydpy import Node
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> natural = Node('natural')
-    >>> remote = Node('remote')
+    >>> input_ = Node("input_")
+    >>> output = Node("output")
+    >>> natural = Node("natural")
+    >>> remote = Node("remote")
 
     These nodes are used to connect the following three elements.  There is
     one element for handling the |dam| model and there are two elements for
@@ -75,9 +75,9 @@ Integration tests
     discharge of the subcatchment:
 
     >>> from hydpy import Element
-    >>> dam = Element('dam', inlets=input_, outlets=output, receivers=remote)
-    >>> stream1 = Element('stream1', inlets=output, outlets=remote)
-    >>> stream2 = Element('stream2', inlets=natural, outlets=remote)
+    >>> dam = Element("dam", inlets=input_, outlets=output, receivers=remote)
+    >>> stream1 = Element("stream1", inlets=output, outlets=remote)
+    >>> stream2 = Element("stream2", inlets=natural, outlets=remote)
 
     Now the models can be prepared.  We begin with the `stream2` model.
     By setting the |arma_control.Responses| parameter in the following
@@ -105,7 +105,7 @@ Integration tests
     examples below):
 
     >>> from hydpy.models.dam_v001 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> dam.model = model
 
     To execute the following examples conveniently, a test function object
@@ -120,7 +120,7 @@ Integration tests
     ...            (logs.loggedtotalremotedischarge, 1.9),
     ...            (logs.loggedoutflow, 0.0),
     ...            (stream1.model.sequences.logs.login, 0.0)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
 
     Next the drought event needs to be defined.  The natural discharge of
     the subcatchment decreases constantly for 9 days, than stays at constant
@@ -156,7 +156,7 @@ Integration tests
         >>> pyplot.savefig(
         ...     os.path.join(
         ...         figs.__path__[0],
-        ...         'dam_v001_watervolume2waterlevel.png',
+        ...         "dam_v001_watervolume2waterlevel.png",
         ...     ),
         ... )
         >>> pyplot.close()
@@ -178,7 +178,7 @@ Integration tests
         >>> pyplot.savefig(
         ...     os.path.join(
         ...         figs.__path__[0],
-        ...         'dam_v001_waterlevel2flooddischarge_1.png',
+        ...         "dam_v001_waterlevel2flooddischarge_1.png",
         ...     ),
         ... )
         >>> pyplot.close()
@@ -225,7 +225,7 @@ Integration tests
     discharge at the cross section downstream (row `remote`) is identical
     with the discharge of the subcatchment (row `natural`):
 
-    >>> test('dam_v001_ex1')
+    >>> test("dam_v001_ex1")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge | outflow | watervolume | input_ | natural | output | remote |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                  1.8 |                    1.9 |          0.0 |          -1.9 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |     0.0 |      0.0864 |    1.0 |     1.8 |    0.0 |    1.8 |
@@ -273,7 +273,7 @@ Integration tests
     the discharge at the cross section is increased from 1 m³/s to
     approximately 1.6 m³/s:
 
-    >>> test('dam_v001_ex2')
+    >>> test("dam_v001_ex2")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                  1.8 |                    1.9 |          0.0 |          -0.5 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |     1.8 |      0.0 |      1.8 |
@@ -318,7 +318,7 @@ Integration tests
 
     Now there is only a small violation of threshold value on January, 6:
 
-    >>> test('dam_v001_ex3')
+    >>> test("dam_v001_ex3")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                  1.8 |                    1.9 |          0.0 |          -0.3 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |     1.8 |      0.0 |      1.8 |
@@ -365,7 +365,7 @@ Integration tests
     the dam is about 4 % higher than in the last example, meaning the
     available water has been used more efficiently:
 
-    >>> test('dam_v001_ex4')
+    >>> test("dam_v001_ex4")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |              1.80075 |                    1.9 |          0.0 |          -0.5 |                 0.005 |           0.005 |           0.005 |       0.00375 |            0.0 |  0.00375 |    0.086076 |    1.0 |     1.8 |  0.00375 |  1.80075 |
@@ -409,7 +409,7 @@ Integration tests
     Now there is also a relevant water release before and after the drought
     event occurs:
 
-    >>> test('dam_v001_ex5')
+    >>> test("dam_v001_ex5")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |    1.0 |     1.8 | 0.191667 | 1.838333 |
@@ -454,7 +454,7 @@ Integration tests
 
     Now there is only a tiny deviation left in the last shown digit:
 
-    >>> test('dam_v001_ex6')
+    >>> test("dam_v001_ex6")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 1.84 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.199998 |            0.0 | 0.199998 |     0.06912 |    1.0 |     1.8 | 0.199998 |     1.84 |
@@ -501,7 +501,7 @@ Integration tests
     It is easiest to inspect the functioning the effect of this "smooth
     switch" by looking at the results of column `requiredrelease`:
 
-    >>> test('dam_v001_ex7')
+    >>> test("dam_v001_ex7")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.840351 |                    1.9 |          0.0 |          -0.5 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 |    1.0 |     1.8 | 0.201754 | 1.840351 |
@@ -555,7 +555,7 @@ Integration tests
     But, due to the time delay of the discharge released earlier, the
     largest violation of the threshold value takes place on January, 13:
 
-    >>> test('dam_v001_ex8_1')
+    >>> test("dam_v001_ex8_1")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |    1.0 |     1.8 | 0.191667 | 1.838333 |
@@ -595,7 +595,7 @@ Integration tests
     allowed to exceed the the inflow in any case:
 
     >>> restricttargetedrelease(False)
-    >>> test('dam_v001_ex8_2')
+    >>> test("dam_v001_ex8_2")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |    1.0 |     1.8 | 0.191667 | 1.838333 |
@@ -647,7 +647,7 @@ Integration tests
     The most severe deviation from the correct value of 0 m³ occurs on
     January 12, where the final storage volume is -666 m³:
 
-    >>> test('dam_v001_ex9')
+    >>> test("dam_v001_ex9")
     |   date |   inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   input_ | natural |   output |   remote |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |              1.80075 |                    1.9 |          0.0 |          -0.5 |                 0.005 |           0.005 |           0.005 |       0.00375 |            0.0 |  0.00375 |    0.016956 |      0.2 |     1.8 |  0.00375 |  1.80075 |
@@ -714,7 +714,7 @@ Integration tests
     that negative storage values are circumvented in this example, but this
     would have not been the case if the low flow period were prolonged:
 
-    >>> test('dam_v001_ex10')
+    >>> test("dam_v001_ex10")
     |   date |   inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   input_ | natural |   output |   remote |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |             1.800256 |                    1.9 |          0.0 |          -0.5 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |      0.2 |     1.8 | 0.001282 | 1.800256 |
@@ -788,7 +788,7 @@ Integration tests
     wasted to increase the peak flows, but the violations of the low flow
     threshold remain almost unchanged:
 
-    >>> test('dam_v001_ex11')
+    >>> test("dam_v001_ex11")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.502727 |                    1.9 |          0.0 |          -0.5 |                 0.005 |           0.005 |           0.005 |      0.002727 |            0.0 | 0.002727 |    0.086164 |    1.0 |     1.5 | 0.002727 | 1.502727 |
@@ -834,7 +834,7 @@ Integration tests
     solve the problems of wasting water during peak flows and the repeated
     violation the low flow threshold, but reduces them significantly:
 
-    >>> test('dam_v001_ex12')
+    >>> test("dam_v001_ex12")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.502727 |                    1.9 |          0.0 |          -0.5 |                 0.005 |           0.005 |           0.005 |      0.002727 |            0.0 | 0.002727 |    0.086164 |    1.0 |     1.5 | 0.002727 | 1.502727 |
@@ -904,7 +904,7 @@ Integration tests
         >>> pyplot.savefig(
         ...     os.path.join(
         ...         figs.__path__[0],
-        ...         'dam_v001_waterlevel2flooddischarge_2.png',
+        ...         "dam_v001_waterlevel2flooddischarge_2.png",
         ...     ),
         ... )
         >>> pyplot.close()
@@ -942,7 +942,7 @@ Integration tests
     You can plot this table to see that the dam actually responds
     (approximately) like a linear storage:
 
-    >>> test('dam_v001_ex13')
+    >>> test("dam_v001_ex13")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |
@@ -1008,7 +1008,7 @@ Integration tests
     linear storage:
 
     >>> solver.abserrormax(1e-6)
-    >>> test('dam_v001_ex14')
+    >>> test("dam_v001_ex14")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |
@@ -1066,7 +1066,7 @@ Integration tests
         >>> pyplot.savefig(
         ...     os.path.join(
         ...         figs.__path__[0],
-        ...         'dam_v001_waterlevel2flooddischarge_3.png',
+        ...         "dam_v001_waterlevel2flooddischarge_3.png",
         ...     ),
         ... )
         >>> pyplot.close()
@@ -1078,7 +1078,7 @@ Integration tests
     coefficient is approximately 5.4 per day.  This is why the following
     test results show virtually no retention effects:
 
-    >>> test('dam_v001_ex15')
+    >>> test("dam_v001_ex15")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ | natural |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |

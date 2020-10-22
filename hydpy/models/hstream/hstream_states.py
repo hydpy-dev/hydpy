@@ -21,8 +21,8 @@ class QJoints(sequencetools.StateSequence):
     average and emits the following warning:
 
     >>> from hydpy.models.hstream import *
-    >>> parameterstep('1h')
-    >>> simulationstep('1h')
+    >>> parameterstep("1h")
+    >>> simulationstep("1h")
     >>> lag(2.0)
     >>> derived.nmbsegments.update()
     >>> states.qjoints(1.0, 2.0)
@@ -63,7 +63,7 @@ occurred: could not broadcast input array from shape (2) into shape (3)
         junctions..
 
         >>> from hydpy.models.hstream import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> states.qjoints.shape = 5
         >>> states.qjoints.refweights
         array([ 0.2,  0.2,  0.2,  0.2,  0.2])

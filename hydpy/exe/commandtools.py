@@ -52,24 +52,23 @@ def run_subprocess(
 
     >>> from hydpy import run_subprocess
     >>> import platform
-    >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
-    >>> result = run_subprocess(f'python -c print{esc}(1+1{esc})')
+    >>> esc = "" if "windows" in platform.platform().lower() else "\\\\"
+    >>> result = run_subprocess(f"python -c print{esc}(1+1{esc})")
     2
 
     With verbose being |False|, |run_subprocess| does never print out
     anything:
 
-    >>> result = run_subprocess(
-    ...     f'python -c print{esc}(1+1{esc})', verbose=False)
+    >>> result = run_subprocess(f"python -c print{esc}(1+1{esc})", verbose=False)
 
-    >>> process = run_subprocess('python', blocking=False, verbose=False)
+    >>> process = run_subprocess("python", blocking=False, verbose=False)
     >>> process.kill()
     >>> _ = process.communicate()
 
     When `verbose` is |True| and `blocking` is |False|, |run_subprocess|
     prints all responses to the console ("invisible" for doctests):
 
-    >>> process = run_subprocess('python', blocking=False)
+    >>> process = run_subprocess("python", blocking=False)
     >>> process.kill()
     >>> _ = process.communicate()
     """
@@ -153,7 +152,7 @@ def test_everything() -> int:
 
     >>> from hydpy import test_everything, repr_
     >>> from unittest import mock
-    >>> with mock.patch('os.system', return_value=1) as system:
+    >>> with mock.patch("os.system", return_value=1) as system:
     ...     test_everything()
     1
     >>> repr_(system.call_args[0][0])   # doctest: +ELLIPSIS
@@ -181,8 +180,7 @@ def exec_script(filepath: str) -> None:
     >>> from hydpy import print_latest_logfile, Node, TestIO, run_subprocess
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     result = run_subprocess(
-    ...         'hyd.py logfile="default" exec_script temp.py')
+    ...     result = run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
@@ -194,11 +192,10 @@ resulted in the following error:
     and prints its string representation (into the log file):
 
     >>> with TestIO():
-    ...     with open('temp.py', 'w') as file_:
-    ...         _ = file_.write('from hydpy import Node\\n')
+    ...     with open("temp.py", "w") as file_:
+    ...         _ = file_.write("from hydpy import Node\\n")
     ...         _ = file_.write('print(repr(Node("valid_name")))\\n')
-    ...     result = run_subprocess(
-    ...         'hyd.py logfile="default" exec_script temp.py')
+    ...     result = run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()
     Node("valid_name", variable="Q")
     <BLANKLINE>
@@ -206,11 +203,10 @@ resulted in the following error:
     Errors are reported as usual:
 
     >>> with TestIO():
-    ...     with open('temp.py', 'w') as file_:
-    ...         _ = file_.write('from hydpy import Node\\n')
+    ...     with open("temp.py", "w") as file_:
+    ...         _ = file_.write("from hydpy import Node\\n")
     ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
-    ...     result = run_subprocess(
-    ...         'hyd.py logfile="default" exec_script temp.py')
+    ...     result = run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
@@ -240,11 +236,11 @@ def start_shell(filepath: str = "") -> None:
     >>> TestIO.clear()
     >>> with TestIO():
     ...     with subprocess.Popen(
-    ...             'hyd.py start_shell',
+    ...             "hyd.py start_shell",
     ...             stdin=subprocess.PIPE,
     ...             stdout=subprocess.PIPE,
     ...             stderr=subprocess.PIPE,
-    ...             encoding='utf-8',
+    ...             encoding="utf-8",
     ...             shell=True) as process:
     ...         response = process.communicate(
     ...             'print(repr(Element("e1", outlets="n1")))')
@@ -259,8 +255,8 @@ def start_shell(filepath: str = "") -> None:
     object handling two individual nodes:
 
     >>> with TestIO():
-    ...     with open('test.py', 'w') as file_:
-    ...         _ = file_.write('from hydpy import Nodes\\n')
+    ...     with open("test.py", "w") as file_:
+    ...         _ = file_.write("from hydpy import Nodes\\n")
     ...         _ = file_.write('nodes = Nodes("n1", "n2")\\n')
 
     Now we can, execute this file and, for example, query the names of
@@ -268,14 +264,14 @@ def start_shell(filepath: str = "") -> None:
 
     >>> with TestIO():
     ...     with subprocess.Popen(
-    ...             'hyd.py start_shell test.py',
+    ...             "hyd.py start_shell test.py",
     ...             stdin=subprocess.PIPE,
     ...             stdout=subprocess.PIPE,
     ...             stderr=subprocess.PIPE,
-    ...             encoding='utf-8',
+    ...             encoding="utf-8",
     ...             shell=True) as process:
     ...         response = process.communicate(
-    ...             'print(nodes.names)')
+    ...             "print(nodes.names)")
     ...         print(response[0])
     ('n1', 'n2')
     <BLANKLINE>
@@ -294,8 +290,8 @@ def start_shell(filepath: str = "") -> None:
     # import IPython
     # IPython.start_ipython()
     # console = IPython.get_ipython()
-    # console.run_code(compile('print(1+1', '_', 'exec'))
-    # console.run_code(compile('from hydpy import *', '_', 'exec'))
+    # console.run_code(compile("print(1+1", "_", "exec"))
+    # console.run_code(compile("from hydpy import *", "_", "exec"))
 
 
 def print_latest_logfile(dirpath: str = ".", wait: float = 0.0) -> None:
@@ -311,7 +307,7 @@ def print_latest_logfile(dirpath: str = ".", wait: float = 0.0) -> None:
     >>> from hydpy import TestIO, print_latest_logfile, run_subprocess
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     result = run_subprocess('hyd.py')
+    ...     result = run_subprocess("hyd.py")
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -354,7 +350,7 @@ def prepare_logfile(filename: str) -> str:
     prepare any file and just returns `stdout`:
 
     >>> from hydpy.exe.commandtools import prepare_logfile
-    >>> prepare_logfile('stdout')
+    >>> prepare_logfile("stdout")
     'stdout'
 
     When passing the "filename" `default`, |prepare_logfile| generates a
@@ -366,7 +362,7 @@ def prepare_logfile(filename: str) -> str:
     >>> from datetime import datetime
     >>> with TestIO():
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
-    ...         filepath = prepare_logfile('default')
+    ...         filepath = prepare_logfile("default")
     >>> import os
     >>> os.path.exists(filepath)
     True
@@ -378,7 +374,7 @@ def prepare_logfile(filename: str) -> str:
 
     >>> with TestIO():
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
-    ...         filepath = prepare_logfile('my_log_file.txt')
+    ...         filepath = prepare_logfile("my_log_file.txt")
     >>> os.path.exists(filepath)
     True
     >>> repr_(filepath)    # doctest: +ELLIPSIS
@@ -487,7 +483,7 @@ def execute_scriptfunction() -> Optional[int]:
             args = sys.argv[1:]
             nmb = len(args)
             if nmb > 1:
-                argphrase = f'with arguments `{", ".join(args)}`'
+                argphrase = f"with arguments `{', '.join(args)}`"
             elif nmb == 1:
                 argphrase = f"with argument `{args[0]}`"
             else:
@@ -513,14 +509,14 @@ class LogFileInterface:
     >>> from hydpy import TestIO
     >>> from hydpy.exe.commandtools import LogFileInterface
     >>> with TestIO():
-    ...     logfile = open('test.log', 'w')
+    ...     logfile = open("test.log", "w")
     >>> lfi = LogFileInterface(
-    ...     logfile, logstyle='prefixed', infotype='exception')
-    >>> lfi.write('a message\\n')
-    >>> lfi.write('another message\\n')
+    ...     logfile, logstyle="prefixed", infotype="exception")
+    >>> lfi.write("a message\\n")
+    >>> lfi.write("another message\\n")
     >>> lfi.close()
     >>> with TestIO():
-    ...     with open('test.log', 'r') as logfile:
+    ...     with open("test.log", "r") as logfile:
     ...         print(logfile.read())
     error: a message
     error: another message
@@ -583,7 +579,7 @@ def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
     covers:
 
     >>> from hydpy.exe.commandtools import parse_argument
-    >>> parse_argument('x=3')
+    >>> parse_argument("x=3")
     ('x', '3')
     >>> parse_argument('"x=3"')
     '"x=3"'
@@ -616,7 +612,7 @@ def print_textandtime(text: str) -> None:
     >>> from hydpy.core.testtools import mock_datetime_now
     >>> from datetime import datetime
     >>> with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0, 123456)):
-    ...     print_textandtime('something happens')
+    ...     print_textandtime("something happens")
     something happens (2000-01-01 12:30:00.123456).
     """
     timestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")

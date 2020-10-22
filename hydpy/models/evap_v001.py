@@ -30,14 +30,14 @@ sequence, which usually is |ReferenceEvapotranspiration|.  We import
 its globally available alias and prepare the corresponding output node:
 
 >>> from hydpy import Element, evap_ReferenceEvapotranspiration, Node
->>> node = Node('node', variable=evap_ReferenceEvapotranspiration)
+>>> node = Node("node", variable=evap_ReferenceEvapotranspiration)
 
 Now we can prepare an instance of |evap_v001| and assign it to an element
 connected to the prepared node:
 
 >>> from hydpy.models.evap_v001 import *
 >>> parameterstep()
->>> element = Element('element', outputs=node)
+>>> element = Element("element", outputs=node)
 >>> element.model = model
 
 daily simulation
@@ -48,7 +48,7 @@ the reference evapotranspiration on 6 July in Uccle (Brussels, Belgium)
 and take all parameter and input values from example 18 of `Allen`_:
 
 >>> from hydpy import IntegrationTest, pub
->>> pub.timegrids = '2000-07-06', '2000-07-07', '1d'
+>>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
 >>> latitude(50.8)
 >>> measuringheightwindspeed(10.0)
 >>> angstromconstant(0.25)
@@ -56,7 +56,7 @@ and take all parameter and input values from example 18 of `Allen`_:
 
 >>> parameters.update()
 >>> test = IntegrationTest(element)
->>> test.dateformat = '%Y-%d-%m'
+>>> test.dateformat = "%Y-%d-%m"
 
 >>> inputs.airtemperature.series = 16.9
 >>> inputs.relativehumidity.series = 73.0
@@ -96,7 +96,7 @@ clock times are referring to UTC-1:
 
 >>> pub.options.utcoffset = -60
 >>> pub.options.utclongitude = -15
->>> pub.timegrids = '2001-09-30 02:00', '2001-10-01 15:00', '1h'
+>>> pub.timegrids = "2001-09-30 02:00", "2001-10-01 15:00", "1h"
 
 We reuse the Ångström coefficients from the first example:
 
@@ -110,7 +110,7 @@ We reuse the Ångström coefficients from the first example:
 >>> test = IntegrationTest(element)
 >>> IntegrationTest.plotting_options.activated = [
 ...     fluxes.referenceevapotranspiration]
->>> test.dateformat = '%Y-%d-%m %H:00'
+>>> test.dateformat = "%Y-%d-%m %H:00"
 
 We set constant input sequence values from the start of the simulation
 period to the first interval and interpolate linearly between the first
@@ -146,7 +146,7 @@ of the saturation vapour pressure.):
 
 .. integration-test::
 
-    >>> test('evap_v001_hourly', update_parameters=False)
+    >>> test("evap_v001_hourly", update_parameters=False)
     |             date | airtemperature | relativehumidity | windspeed | sunshineduration | atmosphericpressure | adjustedwindspeed | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | earthsundistance | solardeclination | sunsethourangle | solartimeangle | extraterrestrialradiation | possiblesunshineduration | clearskysolarradiation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | psychrometricconstant | referenceevapotranspiration |      node |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2001-30-09 02:00 |           28.0 |             90.0 |       1.9 |              0.8 |               100.1 |               1.9 |                  3.77993 |                       0.22008 |             3.401937 |         0.999717 |        -0.070087 |        1.550377 |      -2.460182 |                       0.0 |                      0.0 |                    0.0 |             0.0 |                   0.0 |              0.13743 |     -0.13743 |    -0.068715 |              0.066567 |                   -0.000649 | -0.000649 |

@@ -26,7 +26,7 @@ class ParameterComplete(parametertools.ZipParameter):
     values using the relevant land use types as keywords:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -48,9 +48,9 @@ class ParameterComplete(parametertools.ZipParameter):
 
     >>> round_(pcorr.average_values(model.masks.field))
     2.0
-    >>> round_(pcorr.average_values('soil'))
+    >>> round_(pcorr.average_values("soil"))
     1.8
-    >>> round_(pcorr.average_values(model.masks.field, 'forest'))
+    >>> round_(pcorr.average_values(model.masks.field, "forest"))
     1.8
 
     All other masks (e.g. |hland_masks.Soil| used by |ParameterSoil|
@@ -81,7 +81,7 @@ class ParameterSoil(ParameterComplete):
     based on parameter |IcMax|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> icmax(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -107,7 +107,7 @@ class ParameterLand(ParameterComplete):
     based on parameter |WHC|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -132,7 +132,7 @@ class ParameterLake(ParameterComplete):
     based on parameter |TTIce|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(ILAKE, FOREST, GLACIER, ILAKE, FIELD)
     >>> ttice(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -157,8 +157,8 @@ class ParameterGlacier(ParameterComplete):
     based on parameter |GMelt|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
-    >>> simulationstep('1d')
+    >>> parameterstep("1d")
+    >>> simulationstep("1d")
     >>> nmbzones(5)
     >>> zonetype(GLACIER, FOREST, ILAKE, GLACIER, FIELD)
     >>> gmelt(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -184,7 +184,7 @@ class ParameterNoGlacier(ParameterComplete):
     based on parameter |ECorr|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> ecorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)

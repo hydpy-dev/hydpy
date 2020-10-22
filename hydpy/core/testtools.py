@@ -186,7 +186,7 @@ class Tester:
         reset to the original value):
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
         >>> from hydpy.models import hland, hland_v1
         >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
@@ -222,9 +222,9 @@ class Tester:
                 no failures occurred
 
         >>> pub.timegrids
-        Timegrids(Timegrid('2000-01-01 00:00:00',
-                           '2001-01-01 00:00:00',
-                           '1d'))
+        Timegrids(Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"))
 
         To show the reporting of possible errors, we change the
         string representation of parameter |hland_control.ZoneType|
@@ -233,8 +233,8 @@ class Tester:
 
         >>> from unittest import mock
         >>> with mock.patch(
-        ...     'hydpy.models.hland.hland_control.ZoneType.__repr__',
-        ...     return_value='damaged'):
+        ...     "hydpy.models.hland.hland_control.ZoneType.__repr__",
+        ...     return_value="damaged"):
         ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
             * hland_constants:
@@ -263,9 +263,9 @@ hydpy.models.hland.hland_control.ZoneType
                 no failures occurred
 
         >>> pub.timegrids
-        Timegrids(Timegrid('2000-01-01 00:00:00',
-                           '2001-01-01 00:00:00',
-                           '1d'))
+        Timegrids(Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"))
         """
         opt = hydpy.pub.options
         color = 34 if hydpy.pub.options.usecython else 36
@@ -649,10 +649,10 @@ class IntegrationTest(Test):
         You can query and change property |IntegrationTest.dateformat|:
 
         >>> from hydpy import Element, IntegrationTest, prepare_model, pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
-        >>> element = Element('element', outlets='node')
-        >>> element.model = prepare_model('hland_v1')
-        >>> __package__ = 'testpackage'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> element = Element("element", outlets="node")
+        >>> element.model = prepare_model("hland_v1")
+        >>> __package__ = "testpackage"
         >>> tester = IntegrationTest(element)
         >>> tester.dateformat
         '%Y-%m-%d %H:%M:%S'
@@ -666,7 +666,7 @@ class IntegrationTest(Test):
 string for `datetime` objects.  Please read the documentation on module \
 datetime of the Python standard library for for further information.
 
-        >>> tester.dateformat = '%x'
+        >>> tester.dateformat = "%x"
         >>> tester.dateformat
         '%x'
         """
@@ -1124,12 +1124,12 @@ class Open:
     file content, as shown in the following example:
 
     >>> import os
-    >>> path = os.path.join('folder', 'test.py')
+    >>> path = os.path.join("folder", "test.py")
     >>> from hydpy import Open
     >>> with Open():
-    ...     with open(path, 'w') as file_:
-    ...         file_.write('first line\\n')
-    ...         file_.writelines(['\\n', 'third line\\n'])
+    ...     with open(path, "w") as file_:
+    ...         file_.write("first line\\n")
+    ...         file_.writelines(["\\n", "third line\\n"])
     ~~~~~~~~~~~~~~
     folder/test.py
     --------------
@@ -1146,7 +1146,7 @@ class Open:
     like reading are not supported so far:
 
     >>> with Open():
-    ...     with open(path, 'r') as file_:
+    ...     with open(path, "r") as file_:
     ...         file_.read()
     Traceback (most recent call last):
     ...
@@ -1155,7 +1155,7 @@ Please see the documentation on class `Open` of module `testtools` \
 for further information.
 
     >>> with Open():
-    ...     with open(path, 'r') as file_:
+    ...     with open(path, "r") as file_:
     ...         file_.readline()
     Traceback (most recent call last):
     ...
@@ -1164,7 +1164,7 @@ Please see the documentation on class `Open` of module `testtools` \
 for further information.
 
     >>> with Open():
-    ...     with open(path, 'r') as file_:
+    ...     with open(path, "r") as file_:
     ...         file_.readlines()
     Traceback (most recent call last):
     ...
@@ -1192,7 +1192,7 @@ class TestIO:
     directory, |os| will likely find no file called `testfile.txt`:
 
     >>> import os
-    >>> os.path.exists('testfile.txt')
+    >>> os.path.exists("testfile.txt")
     False
 
     If some tests require writing such a file, this should be done
@@ -1201,19 +1201,19 @@ class TestIO:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     open('testfile.txt', 'w').close()
-    ...     print(os.path.exists('testfile.txt'))
+    ...     open("testfile.txt", "w").close()
+    ...     print(os.path.exists("testfile.txt"))
     True
 
     After the `with` block, the working directory is reset automatically:
 
-    >>> os.path.exists('testfile.txt')
+    >>> os.path.exists("testfile.txt")
     False
 
     Nevertheless, `testfile.txt` still exists in folder `iotesting`:
 
     >>> with TestIO():
-    ...     print(os.path.exists('testfile.txt'))
+    ...     print(os.path.exists("testfile.txt"))
     True
 
     Optionally, files and folders created within the current `with` block
@@ -1221,39 +1221,39 @@ class TestIO:
     (modified files and folders are not affected):
 
     >>> with TestIO(clear_own=True):
-    ...     open('testfile.txt', 'w').close()
-    ...     os.makedirs('testfolder')
-    ...     print(os.path.exists('testfile.txt'),
-    ...           os.path.exists('testfolder'))
+    ...     open("testfile.txt", "w").close()
+    ...     os.makedirs("testfolder")
+    ...     print(os.path.exists("testfile.txt"),
+    ...           os.path.exists("testfolder"))
     True True
     >>> with TestIO(clear_own=True):
-    ...     print(os.path.exists('testfile.txt'),
-    ...           os.path.exists('testfolder'))
+    ...     print(os.path.exists("testfile.txt"),
+    ...           os.path.exists("testfolder"))
     True False
 
     Alternatively, all files and folders contained in folder `iotesting`
     can be removed after leaving the `with` block:
 
     >>> with TestIO(clear_all=True):
-    ...     os.makedirs('testfolder')
-    ...     print(os.path.exists('testfile.txt'),
-    ...           os.path.exists('testfolder'))
+    ...     os.makedirs("testfolder")
+    ...     print(os.path.exists("testfile.txt"),
+    ...           os.path.exists("testfolder"))
     True True
     >>> with TestIO(clear_own=True):
-    ...     print(os.path.exists('testfile.txt'),
-    ...           os.path.exists('testfolder'))
+    ...     print(os.path.exists("testfile.txt"),
+    ...           os.path.exists("testfolder"))
     False False
 
     For just clearing the `iofolder`, one can call method |TestIO.clear|
     alternatively:
 
     >>> with TestIO():
-    ...     open('testfile.txt', 'w').close()
-    ...     print(os.path.exists('testfile.txt'))
+    ...     open("testfile.txt", "w").close()
+    ...     print(os.path.exists("testfile.txt"))
     True
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     print(os.path.exists('testfile.txt'))
+    ...     print(os.path.exists("testfile.txt"))
     False
 
     Note that class |TestIO| copies all eventually generated `.coverage`
@@ -1512,10 +1512,10 @@ def update_integrationtests(
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
-    >>> pass_output = 'hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__'
+    >>> pass_output = "hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__"
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
-    ...     update_integrationtests('conv_v001', 'temp.txt')
-    ...     with open('temp.txt') as resultfile:
+    ...     update_integrationtests("conv_v001", "temp.txt")
+    ...     with open("temp.txt") as resultfile:
     ...         print(resultfile.read())   # doctest: +ELLIPSIS
     Number of replacements: 2
     <BLANKLINE>
@@ -1928,7 +1928,7 @@ def perform_consistencychecks(
     already discussed in the documentation on the individual model methods):
 
     >>> from hydpy.core.testtools import perform_consistencychecks
-    >>> print(perform_consistencychecks('lland_v3'))
+    >>> print(perform_consistencychecks("lland_v3"))
     <BLANKLINE>
 
     To show how |perform_consistencychecks| reports errors, we modify the
@@ -1938,7 +1938,7 @@ def perform_consistencychecks(
     ...     Calc_DryAirPressure_V1)
     >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
     >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
-    >>> print(perform_consistencychecks('lland_v3'))
+    >>> print(perform_consistencychecks("lland_v3"))
     Potential consistency problems for individual methods:
        Method Calc_DryAirPressure_V1:
             Definitely missing: dryairpressure
@@ -1949,7 +1949,7 @@ not among the result sequences of any of its predecessors: DryAirPressure
     To tidy up, we need to revert the above changes:
 
     >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
-    >>> print(perform_consistencychecks('lland_v3'))
+    >>> print(perform_consistencychecks("lland_v3"))
     <BLANKLINE>
     """
     blanks = " " * indent

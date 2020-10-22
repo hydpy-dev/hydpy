@@ -49,16 +49,16 @@ All integration tests are performed over a period of five days with
 a simulation step of one hour:
 
 >>> from hydpy import pub
->>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
+>>> pub.timegrids = "01.01.2000", "05.01.2000", "1h"
 
 Prepare the model instance and build the connections to element `land`
 and node `outlet`:
 
 >>> from hydpy.models.hland_v1 import *
->>> parameterstep('1h')
+>>> parameterstep("1h")
 >>> from hydpy import Node, Element
->>> outlet = Node('outlet')
->>> land = Element('land', outlets=outlet)
+>>> outlet = Node("outlet")
+>>> land = Element("land", outlets=outlet)
 >>> land.model = model
 
 All tests shall be performed using a single zone with a size of one
@@ -83,7 +83,7 @@ and prints their results for the given sequences:
 >>> IntegrationTest.plotting_options.axis1 = inputs.p, fluxes.outuh, fluxes.qt
 >>> IntegrationTest.plotting_options.axis2 = inputs.t
 >>> test = IntegrationTest(land)
->>> test.dateformat = '%d/%m %H:00'
+>>> test.dateformat = "%d/%m %H:00"
 
 .. _hland_v1_field:
 
@@ -203,7 +203,7 @@ amounts of |Q1| only):
 
 .. integration-test::
 
-    >>> test('hland_v1_field')
+    >>> test("hland_v1_field")
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |      pc |        ep |      epc |       ei |        tf | glmelt | melt | refr |       in_ |         r |       ea |       cf | contriarea |      inuz |     perc |        q0 |  el |       q1 |      inuh |     outuh |       qt |       ic |  sp |  wc |         sm |        uz |        lz |   outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 20.2 |  0.100707 |  21.8 | 21.8 |      1.0 | 1.1 | 0.0 |     0.0 |   0.11682 |  0.08411 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.052569 |      0.0 |        1.0 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 | 0.013975 |      0.0 | 0.0 | 0.0 |  99.947431 |       0.0 |      9.95 | 0.013975 |
@@ -318,7 +318,7 @@ initial subperiod when the soil is not saturated yet:
 .. integration-test::
 
     >>> resparea(True)
-    >>> test('hland_v1_resparea')
+    >>> test("hland_v1_resparea")
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |      pc |        ep |      epc |       ei |        tf | glmelt | melt | refr |       in_ |         r |       ea |       cf | contriarea |      inuz |     perc |        q0 |  el |       q1 |      inuh |    outuh |       qt |       ic |  sp |  wc |         sm |        uz |        lz |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 20.2 |  0.100707 |  21.8 | 21.8 |      1.0 | 1.1 | 0.0 |     0.0 |   0.11682 |  0.08411 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.052569 |      0.0 |   0.249737 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 | 0.061111 | 0.013975 |      0.0 | 0.0 | 0.0 |  99.947431 |       0.0 |      9.95 | 0.013975 |
@@ -435,7 +435,7 @@ above the maximum peak of |R|, which is physically impossible:
 .. integration-test::
 
     >>> recstep(1)
-    >>> test('hland_v1_low_accuracy')
+    >>> test("hland_v1_low_accuracy")
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |      pc |        ep |      epc |       ei |        tf | glmelt | melt | refr |       in_ |         r |       ea |       cf | contriarea |      inuz |     perc |        q0 |  el |       q1 |      inuh |     outuh |       qt |       ic |  sp |  wc |         sm |       uz |        lz |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 20.2 |  0.100707 |  21.8 | 21.8 |      1.0 | 1.1 | 0.0 |     0.0 |   0.11682 |  0.08411 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.052569 |      0.0 |   0.249737 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 | 0.013975 |      0.0 | 0.0 | 0.0 |  99.947431 |      0.0 |      9.95 | 0.013975 |
@@ -559,7 +559,7 @@ the simulation period:
     >>> zonetype(ILAKE)
     >>> ttice(13.0)
     >>> parameters.update()
-    >>> test('hland_v1_ilake')
+    >>> test("hland_v1_ilake")
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |      pc |        ep |      epc |  ei |      tf | glmelt | melt | refr |     in_ |       r |  ea |  cf | contriarea | inuz | perc |  q0 |       el |       q1 |     inuh |    outuh |       qt |  ic |  sp |  wc |  sm |  uz |         lz |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 20.2 |  0.100707 |  21.8 | 21.8 |      1.0 | 1.1 | 0.0 |     0.0 |   0.11682 |  0.08411 | 0.0 |     0.0 |    0.0 |  0.0 |  0.0 |     0.0 |     0.0 | 0.0 | 0.0 |        1.0 |  0.0 |  0.0 | 0.0 |  0.08411 | 0.049579 | 0.049579 | 0.061018 | 0.013949 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    9.86631 | 0.013949 |
@@ -685,7 +685,7 @@ a larger value than |CFMax|:
     >>> inputs.t.series[:48] = -20.0
     >>> inputs.t.series[48:] = 20.0
     >>> inputs.tn.series = inputs.t.series
-    >>> test('hland_v1_glacier')
+    >>> test("hland_v1_glacier")
     |        date |    p |     t |    tn |       epn | tmean |    tc | fracrain | rfc | sfc |      pc |        ep |      epc |  ei |      tf | glmelt |   melt | refr |      in_ |        r |  ea |  cf | contriarea |     inuz | perc |        q0 |  el |       q1 |      inuh |     outuh |       qt |  ic |       sp |       wc |  sm |        uz |        lz |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -20.0 | -20.0 |  0.100707 | -19.4 | -19.4 |      0.0 | 0.0 | 1.3 |     0.0 |  0.106749 |  0.07686 | 0.0 |     0.0 |    0.0 |    0.0 |  0.0 |      0.0 |      0.0 | 0.0 | 0.0 |        1.0 |      0.0 |  0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 | 0.013975 | 0.0 |      0.0 |      0.0 | 0.0 |       0.0 |      9.95 | 0.013975 |

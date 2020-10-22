@@ -41,9 +41,9 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     >>> from hydpy import pub
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2000-01-05 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("2000-01-01 00:00:00",
+                       "2000-01-05 00:00:00",
+                       "1d"))
 
     (2) It creates a flat IO testing directory structure:
 
@@ -58,8 +58,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> import os
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     print(sorted(filename for filename in os.listdir('.')
-    ...                  if not filename.startswith('_')))
+    ...     print(sorted(filename for filename in os.listdir(".")
+    ...                  if not filename.startswith("_")))
     ['inputpath', 'nodepath', 'outputpath']
 
     (3) It returns three |Element| objects handling either application model
@@ -196,10 +196,10 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     >>> from hydpy import TestIO
     >>> import os
     >>> with TestIO():
-    ...     print('root:', *sorted(os.listdir('.')))
-    ...     for folder in ('control', 'conditions', 'series'):
-    ...         print(f'LahnH/{folder}:',
-    ...               *sorted(os.listdir(f'LahnH/{folder}')))
+    ...     print("root:", *sorted(os.listdir(".")))
+    ...     for folder in ("control", "conditions", "series"):
+    ...         print(f"LahnH/{folder}:",
+    ...               *sorted(os.listdir(f"LahnH/{folder}")))
     root: LahnH __init__.py
     LahnH/control: default
     LahnH/conditions: init_1996_01_01_00_00_00
@@ -209,17 +209,17 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
 
     .. testsetup::
 
-        >>> 'LahnH' in os.listdir('.')
+        >>> "LahnH" in os.listdir(".")
         False
 
-    >>> prepare_full_example_1(dirpath='.')
+    >>> prepare_full_example_1(dirpath=".")
 
     .. testsetup::
 
-        >>> 'LahnH' in os.listdir('.')
+        >>> "LahnH" in os.listdir(".")
         True
         >>> import shutil
-        >>> shutil.rmtree('LahnH')
+        >>> shutil.rmtree("LahnH")
     """
     if dirpath is None:
         testtools.TestIO.clear()
@@ -253,9 +253,9 @@ def prepare_full_example_2(
              "stream_dill_lahn_2", "stream_lahn_1_lahn_2",
              "stream_lahn_2_lahn_3")
     >>> pub.timegrids
-    Timegrids(Timegrid('1996-01-01 00:00:00',
-                       '1996-01-05 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("1996-01-01 00:00:00",
+                       "1996-01-05 00:00:00",
+                       "1d"))
     >>> from hydpy import classname
     >>> classname(TestIO)
     'TestIO'
@@ -264,11 +264,11 @@ def prepare_full_example_2(
     and thus does not allow for many configurations except changing the
     end date of the initialisation period:
 
-    >>> hp, pub, TestIO = prepare_full_example_2('1996-02-01')
+    >>> hp, pub, TestIO = prepare_full_example_2("1996-02-01")
     >>> pub.timegrids
-    Timegrids(Timegrid('1996-01-01 00:00:00',
-                       '1996-02-01 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("1996-01-01 00:00:00",
+                       "1996-02-01 00:00:00",
+                       "1d"))
     """
     prepare_full_example_1()
     with testtools.TestIO():

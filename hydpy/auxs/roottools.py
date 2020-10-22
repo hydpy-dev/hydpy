@@ -77,8 +77,8 @@ class Pegasus(modeltools.Submodel):
         >>> from hydpy import pub
         >>> with pub.options.usecython(False):
         ...     from hydpy.models.lland import *
-        ...     simulationstep('1d')
-        ...     parameterstep('1d')
+        ...     simulationstep("1d")
+        ...     parameterstep("1d")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> turb0(0.1728)

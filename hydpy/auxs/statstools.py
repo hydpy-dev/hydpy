@@ -100,14 +100,14 @@ def aggregate_series(
     define a daily simulation step size:
 
     >>> from hydpy import aggregate_series, pub, Node
-    >>> pub.timegrids = '01.11.2000', '01.05.2001', '1d'
+    >>> pub.timegrids = "01.11.2000", "01.05.2001", "1d"
 
     Next, we prepare a |Node| object and assign some constantly increasing
     and decreasing values to its `simulation` and the `observation` series,
     respectively:
 
     >>> import numpy
-    >>> node = Node('test')
+    >>> node = Node("test")
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 181+1)
     >>> node.sequences.obs.series = numpy.arange(181, 0, -1)
@@ -159,7 +159,7 @@ but 1 was given
 
     When passing a string, |aggregate_series| queries it from |numpy|:
 
-    >>> aggregate_series(node=node, function='sum').sim
+    >>> aggregate_series(node=node, function="sum").sim
     2000-11-01     465.0
     2000-12-01    1426.0
     2001-01-01    2387.0
@@ -171,7 +171,7 @@ but 1 was given
     |aggregate_series| raises the following error when the requested function
     does not exist:
 
-    >>> aggregate_series(node=node, function='Sum')
+    >>> aggregate_series(node=node, function="Sum")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following \
@@ -180,11 +180,11 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     To prevent from conclusions, |aggregate_series| generally ignores all
     data of incomplete intervals:
 
-    >>> pub.timegrids = '30.11.2000', '2.04.2001', '1d'
+    >>> pub.timegrids = "30.11.2000", "2.04.2001", "1d"
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(30, 152+1)
     >>> node.sequences.obs.series = numpy.arange(152, 29, -1)
-    >>> aggregate_series(node=node, function='sum').sim
+    >>> aggregate_series(node=node, function="sum").sim
     2000-12-01    1426.0
     2001-01-01    2387.0
     2001-02-01    2982.0
@@ -196,11 +196,11 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     not return any result for the first (November 2000) and the last
     aggregation interval (April 2001):
 
-    >>> pub.timegrids = '02.11.2000', '30.04.2001', '1d'
+    >>> pub.timegrids = "02.11.2000", "30.04.2001", "1d"
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(2, 180+1)
     >>> node.sequences.obs.series = numpy.arange(180, 1, -1)
-    >>> aggregate_series(node=node, function='sum').sim
+    >>> aggregate_series(node=node, function="sum").sim
     2000-12-01    1426.0
     2001-01-01    2387.0
     2001-02-01    2982.0
@@ -210,7 +210,7 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     Now we prepare a time-grid with an hourly simulation step size, to
     show some examples on daily aggregation:
 
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1h'
+    >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1h"
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 1+4*24)
     >>> node.sequences.obs.series = numpy.arange(4*24, 0, -1)
@@ -219,7 +219,7 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     to 0 o'clock, which here results in a loss of the first two and the last
     22 values of the entire period:
 
-    >>> sim, obs = aggregate_series(node=node, stepsize='daily')
+    >>> sim, obs = aggregate_series(node=node, stepsize="daily")
     >>> sim
     2000-01-02    14.5
     2000-01-03    38.5
@@ -236,7 +236,7 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     fits the defined initialisation time grid and ensures the usage of
     all available data:
 
-    >>> aggregate_series(node=node, stepsize='daily', basetime='22:00').sim
+    >>> aggregate_series(node=node, stepsize="daily", basetime="22:00").sim
     2000-01-01 22:00:00    12.5
     2000-01-02 22:00:00    36.5
     2000-01-03 22:00:00    60.5
@@ -245,7 +245,7 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
 
     So far, the `basetime` argument works for daily aggregation only:
 
-    >>> aggregate_series(node=node, stepsize='monthly', basetime='22:00')
+    >>> aggregate_series(node=node, stepsize="monthly", basetime="22:00")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following \
@@ -258,7 +258,7 @@ aggregation step size only.
 
     >>> xs = sim=node.sequences.sim.series
     >>> ys = obs=node.sequences.obs.series
-    >>> aggregate_series(sim=xs, obs=ys, stepsize='daily').sim
+    >>> aggregate_series(sim=xs, obs=ys, stepsize="daily").sim
     2000-01-02    14.5
     2000-01-03    38.5
     2000-01-04    62.5
@@ -267,22 +267,22 @@ aggregation step size only.
     |aggregate_series| does not support aggregation for simulation step
     sizes larger one day:
 
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1d'
+    >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1d"
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 1+4)
     >>> node.sequences.obs.series = numpy.arange(4, 0, -1)
-    >>> aggregate_series(node=node, stepsize='daily').sim
+    >>> aggregate_series(node=node, stepsize="daily").sim
     2000-01-01    1.0
     2000-01-02    2.0
     2000-01-03    3.0
     2000-01-04    4.0
     Freq: 86400S, Name: sim, dtype: float64
 
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '2d'
+    >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "2d"
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 1+2)
     >>> node.sequences.obs.series = numpy.arange(2, 0, -1)
-    >>> aggregate_series(node=node, stepsize='daily')
+    >>> aggregate_series(node=node, stepsize="daily")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following \
@@ -297,8 +297,8 @@ greater one day.
 error occurred: Argument `stepsize` received value `yearly`, but only the \
 following ones are supported: `monthly` (default) and `daily`.
 
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1d'
-    >>> aggregate_series(node=node, stepsize='yearly')
+    >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1d"
+    >>> aggregate_series(node=node, stepsize="yearly")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following \
@@ -450,14 +450,14 @@ def filter_series(
     time grid spanning two hydrological years:
 
     >>> from hydpy import filter_series, pub, Node
-    >>> pub.timegrids = '2001-11-01', '2003-11-01', '1d'
+    >>> pub.timegrids = "2001-11-01", "2003-11-01", "1d"
 
     Next, we prepare a |Node| object and assign some constantly increasing
     and decreasing values to its `simulation` and the `observation` series,
     respectively:
 
     >>> import numpy
-    >>> node = Node('test')
+    >>> node = Node("test")
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 2*365+1)
     >>> node.sequences.obs.series = numpy.arange(2*365, 0, -1)
@@ -467,9 +467,9 @@ def filter_series(
     of a sub-period. Here, we choose all values that belong to 31 October
     or 1 November (note that unsorted data ranges are acceptable):
 
-    >>> date_ranges = [('2001-11-01', '2001-11-02'),
-    ...                ('2002-10-31', '2002-11-02'),
-    ...                ('2003-10-31', '2003-11-01')]
+    >>> date_ranges = [("2001-11-01", "2001-11-02"),
+    ...                ("2002-10-31", "2002-11-02"),
+    ...                ("2003-10-31", "2003-11-01")]
     >>> results = filter_series(node=node, date_ranges=date_ranges)
 
     |filter_series| returns the data within index-sorted |pandas.Series|
@@ -492,7 +492,7 @@ def filter_series(
     To help avoiding possible hard-to-find errors, |filter_series| performs
     the following checks:
 
-    >>> date_ranges = [('2001-10-31', '2003-11-01')]
+    >>> date_ranges = [("2001-10-31", "2003-11-01")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -500,7 +500,7 @@ def filter_series(
 occurred: The given date (2001-10-31 00:00:00) is before the first date of \
 the initialisation period (2001-11-01 00:00:00).
 
-    >>> date_ranges = [('2001-11-01', '2003-11-02')]
+    >>> date_ranges = [("2001-11-01", "2003-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -508,7 +508,7 @@ the initialisation period (2001-11-01 00:00:00).
 occurred: The given date (2003-11-02 00:00:00) is behind the last date of \
 the initialisation period (2003-11-01 00:00:00).
 
-    >>> date_ranges = [('2001-11-02', '2001-11-02')]
+    >>> date_ranges = [("2001-11-02", "2001-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -518,9 +518,9 @@ given last date `2001-11-02 00:00:00`.
 
     Note that function |filter_series| does not remove any duplicates:
 
-    >>> date_ranges = [('2001-11-01', '2001-11-05'),
-    ...                ('2001-11-01', '2001-11-02'),
-    ...                ('2001-11-04', '2001-11-06')]
+    >>> date_ranges = [("2001-11-01", "2001-11-05"),
+    ...                ("2001-11-01", "2001-11-02"),
+    ...                ("2001-11-04", "2001-11-06")]
     >>> sim = filter_series(node=node, date_ranges=date_ranges).sim
     >>> sim   # doctest: +ELLIPSIS
     2001-11-01    1.0
@@ -683,8 +683,8 @@ def prepare_arrays(
     period and prepare a |Node| object:
 
     >>> from hydpy import pub, Node, round_, nan
-    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
-    >>> node = Node('test')
+    >>> pub.timegrids = "01.01.2000", "07.01.2000", "1d"
+    >>> node = Node("test")
 
     Next, we assign some values to the `simulation` and the `observation`
     sequences of the node:
@@ -1372,12 +1372,12 @@ def hsepd_pdf(
 
     >>> import numpy
     >>> from hydpy import hsepd_pdf, round_
-    >>> general = {'sigma1': 0.2,
-    ...            'sigma2': 0.0,
-    ...            'xi': 1.0,
-    ...            'beta': 0.0,
-    ...            'sim': numpy.arange(10.0, 41.0),
-    ...            'obs': numpy.full(31, 25.0)}
+    >>> general = {"sigma1": 0.2,
+    ...            "sigma2": 0.0,
+    ...            "xi": 1.0,
+    ...            "beta": 0.0,
+    ...            "sim": numpy.arange(10.0, 41.0),
+    ...            "obs": numpy.full(31, 25.0)}
 
     The following test function allows for varying one parameter and prints
     some and plots all the probability density values corresponding to
@@ -1387,13 +1387,13 @@ def hsepd_pdf(
     ...     from matplotlib import pyplot
     ...     special = general.copy()
     ...     name, values = list(kwargs.items())[0]
-    ...     results = numpy.zeros((len(general['sim']), len(values)+1))
-    ...     results[:, 0] = general['sim']
+    ...     results = numpy.zeros((len(general["sim"]), len(values)+1))
+    ...     results[:, 0] = general["sim"]
     ...     for jdx, value in enumerate(values):
     ...         special[name] = value
     ...         results[:, jdx+1] = hsepd_pdf(**special)
     ...         pyplot.plot(results[:, 0], results[:, jdx+1],
-    ...                     label='%s=%.1f' % (name, value))
+    ...                     label="%s=%.1f" % (name, value))
     ...     pyplot.legend()
     ...     for idx, result in enumerate(results):
     ...         if not (idx % 5):
@@ -1856,8 +1856,8 @@ def evaluationtable(
     data (see function |prepare_arrays| for some explanations):
 
     >>> from hydpy import pub, Node, nan
-    >>> pub.timegrids = '01.01.2000', '04.01.2000', '1d'
-    >>> nodes = Node('test1'), Node('test2')
+    >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
+    >>> nodes = Node("test1"), Node("test2")
     >>> for node in nodes:
     ...     node.prepare_simseries()
     ...     node.sequences.sim.series = 1.0, 2.0, 3.0
@@ -1883,8 +1883,8 @@ def evaluationtable(
     criteria functions.  Also, `nan` values can be skipped:
 
     >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=('first node', 'second node'),
-    ...                 critnames=('corrcoef', 'bias'),
+    ...                 nodenames=("first node", "second node"),
+    ...                 critnames=("corrcoef", "bias"),
     ...                 skip_nan=True)
                  corrcoef  bias
     first node        1.0  -3.0
@@ -1894,7 +1894,7 @@ def evaluationtable(
     match the number of given alternative names:
 
     >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=('first node',))
+    ...                 nodenames=("first node",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
@@ -1902,7 +1902,7 @@ node objects, the following error occurred: 2 node objects are given \
 which does not match with number of given alternative names being 1.
 
     >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 critnames=('corrcoef',))
+    ...                 critnames=("corrcoef",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \

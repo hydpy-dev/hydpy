@@ -832,7 +832,7 @@ with key `1`, the following error occurred: The only allowed keys for \
     >>> var[1:-1:2] = 2.0 * var[1:-1:2]
     >>> var
     var(2.0, 8.0, 6.0, 16.0, 10.0)
-    >>> var[:] = 'test'
+    >>> var[:] = "test"
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the value(s) of variable `var` \
@@ -900,7 +900,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     When asking for impossible comparisons, |trim| raises error
     like the following:
 
-    >>> var < 'text'
+    >>> var < "text"
     Traceback (most recent call last):
     ...
     TypeError: '<' not supported between instances of 'Var' and 'str'
@@ -964,7 +964,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     header to the string representation of a variable:
 
     >>> Var.NDIM = 0
-    >>> Var.__doc__ = 'header.\\n\\nbody\\n'
+    >>> Var.__doc__ = "header.\\n\\nbody\\n"
     >>> var = Var(None)
     >>> var.value = 3.0
     >>> from hydpy import pub
@@ -980,16 +980,16 @@ operands could not be broadcast together with shapes (2,) (3,)...
     During initialisation, each |Variable| subclass tries to extract its
     unit from its docstring:
 
-    >>> type('Var', (Variable,), {'__doc__': 'Discharge [m³/s].'}).unit
+    >>> type("Var", (Variable,), {"__doc__": "Discharge [m³/s]."}).unit
     'm³/s'
 
     For missing or poorly written docstrings, we set `unit` to "?":
 
-    >>> type('Var', (Variable,), {}).unit
+    >>> type("Var", (Variable,), {}).unit
     '?'
-    >>> type('Var', (Variable,), {'__doc__': 'Discharge ]m³/s[.'}).unit
+    >>> type("Var", (Variable,), {"__doc__": "Discharge ]m³/s[."}).unit
     '?'
-    >>> type('Var', (Variable,), {'__doc__': 'Discharge m³/s].'}).unit
+    >>> type("Var", (Variable,), {"__doc__": "Discharge m³/s]."}).unit
     '?'
     """
 
@@ -1082,7 +1082,7 @@ no value has been defined so far.
         >>> var.value
         3.0
 
-        >>> var.value = ['2.0']
+        >>> var.value = ["2.0"]
         >>> var.value
         2.0
 
@@ -1094,7 +1094,7 @@ following error occurred: 2 values are assigned to the scalar variable `var`.
         >>> var.value
         2.0
 
-        >>> var.value = 'O'
+        >>> var.value = "O"
         Traceback (most recent call last):
         ...
         TypeError: While trying to set the value(s) of variable `var`, \
@@ -1287,19 +1287,19 @@ values have been defined so far.
         Property |Variable.shape| tries to normalise assigned values and
         raises errors like the following, if not possible:
 
-        >>> var.shape = 'x'
+        >>> var.shape = "x"
         Traceback (most recent call last):
         ...
         TypeError: While trying create a new numpy ndarray for \
 variable `var`, the following error occurred: 'str' object cannot \
 be interpreted as an integer
         >>> from hydpy import attrready
-        >>> attrready(var, 'shape')
+        >>> attrready(var, "shape")
         False
         >>> var.fastaccess.var
 
         >>> var.shape = (1,)
-        >>> attrready(var, 'shape')
+        >>> attrready(var, "shape")
         True
 
         >>> var.shape = (2, 3)
@@ -1307,7 +1307,7 @@ be interpreted as an integer
         ...
         ValueError: Variable `var` is 1-dimensional, but the given \
 shape indicates `2` dimensions.
-        >>> attrready(var, 'shape')
+        >>> attrready(var, "shape")
         False
         >>> var.fastaccess.var
 
@@ -1351,7 +1351,7 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.shape
         ()
         >>> var.shape = ()
-        >>> attrready(var, 'value')
+        >>> attrready(var, "value")
         False
         >>> var.fastaccess.var
         -999999
@@ -1591,18 +1591,18 @@ of variable `soilmoisture`, the following error occurred: Variable \
 
         >>> sm.average_values(sm.availablemasks.flatsoil)
         200.0
-        >>> sm.average_values('deepsoil')
+        >>> sm.average_values("deepsoil")
         400.0
 
         Both variants can be combined:
 
-        >>> sm.average_values(sm.availablemasks.deepsoil, 'flatsoil')
+        >>> sm.average_values(sm.availablemasks.deepsoil, "flatsoil")
         300.0
 
         The following error happens if the general mask of the variable
         does not contain the given masks:
 
-        >>> sm.average_values('flatsoil', 'water')
+        >>> sm.average_values("flatsoil", "water")
         Traceback (most recent call last):
         ...
         ValueError: While trying to calculate the mean value of variable \
@@ -1640,13 +1640,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         Alternatively, one can pass the mask name as a keyword and pack
         the mask's options into a |dict| object:
 
-        >>> sm.average_values(allornothing={'complete': False})
+        >>> sm.average_values(allornothing={"complete": False})
         nan
 
         You can combine all variants explained above:
 
-        >>> sm.average_values(
-        ...     'deepsoil', flatsoil={}, allornothing={'complete': False})
+        >>> sm.average_values("deepsoil", flatsoil={}, allornothing={"complete": False})
         300.0
         """
         try:
@@ -1672,7 +1671,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        >>> hp.elements['land_dill'].model.parameters.control.fc.availablemasks
+        >>> hp.elements["land_dill"].model.parameters.control.fc.availablemasks
         complete of module hydpy.models.hland.hland_masks
         land of module hydpy.models.hland.hland_masks
         noglacier of module hydpy.models.hland.hland_masks
@@ -1992,7 +1991,7 @@ class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
-    ...     name = 'subvars'
+    ...     name = "subvars"
     ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
 
@@ -2001,7 +2000,7 @@ class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     constructor. However, in our simple test example, we just passed
     a string instead:
 
-    >>> subvars = SubVars('test')
+    >>> subvars = SubVars("test")
     >>> subvars.vars
     'test'
 
@@ -2039,11 +2038,11 @@ variable nor another attribute named wrong.
     Class |SubVariables| protects only the handled |Variable| objects
     from overwriting with unplausible data:
 
-    >>> subvars.vars = 'wrong'
+    >>> subvars.vars = "wrong"
     >>> subvars.vars
     'wrong'
 
-    >>> subvars.testvar = 'wrong'
+    >>> subvars.testvar = "wrong"
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the value(s) of variable `testvar`, \
@@ -2052,10 +2051,10 @@ variable `testvar`.
 
     Alternatively, you can item-access a variable:
 
-    >>> subvars['testvar']
+    >>> subvars["testvar"]
     testvar(3.0)
 
-    >>> subvars['wrong']
+    >>> subvars["wrong"]
     Traceback (most recent call last):
     ...
     AttributeError: Collection object `subvars` does not handle a variable \

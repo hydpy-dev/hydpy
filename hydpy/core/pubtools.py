@@ -53,32 +53,32 @@ class TimegridsProperty(
     |Date|) and a step size (of type |str| or |Period|):
 
     >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = '2000-01-01', '2010-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2010-01-01", "1d"
 
     The given date and period information applies both for the
     |Timegrids.init| and the |Timegrids.sim| attribute:
 
     >>> pub.timegrids.init
-    Timegrid('2000-01-01 00:00:00',
-             '2010-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
     >>> pub.timegrids.sim
-    Timegrid('2000-01-01 00:00:00',
-             '2010-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
 
     Alternatively, you can assign a ready |Timegrids| object directly:
 
     >>> pub.timegrids = Timegrids(
-    ...     Timegrid('2000-01-01', '2010-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'))
+    ...     Timegrid("2000-01-01", "2010-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"))
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2010-01-01 00:00:00',
-                       '1d'),
-              Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("2000-01-01 00:00:00",
+                       "2010-01-01 00:00:00",
+                       "1d"),
+              Timegrid("2000-01-01 00:00:00",
+                       "2001-01-01 00:00:00",
+                       "1d"))
     """
 
     @staticmethod
@@ -124,11 +124,11 @@ object either requires one or two `Timegrid` objects or two dates objects \
 `Period`, `timedelta`, or `str`), but objects of the types `None, None, and \
 None` are given.
 
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("2000-01-01 00:00:00",
+                       "2001-01-01 00:00:00",
+                       "1d"))
 
     After deleting, the attribute is not accessible anymore:
 

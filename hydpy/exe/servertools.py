@@ -47,11 +47,11 @@ To start the server in a new process, open a command-line tool and
 insert the following command (see module |hyd| for general information
 on how to use *HydPy* via command line):
 
->>> command = 'hyd.py start_server 8080 LahnH multiple_runs_alpha.xml'
+>>> command = "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml"
 >>> from hydpy import run_subprocess, TestIO
 >>> with TestIO():
 ...     process = run_subprocess(command, blocking=False, verbose=False)
-...     result = run_subprocess('hyd.py await_server 8080 10', verbose=False)
+...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
 The *HydPy* server should now be running on port 8080.  You can use any
 HTTP client to check it is working.  For example, you can print the
@@ -59,9 +59,9 @@ following URL in your web browser to get information on the types of
 exchange items defined in `multiple_runs_alpha.xml` (the
 `HydPy-OpenDA-Black-Box-Model-Wrapper`_ does it similarly):
 
->>> url = f'http://localhost:8080/itemtypes'
+>>> url = "http://localhost:8080/itemtypes"
 >>> from urllib import request
->>> print(str(request.urlopen(url).read(), encoding='utf-8'))
+>>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = Double0D
 dill_nodes_sim_series = TimeSeries0D
 
@@ -86,12 +86,12 @@ of parameter |hland_control.alpha|, respectively:
 >>> def set_itemvalues(id_, firstdate, lastdate, alpha):
 ...     content = (f"firstdate = {firstdate}\\n"
 ...                f"lastdate = {lastdate}\\n"
-...                f"alpha = {alpha}").encode('utf-8')
-...     methods = ','.join(('POST_timegrid',
-...                         'POST_parameteritemvalues',
-...                         'GET_load_conditionvalues',
-...                         'POST_conditionitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
+...                f"alpha = {alpha}").encode("utf-8")
+...     methods = ",".join(("POST_timegrid",
+...                         "POST_parameteritemvalues",
+...                         "GET_load_conditionvalues",
+...                         "POST_conditionitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url, data=content)
 
 Function `simulate` wraps only GET methods and triggers the next simulation
@@ -99,13 +99,13 @@ run.  As for all GET and POST methods, one should pass the query parameter
 `id`, used by the *HydPy* server for internal bookmarking:
 
 >>> def simulate(id_):
-...     methods = ','.join(('GET_simulate',
-...                         'GET_save_timegrid',
-...                         'GET_save_parameteritemvalues',
-...                         'GET_save_conditionvalues',
-...                         'GET_save_modifiedconditionitemvalues',
-...                         'GET_save_getitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
+...     methods = ",".join(("GET_simulate",
+...                         "GET_save_timegrid",
+...                         "GET_save_parameteritemvalues",
+...                         "GET_save_conditionvalues",
+...                         "GET_save_modifiedconditionitemvalues",
+...                         "GET_save_getitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url)
 
 Function `print_itemvalues` also wraps only GET methods and prints the current
@@ -114,18 +114,18 @@ discharge values corresponding to the given `id` value:
 
 >>> from hydpy import print_values
 >>> def print_itemvalues(id_):
-...     methods = ','.join(('GET_savedtimegrid',
-...                         'GET_savedparameteritemvalues',
-...                         'GET_savedmodifiedconditionitemvalues',
-...                         'GET_savedgetitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
-...     data = str(request.urlopen(url).read(), encoding='utf-8')
-...     for line in data.split('\\n'):
-...         if line.startswith('alpha'):
-...             alpha = line.split('=')[1].strip()
-...         if line.startswith('dill'):
-...             discharge = eval(line.split('=')[1])
-...     print(f'{alpha}: ', end='')
+...     methods = ",".join(("GET_savedtimegrid",
+...                         "GET_savedparameteritemvalues",
+...                         "GET_savedmodifiedconditionitemvalues",
+...                         "GET_savedgetitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     data = str(request.urlopen(url).read(), encoding="utf-8")
+...     for line in data.split("\\n"):
+...         if line.startswith("alpha"):
+...             alpha = line.split("=")[1].strip()
+...         if line.startswith("dill"):
+...             discharge = eval(line.split("=")[1])
+...     print(f"{alpha}: ", end="")
 ...     print_values(discharge)
 
 For the sake of brevity, we also define `do_everything` just calling
@@ -139,29 +139,29 @@ the other functions:
 In the first and simplest example, we perform a simulation throughout
 five days for an |hland_control.Alpha| value of 2:
 
->>> do_everything('1a', '1996-01-01', '1996-01-06', 2.0)
+>>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
 2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874
 
 The second example shows interlocked simulation runs.  The first call
 only triggers a simulation run for the first initialised day:
 
->>> do_everything('1b', '1996-01-01', '1996-01-02', 2.0)
+>>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
 2.0: 35.537828
 
 The second call repeats the first one with a different `id` value:
 
->>> do_everything('2', '1996-01-01', '1996-01-02', 2.0)
+>>> do_everything("2", "1996-01-01", "1996-01-02", 2.0)
 2.0: 35.537828
 
 The third call covers the first three initialisation days:
 
->>> do_everything('3', '1996-01-01', '1996-01-04', 2.0)
+>>> do_everything("3", "1996-01-01", "1996-01-04", 2.0)
 2.0: 35.537828, 7.741064, 5.018981
 
 The fourth call continues the simulation of the first call, covering
 the last four initialised days:
 
->>> do_everything('1b', '1996-01-02', '1996-01-06', 2.0)
+>>> do_everything("1b", "1996-01-02", "1996-01-06", 2.0)
 2.0: 7.741064, 5.018981, 4.501784, 4.238874
 
 The results of the very first call of function `do_everything` (with
@@ -173,15 +173,15 @@ valid `id` values.
 The third example extends the second one on applying different parameter
 values:
 
->>> do_everything('4', '1996-01-01', '1996-01-04', 2.0)
+>>> do_everything("4", "1996-01-01", "1996-01-04", 2.0)
 2.0: 35.537828, 7.741064, 5.018981
->>> do_everything('5', '1996-01-01', '1996-01-04', 1.0)
+>>> do_everything("5", "1996-01-01", "1996-01-04", 1.0)
 1.0: 11.78038, 8.901179, 7.131072
->>> do_everything('4', '1996-01-04', '1996-01-06', 2.0)
+>>> do_everything("4", "1996-01-04", "1996-01-06", 2.0)
 2.0: 4.501784, 4.238874
->>> do_everything('5', '1996-01-04', '1996-01-06', 1.0)
+>>> do_everything("5", "1996-01-04", "1996-01-06", 1.0)
 1.0: 6.017787, 5.313211
->>> do_everything('5', '1996-01-01', '1996-01-06', 1.0)
+>>> do_everything("5", "1996-01-01", "1996-01-06", 1.0)
 1.0: 11.78038, 8.901179, 7.131072, 6.017787, 5.313211
 
 The order in which function `do_everything` calls its subfunctions seems quite
@@ -191,21 +191,21 @@ of all memberse before starting to query any simulation results.  The
 fourth example shows that the underlying atomic methods do support
 such an order of execution:
 
->>> set_itemvalues('6', '1996-01-01', '1996-01-03', 2.0)
->>> simulate('6')
->>> set_itemvalues('7', '1996-01-01', '1996-01-03', 1.0)
->>> simulate('7')
->>> print_itemvalues('6')
+>>> set_itemvalues("6", "1996-01-01", "1996-01-03", 2.0)
+>>> simulate("6")
+>>> set_itemvalues("7", "1996-01-01", "1996-01-03", 1.0)
+>>> simulate("7")
+>>> print_itemvalues("6")
 2.0: 35.537828, 7.741064
->>> print_itemvalues('7')
+>>> print_itemvalues("7")
 1.0: 11.78038, 8.901179
->>> set_itemvalues('6', '1996-01-03', '1996-01-06', 2.0)
->>> simulate('6')
->>> set_itemvalues('7', '1996-01-03', '1996-01-06', 1.0)
->>> simulate('7')
->>> print_itemvalues('6')
+>>> set_itemvalues("6", "1996-01-03", "1996-01-06", 2.0)
+>>> simulate("6")
+>>> set_itemvalues("7", "1996-01-03", "1996-01-06", 1.0)
+>>> simulate("7")
+>>> print_itemvalues("6")
 2.0: 5.018981, 4.501784, 4.238874
->>> print_itemvalues('7')
+>>> print_itemvalues("7")
 1.0: 7.131072, 6.017787, 5.313211
 
 .. note::
@@ -218,7 +218,7 @@ such an order of execution:
 Finally, we close the server and kill its process (just closing your
 command-line tool works as well):
 
->>> _ = request.urlopen('http://localhost:8080/close_server')
+>>> _ = request.urlopen("http://localhost:8080/close_server")
 >>> process.kill()
 >>> _ = process.communicate()
 
@@ -306,7 +306,7 @@ class ServerState:
         >>> from hydpy.exe.servertools import ServerState
         >>> state = ServerState()
         >>> with TestIO():    # doctest: +ELLIPSIS
-        ...     state.initialise('LahnH', 'multiple_runs.xml')
+        ...     state.initialise("LahnH", "multiple_runs.xml")
         Start HydPy project `LahnH` (...).
         Read configuration file `multiple_runs.xml` (...).
         Interpret the defined options (...).
@@ -321,25 +321,25 @@ class ServerState:
 
         >>> for item in state.parameteritems:
         ...     print(item)
-        SetItem('alpha', 'hland_v1', 'control.alpha', 0)
-        SetItem('beta', 'hland_v1', 'control.beta', 0)
-        SetItem('lag', 'hstream_v1', 'control.lag', 0)
-        SetItem('damp', 'hstream_v1', 'control.damp', 0)
-        AddItem('sfcf_1', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
-        AddItem('sfcf_2', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
-        AddItem('sfcf_3', 'hland_v1', 'control.sfcf', 'control.rfcf', 1)
+        SetItem("alpha", "hland_v1", "control.alpha", 0)
+        SetItem("beta", "hland_v1", "control.beta", 0)
+        SetItem("lag", "hstream_v1", "control.lag", 0)
+        SetItem("damp", "hstream_v1", "control.damp", 0)
+        AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", 0)
+        AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", 0)
+        AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", 1)
         >>> for item in state.conditionitems:
         ...     print(item)
-        SetItem('sm_lahn_2', 'hland_v1', 'states.sm', 0)
-        SetItem('sm_lahn_1', 'hland_v1', 'states.sm', 1)
-        SetItem('quh', 'hland_v1', 'logs.quh', 0)
+        SetItem("sm_lahn_2", "hland_v1", "states.sm", 0)
+        SetItem("sm_lahn_1", "hland_v1", "states.sm", 1)
+        SetItem("quh", "hland_v1", "logs.quh", 0)
         >>> for item in state.getitems:
         ...     print(item)
-        GetItem('hland_v1', 'fluxes.qt')
-        GetItem('hland_v1', 'fluxes.qt.series')
-        GetItem('hland_v1', 'states.sm')
-        GetItem('hland_v1', 'states.sm.series')
-        GetItem('nodes', 'nodes.sim.series')
+        GetItem("hland_v1", "fluxes.qt")
+        GetItem("hland_v1", "fluxes.qt.series")
+        GetItem("hland_v1", "states.sm")
+        GetItem("hland_v1", "states.sm.series")
+        GetItem("nodes", "nodes.sim.series")
 
         The initialisation also memorises the initial conditions of
         all elements:
@@ -425,10 +425,10 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
+    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml",
     ...         blocking=False, verbose=False)
     ...     result = run_subprocess(
-    ...         'hyd.py await_server 8080 10', verbose=False)
+    ...         "hyd.py await_server 8080 10", verbose=False)
 
     We define a test function simplifying sending the following requests,
     offering two optional arguments.  Without passing a value to `id_`,
@@ -438,33 +438,33 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     >>> from urllib import request
     >>> def test(name, id_=None, data=None):
     ...     if id_ is None:
-    ...         url = f'http://localhost:8080/{name}'
+    ...         url = f"http://localhost:8080/{name}"
     ...     else:
-    ...         url = f'http://localhost:8080/{name}?id={id_}'
+    ...         url = f"http://localhost:8080/{name}?id={id_}"
     ...     if data is None:
     ...         response = request.urlopen(url)
     ...     else:
-    ...         data = bytes(data, encoding='utf-8')
+    ...         data = bytes(data, encoding="utf-8")
     ...         response = request.urlopen(url, data=data)
-    ...     print(str(response.read(), encoding='utf-8'))
+    ...     print(str(response.read(), encoding="utf-8"))
 
     Asking for its status tells us that the server is ready, provided that
     the selected *HydPy* project has been initialised already (which may
     take a while, depending on the size of the particular project):
 
-    >>> test('status')
+    >>> test("status")
     status = ready
 
     |HydPyServer| returns the error code `400` if it realises the URL to be
     wrongthe and the error code `500` in all other cases of error:
 
-    >>> test('missing')
+    >>> test("missing")
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 400: RuntimeError: \
 No method `GET_missing` available.
 
-    >>> test('parameteritemvalues', data='alpha = []')    # doctest: +ELLIPSIS
+    >>> test("parameteritemvalues", data="alpha = []")    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: ValueError: While trying to \
@@ -476,7 +476,7 @@ could not broadcast input array from shape (0) into shape ()...
     Some methods require identity information, passed as query parameter
     `id`, used for internal bookmarking:
 
-    >>> test('save_conditionvalues')
+    >>> test("save_conditionvalues")
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
@@ -487,11 +487,11 @@ For the GET method `save_conditionvalues` no query parameter `id` is given.
     assigning some values to some variable (in most cases numbers to
     exchange items):
 
-    >>> test('parameteritems',
-    ...      data=('x = y\\n'
-    ...            '   \\n'
-    ...            'x == y\\n'
-    ...            'x = y'))
+    >>> test("parameteritems",
+    ...      data=("x = y\\n"
+    ...            "   \\n"
+    ...            "x == y\\n"
+    ...            "x = y"))
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 400: RuntimeError: The POST method \
@@ -507,9 +507,9 @@ has been extracted but cannot be further processed: `x == y`.
     example, to find out which |Node| objects are available and to see,
     to which one is the outlet node of |Element| object `land_dill`:
 
-    >>> test('evaluate',
-    ...      data=('nodes = state.hp.nodes\\n'
-    ...            'elements = state.hp.elements.land_dill'))
+    >>> test("evaluate",
+    ...      data=("nodes = state.hp.nodes\\n"
+    ...            "elements = state.hp.elements.land_dill"))
     nodes = Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
     elements = Element("land_dill", outlets="dill", keywords="catchment")
 
@@ -521,7 +521,7 @@ has been extracted but cannot be further processed: `x == y`.
     (|HydPyServer.GET_conditionitemtypes|), and getting different kinds
     of values (|HydPyServer.GET_getitemtypes|) separately:
 
-    >>> test('parameteritemtypes')
+    >>> test("parameteritemtypes")
     alpha = Double0D
     beta = Double0D
     lag = Double0D
@@ -529,11 +529,11 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_1 = Double0D
     sfcf_2 = Double0D
     sfcf_3 = Double1D
-    >>> test('conditionitemtypes')
+    >>> test("conditionitemtypes")
     sm_lahn_2 = Double0D
     sm_lahn_1 = Double1D
     quh = Double0D
-    >>> test('getitemtypes')
+    >>> test("getitemtypes")
     land_dill_fluxes_qt = Double0D
     land_dill_fluxes_qt_series = TimeSeries0D
     land_dill_states_sm = Double1D
@@ -547,15 +547,15 @@ has been extracted but cannot be further processed: `x == y`.
     (|HydPyServer.POST_timegrid|) the current simulation
     period, which is identical with the initialisation period at first:
 
-    >>> test('timegrid')
+    >>> test("timegrid")
     firstdate = 1996-01-01T00:00:00+01:00
     lastdate = 1996-01-06T00:00:00+01:00
     stepsize = 1d
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-01\\n'
-    ...            'lastdate = 1996-01-02'))
+    >>> test("timegrid",
+    ...      data=("firstdate = 1996-01-01\\n"
+    ...            "lastdate = 1996-01-02"))
     <BLANKLINE>
-    >>> test('timegrid')
+    >>> test("timegrid")
     firstdate = 1996-01-01T00:00:00+01:00
     lastdate = 1996-01-02T00:00:00+01:00
     stepsize = 1d
@@ -568,13 +568,13 @@ has been extracted but cannot be further processed: `x == y`.
     |HydPyServer.GET_save_timegrid| has not been called with the same `id`
     query parameter value before:
 
-    >>> test('savedtimegrid', id_='0')
+    >>> test("savedtimegrid", id_="0")
     firstdate = 1996-01-01T00:00:00+01:00
     lastdate = 1996-01-06T00:00:00+01:00
     stepsize = 1d
-    >>> test('save_timegrid', id_='0')
+    >>> test("save_timegrid", id_="0")
     <BLANKLINE>
-    >>> test('savedtimegrid', id_='0')
+    >>> test("savedtimegrid", id_="0")
     firstdate = 1996-01-01T00:00:00+01:00
     lastdate = 1996-01-02T00:00:00+01:00
     stepsize = 1d
@@ -582,31 +582,31 @@ has been extracted but cannot be further processed: `x == y`.
     Posting values of parameter items (|HydPyServer.POST_parameteritemvalues|)
     does directly update the values of the corresponding |Parameter| objects:
 
-    >>> control = 'state.hp.elements.land_dill.model.parameters.control'
-    >>> test('evaluate',
-    ...      data=(f'alpha = {control}.alpha\\n'
-    ...            f'sfcf = {control}.sfcf'))
+    >>> control = "state.hp.elements.land_dill.model.parameters.control"
+    >>> test("evaluate",
+    ...      data=(f"alpha = {control}.alpha\\n"
+    ...            f"sfcf = {control}.sfcf"))
     alpha = alpha(1.0)
     sfcf = sfcf(1.1)
-    >>> test('parameteritemvalues',
-    ...      data=('alpha = 3.0\\n'
-    ...            'beta = 2.0\\n'
-    ...            'lag = 1.0\\n'
-    ...            'damp = 0.5\\n'
-    ...            'sfcf_1 = 0.3\\n'
-    ...            'sfcf_2 = 0.2\\n'
-    ...            'sfcf_3 = 0.1\\n'))
+    >>> test("parameteritemvalues",
+    ...      data=("alpha = 3.0\\n"
+    ...            "beta = 2.0\\n"
+    ...            "lag = 1.0\\n"
+    ...            "damp = 0.5\\n"
+    ...            "sfcf_1 = 0.3\\n"
+    ...            "sfcf_2 = 0.2\\n"
+    ...            "sfcf_3 = 0.1\\n"))
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=(f'alpha = {control}.alpha\\n'
-    ...            f'sfcf = {control}.sfcf'))
+    >>> test("evaluate",
+    ...      data=(f"alpha = {control}.alpha\\n"
+    ...            f"sfcf = {control}.sfcf"))
     alpha = alpha(3.0)
     sfcf = sfcf(1.34283)
 
     The list of exchange items must be complete:
-    >>> test('parameteritemvalues',
-    ...      data=('alpha = 3.0\\n'
-    ...            'beta = 2.0'))
+    >>> test("parameteritemvalues",
+    ...      data=("alpha = 3.0\\n"
+    ...            "beta = 2.0"))
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
@@ -618,7 +618,7 @@ A value for parameter item `lag` is missing.
     lastly applied values of the exchange items instead of the modified
     values of the |Parameter| objects:
 
-    >>> test('parameteritemvalues')
+    >>> test("parameteritemvalues")
     alpha = 3.0
     beta = 2.0
     lag = 1.0
@@ -634,29 +634,29 @@ A value for parameter item `lag` is missing.
     value for |hland_states.SM| is trimmed to its highest possible value
     |hland_control.FC|):
 
-    >>> sequences = 'state.hp.elements.land_lahn_2.model.sequences'
-    >>> test('evaluate',
-    ...      data=(f'sm = {sequences}.states.sm \\n'
-    ...            f'quh = {sequences}.logs.quh'))    # doctest: +ELLIPSIS
+    >>> sequences = "state.hp.elements.land_lahn_2.model.sequences"
+    >>> test("evaluate",
+    ...      data=(f"sm = {sequences}.states.sm \\n"
+    ...            f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
     sm = sm(138.31396, ..., 164.63255)
     quh = quh(0.7, 0.0)
-    >>> test('conditionitemvalues',
-    ...      data=('sm_lahn_2 = 246.0\\n'
-    ...            'sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n'
-    ...            'quh = 1.0\\n'))
+    >>> test("conditionitemvalues",
+    ...      data=("sm_lahn_2 = 246.0\\n"
+    ...            "sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n"
+    ...            "quh = 1.0\\n"))
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=(f'sm = {sequences}.states.sm\\n'
-    ...            f'quh = {sequences}.logs.quh'))    # doctest: +ELLIPSIS
+    >>> test("evaluate",
+    ...      data=(f"sm = {sequences}.states.sm\\n"
+    ...            f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
     sm = sm(197.0, ... 197.0)
     quh = quh(1.0, 0.0)
-    >>> test('conditionitemvalues')
+    >>> test("conditionitemvalues")
     sm_lahn_2 = 246.0
     sm_lahn_1 = [  1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  \
 11.  12.  13.]
     quh = 1.0
-    >>> test('conditionitemvalues',
-    ...      data='sm_lahn_2 = 246.0')
+    >>> test("conditionitemvalues",
+    ...      data="sm_lahn_2 = 246.0")
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
@@ -666,7 +666,7 @@ A value for condition item `sm_lahn_1` is missing.
     The "official" way to gain information on modified parameters or
     conditions is to use the method |HydPyServer.GET_getitemvalues|:
 
-    >>> test('getitemvalues')    # doctest: +ELLIPSIS
+    >>> test("getitemvalues")    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan]
     land_dill_states_sm = [185.13164, ...]
@@ -683,11 +683,11 @@ A value for condition item `sm_lahn_1` is missing.
     well as the values of the current condition sequences (method
     |HydPyServer.GET_save_conditionvalues| for an arbitrary `id` string:
 
-    >>> test('save_parameteritemvalues', id_='1')
+    >>> test("save_parameteritemvalues", id_="1")
     <BLANKLINE>
-    >>> test('save_getitemvalues', id_='1')
+    >>> test("save_getitemvalues", id_="1")
     <BLANKLINE>
-    >>> test('save_conditionvalues', id_='two')
+    >>> test("save_conditionvalues", id_="two")
     <BLANKLINE>
 
     We now modify the parameter and condition values again, but this time
@@ -695,21 +695,21 @@ A value for condition item `sm_lahn_1` is missing.
     and trigger a simulation run afterwards by calling method
     |HydPyServer.GET_simulate|:
 
-    >>> test('changeitemvalues',
-    ...      data=('alpha = 1.0\\n'
-    ...            'beta = 1.0\\n'
-    ...            'lag = 0.0\\n'
-    ...            'damp = 0.0\\n'
-    ...            'sfcf_1 = 0.0\\n'
-    ...            'sfcf_2 = 0.0\\n'
-    ...            'sfcf_3 = 0.0\\n'
-    ...            'sm_lahn_2 = 100.0\\n'
-    ...            'sm_lahn_1 = 50.\\n'
-    ...            'quh = .0\\n'))
+    >>> test("changeitemvalues",
+    ...      data=("alpha = 1.0\\n"
+    ...            "beta = 1.0\\n"
+    ...            "lag = 0.0\\n"
+    ...            "damp = 0.0\\n"
+    ...            "sfcf_1 = 0.0\\n"
+    ...            "sfcf_2 = 0.0\\n"
+    ...            "sfcf_3 = 0.0\\n"
+    ...            "sm_lahn_2 = 100.0\\n"
+    ...            "sm_lahn_1 = 50.\\n"
+    ...            "quh = .0\\n"))
     <BLANKLINE>
-    >>> test('simulate')
+    >>> test("simulate")
     <BLANKLINE>
-    >>> test('changeitemvalues')    # doctest: +ELLIPSIS
+    >>> test("changeitemvalues")    # doctest: +ELLIPSIS
     alpha = 1.0
     ...
     sm_lahn_2 = 100.0
@@ -719,13 +719,13 @@ A value for condition item `sm_lahn_1` is missing.
     invoking methods|HydPyServer.GET_getitemvalues| and
     |HydPyServer.GET_savedgetitemvalues|, respectively:
 
-    >>> test('getitemvalues')    # doctest: +ELLIPSIS
+    >>> test("getitemvalues")    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = 7.735543
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
     ...
     dill_nodes_sim_series = [7.735543]
-    >>> test('savedgetitemvalues', id_='1')    # doctest: +ELLIPSIS
+    >>> test("savedgetitemvalues", id_="1")    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
     ...
     land_lahn_2_states_sm = [197.0, ..., 197.0]
@@ -736,10 +736,10 @@ A value for condition item `sm_lahn_1` is missing.
     methods |HydPyServer.GET_parameteritemvalues| and
     |HydPyServer.GET_savedparameteritemvalues|:
 
-    >>> test('parameteritemvalues')    # doctest: +ELLIPSIS
+    >>> test("parameteritemvalues")    # doctest: +ELLIPSIS
     alpha = 1.0
     ...
-    >>> test('savedparameteritemvalues', id_='1')    # doctest: +ELLIPSIS
+    >>> test("savedparameteritemvalues", id_="1")    # doctest: +ELLIPSIS
     alpha = 3.0
     ...
 
@@ -749,10 +749,10 @@ A value for condition item `sm_lahn_1` is missing.
     |HydPyServer.GET_getitemvalues| and |HydPyServer.GET_parameteritemvalues|,
     respectively:
 
-    >>> test('savedgetitemvalues', id_='?')    # doctest: +ELLIPSIS
+    >>> test("savedgetitemvalues", id_="?")    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = 7.735543
     ...
-    >>> test('savedparameteritemvalues', id_='?')    # doctest: +ELLIPSIS
+    >>> test("savedparameteritemvalues", id_="?")    # doctest: +ELLIPSIS
     alpha = 1.0
     ...
 
@@ -770,32 +770,32 @@ A value for condition item `sm_lahn_1` is missing.
     day of the initialisation period was identical with the end of the
     simulation period:
 
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
+    >>> test("evaluate",
+    ...      data=f"sm = {sequences}.states.sm")    # doctest: +ELLIPSIS
     sm = sm(99.848023, ..., 99.848023)
-    >>> test('load_conditionvalues', id_='two')
+    >>> test("load_conditionvalues", id_="two")
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
+    >>> test("evaluate",
+    ...      data=f"sm = {sequences}.states.sm")    # doctest: +ELLIPSIS
     sm = sm(138.31396, ..., 164.63255)
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-02\\n'
-    ...            'lastdate = 1996-01-03'))
+    >>> test("timegrid",
+    ...      data=("firstdate = 1996-01-02\\n"
+    ...            "lastdate = 1996-01-03"))
     <BLANKLINE>
-    >>> test('load_conditionvalues', id_='two')
+    >>> test("load_conditionvalues", id_="two")
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
+    >>> test("evaluate",
+    ...      data=f"sm = {sequences}.states.sm")    # doctest: +ELLIPSIS
     sm = sm(197.0, ..., 197.0)
 
     Loading condition values for a specific time point requires saving
     them before
 
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-04\\n'
-    ...            'lastdate = 1996-01-05'))
+    >>> test("timegrid",
+    ...      data=("firstdate = 1996-01-04\\n"
+    ...            "lastdate = 1996-01-05"))
     <BLANKLINE>
-    >>> test('load_conditionvalues', id_='two')
+    >>> test("load_conditionvalues", id_="two")
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
@@ -812,26 +812,26 @@ but have not been calculated so far.
     Please note that these methods are not flexible enough for some
     real-world applications yet and are going to be improved later:
 
-    >>> test('save_modifiedconditionitemvalues', id_='before')
+    >>> test("save_modifiedconditionitemvalues", id_="before")
     <BLANKLINE>
-    >>> test('simulate')
+    >>> test("simulate")
     <BLANKLINE>
-    >>> test('save_modifiedconditionitemvalues', id_='after')
+    >>> test("save_modifiedconditionitemvalues", id_="after")
     <BLANKLINE>
-    >>> test('savedmodifiedconditionitemvalues',
-    ...     id_='before')    # doctest: +ELLIPSIS
+    >>> test("savedmodifiedconditionitemvalues",
+    ...     id_="before")    # doctest: +ELLIPSIS
     sm_lahn_2 = [ 197.  ...]
     sm_lahn_1 = [  1.   ...]
     quh = [ 1.  0.]
-    >>> test('savedmodifiedconditionitemvalues',
-    ...     id_='after')    # doctest: +ELLIPSIS
+    >>> test("savedmodifiedconditionitemvalues",
+    ...     id_="after")    # doctest: +ELLIPSIS
     sm_lahn_2 = [ 196.621130...]
     sm_lahn_1 = [  0.99808...]
     quh = [ 0.0005...]
 
     To close the *HydPy* server, call |HydPyServer.GET_close_server|:
 
-    >>> test('close_server')
+    >>> test("close_server")
     <BLANKLINE>
     >>> process.kill()
     >>> _ = process.communicate()
@@ -1234,7 +1234,7 @@ def await_server(port, seconds):
 
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     result = run_subprocess('hyd.py await_server 8080 0.1')
+    ...     result = run_subprocess("hyd.py await_server 8080 0.1")
     Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \
 the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
@@ -1244,13 +1244,12 @@ the following error:
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
+    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml",
     ...         blocking=False, verbose=False)
-    ...     result = run_subprocess(
-    ...         'hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     >>> from urllib import request
-    >>> _ = request.urlopen('http://localhost:8080/close_server')
+    >>> _ = request.urlopen("http://localhost:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
     """

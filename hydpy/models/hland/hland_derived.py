@@ -31,7 +31,7 @@ class RelSoilArea(parametertools.Parameter):
         """Update |RelSoilArea| based on |Area|, |ZoneArea|, and |ZoneType|.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(4)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
         >>> area(100.0)
@@ -62,7 +62,7 @@ class RelLandArea(parametertools.Parameter):
         """Update |RelLandArea| based on |Area|, |ZoneArea|, and |ZoneType|.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(4)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
         >>> area(100.0)
@@ -83,7 +83,7 @@ class RelZoneArea(
     """Relative zone area of all zone types [-].
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 40.0, 20.0, 30.0)
@@ -102,7 +102,7 @@ class RelSoilZoneArea(
     """Relative zone area of all |FIELD| and |FOREST| zones [-].
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 40.0, 20.0, 30.0)
@@ -121,7 +121,7 @@ class RelLandZoneArea(
     """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 40.0, 20.0, 30.0)
@@ -148,7 +148,7 @@ class TTM(hland_parameters.ParameterLand):
         """Update |TTM| based on :math:`TTM = TT+DTTM`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(1)
         >>> zonetype(FIELD)
         >>> tt(1.0)
@@ -172,8 +172,8 @@ class DT(parametertools.Parameter):
         """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> recstep(2.0)
         >>> derived.dt.update()
         >>> derived.dt
@@ -213,8 +213,8 @@ class UH(parametertools.Parameter):
         identical with applying no unit hydrograph at all:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> maxbaz(0.0)
         >>> derived.uh.update()
         >>> logs.quh.shape
@@ -326,8 +326,8 @@ class QFactor(parametertools.Parameter):
         step size.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> area(50.0)
         >>> derived.qfactor.update()
         >>> derived.qfactor

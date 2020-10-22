@@ -32,8 +32,8 @@ class AbsErrorMax(parametertools.SolverParameter):
         :math:`AbsErrorMax = 0.01 \\cdot CatchmentArea \\cdot 1000 / Seconds`
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1h')
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
         >>> solver.abserrormax.INIT
         0.01
         >>> catchmentarea(2.0)

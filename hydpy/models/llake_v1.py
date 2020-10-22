@@ -31,23 +31,23 @@ Integration tests
     The following calculations are performed over a period of 20 days:
 
     >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+    >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
     Import the model and define the time settings:
 
     >>> from hydpy.models.llake_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
 
     For testing purposes, the model input shall be retrieved from the nodes
     `input1` and `input2` and the model output shall be passed to node
     `output`.  Firstly, define all nodes:
 
-    >>> nodes = Nodes('input1', 'input2', 'output')
+    >>> nodes = Nodes("input1", "input2", "output")
 
     Secondly, define the element "lake" and build the connections between
     the nodes defined above and the `llake_v1` model instance:
 
-    >>> lake = Element('lake', inlets=['input1', 'input2'], outlets='output')
+    >>> lake = Element("lake", inlets=["input1", "input2"], outlets="output")
     >>> lake.model = model
 
     Prepare a test function object, which prints the respective values of
@@ -64,7 +64,7 @@ Integration tests
     ...                              states.v, states.w),
     ...                        inits=((states.v, 0.0),
     ...                               (states.w, 0.0)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
 
     Set the values of those control parameter, which remain fixed for all
     three example simulations, in the most simple manner:
@@ -73,7 +73,7 @@ Integration tests
     >>> w(0.0, 1.0)
     >>> v(0.0, 1e6)
     >>> q(0.0, 10.0)
-    >>> maxdt('1d')
+    >>> maxdt("1d")
 
     Define two flood events, one for each lake inflow:
 
@@ -92,7 +92,7 @@ Integration tests
 
     >>> maxdw(0.0)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex1')
+    >>> test("llake_v1_ex1")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -132,7 +132,7 @@ Integration tests
 
     >>> maxdw(0.1)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex2')
+    >>> test("llake_v1_ex2")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -171,7 +171,7 @@ Integration tests
 
     >>> maxdw(0.0)
     >>> verzw(1.0)
-    >>> test('llake_v1_ex3')
+    >>> test("llake_v1_ex3")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -206,7 +206,7 @@ Integration tests
     parameter that will be altered is the internal simulation step size,
     being one hour instead of one day:
 
-    >>> maxdt('1h')
+    >>> maxdt("1h")
     >>> model.parameters.update()
 
     Hence, the principles discussed above remain valid, but the result are
@@ -216,7 +216,7 @@ Integration tests
 
     >>> maxdw(0.0)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex4')
+    >>> test("llake_v1_ex4")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -251,7 +251,7 @@ Integration tests
 
     >>> maxdw(0.1)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex5')
+    >>> test("llake_v1_ex5")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -286,7 +286,7 @@ Integration tests
 
     >>> maxdw(0.0)
     >>> verzw(1.0)
-    >>> test('llake_v1_ex6')
+    >>> test("llake_v1_ex6")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |

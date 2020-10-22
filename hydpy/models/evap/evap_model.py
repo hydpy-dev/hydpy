@@ -174,7 +174,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -184,13 +184,13 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_earthsundistance_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.earthsundistance.value)
 
         The results are identical for both years:
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-07-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-07-01", "2000-12-31")
         2000-01-01: 1.032995
         2000-02-28: 1.017471
         2000-02-29: 1.016988
@@ -198,8 +198,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         2000-07-01: 0.967
         2000-12-31: 1.033
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-07-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-07-01", "2001-12-31")
         2001-01-01: 1.032995
         2001-02-28: 1.017471
         2001-03-01: 1.0165
@@ -246,7 +246,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -256,21 +256,21 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_solardeclination_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.solardeclination.value)
 
         The results are identical for both years:
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-12-31")
         2000-01-01: -0.401012
         2000-02-28: -0.150618
         2000-02-29: -0.144069
         2000-03-01: -0.137476
         2000-12-31: -0.402334
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-12-31")
         2001-01-01: -0.401012
         2001-02-28: -0.150618
         2001-03-01: -0.137476
@@ -354,7 +354,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-09-03', '2000-09-04', '1h'
+        >>> pub.timegrids = "2000-09-03", "2000-09-04", "1h"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> longitude(15)
@@ -364,7 +364,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
         >>> for hour in range(24):
         ...     model.idx_sim = hour
         ...     model.calc_solartimeangle_v1()
-        ...     print(hour, end=': ')
+        ...     print(hour, end=": ")
         ...     round_(fluxes.solartimeangle.value)   # doctest: +ELLIPSIS
         0: -3.004157
         1: -2.742358
@@ -469,7 +469,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...     model.idx_sim = hour
         ...     model.calc_solartimeangle_v1()
         ...     model.calc_extraterrestrialradiation_v1()
-        ...     print(hour, end=': ')
+        ...     print(hour, end=": ")
         ...     round_(fluxes.extraterrestrialradiation.value)
         ...     sum_ += fluxes.extraterrestrialradiation
         0: 0.0
@@ -500,7 +500,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         Note that, even with identical values of the local longitude
         (|Longitude|) and the one of the time zone (|UTCLongitude|), the
         calculated radiation values are not symmetrically shaped during the
-        day due to the eccentricity of the Earth's orbit (see `solar time`_).
+        day due to the eccentricity of the Earth"s orbit (see `solar time`_).
 
         There is a small deviation between the directly calculated daily
         value and the sum of the hourly values:
@@ -532,7 +532,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...         model.calc_solartimeangle_v1()
         ...         model.calc_extraterrestrialradiation_v1()
         ...         sum_ += fluxes.extraterrestrialradiation
-        ...     print(minutes, end=': ')
+        ...     print(minutes, end=": ")
         ...     round_(sum_-32.173851)
         1: -0.000054
         5: -0.000739
@@ -657,7 +657,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         >>> for hour, solartimeangle in enumerate(solartimeangles):
         ...     fluxes.solartimeangle = solartimeangle
         ...     model.calc_possiblesunshineduration_v1()
-        ...     print(hour, end=': ')   # doctest: +ELLIPSIS
+        ...     print(hour, end=": ")   # doctest: +ELLIPSIS
         ...     round_(fluxes.possiblesunshineduration.value)
         ...     sum_ += fluxes.possiblesunshineduration.value
         0: 0.0

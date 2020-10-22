@@ -278,7 +278,7 @@ class Masks:
     defaultmask of module hydpy.core.masktools
     >>> masks.indexmask is IndexMask
     True
-    >>> 'indexmask' in dir(masks)
+    >>> "indexmask" in dir(masks)
     True
 
     The `in` operator is supported:
@@ -287,7 +287,7 @@ class Masks:
     True
     >>> CustomMask in masks
     False
-    >>> 'mask' in masks
+    >>> "mask" in masks
     Traceback (most recent call last):
     ...
     TypeError: The given value `mask` of type `str` is neither a Mask \
@@ -296,9 +296,9 @@ class nor a Mask instance.
     Using item access, strings (in whatever case), mask classes, and
     mask objects are accepted:
 
-    >>> masks['IndexMask'] is IndexMask
+    >>> masks["IndexMask"] is IndexMask
     True
-    >>> masks['indexmask'] is IndexMask
+    >>> masks["indexmask"] is IndexMask
     True
     >>> masks[IndexMask] is IndexMask
     True
@@ -308,7 +308,7 @@ class nor a Mask instance.
     RuntimeError: While trying to retrieve a mask based on key \
 `CustomMask([])`, the following error occurred: The key does not \
 define an available mask.
-    >>> masks['test']
+    >>> masks["test"]
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to retrieve a mask based on key `'test'`, \

@@ -32,8 +32,8 @@ class Selections:
     You can pass an arbitrary number of |Selection| objects to the
     constructor of class |Selections|:
 
-    >>> sel1 = Selection('sel1', ['node1', 'node2'], ['element1'])
-    >>> sel2 = Selection('sel2', ['node1', 'node3'], ['element2'])
+    >>> sel1 = Selection("sel1", ["node1", "node2"], ["element1"])
+    >>> sel2 = Selection("sel2", ["node1", "node3"], ["element2"])
     >>> selections = Selections(sel1, sel2)
     >>> selections
     Selections("sel1", "sel2")
@@ -46,16 +46,16 @@ class Selections:
     ...
     AttributeError: The actual Selections object handles neither a normal \
 attribute nor a Selection object called `sel3` that could be returned.
-    >>> sel3 = Selection('sel3', ['node1', 'node4'], ['element3'])
+    >>> sel3 = Selection("sel3", ["node1", "node4"], ["element3"])
     >>> selections.sel3 = sel3
     >>> selections.sel3
     Selection("sel3",
               nodes=("node1", "node4"),
               elements="element3")
-    >>> 'sel3' in dir(selections)
+    >>> "sel3" in dir(selections)
     True
     >>> del selections.sel3
-    >>> 'sel3' in dir(selections)
+    >>> "sel3" in dir(selections)
     False
     >>> del selections.sel3
     Traceback (most recent call last):
@@ -75,18 +75,18 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
 
     You can use item access alternatively:
 
-    >>> selections['sel4']
+    >>> selections["sel4"]
     Traceback (most recent call last):
     ...
     KeyError: 'The actual Selections object does not handle a Selection \
 object called `sel4` that could be returned.'
-    >>> selections['sel4'] = Selection('sel4')
-    >>> selections['sel4']
+    >>> selections["sel4"] = Selection("sel4")
+    >>> selections["sel4"]
     Selection("sel4",
               nodes=(),
               elements=())
-    >>> del selections['sel4']
-    >>> del selections['sel4']
+    >>> del selections["sel4"]
+    >>> del selections["sel4"]
     Traceback (most recent call last):
     ...
     KeyError: 'The actual Selections object does not handle a Selection \
@@ -97,11 +97,11 @@ object called `sel4` that could be deleted.'
 
     >>> sel1 in selections
     True
-    >>> 'sel1' in selections
+    >>> "sel1" in selections
     True
     >>> sel3 in selections
     False
-    >>> 'sel3' in selections
+    >>> "sel3" in selections
     False
 
     Class |Selections| supports both the |iter| and |len| operator:
@@ -144,7 +144,7 @@ object called `sel4` that could be deleted.'
 
     The binary operators do not support other types than the mentioned ones:
 
-    >>> smaller -= 'sel3'
+    >>> smaller -= "sel3"
     Traceback (most recent call last):
     ...
     TypeError: Binary operations on Selections objects are defined for other \
@@ -179,8 +179,8 @@ Selections objects, single Selection objects, or iterables containing \
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
-        ...     Selection('sel1', ['node1', 'node2'], ['element1']),
-        ...     Selection('sel2', ['node1', 'node3'], ['element2']))
+        ...     Selection("sel1", ["node1", "node2"], ["element1"]),
+        ...     Selection("sel2", ["node1", "node3"], ["element2"]))
         >>> sorted(selections.names)
         ['sel1', 'sel2']
         """
@@ -192,8 +192,8 @@ Selections objects, single Selection objects, or iterables containing \
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
-        ...     Selection('sel1', ['node1', 'node2'], ['element1']),
-        ...     Selection('sel2', ['node1', 'node3'], ['element2']))
+        ...     Selection("sel1", ["node1", "node2"], ["element1"]),
+        ...     Selection("sel2", ["node1", "node3"], ["element2"]))
         >>> selections.nodes
         Nodes("node1", "node2", "node3")
         """
@@ -208,8 +208,8 @@ Selections objects, single Selection objects, or iterables containing \
 
         >>> from hydpy import Selection, Selections
         >>> selections = Selections(
-        ...     Selection('sel1', ['node1'], ['element1']),
-        ...     Selection('sel2', ['node1'], ['element2', 'element3']))
+        ...     Selection("sel1", ["node1"], ["element1"]),
+        ...     Selection("sel2", ["node1"], ["element2", "element3"]))
         >>> selections.elements
         Elements("element1", "element2", "element3")
         """
@@ -226,11 +226,11 @@ Selections objects, single Selection objects, or iterables containing \
         |Element| object.
 
         >>> from hydpy import Elements, Nodes, Selection, Selections
-        >>> nodes = Nodes('n1', 'n2', 'n3')
-        >>> elements = Elements('e1', 'e2')
+        >>> nodes = Nodes("n1", "n2", "n3")
+        >>> elements = Elements("e1", "e2")
         >>> selections = Selections(
-        ...     Selection('s1', ['n1', 'n2'], ['e1']),
-        ...     Selection('s2', ['n1']))
+        ...     Selection("s1", ["n1", "n2"], ["e1"]),
+        ...     Selection("s2", ["n1"]))
         >>> selections.find(nodes.n1)
         Selections("s1", "s2")
         >>> selections.find(nodes.n2)
@@ -528,7 +528,7 @@ type `int`, the following error occurred: 'int' object has no attribute 'nodes'
     AttributeError: While trying to subtract selection `test` with object \
 `dill` of type `Node`, the following error occurred: 'Node' object has no \
 attribute 'nodes'
-    >>> test == 'wrong'
+    >>> test == "wrong"
     Traceback (most recent call last):
     ...
     AttributeError: While trying to compare selection `test` with object \
@@ -586,14 +586,14 @@ attribute 'nodes'
         You can pass both |Node| and |Element| objects and, optionally,
         the name of the newly created |Selection| object:
 
-        >>> test = pub.selections.complete.copy('test')
+        >>> test = pub.selections.complete.copy("test")
         >>> test.search_upstream(hp.nodes.lahn_2)
         Selection("upstream",
                   nodes=("dill", "lahn_1", "lahn_2"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "stream_dill_lahn_2", "stream_lahn_1_lahn_2"))
         >>> test.search_upstream(
-        ...     hp.elements.stream_lahn_1_lahn_2, 'UPSTREAM')
+        ...     hp.elements.stream_lahn_1_lahn_2, "UPSTREAM")
         Selection("UPSTREAM",
                   nodes="lahn_1",
                   elements=("land_lahn_1", "stream_lahn_1_lahn_2"))
@@ -711,13 +711,13 @@ selection `headwaters`, the following error occurred: 'No node named \
         You can pass both |Node| and |Element| objects and, optionally,
         the name of the newly created |Selection| object:
 
-        >>> test = pub.selections.complete.copy('test')
+        >>> test = pub.selections.complete.copy("test")
         >>> test.search_downstream(hp.nodes.lahn_1)
         Selection("downstream",
                   nodes=("lahn_1", "lahn_2", "lahn_3"),
                   elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
         >>> test.search_downstream(
-        ...     hp.elements.land_lahn_1, 'DOWNSTREAM')
+        ...     hp.elements.land_lahn_1, "DOWNSTREAM")
         Selection("DOWNSTREAM",
                   nodes=("lahn_1", "lahn_2", "lahn_3"),
                   elements=("land_lahn_1", "stream_lahn_1_lahn_2",
@@ -837,9 +837,9 @@ selection `headwaters`, the following error occurred: 'No node named \
         You can pass both |Model| objects and names and, as a keyword
         argument, the name of the newly created |Selection| object:
 
-        >>> test = pub.selections.complete.copy('test')
+        >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> hland_v1 = prepare_model('hland_v1')
+        >>> hland_v1 = prepare_model("hland_v1")
 
         >>> test.search_modeltypes(hland_v1)
         Selection("modeltypes",
@@ -847,7 +847,7 @@ selection `headwaters`, the following error occurred: 'No node named \
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "land_lahn_3"))
         >>> test.search_modeltypes(
-        ...     hland_v1, 'hstream_v1', 'lland_v1', name='MODELTYPES')
+        ...     hland_v1, "hstream_v1", "lland_v1", name="MODELTYPES")
         Selection("MODELTYPES",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
@@ -856,7 +856,7 @@ selection `headwaters`, the following error occurred: 'No node named \
 
         Wrong model specifications result in errors like the following:
 
-        >>> test.search_modeltypes('wrong')
+        >>> test.search_modeltypes("wrong")
         Traceback (most recent call last):
         ...
         ModuleNotFoundError: While trying to determine the elements of \
@@ -946,16 +946,16 @@ No module named 'hydpy.models.wrong'
         Pass the (sub)strings as positional arguments and, optionally, the
         name of the newly created |Selection| object as a keyword argument:
 
-        >>> test = pub.selections.complete.copy('test')
+        >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> test.search_nodenames('dill', 'lahn_1')
+        >>> test.search_nodenames("dill", "lahn_1")
         Selection("nodenames",
                   nodes=("dill", "lahn_1"),
                   elements=())
 
         Wrong string specifications result in errors like the following:
 
-        >>> test.search_nodenames(['dill', 'lahn_1'])
+        >>> test.search_nodenames(["dill", "lahn_1"])
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the nodes of selection \
@@ -966,7 +966,7 @@ requires string as left operand, not list
         Method |Selection.select_nodenames| restricts the current selection
         to the one determined with the the method |Selection.search_nodenames|:
 
-        >>> test.select_nodenames('dill', 'lahn_1')
+        >>> test.select_nodenames("dill", "lahn_1")
         Selection("test",
                   nodes=("dill", "lahn_1"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
@@ -977,7 +977,7 @@ requires string as left operand, not list
         the current selection to all devices not determined by the method
         |Selection.search_nodenames|:
 
-        >>> pub.selections.complete.deselect_nodenames('dill', 'lahn_1')
+        >>> pub.selections.complete.deselect_nodenames("dill", "lahn_1")
         Selection("complete",
                   nodes=("lahn_2", "lahn_3"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
@@ -1042,9 +1042,9 @@ requires string as left operand, not list
         Pass the (sub)strings as positional arguments and, optionally, the
         name of the newly created |Selection| object as a keyword argument:
 
-        >>> test = pub.selections.complete.copy('test')
+        >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> test.search_elementnames('dill', 'lahn_1')
+        >>> test.search_elementnames("dill", "lahn_1")
         Selection("elementnames",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "stream_dill_lahn_2",
@@ -1052,7 +1052,7 @@ requires string as left operand, not list
 
         Wrong string specifications result in errors like the following:
 
-        >>> test.search_elementnames(['dill', 'lahn_1'])
+        >>> test.search_elementnames(["dill", "lahn_1"])
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the elements of selection \
@@ -1063,7 +1063,7 @@ requires string as left operand, not list
         Method |Selection.select_elementnames| restricts the current selection
         to the one determined with the method |Selection.search_elementnames|:
 
-        >>> test.select_elementnames('dill', 'lahn_1')
+        >>> test.select_elementnames("dill", "lahn_1")
         Selection("test",
                   nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
                   elements=("land_dill", "land_lahn_1", "stream_dill_lahn_2",
@@ -1073,7 +1073,7 @@ requires string as left operand, not list
         restricts the current selection to all devices not determined
         by the method |Selection.search_elementnames|:
 
-        >>> pub.selections.complete.deselect_elementnames('dill', 'lahn_1')
+        >>> pub.selections.complete.deselect_elementnames("dill", "lahn_1")
         Selection("complete",
                   nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
                   elements=("land_lahn_2", "land_lahn_3",
@@ -1149,7 +1149,7 @@ requires string as left operand, not list
 
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile()
-        ...     with open('headwaters.py') as networkfile:
+        ...     with open("headwaters.py") as networkfile:
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
@@ -1174,8 +1174,8 @@ requires string as left operand, not list
 
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
-        ...         'test.py', write_defaultnodes=False)
-        ...     with open('test.py') as networkfile:
+        ...         "test.py", write_defaultnodes=False)
+        ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
@@ -1197,18 +1197,18 @@ requires string as left operand, not list
         >>> from hydpy import FusedVariable, Node
         >>> from hydpy import hland_P, hland_T, lland_Nied
         >>> from hydpy import hland_Perc, hland_Q0, hland_Q1
-        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
-        >>> Runoff = FusedVariable('Runoff', hland_Q0, hland_Q1)
+        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
         >>> nodes = pub.selections.headwaters.nodes
-        >>> nodes.add_device(Node('test1', variable='X'))
-        >>> nodes.add_device(Node('test2', variable=hland_T))
-        >>> nodes.add_device(Node('test3', variable=Precip))
-        >>> nodes.add_device(Node('test4', variable=hland_Perc))
-        >>> nodes.add_device(Node('test5', variable=Runoff))
+        >>> nodes.add_device(Node("test1", variable="X"))
+        >>> nodes.add_device(Node("test2", variable=hland_T))
+        >>> nodes.add_device(Node("test3", variable=Precip))
+        >>> nodes.add_device(Node("test4", variable=hland_Perc))
+        >>> nodes.add_device(Node("test5", variable=Runoff))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
-        ...         'test.py', write_defaultnodes=False)
-        ...     with open('test.py') as networkfile:
+        ...         "test.py", write_defaultnodes=False)
+        ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
@@ -1216,8 +1216,8 @@ requires string as left operand, not list
         from hydpy import hland_P, hland_Perc, hland_Q0, hland_Q1, \
 hland_T, lland_Nied
         <BLANKLINE>
-        Precip = FusedVariable('Precip', hland_P, lland_Nied)
-        Runoff = FusedVariable('Runoff', hland_Q0, hland_Q1)
+        Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
         <BLANKLINE>
         <BLANKLINE>
         Node("test1", variable="X")
@@ -1261,7 +1261,7 @@ hland_T, lland_Nied
             else:
                 file_.write("\nfrom hydpy import Element, Node")
             if aliases:
-                file_.write(f'\nfrom hydpy import {", ".join(sorted(aliases))}\n\n')
+                file_.write(f"\nfrom hydpy import {', '.join(sorted(aliases))}\n\n")
             else:
                 file_.write("\n\n")
             for fusedvariable in sorted(fusedvariables, key=str):
@@ -1376,7 +1376,7 @@ hland_T, lland_Nied
     def __dir__(self) -> List[str]:
         """
         >>> from hydpy import Selection
-        >>> 'elements' in dir(Selection('test'))
+        >>> "elements" in dir(Selection("test"))
         True
         """
         return objecttools.dir_(self)

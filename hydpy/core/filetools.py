@@ -40,7 +40,7 @@ class Folder2Path:
     >>> Folder2Path()
     Folder2Path()
     >>> f2p = Folder2Path(
-    ...     'folder1', 'folder2', folder3='folder3', folder4='path4')
+    ...     "folder1", "folder2", folder3="folder3", folder4="path4")
     >>> f2p
     Folder2Path(folder1,
                 folder2,
@@ -51,8 +51,8 @@ class Folder2Path:
 
     To add folders after initialisation is supported:
 
-    >>> f2p.add('folder5')
-    >>> f2p.add('folder6', 'path6')
+    >>> f2p.add("folder5")
+    >>> f2p.add("folder6", "path6")
     >>> f2p
     Folder2Path(folder1,
                 folder2,
@@ -63,7 +63,7 @@ class Folder2Path:
 
     Folder names are required to be valid Python identifiers:
 
-    >>> f2p.add('folder 7')
+    >>> f2p.add("folder 7")
     Traceback (most recent call last):
     ...
     ValueError: The given name string `folder 7` does not define a valid \
@@ -80,7 +80,7 @@ built-ins like `for`...)
 
     Attribute access and iteration are also supported:
 
-    >>> 'folder1' in dir(f2p)
+    >>> "folder1" in dir(f2p)
     True
     >>> f2p.folder1
     'folder1'
@@ -182,7 +182,7 @@ class FileManager:
 
         >>> from hydpy.core.filetools import FileManager
         >>> from hydpy import pub
-        >>> pub.projectname = 'project_A'
+        >>> pub.projectname = "project_A"
         >>> filemanager = FileManager()
         >>> filemanager.projectdir
         'project_A'
@@ -193,7 +193,7 @@ class FileManager:
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` \
 of object `filemanager` has not been prepared so far.
-        >>> filemanager.projectdir = 'project_B'
+        >>> filemanager.projectdir = "project_B"
         >>> filemanager.projectdir
         'project_B'
 
@@ -220,8 +220,8 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
         ...     repr_(filemanager.basepath)   # doctest: +ELLIPSIS
@@ -242,17 +242,17 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
-        ...     os.makedirs('projectname/basename/folder1')
-        ...     os.makedirs('projectname/basename/folder2')
-        ...     open('projectname/basename/folder3.zip', 'w').close()
-        ...     os.makedirs('projectname/basename/_folder4')
-        ...     open('projectname/basename/folder5.tar', 'w').close()
+        ...     os.makedirs("projectname/basename/folder1")
+        ...     os.makedirs("projectname/basename/folder2")
+        ...     open("projectname/basename/folder3.zip", "w").close()
+        ...     os.makedirs("projectname/basename/_folder4")
+        ...     open("projectname/basename/folder5.tar", "w").close()
         ...     filemanager.availabledirs   # doctest: +ELLIPSIS
         Folder2Path(folder1=.../projectname/basename/folder1,
                     folder2=.../projectname/basename/folder2,
@@ -281,14 +281,14 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = "basename"
         >>> filemanager.DEFAULTDIR = None
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
-        ...     os.makedirs('projectname/basename')
+        ...     os.makedirs("projectname/basename")
         ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename'
 
@@ -307,7 +307,7 @@ has not been defined manually and cannot be determined automatically: \
         working directory automatically:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir1')
+        ...     os.mkdir("projectname/basename/dir1")
         ...     filemanager.currentdir
         'dir1'
 
@@ -316,7 +316,7 @@ has not been defined manually and cannot be determined automatically: \
         later to the base path:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir2')
+        ...     os.mkdir("projectname/basename/dir2")
         ...     filemanager.currentdir
         'dir1'
 
@@ -338,7 +338,7 @@ has not been defined manually and cannot be determined automatically: \
         Setting |FileManager.currentdir| manually solves the problem:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'dir1'
+        ...     filemanager.currentdir = "dir1"
         ...     filemanager.currentdir
         'dir1'
 
@@ -346,7 +346,7 @@ has not been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     del filemanager.currentdir
-        ...     os.path.exists('projectname/basename/dir1')
+        ...     os.path.exists("projectname/basename/dir1")
         False
 
         |FileManager| subclasses can define a default directory name.
@@ -356,8 +356,8 @@ has not been defined manually and cannot be determined automatically: \
         without any having the default name:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir1')
-        ...     filemanager.DEFAULTDIR = 'dir3'
+        ...     os.mkdir("projectname/basename/dir1")
+        ...     filemanager.DEFAULTDIR = "dir3"
         ...     del filemanager.currentdir
         ...     filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -369,7 +369,7 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         We can fix this by adding the required default directory manually:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir3')
+        ...     os.mkdir("projectname/basename/dir3")
         ...     filemanager.currentdir
         'dir3'
 
@@ -377,11 +377,11 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         the default name but also creates the required folder:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'dir4'
+        ...     filemanager.currentdir = "dir4"
         ...     filemanager.currentdir
         'dir4'
         >>> with TestIO():
-        ...     sorted(os.listdir('projectname/basename'))
+        ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
 
         Failed attempts in removing directories result in error messages
@@ -389,7 +389,7 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
 
         >>> import shutil
         >>> from unittest.mock import patch
-        >>> with patch.object(shutil, 'rmtree', side_effect=AttributeError):
+        >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
         ...     with TestIO():
         ...         del filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -405,7 +405,7 @@ error occurred: ...
         ...     filemanager.currentdir
         'dir4'
         >>> with TestIO():
-        ...     sorted(os.listdir('projectname/basename'))
+        ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
         """
         currentdir = self._currentdir
@@ -479,11 +479,11 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
+        ...     filemanager.currentdir = "testdir"
         ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir'
         """
@@ -496,14 +496,14 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
-        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
-        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
-        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     filemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     filemanager.filenames
         ['file1.txt', 'file2.npy']
         """
@@ -518,14 +518,14 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
-        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
-        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
-        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     filemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     for filepath in filemanager.filepaths:
         ...         repr_(filepath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
@@ -548,18 +548,18 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = "basename"
         >>> filemanager.DEFAULTDIR = None
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
-        >>> basepath = 'projectname/basename'
+        >>> basepath = "projectname/basename"
         >>> with TestIO():
         ...     os.makedirs(basepath)
-        ...     filemanager.currentdir = 'folder'
-        ...     open(f'{basepath}/folder/file1.txt', 'w').close()
-        ...     open(f'{basepath}/folder/file2.txt', 'w').close()
+        ...     filemanager.currentdir = "folder"
+        ...     open(f"{basepath}/folder/file1.txt", "w").close()
+        ...     open(f"{basepath}/folder/file2.txt", "w").close()
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
@@ -587,7 +587,7 @@ error occurred: ...
 
         >>> from zipfile import ZipFile
         >>> with TestIO():
-        ...     with ZipFile('projectname/basename/folder.zip', 'r') as zp:
+        ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
         ...         sorted(zp.namelist())
         ['file1.txt', 'file2.txt']
 
@@ -595,7 +595,7 @@ error occurred: ...
         the current working directory:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'folder'
+        ...     filemanager.currentdir = "folder"
         ...     sorted(os.listdir(basepath))
         ...     filemanager.availabledirs
         ...     filemanager.filenames    # doctest: +ELLIPSIS
@@ -643,7 +643,7 @@ class NetworkManager(FileManager):
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     networkmanager.projectdir = 'LahnH'
+    ...     networkmanager.projectdir = "LahnH"
     ...     selections = networkmanager.load_files()
 
     Method |NetworkManager.load_files| takes file names as selection
@@ -670,9 +670,9 @@ class NetworkManager(FileManager):
 
     >>> import os
     >>> with TestIO():
-    ...     networkmanager.currentdir = 'testdir'
+    ...     networkmanager.currentdir = "testdir"
     ...     networkmanager.save_files(selections)
-    ...     sorted(os.listdir('LahnH/network/testdir'))
+    ...     sorted(os.listdir("LahnH/network/testdir"))
     ['headwaters.py', 'nonheadwaters.py', 'streams.py']
 
     Reloading and comparing with the still available |Selection| objects
@@ -689,7 +689,7 @@ class NetworkManager(FileManager):
     >>> selections -= selections.streams
     >>> with TestIO():
     ...     networkmanager.delete_files(selections)
-    ...     sorted(os.listdir('LahnH/network/testdir'))
+    ...     sorted(os.listdir("LahnH/network/testdir"))
     ['streams.py']
 
     When defining network files, many things can go wrong.  In the
@@ -697,15 +697,15 @@ class NetworkManager(FileManager):
     to be concrete enough to aid in finding the relevant problems:
 
     >>> with TestIO():
-    ...     networkmanager.delete_files(['headwaters'])   # doctest: +ELLIPSIS
+    ...     networkmanager.delete_files(["headwaters"])   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to remove the network files of selections \
 `['headwaters']`, the following error occurred: ...
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('x = y')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("x = y")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -713,8 +713,8 @@ class NetworkManager(FileManager):
 following error occurred: name 'y' is not defined
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('from hydpy import Node')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("from hydpy import Node")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -722,8 +722,8 @@ following error occurred: name 'y' is not defined
 `...streams.py`.
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('from hydpy import Element')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("from hydpy import Element")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -732,7 +732,7 @@ following error occurred: name 'y' is not defined
 
     >>> import shutil
     >>> with TestIO():
-    ...     shutil.rmtree('LahnH/network/testdir')
+    ...     shutil.rmtree("LahnH/network/testdir")
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -880,13 +880,13 @@ class ControlManager(FileManager):
         >>> from hydpy.core.filetools import ControlManager
         >>> controlmanager = ControlManager()
         >>> from hydpy import pub, round_, TestIO
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> with TestIO():
-        ...     controlmanager.projectdir = 'LahnH'
-        ...     results = controlmanager.load_file(filename='land_dill')
+        ...     controlmanager.projectdir = "LahnH"
+        ...     results = controlmanager.load_file(filename="land_dill")
 
 
-        >>> results['control']
+        >>> results["control"]
         area(692.3)
         nmbzones(12)
         zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
@@ -930,7 +930,7 @@ class ControlManager(FileManager):
         maxbaz(0.36728)
         abstr(0.0)
 
-        >>> results['percmax'].values
+        >>> results["percmax"].values
         0.69818
 
         Passing neither a filename nor an |Element| object raises the
@@ -1038,15 +1038,15 @@ class ConditionManager(FileManager):
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00'
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00'
 
-    >>> pub.timegrids.sim.firstdate += '1d'
-    >>> pub.timegrids.sim.lastdate -= '1d'
+    >>> pub.timegrids.sim.firstdate += "1d"
+    >>> pub.timegrids.sim.lastdate -= "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid('1996-01-01 00:00:00',
-                       '1996-01-05 00:00:00',
-                       '1d'),
-              Timegrid('1996-01-02 00:00:00',
-                       '1996-01-04 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("1996-01-01 00:00:00",
+                       "1996-01-05 00:00:00",
+                       "1d"),
+              Timegrid("1996-01-02 00:00:00",
+                       "1996-01-04 00:00:00",
+                       "1d"))
 
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
@@ -1058,7 +1058,7 @@ class ConditionManager(FileManager):
     both properties:
 
     >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     pub.conditionmanager.currentdir = 'test'
+    ...     pub.conditionmanager.currentdir = "test"
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/LahnH/conditions/test'
@@ -1343,7 +1343,7 @@ class SequenceManager(FileManager):
     for the first one):
 
     >>> from hydpy import pub
-    >>> pub.sequencemanager.generalfiletype = 'asc'
+    >>> pub.sequencemanager.generalfiletype = "asc"
     >>> from hydpy import TestIO
     >>> with TestIO():
     ...     pub.sequencemanager.save_file(sim)
@@ -1359,21 +1359,21 @@ class SequenceManager(FileManager):
     ...     with TestIO():
     ...         with open(path) as file_:
     ...             lines = file_.readlines()
-    ...     print(''.join(lines[:3]), end='')
+    ...     print("".join(lines[:3]), end="")
     ...     for line in lines[3:]:
     ...         round_([float(x) for x in line.split()])
-    >>> print_file('nodepath', 'node2_sim_t.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("nodepath", "node2_sim_t.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     64.0
     65.0
     66.0
     67.0
-    >>> print_file('outputpath', 'element2_flux_nkor.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("outputpath", "element2_flux_nkor.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.0, 17.0
     18.0, 19.0
     20.0, 21.0
@@ -1406,12 +1406,12 @@ class SequenceManager(FileManager):
     Wrongly formatted ASCII files and incomplete data should result in
     understandable error messages:
 
-    >>> path = os.path.join('nodepath', 'node2_sim_t.asc')
+    >>> path = os.path.join("nodepath", "node2_sim_t.asc")
     >>> with TestIO():
     ...     with open(path) as file_:
     ...         right = file_.read()
-    ...     wrong = right.replace('Timegrid', 'timegrid')
-    ...     with open(path, 'w') as file_:
+    ...     wrong = right.replace("Timegrid", "timegrid")
+    ...     with open(path, "w") as file_:
     ...         _ = file_.write(wrong)
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
@@ -1422,10 +1422,10 @@ node `node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
     >>> with TestIO():
-    ...     lines = right.split('\\n')
-    ...     lines[5] = 'nan'
-    ...     wrong = '\\n'.join(lines)
-    ...     with open(path, 'w') as file_:
+    ...     lines = right.split("\\n")
+    ...     lines[5] = "nan"
+    ...     wrong = "\\n".join(lines)
+    ...     with open(path, "w") as file_:
     ...         _ = file_.write(wrong)
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
@@ -1455,10 +1455,10 @@ is not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.5
     18.5
     20.5
@@ -1474,11 +1474,11 @@ is not allowed to overwrite the existing file `...`.
     >>> from hydpy.models.lland_v1 import ACKER, WASSER
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
-    ...     nkor.save_mean('acker')
-    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    ...     nkor.save_mean("acker")
+    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.0
     18.0
     20.0
@@ -1488,7 +1488,7 @@ is not allowed to overwrite the existing file `...`.
     is a good option for saving computation times, but possibly a
     problematic option for sharing data with colleagues:
 
-    >>> pub.sequencemanager.generalfiletype = 'npy'
+    >>> pub.sequencemanager.generalfiletype = "npy"
     >>> with TestIO():
     ...     sim.save_ext()
     ...     nkor.save_ext()
@@ -1496,7 +1496,7 @@ is not allowed to overwrite the existing file `...`.
     The time information (without time zone information) is available
     within the first thirteen entries:
 
-    >>> path = os.path.join('nodepath', 'node2_sim_t.npy')
+    >>> path = os.path.join("nodepath", "node2_sim_t.npy")
     >>> from hydpy import numpy, print_values
     >>> with TestIO():
     ...     print_values(numpy.load(path))
@@ -1522,9 +1522,9 @@ is not allowed to overwrite the existing file `...`.
 
     >>> import numpy
     >>> with TestIO():
-    ...     nkor.save_mean('wasser')
-    ...     numpy.load(os.path.join('outputpath',
-    ...                             'element2_flux_nkor_mean.npy'))[-4:]
+    ...     nkor.save_mean("wasser")
+    ...     numpy.load(os.path.join("outputpath",
+    ...                             "element2_flux_nkor_mean.npy"))[-4:]
     array([ 17.,  19.,  21.,  23.])
 
     Generally, trying to load data for "deactivated" sequences
@@ -1595,11 +1595,11 @@ to make any internal data available.
 
     >>> pub.sequencemanager.generalaggregation
     'none'
-    >>> pub.sequencemanager.fluxaggregation = 'mean'
+    >>> pub.sequencemanager.fluxaggregation = "mean"
     >>> pub.sequencemanager.generalaggregation
     ('mean', 'none')
 
-    >>> pub.sequencemanager.fluxaggregation = 'wrong'
+    >>> pub.sequencemanager.fluxaggregation = "wrong"
     Traceback (most recent call last):
     ...
     ValueError: The given mode `wrong` for aggregating time series \
@@ -1698,9 +1698,7 @@ is not available.  Select one of the following modes: none and mean.
             else:
                 filepath = sequence.filepath_ext
                 if (array is not None) and (array.info["type"] != "unmodified"):
-                    filepath = (
-                        f'{filepath[:-4]}_{array.info["type"]}' f"{filepath[-4:]}"
-                    )
+                    filepath = f"{filepath[:-4]}_{array.info['type']}{filepath[-4:]}"
                 if not sequence.overwrite_ext and os.path.exists(filepath):
                     raise OSError(
                         f"Sequence {objecttools.devicephrase(sequence)} "

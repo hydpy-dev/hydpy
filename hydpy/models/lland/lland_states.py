@@ -43,7 +43,7 @@ class WATS(lland_sequences.State1DSequence):
         or at least in accordance with if :math:`WATS \\geq 0`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> pwmax(2.0)
         >>> states.waes = -1., 0., 1., -1., 5., 10., 20.
@@ -70,7 +70,7 @@ class WAeS(lland_sequences.State1DSequence):
         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> pwmax(2.)
         >>> states.wats = 0., 0., 0., 5., 5., 5., 5.
@@ -122,7 +122,7 @@ class BoWa(lland_sequences.State1DSequence):
         """Trim values in accordance with :math:`BoWa \\leq WMax`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> wmax(200.)
         >>> states.bowa(-100.,0., 100., 200., 300.)
@@ -143,7 +143,7 @@ class BoWa(lland_sequences.State1DSequence):
 #         \\cdot WATS`.
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(7)
 #         >>> pwmax(2.)
 #         >>> states.stinz = 0., 0., 0., 5., 5., 5., 5.
@@ -168,7 +168,7 @@ class BoWa(lland_sequences.State1DSequence):
 #         \\cdot WATS`, or at least in accordance with if :math:`WATS \\geq 0`.
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(7)
 #         >>> pwmax(2.0)
 #         >>> states.sinz = -1., 0., 1., -1., 5., 10., 20.

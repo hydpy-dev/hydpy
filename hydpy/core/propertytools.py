@@ -24,7 +24,7 @@ def fgetdummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fgetdummy
-    >>> fgetdummy('arg1')
+    >>> fgetdummy("arg1")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fget` function `fgetdummy` \
@@ -44,7 +44,7 @@ def fsetdummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fsetdummy
-    >>> fsetdummy('arg1', 'arg2')
+    >>> fsetdummy("arg1", "arg2")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fset` function `fsetdummy` \
@@ -64,7 +64,7 @@ def fdeldummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fdeldummy
-    >>> fdeldummy('arg1')
+    >>> fdeldummy("arg1")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fdel` function `fdeldummy` \
@@ -311,8 +311,8 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
     additional information:
 
     >>> from hydpy import Element
-    >>> test.name = 'name_object'
-    >>> test.element = Element('name_element')
+    >>> test.name = "name_object"
+    >>> test.element = Element("name_element")
 
     >>> test.x
     Traceback (most recent call last):
@@ -370,14 +370,14 @@ class ProtectedProperties:
     ...
     ...     @pt.ProtectedProperty
     ...     def x(self):
-    ...         return 'this is x'
+    ...         return "this is x"
     ...     @x.setter
     ...     def x(self, value):
     ...         pass
     ...
     ...     @pt.ProtectedProperty
     ...     def z(self):
-    ...         return 'this is z'
+    ...         return "this is z"
     ...     @z.setter
     ...     def z(self, value):
     ...         pass
@@ -475,7 +475,7 @@ attribute `x` first.
     However, after assigning a value to `x`, `y` behaves like a
     "normal" property:
 
-    >>> test.x = 'anything'
+    >>> test.x = "anything"
     >>> test.y = 1
     >>> test.y
     1
@@ -560,7 +560,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     After setting custom values successfully, default properties return them:
 
     >>> test.x = 3
-    >>> test.y = 'five'
+    >>> test.y = "five"
     Traceback (most recent call last):
     ...
     ValueError: could not convert string to float: 'five'
@@ -568,7 +568,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     3
     >>> test.y
     2.0
-    >>> test.y = '4'
+    >>> test.y = "4"
     >>> test.y
     4.0
 

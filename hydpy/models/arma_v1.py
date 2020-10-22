@@ -47,25 +47,25 @@ Integration tests
 The following tests are performed over a period of 20 hours:
 
 >>> from hydpy import pub, Nodes, Element
->>> pub.timegrids = '01.01.2000 00:00',  '01.01.2000 20:00', '1h'
+>>> pub.timegrids = "01.01.2000 00:00",  "01.01.2000 20:00", "1h"
 
 Import the model and define the time settings:
 
 >>> from hydpy.models.arma_v1 import *
->>> parameterstep('1h')
+>>> parameterstep("1h")
 
 For testing purposes, the model input shall be retrieved from the nodes
 `input1` and `input2` and the model output shall be passed to node
 `output`.  Firstly, define all nodes:
 
->>> nodes = Nodes('input1', 'input2', 'output')
+>>> nodes = Nodes("input1", "input2", "output")
 
 Define the element `stream` and build the connections between
 the nodes defined above and the |arma_v1| model instance:
 
->>> stream = Element('stream',
-...                  inlets=['input1', 'input2'],
-...                  outlets='output')
+>>> stream = Element("stream",
+...                  inlets=["input1", "input2"],
+...                  outlets="output")
 >>> stream.model = model
 
 Prepare a test function object, which prints the respective values
@@ -90,7 +90,7 @@ base flow value of 2 m³/s is set for all values of the log sequences
 
 Print just the time instead of the whole date:
 
->>> test.dateformat = '%H:%M'
+>>> test.dateformat = "%H:%M"
 
 Define two flood events, one for each lake inflow:
 
@@ -117,7 +117,7 @@ time steps:
 
 .. integration-test::
 
-    >>> test('arma_v1_ma')
+    >>> test("arma_v1_ma")
     |  date |  qin | qpin | qpout | qout | output |
     -----------------------------------------------
     | 00:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
@@ -158,7 +158,7 @@ each input impulse is theoretically infinite:
 
 .. integration-test::
 
-    >>> test('arma_v1_arma')
+    >>> test("arma_v1_arma")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -194,7 +194,7 @@ time delay of exactly one hour, due to the changed MA process:
 
 .. integration-test::
 
-    >>> test('arma_v1_delay')
+    >>> test("arma_v1_delay")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -235,7 +235,7 @@ by 3 m³/s and many simulated values are negative:
     >>> nodes.input1.sequences.sim.series -= 3.0
     >>> test.inits = ((logs.login, -1.0),
     ...               (logs.logout, -1.0))
-    >>> test('arma_v1_negative_discharge')
+    >>> test("arma_v1_negative_discharge")
     |  date |  qin | qpin |     qpout |      qout |    output |
     -----------------------------------------------------------
     | 00:00 | -1.0 | -1.0 |      -1.0 |      -1.0 |      -1.0 |
@@ -280,7 +280,7 @@ are negative:
 .. integration-test::
 
     >>> responses(((1.5, -0.7), (0.0, 0.2)))
-    >>> test('arma_v1_plausibility')
+    >>> test("arma_v1_plausibility")
     |  date |  qin | qpin |     qpout |      qout |    output |
     -----------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |       2.0 |       2.0 |       2.0 |
@@ -335,7 +335,7 @@ right colums show the input and output of the ARMA model:
 
 .. integration-test::
 
-    >>> test('arma_v1_nonlinearity')
+    >>> test("arma_v1_nonlinearity")
     |  date |  qin |      qpin |         qpout |     qout |   output |
     ------------------------------------------------------------------
     | 00:00 |  2.0 | 2.0   0.0 | 2.0       0.0 |      2.0 |      2.0 |

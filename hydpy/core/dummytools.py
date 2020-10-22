@@ -20,7 +20,7 @@ class Dummies:
     >>> class Test:
     ...
     ...     def __init__(self):
-    ...         self.name = 'some_name'
+    ...         self.name = "some_name"
     ...         self.values = [1, 2, 3]
 
     As shown by the following results, neither the name nor the values of
@@ -30,7 +30,7 @@ class Dummies:
     >>> from hydpy import dummies
     >>> dummies.test = Test()
     >>> test = dummies.test
-    >>> test.name = 'different_name'
+    >>> test.name = "different_name"
     >>> dummies.test.name
     'some_name'
     >>> test.values[1] = 4
@@ -53,7 +53,7 @@ class Dummies:
     >>> from hydpy import dummies
     >>> dummies.test = Test()
     >>> test = dummies.test
-    >>> test.name = 'different_name'
+    >>> test.name = "different_name"
     >>> dummies.test.name
     'some_name'
     >>> test.values[1] = 4
@@ -90,10 +90,10 @@ class Dummies:
         >>> dummies.y = None
         >>> dummies.x
         1
-        >>> hasattr(dummies, 'y')
+        >>> hasattr(dummies, "y")
         True
         >>> dummies.clear()
-        >>> hasattr(dummies, 'x') or hasattr(dummies, 'y')
+        >>> hasattr(dummies, "x") or hasattr(dummies, "y")
         False
         """
         for name in list(vars(self)):

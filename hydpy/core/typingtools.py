@@ -33,9 +33,9 @@ class IterableNonString(abc.ABC):
     string.
 
     >>> from hydpy.core.typingtools import IterableNonString
-    >>> isinstance('asdf', IterableNonString)
+    >>> isinstance("asdf", IterableNonString)
     False
-    >>> isinstance(['asdf'], IterableNonString)
+    >>> isinstance(["asdf"], IterableNonString)
     True
     >>> issubclass(str, IterableNonString)
     False

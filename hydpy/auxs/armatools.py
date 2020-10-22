@@ -46,8 +46,7 @@ class MA:
 
     >>> import warnings
     >>> from scipy import integrate
-    >>> warnings.filterwarnings(
-    ... 'ignore', category=integrate.IntegrationWarning)
+    >>> warnings.filterwarnings("ignore", category=integrate.IntegrationWarning)
 
     The first example is a simple rectangle impuls:
 
@@ -138,8 +137,7 @@ defined by the MA coefficients 1.0, 1.0, 1.0.
 
     The next example requires reactivating the warning suppressed above:
 
-    >>> warnings.filterwarnings(
-    ...     'error', category=integrate.IntegrationWarning)
+    >>> warnings.filterwarnings("error", category=integrate.IntegrationWarning)
 
     The MA coefficients need to be approximated numerically.  For very
     spiky response function, the underlying integration algorithm might

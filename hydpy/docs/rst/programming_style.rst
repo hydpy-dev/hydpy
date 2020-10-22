@@ -201,7 +201,7 @@ to write something like:
 >>> from hydpy.models import hland
 >>> model = hland.Model()
 >>> from hydpy.core import parametertools
->>> model.parameters = parametertools.Parameters({'model':model})
+>>> model.parameters = parametertools.Parameters({"model": model})
 >>> model.parameters.control = hland.ControlParameters(model.parameters.control)
 >>> model.parameters.control.nmbzones = 2
 >>> model.parameters.control.nmbzones
@@ -212,7 +212,7 @@ allows for a much cleaner syntax:
 
 >>> del model
 >>> from hydpy.models.hland import *
->>> parameterstep('1d')
+>>> parameterstep("1d")
 >>> nmbzones(2)
 >>> nmbzones
 nmbzones(2)
@@ -240,7 +240,7 @@ string to the `outputfiletype` of an instance ofclass |SequenceManager| :
 
 >>> from hydpy.core.filetools import SequenceManager
 >>> sm = SequenceManager()
->>> sm.fluxfiletype = 'test'
+>>> sm.fluxfiletype = "test"
 Traceback (most recent call last):
   ...
 ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.
@@ -272,9 +272,9 @@ relevant |Element| object and add it to the error message:
 
 
 >>> from hydpy.models.hland import *
->>> parameterstep('1d')
+>>> parameterstep("1d")
 >>> from hydpy import Element
->>> e1 = Element('e1', outlets='n1')
+>>> e1 = Element("e1", outlets="n1")
 >>> e1.model = model
 >>> k(hq=10.0)
 Traceback (most recent call last):
@@ -284,7 +284,7 @@ ValueError: For the alternative calculation of parameter `k` of element `e1`, at
 Another recommended approach is exception chaining, for which we
 recommend using the function |augment_excmessage|:
 
->>> e1.keywords = 'correct', 'w r o n g'
+>>> e1.keywords = "correct", "w r o n g"
 Traceback (most recent call last):
 ...
 ValueError: While trying to add the keyword `w r o n g` to device e1, the following error occurred: The given name string `w r o n g` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
@@ -318,7 +318,7 @@ used to differentiate between instances, should implement instance name
 attributes, when reasonable:
 
 >>> from hydpy import Node
->>> Node('gauge1').name
+>>> Node("gauge1").name
 'gauge1'
 
 Group instances of the same type in collection objects with the same name,
@@ -337,7 +337,7 @@ recommendations when implementing new collection classes.
 Each collection object must be iterable:
 
 >>> from hydpy import Nodes
->>> nodes = Nodes('gauge1', 'gauge2')
+>>> nodes = Nodes("gauge1", "gauge2")
 >>> for node in nodes:
 ...     print(repr(node))
 Node("gauge1", variable="Q")
@@ -352,24 +352,24 @@ with the *name* attributes of the handled objects:
 Node("gauge1", variable="Q")
 >>> nodes.gauge2
 Node("gauge2", variable="Q")
->>> 'gauge1' in dir(nodes)
+>>> "gauge1" in dir(nodes)
 True
 
 Additionally, provide item access as a more type-safe and eventually
 more efficient alternative for writing complex scripts:
 
->>> nodes['gauge1']
+>>> nodes["gauge1"]
 Node("gauge1", variable="Q")
 
 Whenever useful, define convenience functions to simplify the
 handling of collection objects:
 
->>> nodes += Node('gauge1')
->>> nodes.gauge1 is Node('gauge1')
+>>> nodes += Node("gauge1")
+>>> nodes.gauge1 is Node("gauge1")
 True
 >>> len(nodes)
 2
->>> 'gauge1' in nodes
+>>> "gauge1" in nodes
 True
 >>> nodes.gauge1 in nodes
 True
@@ -378,7 +378,7 @@ True
 False
 >>> nodes.gauge1 is newnodes.gauge1
 True
->>> nodes -= 'gauge1'
+>>> nodes -= "gauge1"
 >>> 'gauge1' in nodes
 False
 
@@ -409,15 +409,15 @@ A Python example:
 
 >>> repr(None)
 'None'
->>> eval('None') is None
+>>> eval("None") is None
 True
 
 A *HydPy* example:
 
 >>> from hydpy import Node
->>> Node('gauge1')
+>>> Node("gauge1")
 Node("gauge1", variable="Q")
->>> eval('Node("gauge1", variable="Q")') is Node('gauge1')
+>>> eval('Node("gauge1", variable="Q")') is Node("gauge1")
 True
 
 In the second ideal case, evaluating the string representation results
@@ -427,19 +427,19 @@ A Python example:
 
 >>> 1.5
 1.5
->>> eval('1.5') is 1.5
+>>> eval("1.5") is 1.5
 False
->>> eval('1.5') == 1.5
+>>> eval("1.5") == 1.5
 True
 
 A *HydPy* example:
 
 >>> from hydpy import Period
->>> Period('1d')
-Period('1d')
->>> eval("Period('1d')") is Period('1d')
+>>> Period("1d")
+Period("1d")
+>>> eval('Period("1d")') is Period("1d")
 False
->>> eval("Period('1d')") == Period('1d')
+>>> eval('Period("1d")') == Period("1d")
 True
 
 For nested objects, the above goals may be hard to accomplish, but
@@ -447,19 +447,19 @@ sometimes it's worth it.
 
 A Python example:
 
->>> [1., 'a']
+>>> [1., "a"]
 [1.0, 'a']
->>> eval("[1.0, 'a']") == [1.0, 'a']
+>>> eval("[1.0, 'a']") == [1.0, "a"]
 True
 
 A *HydPy* example:
 
 >>> from hydpy import Timegrid
->>> Timegrid('01.11.1996', '1.11.2006', '1d')
-Timegrid('01.11.1996 00:00:00',
-         '01.11.2006 00:00:00',
-         '1d')
->>> eval("Timegrid('01.11.1996 00:00:00', '01.11.2006 00:00:00', '1d')") == Timegrid('01.11.1996', '1.11.2006', '1d')
+>>> Timegrid("01.11.1996", "1.11.2006", "1d")
+Timegrid("01.11.1996 00:00:00",
+         "01.11.2006 00:00:00",
+         "1d")
+>>> eval('Timegrid("01.11.1996 00:00:00", "01.11.2006 00:00:00", "1d")') == Timegrid("01.11.1996", "1.11.2006", "1d")
 True
 
 For deeply nested objects, this strategy becomes infeasible, of course.
@@ -467,7 +467,7 @@ Then try to find a way to "flatten" the string representation without
 losing too much information:
 
 >>> from hydpy import Element, Elements
->>> Elements(Element('e_1', outlets='n_1'), Element('e_2', outlets='n_2'))
+>>> Elements(Element("e_1", outlets="n_1"), Element("e_2", outlets="n_2"))
 Elements("e_1", "e_2")
 
 Finally, always consider using functions provided by module |objecttools|

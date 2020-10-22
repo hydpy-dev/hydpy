@@ -35,7 +35,7 @@ class NmbZones(parametertools.Parameter):
     Examples:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> icmax.shape
         (5,)
@@ -69,7 +69,7 @@ class ZoneType(parametertools.NameParameter):
     string representions of |ZoneType| objects:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     >>> zonetype.values
@@ -270,8 +270,8 @@ class RecStep(parametertools.Parameter):
     """Number of internal computation steps per simulation time step [-].
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
-    >>> simulationstep('12h')
+    >>> parameterstep("1d")
+    >>> simulationstep("12h")
     >>> recstep(4.2)
     >>> recstep
     recstep(4.0)
@@ -304,8 +304,8 @@ class K(parametertools.Parameter):
         aware of its time dependence:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> k(2.0)
         >>> k
         k(2.0)

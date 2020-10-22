@@ -29,7 +29,7 @@ class HV(parametertools.LeftRightParameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> bbv(left=10., right=40.)
             >>> bnv(left=10., right=20.)
             >>> derived.hv.update()
@@ -66,7 +66,7 @@ class MFM(parametertools.Parameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> ekm(2.0)
             >>> skm(50.0)
             >>> gef(0.01)
@@ -96,7 +96,7 @@ class MFV(parametertools.LeftRightParameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> ekv(left=2.0, right=4.0)
             >>> skv(left=25.0, right=50)
             >>> gef(0.01)
@@ -122,7 +122,7 @@ class BNMF(parametertools.Parameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> bnm(2.0)
             >>> derived.bnmf.update()
             >>> derived.bnmf
@@ -145,7 +145,7 @@ class BNVF(parametertools.LeftRightParameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> bnv(left=2.0, right=3.0)
             >>> derived.bnvf.update()
             >>> derived.bnvf
@@ -168,7 +168,7 @@ class BNVRF(parametertools.LeftRightParameter):
 
         Examples:
             >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> bnvr(left=2.0, right=3.0)
             >>> derived.bnvrf.update()
             >>> derived.bnvrf

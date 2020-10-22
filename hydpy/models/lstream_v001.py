@@ -88,25 +88,25 @@ through a 100 km long channel exhibiting the trapezoidal cross-section
 shown in figure 5.
 
 >>> from hydpy.models.lstream_v001 import *
->>> parameterstep('1d')
+>>> parameterstep("1d")
 
 The simulation period spans 96 hours; the simulation step is 30 minutes:
 
 >>> from hydpy import pub, Nodes, Element
->>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
+>>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 
 For testing purposes, the model retrieves its input data from two nodes
 (`input1` and `input2`) and passes its output to node `output`.  First,
 we define these nodes:
 
->>> nodes = Nodes('input1', 'input2', 'output')
+>>> nodes = Nodes("input1", "input2", "output")
 
 Second, we define the element `stream` and build the connections between
 the prepared nodes and the |lstream_v001| model instance:
 
->>> stream = Element('stream',
-...                  inlets=['input1', 'input2'],
-...                  outlets='output')
+>>> stream = Element("stream",
+...                  inlets=["input1", "input2"],
+...                  outlets="output")
 >>> stream.model = model
 
 Next, we prepare a test function object which sets the intial stage
@@ -185,7 +185,7 @@ agree very well with the results of `Todini (2007)`_ (see figure 13):
 
 .. integration-test::
 
-    >>> test('lstream_v001_main_channel_flow')
+    >>> test("lstream_v001_main_channel_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -400,7 +400,7 @@ additional storage capacities come into play:
 
 .. integration-test::
 
-    >>> test('lstream_v001_overbank_flow')
+    >>> test("lstream_v001_overbank_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -620,7 +620,7 @@ to 0.1 m):
 .. integration-test::
 
     >>> with pub.options.reprdigits(2):
-    ...     test('lstream_v001_negative_water_stage')
+    ...     test("lstream_v001_negative_water_stage")
     |                date |     qz |                                                             qg |     qa |                                     dh |                                                      h | input1 | input2 | output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |    0.0 |    0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 |    0.0 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0 |    0.0 |    0.0 |    0.0 |
@@ -941,8 +941,8 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         |lstream_v001|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
 
         >>> gts(1)
         >>> laen(100.0)

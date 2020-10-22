@@ -186,9 +186,9 @@ class Model(modeltools.AdHocModel):
         via element `branch`:
 
         >>> from hydpy import Element
-        >>> branch = Element('branch',
-        ...                  inlets=['inflow1', 'inflow2'],
-        ...                  outlets=['outflow1', 'outflow2'])
+        >>> branch = Element("branch",
+        ...                  inlets=["inflow1", "inflow2"],
+        ...                  outlets=["outflow1", "outflow2"])
 
         Then parameter |YPoints| relates different supporting points via
         its keyword arguments to the respective nodes:

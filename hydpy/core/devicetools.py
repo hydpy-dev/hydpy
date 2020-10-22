@@ -28,9 +28,9 @@ with the same name multiple times, but it returns already existing
 nodes when available:
 
 >>> from hydpy import Node
->>> node1 = Node('test1')
->>> node2a = Node('test2')
->>> node2b = Node('test2')
+>>> node1 = Node("test1")
+>>> node2a = Node("test2")
+>>> node2b = Node("test2")
 >>> node1 is node2a
 False
 >>> node2a is node2b
@@ -45,8 +45,8 @@ Nodes("test1", "test2")
 Method |Device.extract_new| returns only those nodes prepared or
 recovered after its last invocation:
 
->>> node1 = Node('test1')
->>> node3a = Node('test3')
+>>> node1 = Node("test1")
+>>> node3a = Node("test3")
 
 >>> Node.extract_new()
 Nodes("test1", "test3")
@@ -65,7 +65,7 @@ due to using their names for identification:
 >>> Node.clear_all()
 >>> Node.query_all()
 Nodes()
->>> node3b = Node('test3')
+>>> node3b = Node("test3")
 >>> node3b in nodes
 True
 >>> nodes.test3.name == node3b.name
@@ -134,10 +134,10 @@ class Keywords(set):
         """Return a list of all keywords, starting with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
-        >>> keywords = Keywords('first_keyword', 'second_keyword',
-        ...                     'keyword_3', 'keyword_4',
-        ...                     'keyboard')
-        >>> keywords.startswith('keyword')
+        >>> keywords = Keywords("first_keyword", "second_keyword",
+        ...                     "keyword_3", "keyword_4",
+        ...                     "keyboard")
+        >>> keywords.startswith("keyword")
         ['keyword_3', 'keyword_4']
         """
         return sorted(keyword for keyword in self if keyword.startswith(name))
@@ -146,10 +146,10 @@ class Keywords(set):
         """Return a list of all keywords ending with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
-        >>> keywords = Keywords('first_keyword', 'second_keyword',
-        ...                     'keyword_3', 'keyword_4',
-        ...                     'keyboard')
-        >>> keywords.endswith('keyword')
+        >>> keywords = Keywords("first_keyword", "second_keyword",
+        ...                     "keyword_3", "keyword_4",
+        ...                     "keyboard")
+        >>> keywords.endswith("keyword")
         ['first_keyword', 'second_keyword']
         """
         return sorted(keyword for keyword in self if keyword.endswith(name))
@@ -158,10 +158,10 @@ class Keywords(set):
         """Return a list of all keywords containing the given string.
 
         >>> from hydpy.core.devicetools import Keywords
-        >>> keywords = Keywords('first_keyword', 'second_keyword',
-        ...                     'keyword_3', 'keyword_4',
-        ...                     'keyboard')
-        >>> keywords.contains('keyword')
+        >>> keywords = Keywords("first_keyword", "second_keyword",
+        ...                     "keyword_3", "keyword_4",
+        ...                     "keyboard")
+        >>> keywords.contains("keyword")
         ['first_keyword', 'keyword_3', 'keyword_4', 'second_keyword']
         """
         return sorted(keyword for keyword in self if name in keyword)
@@ -181,10 +181,10 @@ class Keywords(set):
         variable identifiers.
 
         >>> from hydpy.core.devicetools import Keywords
-        >>> keywords = Keywords('first_keyword', 'second_keyword',
-        ...                     'keyword_3', 'keyword_4',
-        ...                     'keyboard')
-        >>> keywords.update('test_1', 'test 2')   # doctest: +ELLIPSIS
+        >>> keywords = Keywords("first_keyword", "second_keyword",
+        ...                     "keyword_3", "keyword_4",
+        ...                     "keyboard")
+        >>> keywords.update("test_1", "test 2")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to add the keyword `test 2` to device ?, \
@@ -200,7 +200,7 @@ define a valid variable identifier.  ...
 
         After correcting the second string, everything works fine:
 
-        >>> keywords.update('test_1', 'test_2')
+        >>> keywords.update("test_1", "test_2")
         >>> keywords
         Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
                  "second_keyword", "test_1", "test_2")
@@ -214,10 +214,10 @@ define a valid variable identifier.  ...
         identifiers.
 
         >>> from hydpy.core.devicetools import Keywords
-        >>> keywords = Keywords('first_keyword', 'second_keyword',
-        ...                     'keyword_3', 'keyword_4',
-        ...                     'keyboard')
-        >>> keywords.add('1_test')   # doctest: +ELLIPSIS
+        >>> keywords = Keywords("first_keyword", "second_keyword",
+        ...                     "keyword_3", "keyword_4",
+        ...                     "keyboard")
+        >>> keywords.add("1_test")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to add the keyword `1_test` to device ?, \
@@ -230,7 +230,7 @@ define a valid variable identifier.  ...
 
         After correcting the string, everything works fine:
 
-        >>> keywords.add('one_test')
+        >>> keywords.add("one_test")
         >>> keywords
         Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
                  "one_test", "second_keyword")
@@ -286,9 +286,9 @@ class FusedVariable:
 
     >>> from hydpy import FusedVariable
     >>> from hydpy import evap_ReferenceEvapotranspiration, lland_PET
-    >>> E = FusedVariable('E', evap_ReferenceEvapotranspiration, lland_PET)
+    >>> E = FusedVariable("E", evap_ReferenceEvapotranspiration, lland_PET)
     >>> from hydpy import evap_AirTemperature, lland_TemL
-    >>> T = FusedVariable('T', evap_AirTemperature, lland_TemL)
+    >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     Now we can construct the network:
 
@@ -303,18 +303,18 @@ class FusedVariable:
        `evap` and `lland`.  Node `t2` thus receives the fused variable `T`.
 
     >>> from hydpy import Node, Element
-    >>> t1 = Node('t1', variable='Temp')
-    >>> t2 = Node('t2', variable=T)
-    >>> e = Node('e', variable=E)
-    >>> conv = Element('element_conv',
+    >>> t1 = Node("t1", variable="Temp")
+    >>> t2 = Node("t2", variable=T)
+    >>> e = Node("e", variable=E)
+    >>> conv = Element("element_conv",
     ...                inlets=t1,
     ...                outlets=t2)
-    >>> evap = Element('element_evap',
+    >>> evap = Element("element_evap",
     ...                inputs=t2,
     ...                outputs=e)
-    >>> lland = Element('element_lland',
+    >>> lland = Element("element_lland",
     ...                 inputs=(t2, e),
-    ...                 outlets='node_q')
+    ...                 outlets="node_q")
 
     Now we can prepare the different model objects and assign them to their
     corresponding elements (note that parameters |conv_control.InputCoordinates|
@@ -322,14 +322,14 @@ class FusedVariable:
     information on the location of the relevant nodes):
 
     >>> from hydpy import prepare_model
-    >>> model_conv = prepare_model('conv_v001')
+    >>> model_conv = prepare_model("conv_v001")
     >>> model_conv.parameters.control.inputcoordinates(t1=(0, 0))
     >>> model_conv.parameters.control.outputcoordinates(t2=(1, 1))
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model('evap_v001')
-    >>> lland.model = prepare_model('lland_v2')
+    >>> evap.model = prepare_model("evap_v001")
+    >>> lland.model = prepare_model("lland_v2")
 
     We assign a temperature value to node `t1`:
 
@@ -376,14 +376,14 @@ class FusedVariable:
     files repeatedly.  Hence, when we repeat the definition from above,
     we get the same object:
 
-    >>> Test = FusedVariable('T', evap_AirTemperature, lland_TemL)
+    >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
     >>> T is Test
     True
 
     Changing the member sequences of an existing fused variable is not allowed:
 
     >>> from hydpy import hland_T
-    >>> FusedVariable('T', hland_T, lland_TemL)
+    >>> FusedVariable("T", hland_T, lland_TemL)
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be \
@@ -395,7 +395,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
     Defining additional fused variables with the same member sequences does
     not seem advisable, but is allowed:
 
-    >>> Temp = FusedVariable('Temp', evap_AirTemperature, lland_TemL)
+    >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
     >>> T is Temp
     False
 
@@ -414,7 +414,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
     >>> FusedVariable.get_registry()
     ()
     >>> t2.variable
-    FusedVariable('T', evap_AirTemperature, lland_TemL)
+    FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     .. testsetup::
 
@@ -492,7 +492,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
         return self._name
 
     def __repr__(self) -> str:
-        return f'FusedVariable(\'{self._name}\', {", ".join(self._aliases)})'
+        return f'FusedVariable("{self._name}", {", ".join(self._aliases)})'
 
 
 class Devices(Generic[DeviceType]):
@@ -506,11 +506,11 @@ class Devices(Generic[DeviceType]):
     already existing nodes automatically:
 
     >>> from hydpy import Node, Nodes
-    >>> nodes = Nodes('na',
-    ...               Node('nb', variable='W'),
-    ...               Node('nc', keywords=('group_a', 'group_1')),
-    ...               Node('nd', keywords=('group_a', 'group_2')),
-    ...               Node('ne', keywords=('group_b', 'group_1')))
+    >>> nodes = Nodes("na",
+    ...               Node("nb", variable="W"),
+    ...               Node("nc", keywords=("group_a", "group_1")),
+    ...               Node("nd", keywords=("group_a", "group_2")),
+    ...               Node("ne", keywords=("group_b", "group_1")))
 
     |Nodes| and |Elements| objects are containers supporting attribute
     access. You can access each node or element directly by its name:
@@ -546,10 +546,10 @@ which could be returned.
 
     Attribute deleting is supported:
 
-    >>> 'na' in nodes
+    >>> "na" in nodes
     True
     >>> del nodes.na
-    >>> 'na' in nodes
+    >>> "na" in nodes
     False
     >>> del nodes.na
     Traceback (most recent call last):
@@ -562,7 +562,7 @@ other attributes is not supported.
     access could result in inconsistencies and is not allowed (see method
     |Devices.add_device| instead):
 
-    >>> nodes.NF = Node('nf')
+    >>> nodes.NF = Node("nf")
     Traceback (most recent call last):
     ...
     AttributeError: Setting attributes of Nodes objects could result \
@@ -574,7 +574,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     >>> len(nodes)
     4
     >>> for node in nodes:
-    ...     print(node.name, end=',')
+    ...     print(node.name, end=",")
     nb,nc,nd,ne,
 
     The binary operators `+`, `+=`, `-` and `-=` support adding and removing
@@ -605,7 +605,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     Nodes("nb", "nc", "nd", "ne")
     >>> nodes + ("nc", "ne")
     Nodes("nb", "nc", "nd", "ne")
-    >>> nodes - Node('na')
+    >>> nodes - Node("na")
     Nodes("nb", "nc", "nd", "ne")
 
     Comparisons are supported, with "x < y" being |True|, if "x" is
@@ -616,9 +616,9 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     (True, False, False)
     >>> subgroup <= nodes, nodes <= subgroup, nodes <= nodes
     (True, False, True)
-    >>> subgroup == nodes, nodes == subgroup, nodes == nodes, nodes == 'nodes'
+    >>> subgroup == nodes, nodes == subgroup, nodes == nodes, nodes == "nodes"
     (False, False, True, False)
-    >>> subgroup != nodes, nodes != subgroup, nodes != nodes, nodes != 'nodes'
+    >>> subgroup != nodes, nodes != subgroup, nodes != nodes, nodes != "nodes"
     (True, True, False, True)
     >>> subgroup >= nodes, nodes >= subgroup, nodes >= nodes
     (False, True, True)
@@ -629,7 +629,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     in errors like the following:
 
     >>> from hydpy import Element
-    >>> Nodes('na', Element('ea'))
+    >>> Nodes("na", Element("ea"))
     Traceback (most recent call last):
     ...
     TypeError: While trying to initialise a `Nodes` object, the following \
@@ -677,10 +677,10 @@ of the following classes: Node and str.
 
         >>> from hydpy import Nodes
         >>> nodes = Nodes()
-        >>> nodes.add_device('old_node')
+        >>> nodes.add_device("old_node")
         >>> nodes
         Nodes("old_node")
-        >>> nodes.add_device('new_node')
+        >>> nodes.add_device("new_node")
         >>> nodes
         Nodes("new_node", "old_node")
 
@@ -688,7 +688,7 @@ of the following classes: Node and str.
         and |Elements| objects:
 
         >>> nodes.mutable = False
-        >>> nodes.add_device('newest_node')
+        >>> nodes.add_device("newest_node")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to add the device `newest_node` to a \
@@ -718,15 +718,15 @@ Nodes objects is not allowed.
         You can pass either a string or a device:
 
         >>> from hydpy import Node, Nodes
-        >>> nodes = Nodes('node_x', 'node_y')
+        >>> nodes = Nodes("node_x", "node_y")
         >>> node_x, node_y = nodes
-        >>> nodes.remove_device(Node('node_y'))
+        >>> nodes.remove_device(Node("node_y"))
         >>> nodes
         Nodes("node_x")
-        >>> nodes.remove_device(Node('node_x'))
+        >>> nodes.remove_device(Node("node_x"))
         >>> nodes
         Nodes()
-        >>> nodes.remove_device(Node('node_z'))
+        >>> nodes.remove_device(Node("node_z"))
         Traceback (most recent call last):
         ...
         ValueError: While trying to remove the device `node_z` from a \
@@ -737,7 +737,7 @@ not handle such a device.
         and |Elements| objects:
 
         >>> nodes.mutable = False
-        >>> nodes.remove_device('node_z')
+        >>> nodes.remove_device("node_z")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to remove the device `node_z` from a \
@@ -771,7 +771,7 @@ immutable Nodes objects is not allowed.
         """A sorted tuple of the names of the handled devices.
 
         >>> from hydpy import Nodes
-        >>> Nodes('a', 'c', 'b').names
+        >>> Nodes("a", "c", "b").names
         ('a', 'b', 'c')
         """
         return tuple(device.name for device in self)
@@ -781,7 +781,7 @@ immutable Nodes objects is not allowed.
         """A tuple of the handled devices sorted by the device names.
 
         >>> from hydpy import Nodes
-        >>> for node in Nodes('a', 'c', 'b').devices:
+        >>> for node in Nodes("a", "c", "b").devices:
         ...     print(repr(node))
         Node("a", variable="Q")
         Node("b", variable="Q")
@@ -802,11 +802,11 @@ immutable Nodes objects is not allowed.
         to either `group_a` or `group_b` and `group_1` or `group_2`:
 
         >>> from hydpy import Node, Nodes
-        >>> nodes = Nodes('na',
-        ...               Node('nb', variable='W'),
-        ...               Node('nc', keywords=('group_a', 'group_1')),
-        ...               Node('nd', keywords=('group_a', 'group_2')),
-        ...               Node('ne', keywords=('group_b', 'group_1')))
+        >>> nodes = Nodes("na",
+        ...               Node("nb", variable="W"),
+        ...               Node("nc", keywords=("group_a", "group_1")),
+        ...               Node("nd", keywords=("group_a", "group_2")),
+        ...               Node("ne", keywords=("group_b", "group_1")))
         >>> nodes
         Nodes("na", "nb", "nc", "nd", "ne")
         >>> sorted(nodes.keywords)
@@ -856,16 +856,16 @@ immutable Nodes objects is not allowed.
         keywords and return them.
 
         >>> from hydpy import Node, Nodes
-        >>> nodes = Nodes('na',
-        ...               Node('nb', variable='W'),
-        ...               Node('nc', keywords=('group_a', 'group_1')),
-        ...               Node('nd', keywords=('group_a', 'group_2')),
-        ...               Node('ne', keywords=('group_b', 'group_1')))
-        >>> nodes.search_keywords('group_c')
+        >>> nodes = Nodes("na",
+        ...               Node("nb", variable="W"),
+        ...               Node("nc", keywords=("group_a", "group_1")),
+        ...               Node("nd", keywords=("group_a", "group_2")),
+        ...               Node("ne", keywords=("group_b", "group_1")))
+        >>> nodes.search_keywords("group_c")
         Nodes()
-        >>> nodes.search_keywords('group_a')
+        >>> nodes.search_keywords("group_a")
         Nodes("nc", "nd")
-        >>> nodes.search_keywords('group_a', 'group_1')
+        >>> nodes.search_keywords("group_a", "group_1")
         Nodes("nc", "nd", "ne")
         """
         keywords_ = set(keywords)
@@ -892,7 +892,7 @@ immutable Nodes objects is not allowed.
         |Elements| objects, due to their devices being not copyable:
 
         >>> from hydpy import Nodes
-        >>> old = Nodes('x', 'y')
+        >>> old = Nodes("x", "y")
         >>> import copy
         >>> new = copy.copy(old)
         >>> new == old
@@ -907,7 +907,7 @@ immutable Nodes objects is not allowed.
         Changing the |Device.name| of a device is recognised both by the
         original and the copied collection objects:
 
-        >>> new.x.name = 'z'
+        >>> new.x.name = "z"
         >>> old.z
         Node("z", variable="Q")
         >>> new.z
@@ -1095,9 +1095,9 @@ which is in conflict with using their names as identifiers.
 
         >>> from hydpy import Node, Nodes
         >>> from hydpy.core.objecttools import assignrepr_values
-        >>> nodes = Nodes(Node('name1', keywords='keyword1'),
-        ...               Node('name2', keywords=('keyword2a', 'keyword2a')))
-        >>> print(assignrepr_values(dir(nodes), '', 70))
+        >>> nodes = Nodes(Node("name1", keywords="keyword1"),
+        ...               Node("name2", keywords=("keyword2a", "keyword2a")))
+        >>> print(assignrepr_values(dir(nodes), "", 70))
         add_device, assignrepr, close_files, copy, devices, forceiterable,
         get_contentclass, keyword1, keyword2a, keywords, load_allseries,
         load_obsseries, load_simseries, mutable, name1, name2, names,
@@ -1192,9 +1192,9 @@ class Nodes(Devices["Node"]):
         """Return a set of the variables of all handled |Node| objects.
 
         >>> from hydpy import Node, Nodes
-        >>> nodes = Nodes(Node('x1'),
-        ...               Node('x2', variable='Q'),
-        ...               Node('x3', variable='H'))
+        >>> nodes = Nodes(Node("x1"),
+        ...               Node("x2", variable="Q"),
+        ...               Node("x3", variable="H"))
         >>> sorted(nodes.variables)
         ['H', 'Q']
         """
@@ -1226,8 +1226,8 @@ class Elements(Devices["Element"]):
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-02-01', '1d'
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-02-01", "1d"
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         >>> hp.elements.land_dill.model.parameters.derived.dt
@@ -1236,8 +1236,8 @@ class Elements(Devices["Element"]):
         Wrong control files result in error messages like the following:
 
         >>> with TestIO():
-        ...     with open('LahnH/control/default/land_dill.py', 'a') as file_:
-        ...         _ = file_.write('zonetype(-1)')
+        ...     with open("LahnH/control/default/land_dill.py", "a") as file_:
+        ...         _ = file_.write("zonetype(-1)")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -1251,14 +1251,14 @@ parameter `zonetype` of element `?` is not valid.
         >>> del hp.elements.land_dill.model
         >>> import os
         >>> with TestIO():
-        ...     os.remove('LahnH/control/default/land_dill.py')
+        ...     os.remove("LahnH/control/default/land_dill.py")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to initialise the model object of \
 element `land_dill`, the following error occurred: While trying to load the \
 control file `...land_dill.py`, the following error occurred: ...
-        >>> hasattr(hp.elements.land_dill, 'model')
+        >>> hasattr(hp.elements.land_dill, "model")
         False
 
         When building new, still incomplete *HydPy* projects, this behaviour
@@ -1273,7 +1273,7 @@ control file `...land_dill.py`, the following error occurred: ...
         ...
         UserWarning: Due to a missing or no accessible control file, \
 no model could be initialised for element `land_dill`
-        >>> hasattr(hp.elements.land_dill, 'model')
+        >>> hasattr(hp.elements.land_dill, "model")
         False
         """
         try:
@@ -1287,7 +1287,7 @@ no model could be initialised for element `land_dill`
 
         >>> from hydpy import Elements
         >>> from unittest import mock
-        >>> with mock.patch.object(Elements, 'prepare_models') as mocked:
+        >>> with mock.patch.object(Elements, "prepare_models") as mocked:
         ...     elements = Elements()
         ...     elements.init_models()
         Traceback (most recent call last):
@@ -1531,23 +1531,23 @@ class Device(Generic[DevicesTypeUnbound]):
 
         >>> from hydpy import Node
         >>> Node.clear_all()
-        >>> node1, node2 = Node('n1'), Node('n2')
-        >>> node1 is Node('n1')
+        >>> node1, node2 = Node("n1"), Node("n2")
+        >>> node1 is Node("n1")
         True
-        >>> node1 is Node('n2')
+        >>> node1 is Node("n2")
         False
 
         Each device name must be a valid variable identifier (see function
         |valid_variable_identifier|), to allow for attribute access:
 
         >>> from hydpy import Nodes
-        >>> nodes = Nodes(node1, 'n2')
+        >>> nodes = Nodes(node1, "n2")
         >>> nodes.n1
         Node("n1", variable="Q")
 
         Invalid variable identifiers result in errors like the following:
 
-        >>> node3 = Node('n 3')   # doctest: +ELLIPSIS
+        >>> node3 = Node("n 3")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialize a `Node` object with value \
@@ -1560,7 +1560,7 @@ class Device(Generic[DevicesTypeUnbound]):
 
         >>> Node.query_all()
         Nodes("n1", "n2")
-        >>> node1.name = 'n1a'
+        >>> node1.name = "n1a"
         >>> nodes
         Nodes("n1a", "n2")
         >>> Node.query_all()
@@ -1598,22 +1598,22 @@ class Device(Generic[DevicesTypeUnbound]):
         The keywords are contained within a |Keywords| object:
 
         >>> from hydpy import Node
-        >>> node = Node('n', keywords='word0')
+        >>> node = Node("n", keywords="word0")
         >>> node.keywords
         Keywords("word0")
 
         Assigning new words does not overwrite already existing ones.
         You are allowed to add them individually or within iterable objects:
 
-        >>> node.keywords = 'word1'
-        >>> node.keywords = 'word2', 'word3'
+        >>> node.keywords = "word1"
+        >>> node.keywords = "word2", "word3"
         >>> node.keywords
         Keywords("word0", "word1", "word2", "word3")
 
         Additionally, passing additional keywords to the constructor
         of class |Node| or |Element| works also fine:
 
-        >>> Node('n', keywords=('word3', 'word4', 'word5'))
+        >>> Node("n", keywords=("word3", "word4", "word5"))
         Node("n", variable="Q",
              keywords=["word0", "word1", "word2", "word3", "word4", "word5"])
 
@@ -1648,7 +1648,7 @@ class Node(Device[Nodes]):
     simulated values and an |Obs| object for measured values:
 
     >>> from hydpy import Node
-    >>> node = Node('test')
+    >>> node = Node("test")
     >>> for sequence in node.sequences:
     ...     print(sequence)
     sim(0.0)
@@ -1665,11 +1665,11 @@ class Node(Device[Nodes]):
 
     You cannot (or at least should not) add new elements manually:
 
-    >>> node.entries = 'element'
+    >>> node.entries = "element"
     Traceback (most recent call last):
     ...
     AttributeError: can't set attribute
-    >>> node.exits.add_device('element')
+    >>> node.exits.add_device("element")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to add the device `element` to a \
@@ -1742,7 +1742,7 @@ immutable Elements objects is not allowed.
         By default, we suppose that nodes route discharge:
 
         >>> from hydpy import Node
-        >>> node = Node('test1')
+        >>> node = Node("test1")
         >>> node.variable
         'Q'
 
@@ -1750,10 +1750,10 @@ immutable Elements objects is not allowed.
         acceptable (for further information see the documentation on
         method |Model.connect|):
 
-        >>> Node('test2', variable='H')
+        >>> Node("test2", variable="H")
         Node("test2", variable="H")
         >>> from hydpy.models.hland.hland_inputs import T
-        >>> Node('test3', variable=T)
+        >>> Node("test3", variable=T)
         Node("test3", variable=hland_T)
 
         The last above example shows that the string representations of
@@ -1761,7 +1761,7 @@ immutable Elements objects is not allowed.
         the top-level of the *HydPy* package:
 
         >>> from hydpy import hland_P
-        >>> Node('test4', variable=hland_P)
+        >>> Node("test4", variable=hland_P)
         Node("test4", variable=hland_P)
 
         For some complex *HydPy* projects, one may need to fall back on
@@ -1769,17 +1769,17 @@ immutable Elements objects is not allowed.
         on the name of the fused variable:
 
         >>> from hydpy import FusedVariable, lland_Nied
-        >>> Precipitation = FusedVariable('Precip', hland_P, lland_Nied)
-        >>> Node('test5', variable=Precipitation)
+        >>> Precipitation = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> Node("test5", variable=Precipitation)
         Node("test5", variable=Precip)
 
         To avoid confusion, one cannot change property |Node.variable|:
 
-        >>> node.variable = 'H'
+        >>> node.variable = "H"
         Traceback (most recent call last):
         ...
         AttributeError: can't set attribute
-        >>> Node('test1', variable='H')
+        >>> Node("test1", variable="H")
         Traceback (most recent call last):
         ...
         ValueError: The variable to be represented by a Node instance \
@@ -1831,25 +1831,25 @@ Keep in mind, that `name` is the unique identifier of node objects.
         class |HydPy|, which provides for some application examples.
 
         >>> from hydpy import Node
-        >>> node = Node('test')
+        >>> node = Node("test")
         >>> node.deploymode
         'newsim'
-        >>> node.deploymode = 'obs'
+        >>> node.deploymode = "obs"
         >>> node.deploymode
         'obs'
-        >>> node.deploymode = 'oldsim'
+        >>> node.deploymode = "oldsim"
         >>> node.deploymode
         'oldsim'
-        >>> node.deploymode = 'obs_newsim'
+        >>> node.deploymode = "obs_newsim"
         >>> node.deploymode
         'obs_newsim'
-        >>> node.deploymode = 'obs_oldsim'
+        >>> node.deploymode = "obs_oldsim"
         >>> node.deploymode
         'obs_oldsim'
-        >>> node.deploymode = 'newsim'
+        >>> node.deploymode = "newsim"
         >>> node.deploymode
         'newsim'
-        >>> node.deploymode = 'oldobs'
+        >>> node.deploymode = "oldobs"
         Traceback (most recent call last):
         ...
         ValueError: When trying to set the routing mode of node `test`, \
@@ -1887,7 +1887,7 @@ the value `oldobs` was given, but only the following values are allowed: \
         observation values:
 
         >>> from hydpy import Node
-        >>> node = Node('node1')
+        >>> node = Node("node1")
         >>> node.sequences.sim = 1.0
         >>> node.sequences.obs = 2.0
 
@@ -1898,14 +1898,14 @@ the value `oldobs` was given, but only the following values are allowed: \
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
-        ...     for group in ('inlets', 'receivers', 'outlets', 'senders'):
+        ...     for group in ("inlets", "receivers", "outlets", "senders"):
         ...         print(group, node.get_double(group))
 
         In the default mode, nodes (passively) route simulated values
         through offering the |Double| object of sequence |Sim| to all
         |Element| input and output groups:
 
-        >>> test('newsim')
+        >>> test("newsim")
         inlets 1.0
         receivers 1.0
         outlets 1.0
@@ -1915,7 +1915,7 @@ the value `oldobs` was given, but only the following values are allowed: \
         simulated values (from group `outlets` or `senders`), but provides
         observed values (to group `inlets` or `receivers`):
 
-        >>> test('obs')
+        >>> test("obs")
         inlets 2.0
         receivers 2.0
         outlets 1.0
@@ -1927,7 +1927,7 @@ the value `oldobs` was given, but only the following values are allowed: \
         returns a dummy |Double| object with value 0.0 in this case
         (for group `outlets` or `senders`):
 
-        >>> test('oldsim')
+        >>> test("oldsim")
         inlets 1.0
         receivers 1.0
         outlets 0.0
@@ -1935,7 +1935,7 @@ the value `oldobs` was given, but only the following values are allowed: \
 
         Other |Element| input or output groups are not supported:
 
-        >>> node.get_double('test')
+        >>> node.get_double("test")
         Traceback (most recent call last):
         ...
         ValueError: Function `get_double` of class `Node` does not support \
@@ -1960,7 +1960,7 @@ the given group name `test`.
         """Reset the actual value of the simulation sequence to zero.
 
         >>> from hydpy import Node
-        >>> node = Node('node1')
+        >>> node = Node("node1")
         >>> node.sequences.sim = 1.0
         >>> node.reset()
         >>> node.sequences.sim
@@ -2022,7 +2022,7 @@ the given group name `test`.
         based on the `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, _, _ = prepare_full_example_2(lastdate='1997-01-01')
+        >>> hp, _, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         We perform a simulation run and calculate "observed" values for
         node `dill`:
@@ -2048,14 +2048,14 @@ the given group name `test`.
         arguments supported by `matplotlib`:
 
         >>> lahn_1.sequences.obs.series = lahn_1.sequences.sim.series + 10.0
-        >>> lahn_1.plot_obsseries(color='black', linestyle='dashed')
+        >>> lahn_1.plot_obsseries(color="black", linestyle="dashed")
 
         Use the `pyplot` API of `matplotlib` directly for further
         plot handling, e.g. for saving figures to disk:
 
         >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + '/Node_plot_allseries_1.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/Node_plot_allseries_1.png")
         >>> pyplot.close()
 
         .. image:: Node_plot_allseries_1.png
@@ -2063,9 +2063,9 @@ the given group name `test`.
         You can overwrite the time-series label, but doing so is most likely
         useful when plotting the time-series individually, of course:
 
-        >>> lahn_1.plot_obsseries(color='blue', label='measured')
-        >>> lahn_1.plot_simseries(color='red', label='calculated')
-        >>> pyplot.savefig(figs.__path__[0] + '/Node_plot_allseries_2.png')
+        >>> lahn_1.plot_obsseries(color="blue", label="measured")
+        >>> lahn_1.plot_simseries(color="red", label="calculated")
+        >>> pyplot.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
         >>> pyplot.close()
 
         .. image:: Node_plot_allseries_2.png
@@ -2113,7 +2113,7 @@ the given group name `test`.
         elif isinstance(variable, FusedVariable):
             variable = str(variable)
         else:
-            variable = f'{variable.__module__.split(".")[2]}_' f"{variable.__name__}"
+            variable = f"{variable.__module__.split('.')[2]}_{variable.__name__}"
         lines = [f'{prefix}Node("{self.name}", variable={variable},']
         if self.keywords:
             subprefix = f'{" "*(len(prefix)+5)}keywords='
@@ -2156,10 +2156,10 @@ class Element(Device[Elements]):
     within an iterable object:
 
     >>> from hydpy import Element, Node
-    >>> Element('test',
-    ...         inlets='inl1',
-    ...         outlets=Node('outl1'),
-    ...         receivers=('rec1', Node('rec2')))
+    >>> Element("test",
+    ...         inlets="inl1",
+    ...         outlets=Node("outl1"),
+    ...         receivers=("rec1", Node("rec2")))
     Element("test",
             inlets="inl1",
             outlets="outl1",
@@ -2168,12 +2168,12 @@ class Element(Device[Elements]):
     Repeating such a statement with different nodes adds them to the
     existing ones without any conflict in case of repeated specifications:
 
-    >>> Element('test',
-    ...         inlets='inl1',
-    ...         receivers=('rec2', 'rec3'),
-    ...         senders='sen1',
-    ...         inputs='inp1',
-    ...         outputs='outp1')
+    >>> Element("test",
+    ...         inlets="inl1",
+    ...         receivers=("rec2", "rec3"),
+    ...         senders="sen1",
+    ...         inputs="inp1",
+    ...         outputs="outp1")
     Element("test",
             inlets="inl1",
             outlets="outl1",
@@ -2184,13 +2184,13 @@ class Element(Device[Elements]):
 
     Subsequent adding of nodes also works via property access:
 
-    >>> test = Element('test')
-    >>> test.inlets = 'inl2'
+    >>> test = Element("test")
+    >>> test.inlets = "inl2"
     >>> test.outlets = None
     >>> test.receivers = ()
-    >>> test.senders = 'sen2', Node('sen3')
+    >>> test.senders = "sen2", Node("sen3")
     >>> test.inputs = []
-    >>> test.outputs = Node('outp2')
+    >>> test.outputs = Node("outp2")
     >>> test
     Element("test",
             inlets=["inl1", "inl2"],
@@ -2204,19 +2204,19 @@ class Element(Device[Elements]):
     an element should never handle an `inlet` node that it also handles as an
     `outlet`, `input`, or `output` node:
 
-    >>> test.inlets = 'outl1'
+    >>> test.inlets = "outl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given inlet node `outl1` is already \
 defined as a(n) outlet node, which is not allowed.
 
-    >>> test.inlets = 'inp1'
+    >>> test.inlets = "inp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given inlet node `inp1` is already \
 defined as a(n) input node, which is not allowed.
 
-    >>> test.inlets = 'outp1'
+    >>> test.inlets = "outp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given inlet node `outp1` is already \
@@ -2224,19 +2224,19 @@ defined as a(n) output node, which is not allowed.
 
     Similar holds for the `outlet` nodes:
 
-    >>> test.outlets = 'inl1'
+    >>> test.outlets = "inl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given outlet node `inl1` is already \
 defined as a(n) inlet node, which is not allowed.
 
-    >>> test.outlets = 'inp1'
+    >>> test.outlets = "inp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given outlet node `inp1` is already \
 defined as a(n) input node, which is not allowed.
 
-    >>> test.outlets = 'outp1'
+    >>> test.outlets = "outp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given outlet node `outp1` is already \
@@ -2244,19 +2244,19 @@ defined as a(n) output node, which is not allowed.
 
     The following restrictions hold for the `sender` nodes:
 
-    >>> test.senders = 'rec1'
+    >>> test.senders = "rec1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given sender node `rec1` is already \
 defined as a(n) receiver node, which is not allowed.
 
-    >>> test.senders = 'inp1'
+    >>> test.senders = "inp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given sender node `inp1` is already \
 defined as a(n) input node, which is not allowed.
 
-    >>> test.senders = 'outp1'
+    >>> test.senders = "outp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given sender node `outp1` is already \
@@ -2264,19 +2264,19 @@ defined as a(n) output node, which is not allowed.
 
     The following restrictions hold for the `receiver` nodes:
 
-    >>> test.receivers = 'sen1'
+    >>> test.receivers = "sen1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given receiver node `sen1` is already \
 defined as a(n) sender node, which is not allowed.
 
-    >>> test.receivers = 'inp1'
+    >>> test.receivers = "inp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given receiver node `inp1` is already \
 defined as a(n) input node, which is not allowed.
 
-    >>> test.receivers = 'outp1'
+    >>> test.receivers = "outp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given receiver node `outp1` is already \
@@ -2284,31 +2284,31 @@ defined as a(n) output node, which is not allowed.
 
     The following restrictions hold for the `input` nodes:
 
-    >>> test.inputs = 'outp1'
+    >>> test.inputs = "outp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given input node `outp1` is already \
 defined as a(n) output node, which is not allowed.
 
-    >>> test.inputs = 'inl1'
+    >>> test.inputs = "inl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given input node `inl1` is already \
 defined as a(n) inlet node, which is not allowed.
 
-    >>> test.inputs = 'outl1'
+    >>> test.inputs = "outl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given input node `outl1` is already \
 defined as a(n) outlet node, which is not allowed.
 
-    >>> test.inputs = 'sen1'
+    >>> test.inputs = "sen1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given input node `sen1` is already \
 defined as a(n) sender node, which is not allowed.
 
-    >>> test.inputs = 'rec1'
+    >>> test.inputs = "rec1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given input node `rec1` is already \
@@ -2316,31 +2316,31 @@ defined as a(n) receiver node, which is not allowed.
 
    The following restrictions hold for the `output` nodes:
 
-    >>> test.outputs = 'inp1'
+    >>> test.outputs = "inp1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given output node `inp1` is already \
 defined as a(n) input node, which is not allowed.
 
-    >>> test.outputs = 'inl1'
+    >>> test.outputs = "inl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given output node `inl1` is already \
 defined as a(n) inlet node, which is not allowed.
 
-    >>> test.outputs = 'outl1'
+    >>> test.outputs = "outl1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given output node `outl1` is already \
 defined as a(n) outlet node, which is not allowed.
 
-    >>> test.outputs = 'sen1'
+    >>> test.outputs = "sen1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given output node `sen1` is already \
 defined as a(n) sender node, which is not allowed.
 
-    >>> test.outputs = 'rec1'
+    >>> test.outputs = "rec1"
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given output node `rec1` is already \
@@ -2349,7 +2349,7 @@ defined as a(n) receiver node, which is not allowed.
     Note that the discussed |Nodes| objects are immutable by default,
     disallowing to change them in other ways as described above:
 
-    >>> test.inlets += 'inl3'
+    >>> test.inlets += "inl3"
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to add the device `inl3` to a Nodes object, \
@@ -2359,7 +2359,7 @@ is not allowed.
     Setting their `mutable` flag to |True| changes this behaviour:
 
     >>> test.inlets.mutable = True
-    >>> test.inlets.add_device('inl3')
+    >>> test.inlets.add_device("inl3")
 
     However, then it is up to you to make sure that the added node also
     handles the relevant element in the suitable group.  In the given
@@ -2584,7 +2584,7 @@ is not allowed.
         which model they require:
 
         >>> from hydpy import Element
-        >>> hland = Element('hland', outlets='outlet')
+        >>> hland = Element("hland", outlets="outlet")
         >>> hland.model
         Traceback (most recent call last):
         ...
@@ -2595,13 +2595,13 @@ requested but not been prepared so far.
         shell, it is often convenient to assign a |model| directly.
 
         >>> from hydpy.models.hland_v1 import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> hland.model = model
         >>> hland.model.name
         'hland_v1'
 
         >>> del hland.model
-        >>> hasattr(hland, 'model')
+        >>> hasattr(hland, "model")
         False
 
         For the "usual" approach to prepare models, please see the method
@@ -2617,9 +2617,9 @@ requested but not been prepared so far.
 
         >>> from hydpy import Element, Node, reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> element = Element('a_branch',
-        ...                   inlets='branch_input',
-        ...                   outlets=('branch_output_1', 'branch_output_2'))
+        >>> element = Element("a_branch",
+        ...                   inlets="branch_input",
+        ...                   outlets=("branch_output_1", "branch_output_2"))
         >>> inp = element.inlets.branch_input
         >>> out1, out2 = element.outlets
         >>> from hydpy.models.hbranch import *
@@ -2708,8 +2708,8 @@ requested but not been prepared so far.
 
         >>> from hydpy import Element
         >>> from unittest import mock
-        >>> with mock.patch.object(Element, 'prepare_model') as mocked:
-        ...     element = Element('test')
+        >>> with mock.patch.object(Element, "prepare_model") as mocked:
+        ...     element = Element("test")
         ...     element.init_model(False)
         Traceback (most recent call last):
         ...
@@ -2735,11 +2735,11 @@ Use method `prepare_model` instead.
         represent different variables:
 
         >>> from hydpy import Element, Node
-        >>> element = Element('Test',
-        ...                   inlets=(Node('N1', 'X'), Node('N2', 'Y1')),
-        ...                   outlets=(Node('N3', 'X'), Node('N4', 'Y2')),
-        ...                   receivers=(Node('N5', 'X'), Node('N6', 'Y3')),
-        ...                   senders=(Node('N7', 'X'), Node('N8', 'Y4')))
+        >>> element = Element("Test",
+        ...                   inlets=(Node("N1", "X"), Node("N2", "Y1")),
+        ...                   outlets=(Node("N3", "X"), Node("N4", "Y2")),
+        ...                   receivers=(Node("N5", "X"), Node("N6", "Y3")),
+        ...                   senders=(Node("N7", "X"), Node("N8", "Y4")))
 
         Property |Element.variables| puts all the different variables of
         these nodes together:
@@ -2863,7 +2863,7 @@ Use method `prepare_model` instead.
         based on the `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, _, _ = prepare_full_example_2(lastdate='1997-01-01')
+        >>> hp, _, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         Without any arguments, |Element.plot_inputseries| prints the
         time-series of all input sequences handled by its |Model| object
@@ -2880,7 +2880,7 @@ Use method `prepare_model` instead.
 
         >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + '/Element_plot_inputseries.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_inputseries.png")
         >>> pyplot.close()
 
         .. image:: Element_plot_inputseries.png
@@ -2897,9 +2897,9 @@ Use method `prepare_model` instead.
         of |hland_v1|). Additionally, you can pass the keyword arguments
         supported by `matplotlib` for modifying the line style:
 
-        >>> land.plot_fluxseries(['q0', 'q1'], linewidth=2)
+        >>> land.plot_fluxseries(["q0", "q1"], linewidth=2)
 
-        >>> pyplot.savefig(figs.__path__[0] + '/Element_plot_fluxseries.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_fluxseries.png")
         >>> pyplot.close()
 
         .. image:: Element_plot_fluxseries.png
@@ -2908,9 +2908,9 @@ Use method `prepare_model` instead.
         individual time-series in the same colour (here, from the state
         sequences |hland_states.SP| and |hland_states.WC| of |hland_v1|):
 
-        >>> land.plot_stateseries(['sp', 'wc'])
+        >>> land.plot_stateseries(["sp", "wc"])
 
-        >>> pyplot.savefig(figs.__path__[0] + '/Element_plot_stateseries1.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_stateseries1.png")
         >>> pyplot.close()
 
         .. image:: Element_plot_stateseries1.png
@@ -2919,11 +2919,11 @@ Use method `prepare_model` instead.
         passing |True| to the method `average` argument (demonstrated
         for the state sequence |hland_states.SM|):
 
-        >>> land.plot_stateseries(['sm'], color='grey')
+        >>> land.plot_stateseries(["sm"], color="grey")
         >>> land.plot_stateseries(
-        ...     ['sm'], average=True, color='black', linewidth=3)
+        ...     ["sm"], average=True, color="black", linewidth=3)
 
-        >>> pyplot.savefig(figs.__path__[0] + '/Element_plot_stateseries2.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_stateseries2.png")
         >>> pyplot.close()
 
         .. image:: Element_plot_stateseries2.png
@@ -3071,7 +3071,7 @@ def _get_pandasindex():
     # noinspection PyProtectedMember
     """
     >>> from hydpy import pub
-    >>> pub.timegrids = '2004.01.01', '2005.01.01', '1d'
+    >>> pub.timegrids = "2004.01.01", "2005.01.01", "1d"
     >>> from hydpy.core.devicetools import _get_pandasindex
     >>> _get_pandasindex()   # doctest: +ELLIPSIS
     DatetimeIndex(['2004-01-01 12:00:00', '2004-01-02 12:00:00',

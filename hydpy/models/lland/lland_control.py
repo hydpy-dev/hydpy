@@ -43,7 +43,7 @@ class NHRU(parametertools.Parameter):
     Examples:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> control.kg.shape
         (5,)
@@ -88,7 +88,7 @@ class Lnk(parametertools.NameParameter):
     string representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> lnk
     lnk(?)
     >>> nhru(4)
@@ -825,8 +825,8 @@ class KapGrenz(parametertools.Parameter):
     hydrological response units to 10 mm and the upper one to 40 mm:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
-    >>> simulationstep ('12h')
+    >>> parameterstep("1d")
+    >>> simulationstep ("12h")
     >>> nhru(3)
     >>> kapgrenz(10.0, 40.0)
     >>> kapgrenz
@@ -870,19 +870,19 @@ class KapGrenz(parametertools.Parameter):
     which is in agreement with the `LARSIM`_ option `KAPILLARER AUFSTIEG`:
 
     >>> fk(60.0, 120.0, 180.0)
-    >>> kapgrenz(option='FK')
+    >>> kapgrenz(option="FK")
     >>> kapgrenz
     kapgrenz([[60.0, 60.0],
               [120.0, 120.0],
               [180.0, 180.0]])
 
-    The second possible string is `0_WMax/10'`, which corresponds to the
+    The second possible string is `0_WMax/10`, which corresponds to the
     LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower and upper
     threshold are zero and 10 % of the current value of parameter |WMax|,
     respectively:
 
     >>> wmax(100.0, 150.0, 200.0)
-    >>> kapgrenz(option='0_WMax/10')
+    >>> kapgrenz(option="0_WMax/10")
     >>> kapgrenz
     kapgrenz([[0.0, 10.0],
               [0.0, 15.0],
@@ -892,7 +892,7 @@ class KapGrenz(parametertools.Parameter):
     threshold are 50 % and 100 % of the value of parameter |NFk|, which does
     not correspond to any available `LARSIM`_ option:
 
-    >>> kapgrenz(option='FK/2_FK')
+    >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
     kapgrenz([[30.0, 60.0],
               [60.0, 120.0],
@@ -901,20 +901,20 @@ class KapGrenz(parametertools.Parameter):
     Wrong keyword arguments result in errors like the following:
 
 
-    >>> kapgrenz(option1='FK', option2='0_WMax/10')
+    >>> kapgrenz(option1="FK", option2="0_WMax/10")
     Traceback (most recent call last):
     ...
     ValueError: Parameter `kapgrenz` of element `?` does not accept multiple \
 keyword arguments, but the following are given: option1 and option2
 
-    >>> kapgrenz(option1='FK')
+    >>> kapgrenz(option1="FK")
     Traceback (most recent call last):
     ...
     ValueError: Besides the standard keyword arguments, parameter `kapgrenz` \
 of element `?` does only support the keyword argument `option`, but `option1` \
 is given.
 
-    >>> kapgrenz(option='NFk')
+    >>> kapgrenz(option="NFk")
     Traceback (most recent call last):
     ...
     ValueError: Parameter `kapgrenz` of element `?` supports the options \
@@ -960,7 +960,7 @@ is given.
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} supports "
                     f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
-                    f'`{kwargs["option"]}` is given.'
+                    f"`{kwargs['option']}` is given."
                 ) from None
 
 
@@ -1003,9 +1003,9 @@ class DMin(lland_parameters.ParameterSoil):
     Example:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1h')
+        >>> parameterstep("1h")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> dmin(r_dmin=10.0)
@@ -1053,8 +1053,8 @@ Keyword `rdmin` is not among the available model constants.
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nhru(5)
         >>> lnk(ACKER)
         >>> dmax.values = 2.0
@@ -1086,9 +1086,9 @@ class DMax(lland_parameters.ParameterSoil):
     Example:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1h')
+        >>> parameterstep("1h")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> dmax(r_dmax=10.0)
@@ -1134,8 +1134,8 @@ Keyword `rdmax` is not among the available model constants.
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nhru(3)
         >>> lnk(ACKER)
         >>> dmin.values = 2.0
@@ -1201,8 +1201,8 @@ class TInd(parametertools.Parameter):
         Using typical values:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> tind(tal=5.0, hot=210.0, hut=200.0)
         >>> tind
         tind(0.104335)
@@ -1306,7 +1306,7 @@ class EQB(parametertools.Parameter):
         """Trim upper values in accordance with :math:`EQI1 \\leq EQB`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqi1.value = 2.0
         >>> eqb(1.0)
         >>> eqb
@@ -1340,7 +1340,7 @@ class EQI1(parametertools.Parameter):
         :math:`EQI2 \\leq EQI1 \\leq EQB`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqb.value = 3.0
         >>> eqi2.value = 1.0
         >>> eqi1(0.0)
@@ -1387,7 +1387,7 @@ class EQI2(parametertools.Parameter):
         :math:`EQD \\leq EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqi1.value = 3.0
         >>> eqd1.value = 1.0
         >>> eqi2(0.0)
@@ -1434,7 +1434,7 @@ class EQD1(parametertools.Parameter):
         :math:`EQD2 \\leq EQD1 \\leq EQI2`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqi2.value = 3.0
         >>> eqd2.value = 1.0
         >>> eqd1(0.0)
@@ -1481,7 +1481,7 @@ class EQD2(parametertools.Parameter):
         :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqd1.value = 3.0
         >>> eqd2(2.0)
         >>> eqd2

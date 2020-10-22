@@ -169,7 +169,7 @@ class ANN(BaseANN):
 
     >>> from matplotlib import pyplot
     >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + '/ANN_plot.png')
+    >>> pyplot.savefig(figs.__path__[0] + "/ANN_plot.png")
     >>> pyplot.close()
 
     .. image:: ANN_plot.png
@@ -658,7 +658,7 @@ you have to prepare attribute `nmb_inputs` first.
         If possible, property |anntools.ANN.weights_input| performs type 
         conversions:
 
-        >>> ann.weights_input = '2'
+        >>> ann.weights_input = "2"
         >>> ann.weights_input
         array([[ 2.,  2.,  2.],
                [ 2.,  2.,  2.]])
@@ -1303,7 +1303,7 @@ parameter `ann` of element `?` has not been defined so far.
                 objecttools.assignrepr_list2(self.activation, f"{blanks}activation=")
                 + ","
             )
-        lines.append(f'{indent*" "})')
+        lines.append(f"{indent*' '})")
         return "\n".join(lines)
 
     def __repr__(self):
@@ -1405,7 +1405,7 @@ class SeasonalANN(BaseANN):
 
     >>> from hydpy import ann, pub, SeasonalANN
     >>> pub.options.reprdigits = 6
-    >>> pub.timegrids = '2000-01-01', '2000-10-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2000-10-01", "1d"
     >>> seasonalann = SeasonalANN(None)
     >>> seasonalann(
     ...     _1_1_12=ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
@@ -1453,7 +1453,7 @@ class SeasonalANN(BaseANN):
 
     >>> from matplotlib import pyplot
     >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + '/SeasonalANN_plot.png')
+    >>> pyplot.savefig(figs.__path__[0] + "/SeasonalANN_plot.png")
     >>> pyplot.close()
 
     .. image:: SeasonalANN_plot.png
@@ -1480,11 +1480,10 @@ class SeasonalANN(BaseANN):
     .. testsetup::
 
         >>> from bokeh import plotting, models, palettes
-        ...
         >>> from hydpy import docs
         >>> import os
         >>> plotting.output_file(os.path.join(
-        ...     docs.__path__[0], 'html_', 'anntools.SeasonalANN.ratios.html'))
+        ...     docs.__path__[0], "html_", "anntools.SeasonalANN.ratios.html"))
         >>> hover = models.HoverTool(tooltips=[
         ...     ("(x,y)", "($x, $y)")])
         >>> plot = plotting.figure(toolbar_location="above",
@@ -1499,14 +1498,14 @@ class SeasonalANN(BaseANN):
         ...     legend_entries.append((str(toy), [line]))
         >>> legend = models.Legend(items=legend_entries,
         ...                        location=(10, 0),
-        ...                        click_policy='mute')
-        >>> plot.add_layout(legend, 'right')
-        >>> label_dict = {0: 'Jan 1',
-        ...               60: 'Mar 1',
-        ...               182: 'Jul 1'}
+        ...                        click_policy="mute")
+        >>> plot.add_layout(legend, "right")
+        >>> label_dict = {0: "Jan 1",
+        ...               60: "Mar 1",
+        ...               182: "Jul 1"}
         >>> plot.xaxis.ticker =  sorted(label_dict.keys())
         >>> plot.xaxis.formatter = models.FuncTickFormatter(
-        ...     code='var labels = %s; return labels[tick];' % label_dict)
+        ...     code=f"var labels = {label_dict}; return labels[tick];")
         >>> dummy = plotting.save(plot)
 
     .. raw:: html
@@ -1825,7 +1824,7 @@ been given, but a value of type `ANN` is required.
 
         >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN(None)
-        >>> seasonalann.simulationstep = '1d'
+        >>> seasonalann.simulationstep = "1d"
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
         ...           intercepts_hidden=0.0, intercepts_output=1.0)
@@ -1876,7 +1875,7 @@ been given, but a value of type `ANN` is required.
 
         >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN(None)
-        >>> seasonalann.simulationstep = '1d'
+        >>> seasonalann.simulationstep = "1d"
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
         ...           intercepts_hidden=0.0, intercepts_output=1.0)
@@ -1917,11 +1916,10 @@ neural network `seasonalann` of element `?` none has been defined so far.
         if not self.anns:
             self._toy2ann.clear()
             raise RuntimeError(
-                "Seasonal artificial neural network collections need "
-                'to handle at least one "normal" single neural network, '
-                "but for the seasonal neural network `%s` of element "
-                "`%s` none has been defined so far."
-                % (self.name, objecttools.devicename(self))
+                f"Seasonal artificial neural network collections need "
+                f'to handle at least one "normal" single neural network, '
+                f"but for the seasonal neural network `{self.name}` of element "
+                f"`{objecttools.devicename(self)}` none has been defined so far."
             )
         for toy, ann_ in self:
             ann_.verify()

@@ -326,7 +326,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         time period of only two days:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Now we prepare the dam model and define two different control
         schemes for the hydrological summer (April to October) and
@@ -362,7 +362,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         0 m³/s, as soon as |WaterLevel| reaches 3 m (the value
         of |WaterLevelRelieveThreshold|):
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.30"]
         >>> test(first_example=2, last_example=6)
         | ex. | waterlevel | allowedremoterelieve |
         -------------------------------------------
@@ -380,7 +380,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         2 m³/s around the original threshold value of 4 m³/s defined by
         |WaterLevelRelieveThreshold|:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | waterlevel | allowedremoterelieve |
         -------------------------------------------
@@ -442,7 +442,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         information):
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
@@ -460,7 +460,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         ...                 parseqs=(aides.waterlevel,
         ...                          fluxes.requiredremotesupply))
         >>> test.nexts.waterlevel = range(9)
-        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.30"]
         >>> test(first_example=2, last_example=6)
         | ex. | waterlevel | requiredremotesupply |
         -------------------------------------------
@@ -468,7 +468,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         |   4 |        2.0 |                  1.0 |
         |   5 |        3.0 |                  0.0 |
         |   6 |        4.0 |                  0.0 |
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | waterlevel | requiredremotesupply |
         -------------------------------------------
@@ -586,7 +586,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -613,7 +613,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
         On April 1, the required discharge is 2 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | naturalremotedischarge | remotedemand |
         -----------------------------------------------
@@ -624,7 +624,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
         On May 31, the required discharge is 0 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | naturalremotedischarge | remotedemand |
         -----------------------------------------------
@@ -666,7 +666,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Now we prepare a dam model with log sequences memorizing three values:
 
@@ -688,7 +688,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         This means that for the April 1 there would have been an averaged
         shortfall of 1 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(1.0)
@@ -696,7 +696,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         Instead for May 31 there would have been an excess of 1 m³/s, which
         is interpreted to be a "negative failure":
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(-1.0)
@@ -739,7 +739,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -773,7 +773,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         On May 31, the safety factor is 0 m³/s.  Hence no discharge is
         added to the estimated remote demand of 2 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | remotefailure | requiredremoterelease |
         -----------------------------------------------
@@ -794,7 +794,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         up to 1 m³/s is added. If the the actual discharge exceeded the
         threshold value by 2 or 3 m³/s, virtually nothing is added:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | remotefailure | requiredremoterelease |
         -----------------------------------------------
@@ -903,7 +903,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -939,7 +939,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         On May 31, both the threshold and the tolerance value are 0 m³/s.
         Hence the required total and the required remote release are equal:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | requiredremoterelease | requiredrelease |
         -------------------------------------------------
@@ -961,7 +961,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         required total release is a little larger than both the treshold
         value and the required remote release value:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | requiredremoterelease | requiredrelease |
         -------------------------------------------------
@@ -1009,7 +1009,7 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -1028,11 +1028,11 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         As to be expected, the calculated required release is 0.0 m³/s
         on May 31 and 4.0 m³/s on April 1:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> model.calc_requiredrelease_v2()
         >>> fluxes.requiredrelease
         requiredrelease(0.0)
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> model.calc_requiredrelease_v2()
         >>> fluxes.requiredrelease
         requiredrelease(4.0)
@@ -1342,7 +1342,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -1388,7 +1388,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         release jumps from the inflow value to the required release
         when exceeding the threshold value of 6 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1418,7 +1418,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         is 2 m³/s.  Hence there is a smooth transition for inflows ranging
         between 2 m³/s and 6 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1455,7 +1455,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         On May 31, the relationship between targeted release and inflow
         is again highly discontinous:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1483,7 +1483,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
 
         And on April 1, it is again absolutely smooth:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1514,7 +1514,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         remains a discontinuity in the first derivative:
 
         >>> fluxes.requiredrelease = 6.
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1544,7 +1544,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         the help of a little hump around the threshold:
 
         >>> fluxes.requiredrelease = 4.
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1793,7 +1793,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         two days of March and April, respectively:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
 
         We prepare the dam model and set the allowed release to 2 m³/s and
         to 4 m³/s for March and February, respectively, and set the water
@@ -1820,7 +1820,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         resulting in a sharp transition from 0 to 2 m³/s around the a
         water level threshold of 0.5 m, shown for the 31st March:
 
-        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
         >>> waterlevelminimumtolerance(0.0)
         >>> derived.waterlevelminimumsmoothpar.update()
         >>> test()
@@ -1841,7 +1841,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         to occur between water levels of 0.4 m and 0.6 m, shown for
         the 1th April:
 
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
         >>> waterlevelminimumtolerance(0.1)
         >>> derived.waterlevelminimumsmoothpar.update()
         >>> test()
@@ -1903,7 +1903,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         cover all of the mentioned corner cases.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -1922,7 +1922,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         >>> import numpy
         >>> test.nexts.watervolume = numpy.arange(3.5, 6.6, 0.1)
 
-        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
         >>> aides.alloweddischarge = 6.0
 
         >>> def set_tolerances(value):
@@ -2518,7 +2518,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...                 parseqs=(states.watervolume,
         ...                          fluxes.actualrelease))
         >>> test.nexts.watervolume = numpy.arange(-0.5, 1.6, 0.1)
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
         >>> fluxes.inflow = 0.0
 
         Zero values, without smoothing, with interpolation:
@@ -3013,7 +3013,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         three days:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.01.01', '2001.01.04', '1d'
+        >>> pub.timegrids = "2001.01.01", "2001.01.04", "1d"
 
         Now we prepare a dam model and define two different relationships
         between water level and flood discharge.  The first relatively
@@ -3037,7 +3037,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         ...                     nmb_neurons=(2,),
         ...                     nmb_outputs=1))
         >>> derived.toy.update()
-        >>> model.idx_sim = pub.timegrids.sim['2001.01.02']
+        >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
 
         The following example shows two distinct effects of both neurons
         in the first network.  One neuron describes a relatively sharp
@@ -3143,8 +3143,8 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1h')
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
 
         >>> allowedwaterleveldrop(0.1)
         >>> derived.seconds.update()
@@ -3190,10 +3190,10 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
     Example:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1h'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1h"
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
 
         >>> allowedwaterleveldrop(0.1)
         >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
@@ -3213,7 +3213,7 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         >>> import numpy
         >>> test.nexts.inflow = 1.0, 1.5, 1.9, 2.0, 2.1, 2.5, 3.0
 
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
 
         >>> dischargetolerance(0.0)
         >>> derived.dischargesmoothpar.update()

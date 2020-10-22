@@ -2512,8 +2512,8 @@ class Return_QF_V1(modeltools.Method):
         |lstream_v001|:
 
         >>> from hydpy.models.lstream import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
 
         >>> gts(1)
         >>> laen(100.0)
@@ -2703,7 +2703,7 @@ class Return_H_V1(modeltools.Method):
         documentation on method |Return_QF_V1|:
 
         >>> from hydpy.models.lstream import *
-        >>> simulationstep('30m')
+        >>> simulationstep("30m")
         >>> parameterstep()
 
         >>> gts(1)
@@ -2948,8 +2948,8 @@ class ProfileMixin:
         |lstream_v001|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
         >>> laen(100.0)
         >>> gef(0.00025)
         >>> bm(15.0)
@@ -2979,7 +2979,7 @@ class ProfileMixin:
 
         >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + '/lstream_plot_profile.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/lstream_plot_profile.png")
         >>> pyplot.close()
 
         .. image:: lstream_plot_profile.png
@@ -3108,8 +3108,8 @@ class ProfileMixin:
         |lstream_model.ProfileMixin.calculate_vgvector|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
         >>> laen(100.0)
         >>> gef(0.00025)
         >>> bm(15.0)

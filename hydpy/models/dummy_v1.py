@@ -13,7 +13,7 @@ Integration tests
     We prepare a simulation period of three days:
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2000-01-01', '2000-01-04', '1d'
+    >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
     The model object does not require any parameter information:
 
@@ -24,9 +24,9 @@ Integration tests
     and one outlet node and prepare a runnable test object:
 
     >>> from hydpy import Element, IntegrationTest
-    >>> element = Element('element',
-    ...                   inlets=('inlet1', 'inlet2'),
-    ...                   outlets='outlet')
+    >>> element = Element("element",
+    ...                   inlets=("inlet1", "inlet2"),
+    ...                   outlets="outlet")
     >>> element.model = model
     >>> test = IntegrationTest(element)
 

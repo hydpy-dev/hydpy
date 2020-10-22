@@ -60,7 +60,7 @@ class NmbLogEntries(parametertools.Parameter):
         >>> parameterstep()
         >>> from hydpy import pub
         >>> nhru(2)
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
@@ -85,7 +85,7 @@ class NmbLogEntries(parametertools.Parameter):
 
         There is an explicit check for inappropriate simulation step sizes:
 
-        >>> pub.timegrids = '2000-01-01 00:00', '2000-01-01 10:00', '5h'
+        >>> pub.timegrids = "2000-01-01 00:00", "2000-01-01 10:00", "5h"
         >>> derived.nmblogentries.update()
         Traceback (most recent call last):
         ...
@@ -128,7 +128,7 @@ class LatitudeRad(parametertools.Parameter):
         >>> for value in (-90.0, -45.0, 0.0, 45.0, 90.0):
         ...     latitude(value)
         ...     derived.latituderad.update()
-        ...     round_(latitude.value, end=': ')
+        ...     round_(latitude.value, end=": ")
         ...     round_(derived.latituderad.value)
         -90.0: -1.570796
         -45.0: -0.785398
@@ -153,7 +153,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
         """Update |AbsFHRU| based on |FT| and |FHRU|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> lnk(ACKER)
         >>> ft(100.0)
@@ -182,7 +182,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
         (based on :cite:`ref-Dickinson1984`).
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> hinz(0.2)
         >>> lai.acker_jun = 1.0
@@ -218,7 +218,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
 #                :math:`F1SIMax = P1SIMax + P2SIMax \\cdot LAI`
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(2)
 #         >>> p1simax(8.0)
 #         >>> p2simax(1.5)
@@ -253,7 +253,7 @@ class HeatOfFusion(lland_parameters.ParameterLand):
            :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
         >>> derived.heatoffusion.update()
@@ -284,7 +284,7 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 #                :math:`F1SIRate = P1SIRate + P2SIRate \\cdot LAI`
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(2)
 #         >>> p1sirate(0.2)
 #         >>> p2sirate(0.02)
@@ -326,7 +326,7 @@ class Fr(lland_parameters.LanduseMonthParameter):
         negative values for large leaf area index values:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> p1strahl(0.5)
         >>> p2strahl(0.1)
         >>> lai.acker_jan = 1.0
@@ -368,7 +368,7 @@ class KB(parametertools.Parameter):
         """Update |KB| based on |EQB| and |TInd|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqb(10.0)
         >>> tind.value = 10.0
         >>> derived.kb.update()
@@ -394,7 +394,7 @@ class KI1(parametertools.Parameter):
         """Update |KI1| based on |EQI1| and |TInd|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqi1(5.0)
         >>> tind.value = 10.0
         >>> derived.ki1.update()
@@ -420,7 +420,7 @@ class KI2(parametertools.Parameter):
         """Update |KI2| based on |EQI2| and |TInd|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqi2(1.0)
         >>> tind.value = 10.0
         >>> derived.ki2.update()
@@ -446,7 +446,7 @@ class KD1(parametertools.Parameter):
         """Update |KD1| based on |EQD1| and |TInd|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqd1(0.5)
         >>> tind.value = 10.0
         >>> derived.kd1.update()
@@ -472,7 +472,7 @@ class KD2(parametertools.Parameter):
         """Update |KD2| based on |EQD2| and |TInd|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> eqd2(0.1)
         >>> tind.value = 10.0
         >>> derived.kd2.update()
@@ -494,8 +494,8 @@ class QFactor(parametertools.Parameter):
         """Update |QFactor| based on |FT| and the current simulation step size.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1d')
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
         >>> ft(10.0)
         >>> derived.qfactor.update()
         >>> derived.qfactor
@@ -519,7 +519,7 @@ class NFk(lland_parameters.ParameterSoil):
         """Update |NFk| based on |PWP| and |FK|.
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> fk(100.0)

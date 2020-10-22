@@ -250,7 +250,7 @@ class Options:
     
     >>> from hydpy import pub
     >>> pub.options.parameterstep
-    Period('1d')
+    Period("1d")
     """
 
     printprogress = _BoolOption(True)
@@ -284,21 +284,21 @@ class Options:
     >>> pub.options.simulationstep
     Period()
     
-    >>> pub.options.simulationstep = '1h'
+    >>> pub.options.simulationstep = "1h"
     >>> pub.options.simulationstep
-    Period('1h')
+    Period("1h")
     
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.options.simulationstep
-    Period('1d')
+    Period("1d")
  
-    >>> pub.options.simulationstep = '1s'
+    >>> pub.options.simulationstep = "1s"
     >>> pub.options.simulationstep
-    Period('1d')
+    Period("1d")
     
     >>> del pub.timegrids
     >>> pub.options.simulationstep
-    Period('1s')
+    Period("1s")
     
     >>> del pub.options.simulationstep
     >>> pub.options.simulationstep

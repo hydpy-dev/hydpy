@@ -373,13 +373,13 @@ class TranslationDiffusionEquation(IUH):
 
     Suitable type conversions are performed when new parameter values are set:
 
-    >>> tde.x = '1.'
+    >>> tde.x = "1."
     >>> tde.x
     1.0
 
     It a new value cannot be converted, an error is raised:
 
-    >>> tde.x = 'a'
+    >>> tde.x = "a"
     Traceback (most recent call last):
     ...
     TypeError: The value `a` of type `str` could not be converted to type \

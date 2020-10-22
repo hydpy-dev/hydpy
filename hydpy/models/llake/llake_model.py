@@ -86,9 +86,9 @@ class Calc_VQ_V1(modeltools.Method):
         calculation step size defined by parameter `maxdt`:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
-        >>> maxdt('6h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> maxdt("6h")
         >>> derived.seconds.update()
         >>> derived.nmbsubsteps.update()
         >>> fluxes.qz = 2.
@@ -126,7 +126,7 @@ class Interp_QA_V1(modeltools.Method):
         the required model object:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000.01.01','2000.01.04', '12h'
+        >>> pub.timegrids = "2000.01.01","2000.01.04", "12h"
         >>> from hydpy.models.llake import *
         >>> parameterstep()
 
@@ -155,7 +155,7 @@ class Interp_QA_V1(modeltools.Method):
         In the first example, discharge does not depend on the actual value
         of the auxiliary term and is always zero:
 
-        >>> model.idx_sim = pub.timegrids.init['2000.01.01']
+        >>> model.idx_sim = pub.timegrids.init["2000.01.01"]
         >>> test(0., .75, 1., 4./3., 2., 7./3., 3., 10./3.)
         vq(0.0) qa(0.0)
         vq(0.75) qa(0.0)
@@ -172,7 +172,7 @@ class Interp_QA_V1(modeltools.Method):
         exceeded linear extrapolation based on the two highest (`vq`,`q`)
         pairs is performed:
 
-        >>> model.idx_sim = pub.timegrids.init['2000.01.02']
+        >>> model.idx_sim = pub.timegrids.init["2000.01.02"]
         >>> test(0., .75, 1., 4./3., 2., 7./3., 3., 10./3.)
         vq(0.0) qa(0.0)
         vq(0.75) qa(1.5)
@@ -188,7 +188,7 @@ class Interp_QA_V1(modeltools.Method):
         range, this could result in negative values of `qa`, which is avoided
         by setting it to zero in such cases:
 
-        >>> model.idx_sim = pub.timegrids.init['2000.01.03']
+        >>> model.idx_sim = pub.timegrids.init["2000.01.03"]
         >>> test(.5, 1.5, 2.5, 3.5, 4.5, 10.)
         vq(0.5) qa(1.0)
         vq(1.5) qa(1.5)
@@ -241,8 +241,8 @@ class Calc_V_QA_V1(modeltools.Method):
 
         >>> from hydpy.models.llake import *
         >>> parameterstep()
-        >>> simulationstep('12h')
-        >>> maxdt('6h')
+        >>> simulationstep("12h")
+        >>> maxdt("6h")
         >>> derived.seconds.update()
         >>> derived.nmbsubsteps.update()
         >>> aides.v = 1e5
@@ -303,8 +303,8 @@ class Interp_W_V1(modeltools.Method):
         Prepare a model object:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
 
         For the sake of brevity, define a test function:
 
@@ -366,8 +366,8 @@ class Interp_V_V1(modeltools.Method):
         Prepare a model object:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
 
         For the sake of brevity, define a test function:
 
@@ -438,16 +438,16 @@ class Corr_DW_V1(modeltools.Method):
         the required model object:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000.01.01', '2000.01.04', '12h'
+        >>> pub.timegrids = "2000.01.01", "2000.01.04", "12h"
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> derived.toy.update()
         >>> derived.seconds.update()
 
         Select the first half of the second day of January as the simulation
         step relevant for the following examples:
 
-        >>> model.idx_sim = pub.timegrids.init['2000.01.02']
+        >>> model.idx_sim = pub.timegrids.init["2000.01.02"]
 
         The following tests are based on method |Interp_V_V1| for the
         interpolation of the stored water volume based on the corrected
@@ -574,15 +574,15 @@ class Modify_QA_V1(modeltools.Method):
         the required model object:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000.01.01', '2000.01.04', '12h'
+        >>> pub.timegrids = "2000.01.01", "2000.01.04", "12h"
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> derived.toy.update()
 
         Select the first half of the second day of January as the simulation
         step relevant for the following examples:
 
-        >>> model.idx_sim = pub.timegrids.init['2000.01.02']
+        >>> model.idx_sim = pub.timegrids.init["2000.01.02"]
 
         Assume that, in accordance with previous calculations, the original
         outflow value is 3 m³/s:

@@ -258,7 +258,7 @@ def calc_smoothpar_min1(metapar):
 # xys[0, :] = numpy.linspace(0., 1000.**(1./3.), 10000)**3.
 # xys[1, :] = [calc_smoothpar_logistic2(x, iterate=True) for x in xys[0]]
 # numpy.save(os.path.join(
-#     conf.__path__[0], 'support_points_for_smoothpar_logistic2.npy'), xys)
+#     conf.__path__[0], "support_points_for_smoothpar_logistic2.npy"), xys)
 
 
 # Load the supporting points required for method `calc_smoothpar_logistic2`:

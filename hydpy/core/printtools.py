@@ -68,7 +68,7 @@ def print_progress(wrapped, _=None, args=None, kwargs=None):
     call to a decorated function occurs at quarter past eight, and the second
     one two seconds later:
 
-    >>> time.strftime.side_effect = '20:15:00', '20:15:02'
+    >>> time.strftime.side_effect = "20:15:00", "20:15:02"
 
     The mock of |time.perf_counter| shall respond to four calls, as if the
     subsequent calls by decorated functions occur at second 1, 3, 4, and 7:
@@ -103,7 +103,7 @@ def print_progress(wrapped, _=None, args=None, kwargs=None):
 
     The second example verifies that resetting the indentation works:
 
-    >>> time.strftime.side_effect = '20:15:00', '20:15:02'
+    >>> time.strftime.side_effect = "20:15:00", "20:15:02"
     >>> time.perf_counter.side_effect = 1, 3, 4, 7
     >>> test2()
     method test2 started at 20:15:00

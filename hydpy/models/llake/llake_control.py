@@ -23,8 +23,8 @@ class N(parametertools.Parameter):
     Examples:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> n(5)
 
         For "simple" 1-dimensional parameters, the shape depends on the
@@ -95,11 +95,11 @@ class MaxDT(parametertools.Parameter):
         parameterstep, simulationstep and maxdt:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> maxdt
         maxdt(?)
-        >>> maxdt('1h')
+        >>> maxdt("1h")
 
         Internally, the value of maxdt is stored in seconds, but in string
         representations it is shown as a |Period| string:
@@ -107,25 +107,25 @@ class MaxDT(parametertools.Parameter):
         >>> maxdt.value
         3600.0
         >>> maxdt
-        maxdt('1h')
+        maxdt("1h")
 
         Note that maxdt only defines the maximum internal step size, not the
         one actually used.  Hence, maxdt is e.g. allowed to be larger than the
         actual simulation step size:
 
-        >>> maxdt('2d')
+        >>> maxdt("2d")
         >>> maxdt
-        maxdt('2d')
+        maxdt("2d")
 
         It is allowed the set the number of seconds directly or modify it
         by mathematical operations:
 
         >>> maxdt.value = 60.
         >>> maxdt
-        maxdt('1m')
+        maxdt("1m")
         >>> maxdt *= 120.
         >>> maxdt
-        maxdt('2h')
+        maxdt("2h")
 
         However, for the more secure way of calling the object trying to
         pass an argument which cannot be converted to a Period instance
@@ -149,19 +149,16 @@ of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
             args = [timetools.Period(args[0]).seconds]
         except BaseException:
             objecttools.augment_excmessage(
-                "While trying the set the value of parameter `maxdt` "
-                "of the lake model handled by element `%s`"
-                % objecttools.devicename(self),
-                "(An example: set `max dt` to 3600 seconds by writing " '`maxdt("1h"))',
+                f"While trying the set the value of parameter `maxdt` "
+                f"of the lake model handled by element "
+                f"`{objecttools.devicename(self)}`",
+                '(An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))',
             )
         super().__call__(*args, **kwargs)
 
     def __repr__(self):
         try:
-            return "%s('%s')" % (
-                self.name,
-                str(timetools.Period.from_seconds(self.value)),
-            )
+            return f'{self.name}("{timetools.Period.from_seconds(self.value)}")'
         except BaseException:
             return "%s(?)" % self.name
 

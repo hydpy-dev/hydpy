@@ -224,9 +224,9 @@ class Model(modeltools.AdHocModel):
         inlet and outlet nodes:
 
         >>> from hydpy import Element
-        >>> conv = Element('conv',
-        ...                inlets=['in1', 'in2'],
-        ...                outlets=['out1', 'out2', 'out3'])
+        >>> conv = Element("conv",
+        ...                inlets=["in1", "in2"],
+        ...                outlets=["out1", "out2", "out3"])
 
         Second, you must define the coordinates of the inlet and outlet
         nodes via parameter |InputCoordinates| and |OutputCoordinates|,
@@ -252,7 +252,7 @@ class Model(modeltools.AdHocModel):
 
         >>> conv.model = model
         >>> conv.inlets.in1.sequences.sim = 1.0
-        >>> conv.inlets.in2.deploymode = 'obs'
+        >>> conv.inlets.in2.deploymode = "obs"
         >>> conv.inlets.in2.sequences.obs = 2.0
         >>> model.simulate(0)
         >>> conv.outlets.out1.sequences.sim

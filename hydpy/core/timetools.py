@@ -44,7 +44,7 @@ class Date:
     >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0)
     >>> from hydpy import Date
     >>> Date(date)
-    Date('1996-11-01 00:00:00')
+    Date("1996-11-01 00:00:00")
 
     |Date| objects do not store time zone information.  The |Date| object
     prepared above refers to zero o'clock in the time zone defined by
@@ -56,11 +56,11 @@ class Date:
     >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0,
     ...     tzinfo=datetime.timezone(datetime.timedelta(0)))
     >>> Date(date)
-    Date('1996-11-01 01:00:00')
+    Date("1996-11-01 01:00:00")
     >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0,
     ...     tzinfo=datetime.timezone(datetime.timedelta(hours=-1)))
     >>> Date(date)
-    Date('1996-11-01 02:00:00')
+    Date("1996-11-01 02:00:00")
 
     One can change |Options.utcoffset|, but this does not affect already
     existing |Date| objects:
@@ -69,20 +69,20 @@ class Date:
     >>> pub.options.utcoffset = 0
     >>> temp = Date(date)
     >>> temp
-    Date('1996-11-01 01:00:00')
+    Date("1996-11-01 01:00:00")
     >>> pub.options.utcoffset = 60
     >>> temp
-    Date('1996-11-01 01:00:00')
+    Date("1996-11-01 01:00:00")
 
     Class |Date| accepts |str| objects as alternative constructor arguments.
     These are often more rapidly defined and allow to set the |Date.style|
     property by the way (see the documentation on method |Date.from_string|
     for more examples):
 
-    >>> Date('1996-11-01')
-    Date('1996-11-01 00:00:00')
-    >>> Date('1996.11.01')
-    Date('1996.11.01 00:00:00')
+    >>> Date("1996-11-01")
+    Date("1996-11-01 00:00:00")
+    >>> Date("1996.11.01")
+    Date("1996.11.01 00:00:00")
 
     Invalid arguments types result in the following error:
 
@@ -96,10 +96,10 @@ The given arguments type is `int`.
 
     In contrast to class |datetime.datetime|, class |Date| is mutable:
 
-    >>> date = Date('1996-11-01')
+    >>> date = Date("1996-11-01")
     >>> date.hour = 12
     >>> date
-    Date('1996-11-01 12:00:00')
+    Date("1996-11-01 12:00:00")
 
     Unplausible values assigned to property |Date.hour| and its related
     properties result in error messages like the following:
@@ -113,30 +113,30 @@ the following error occurred: hour must be in 0..23
     You can do some math with |Date| objects.  First, you can add |Period|
     objects to shift the date:
 
-    >>> date = Date('2000.01.01')
-    >>> date + '1d'
-    Date('2000.01.02 00:00:00')
-    >>> date += '12h'
+    >>> date = Date("2000.01.01")
+    >>> date + "1d"
+    Date("2000.01.02 00:00:00")
+    >>> date += "12h"
     >>> date
-    Date('2000.01.01 12:00:00')
+    Date("2000.01.01 12:00:00")
 
     Second, you can subtract both |Period| and other |Date| objects to
     shift the date or determine the time delta, respectively:
 
-    >>> date - '1s'
-    Date('2000.01.01 11:59:59')
-    >>> date -= '12h'
+    >>> date - "1s"
+    Date("2000.01.01 11:59:59")
+    >>> date -= "12h"
     >>> date
-    Date('2000.01.01 00:00:00')
-    >>> date - '2000-01-05'
-    Period('-4d')
-    >>> '2000.01.01 00:00:30' - date
-    Period('30s')
+    Date("2000.01.01 00:00:00")
+    >>> date - "2000-01-05"
+    Period("-4d")
+    >>> "2000.01.01 00:00:30" - date
+    Period("30s")
 
     To try to subtract objects neither interpretable as a |Date|
     nor |Period| object results in the following error:
 
-    >>> date - '1'
+    >>> date - "1"
     Traceback (most recent call last):
     ...
     TypeError: Object `1` of type `str` cannot be substracted from a \
@@ -144,18 +144,18 @@ the following error occurred: hour must be in 0..23
 
     The comparison operators work as expected:
 
-    >>> d1, d2 = Date('2000-1-1'), Date('2001-1-1')
-    >>> d1 < d2, d1 < '2000-1-1', '2001-1-2' < d1
+    >>> d1, d2 = Date("2000-1-1"), Date("2001-1-1")
+    >>> d1 < d2, d1 < "2000-1-1", "2001-1-2" < d1
     (True, False, False)
-    >>> d1 <= d2, d1 <= '2000-1-1', '2001-1-2' <= d1
+    >>> d1 <= d2, d1 <= "2000-1-1", "2001-1-2" <= d1
     (True, True, False)
-    >>> d1 == d2, d1 == '2000-1-1', '2001-1-2' == d1, d1 == '1d'
+    >>> d1 == d2, d1 == "2000-1-1", "2001-1-2" == d1, d1 == "1d"
     (False, True, False, False)
-    >>> d1 != d2, d1 != '2000-1-1', '2001-1-2' != d1, d1 != '1d'
+    >>> d1 != d2, d1 != "2000-1-1", "2001-1-2" != d1, d1 != "1d"
     (True, False, True, True)
-    >>> d1 >= d2, d1 >= '2000-1-1', '2001-1-2' >= d1
+    >>> d1 >= d2, d1 >= "2000-1-1", "2001-1-2" >= d1
     (False, True, True)
-    >>> d1 > d2, d1 > '2000-1-1', '2001-1-2' > d1
+    >>> d1 > d2, d1 > "2000-1-1", "2001-1-2" > d1
     (False, False, True)
     """
 
@@ -208,14 +208,14 @@ the following error occurred: hour must be in 0..23
         |Date.style| information:
 
         >>> from hydpy import Date
-        >>> date1 = Date('2000.01.01')
+        >>> date1 = Date("2000.01.01")
         >>> date2 = Date(date1)
-        >>> date1.style = 'iso2'
+        >>> date1.style = "iso2"
         >>> date3 = Date.from_date(date1)
         >>> date2
-        Date('2000.01.01 00:00:00')
+        Date("2000.01.01 00:00:00")
         >>> date3
-        Date('2000-01-01 00:00:00')
+        Date("2000-01-01 00:00:00")
         """
         self = super().__new__(cls)
         self.datetime = date.datetime
@@ -236,7 +236,7 @@ the following error occurred: hour must be in 0..23
         >>> from hydpy import Date
         >>> from datetime import datetime, timedelta, timezone
         >>> Date.from_datetime(datetime(2000, 1, 1))
-        Date('2000-01-01 00:00:00')
+        Date("2000-01-01 00:00:00")
 
         Be aware of the different minimum time resolution of class
         |datetime.datetime| (microseconds) and class |Date| (seconds):
@@ -255,7 +255,7 @@ but for the given `datetime` object it is `2` instead.
         >>> date = Date.from_datetime(
         ...     datetime(2000, 11, 1, tzinfo=timezone(timedelta(0))))
         >>> date
-        Date('2000-11-01 01:00:00')
+        Date("2000-11-01 01:00:00")
         >>> date.datetime
         datetime.datetime(2000, 11, 1, 1, 0)
         """
@@ -290,38 +290,38 @@ but for the given `datetime` object it is `2` instead.
         The `os` style is applied in text files and folder names and does
         not include any empty spaces or colons:
 
-        >>> Date.from_string('1997_11_01_00_00_00').style
+        >>> Date.from_string("1997_11_01_00_00_00").style
         'os'
 
         The `iso` styles are more legible and come in two flavours.
         `iso1` following ISO 8601, and `iso2` (which is the default
         style) omits the `T` between date and time:
 
-        >>> Date.from_string('1997-11-01T00:00:00').style
+        >>> Date.from_string("1997-11-01T00:00:00").style
         'iso1'
-        >>> Date.from_string('1997-11-01 00:00:00').style
+        >>> Date.from_string("1997-11-01 00:00:00").style
         'iso2'
 
         The `din` styles rely on points instead of hyphens.  The difference
         between the available flavours lies in the order of the date literals
         (DIN refers to a German norm):
 
-        >>> Date('01.11.1997 00:00:00').style
+        >>> Date("01.11.1997 00:00:00").style
         'din1'
-        >>> Date('1997.11.01 00:00:00').style
+        >>> Date("1997.11.01 00:00:00").style
         'din2'
 
         The `raw` style avoids any unnecessary characters:
 
-        >>> Date('19971101000000').style
+        >>> Date("19971101000000").style
         'raw'
 
         You are allowed to abbreviate the input strings:
 
-        >>> for string in ('1996-11-01 00:00:00',
-        ...                '1996-11-01 00:00',
-        ...                '1996-11-01 00',
-        ...                '1996-11-01'):
+        >>> for string in ("1996-11-01 00:00:00",
+        ...                "1996-11-01 00:00",
+        ...                "1996-11-01 00",
+        ...                "1996-11-01"):
         ...     print(Date.from_string(string))
         1996-11-01 00:00:00
         1996-11-01 00:00:00
@@ -330,40 +330,40 @@ but for the given `datetime` object it is `2` instead.
 
         You can combine all styles with ISO time zone identifiers:
 
-        >>> Date.from_string('1997-11-01T00:00:00Z')
-        Date('1997-11-01T01:00:00')
-        >>> Date.from_string('1997-11-01 00:00:00-11:00')
-        Date('1997-11-01 12:00:00')
-        >>> Date.from_string('1997-11-01 +13')
-        Date('1997-10-31 12:00:00')
-        >>> Date.from_string('1997-11-01 +1330')
-        Date('1997-10-31 11:30:00')
-        >>> Date.from_string('01.11.1997 00-500')
-        Date('01.11.1997 06:00:00')
+        >>> Date.from_string("1997-11-01T00:00:00Z")
+        Date("1997-11-01T01:00:00")
+        >>> Date.from_string("1997-11-01 00:00:00-11:00")
+        Date("1997-11-01 12:00:00")
+        >>> Date.from_string("1997-11-01 +13")
+        Date("1997-10-31 12:00:00")
+        >>> Date.from_string("1997-11-01 +1330")
+        Date("1997-10-31 11:30:00")
+        >>> Date.from_string("01.11.1997 00-500")
+        Date("01.11.1997 06:00:00")
 
         Poorly formatted date strings result in the following or comparable
         error messages:
 
-        >>> Date.from_string('1997/11/01')
+        >>> Date.from_string("1997/11/01")
         Traceback (most recent call last):
         ...
         ValueError: The given string `1997/11/01` does not agree with any \
 of the supported format styles.
 
-        >>> Date.from_string('1997111')
+        >>> Date.from_string("1997111")
         Traceback (most recent call last):
         ...
         ValueError: The given string `1997111` does not agree with any \
 of the supported format styles.
 
-        >>> Date.from_string('1997-11-01 +0000001')
+        >>> Date.from_string("1997-11-01 +0000001")
         Traceback (most recent call last):
         ...
         ValueError: While trying to apply the time zone offset defined \
 by string `1997-11-01 00:00:00`, the following error occurred: \
 wrong number of offset characters
 
-        >>> Date.from_string('1997-11-01 +0X:00')
+        >>> Date.from_string("1997-11-01 +0X:00")
         Traceback (most recent call last):
         ...
         ValueError: While trying to apply the time zone offset defined \
@@ -469,12 +469,12 @@ invalid literal for int() with base 10: '0X'
         >>> import numpy
         >>> array1d = numpy.array([1992, 10, 8, 15, 15, 42, 999])
         >>> Date.from_array(array1d)
-        Date('1992-10-08 15:15:42')
+        Date("1992-10-08 15:15:42")
 
         >>> array3d = numpy.zeros((7, 2, 2))
         >>> array3d[:, 0, 0] = array1d
         >>> Date.from_array(array3d)
-        Date('1992-10-08 15:15:42')
+        Date("1992-10-08 15:15:42")
 
         .. note::
 
@@ -492,7 +492,7 @@ invalid literal for int() with base 10: '0X'
         defining the actual date (year, month, day, hour, minute, second).
 
         >>> from hydpy import Date
-        >>> Date('1992-10-8 15:15:42').to_array()
+        >>> Date("1992-10-8 15:15:42").to_array()
         array([ 1992.,    10.,     8.,    15.,    15.,    42.])
 
         .. note::
@@ -519,28 +519,28 @@ invalid literal for int() with base 10: '0X'
         that method |Date.from_cfunits| ignores the first entry (the unit):
 
         >>> from hydpy import Date
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42 -6:00')
-        Date('1992-10-08 22:15:42')
-        >>> Date.from_cfunits(' day since 1992-10-8 15:15:00')
-        Date('1992-10-08 15:15:00')
-        >>> Date.from_cfunits('seconds since 1992-10-8 -6:00')
-        Date('1992-10-08 07:00:00')
-        >>> Date.from_cfunits('m since 1992-10-8')
-        Date('1992-10-08 00:00:00')
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42 -6:00")
+        Date("1992-10-08 22:15:42")
+        >>> Date.from_cfunits(" day since 1992-10-8 15:15:00")
+        Date("1992-10-08 15:15:00")
+        >>> Date.from_cfunits("seconds since 1992-10-8 -6:00")
+        Date("1992-10-08 07:00:00")
+        >>> Date.from_cfunits("m since 1992-10-8")
+        Date("1992-10-08 00:00:00")
 
         One can also pass the unmodified the example string from
         `Time Coordinate`_, as long as one omits any decimal fractions
         of a second different from zero:
 
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42.')
-        Date('1992-10-08 15:15:42')
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42.00')
-        Date('1992-10-08 15:15:42')
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42. -6:00')
-        Date('1992-10-08 22:15:42')
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42.0 -6:00')
-        Date('1992-10-08 22:15:42')
-        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42.005 -6:00')
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.")
+        Date("1992-10-08 15:15:42")
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.00")
+        Date("1992-10-08 15:15:42")
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42. -6:00")
+        Date("1992-10-08 22:15:42")
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.0 -6:00")
+        Date("1992-10-08 22:15:42")
+        >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.005 -6:00")
         Traceback (most recent call last):
         ...
         ValueError: While trying to parse the date of the NetCDF-CF "units" \
@@ -557,7 +557,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
                         break
                     if char != "0":
                         raise ValueError(
-                            "No other decimal fraction of a second " 'than "0" allowed.'
+                            'No other decimal fraction of a second than "0" allowed.'
                         )
                 else:
                     if jdx is None:
@@ -568,8 +568,8 @@ occurred: No other decimal fraction of a second than "0" allowed.
             return cls.from_string(string)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to parse the date of the NetCDF-CF "units" '
-                f"string `{units}`"
+                f"While trying to parse the date of "
+                f'the NetCDF-CF "units" string `{units}`'
             )
 
     def to_cfunits(
@@ -583,18 +583,18 @@ occurred: No other decimal fraction of a second than "0" allowed.
         and takes the value of |Options.utcoffset| as time zone information:
 
         >>> from hydpy import Date
-        >>> date = Date('1992-10-08 15:15:42')
+        >>> date = Date("1992-10-08 15:15:42")
         >>> date.to_cfunits()
         'hours since 1992-10-08 15:15:42 +01:00'
 
         You can define arbitrary strings to describe the time unit:
 
-        >>> date.to_cfunits(unit='minutes')
+        >>> date.to_cfunits(unit="minutes")
         'minutes since 1992-10-08 15:15:42 +01:00'
 
         For changing the time zone, pass the corresponding offset in minutes:
 
-        >>> date.to_cfunits(unit='sec', utcoffset=-60)
+        >>> date.to_cfunits(unit="sec", utcoffset=-60)
         'sec since 1992-10-08 13:15:42 -01:00'
         """
         if utcoffset is None:
@@ -611,31 +611,31 @@ occurred: No other decimal fraction of a second than "0" allowed.
         string used as the initialisation object of a |Date| object:
 
         >>> from hydpy import Date
-        >>> date = Date('01.11.1997 00:00:00')
+        >>> date = Date("01.11.1997 00:00:00")
         >>> date.style
         'din1'
         >>> date
-        Date('01.11.1997 00:00:00')
+        Date("01.11.1997 00:00:00")
 
         However, you are allowed to change it:
 
-        >>> date.style = 'iso1'
+        >>> date.style = "iso1"
         >>> date
-        Date('1997-11-01T00:00:00')
+        Date("1997-11-01T00:00:00")
 
         The default style is `iso2`:
 
         >>> from datetime import datetime
         >>> date = Date(datetime(2000, 1, 1))
         >>> date
-        Date('2000-01-01 00:00:00')
+        Date("2000-01-01 00:00:00")
         >>> date.style
         'iso2'
 
         To try to set a non-existing style results in the following
         error message:
 
-        >>> date.style = 'iso'
+        >>> date.style = "iso"
         Traceback (most recent call last):
         ...
         AttributeError: Date format style `iso` is not available.
@@ -675,7 +675,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual second.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.second
         0
         >>> date.second = 30
@@ -696,7 +696,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual minute.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.minute
         0
         >>> date.minute = 30
@@ -717,7 +717,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual hour.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.hour
         0
         >>> date.hour = 12
@@ -738,7 +738,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual day.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.day
         1
         >>> date.day = 15
@@ -759,7 +759,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual month.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.month
         1
         >>> date.month = 7
@@ -780,7 +780,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The actual year.
 
         >>> from hydpy import Date
-        >>> date = Date('2000-01-01 00:00:00')
+        >>> date = Date("2000-01-01 00:00:00")
         >>> date.year
         2000
         >>> date.year = 1   # smallest possible value
@@ -806,7 +806,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         The default value is 11 (November which is the German reference month):
 
         >>> from hydpy import Date
-        >>> date1 = Date('2000-01-01')
+        >>> date1 = Date("2000-01-01")
         >>> date1.refmonth
         11
 
@@ -814,22 +814,22 @@ occurred: No other decimal fraction of a second than "0" allowed.
         month in different countries) affects all |Date| instances, no
         matter if already existing of if created afterwards:
 
-        >>> date2 = Date('2010-01-01')
+        >>> date2 = Date("2010-01-01")
         >>> date1.refmonth = 10
         >>> date1.refmonth
         10
         >>> date2.refmonth
         10
-        >>> Date('2010-01-01').refmonth
+        >>> Date("2010-01-01").refmonth
         10
 
         Alternatively, you can pass an appropriate string (the first
         three characters count):
 
-        >>> date1.refmonth = 'January'
+        >>> date1.refmonth = "January"
         >>> date1.refmonth
         1
-        >>> date1.refmonth = 'feb'
+        >>> date1.refmonth = "feb"
         >>> date1.refmonth
         2
 
@@ -841,7 +841,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         ValueError: The reference month must be a value between one \
 (January) and twelve (December) but `0` is given
 
-        >>> date1.refmonth = 'wrong'
+        >>> date1.refmonth = "wrong"
         Traceback (most recent call last):
         ...
         ValueError: The given argument `wrong` cannot be interpreted as a month.
@@ -894,8 +894,8 @@ occurred: No other decimal fraction of a second than "0" allowed.
 
         Property |Date.refmonth| defaults to November:
 
-        >>> october = Date('1996.10.01')
-        >>> november = Date('1996.11.01')
+        >>> october = Date("1996.10.01")
+        >>> november = Date("1996.11.01")
         >>> october.wateryear
         1996
         >>> november.wateryear
@@ -908,7 +908,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         1997
         >>> november.wateryear
         1997
-        >>> october.refmonth = 'November'
+        >>> october.refmonth = "November"
         >>> october.wateryear
         1996
         >>> november.wateryear
@@ -923,9 +923,9 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """The day of the year as an integer value.
 
         >>> from hydpy import Date
-        >>> Date('2003-03-01').dayofyear
+        >>> Date("2003-03-01").dayofyear
         60
-        >>> Date('2004-03-01').dayofyear
+        >>> Date("2004-03-01").dayofyear
         61
         """
         return self.datetime.timetuple().tm_yday
@@ -935,13 +935,13 @@ occurred: No other decimal fraction of a second than "0" allowed.
         """Return whether the actual date falls in a leap year or not.
 
         >>> from hydpy import Date
-        >>> Date('2003-03-01').leapyear
+        >>> Date("2003-03-01").leapyear
         False
-        >>> Date('2004-03-01').leapyear
+        >>> Date("2004-03-01").leapyear
         True
-        >>> Date('2000-03-01').leapyear
+        >>> Date("2000-03-01").leapyear
         True
-        >>> Date('2100-03-01').leapyear
+        >>> Date("2100-03-01").leapyear
         False
         """
         year = self.year
@@ -1079,7 +1079,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         to return a date string in your local time zone:
 
         >>> from hydpy import Date
-        >>> date = Date('01.11.1997 00:00:00')
+        >>> date = Date("01.11.1997 00:00:00")
         >>> date.to_string()
         '01.11.1997 00:00:00'
 
@@ -1088,7 +1088,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
 
         >>> date.style
         'din1'
-        >>> date.to_string(style='iso2')
+        >>> date.to_string(style="iso2")
         '1997-11-01 00:00:00'
         >>> date.style
         'din1'
@@ -1096,14 +1096,14 @@ occurred: No other decimal fraction of a second than "0" allowed.
         When passing the `utcoffset` in minutes, method |Date.to_string|
         appends the offset string:
 
-        >>> date.to_string(style='iso2', utcoffset=60)
+        >>> date.to_string(style="iso2", utcoffset=60)
         '1997-11-01 00:00:00+01:00'
 
         If the given offset does not correspond to your local offset
         defined by |Options.utcoffset| (which defaults to UTC+01:00),
         the date string is adapted:
 
-        >>> date.to_string(style='iso1', utcoffset=0)
+        >>> date.to_string(style="iso1", utcoffset=0)
         '1997-10-31T23:00:00+00:00'
         """
         if style is None:
@@ -1132,13 +1132,13 @@ occurred: No other decimal fraction of a second than "0" allowed.
         examples:
 
         >>> from hydpy import Date
-        >>> date = Date('01.11.1997 00:00:00')
+        >>> date = Date("01.11.1997 00:00:00")
         >>> date.to_repr()
-        "Date('01.11.1997 00:00:00')"
-        >>> date.to_repr('iso1', utcoffset=0)
-        "Date('1997-10-31T23:00:00+00:00')"
+        'Date("01.11.1997 00:00:00")'
+        >>> date.to_repr("iso1", utcoffset=0)
+        'Date("1997-10-31T23:00:00+00:00")'
         """
-        return f"Date('{self.to_string(style, utcoffset)}')"
+        return f'Date("{self.to_string(style, utcoffset)}")'
 
     def __str__(self) -> str:
         return self.to_string(self.style)
@@ -1164,15 +1164,15 @@ class Period:
     >>> from hydpy import Period
     >>> from datetime import timedelta
     >>> Period(timedelta(1))
-    Period('1d')
+    Period("1d")
 
     Alternatively, one can initialise from |str| objects.  These must
     consist of some characters defining an integer value followed
     by a single character defining the unit (see the documentation on
     method |Period.from_timedelta| for more information):
 
-    >>> Period('30s')
-    Period('30s')
+    >>> Period("30s")
+    Period("30s")
 
     In case you need an "empty" period object, pass nothing or |None|:
 
@@ -1198,17 +1198,17 @@ or `str`, but the given type is `int`.
     First, one can add two |Period| objects or add a |Period| object
     to an object representing a date:
 
-    >>> period = Period('1m')
-    >>> period + '2m'
-    Period('3m')
-    >>> '30s' + period
-    Period('90s')
-    >>> period += '4m'
+    >>> period = Period("1m")
+    >>> period + "2m"
+    Period("3m")
+    >>> "30s" + period
+    Period("90s")
+    >>> period += "4m"
     >>> period
-    Period('5m')
-    >>> '2000-01-01' + period
-    Date('2000-01-01 00:05:00')
-    >>> period + 'wrong'
+    Period("5m")
+    >>> "2000-01-01" + period
+    Date("2000-01-01 00:05:00")
+    >>> period + "wrong"
     Traceback (most recent call last):
     ...
     TypeError: Object `wrong` of type `str` cannot be added \
@@ -1216,17 +1216,17 @@ to a `Period` instance.
 
     Subtraction works much alike addition:
 
-    >>> period = Period('4d')
-    >>> period - '1d'
-    Period('3d')
-    >>> '1d' - period
-    Period('-3d')
-    >>> period -= '2d'
+    >>> period = Period("4d")
+    >>> period - "1d"
+    Period("3d")
+    >>> "1d" - period
+    Period("-3d")
+    >>> period -= "2d"
     >>> period
-    Period('2d')
-    >>> '2000-01-10' - period
-    Date('2000-01-08 00:00:00')
-    >>> 'wrong' - period
+    Period("2d")
+    >>> "2000-01-10" - period
+    Date("2000-01-08 00:00:00")
+    >>> "wrong" - period
     Traceback (most recent call last):
     ...
     TypeError: A `Period` instance cannot be subtracted \
@@ -1235,62 +1235,62 @@ from object `wrong` of type `str`.
     Use multiplication with a number to change the length of a |Period| object:
 
     >>> period * 2.0
-    Period('4d')
+    Period("4d")
     >>> 0.5 * period
-    Period('1d')
+    Period("1d")
     >>> period *= 1.5
     >>> period
-    Period('3d')
+    Period("3d")
 
     Division is possible in combination numbers and objects interpretable
     as periods:
 
 
     >>> period / 3.0
-    Period('1d')
-    >>> period / '36h'
+    Period("1d")
+    >>> period / "36h"
     2.0
-    >>> '6d' / period
+    >>> "6d" / period
     2.0
     >>> period /= 1.5
     >>> period
-    Period('2d')
+    Period("2d")
 
     Floor division and calculation of the remainder are also supported:
 
-    >>> period // '20h'
+    >>> period // "20h"
     2
-    >>> period % '20h'
-    Period('8h')
-    >>> '3d' // period
+    >>> period % "20h"
+    Period("8h")
+    >>> "3d" // period
     1
     >>> timedelta(3) % period
-    Period('1d')
+    Period("1d")
 
     You can change the sign in the following manners:
 
     >>> period = -period
     >>> period
-    Period('-2d')
+    Period("-2d")
     >>> +period
-    Period('-2d')
+    Period("-2d")
     >>> abs(period)
-    Period('2d')
+    Period("2d")
 
     The comparison operators work as expected:
 
-    >>> p1, p3 = Period('1d'), Period('3d')
-    >>> p1 < '2d', p1 < '1d', '2d' < p1
+    >>> p1, p3 = Period("1d"), Period("3d")
+    >>> p1 < "2d", p1 < "1d", "2d" < p1
     (True, False, False)
-    >>> p1 <= p3, p1 <= '1d', '2d' <= p1
+    >>> p1 <= p3, p1 <= "1d", "2d" <= p1
     (True, True, False)
-    >>> p1 == p3, p1 == '1d', '2d' == p1, p1 == '2000-01-01'
+    >>> p1 == p3, p1 == "1d", "2d" == p1, p1 == "2000-01-01"
     (False, True, False, False)
-    >>> p1 != p3, p1 != '1d', '2d' != p1, p1 != '2000-01-01'
+    >>> p1 != p3, p1 != "1d", "2d" != p1, p1 != "2000-01-01"
     (True, False, True, True)
-    >>> p1 >= p3, p1 >= '1d', '2d' >= p1
+    >>> p1 >= p3, p1 >= "1d", "2d" >= p1
     (False, True, True)
-    >>> p1 > p3, p1 > '1d', '2d' > p1
+    >>> p1 > p3, p1 > "1d", "2d" > p1
     (False, False, True)
     """
 
@@ -1327,15 +1327,15 @@ from object `wrong` of type `str`.
         return it.
 
         >>> from hydpy import Period
-        >>> p1 = Period('1d')
+        >>> p1 = Period("1d")
         >>> p2 = Period.from_period(p1)
         >>> p2
-        Period('1d')
+        Period("1d")
         >>> p1 *= 2
         >>> p1
-        Period('2d')
+        Period("2d")
         >>> p2
-        Period('1d')
+        Period("1d")
         """
         self = super().__new__(cls)
         vars(self)["timedelta"] = vars(period).get("timedelta")
@@ -1355,9 +1355,9 @@ from object `wrong` of type `str`.
         >>> from hydpy import Period
         >>> from datetime import timedelta
         >>> Period.from_timedelta(timedelta(1, 0))
-        Period('1d')
+        Period("1d")
         >>> Period.from_timedelta(timedelta(0, 1))
-        Period('1s')
+        Period("1s")
         >>> Period.from_timedelta(timedelta(0, 0, 1))
         Traceback (most recent call last):
         ...
@@ -1394,32 +1394,32 @@ However, for the given `timedelta` object it is `1` instead.
         `h` (hours), and `d` (days):
 
         >>> from hydpy import Period
-        >>> Period.from_string('30s')
-        Period('30s')
-        >>> Period.from_string('5m')
-        Period('5m')
-        >>> Period.from_string('6h')
-        Period('6h')
-        >>> Period.from_string('1d')
-        Period('1d')
+        >>> Period.from_string("30s")
+        Period("30s")
+        >>> Period.from_string("5m")
+        Period("5m")
+        >>> Period.from_string("6h")
+        Period("6h")
+        >>> Period.from_string("1d")
+        Period("1d")
 
         Ill-defined strings result in the following errors:
 
-        >>> Period.from_string('oned')
+        >>> Period.from_string("oned")
         Traceback (most recent call last):
         ...
         ValueError: All characters of the given period string, \
 except the last one which represents the unit, need to define \
 an integer number.  Instead, these characters are `one`.
 
-        >>> Period.from_string('1.5d')
+        >>> Period.from_string("1.5d")
         Traceback (most recent call last):
         ...
         ValueError: All characters of the given period string, \
 except the last one which represents the unit, need to define \
 an integer number.  Instead, these characters are `1.5`.
 
-        >>> Period.from_string('1D')
+        >>> Period.from_string("1D")
         Traceback (most recent call last):
         ...
         ValueError: The last character of the given period string needs \
@@ -1470,7 +1470,7 @@ Instead, the last character is `D`.
 
         >>> from hydpy import Period
         >>> Period.from_seconds(120)
-        Period('2m')
+        Period("2m")
         """
         return cls.from_timedelta(datetime_.timedelta(0, int(seconds)))
 
@@ -1488,12 +1488,12 @@ Instead, the last character is `D`.
         of the first entry (the actual time unit) is of relevance:
 
         >>> from hydpy import Period
-        >>> Period.from_cfunits('seconds since 1992-10-8 15:15:42.5 -6:00')
-        Period('1s')
-        >>> Period.from_cfunits(' day since 1992-10-8 15:15:00')
-        Period('1d')
-        >>> Period.from_cfunits('m since 1992-10-8')
-        Period('1m')
+        >>> Period.from_cfunits("seconds since 1992-10-8 15:15:42.5 -6:00")
+        Period("1s")
+        >>> Period.from_cfunits(" day since 1992-10-8 15:15:00")
+        Period("1d")
+        >>> Period.from_cfunits("m since 1992-10-8")
+        Period("1m")
         """
         return cls.from_string(f"1{units.strip()[0]}")
 
@@ -1504,7 +1504,7 @@ Instead, the last character is `D`.
         object:
 
         >>> from hydpy import Period
-        >>> period = Period('1d')
+        >>> period = Period("1d")
         >>> period.timedelta.days
         1
         >>> del period.timedelta
@@ -1515,17 +1515,17 @@ Instead, the last character is `D`.
 object at the moment.
         >>> from datetime import timedelta
         >>> period.timedelta = timedelta(1)
-        >>> hasattr(period, 'timedelta')
+        >>> hasattr(period, "timedelta")
         True
 
         Property |Period.timedelta| supports the automatic conversion
         of given |Period| and |str| objects:
 
-        >>> period.timedelta = Period('2d')
+        >>> period.timedelta = Period("2d")
         >>> period.timedelta.days
         2
 
-        >>> period.timedelta = '1h'
+        >>> period.timedelta = "1h"
         >>> period.timedelta.seconds
         3600
 
@@ -1573,15 +1573,15 @@ object at the moment.
         integer value:
 
         >>> from hydpy import Period
-        >>> period = Period('1d')
+        >>> period = Period("1d")
         >>> period.unit
         'd'
         >>> period /= 2
         >>> period.unit
         'h'
-        >>> Period('120s').unit
+        >>> Period("120s").unit
         'm'
-        >>> Period('90s').unit
+        >>> Period("90s").unit
         's'
         """
         if not self.days % 1:
@@ -1597,7 +1597,7 @@ object at the moment.
         """Period length in seconds.
 
         >>> from hydpy import Period
-        >>> Period('2d').seconds
+        >>> Period("2d").seconds
         172800.0
         """
         return self.timedelta.total_seconds()
@@ -1607,7 +1607,7 @@ object at the moment.
         """Period length in minutes.
 
         >>> from hydpy import Period
-        >>> Period('2d').minutes
+        >>> Period("2d").minutes
         2880.0
         """
         return self.timedelta.total_seconds() / 60
@@ -1617,7 +1617,7 @@ object at the moment.
         """Period length in hours.
 
         >>> from hydpy import Period
-        >>> Period('2d').hours
+        >>> Period("2d").hours
         48.0
         """
         return self.timedelta.total_seconds() / 3600
@@ -1627,7 +1627,7 @@ object at the moment.
         """Period length in days.
 
         >>> from hydpy import Period
-        >>> Period('2d').days
+        >>> Period("2d").days
         2.0
         """
         return self.timedelta.total_seconds() / 86400
@@ -1637,7 +1637,7 @@ object at the moment.
         moment.
 
         >>> from hydpy import Period
-        >>> Period('1d').check()
+        >>> Period("1d").check()
         >>> Period().check()
         Traceback (most recent call last):
         ...
@@ -1923,7 +1923,7 @@ object at the moment.
 
     def __repr__(self) -> str:
         if self:
-            return f"Period('{str(self)}')"
+            return f'Period("{str(self)}")'
         return "Period()"
 
 
@@ -1941,13 +1941,13 @@ class Timegrid:
     and |datetime.timedelta| objects (combinations are allowed):
 
     >>> from hydpy import Date, Period, Timegrid
-    >>> timegrid = Timegrid('2000-01-01', '2001-01-01', '1d')
+    >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
     >>> timegrid
-    Timegrid('2000-01-01 00:00:00',
-             '2001-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2001-01-01 00:00:00",
+             "1d")
     >>> timegrid == Timegrid(
-    ...     Date('2000-01-01'), Date('2001-01-01'), Period('1d'))
+    ...     Date("2000-01-01"), Date("2001-01-01"), Period("1d"))
     True
     >>> from datetime import datetime, timedelta
     >>> timegrid == Timegrid(
@@ -1956,7 +1956,7 @@ class Timegrid:
 
     Passing unsupported argument types results in errors like the following:
 
-    >>> Timegrid('2000-01-01', '2001-01-01', 1)
+    >>> Timegrid("2000-01-01", "2001-01-01", 1)
     Traceback (most recent call last):
     ...
     TypeError: While trying to prepare a Trimegrid object based on the \
@@ -1968,30 +1968,30 @@ of `Period`, `datetime.timedelta`, or `str`, but the given type is `int`.
     You can query indices and the corresponding dates via indexing:
 
     >>> timegrid[0]
-    Date('2000-01-01 00:00:00')
+    Date("2000-01-01 00:00:00")
     >>> timegrid[5]
-    Date('2000-01-06 00:00:00')
-    >>> timegrid[Date('2000-01-01')]
+    Date("2000-01-06 00:00:00")
+    >>> timegrid[Date("2000-01-01")]
     0
-    >>> timegrid['2000-01-06']
+    >>> timegrid["2000-01-06"]
     5
 
     Indexing beyond the ranges of the actual period is allowed:
 
     >>> timegrid[-365]
-    Date('1999-01-01 00:00:00')
-    >>> timegrid['2002-01-01']
+    Date("1999-01-01 00:00:00")
+    >>> timegrid["2002-01-01"]
     731
 
     However, dates not precisely matching the defined grid result in
     the following error:
 
-    >>> timegrid['2001-01-01 12:00']
+    >>> timegrid["2001-01-01 12:00"]
     Traceback (most recent call last):
     ...
     ValueError: The given date `2001-01-01 12:00:00` is not properly \
-alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
-'2001-01-01 00:00:00', '1d')`.
+alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
+"2001-01-01 00:00:00", "1d")`.
 
     You can determine the length of and iterate over |Timegrid| objects:
 
@@ -2007,15 +2007,15 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
 
     You can check |Timegrid| instances for equality:
 
-    >>> timegrid == Timegrid('2000-01-01', '2001-01-01', '1d')
+    >>> timegrid == Timegrid("2000-01-01", "2001-01-01", "1d")
     True
-    >>> timegrid != Timegrid('2000-01-01', '2001-01-01', '1d')
+    >>> timegrid != Timegrid("2000-01-01", "2001-01-01", "1d")
     False
-    >>> timegrid == Timegrid('2000-01-02', '2001-01-01', '1d')
+    >>> timegrid == Timegrid("2000-01-02", "2001-01-01", "1d")
     False
-    >>> timegrid == Timegrid('2000-01-01', '2001-01-02', '1d')
+    >>> timegrid == Timegrid("2000-01-01", "2001-01-02", "1d")
     False
-    >>> timegrid == Timegrid('2000-01-01', '2001-01-01', '2d')
+    >>> timegrid == Timegrid("2000-01-01", "2001-01-01", "2d")
     False
     >>> timegrid == 1
     False
@@ -2024,28 +2024,28 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
     span defined by a |Timegrid| instance (note unaligned dates and time
     grids with different step sizes are considered unequal):
 
-    >>> Date('2000-01-01') in timegrid
+    >>> Date("2000-01-01") in timegrid
     True
-    >>> '2001-01-01' in timegrid
+    >>> "2001-01-01" in timegrid
     True
-    >>> '2000-07-01' in timegrid
+    >>> "2000-07-01" in timegrid
     True
-    >>> '1999-12-31' in timegrid
+    >>> "1999-12-31" in timegrid
     False
-    >>> '2001-01-02' in timegrid
+    >>> "2001-01-02" in timegrid
     False
-    >>> '2001-01-02 12:00' in timegrid
+    >>> "2001-01-02 12:00" in timegrid
     False
 
-    >>> timegrid in Timegrid('2000-01-01', '2001-01-01', '1d')
+    >>> timegrid in Timegrid("2000-01-01", "2001-01-01", "1d")
     True
-    >>> timegrid in Timegrid('1999-01-01', '2002-01-01', '1d')
+    >>> timegrid in Timegrid("1999-01-01", "2002-01-01", "1d")
     True
-    >>> timegrid in Timegrid('2000-01-02', '2001-01-01', '1d')
+    >>> timegrid in Timegrid("2000-01-02", "2001-01-01", "1d")
     False
-    >>> timegrid in Timegrid('2000-01-01', '2000-12-31', '1d')
+    >>> timegrid in Timegrid("2000-01-01", "2000-12-31", "1d")
     False
-    >>> timegrid in Timegrid('2000-01-01', '2001-01-01', '2d')
+    >>> timegrid in Timegrid("2000-01-01", "2001-01-01", "2d")
     False
     """
 
@@ -2074,14 +2074,14 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         object did not become ill-defined):
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000-01-01', '2001-01-01', '1d')
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
         >>> timegrid.firstdate
-        Date('2000-01-01 00:00:00')
-        >>> timegrid.firstdate += '1d'
+        Date("2000-01-01 00:00:00")
+        >>> timegrid.firstdate += "1d"
         >>> timegrid
-        Timegrid('2000-01-02 00:00:00',
-                 '2001-01-01 00:00:00',
-                 '1d')
+        Timegrid("2000-01-02 00:00:00",
+                 "2001-01-01 00:00:00",
+                 "1d")
         """
         return vars(self)["firstdate"]
 
@@ -2104,14 +2104,14 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         object did not become ill-defined):
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000-01-01', '2001-01-01', '1d')
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
         >>> timegrid.lastdate
-        Date('2001-01-01 00:00:00')
-        >>> timegrid.lastdate += '1d'
+        Date("2001-01-01 00:00:00")
+        >>> timegrid.lastdate += "1d"
         >>> timegrid
-        Timegrid('2000-01-01 00:00:00',
-                 '2001-01-02 00:00:00',
-                 '1d')
+        Timegrid("2000-01-01 00:00:00",
+                 "2001-01-02 00:00:00",
+                 "1d")
         """
         return vars(self)["lastdate"]
 
@@ -2134,14 +2134,14 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         object did not become ill-defined):
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000-01-01', '2001-01-01', '1d')
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
         >>> timegrid.stepsize
-        Period('1d')
-        >>> timegrid.stepsize += '1d'
+        Period("1d")
+        >>> timegrid.stepsize += "1d"
         >>> timegrid
-        Timegrid('2000-01-01 00:00:00',
-                 '2001-01-01 00:00:00',
-                 '2d')
+        Timegrid("2000-01-01 00:00:00",
+                 "2001-01-01 00:00:00",
+                 "2d")
         """
         return vars(self)["stepsize"]
 
@@ -2182,9 +2182,9 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         >>> from hydpy import Timegrid
         >>> timegrid = Timegrid.from_array(array_)
         >>> timegrid
-        Timegrid('2000-01-01 00:00:00',
-                 '2000-01-01 07:00:00',
-                 '1h')
+        Timegrid("2000-01-01 00:00:00",
+                 "2000-01-01 07:00:00",
+                 "1h")
 
         Too little information results in the following error message:
 
@@ -2246,29 +2246,29 @@ are required, but the given array consist of 12 entries/rows only.
 
         >>> from hydpy import Timegrid
         >>> Timegrid.from_timepoints(
-        ...     [0.0, 6.0, 12.0, 18.0], '01.01.2000')
-        Timegrid('01.01.2000 00:00:00',
-                 '02.01.2000 00:00:00',
-                 '6h')
+        ...     [0.0, 6.0, 12.0, 18.0], "01.01.2000")
+        Timegrid("01.01.2000 00:00:00",
+                 "02.01.2000 00:00:00",
+                 "6h")
         >>> Timegrid.from_timepoints(
-        ...     [24.0, 30.0, 36.0, 42.0], '1999-12-31')
-        Timegrid('2000-01-01 00:00:00',
-                 '2000-01-02 00:00:00',
-                 '6h')
+        ...     [24.0, 30.0, 36.0, 42.0], "1999-12-31")
+        Timegrid("2000-01-01 00:00:00",
+                 "2000-01-02 00:00:00",
+                 "6h")
 
         You can pass other time units (`days` or `min`) explicitly
         (only the first character counts):
 
         >>> Timegrid.from_timepoints(
-        ...     [0.0, 0.25, 0.5, 0.75], '01.01.2000', unit='d')
-        Timegrid('01.01.2000 00:00:00',
-                 '02.01.2000 00:00:00',
-                 '6h')
+        ...     [0.0, 0.25, 0.5, 0.75], "01.01.2000", unit="d")
+        Timegrid("01.01.2000 00:00:00",
+                 "02.01.2000 00:00:00",
+                 "6h")
         >>> Timegrid.from_timepoints(
-        ...     [1.0, 1.25, 1.5, 1.75], '1999-12-31', unit='day')
-        Timegrid('2000-01-01 00:00:00',
-                 '2000-01-02 00:00:00',
-                 '6h')
+        ...     [1.0, 1.25, 1.5, 1.75], "1999-12-31", unit="day")
+        Timegrid("2000-01-01 00:00:00",
+                 "2000-01-02 00:00:00",
+                 "6h")
         """
         refdate = Date(refdate)
         period = Period.from_cfunits(unit)
@@ -2293,14 +2293,14 @@ are required, but the given array consist of 12 entries/rows only.
         points in hours:
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000-01-01', '2000-01-02', '6h')
+        >>> timegrid = Timegrid("2000-01-01", "2000-01-02", "6h")
         >>> timegrid.to_timepoints()
         array([  0.,   6.,  12.,  18.])
 
         You can define other time units (`days` or `min`) (only the first
         character counts):
 
-        >>> timegrid.to_timepoints(unit='d')
+        >>> timegrid.to_timepoints(unit="d")
         array([ 0.  ,  0.25,  0.5 ,  0.75])
 
         Additionally, one can pass an `offset` that must be of type |int|
@@ -2308,9 +2308,9 @@ are required, but the given array consist of 12 entries/rows only.
 
         >>> timegrid.to_timepoints(offset=24)
         array([ 24.,  30.,  36.,  42.])
-        >>> timegrid.to_timepoints(offset='1d')
+        >>> timegrid.to_timepoints(offset="1d")
         array([ 24.,  30.,  36.,  42.])
-        >>> timegrid.to_timepoints(unit='day', offset='1d')
+        >>> timegrid.to_timepoints(unit="day", offset="1d")
         array([ 1.  ,  1.25,  1.5 ,  1.75])
         """
         period = Period.from_cfunits(unit)
@@ -2336,8 +2336,8 @@ are required, but the given array consist of 12 entries/rows only.
         it on a simple list containing numbers:
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000-11-01 00:00', '2000-11-01 04:00', '1h')
-        >>> series = timegrid.array2series([1, 2, 3.5, '5.0'])
+        >>> timegrid = Timegrid("2000-11-01 00:00", "2000-11-01 04:00", "1h")
+        >>> series = timegrid.array2series([1, 2, 3.5, "5.0"])
 
         The first six entries contain the first date of the timegrid (year,
         month, day, hour, minute, second):
@@ -2436,7 +2436,7 @@ timegrid object is `4` and the length of the array object is `2`.
         of a new |Timegrid| object automatically:
 
         >>> from hydpy import Timegrid
-        >>> Timegrid('2001-01-01', '2000-01-01', '1d')
+        >>> Timegrid("2001-01-01", "2000-01-01", "1d")
         Traceback (most recent call last):
         ...
         ValueError: While trying to prepare a Trimegrid object based on the \
@@ -2447,8 +2447,8 @@ date (`2000-01-01 00:00:00`) is inconsistent.
         However, the same does not hold when changing property
         |Timegrid.firstdate|, |Timegrid.lastdate|, or |Timegrid.stepsize|:
 
-        >>> timegrid = Timegrid('2000-01-01', '2001-01-01', '1d')
-        >>> timegrid.stepsize = '4d'
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
+        >>> timegrid.stepsize = "4d"
 
         When in doubt, call method |Timegrid.verify| manually:
 
@@ -2564,27 +2564,27 @@ date (`2000-01-01 00:00:00`) is inconsistent.
         """Return a |repr| string with a prefixed assignment.
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('1996-11-01 00:00:00',
-        ...                     '1997-11-01 00:00:00',
-        ...                     '1d')
-        >>> print(timegrid.assignrepr(prefix='timegrid = '))
-        timegrid = Timegrid('1996-11-01 00:00:00',
-                            '1997-11-01 00:00:00',
-                            '1d')
+        >>> timegrid = Timegrid("1996-11-01 00:00:00",
+        ...                     "1997-11-01 00:00:00",
+        ...                     "1d")
+        >>> print(timegrid.assignrepr(prefix="timegrid = "))
+        timegrid = Timegrid("1996-11-01 00:00:00",
+                            "1997-11-01 00:00:00",
+                            "1d")
 
         >>> print(timegrid.assignrepr(
-        ...     prefix='', style='iso1', utcoffset=120))
-        Timegrid('1996-11-01T01:00:00+02:00',
-                 '1997-11-01T01:00:00+02:00',
-                 '1d')
+        ...     prefix="", style="iso1", utcoffset=120))
+        Timegrid("1996-11-01T01:00:00+02:00",
+                 "1997-11-01T01:00:00+02:00",
+                 "1d")
         """
         skip = len(prefix) + 9
         blanks = " " * skip
         return (
-            f"{prefix}Timegrid('"
-            f"{self.firstdate.to_string(style, utcoffset)}',\n"
-            f"{blanks}'{self.lastdate.to_string(style, utcoffset)}',\n"
-            f"{blanks}'{str(self.stepsize)}')"
+            f'{prefix}Timegrid("'
+            f'{self.firstdate.to_string(style, utcoffset)}",\n'
+            f'{blanks}"{self.lastdate.to_string(style, utcoffset)}",\n'
+            f'{blanks}"{str(self.stepsize)}")'
         )
 
 
@@ -2608,66 +2608,66 @@ class Timegrids:
 
     >>> from hydpy import Timegrid, Timegrids
     >>> timegrids = Timegrids(Timegrid(
-    ...     '2000-01-01', '2001-01-01', '1d'))
+    ...     "2000-01-01", "2001-01-01", "1d"))
     >>> print(timegrids)
-    Timegrids(Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d'))
+    Timegrids(Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d"))
 
     An even shorter approach is to pass the arguments of the
     |Timegrid| constructor directly:
 
-    >>> timegrids == Timegrids('2000-01-01', '2001-01-01', '1d')
+    >>> timegrids == Timegrids("2000-01-01", "2001-01-01", "1d")
     True
 
     To define a simulation time grid different from the initialisation
     time grid, pass them as two individual |Timegrid| objects:
 
     >>> timegrids = Timegrids(
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2000-07-01', '1d'))
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
     >>> timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'),
-              Timegrid('2000-01-01 00:00:00',
-                       '2000-07-01 00:00:00',
-                       '1d'))
+    Timegrids(Timegrid("2000-01-01 00:00:00",
+                       "2001-01-01 00:00:00",
+                       "1d"),
+              Timegrid("2000-01-01 00:00:00",
+                       "2000-07-01 00:00:00",
+                       "1d"))
     >>> timegrids.init
-    Timegrid('2000-01-01 00:00:00',
-             '2001-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2001-01-01 00:00:00",
+             "1d")
     >>> timegrids.sim
-    Timegrid('2000-01-01 00:00:00',
-             '2000-07-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2000-07-01 00:00:00",
+             "1d")
 
     Class |Timegrids| supports keyword arguments:
 
-    >>> Timegrid(firstdate='2000-01-01 00:00:00',
-    ...          lastdate='2001-01-01 00:00:00',
-    ...          stepsize='1d')
-    Timegrid('2000-01-01 00:00:00',
-             '2001-01-01 00:00:00',
-             '1d')
+    >>> Timegrid(firstdate="2000-01-01 00:00:00",
+    ...          lastdate="2001-01-01 00:00:00",
+    ...          stepsize="1d")
+    Timegrid("2000-01-01 00:00:00",
+             "2001-01-01 00:00:00",
+             "1d")
 
-    >>> Timegrid('2000-01-01 00:00:00',
-    ...          '2001-01-01 00:00:00',
-    ...          stepsize='1d')
-    Timegrid('2000-01-01 00:00:00',
-             '2001-01-01 00:00:00',
-             '1d')
+    >>> Timegrid("2000-01-01 00:00:00",
+    ...          "2001-01-01 00:00:00",
+    ...          stepsize="1d")
+    Timegrid("2000-01-01 00:00:00",
+             "2001-01-01 00:00:00",
+             "1d")
 
-    >>> Timegrids(init=Timegrid('2000-01-01 00:00:00',
-    ...                         '2001-01-01 00:00:00',
-    ...                         '1d'),
-    ...           sim=Timegrid('2000-01-01 00:00:00',
-    ...                        '2000-07-01 00:00:00',
-    ...                        '1d'))
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'),
-              Timegrid('2000-01-01 00:00:00',
-                       '2000-07-01 00:00:00',
-                       '1d'))
+    >>> Timegrids(init=Timegrid("2000-01-01 00:00:00",
+    ...                         "2001-01-01 00:00:00",
+    ...                         "1d"),
+    ...           sim=Timegrid("2000-01-01 00:00:00",
+    ...                        "2000-07-01 00:00:00",
+    ...                        "1d"))
+    Timegrids(Timegrid("2000-01-01 00:00:00",
+                       "2001-01-01 00:00:00",
+                       "1d"),
+              Timegrid("2000-01-01 00:00:00",
+                       "2000-07-01 00:00:00",
+                       "1d"))
 
     Wrong arguments should result in understandable error messages:
 
@@ -2678,7 +2678,7 @@ class Timegrids:
 arguments `1, 2, 3, and 4`, the following error occurred: Initialising \
 `Timegrids` objects requires one, two, or three arguments but `4` are given.
 
-    >>> Timegrids('wrong')
+    >>> Timegrids("wrong")
     Traceback (most recent call last):
     ...
     ValueError: While trying to define a new `Timegrids` object based on the \
@@ -2688,22 +2688,22 @@ object either requires one or two `Timegrid` objects or two dates objects \
 `Period`, `timedelta`, or `str`), but objects of the types `str, None, \
 and None` are given.
 
-    >>> Timegrids(wrong=Timegrid('2000-01-01', '2001-01-01', '1d'))
+    >>> Timegrids(wrong=Timegrid("2000-01-01", "2001-01-01", "1d"))
     Traceback (most recent call last):
     ...
     TypeError: While trying to define a new `Timegrids` object based on the \
-arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, \
+arguments `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, \
 the following error occurred: Initialising class `Timegrids` does not \
 support the following given keywords: `wrong`.
 
     >>> Timegrids(
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
-    ...     init=Timegrid('2000-01-01', '2001-01-01', '1d'))
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     init=Timegrid("2000-01-01", "2001-01-01", "1d"))
     Traceback (most recent call last):
     ...
     TypeError: While trying to define a new `Timegrids` object based on the \
-arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d') and \
-Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, the following \
+arguments `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d") and \
+Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, the following \
 error occurred: There is a conflict between the given positional and keyword \
 arguments.
 
@@ -2711,18 +2711,18 @@ arguments.
     and simulation periods are equal:
 
     >>> timegrids == Timegrids(
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2000-07-01', '1d'))
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
     True
     >>> timegrids == Timegrids(
-    ...     Timegrid('1999-01-01', '2001-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2000-07-01', '1d'))
+    ...     Timegrid("1999-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
     False
     >>> timegrids == Timegrids(
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'))
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"))
     False
-    >>> timegrids == Date('2000-01-01')
+    >>> timegrids == Date("2000-01-01")
     False
     """
 
@@ -2824,26 +2824,26 @@ arguments.
         handled |Timegrid| objects at once:
 
         >>> from hydpy import Timegrids
-        >>> timegrids = Timegrids('2000-01-01', '2001-01-01', '1d')
-        >>> timegrids.sim.lastdate = '2000-02-01'
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
+        >>> timegrids.sim.lastdate = "2000-02-01"
         >>> timegrids
-        Timegrids(Timegrid('2000-01-01 00:00:00',
-                           '2001-01-01 00:00:00',
-                           '1d'),
-                  Timegrid('2000-01-01 00:00:00',
-                           '2000-02-01 00:00:00',
-                           '1d'))
+        Timegrids(Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"),
+                  Timegrid("2000-01-01 00:00:00",
+                           "2000-02-01 00:00:00",
+                           "1d"))
 
         >>> timegrids.stepsize
-        Period('1d')
-        >>> timegrids.stepsize = '1h'
+        Period("1d")
+        >>> timegrids.stepsize = "1h"
         >>> timegrids
-        Timegrids(Timegrid('2000-01-01 00:00:00',
-                           '2001-01-01 00:00:00',
-                           '1h'),
-                  Timegrid('2000-01-01 00:00:00',
-                           '2000-02-01 00:00:00',
-                           '1h'))
+        Timegrids(Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1h"),
+                  Timegrid("2000-01-01 00:00:00",
+                           "2000-02-01 00:00:00",
+                           "1h"))
         """
         return self.init.stepsize
 
@@ -2868,13 +2868,13 @@ arguments.
 
         >>> from hydpy import Timegrid, Timegrids
         >>> Timegrids(
-        ...     Timegrid('2001-01-01', '2002-01-01', '1d'),
-        ...     Timegrid('2000-01-01', '2002-01-01', '1d'))
+        ...     Timegrid("2001-01-01", "2002-01-01", "1d"),
+        ...     Timegrid("2000-01-01", "2002-01-01", "1d"))
         Traceback (most recent call last):
         ...
         ValueError: While trying to define a new `Timegrids` object based on \
-the arguments `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d') \
-and Timegrid('2000-01-01 00:00:00', '2002-01-01 00:00:00', '1d')`, the \
+the arguments `Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d") \
+and Timegrid("2000-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`, the \
 following error occurred: The first date of the initialisation period \
 (`2001-01-01 00:00:00`) must not be later than the first date of the \
 simulation period (`2000-01-01 00:00:00`).
@@ -2883,9 +2883,9 @@ simulation period (`2000-01-01 00:00:00`).
         or the simulation time grid later:
 
         >>> timegrids = Timegrids(
-        ...     Timegrid('2001-01-01', '2002-01-01', '1d'),
-        ...     Timegrid('2001-01-01', '2002-01-01', '1d'))
-        >>> timegrids.sim.lastdate = '2003-01-01'
+        ...     Timegrid("2001-01-01", "2002-01-01", "1d"),
+        ...     Timegrid("2001-01-01", "2002-01-01", "1d"))
+        >>> timegrids.sim.lastdate = "2003-01-01"
 
         When in doubt, call method |Timegrids.verify| manually:
 
@@ -2900,8 +2900,8 @@ of the simulation period (`2003-01-01 00:00:00`).
         |Timegrids.verify| checks for an equal step size of both
         |Timegrid| objects and their proper alignment:
 
-        >>> timegrids.sim.lastdate = '2002-01-01'
-        >>> timegrids.sim.stepsize = '5d'
+        >>> timegrids.sim.lastdate = "2002-01-01"
+        >>> timegrids.sim.stepsize = "5d"
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
@@ -2909,33 +2909,33 @@ of the simulation period (`2003-01-01 00:00:00`).
 with the simulation stepsize (`5d`).
 
         >>> timegrids.sim = Timegrid(
-        ...     '2001-01-01 12:00', '2001-12-31 12:00', '1d')
+        ...     "2001-01-01 12:00", "2001-12-31 12:00", "1d")
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The simulation time grid `Timegrid('2001-01-01 12:00:00', \
-'2001-12-31 12:00:00', '1d')` is not properly alligned on the initialisation \
-time grid `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d')`.
+        ValueError: The simulation time grid `Timegrid("2001-01-01 12:00:00", \
+"2001-12-31 12:00:00", "1d")` is not properly alligned on the initialisation \
+time grid `Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`.
 
         Additionally, the method |Timegrids.verify| calls the
         verification methods of both |Timegrid| objects:
 
-        >>> timegrids.sim.stepsize = '3d'
+        >>> timegrids.sim.stepsize = "3d"
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
         ValueError: While trying to verify the simulation time grid \
-`Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d')`, \
+`Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`, \
 the following error occurred: The interval between the first date \
 (`2001-01-01 12:00:00`) and the last date (`2001-12-31 12:00:00`) \
 is `364d`, which is not an integral multiple of the step size `3d`.
 
-        >>> timegrids.init.stepsize = '3d'
+        >>> timegrids.init.stepsize = "3d"
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
         ValueError: While trying to verify the initialisation time grid \
-`Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '3d')`, \
+`Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "3d")`, \
 the following error occurred: The interval between the first date \
 (`2001-01-01 00:00:00`) and the last date (`2002-01-01 00:00:00`) \
 is `365d`, which is not an integral multiple of the step size `3d`.
@@ -2986,11 +2986,11 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         regarding the initialisation period.
 
         >>> from hydpy import Timegrids
-        >>> timegrids = Timegrids('2000-01-01', '2001-01-01', '1d')
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
         >>> timegrids.simindices
         (0, 366)
-        >>> timegrids.sim.firstdate = '2000-01-11'
-        >>> timegrids.sim.lastdate = '2000-02-01'
+        >>> timegrids.sim.firstdate = "2000-01-11"
+        >>> timegrids.sim.lastdate = "2000-02-01"
         >>> timegrids.simindices
         (10, 31)
         """
@@ -3004,10 +3004,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         a reference area, given in `km²`.
 
         >>> from hydpy import Timegrids, round_
-        >>> timegrids = Timegrids('2000-01-01', '2001-01-01', '1s')
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1s")
         >>> timegrids.qfactor(1.0)
         1000.0
-        >>> timegrids.stepsize = '2d'
+        >>> timegrids.stepsize = "2d"
         >>> round_(timegrids.qfactor(2.0))
         0.011574
         """
@@ -3022,10 +3022,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         related to the original parameter values).
 
         >>> from hydpy import Timegrids
-        >>> timegrids = Timegrids('2000-01-01', '2001-01-01', '1d')
-        >>> timegrids.parfactor('1d')
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
+        >>> timegrids.parfactor("1d")
         1.0
-        >>> timegrids.parfactor('1h')
+        >>> timegrids.parfactor("1h")
         24.0
         """
         return self.stepsize / Period(stepsize)
@@ -3076,7 +3076,7 @@ class TOY:
     and separated by single underscores:
 
     >>> from hydpy.core.timetools import Date, TOY
-    >>> t = TOY('3_13_23_33_43')
+    >>> t = TOY("3_13_23_33_43")
     >>> t.month
     3
     >>> t.day
@@ -3091,19 +3091,19 @@ class TOY:
     If a lower precision is required, one can shorten the string, which
     implicitly sets the omitted property to the lowest possible value:
 
-    >>> TOY('3_13_23_33')
-    TOY('3_13_23_33_0')
+    >>> TOY("3_13_23_33")
+    TOY("3_13_23_33_0")
 
     The most extreme example is to pass no string at all:
 
     >>> TOY()
-    TOY('1_1_0_0_0')
+    TOY("1_1_0_0_0")
 
     One can prefix some information to the string, which is useful when the
     string is to be used as a valid variable name somewhere else:
 
-    >>> TOY('something_3_13_23_33_2')
-    TOY('3_13_23_33_2')
+    >>> TOY("something_3_13_23_33_2")
+    TOY("3_13_23_33_2")
 
     As one can see, we lose the prefixed information in the printed string
     representation.  Instead, applying "str" returns a string with a
@@ -3115,13 +3115,13 @@ class TOY:
     Alternatively, one can use a |Date| object as an initialisation
     argument, omitting the year:
 
-    >>> TOY(Date('2001.02.03 04:05:06'))
-    TOY('2_3_4_5_6')
+    >>> TOY(Date("2001.02.03 04:05:06"))
+    TOY("2_3_4_5_6")
 
     Ill-defined constructor arguments result in error messages like
     the following:
 
-    >>> TOY('something')
+    >>> TOY("something")
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise a TOY object based on argument \
@@ -3129,7 +3129,7 @@ value `something` of type `str`, the following error occurred: When passing \
 a prefixed string, you need to define at least the month.
 
 
-    >>> TOY('2_30_4_5_6')
+    >>> TOY("2_30_4_5_6")
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise a TOY object based on argument \
@@ -3150,13 +3150,13 @@ properties month, day, hour, minute, and second, but `microsecond` is given.
 
     You can pass any objects convertible to integers:
 
-    >>> t.second = '53'
+    >>> t.second = "53"
     >>> t.second
     53
 
     Unconvertible objects cause the following error:
 
-    >>> t.second = 'fiftythree'
+    >>> t.second = "fiftythree"
     Traceback (most recent call last):
     ...
     ValueError: For TOY (time of year) objects, all properties must be of \
@@ -3194,7 +3194,7 @@ has already been set to `31`.
 
     It is possible to compare two |TOY| instances:
 
-    >>> t1, t2 = TOY('1'), TOY('2')
+    >>> t1, t2 = TOY("1"), TOY("2")
     >>> t1 < t1, t1 < t2, t2 < t1
     (False, True, False)
     >>> t1 <= t1, t1 <= t2, t2 <= t1
@@ -3210,13 +3210,13 @@ has already been set to `31`.
 
     Subtracting two |TOY| object gives their time difference in seconds:
 
-    >>> TOY('1_1_0_3_0') - TOY('1_1_0_1_30')
+    >>> TOY("1_1_0_3_0") - TOY("1_1_0_1_30")
     90
 
     Subtraction never results in negative values, due to assuming the
     left operand is the posterior (eventually within the subsequent year):
 
-    >>> TOY('1_1_0_1_30') - TOY('12_31_23_58_30')
+    >>> TOY("1_1_0_1_30") - TOY("12_31_23_58_30")
     180
     """
 
@@ -3339,7 +3339,7 @@ has already been set to `31`.
         old:
 
         >>> from hydpy.core.timetools import TOY
-        >>> toy = TOY('1_1_0_1_30')
+        >>> toy = TOY("1_1_0_1_30")
         >>> toy.seconds_passed
         90
 
@@ -3352,7 +3352,7 @@ has already been set to `31`.
 
         The second example shows the general inclusion of the 29th of February:
 
-        >>> TOY('3').seconds_passed
+        >>> TOY("3").seconds_passed
         5184000
         """
         seconds_passed = vars(self)["seconds_passed"]
@@ -3371,7 +3371,7 @@ has already been set to `31`.
         remain:
 
         >>> from hydpy.core.timetools import TOY
-        >>> toy = TOY('12_31_23_58_30')
+        >>> toy = TOY("12_31_23_58_30")
         >>> toy.seconds_left
         90
 
@@ -3384,7 +3384,7 @@ has already been set to `31`.
 
         The second example shows the general inclusion of the 29th of February:
 
-        >>> TOY('2').seconds_left
+        >>> TOY("2").seconds_left
         28944000
         """
         seconds_left = vars(self)["seconds_left"]
@@ -3413,11 +3413,11 @@ has already been set to `31`.
 
         >>> from hydpy.core.timetools import TOY
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001-10-01', '2010-10-01', '1d'
+        >>> pub.timegrids = "2001-10-01", "2010-10-01", "1d"
         >>> TOY.centred_timegrid()[0]
-        Timegrid('2000-01-01 12:00:00',
-                 '2001-01-01 12:00:00',
-                 '1d')
+        Timegrid("2000-01-01 12:00:00",
+                 "2001-01-01 12:00:00",
+                 "1d")
 
         The same holds for the shape of the returned boolean array:
 
@@ -3435,21 +3435,21 @@ has already been set to `31`.
         The boolean array contains only the value |True| for all
         initialisation periods covering at least a full year:
 
-        >>> pub.timegrids = '2000-02-01', '2001-02-01', '1d'
+        >>> pub.timegrids = "2000-02-01", "2001-02-01", "1d"
         >>> sum(TOY.centred_timegrid()[1])
         366
-        >>> pub.timegrids = '2001-10-01', '2002-10-01', '1d'
+        >>> pub.timegrids = "2001-10-01", "2002-10-01", "1d"
         >>> sum(TOY.centred_timegrid()[1])
         366
 
         In all other cases, only the values related to the intersection
         are |True|:
 
-        >>> pub.timegrids = '2001-01-03', '2001-01-05', '1d'
+        >>> pub.timegrids = "2001-01-03", "2001-01-05", "1d"
         >>> TOY.centred_timegrid()[1][:5]
         array([False, False,  True,  True, False], dtype=bool)
 
-        >>> pub.timegrids = '2001-12-30', '2002-01-04', '1d'
+        >>> pub.timegrids = "2001-12-30", "2002-01-04", "1d"
         >>> TOY.centred_timegrid()[1][:5]
         array([ True,  True,  True, False, False], dtype=bool)
         >>> TOY.centred_timegrid()[1][-5:]
@@ -3458,10 +3458,10 @@ has already been set to `31`.
         It makes no difference whether initialisation periods not spanning
         a full year contain the 29th of February or not:
 
-        >>> pub.timegrids = '2001-02-27', '2001-03-01', '1d'
+        >>> pub.timegrids = "2001-02-27", "2001-03-01", "1d"
         >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
         array([False, False,  True,  True,  True, False], dtype=bool)
-        >>> pub.timegrids = '2000-02-27', '2000-03-01', '1d'
+        >>> pub.timegrids = "2000-02-27", "2000-03-01", "1d"
         >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
         array([False, False,  True,  True,  True, False], dtype=bool)
         """
@@ -3540,9 +3540,8 @@ has already been set to `31`.
         return f"toy_{string}"
 
     def __repr__(self) -> str:
-        return "TOY('%s')" % "_".join(
-            str(getattr(self, prop)) for prop in self._PROPERTIES.keys()
-        )
+        content = "_".join(str(getattr(self, prop)) for prop in self._PROPERTIES.keys())
+        return f'TOY("{content}")'
 
 
 TOY0 = TOY("1_1_0_0_0")

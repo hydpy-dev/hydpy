@@ -32,17 +32,17 @@ Integration tests
     the amount of water required by the plant:
 
     >>> from hydpy import pub, Node, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
-    >>> inflow = Node('inflow', variable='Q')
-    >>> release = Node('release', variable='Q')
-    >>> supply = Node('supply', variable='S')
-    >>> demand = Node('demand', variable='S')
-    >>> dam = Element('dam',
+    >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
+    >>> inflow = Node("inflow", variable="Q")
+    >>> release = Node("release", variable="Q")
+    >>> supply = Node("supply", variable="S")
+    >>> demand = Node("demand", variable="S")
+    >>> dam = Element("dam",
     ...               inlets=inflow,
     ...               outlets=(release, supply),
     ...               receivers=demand)
     >>> from hydpy.models.dam_v003 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> dam.model = model
 
     Method |Model.connect| recognizes the different purposes of both
@@ -62,7 +62,7 @@ Integration tests
     ...     dam,
     ...     inits=((states.watervolume, 0.0),
     ...            (logs.loggedrequiredremoterelease, 0.005)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
     >>> inflow.sequences.sim.series = 1.0
     >>> demand.sequences.sim.series = [
     ...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075,
@@ -95,7 +95,7 @@ Integration tests
     possible for model |dam_v003|,  which is why it has to release a larger
     total amount of water:
 
-    >>> test('dam_v003_ex7')
+    >>> test("dam_v003_ex7")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008588 |    1.0 | 0.191667 | 0.004792 |
@@ -141,7 +141,7 @@ Integration tests
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v003_ex8_1')
+    >>> test("dam_v003_ex8_1")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008746 |    1.0 | 0.191667 | 0.004792 |
@@ -196,7 +196,7 @@ Integration tests
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test('dam_v003_ex10')
+    >>> test("dam_v003_ex10")
     |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand |   inflow |  release |   supply |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |             0.2 |             0.2 |      0.038491 |             0.00012 |            0.0 | 0.038491 |    0.013944 |  0.01232 |      0.2 | 0.038491 |  0.00012 |
@@ -251,7 +251,7 @@ Integration tests
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> demand.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test('dam_v003_ex13')
+    >>> test("dam_v003_ex13")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | demand | inflow |  release | supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |            0.0 |      0.0 |         0.0 |    0.0 |    0.0 |      0.0 |    0.0 |

@@ -36,21 +36,21 @@ class NmbSubsteps(parametertools.Parameter):
         Initialize a llake model and assume a simulation step size of 12 hours:
 
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> derived.seconds.update()
 
         If the maximum internal step size is also set to 12 hours, there is
         only one internal calculation step per outer simulation step:
 
-        >>> maxdt('12h')
+        >>> maxdt("12h")
         >>> derived.nmbsubsteps.update()
         >>> derived.nmbsubsteps
         nmbsubsteps(1)
 
         Assigning smaller values to `maxdt` increases `nmbstepsize`:
 
-        >>> maxdt('1h')
+        >>> maxdt("1h")
         >>> derived.nmbsubsteps.update()
         >>> derived.nmbsubsteps
         nmbsubsteps(12)
@@ -58,7 +58,7 @@ class NmbSubsteps(parametertools.Parameter):
         In case the simulationstep is not a whole multiple of `dwmax`,
         the value of `nmbsubsteps` is rounded up:
 
-        >>> maxdt('59m')
+        >>> maxdt("59m")
         >>> derived.nmbsubsteps.update()
         >>> derived.nmbsubsteps
         nmbsubsteps(13)
@@ -66,7 +66,7 @@ class NmbSubsteps(parametertools.Parameter):
         Even for `maxdt` values exceeding the simulationstep, the value
         of `numbsubsteps` does not become smaller than one:
 
-        >>> maxdt('2d')
+        >>> maxdt("2d")
         >>> derived.nmbsubsteps.update()
         >>> derived.nmbsubsteps
         nmbsubsteps(1)
@@ -94,13 +94,13 @@ class VQ(parametertools.SeasonalParameter):
         """Calulate the auxilary term.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> n(3)
         >>> v(0., 1e5, 1e6)
         >>> q(_1=[0., 1., 2.], _7=[0., 2., 5.])
-        >>> maxdt('12h')
+        >>> maxdt("12h")
         >>> derived.seconds.update()
         >>> derived.nmbsubsteps.update()
         >>> derived.vq.update()

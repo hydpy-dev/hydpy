@@ -56,7 +56,7 @@ class HydPy:
     directory.  Pass `LahnH` to the constructor of class |HydPy|:
 
     >>> from hydpy import HydPy
-    >>> hp = HydPy('LahnH')
+    >>> hp = HydPy("LahnH")
 
     So far, our |HydPy| instance does not know any project configurations
     except its name.  Most of this information would be available via
@@ -191,7 +191,7 @@ be required to prepare the model properly.
     further information):
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+    >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
 
     Now method |HydPy.prepare_models| does not complain anymore and
     adds an instance of the |hland_v1| application model to element
@@ -223,8 +223,8 @@ be required to prepare the model properly.
 
     >>> model.parameters.control.percmax
     percmax(1.39636)
-    >>> pub.options.parameterstep('1h')
-    Period('1d')
+    >>> pub.options.parameterstep("1h")
+    Period("1d")
 
     The values of the derived parameters, which need to be calculated
     before starting a simulation run based on the control parameters
@@ -673,7 +673,7 @@ requested to make any internal data available.
         AttributeError: The actual HydPy instance does not handle any nodes \
 at the moment.
 
-        >>> hp.nodes = 'dill', 'lahn_1'
+        >>> hp.nodes = "dill", "lahn_1"
         >>> hp.nodes
         Nodes("dill", "lahn_1")
 
@@ -716,7 +716,7 @@ at the moment.
         AttributeError: The actual HydPy instance does not handle any elements \
 at the moment.
 
-        >>> hp.elements = 'land_dill', 'land_lahn_1'
+        >>> hp.elements = "land_dill", "land_lahn_1"
         >>> hp.elements
         Elements("land_dill", "land_lahn_1")
 
@@ -756,8 +756,8 @@ at the moment.
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_everything()
 
         Now you can start a simulation run and inspect the calculated
@@ -802,7 +802,7 @@ at the moment.
         stemming from the network files:
 
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy('LahnH')
+        >>> hp = HydPy("LahnH")
         >>> pub.selections
         Traceback (most recent call last):
         ...
@@ -864,8 +864,8 @@ of module `pub` is not defined at the moment.
 
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
-        ...     hp = HydPy('LahnH')
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         ...     hp.prepare_models()
 
@@ -914,11 +914,11 @@ of module `pub` is not defined at the moment.
         Missing parameter information in auxiliary files results in errors
         like the following:
 
-        >>> filepath = 'LahnH/control/default/land.py'
+        >>> filepath = "LahnH/control/default/land.py"
         >>> with TestIO():
         ...     with open(filepath) as infile:
-        ...         text = infile.read().replace('alpha(1.0)', '')
-        ...     with open(filepath, 'w') as outfile:
+        ...         text = infile.read().replace("alpha(1.0)", "")
+        ...     with open(filepath, "w") as outfile:
         ...         outfile.write(text)
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -933,7 +933,7 @@ does not define value(s) for parameter `alpha`.
         Completely wrong control files result in the following error:
 
         >>> with TestIO():
-        ...     with open('LahnH/control/default/land_dill.py', 'w'):
+        ...     with open("LahnH/control/default/land_dill.py", "w"):
         ...         pass
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -950,8 +950,8 @@ to the HydPy documentation on how to prepare control files properly.
 
         >>> from hydpy import HydPy
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, 'prepare_models') as mocked:
-        ...     hp = HydPy('test')
+        >>> with mock.patch.object(HydPy, "prepare_models") as mocked:
+        ...     hp = HydPy("test")
         ...     hp.init_models()
         Traceback (most recent call last):
         ...
@@ -995,16 +995,16 @@ Use method `prepare_models` instead.
 
         >>> import os
         >>> with TestIO():
-        ...     os.listdir('LahnH/control')
+        ...     os.listdir("LahnH/control")
         ['default']
 
         Next, we use the |ControlManager| to create a new directory
         and write analogue control files into it:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
+        ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls()
-        ...     sorted(os.listdir('LahnH/control'))
+        ...     sorted(os.listdir("LahnH/control"))
         ['default', 'newdir']
 
         We focus our examples on the (shorter) control files of
@@ -1020,16 +1020,16 @@ Use method `prepare_models` instead.
 
         The corresponding written control file defines the same values:
 
-        >>> dir_ = 'LahnH/control/newdir/'
+        >>> dir_ = "LahnH/control/newdir/"
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
         lag(0.583)
         damp(0.0)
@@ -1039,7 +1039,7 @@ Use method `prepare_models` instead.
         stems from the |Timegrid| object available via |pub|:
 
         >>> pub.timegrids.stepsize
-        Period('1d')
+        Period("1d")
 
         Use the |Auxfiler| class to avoid redefining the same parameter
         values in multiple control files.  Here, we prepare an |Auxfiler|
@@ -1048,7 +1048,7 @@ Use method `prepare_models` instead.
 
         >>> from hydpy import Auxfiler
         >>> aux = Auxfiler()
-        >>> aux += 'hstream_v1'
+        >>> aux += "hstream_v1"
         >>> aux.hstream_v1.stream = model.parameters.control.damp
         >>> aux.hstream_v1.stream = model.parameters.control.lag
 
@@ -1058,32 +1058,32 @@ Use method `prepare_models` instead.
         the auxiliary file `stream.py` instead:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
+        ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls(auxfiler=aux)
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
-        lag(auxfile='stream')
-        damp(auxfile='stream')
+        lag(auxfile="stream")
+        damp(auxfile="stream")
         <BLANKLINE>
 
         `stream.py` contains the actual value definitions:
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream.py') as controlfile:
+        ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
         damp(0.0)
         lag(0.583)
@@ -1095,17 +1095,17 @@ Use method `prepare_models` instead.
         |hstream_control.Damp| can reference control file `stream.py`:
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_2_lahn_3.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_2_lahn_3.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
         lag(0.417)
-        damp(auxfile='stream')
+        damp(auxfile="stream")
         <BLANKLINE>
 
         Another option is to pass alternative step size information.
@@ -1117,48 +1117,48 @@ Use method `prepare_models` instead.
         as to be expected:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
+        ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls(
-        ...         auxfiler=aux, parameterstep='2d', simulationstep='1h')
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...         auxfiler=aux, parameterstep="2d", simulationstep="1h")
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
-        lag(auxfile='stream')
-        damp(auxfile='stream')
+        lag(auxfile="stream")
+        damp(auxfile="stream")
         <BLANKLINE>
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream.py') as controlfile:
+        ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
         damp(0.0)
         lag(0.2915)
         <BLANKLINE>
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_2_lahn_3.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_2_lahn_3.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
         lag(0.2085)
-        damp(auxfile='stream')
+        damp(auxfile="stream")
         <BLANKLINE>
         """
         self.elements.save_controls(
@@ -1208,10 +1208,10 @@ Use method `prepare_models` instead.
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
-        >>> path = 'LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py'
+        >>> path = "LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
@@ -1221,7 +1221,7 @@ Use method `prepare_models` instead.
         second half of the initialisation period, respectively, and
         write, in both cases, the resulting final conditions to disk:
 
-        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> sm
         sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
@@ -1230,8 +1230,8 @@ Use method `prepare_models` instead.
         >>> with TestIO():
         ...     hp.save_conditions()
 
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-03"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> with TestIO():
         ...     hp.save_conditions()
@@ -1254,10 +1254,10 @@ Use method `prepare_models` instead.
            208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
            236.244147, 234.972621)
 
-        >>> path = 'LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py'
+        >>> path = "LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         ...         print(lines[12])
@@ -1270,13 +1270,13 @@ Use method `prepare_models` instead.
         |ConditionManager| instance:
 
         >>> with TestIO():
-        ...     pub.conditionmanager.currentdir = 'test'
+        ...     pub.conditionmanager.currentdir = "test"
         ...     hp.save_conditions()
 
-        >>> path = 'LahnH/conditions/test/land_dill.py'
+        >>> path = "LahnH/conditions/test/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         ...         print(lines[12])
@@ -1287,7 +1287,7 @@ Use method `prepare_models` instead.
         This change remains permanent until you undo it manually:
 
         >>> sm(0.0)
-        >>> pub.timegrids.sim.firstdate = '1996-01-01'
+        >>> pub.timegrids.sim.firstdate = "1996-01-01"
         >>> with TestIO():
         ...     hp.load_conditions()
         >>> sm
@@ -1420,10 +1420,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_values
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-04-01', '1d'
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-04-01", "1d"
         ...     hp.prepare_everything()
-        >>> pub.timegrids.sim.lastdate = '1996-02-20'
+        >>> pub.timegrids.sim.lastdate = "1996-02-20"
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
         70.553509, 94.344086, nan, nan
@@ -1443,8 +1443,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         >>> conditions = hp.conditions
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.firstdate = '1996-02-20'
-        >>> pub.timegrids.sim.lastdate = '1996-04-01'
+        >>> pub.timegrids.sim.firstdate = "1996-02-20"
+        >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(first[48:52])
@@ -1463,8 +1463,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         with the ones of the first simulation run:
 
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.firstdate = '1996-02-20'
-        >>> pub.timegrids.sim.lastdate = '1996-04-01'
+        >>> pub.timegrids.sim.firstdate = "1996-02-20"
+        >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(second[48:52])
@@ -1538,7 +1538,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.print_networkproperties()
         Number of nodes: 4
@@ -1564,7 +1564,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.endnodes
         Nodes("lahn_3")
@@ -1625,7 +1625,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.segregatednetworks
         Selections("lahn_3")
@@ -1712,15 +1712,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         element `stream_lahn_1_nowhere`, which we connect to node `lahn_1`:
 
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> from hydpy import Element
-        >>> _ = Element('stream_lahn_2_lahn_3', outlets='nowhere')
-        >>> hp.nodes += 'nowhere'
-        >>> hp.elements += Element('stream_lahn_1_nowhere',
-        ...                        inlets='lahn_1',
-        ...                        outlets='somewhere')
-        >>> hp.nodes += 'somewhere'
+        >>> _ = Element("stream_lahn_2_lahn_3", outlets="nowhere")
+        >>> hp.nodes += "nowhere"
+        >>> hp.elements += Element("stream_lahn_1_nowhere",
+        ...                        inlets="lahn_1",
+        ...                        outlets="somewhere")
+        >>> hp.nodes += "somewhere"
 
         Now there are three end nodes but only two segregated networks,
         as node `nowhere` does not reference any upstream devices not
@@ -1769,15 +1769,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.variables
         ['Q']
 
         >>> from hydpy import FusedVariable, hland_T, Node
-        >>> hp.nodes += Node('test', variable=FusedVariable('T', hland_T))
+        >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
         >>> hp.variables
-        ['Q', FusedVariable('T', hland_T)]
+        ['Q', FusedVariable("T", hland_T)]
         """
         variables = set([])
         for node in self.nodes:
@@ -1870,7 +1870,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Second, you can pass some nodes only, which by the way removes the
         old elements:
 
-        >>> hp.update_devices(nodes='dill')
+        >>> hp.update_devices(nodes="dill")
         >>> hp.nodes
         Nodes("dill")
         >>> hp.elements
@@ -1882,7 +1882,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Third, you can pass some elements only, which by the way removes the
         old nodes:
 
-        >>> hp.update_devices(elements=['land_lahn_1', 'land_dill'])
+        >>> hp.update_devices(elements=["land_lahn_1", "land_dill"])
         >>> hp.nodes
         Nodes()
         >>> hp.elements
@@ -1894,8 +1894,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         Fourth, you can pass nodes and elements at the same time:
 
-        >>> hp.update_devices(nodes='dill',
-        ...                   elements=['land_lahn_1', 'land_dill'])
+        >>> hp.update_devices(nodes="dill",
+        ...                   elements=["land_lahn_1", "land_dill"])
         >>> hp.nodes
         Nodes("dill")
         >>> hp.elements
@@ -1925,7 +1925,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         and devices contained within a selection at the same time:
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
-        ...                   nodes='dill')
+        ...                   nodes="dill")
         Traceback (most recent call last):
         ...
         ValueError: Method `update_devices` of class `HydPy` does not allow \
@@ -1933,7 +1933,7 @@ to use both the `selection` argument and the `nodes` or  the `elements` \
 argument at the same time.
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
-        ...                   elements=['land_lahn_1', 'land_dill'])
+        ...                   elements=["land_lahn_1", "land_dill"])
         Traceback (most recent call last):
         ...
         ValueError: Method `update_devices` of class `HydPy` does not allow \
@@ -2047,7 +2047,7 @@ argument at the same time.
 
         >>> hp.reset_conditions()
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
         54.043745, 37.320814, 0.0, 0.0
@@ -2056,8 +2056,8 @@ argument at the same time.
         of the `sim` |Timegrid| to the second half of the initialisation
         period, |HydPy.simulate| completes the time-series:
 
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-03"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
         54.043745, 37.320814, 31.922053, 28.413644
@@ -2087,7 +2087,7 @@ argument at the same time.
 
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
         42.3697, 27.210443, 22.930066, 20.20133
-        >>> hp.nodes.lahn_2.deploymode = 'oldsim'
+        >>> hp.nodes.lahn_2.deploymode = "oldsim"
         >>> hp.nodes.lahn_2.sequences.sim.series -= 10.0
 
         After performing another simulation run (over the whole
@@ -2100,8 +2100,8 @@ argument at the same time.
         time step):
 
         >>> hp.reset_conditions()
-        >>> pub.timegrids.sim.firstdate = '1996-01-01'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-01"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
         32.3697, 17.210443, 12.930066, 10.20133
@@ -2115,7 +2115,7 @@ argument at the same time.
         and simulation period (more often, one would read measured
         data from files via methods as |HydPy.load_obsseries|):
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs'
+        >>> hp.nodes.lahn_2.deploymode = "obs"
         >>> hp.nodes.lahn_2.sequences.obs.series = 0.0
 
         Now the simulated values of node `lahn_2` are identical with
@@ -2158,7 +2158,7 @@ argument at the same time.
         to deploy its observed values.  However, for each missing observation,
         it deploys its newly simulated value instead:
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs_newsim'
+        >>> hp.nodes.lahn_2.deploymode = "obs_newsim"
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
@@ -2172,7 +2172,7 @@ argument at the same time.
         `obs_newsim` but uses already available "old" simulation results
         as substitutes:
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs_oldsim'
+        >>> hp.nodes.lahn_2.deploymode = "obs_oldsim"
         >>> hp.reset_conditions()
         >>> hp.nodes.lahn_2.sequences.sim.series = (
         ...     32.3697, 17.210443, 12.930066, 10.20133)
@@ -2188,7 +2188,7 @@ argument at the same time.
         to `newsim` results in the default behaviour of the method
         |HydPy.simulate|, again:
 
-        >>> hp.nodes.lahn_2.deploymode = 'newsim'
+        >>> hp.nodes.lahn_2.deploymode = "newsim"
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
@@ -2209,8 +2209,8 @@ argument at the same time.
 
         >>> from hydpy import HydPy
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, 'simulate') as mocked:
-        ...     hp = HydPy('test')
+        >>> with mock.patch.object(HydPy, "simulate") as mocked:
+        ...     hp = HydPy("test")
         ...     hp.doit()
         Traceback (most recent call last):
         ...

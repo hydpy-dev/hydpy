@@ -32,15 +32,15 @@ Integration tests
     no other models need to bee included to construct meaningful examples:
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '01.01.2000', '21.01.2000',  '1d'
+    >>> pub.timegrids = "01.01.2000", "21.01.2000",  "1d"
     >>> from hydpy import Node
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> remote = Node('remote', variable='D')
+    >>> input_ = Node("input_")
+    >>> output = Node("output")
+    >>> remote = Node("remote", variable="D")
     >>> from hydpy import Element
-    >>> dam = Element('dam', inlets=input_, outlets=output, receivers=remote)
+    >>> dam = Element("dam", inlets=input_, outlets=output, receivers=remote)
     >>> from hydpy.models.dam_v002 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> dam.model = model
 
     Next, all initial conditions and the external input time series data
@@ -56,7 +56,7 @@ Integration tests
     ...     dam,
     ...     inits=((states.watervolume, 0.0),
     ...            (logs.loggedrequiredremoterelease, 0.005)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
     >>> input_.sequences.sim.series = 1.0
     >>> remote.sequences.sim.series = [
     ...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075,
@@ -86,7 +86,7 @@ Integration tests
     under low flow conditions both when there is a "near" and/or a "remote"
     need for water supply:
 
-    >>> test('dam_v002_ex7')
+    >>> test("dam_v002_ex7")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |   remote |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 |    1.0 | 0.201754 | 0.008588 |
@@ -131,7 +131,7 @@ Integration tests
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v002_ex8_1')
+    >>> test("dam_v002_ex8_1")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |   remote |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |    1.0 | 0.191667 | 0.008746 |
@@ -176,7 +176,7 @@ Integration tests
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test('dam_v008_ex10')
+    >>> test("dam_v008_ex10")
     |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   input_ |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |      0.2 | 0.001282 |  0.01232 |
@@ -220,7 +220,7 @@ Integration tests
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> remote.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test('dam_v002_ex13')
+    >>> test("dam_v002_ex13")
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output | remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |    0.0 |

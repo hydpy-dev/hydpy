@@ -329,10 +329,11 @@ cdef inline double conv2double(value):
         try:
             _value = value
         except TypeError:
-            print('Types `Douple` and `PDouble` perform arithmetic methods '
-                  'only on objects of type `Double`, `PDouble`, `float` and '
-                  '`int` (or similar).  The given objects type is `%s`.'
-                  % str(type(value)).split("'")[1])
+            print(f"Types `Douple` and `PDouble` perform arithmetic methods "
+                  f"only on objects of type `Double`, `PDouble`, `float` and "
+                  f"`int` (or similar).  The given objects type is "
+                  f"`{type(value).__name__}`."
+            )
     return _value
 
 
@@ -461,7 +462,7 @@ cdef class Double(DoubleBase):
         return self
 
     def __repr__(self):
-        return 'Double(%s)' % conv2double(self)
+        return f"Double({conv2double(self)})"
 
 
 @cython.final
@@ -516,7 +517,7 @@ cdef class PDouble(DoubleBase):
         return self
 
     def __repr__(self):
-        return 'PDouble(Double(%s))' % conv2double(self)
+        return f"PDouble(Double({conv2double(self)}))"
 
 
 @cython.final
@@ -590,21 +591,24 @@ cdef class PPDouble:
 def check0(length):
     if length == 0:
         raise RuntimeError(
-            'The shape of the actual `PPDouble` instance '
-            'has not been set yet, which is a necessary '
-            'preparation before using it.')
+            "The shape of the actual `PPDouble` instance "
+            "has not been set yet, which is a necessary "
+            "preparation before using it."
+        )
 
 def check1(length, idx):
     if not (0 <= idx < length):
         raise IndexError(
-            f'The actual `PPDouble` instance is of length '
-            f'`{length}`.  Only index values between 0 and '
-            f'{length-1} are allowed, but the given '
-            f'index is `{idx}`.')
+            f"The actual `PPDouble` instance is of length "
+            f"`{length}`.  Only index values between 0 and "
+            f"{length-1} are allowed, but the given "
+            f"index is `{idx}`."
+        )
 
 def check2(ready, idx):
     if not ready[idx]:
         raise RuntimeError(
-            f'The pointer of the actual `PPDouble` instance '
-            f'at index `{idx}` requested, but not prepared yet '
-            f'via `set_pointer`.')
+            f"The pointer of the actual `PPDouble` instance "
+            f"at index `{idx}` requested, but not prepared yet "
+            f"via `set_pointer`."
+        )

@@ -34,18 +34,18 @@ Integration tests
 We are going to perform all example calculations over 20 days:
 
 >>> from hydpy import pub
->>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+>>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
 Now, we prepare a |dam_v006| model instance in the usual manner:
 
 >>> from hydpy.models.dam_v006 import *
->>> parameterstep('1d')
+>>> parameterstep("1d")
 
 Next, we embed this model instance into an |Element|, being connected
 to one inlet |Node| (`input_`) and one outlet |Node| (`output`):
 
 >>> from hydpy import Element
->>> element = Element('element', inlets='input_', outlets='output')
+>>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model
 
 To execute the following examples conveniently, we prepare a test function
@@ -55,7 +55,7 @@ object and change some of its default output settings:
 >>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
 >>> IntegrationTest.plotting_options.axis2 = states.watervolume
 >>> test = IntegrationTest(element)
->>> test.dateformat = '%d.%m.'
+>>> test.dateformat = "%d.%m."
 
 |WaterVolume| is the only state sequence of |dam_v006|.  We set its initial
 value for each example to zero:
@@ -83,7 +83,7 @@ following graph):
     >>> pyplot.savefig(
     ...     os.path.join(
     ...         figs.__path__[0],
-    ...         'dam_v006_watervolume2waterlevel.png',
+    ...         "dam_v006_watervolume2waterlevel.png",
     ...     ),
     ... )
     >>> pyplot.close()
@@ -109,7 +109,7 @@ a single linear relationship which applies for the whole year:
     >>> pyplot.savefig(
     ...     os.path.join(
     ...         figs.__path__[0],
-    ...         'dam_v006_waterlevel2flooddischarge.png',
+    ...         "dam_v006_waterlevel2flooddischarge.png",
     ...     ),
     ... )
     >>> pyplot.close()
@@ -160,7 +160,7 @@ the outflow graph intersects with the falling limb of the inflow graph:
 
 .. integration-test::
 
-    >>> test('dam_v006_base_scenario')
+    >>> test("dam_v006_base_scenario")
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -205,7 +205,7 @@ accuracies than indicated by the actual tolerance value):
 
     >>> model.numvars.nmb_calls = 0
     >>> solver.abserrormax(0.1)
-    >>> test('dam_v006_low_accuracy')
+    >>> test("dam_v006_low_accuracy")
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -246,7 +246,7 @@ the period where little inflow occurs, but the potential outflow
 
     >>> allowedwaterleveldrop(0.1)
     >>> solver.abserrormax(0.01)
-    >>> test('dam_v006_water_level_drop')
+    >>> test("dam_v006_water_level_drop")
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
     ---------------------------------------------------------------------------------
     | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |

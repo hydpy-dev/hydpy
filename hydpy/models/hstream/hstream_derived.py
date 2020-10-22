@@ -38,8 +38,8 @@ class NmbSegments(parametertools.Parameter):
             hours:
 
             >>> from hydpy.models.hstream import *
-            >>> parameterstep('1d')
-            >>> simulationstep('12h')
+            >>> parameterstep("1d")
+            >>> simulationstep("12h")
             >>> lag(1.4)
 
             Then the actual lag value for the simulation step size is 2.8
@@ -82,7 +82,7 @@ class C1(parametertools.Parameter):
             and an intermediate value:
 
             >>> from hydpy.models.hstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> damp(0.0)
             >>> derived.c1.update()
             >>> derived.c1
@@ -123,7 +123,7 @@ class C3(parametertools.Parameter):
         Example:
 
             >>> from hydpy.models.hstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> derived.c1 = 0.5
             >>> derived.c3.update()
             >>> derived.c3
@@ -151,7 +151,7 @@ class C2(parametertools.Parameter):
             clipped when to low or to high:
 
             >>> from hydpy.models.hstream import *
-            >>> parameterstep('1d')
+            >>> parameterstep("1d")
             >>> derived.c1 = 0.6
             >>> derived.c3 = 0.1
             >>> derived.c2.update()

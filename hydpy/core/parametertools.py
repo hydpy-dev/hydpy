@@ -46,15 +46,15 @@ def get_controlfileheader(
 
     >>> from hydpy.core.parametertools import get_controlfileheader
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
-    >>> print(get_controlfileheader(model='no model class',
-    ...                             parameterstep='-1h',
-    ...                             simulationstep=Period('1h')))
+    >>> print(get_controlfileheader(model="no model class",
+    ...                             parameterstep="-1h",
+    ...                             simulationstep=Period("1h")))
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.no model class import *
     <BLANKLINE>
-    simulationstep('1h')
-    parameterstep('-1h')
+    simulationstep("1h")
+    parameterstep("-1h")
     <BLANKLINE>
     <BLANKLINE>
 
@@ -63,15 +63,15 @@ def get_controlfileheader(
     to gain the parameter and simulation step sizes from the global
     |Timegrids| object contained in the module |pub| when necessary:
 
-    >>> model = prepare_model('lland_v1')
-    >>> pub.timegrids = '2000.01.01', '2001.01.01', '1h'
+    >>> model = prepare_model("lland_v1")
+    >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
     >>> print(get_controlfileheader(model=model))
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.lland_v1 import *
     <BLANKLINE>
-    simulationstep('1h')
-    parameterstep('1d')
+    simulationstep("1h")
+    parameterstep("1d")
     <BLANKLINE>
     <BLANKLINE>
 
@@ -88,8 +88,8 @@ def get_controlfileheader(
         return (
             f"# -*- coding: utf-8 -*-\n\n"
             f"from hydpy.models.{model} import *\n\n"
-            f"simulationstep('{simulationstep}')\n"
-            f"parameterstep('{options.parameterstep}')\n\n"
+            f'simulationstep("{simulationstep}")\n'
+            f'parameterstep("{options.parameterstep}")\n\n'
         )
 
 
@@ -146,7 +146,7 @@ class Parameters:
     `solver` subparameters:
 
     >>> from hydpy.models.hstream_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> bool(model.parameters.control)
     True
     >>> bool(model.parameters.solver)
@@ -193,8 +193,8 @@ class Parameters:
         application model |hstream_v1| are ready for usage:
 
         >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1d')
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
         >>> derived
         nmbsegments(?)
         c1(?)
@@ -256,14 +256,14 @@ variable `lag`, no value has been defined so far.
         in the following example:
 
         >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1h')
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
         >>> lag(1.0)
         >>> damp(0.5)
 
         >>> from hydpy import Open
         >>> with Open():
-        ...     model.parameters.save_controls('otherdir/otherfile.py')
+        ...     model.parameters.save_controls("otherdir/otherfile.py")
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
         -------------------------------------
@@ -271,8 +271,8 @@ variable `lag`, no value has been defined so far.
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('1d')
+        simulationstep("1h")
+        parameterstep("1d")
         <BLANKLINE>
         lag(1.0)
         damp(0.5)
@@ -298,7 +298,7 @@ handling the model.
                 if variable2auxfile:
                     auxfilename = variable2auxfile.get_filename(par)
                     if auxfilename:
-                        lines.append(f"{par.name}(auxfile='{auxfilename}')\n")
+                        lines.append(f'{par.name}(auxfile="{auxfilename}")\n')
                         continue
                 lines.append(repr(par) + "\n")
         text = "".join(lines)
@@ -328,8 +328,8 @@ handling the model.
         |hstream_control.Lag|:
 
         >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1d')
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
@@ -373,7 +373,7 @@ set yet: c1(?).
         and the `solver` parameters, at the moment:
 
         >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> for subpars in model.parameters.secondary_subpars:
         ...     print(subpars.name)
         derived
@@ -413,30 +413,30 @@ class SubParameters(
         FastAccessParameter,
     ],
 ):
-    """Base class for handling subgroups of model parameters.
+    '''Base class for handling subgroups of model parameters.
 
     When trying to implement a new model, one has to define its
     specific |Parameter| subclasses. Currently, the HydPy framework
     distinguishes between control parameters, derived parameters,
-    and solver parameters. Each |Parameter| subclass is a member
-    of a collection class derived from |SubParameters|, called
-    "ControlParameters", "DerivedParameters", or "SolverParameters",
-    respectively.  Indicate membership by putting the parameter
-    subclasses into the |tuple| "CLASSES":
+    fixed parameters, and solver parameters. Each |Parameter| subclass is
+    a member of a collection class derived from |SubParameters|, called
+    "ControlParameters", "DerivedParameters", "FixedParameters", or
+    "SolverParameters", respectively.  Indicate membership by putting the
+    parameter subclasses into the |tuple| "CLASSES":
 
     >>> from hydpy.core.parametertools import Parameter, SubParameters
     >>> class Par2(Parameter):
-    ...     'Parameter 2 [-]'
+    ...     """Parameter 2 [-]."""
     ...     NDIM = 1
     ...     TYPE = float
     ...     TIME = None
     >>> class Par1(Parameter):
-    ...     'Parameter 1 [-]'
+    ...     """Parameter 1 [-]."""
     ...     NDIM = 1
     ...     TYPE = float
     ...     TIME = None
     >>> class ControlParameters(SubParameters):
-    ...     'Control Parameters'
+    ...     """Control Parameters."""
     ...     CLASSES = (Par2,
     ...                Par1)
 
@@ -453,7 +453,7 @@ class SubParameters(
 
     >>> from hydpy import classname, prepare_model, pub
     >>> with pub.options.usecython(False):
-    ...     model = prepare_model('lland_v1')
+    ...     model = prepare_model("lland_v1")
     >>> classname(model.parameters.control.fastaccess)
     'FastAccessParameter'
 
@@ -462,10 +462,10 @@ class SubParameters(
     specialised for the respective model and sequence group:
 
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model('lland_v1')
+    ...     model = prepare_model("lland_v1")
     >>> classname(model.parameters.control.fastaccess)
     'ControlParameters'
-    """
+    '''
 
     pars: Parameters
     _cymodel: Optional["typingtools.CyModelProtocol"]
@@ -589,7 +589,7 @@ The old and the new value(s) are `7.0` and `5.0`, respectively.
     another control file defines the actual parameter value.  Note
     that you cannot use this feature in the interactive mode:
 
-    >>> par(auxfile='test')
+    >>> par(auxfile="test")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to extract information for parameter `par` \
@@ -600,7 +600,7 @@ control files only.
     Also note, that you cannot combine the `auxfile` keyword with any
     other keyword:
 
-    >>> par(auxfile='test', x1=1, x2=2, x3=3)
+    >>> par(auxfile="test", x1=1, x2=2, x3=3)
     Traceback (most recent call last):
     ...
     ValueError: It is not allowed to combine keyword `auxfile` with other \
@@ -635,7 +635,7 @@ to type `float`.
     ValueError: For parameter `par` of element `?` neither a positional \
 nor a keyword argument is given.
 
-    >>> par(1.0, auxfile='test')
+    >>> par(1.0, auxfile="test")
     Traceback (most recent call last):
     ...
     ValueError: For parameter `par` of element `?` both positional and \
@@ -657,8 +657,8 @@ keyword arguments are given, which is ambiguous.
 
     >>> par = Par(None)
     >>> par.shape = (2,)
-    >>> pub.options.parameterstep = '1d'
-    >>> pub.options.simulationstep = '2d'
+    >>> pub.options.parameterstep = "1d"
+    >>> pub.options.simulationstep = "2d"
 
     Now you can pass one single value, an iterable containing two
     values, or two separate values as positional arguments, to set
@@ -707,7 +707,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     the string representation of |Parameter| handling time-dependent values
     without a risk to change the actual values relevant for simulation:
 
-    >>> with pub.options.parameterstep('2d'):
+    >>> with pub.options.parameterstep("2d"):
     ...     print(par)
     ...     print(repr(par.values))
     par(0.0, 6.0)
@@ -903,8 +903,8 @@ shape (2) into shape (2,3)
         For time-dependent parameter values, the `INIT` attribute is assumed
         to be related to a |Parameterstep| of one day:
 
-        >>> pub.options.parameterstep = '2d'
-        >>> pub.options.simulationstep = '12h'
+        >>> pub.options.parameterstep = "2d"
+        >>> pub.options.simulationstep = "12h"
         >>> Test.INIT = 2.0
         >>> Test.TIME = True
         >>> test = prepare()
@@ -948,8 +948,8 @@ parameter and a simulation time step size first.
         One can define both time step sizes directly:
 
         >>> from hydpy import pub
-        >>> pub.options.parameterstep = '1d'
-        >>> pub.options.simulationstep = '6h'
+        >>> pub.options.parameterstep = "1d"
+        >>> pub.options.simulationstep = "6h"
         >>> Parameter.get_timefactor()
         0.25
 
@@ -957,7 +957,7 @@ parameter and a simulation time step size first.
         object of module |pub| is prefered:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> Parameter.get_timefactor()
         0.5
 
@@ -1009,8 +1009,8 @@ parameter and a simulation time step size first.
         >>> class Par(Parameter):
         ...     TIME = None
         >>> from hydpy import pub
-        >>> pub.options.parameterstep = '1d'
-        >>> pub.options.simulationstep = '6h'
+        >>> pub.options.parameterstep = "1d"
+        >>> pub.options.simulationstep = "6h"
 
         |None| means the value(s) of the parameter are not time-dependent
         (e.g. maximum storage capacity).  Hence, |Parameter.apply_timefactor|
@@ -1054,8 +1054,8 @@ parameter and a simulation time step size first.
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):
         ...     TIME = None
-        >>> Par.parameterstep = '1d'
-        >>> Par.simulationstep = '6h'
+        >>> Par.parameterstep = "1d"
+        >>> Par.simulationstep = "6h"
         >>> Par.revert_timefactor(4.0)
         4.0
 
@@ -1127,8 +1127,8 @@ implement method `update`.
         we need to specify a parameter and a simulation time step:
 
         >>> from hydpy import pub
-        >>> pub.options.parameterstep = '1d'
-        >>> pub.options.simulationstep = '8h'
+        >>> pub.options.parameterstep = "1d"
+        >>> pub.options.simulationstep = "8h"
 
         Compression succeeds when all required values are identical:
 
@@ -1382,7 +1382,7 @@ class ZipParameter(Parameter):
     >>> SOIL, WATER, GLACIER = 1, 2, 3
     >>> class LandType(NameParameter):
     ...     SPAN = (1, 3)
-    ...     CONSTANTS = {'SOIL':  SOIL, 'WATER': WATER, 'GLACIER': GLACIER}
+    ...     CONSTANTS = {"SOIL":  SOIL, "WATER": WATER, "GLACIER": GLACIER}
     >>> landtype = LandType(None)
 
     Second, we need an |IndexMask| subclass.  Our subclass `Land` references
@@ -1417,8 +1417,8 @@ class ZipParameter(Parameter):
     ...     landtype = landtype
     >>> par = Par(None)
     >>> from hydpy import pub
-    >>> pub.options.parameterstep = '1d'
-    >>> pub.options.simulationstep = '12h'
+    >>> pub.options.parameterstep = "1d"
+    >>> pub.options.simulationstep = "12h"
 
     For parameters with zero-length or with unprepared or identical
     parameter values, the string representation looks as usual:
@@ -1515,7 +1515,7 @@ The given keywords are incomplete and no default value is available.
 `par` of element `?` nor among the following special attributes: \
 soil, water, and glacier.
 
-    >>> par.soil = 'test'
+    >>> par.soil = "test"
     Traceback (most recent call last):
     ...
     ValueError: While trying the set the value(s) of parameter `par` \
@@ -1671,7 +1671,7 @@ class SeasonalParameter(Parameter):
     For the following examples, we assume a simulation step size of one day:
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
     Let us prepare an empty 1-dimensional |SeasonalParameter| instance:
 
@@ -1739,15 +1739,15 @@ given for property `month` cannot be converted to `int`.
     When using functions |getattr| and |delattr|, one can also omit the
     "toy" prefix:
 
-    >>> getattr(par, '2_1')
+    >>> getattr(par, "2_1")
     2.0
-    >>> delattr(par, '2_1')
-    >>> getattr(par, '2_1')
+    >>> delattr(par, "2_1")
+    >>> getattr(par, "2_1")
     Traceback (most recent call last):
     ...
     AttributeError: Seasonal parameter `par` of element `?` has neither \
 a normal attribute nor does it handle a "time of year" named `2_1`.
-    >>> delattr(par, '2_1')
+    >>> delattr(par, "2_1")
     Traceback (most recent call last):
     ...
     AttributeError: Seasonal parameter `par` of element `?` has neither \
@@ -1789,7 +1789,7 @@ into shape (3)
     "first" time of the year, internally:
 
     >>> par.toys
-    (TOY('1_1_0_0_0'),)
+    (TOY("1_1_0_0_0"),)
 
     Incompatible positional arguments result in errors like the following:
 
@@ -1849,7 +1849,7 @@ shape (2) into shape (366,3)
         covering a full year, making a complete calculation necessary:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
@@ -1911,7 +1911,7 @@ shape (2) into shape (366,3)
         For short initialisation periods, method |SeasonalParameter.refresh|
         performs only the required interpolations for efficiency reasons:
 
-        >>> pub.timegrids = '2000-01-02', '2000-01-05', '1d'
+        >>> pub.timegrids = "2000-01-02", "2000-01-05", "1d"
         >>> Par.NDIM = 2
         >>> par = Par(None)
         >>> par.shape = (None, 3)
@@ -1952,7 +1952,7 @@ shape (2) into shape (366,3)
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
@@ -1969,41 +1969,41 @@ shape (2) into shape (366,3)
         the corresponding |float| value:
 
         >>> from hydpy import Date
-        >>> par.interp(Date('2000.01.01'))
+        >>> par.interp(Date("2000.01.01"))
         2.0
-        >>> par.interp(Date('2000.02.01'))
+        >>> par.interp(Date("2000.02.01"))
         5.0
-        >>> par.interp(Date('2000.12.31'))
+        >>> par.interp(Date("2000.12.31"))
         4.0
 
         For all intermediate points, |SeasonalParameter.interp| performs
         a linear interpolation:
 
         >>> from hydpy import round_
-        >>> round_(par.interp(Date('2000.01.02')))
+        >>> round_(par.interp(Date("2000.01.02")))
         2.096774
-        >>> round_(par.interp(Date('2000.01.31')))
+        >>> round_(par.interp(Date("2000.01.31")))
         4.903226
-        >>> round_(par.interp(Date('2000.02.02')))
+        >>> round_(par.interp(Date("2000.02.02")))
         4.997006
-        >>> round_(par.interp(Date('2000.12.30')))
+        >>> round_(par.interp(Date("2000.12.30")))
         4.002994
 
         Linear interpolation is also allowed between the first and the
         last pair when they do not capture the endpoints of the year:
 
         >>> par(_1_2=2.0, _12_30=4.0)
-        >>> round_(par.interp(Date('2000.12.29')))
+        >>> round_(par.interp(Date("2000.12.29")))
         3.99449
-        >>> par.interp(Date('2000.12.30'))
+        >>> par.interp(Date("2000.12.30"))
         4.0
-        >>> round_(par.interp(Date('2000.12.31')))
+        >>> round_(par.interp(Date("2000.12.31")))
         3.333333
-        >>> round_(par.interp(Date('2000.01.01')))
+        >>> round_(par.interp(Date("2000.01.01")))
         2.666667
-        >>> par.interp(Date('2000.01.02'))
+        >>> par.interp(Date("2000.01.02"))
         2.0
-        >>> round_(par.interp(Date('2000.01.03')))
+        >>> round_(par.interp(Date("2000.01.03")))
         2.00551
 
         The following example briefly shows interpolation performed for
@@ -2013,7 +2013,7 @@ shape (2) into shape (366,3)
         >>> par = Par(None)
         >>> par.shape = (None, 2)
         >>> par(_1_1=[1., 2.], _1_3=[-3, 0.])
-        >>> result = par.interp(Date('2000.01.02'))
+        >>> result = par.interp(Date("2000.01.02"))
         >>> round_(result[0])
         -1.0
         >>> round_(result[1])
@@ -2074,7 +2074,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         steps fitting into a leap year:
 
         >>> from hydpy import pub
-        >>> pub.options.simulationstep = '1d'
+        >>> pub.options.simulationstep = "1d"
         >>> par.shape = (123,)
         >>> par.shape
         (366,)
@@ -2096,7 +2096,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         For simulation steps not cleanly fitting into a leap year,
         the ceil-operation determines the number of entries:
 
-        >>> pub.options.simulationstep = '100d'
+        >>> pub.options.simulationstep = "100d"
         >>> par.shape = (None, 3)
         >>> par.shape
         (4, 3)
@@ -2197,7 +2197,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         """
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
@@ -2229,7 +2229,7 @@ class KeywordParameter1D(Parameter):
     >>> class IsHot(KeywordParameter1D):
     ...     TYPE = bool
     ...     TIME = None
-    ...     ENTRYNAMES = ('winter', 'summer')
+    ...     ENTRYNAMES = ("winter", "summer")
 
     Usually, |KeywordParameter1D| objects prepare their shape automatically.
     However, to simplify this test case, we define it manually:
@@ -2393,7 +2393,7 @@ index 1 is out of bounds for axis 0 with size 1
         >>> class Season(KeywordParameter1D):
         ...     TYPE = bool
         ...     TIME = None
-        ...     ENTRYNAMES = ('winter', 'summer')
+        ...     ENTRYNAMES = ("winter", "summer")
         >>> dir(Season(None))   # doctest: +ELLIPSIS
         [...'subvars', 'summer', 'trim', ... 'verify', 'winter']
         """
@@ -2408,8 +2408,8 @@ class MonthParameter(KeywordParameter1D):
     model |lland| as an example implementation:
 
     >>> from hydpy.models.lland import *
-    >>> simulationstep('12h')
-    >>> parameterstep('1d')
+    >>> simulationstep("12h")
+    >>> parameterstep("1d")
     >>> wg2z(3.0, 2.0, 1.0, 0.0, -1.0, -2.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0)
     >>> wg2z
     wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
@@ -2458,8 +2458,8 @@ class KeywordParameter2D(Parameter):
     >>> class IsWarm(KeywordParameter2D):
     ...     TYPE = bool
     ...     TIME = None
-    ...     ROWNAMES = ('north', 'south')
-    ...     COLNAMES = ('apr2sep', 'oct2mar')
+    ...     ROWNAMES = ("north", "south")
+    ...     COLNAMES = ("apr2sep", "oct2mar")
 
     Instantiate the defined parameter class and define its shape:
 
@@ -2703,8 +2703,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
         ...     TIME = None
-        ...     ROWNAMES = ('north', 'south')
-        ...     COLNAMES = ('apr2sep', 'oct2mar')
+        ...     ROWNAMES = ("north", "south")
+        ...     COLNAMES = ("apr2sep", "oct2mar")
         >>> dir(IsWarm(None))   # doctest: +ELLIPSIS
         [...'apply_timefactor', 'apr2sep'...'north', 'north_apr2sep', \
 'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
@@ -2890,8 +2890,8 @@ class FixedParameter(Parameter):
         >>> par.initinfo
         (nan, False)
         >>> from hydpy import pub
-        >>> pub.options.parameterstep = '1d'
-        >>> pub.options.simulationstep = '12h'
+        >>> pub.options.parameterstep = "1d"
+        >>> pub.options.simulationstep = "12h"
         >>> par.initinfo
         (50.0, True)
         """
@@ -2910,14 +2910,14 @@ class FixedParameter(Parameter):
         the parameter |lland_fixed.LambdaG| of base model |lland|:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> from hydpy import round_
         >>> fixed.lambdag
         lambdag(0.05184)
         >>> round_(fixed.lambdag.value)
         0.05184
-        >>> simulationstep('12h')
+        >>> simulationstep("12h")
         >>> fixed.lambdag
         lambdag(0.10368)
         >>> round_(fixed.lambdag.value)
@@ -3104,8 +3104,8 @@ class SecondsParameter(Parameter):
         >>> from hydpy import pub
         >>> from hydpy.core.parametertools import SecondsParameter
         >>> secondsparameter = SecondsParameter(None)
-        >>> with pub.options.parameterstep('1d'):
-        ...     with pub.options.simulationstep('12h'):
+        >>> with pub.options.parameterstep("1d"):
+        ...     with pub.options.simulationstep("12h"):
         ...         secondsparameter.update()
         ...         secondsparameter
         secondsparameter(43200.0)
@@ -3127,8 +3127,8 @@ class HoursParameter(Parameter):
         >>> from hydpy import pub
         >>> from hydpy.core.parametertools import HoursParameter
         >>> hoursparameter = HoursParameter(None)
-        >>> with pub.options.parameterstep('1d'):
-        ...     with pub.options.simulationstep('12h'):
+        >>> with pub.options.parameterstep("1d"):
+        ...     with pub.options.simulationstep("12h"):
         ...         hoursparameter.update()
         >>> hoursparameter
         hoursparameter(12.0)
@@ -3150,8 +3150,8 @@ class DaysParameter(Parameter):
         >>> from hydpy import pub
         >>> from hydpy.core.parametertools import DaysParameter
         >>> daysparameter = DaysParameter(None)
-        >>> with pub.options.parameterstep('1d'):
-        ...     with pub.options.simulationstep('12h'):
+        >>> with pub.options.parameterstep("1d"):
+        ...     with pub.options.simulationstep("12h"):
         ...         daysparameter.update()
         >>> daysparameter
         daysparameter(0.5)
@@ -3173,7 +3173,7 @@ class TOYParameter(Parameter):
         |Indexer| object available in module |pub|.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> from hydpy.core.parametertools import TOYParameter
         >>> toyparameter = TOYParameter(None)
         >>> toyparameter.update()
@@ -3205,7 +3205,7 @@ class MOYParameter(Parameter):
         |Indexer| object available in module |pub|.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> from hydpy.core.parametertools import MOYParameter
         >>> moyparameter = MOYParameter(None)
         >>> moyparameter.update()
@@ -3237,7 +3237,7 @@ class DOYParameter(Parameter):
         |Indexer| object available in module |pub|.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> from hydpy.core.parametertools import DOYParameter
         >>> doyparameter = DOYParameter(None)
         >>> doyparameter.update()
@@ -3269,7 +3269,7 @@ class SCTParameter(Parameter):
         |Indexer| object available in module |pub|.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
+        >>> pub.timegrids = "27.02.2004 21:00", "28.02.2004 03:00", "1h"
         >>> from hydpy.core.parametertools import SCTParameter
         >>> sctparameter = SCTParameter(None)
         >>> sctparameter.update()

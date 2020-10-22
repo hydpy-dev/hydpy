@@ -58,7 +58,7 @@ object, or make a proper Timegrids object available within the pub module.
     For efficiency, repeated querying of |Indexer.monthofyear| returns
     the same |numpy| |numpy.array| object:
 
-    >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+    >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
     >>> monthofyear = pub.indexer.monthofyear
     >>> monthofyear
     array([1, 1, 1, 2, 2])
@@ -70,7 +70,7 @@ object, or make a proper Timegrids object available within the pub module.
     When the |Timegrids| object handled by module |pub| changes,
     |IndexerProperty| calculates and returns a new index array:
 
-    >>> pub.timegrids.init.firstdate += '1d'
+    >>> pub.timegrids.init.firstdate += "1d"
     >>> pub.indexer.monthofyear
     array([1, 1, 2, 2])
     >>> pub.indexer.monthofyear is monthofyear
@@ -94,13 +94,13 @@ object, or make a proper Timegrids object available within the pub module.
     >>> pub.indexer.monthofyear = 0, 1, 2, 3
     >>> pub.indexer.monthofyear
     array([0, 1, 2, 3])
-    >>> pub.timegrids.init.firstdate -= '1d'
+    >>> pub.timegrids.init.firstdate -= "1d"
     >>> pub.indexer.monthofyear
     array([1, 1, 1, 2, 2])
 
     When assigning inadequate data, you get errors like the following:
 
-    >>> pub.indexer.monthofyear = 'wrong'
+    >>> pub.indexer.monthofyear = "wrong"
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign a new `monthofyear` index array \
@@ -218,7 +218,7 @@ class Indexer:
         February and the first days of March for a leap year:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> monthofyear = pub.indexer.monthofyear
         >>> monthofyear
         array([1, 1, 1, 2, 2])
@@ -240,10 +240,10 @@ class Indexer:
 
         >>> from hydpy import pub
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> Indexer().dayofyear
         array([57, 58, 59, 60, 61])
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
@@ -264,7 +264,7 @@ class Indexer:
         >>> from hydpy import pub
         >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
 
         Due to the simulation step size of one day, the index arrays
         calculated by properties |Indexer.dayofyear| and |Indexer.timeofyear|
@@ -277,7 +277,7 @@ class Indexer:
 
         In the next example, we halve the step size:
 
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '12h'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "12h"
 
         Now two subsequent simulation steps associated are with the same day:
 
@@ -321,19 +321,19 @@ class Indexer:
         and one second, respectively:
 
         >>> from hydpy import pub, print_values
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> print_values(pub.indexer.standardclocktime)
         12.0, 12.0, 12.0, 12.0, 12.0
 
-        >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
+        >>> pub.timegrids = "27.02.2004 21:00", "28.02.2004 03:00", "1h"
         >>> print_values(pub.indexer.standardclocktime)
         21.5, 22.5, 23.5, 0.5, 1.5, 2.5
 
-        >>> pub.timegrids = '27.02.2004 23:57:0', '28.02.2004 00:03:00', '1m'
+        >>> pub.timegrids = "27.02.2004 23:57:0", "28.02.2004 00:03:00", "1m"
         >>> print_values(pub.indexer.standardclocktime)
         23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667
 
-        >>> pub.timegrids = '27.02.2004 23:59:57', '28.02.2004 00:00:03', '1s'
+        >>> pub.timegrids = "27.02.2004 23:59:57", "28.02.2004 00:00:03", "1s"
         >>> print_values(pub.indexer.standardclocktime)
         23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694
         """

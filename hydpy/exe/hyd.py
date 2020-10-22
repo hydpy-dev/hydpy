@@ -48,7 +48,7 @@ You are free to redirect output to a log file:
 >>> with TestIO():
 ...     result = run_subprocess("hyd.py logfile=my_log_file.txt")
 >>> with TestIO():
-...     with open('my_log_file.txt') as logfile:
+...     with open("my_log_file.txt") as logfile:
 ...         print(logfile.read())    # doctest: +ELLIPSIS
 Invoking hyd.py with argument `logfile=my_log_file.txt` resulted in the \
 following error:
@@ -63,8 +63,8 @@ date and time:
 >>> with TestIO():
 ...     result = run_subprocess("hyd.py logfile=default")
 >>> with TestIO():
-...     for filename in os.listdir('.'):
-...         if filename.endswith('.log'):
+...     for filename in os.listdir("."):
+...         if filename.endswith(".log"):
 ...             print(filename)    # doctest: +ELLIPSIS
 hydpy_...log
 
@@ -111,7 +111,7 @@ Optional keyword arguments are supported: (on Linux, we have to escape
 the characters "(", ")", ";", and "'" in the following)
 
 >>> import platform
->>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
+>>> esc = "" if "windows" in platform.platform().lower() else "\\\\"
 >>> result = run_subprocess(f"hyd.py "
 ...                         f"exec_commands "
 ...                         f"print{esc}(x+y{esc}) "
@@ -203,18 +203,18 @@ def execute() -> None:
 
     >>> from hydpy.exe import hyd
     >>> from unittest import mock
-    >>> with mock.patch('hydpy.exe.commandtools.execute_scriptfunction') as fun:
-    ...     with mock.patch('sys.exit') as exit_:
-    ...         with mock.patch.object(hyd, '__name__', '__not_main__'):
+    >>> with mock.patch("hydpy.exe.commandtools.execute_scriptfunction") as fun:
+    ...     with mock.patch("sys.exit") as exit_:
+    ...         with mock.patch.object(hyd, "__name__", "__not_main__"):
     ...             hyd.execute()
     ...             exit_.called
     False
     >>> for return_value in (None, 0, 2):
     ...     with mock.patch(
-    ...             'hydpy.exe.commandtools.execute_scriptfunction',
+    ...             "hydpy.exe.commandtools.execute_scriptfunction",
     ...             return_value=return_value) as fun:
-    ...         with mock.patch('sys.exit') as exit_:
-    ...             with mock.patch.object(hyd, '__name__', '__main__'):
+    ...         with mock.patch("sys.exit") as exit_:
+    ...             with mock.patch.object(hyd, "__name__", "__main__"):
     ...                 hyd.execute()
     ...                 exit_.call_args
     call(False)

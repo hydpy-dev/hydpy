@@ -24,13 +24,13 @@ class RiverBasinNumber(str):
 
     >>> RiverBasinNumber(1230)
     RiverBasinNumber(123)
-    >>> RiverBasinNumber('0123')
+    >>> RiverBasinNumber("0123")
     RiverBasinNumber(123)
 
     Numbers not interpretable as a river basin number result in the
     following error message:
 
-    >>> RiverBasinNumber('123A')
+    >>> RiverBasinNumber("123A")
     Traceback (most recent call last):
     ...
     ValueError: The given value `123A` could not be interpreted as a river \
@@ -451,8 +451,8 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the elements
         and nodes:
 
-        >>> rbns2s.supplier_prefix = 'a_'
-        >>> rbns2s.node_prefix = 'b_'
+        >>> rbns2s.supplier_prefix = "a_"
+        >>> rbns2s.node_prefix = "b_"
         >>> rbns2s.supplier_elements
         Elements("a_111", "a_1121", "a_1122", "a_1123", "a_1124", "a_1125",
                  "a_11261", "a_11262", "a_11269", "a_1129", "a_113")
@@ -503,8 +503,8 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the elements
         and nodes:
 
-        >>> rbns2s.router_prefix = 'c_'
-        >>> rbns2s.node_prefix = 'd_'
+        >>> rbns2s.router_prefix = "c_"
+        >>> rbns2s.node_prefix = "d_"
         >>> rbns2s.router_elements
         Elements("c_1123", "c_1125", "c_11269", "c_1129", "c_113")
         """
@@ -542,8 +542,8 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the nodes and
         the name of the outlet node separately:
 
-        >>> rbns2s.node_prefix = 'b_'
-        >>> rbns2s.last_node = 'l_node'
+        >>> rbns2s.node_prefix = "b_"
+        >>> rbns2s.last_node = "l_node"
         >>> rbns2s.nodes
         Nodes("b_1123", "b_1125", "b_11269", "b_1129", "b_113", "l_node")
         """
@@ -574,7 +574,7 @@ class RiverBasinNumbers2Selection:
         nodes and elements, one is also free to define an arbitrary
         selection name:
 
-        >>> rbns2s.selection_name = 'sel'
+        >>> rbns2s.selection_name = "sel"
         >>> from hydpy import pub
         >>> with pub.options.ellipsis(1):
         ...     print(repr(rbns2s.selection))

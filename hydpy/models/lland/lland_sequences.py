@@ -19,7 +19,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     The following example shows how subclass |NKor| works:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(4)
     >>> lnk(ACKER, GLETS, VERS, SEE)
     >>> derived.absfhru(10.0, 20.0, 30.0, 40.0)
@@ -49,7 +49,7 @@ class State1DSequence(sequencetools.StateSequence):
     implements mask |Land|:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(4)
     >>> lnk(ACKER, GLETS, VERS, SEE)
     >>> wmax(100.0)

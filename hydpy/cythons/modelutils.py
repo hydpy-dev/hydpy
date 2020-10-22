@@ -314,11 +314,11 @@ def get_dllextension() -> str:
     >>> import platform
     >>> from unittest import mock
     >>> with mock.patch.object(
-    ...     platform, 'system', side_effect=lambda: 'Windows') as mocked:
+    ...     platform, "system", side_effect=lambda: "Windows") as mocked:
     ...     get_dllextension()
     '.pyd'
     >>> with mock.patch.object(
-    ...     platform, 'system', side_effect=lambda: 'Linux') as mocked:
+    ...     platform, "system", side_effect=lambda: "Linux") as mocked:
     ...     get_dllextension()
     '.so'
     """
@@ -380,10 +380,10 @@ def get_methodheader(methodname: str, nogil: bool = False, idxarg: bool = False)
     >>> from hydpy.cythons.modelutils import get_methodheader
     >>> from hydpy import config
     >>> config.FASTCYTHON = False
-    >>> print(get_methodheader(methodname='test', nogil=True, idxarg=False))
+    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=False))
     cpdef inline void test(self):
     >>> config.FASTCYTHON = True
-    >>> print(get_methodheader(methodname='test', nogil=True, idxarg=True))
+    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=True))
     cpdef inline void test(self, int idx) nogil:
     """
     if not config.FASTCYTHON:
@@ -466,15 +466,15 @@ class Cythonizer:
 
         >>> def test():
         ...     sc = lambda: print(
-        ...         f'calling method `cythonize` '
-        ...         f'(usecython={bool(pub.options.usecython)})')
+        ...         f"calling method `cythonize` "
+        ...         f"(usecython={bool(pub.options.usecython)})")
         ...     se = lambda: print(
-        ...         f'calling method `perform_tests` '
-        ...         f'(usecython={bool(pub.options.usecython)})')
+        ...         f"calling method `perform_tests` "
+        ...         f"(usecython={bool(pub.options.usecython)})")
         ...     with mock.patch.object(
-        ...                 Cythonizer, 'cythonize', side_effect=sc) as mc,\\
+        ...                 Cythonizer, "cythonize", side_effect=sc) as mc,\\
         ...             mock.patch.object(
-        ...                 Tester, 'perform_tests', side_effect=se) as mt:
+        ...                 Tester, "perform_tests", side_effect=se) as mt:
         ...         cythonizer.finalise()
 
         With either option |Options.autocompile| or property
@@ -601,10 +601,10 @@ class Cythonizer:
 
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
-        >>> Cythonizer.cyname = 'wrong'
+        >>> Cythonizer.cyname = "wrong"
         >>> cythonizer._cymodule = None
         >>> from unittest import mock
-        >>> with mock.patch.object(Cythonizer, 'cythonize') as mock:
+        >>> with mock.patch.object(Cythonizer, "cythonize") as mock:
         ...     cythonizer.cymodule
         Traceback (most recent call last):
         ...
@@ -767,12 +767,10 @@ class Cythonizer:
 
         >>> pub.options.forcecompiling = False
         >>> from unittest import mock
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/somename-packages/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/somename-packages/hydpy"]):
         ...     cythonizer.outdated
         False
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/pkgs/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/pkgs/hydpy"]):
         ...     cythonizer.outdated
         False
 
@@ -780,12 +778,11 @@ class Cythonizer:
         of the site-packages directory) property |Cythonizer.outdated|
         returns |True| if the required DLL file is not available at all:
 
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/local_dir/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
         ...     with mock.patch.object(
-        ...             type(cythonizer), 'dllfilepath',
+        ...             type(cythonizer), "dllfilepath",
         ...             new_callable=mock.PropertyMock) as dllfilepath:
-        ...         dllfilepath.return_value = 'missing'
+        ...         dllfilepath.return_value = "missing"
         ...         cythonizer.outdated
         True
 
@@ -796,19 +793,18 @@ class Cythonizer:
 
         >>> from hydpy import TestIO
         >>> with TestIO():
-        ...     with open('new.txt', 'w'):
+        ...     with open("new.txt", "w"):
         ...         pass
-        ...     with mock.patch(
-        ...             'hydpy.__path__', ['folder/local_dir/hydpy']):
+        ...     with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
         ...         with mock.patch.object(
-        ...                 type(cythonizer), 'dllfilepath',
+        ...                 type(cythonizer), "dllfilepath",
         ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = 'new.txt'
+        ...             mocked.return_value = "new.txt"
         ...             cythonizer.outdated
         ...         with mock.patch.object(
-        ...                 type(cythonizer), 'pysourcefiles',
+        ...                 type(cythonizer), "pysourcefiles",
         ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = ['new.txt']
+        ...             mocked.return_value = ["new.txt"]
         ...             cythonizer.outdated
         False
         True
@@ -874,16 +870,16 @@ somewhere else, is named somehow else, or could not be build at all.
         >>> from hydpy import TestIO
         >>> with TestIO():   # doctest: +ELLIPSIS
         ...     with mock.patch.object(
-        ...             type(cythonizer), 'buildpath',
-        ...             new_callable=mock.PropertyMock) as mocked_buildpath:
-        ...         mocked_buildpath.return_value = '_build'
-        ...         os.makedirs('_build/subdir', exist_ok=True)
-        ...         filepath = f'_build/subdir/c_hland_v1{get_dllextension()}'
-        ...         with open(filepath, 'w'):
+        ...             type(cythonizer), "buildpath", new_callable=mock.PropertyMock
+        ...     ) as mocked_buildpath:
+        ...         mocked_buildpath.return_value = "_build"
+        ...         os.makedirs("_build/subdir", exist_ok=True)
+        ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
+        ...         with open(filepath, "w"):
         ...             pass
         ...         with mock.patch(
-        ...                 'shutil.move',
-        ...                 side_effect=PermissionError('Denied!')):
+        ...                 "shutil.move",
+        ...                 side_effect=PermissionError("Denied!")):
         ...             cythonizer.move_dll()
         Traceback (most recent call last):
         ...
@@ -1405,7 +1401,7 @@ class PyxWriter:
             lines.add(
                 3,
                 f"self._{seq.name}_ready = "
-                f'numpy.full(length, 0, dtype={ TYPE2STR[int].split("_")[0]})',
+                f"numpy.full(length, 0, dtype={ TYPE2STR[int].split('_')[0]})",
             )
             lines.add(
                 3,
@@ -2199,7 +2195,7 @@ class PyxWriter:
 
         >>> import os
         >>> import hydpy
-        >>> filepath = os.path.join(hydpy.__path__[0], 'hland.py')
+        >>> filepath = os.path.join(hydpy.__path__[0], "hland.py")
         >>> os.path.exists(filepath)
         True
 
@@ -2321,7 +2317,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
@@ -2336,7 +2332,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'inp', 'flu', 'k')
         """
@@ -2354,7 +2350,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
         ['self', 'con', 'inp', 'flu', 'k']
         """
@@ -2369,7 +2365,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
         ['parameters.control', 'sequences.inputs', 'sequences.fluxes']
         """
@@ -2393,7 +2389,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
         ['con', 'inp', 'flu']
         """
@@ -2407,7 +2403,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedvarnames
         ['k']
         """
@@ -2425,7 +2421,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedarguments
         []
         """
@@ -2445,7 +2441,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedinternalvarnames
         ['k']
         """
@@ -2481,7 +2477,7 @@ class FuncConverter:
         lines = [line[4:] for line in lines]  # unindent
         argnames = self.argnames
         argnames[0] = "self"
-        lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
+        lines[0] = f"def {self.funcname}({', '.join(argnames)}):"
         lines = [line.split("#")[0] for line in lines]
         lines = [line for line in lines if "fastaccess" not in line]
         lines = [line.rstrip() for line in lines if line.rstrip()]
@@ -2494,7 +2490,7 @@ class FuncConverter:
         The following example is not an exhaustive test but shows
         how the method works in principle:
 
-        >>> code = 'asdf = \\\n(a\n+b)'
+        >>> code = "asdf = \\\n(a\n+b)"
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> FuncConverter.remove_linebreaks_within_equations(code)
         'asdf = (a+b)'
@@ -2519,7 +2515,7 @@ class FuncConverter:
         The following example is not an exhaustive test but shows
         how the method works in principle:
 
-        >>> lines = ['    x += 1*1']
+        >>> lines = ["    x += 1*1"]
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> FuncConverter.remove_imath_operators(lines)
         >>> lines
@@ -2532,7 +2528,7 @@ class FuncConverter:
                     indent = line.count(" ") - line.lstrip().count(" ")
                     sublines = [sl.strip() for sl in sublines]
                     line = (
-                        f'{indent*" "}{sublines[0]} = '
+                        f"{indent*' '}{sublines[0]} = "
                         f"{sublines[0]} {operator[:-1]} ({sublines[1]})"
                     )
                     lines[idx] = line
@@ -2558,7 +2554,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
 
         First, we show an example on a standard method without additional
         arguments and returning nothing but requiring two local variables:
@@ -2573,7 +2569,7 @@ class FuncConverter:
         ...             d_pc = con.kg[k]*inp.p[k]
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
-        >>> FuncConverter(model, 'calc_test_v1', model.calc_test_v1).pyxlines
+        >>> FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
             cpdef inline void calc_test_v1(self)  nogil:
                 cdef double d_pc
                 cdef int k
@@ -2593,7 +2589,7 @@ self.parameters.control.kg[k]*self.sequences.inputs.p[k]
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
-        >>> FuncConverter(model, 'calc_test_v2', model.calc_test_v2).pyxlines
+        >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
             cpdef inline double calc_test_v2(\
 self, double value, double[:] values)  nogil:
                 return self.parameters.control.kg[0]*value*values[1]
@@ -2604,7 +2600,7 @@ self, double value, double[:] values)  nogil:
         # noinspection PyUnresolvedReferences
         annotations = self.func.__annotations__
         lines[0] = lines[0].replace(
-            "def ", f'cpdef inline {TYPE2STR[annotations["return"]]} '
+            "def ", f"cpdef inline {TYPE2STR[annotations['return']]} "
         )
         lines[0] = lines[0].replace("):", f") {_nogil}:")
         for name in self.untypedarguments:
@@ -2625,7 +2621,7 @@ def exp(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import exp
     >>> from unittest import mock
-    >>> with mock.patch('numpy.exp') as func:
+    >>> with mock.patch("numpy.exp") as func:
     ...     _ = exp(123.4)
     >>> func.call_args
     call(123.4)
@@ -2639,7 +2635,7 @@ def log(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import log
     >>> from unittest import mock
-    >>> with mock.patch('numpy.log') as func:
+    >>> with mock.patch("numpy.log") as func:
     ...     _ = log(123.4)
     >>> func.call_args
     call(123.4)
@@ -2653,7 +2649,7 @@ def fabs(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import fabs
     >>> from unittest import mock
-    >>> with mock.patch('math.fabs') as func:
+    >>> with mock.patch("math.fabs") as func:
     ...     _ = fabs(123.4)
     >>> func.call_args
     call(123.4)
@@ -2667,7 +2663,7 @@ def sin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import sin
     >>> from unittest import mock
-    >>> with mock.patch('numpy.sin') as func:
+    >>> with mock.patch("numpy.sin") as func:
     ...     _ = sin(123.4)
     >>> func.call_args
     call(123.4)
@@ -2681,7 +2677,7 @@ def cos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import cos
     >>> from unittest import mock
-    >>> with mock.patch('numpy.cos') as func:
+    >>> with mock.patch("numpy.cos") as func:
     ...     _ = cos(123.4)
     >>> func.call_args
     call(123.4)
@@ -2695,7 +2691,7 @@ def tan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import tan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.tan') as func:
+    >>> with mock.patch("numpy.tan") as func:
     ...     _ = tan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2709,7 +2705,7 @@ def asin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import asin
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arcsin') as func:
+    >>> with mock.patch("numpy.arcsin") as func:
     ...     _ = asin(123.4)
     >>> func.call_args
     call(123.4)
@@ -2723,7 +2719,7 @@ def acos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import acos
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arccos') as func:
+    >>> with mock.patch("numpy.arccos") as func:
     ...     _ = acos(123.4)
     >>> func.call_args
     call(123.4)
@@ -2737,7 +2733,7 @@ def atan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import atan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arctan') as func:
+    >>> with mock.patch("numpy.arctan") as func:
     ...     _ = atan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2751,7 +2747,7 @@ def isnan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.isnan') as func:
+    >>> with mock.patch("numpy.isnan") as func:
     ...     _ = isnan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2765,7 +2761,7 @@ def isinf(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.isinf') as func:
+    >>> with mock.patch("numpy.isinf") as func:
     ...     _ = isinf(123.4)
     >>> func.call_args
     call(123.4)

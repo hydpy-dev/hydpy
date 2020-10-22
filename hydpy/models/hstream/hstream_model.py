@@ -25,7 +25,7 @@ class Calc_QJoints_V1(modeltools.Method):
         Firstly, define a reach divided into four segments:
 
         >>> from hydpy.models.hstream import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> derived.nmbsegments(4)
         >>> states.qjoints.shape = 5
 

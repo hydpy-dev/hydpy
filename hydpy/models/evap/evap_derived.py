@@ -41,7 +41,7 @@ class NmbLogEntries(parametertools.Parameter):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
@@ -56,7 +56,7 @@ class NmbLogEntries(parametertools.Parameter):
 
         There is an explicit check for inappropriate simulation step sizes:
 
-        >>> pub.timegrids = '2000-01-01 00:00', '2000-01-01 10:00', '5h'
+        >>> pub.timegrids = "2000-01-01 00:00", "2000-01-01 10:00", "5h"
         >>> derived.nmblogentries.update()
         Traceback (most recent call last):
         ...
@@ -94,7 +94,7 @@ class LatitudeRad(parametertools.Parameter):
         >>> for value in (-90.0, -45.0, 0.0, 45.0, 90.0):
         ...     latitude(value)
         ...     derived.latituderad.update()
-        ...     round_(latitude.value, end=': ')
+        ...     round_(latitude.value, end=": ")
         ...     round_(derived.latituderad.value)
         -90.0: -1.570796
         -45.0: -0.785398

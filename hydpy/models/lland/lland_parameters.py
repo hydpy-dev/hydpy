@@ -24,7 +24,7 @@ class ParameterComplete(parametertools.ZipParameter):
     |hland_parameters.ParameterComplete|):
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(5)
     >>> lnk(ACKER, VERS, GLETS, SEE, ACKER)
     >>> kg(acker=2.0, vers=1.0, glets=4.0, see=3.0)
@@ -57,7 +57,7 @@ class ParameterLand(ParameterComplete):
     Some examples based on parameter |TGr|:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(5)
     >>> lnk(WASSER, ACKER, FLUSS, VERS, ACKER)
     >>> tgr(wasser=2.0, acker=1.0, fluss=4.0, vers=3.0)
@@ -83,7 +83,7 @@ class ParameterSoil(ParameterComplete):
     Some examples based on parameter |WMax|:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(5)
     >>> lnk(WASSER, ACKER, LAUBW, VERS, ACKER)
     >>> wmax(wasser=300.0, acker=200.0, laubw=400.0, vers=300.0)
@@ -110,7 +110,7 @@ class ParameterSoilThreshold(ParameterSoil):
     of |WMax|:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(2)
     >>> lnk(ACKER, LAUBW)
     >>> wmax(100.0, 200.0)

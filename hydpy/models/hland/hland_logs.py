@@ -19,8 +19,8 @@ class QUH(sequencetools.LogSequence):
     The last value is always set to zero to avoid biased results:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1h')
-    >>> simulationstep('1h')
+    >>> parameterstep("1h")
+    >>> simulationstep("1h")
     >>> maxbaz(3.0)
     >>> derived.uh.update()
     >>> logs.quh(1.0, 2.0, 1.0)

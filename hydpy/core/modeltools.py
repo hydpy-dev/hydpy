@@ -82,7 +82,7 @@ class Idx_Sim(IndexProperty):
     often beneficial during testing:
 
     >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> model.idx_sim
     0
     >>> model.idx_sim = 1
@@ -121,7 +121,7 @@ class Model:
     and the input sequence |hland_inputs.P|:
 
     >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> model.parameters.control.nmbzones
     nmbzones(?)
     >>> model.sequences.inputs.p
@@ -185,7 +185,7 @@ element `?` is not available at the moment.
     `sequences`, optional, which we indicate by a different error message:
 
     >>> from hydpy import prepare_model
-    >>> prepare_model('test_v1').masks
+    >>> prepare_model("test_v1").masks
     Traceback (most recent call last):
     ...
     AttributeError: Model ``test_v1` of element `?`` does not handle \
@@ -247,7 +247,7 @@ a group of masks (at the moment).
         objects:
 
         >>> from hydpy import prepare_model
-        >>> prepare_model('hstream_v1').connect()
+        >>> prepare_model("hstream_v1").connect()
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the node connection of the \
@@ -260,13 +260,12 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         class |Element| calls method |Model.connect| automatically):
 
         >>> from hydpy import Element, Node
-        >>> in1 = Node('in1', variable='Q')
-        >>> in2 = Node('in2', variable='Q')
-        >>> out1 = Node('out1', variable='Q')
+        >>> in1 = Node("in1", variable="Q")
+        >>> in2 = Node("in2", variable="Q")
+        >>> out1 = Node("out1", variable="Q")
 
-        >>> element1 = Element(
-        ...     'element1', inlets=(in1, in2), outlets=out1)
-        >>> element1.model = prepare_model('hstream_v1')
+        >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
+        >>> element1.model = prepare_model("hstream_v1")
 
         Now all connections work as expected:
 
@@ -290,15 +289,14 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         define three additional nodes, two handling variables different
         from discharge (`Q`):
 
-        >>> in3 = Node('in3', variable='X')
-        >>> out2 = Node('out2', variable='Q')
-        >>> out3 = Node('out3', variable='X')
+        >>> in3 = Node("in3", variable="X")
+        >>> out2 = Node("out2", variable="Q")
+        >>> out3 = Node("out3", variable="X")
 
         Link sequence names must match the `variable` a node is handling:
 
-        >>> element2 = Element(
-        ...     'element2', inlets=(in1, in2), outlets=out3)
-        >>> element2.model = prepare_model('hstream_v1')
+        >>> element2 = Element("element2", inlets=(in1, in2), outlets=out3)
+        >>> element2.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -309,9 +307,8 @@ connected due to no available node handling variable `Q`.
         One can connect a 0-dimensional link sequence to a single node
         sequence only:
 
-        >>> element3 = Element(
-        ...     'element3', inlets=(in1, in2), outlets=(out1, out2))
-        >>> element3.model = prepare_model('hstream_v1')
+        >>> element3 = Element("element3", inlets=(in1, in2), outlets=(out1, out2))
+        >>> element3.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -322,9 +319,8 @@ but multiple nodes are available which are handling variable `Q`.
         Method |Model.connect| generally reports about unusable node
         sequences:
 
-        >>> element4 = Element(
-        ...     'element4', inlets=(in1, in2), outlets=(out1, out3))
-        >>> element4.model = prepare_model('hstream_v1')
+        >>> element4 = Element("element4", inlets=(in1, in2), outlets=(out1, out3))
+        >>> element4.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -332,9 +328,8 @@ but multiple nodes are available which are handling variable `Q`.
 following error occurred: The following nodes have not been connected \
 to any sequences: out3.
 
-        >>> element5 = Element(
-        ...     'element5', inlets=(in1, in2, in3), outlets=out1)
-        >>> element5.model = prepare_model('hstream_v1')
+        >>> element5 = Element("element5", inlets=(in1, in2, in3), outlets=out1)
+        >>> element5.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -342,9 +337,8 @@ to any sequences: out3.
 following error occurred: The following nodes have not been connected \
 to any sequences: in3.
 
-        >>> element6 = Element(
-        ...     'element6', inlets=in1, outlets=out1, receivers=in2)
-        >>> element6.model = prepare_model('hstream_v1')
+        >>> element6 = Element("element6", inlets=in1, outlets=out1, receivers=in2)
+        >>> element6.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -352,9 +346,8 @@ to any sequences: in3.
 following error occurred: The following nodes have not been connected \
 to any sequences: in2.
 
-        >>> element7 = Element(
-        ...     'element7', inlets=in1, outlets=out1, senders=in2)
-        >>> element7.model = prepare_model('hstream_v1')
+        >>> element7 = Element("element7", inlets=in1, outlets=out1, senders=in2)
+        >>> element7.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -387,16 +380,16 @@ to any sequences: in2.
         of different node objects:
 
         >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
-        >>> inp1 = Node('inp1', variable=hland_P)
-        >>> outp1 = Node('outp1', variable=hland_Q0)
-        >>> outp2 = Node('outp2', variable=hland_UZ)
-        >>> element8 = Element('element8',
+        >>> inp1 = Node("inp1", variable=hland_P)
+        >>> outp1 = Node("outp1", variable=hland_Q0)
+        >>> outp2 = Node("outp2", variable=hland_UZ)
+        >>> element8 = Element("element8",
         ...                    outlets=out1,
         ...                    inputs=inp1,
         ...                    outputs=[outp1, outp2])
-        >>> element8.model = prepare_model('hland_v1')
+        >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
         >>> element8.model.idx_sim = 2
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
@@ -420,15 +413,15 @@ to any sequences: in2.
         for more information and a more realistic example):
 
         >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
-        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
-        >>> inp2 = Node('inp2', variable=Precip)
-        >>> FastRunoff = FusedVariable('FastRunoff', hland_Q0, lland_QDGZ)
-        >>> outp3 = Node('outp3', variable=FastRunoff)
-        >>> element9 = Element('element9',
+        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> inp2 = Node("inp2", variable=Precip)
+        >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
+        >>> outp3 = Node("outp3", variable=FastRunoff)
+        >>> element9 = Element("element9",
         ...                    outlets=out1,
         ...                    inputs=inp2,
         ...                    outputs=outp3)
-        >>> element9.model = prepare_model('hland_v1')
+        >>> element9.model = prepare_model("hland_v1")
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data()
         >>> element9.model.sequences.inputs.p
@@ -442,12 +435,12 @@ to any sequences: in2.
         does not find a fitting sequence:
 
         >>> from hydpy import lland_TemL
-        >>> Wrong = FusedVariable('Wrong', lland_Nied, lland_TemL)
-        >>> inp3 = Node('inp3', variable=Wrong)
-        >>> element10 = Element('element10',
+        >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
+        >>> inp3 = Node("inp3", variable=Wrong)
+        >>> element10 = Element("element10",
         ...                     outlets=out1,
         ...                     inputs=inp3)
-        >>> element10.model = prepare_model('hland_v1')
+        >>> element10.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the \
@@ -455,11 +448,11 @@ to any sequences: in2.
 error occurred: None of the input sequences of model `hland_v1` is among \
 the sequences of the fused variable `Wrong` of node `inp3`.
 
-        >>> outp4 = Node('outp4', variable=Wrong)
-        >>> element11 = Element('element11',
+        >>> outp4 = Node("outp4", variable=Wrong)
+        >>> element11 = Element("element11",
         ...                     outlets=out1,
         ...                     outputs=outp4)
-        >>> element11.model = prepare_model('hland_v1')
+        >>> element11.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the \
@@ -469,22 +462,22 @@ is among the sequences of the fused variable `Wrong` of node `outp4`.
 
         Selecting wrong sequences results in the following errors messages:
 
-        >>> outp5 = Node('outp5', variable=hland_Q0)
-        >>> element12 = Element('element12',
+        >>> outp5 = Node("outp5", variable=hland_Q0)
+        >>> element12 = Element("element12",
         ...                     outlets=out1,
         ...                     inputs=outp5)
-        >>> element12.model = prepare_model('hland_v1')
+        >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `element12`, the following error \
 occurred: No input sequence of model hland_v1` is named `q0`.
 
-        >>> inp5 = Node('inp5', variable=hland_P)
-        >>> element13 = Element('element13',
+        >>> inp5 = Node("inp5", variable=hland_P)
+        >>> element13 = Element("element13",
         ...                     outlets=out1,
         ...                     outputs=inp5)
-        >>> element13.model = prepare_model('hland_v1')
+        >>> element13.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
@@ -495,11 +488,11 @@ occurred: No flux or state sequence of model `hland_v1` is named `p`.
         only:
 
         >>> from hydpy.models.hland.hland_fluxes import PC
-        >>> outp6 = Node('outp6', variable=PC)
-        >>> element14 = Element('element14',
+        >>> outp6 = Node("outp6", variable=PC)
+        >>> element14 = Element("element14",
         ...                     outlets=out1,
         ...                     outputs=outp6)
-        >>> element14.model = prepare_model('hland_v1')
+        >>> element14.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
@@ -623,13 +616,13 @@ but sequence `pc` is 1-dimensional.
         For base models, |Model.name| corresponds to the package name:
 
         >>> from hydpy import prepare_model
-        >>> hland = prepare_model('hland')
+        >>> hland = prepare_model("hland")
         >>> hland.name
         'hland'
 
         For application models, |Model.name| corresponds the module name:
 
-        >>> hland_v1 = prepare_model('hland_v1')
+        >>> hland_v1 = prepare_model("hland_v1")
         >>> hland_v1.name
         'hland_v1'
 
@@ -920,9 +913,9 @@ but sequence `pc` is 1-dimensional.
     #     for newpar in parameters:
     #         for idx, oldpar in enumerate(dps):
     #             print(newpar, oldpar, idx)
-    #             if newpar in getattr(oldpar, 'DERIVEDPARAMETERS', ()):
+    #             if newpar in getattr(oldpar, "DERIVEDPARAMETERS", ()):
     #                 dps.insert(idx, newpar)
-    #                 print('done')
+    #                 print("done")
     #                 break
     #         else:
     #             dps.append(newpar)

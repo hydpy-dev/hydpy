@@ -18,14 +18,14 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
 
     >>> from hydpy import xml_replace, TestIO
     >>> with TestIO():
-    ...     with open('test1.xmlt', 'w') as templatefile:
+    ...     with open("test1.xmlt", "w") as templatefile:
     ...         _ = templatefile.write(
-    ...             '<!--a normal comment-->\\n'
-    ...             '<e1>element 1</e1>\\n'
-    ...             '<e2><!--|e2|--></e2>\\n'
-    ...             '<e3><!--|e3_|--></e3>\\n'
-    ...             '<e4><!--|e4=element 4|--></e4>\\n'
-    ...             '<e2><!--|e2|--></e2>')
+    ...             "<!--a normal comment-->\\n"
+    ...             "<e1>element 1</e1>\\n"
+    ...             "<e2><!--|e2|--></e2>\\n"
+    ...             "<e3><!--|e3_|--></e3>\\n"
+    ...             "<e4><!--|e4=element 4|--></e4>\\n"
+    ...             "<e2><!--|e2|--></e2>")
 
     Function |xml_replace| can both be called within a Python session and
     from a command line.  We start with the first type of application.
@@ -36,7 +36,7 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
     marker multiple times (`e2`):
 
     >>> with TestIO():
-    ...     xml_replace('test1', e2='E2', e3_=3, e4='ELEMENT 4')
+    ...     xml_replace("test1", e2="E2", e3_=3, e4="ELEMENT 4")
     template file: test1.xmlt
     target file: test1.xml
     replacements:
@@ -45,7 +45,7 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
       e4 --> ELEMENT 4 (given argument)
       e2 --> E2 (given argument)
     >>> with TestIO():
-    ...     with open('test1.xml') as targetfile:
+    ...     with open("test1.xml") as targetfile:
     ...         print(targetfile.read())
     <!--a normal comment-->
     <e1>element 1</e1>
@@ -58,7 +58,7 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
     values, if available (`e4`):
 
     >>> with TestIO():
-    ...     xml_replace('test1', e2='E2', e3_=3)    # doctest: +ELLIPSIS
+    ...     xml_replace("test1", e2="E2", e3_=3)    # doctest: +ELLIPSIS
     template file: test1.xmlt
     target file: test1.xml
     replacements:
@@ -67,7 +67,7 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
       e4 --> element 4 (default argument)
       e2 --> E2 (given argument)
     >>> with TestIO():
-    ...     with open('test1.xml') as targetfile:
+    ...     with open("test1.xml") as targetfile:
     ...         print(targetfile.read())
     <!--a normal comment-->
     <e1>element 1</e1>
@@ -79,7 +79,7 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
     Missing and useless keyword arguments result in errors:
 
     >>> with TestIO():
-    ...     xml_replace('test1', e2='E2')
+    ...     xml_replace("test1", e2="E2")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to replace the markers `e2, e3_, and e4` \
@@ -87,7 +87,7 @@ of the XML template file `test1.xmlt` with the available keywords `e2`, \
 the following error occurred: Marker `e3_` cannot be replaced.
 
     >>> with TestIO():
-    ...     xml_replace('test1', e2='e2', e3_='E3', e4='e4', e5='e5')
+    ...     xml_replace("test1", e2="e2", e3_="E3", e4="e4", e5="e5")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to replace the markers `e2, e3_, and e4` \
@@ -99,13 +99,13 @@ e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.
 
     >>> from hydpy import pub, TestIO, xml_replace
     >>> with TestIO():
-    ...     with open('test2.xmlt', 'w') as templatefile:
+    ...     with open("test2.xmlt", "w") as templatefile:
     ...         _ = templatefile.write(
-    ...             '<e4><!--|e4=element 4|--></e4>\\n'
-    ...             '<e4><!--|e4=ELEMENT 4|--></e4>')
+    ...             "<e4><!--|e4=element 4|--></e4>\\n"
+    ...             "<e4><!--|e4=ELEMENT 4|--></e4>")
 
     >>> with TestIO():
-    ...     xml_replace('test2', e4=4)
+    ...     xml_replace("test2", e4=4)
     template file: test2.xmlt
     target file: test2.xml
     replacements:
@@ -113,13 +113,13 @@ e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.
       e4 --> 4 (given argument)
 
     >>> with TestIO():
-    ...     with open('test2.xml') as targetfile:
+    ...     with open("test2.xml") as targetfile:
     ...         print(targetfile.read())
     <e4>4</e4>
     <e4>4</e4>
 
     >>> with TestIO():
-    ...     xml_replace('test2')
+    ...     xml_replace("test2")
     Traceback (most recent call last):
     ...
     RuntimeError: Template file `test2.xmlt` defines different default values \
@@ -128,9 +128,9 @@ for marker `e4`.
     As mentioned above, function |xml_replace| is registered as a "script
     function" and can thus be used via command line:
 
-    >>> pub.scriptfunctions['xml_replace'].__name__
+    >>> pub.scriptfunctions["xml_replace"].__name__
     'xml_replace'
-    >>> pub.scriptfunctions['xml_replace'].__module__
+    >>> pub.scriptfunctions["xml_replace"].__module__
     'hydpy.exe.replacetools'
 
     Use script |hyd| to execute function |xml_replace|:
@@ -148,7 +148,7 @@ for marker `e4`.
       e2 --> Element 2 (given argument)
 
     >>> with TestIO():
-    ...     with open('test1.xml') as targetfile:
+    ...     with open("test1.xml") as targetfile:
     ...         print(targetfile.read())
     <!--a normal comment-->
     <e1>element 1</e1>

@@ -572,7 +572,7 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
         maintains the given wind speed for grass:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2019-05-30', '2019-06-03', '1d'
+        >>> pub.timegrids = "2019-05-30", "2019-06-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(4)
@@ -585,7 +585,7 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
         >>> p2wind(0.1)
         >>> derived.moy.update()
         >>> fluxes.windspeed2m = 2.0
-        >>> model.idx_sim = pub.timegrids.init['2019-05-31']
+        >>> model.idx_sim = pub.timegrids.init["2019-05-31"]
         >>> model.calc_reducedwindspeed2m_v1()
         >>> fluxes.reducedwindspeed2m
         reducedwindspeed2m(2.0, 0.6, 0.2, 0.0)
@@ -594,7 +594,7 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
         >>> lai.laubw_jun = 3.0
         >>> lai.mischw_jun = 6.0
         >>> lai.nadelw_jun = 10.0
-        >>> model.idx_sim = pub.timegrids.init['2019-06-01']
+        >>> model.idx_sim = pub.timegrids.init["2019-06-01"]
         >>> model.calc_reducedwindspeed2m_v1()
         >>> fluxes.reducedwindspeed2m
         reducedwindspeed2m(2.0, 0.4, 0.0, 0.0)
@@ -675,7 +675,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -685,21 +685,21 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_solardeclination_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.solardeclination.value)
 
         The results are identical for both years, due to :
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-12-31")
         2000-01-01: -0.401992
         2000-02-28: -0.149946
         2000-02-29: -0.143355
         2000-03-01: -0.136722
         2000-12-31: -0.401992
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-12-31")
         2001-01-01: -0.401992
         2001-02-28: -0.149946
         2001-03-01: -0.136722
@@ -824,7 +824,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -834,13 +834,13 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_earthsundistance_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.earthsundistance.value)
 
         The results are identical for both years:
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-07-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-07-01", "2000-12-31")
         2000-01-01: 1.032995
         2000-02-28: 1.017471
         2000-02-29: 1.016988
@@ -848,8 +848,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         2000-07-01: 0.967
         2000-12-31: 1.033
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-07-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-07-01", "2001-12-31")
         2001-01-01: 1.032995
         2001-02-28: 1.017471
         2001-03-01: 1.0165
@@ -979,7 +979,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         duration is, as to be expected, the span between sunrise and sunset:
 
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> model.calc_possiblesunshineduration_v1()
@@ -989,14 +989,14 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         The following example calculates the hourly possible sunshine
         durations of the same day:
 
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> sum_ = 0.0
         >>> for idx in range(24):
         ...     model.idx_sim = idx
         ...     model.calc_possiblesunshineduration_v1()
-        ...     print(idx+1, end=': ')   # doctest: +ELLIPSIS
+        ...     print(idx+1, end=": ")   # doctest: +ELLIPSIS
         ...     round_(fluxes.possiblesunshineduration.value)
         ...     sum_ += fluxes.possiblesunshineduration.value
         1: 0.0
@@ -1122,13 +1122,13 @@ class Calc_SP_V1(modeltools.Method):
         In between, it reaches its maximum around noon:
 
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> for idx in range(7, 17):
         ...     model.idx_sim = idx
         ...     model.calc_sp_v1()
-        ...     print(idx+1, end=': ')
+        ...     print(idx+1, end=": ")
         ...     round_(fluxes.sp.value)
         8: 0.0
         9: 0.853709
@@ -1144,7 +1144,7 @@ class Calc_SP_V1(modeltools.Method):
         The following examples show how method |Calc_SP_V1| works for
         time step sizes longer than one hour:
 
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> model.idx_sim = 0
@@ -1152,26 +1152,26 @@ class Calc_SP_V1(modeltools.Method):
         >>> fluxes.sp
         sp(100.0)
 
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '6h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "6h"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> for idx in range(4):
         ...     model.idx_sim = idx
         ...     model.calc_sp_v1()
-        ...     print((idx+1)*6, end=': ')
+        ...     print((idx+1)*6, end=": ")
         ...     round_(fluxes.sp.value)
         6: 0.0
         12: 50.0
         18: 50.0
         24: 0.0
 
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '3h'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "3h"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> for idx in range(8):
         ...     model.idx_sim = idx
         ...     model.calc_sp_v1()
-        ...     print((idx+1)*3, end=': ')
+        ...     print((idx+1)*3, end=": ")
         ...     round_(fluxes.sp.value)
         3: 0.0
         6: 0.0
@@ -1186,13 +1186,13 @@ class Calc_SP_V1(modeltools.Method):
         "bumb" around noon (for example, the relative radiation is slightly
         smaller between 11:30 and 12:00 than it is between 11:00 and 11:30):
 
-        >>> pub.timegrids = '2000-01-01', '2000-01-02', '30m'
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "30m"
         >>> derived.sct.update()
         >>> derived.hours.update()
         >>> for idx in range(15, 33):
         ...     model.idx_sim = idx
         ...     model.calc_sp_v1()
-        ...     print((idx+1)/2, end=': ')
+        ...     print((idx+1)/2, end=": ")
         ...     round_(fluxes.sp.value)
         8.0: 0.0
         8.5: 0.021762
@@ -1290,7 +1290,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         this for a daily time-step basis:
 
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.moy.update()
@@ -1331,7 +1331,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         time steps, except that parameter |AngstromAlternative| does never
         replace parameter |AngstromConstant|:
 
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1h'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1h"
         >>> derived.moy.update()
         >>> derived.days.update()
         >>> model.idx_sim = 1
@@ -1402,7 +1402,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         |SunshineDuration| and sequence |PossibleSunshineDuration|:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.nmblogentries.update()
@@ -1484,7 +1484,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         respective new value on the most left position:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('8h')
+        >>> simulationstep("8h")
         >>> parameterstep()
         >>> derived.nmblogentries.update()
         >>> logs.loggedglobalradiation = 0.0
@@ -1548,7 +1548,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         We define a daily simulation step size and update the relevant
         derived parameters:
 
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> derived.moy.update()
         >>> derived.nmblogentries.update()
 
@@ -1573,13 +1573,13 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         hourly simulation time step, as long as the daily sum of sunshine
         duration remains identical:
 
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1h'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1h"
         >>> derived.moy.update()
         >>> derived.nmblogentries.update()
 
         The actual simulation step starts at 11 o'clock and ends at 12 o'clock:
 
-        >>> model.idx_sim = pub.timegrids.init['2000-01-31 11:00']
+        >>> model.idx_sim = pub.timegrids.init["2000-01-31 11:00"]
         >>> fluxes.dailysunshineduration = 7.2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
@@ -1639,7 +1639,7 @@ class Calc_AdjustedGlobalRadiation_V1(modeltools.Method):
         Again, we start with a daily simulation time step:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
+        >>> simulationstep("1d")
         >>> parameterstep()
         >>> derived.nmblogentries.update()
 
@@ -1671,7 +1671,7 @@ class Calc_AdjustedGlobalRadiation_V1(modeltools.Method):
         We now demonstrate how method |Calc_AdjustedGlobalRadiation_V1|
         actually works for hourly simulation time steps:
 
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> derived.nmblogentries.update()
 
         The daily global radiation value does not depend on the simulation
@@ -1792,8 +1792,8 @@ class Calc_ET0_WET0_V1(modeltools.Method):
         combinations of parameters |KE| and |WfET0|:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nhru(4)
         >>> ke(0.8, 1.2, 0.8, 1.2)
         >>> wfet0(2.0, 2.0, 0.2, 0.2)
@@ -1862,14 +1862,14 @@ class Calc_EvPo_V1(modeltools.Method):
         time period spanning the transition from June to July:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '30.06.2000', '02.07.2000', '1d'
+        >>> pub.timegrids = "30.06.2000", "02.07.2000", "1d"
 
         Secondly, assume that the considered subbasin is differenciated in
         two HRUs, one of primarily consisting of arable land and the other
         one of deciduous forests:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
 
@@ -1950,7 +1950,7 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
         Initialise five HRUs with different land usages:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(SIED_D, FEUCHT, GLETS, FLUSS, SEE)
 
@@ -2064,7 +2064,7 @@ class Calc_SNRatio_V1(modeltools.Method):
         of mixed precipitation 2 °C:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> tgr(1.0)
         >>> tsp(2.0)
@@ -2129,7 +2129,7 @@ class Calc_SNRatio_V1(modeltools.Method):
 #     Example:
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(5)
 #         >>> fluxes.tkor(-5.0, -3.0, -2.0, -1.0,  0.0)
 #         >>> model.calc_f2simax()
@@ -2170,7 +2170,7 @@ class Calc_SNRatio_V1(modeltools.Method):
 #     Example:
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(3)
 #         >>> lnk(ACKER, LAUBW, NADELW)
 #         >>> derived.moy = 5
@@ -2226,7 +2226,7 @@ class Calc_SNRatio_V1(modeltools.Method):
 #     Example:
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(5)
 #         >>> p3sirate(0.003)
 #         >>> states.stinz = 0.0, 0.5, 1.0, 5.0, 10.0
@@ -2264,7 +2264,7 @@ class Calc_SNRatio_V1(modeltools.Method):
 #
 #     Example:
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(3)
 #         >>> derived.f1sirate.acker_jan = 0.22
 #         >>> derived.f1sirate.laubw_jan = 0.30
@@ -2302,7 +2302,7 @@ class Calc_SNRatio_V1(modeltools.Method):
 #     Example:
 #
 #         >>> from hydpy.models.lland import *
-#         >>> parameterstep('1d')
+#         >>> parameterstep("1d")
 #         >>> nhru(4)
 #         >>> lnk(ACKER, NADELW, NADELW, NADELW)
 #         >>> # states.sinz()
@@ -2375,7 +2375,7 @@ class Calc_SBes_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> fluxes.nbes = 10.0
         >>> aides.snratio = 0.2, 0.8
@@ -2457,7 +2457,7 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
         value, but we vary the initial conditions of the snow cover:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(6)
         >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
         >>> pwmax(2.0)
@@ -2519,8 +2519,8 @@ class Calc_WGTF_V1(modeltools.Method):
         land use and air temperature:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
         >>> nhru(6)
         >>> lnk(FLUSS, SEE, LAUBW, ACKER, ACKER, LAUBW)
         >>> gtf(5.0)
@@ -2586,7 +2586,7 @@ class Calc_WNied_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(ACKER, ACKER, ACKER, ACKER, WASSER)
         >>> trefn(-2.0, 2.0, 2.0, 2.0, 2.0)
@@ -2646,7 +2646,7 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(6)
         >>> lnk(ACKER, ACKER, ACKER, ACKER, ACKER, WASSER)
         >>> trefn(1.0)
@@ -2926,7 +2926,7 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> parameterstep()
         >>> nhru(1)
         >>> derived.nmblogentries.update()
@@ -2966,7 +2966,7 @@ class Calc_DailyActualVapourPressure_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> parameterstep()
         >>> nhru(1)
         >>> derived.nmblogentries.update()
@@ -3177,7 +3177,7 @@ class Update_TauS_V1(modeltools.Method):
         an existing snow layer; high temperatures increase the speed of aging:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(10)
         >>> derived.seconds(24*60*60)
         >>> fluxes.sbes = 0.0, 1.0, 5.0, 9.0, 10.0, 11.0, 11.0, 11.0, 11.0, 11.0
@@ -3242,7 +3242,7 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(5)
@@ -3345,7 +3345,7 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(2)
@@ -3358,12 +3358,12 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
         >>> fluxes.actualalbedo = 0.5
         >>> fluxes.adjustedglobalradiation = 2.0
 
-        >>> model.idx_sim = pub.timegrids.init['2000-01-31']
+        >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
         >>> model.calc_netshortwaveradiationsnow_v1()
         >>> fluxes.netshortwaveradiationsnow
         netshortwaveradiationsnow(1.0, 0.5)
 
-        >>> model.idx_sim = pub.timegrids.init['2000-02-01']
+        >>> model.idx_sim = pub.timegrids.init["2000-02-01"]
         >>> model.calc_netshortwaveradiationsnow_v1()
         >>> fluxes.netshortwaveradiationsnow
         netshortwaveradiationsnow(1.0, 0.1)
@@ -3406,7 +3406,7 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> parameterstep()
         >>> nhru(1)
         >>> fluxes.actualalbedo(0.25)
@@ -3450,7 +3450,7 @@ class Return_TempS_V1(modeltools.Method):
         lower than -273 °C (see the result of the fifth response unit):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> states.wats = 0.0, 0.5, 5.0, 0.5, 0.5
         >>> states.waes = 0.0, 1.0, 10.0, 1.0, 1.0
@@ -3502,7 +3502,7 @@ class Return_ESnow_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(3)
         >>> states.wats = 0.0, 0.5, 5.0
         >>> states.waes = 0.0, 1.0, 10.0
@@ -3547,7 +3547,7 @@ class Calc_TempS_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(3)
         >>> pwmax(2.0)
         >>> fluxes.tkor = -1.0
@@ -3605,7 +3605,7 @@ class Calc_TZ_V1(modeltools.Method):
         We set |TZ| to |numpy.nan| for all types of water areas:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> lnk(WASSER, FLUSS, SEE, WASSER, SEE, FLUSS, WASSER)
         >>> model.calc_tz_v1()
@@ -3689,7 +3689,7 @@ class Calc_G_V1(modeltools.Method):
         for a daily simulation step size:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-05-30', '2000-06-03', '1d'
+        >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
 
@@ -3735,19 +3735,19 @@ class Calc_G_V1(modeltools.Method):
         calculates soil surface fluxes identical with the |WG2Z| value
         of the respective month:
 
-        >>> model.idx_sim = pub.timegrids.init['2000-05-31']
+        >>> model.idx_sim = pub.timegrids.init["2000-05-31"]
         >>> model.calc_g_v1()
         >>> fluxes.g
         g(1.0, 1.0, 1.0, 1.0, 1.0, 0.0)
-        >>> model.idx_sim = pub.timegrids.init['2000-06-01']
+        >>> model.idx_sim = pub.timegrids.init["2000-06-01"]
         >>> model.calc_g_v1()
         >>> fluxes.g
         g(-2.0, -2.0, -2.0, -2.0, -2.0, 0.0)
 
         Next, we switch to an hourly step size and focus on May:
 
-        >>> pub.timegrids = '2000-05-30 00:00', '2000-06-02 00:00', '1h'
-        >>> model.idx_sim = pub.timegrids.init['2000-05-31']
+        >>> pub.timegrids = "2000-05-30 00:00", "2000-06-02 00:00", "1h"
+        >>> model.idx_sim = pub.timegrids.init["2000-05-31"]
         >>> derived.moy.update()
         >>> derived.hours.update()
         >>> derived.days.update()
@@ -3837,7 +3837,7 @@ class Calc_G_V2(modeltools.Method):
     Examples:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-05-30 00:00', '2000-06-02 00:00', '1h'
+        >>> pub.timegrids = "2000-05-30 00:00", "2000-06-02 00:00", "1h"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(4)
@@ -3846,11 +3846,11 @@ class Calc_G_V2(modeltools.Method):
         >>> wg2z.jun = -2.4
         >>> derived.moy.update()
         >>> derived.days.update()
-        >>> model.idx_sim = pub.timegrids.init['2000-05-31 23:00']
+        >>> model.idx_sim = pub.timegrids.init["2000-05-31 23:00"]
         >>> model.calc_g_v2()
         >>> fluxes.g
         g(0.05, 0.0, 0.0, 0.0)
-        >>> model.idx_sim = pub.timegrids.init['2000-06-01 00:00']
+        >>> model.idx_sim = pub.timegrids.init["2000-06-01 00:00"]
         >>> model.calc_g_v2()
         >>> fluxes.g
         g(-0.1, 0.0, 0.0, 0.0)
@@ -3902,8 +3902,8 @@ class Return_WG_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
-        >>> parameterstep('1d')
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> fixed.lambdag.restore()
         >>> fluxes.tz = 2.0
@@ -3954,8 +3954,8 @@ class Calc_WG_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
-        >>> parameterstep('1d')
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(ACKER, VERS, WASSER, FLUSS, SEE)
         >>> fixed.lambdag.restore()
@@ -4013,7 +4013,7 @@ class Update_EBdn_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(6)
         >>> lnk(WASSER, FLUSS, SEE, ACKER, ACKER, ACKER)
-        >>> pub.timegrids = '2019-04-29', '2019-05-03', '1d'
+        >>> pub.timegrids = "2019-04-29", "2019-05-03", "1d"
         >>> derived.moy.update()
         >>> derived.seconds.update()
         >>> derived.days.update()
@@ -4070,8 +4070,8 @@ class Return_WSensSnow_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
-        >>> parameterstep('1d')
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
@@ -4118,8 +4118,8 @@ class Return_WLatSnow_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
-        >>> parameterstep('1d')
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
@@ -4166,8 +4166,8 @@ class Return_WSurf_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1h')
-        >>> parameterstep('1d')
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> nhru(1)
         >>> ktschnee(0.432)
         >>> fluxes.tempssurface = -3.0
@@ -4328,8 +4328,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         different submethods for further information):
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> turb0(0.1728)
@@ -4483,8 +4483,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         hydrological response units:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(ACKER)
         >>> turb0(0.1728)
@@ -4634,8 +4634,8 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         further information):
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> turb0(0.1728)
@@ -4832,8 +4832,8 @@ class Update_ESnow_V1(modeltools.Method):
         hydrological response units:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(8)
         >>> lnk(ACKER)
         >>> turb0(0.1728)
@@ -5009,7 +5009,7 @@ class Calc_SchmPot_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(2)
         >>> fluxes.wgtf = 2.0
         >>> fluxes.wnied = 1.0, 2.0
@@ -5045,7 +5045,7 @@ class Calc_SchmPot_V2(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(4)
         >>> states.waes = 0.0, 1.0, 1.0, 1.0
         >>> states.esnow = nan, 5.0, 2.0, -2.0
@@ -5085,7 +5085,7 @@ class Calc_GefrPot_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(4)
         >>> states.waes = 0.0, 1.0, 1.0, 1.0
         >>> states.esnow = nan, -5.0, -2.0, 2.0
@@ -5142,7 +5142,7 @@ class Calc_Schm_WATS_V1(modeltools.Method):
         (|SBes|), but different values for potential snowmelt (|SchmPot|):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(6)
         >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
         >>> states.wats = 0.0, 0.0, 2.0, 2.0, 2.0, 2.0
@@ -5204,7 +5204,7 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
         (|SBes|), but different values for potential snowmelt (|SchmPot|):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(6)
         >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
         >>> refreezeflag(True)
@@ -5280,7 +5280,7 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
         the actual snow holding capacity to |WaDa|:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> lnk(WASSER, FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
         >>> pwmax(2.0)
@@ -5327,7 +5327,7 @@ class Update_ESnow_V2(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> lnk(WASSER, FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
         >>> fluxes.gefr = 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 4.0
@@ -5375,7 +5375,7 @@ class Calc_SFF_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(9)
         >>> lnk(VERS, WASSER, FLUSS, SEE, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> states.ebdn(0.0, 0.0, 0.0, 0.0, 28.0, 27.0, 10.0, 0.0, -1.0)
@@ -5484,7 +5484,7 @@ class Calc_EvB_V1(modeltools.Method):
         soil moisture, which is lessening in the high soil moisture range:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(7)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
         >>> grasref_r(5.0)
@@ -5637,7 +5637,7 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, ACKER, OBSTB, LAUBW, NADELW)
-        >>> pub.timegrids = '2000-01-30', '2000-02-03', '1d'
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> derived.moy.update()
         >>> cropheight.wasser_jan = 0.0
         >>> cropheight.acker_jan = 1.0
@@ -5887,7 +5887,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         are in effect without any modification:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2000-05-30', '2000-06-03', '1d'
+        >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(4)
@@ -6046,7 +6046,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         |LanduseSurfaceResistance| as the effective surface resistance values:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2019-05-30', '2019-06-03', '1d'
+        >>> pub.timegrids = "2019-05-30", "2019-06-03", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(4)
@@ -6112,7 +6112,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         during the nighttime (second example), and during dawn or
         dusk (third example):
 
-        >>> pub.timegrids = '2019-05-31 22:00', '2019-06-01 03:00', '1h'
+        >>> pub.timegrids = "2019-05-31 22:00", "2019-06-01 03:00", "1h"
         >>> nhru(1)
         >>> lnk(NADELW)
         >>> fluxes.soilsurfaceresistance = 200.0
@@ -6200,7 +6200,7 @@ class Return_Penman_V1(modeltools.Method):
         only.  Response unit seven shows the combined effect of both forces:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
+        >>> simulationstep("1d")
         >>> parameterstep()
         >>> nhru(7)
         >>> derived.days.update()
@@ -6228,7 +6228,7 @@ class Return_Penman_V1(modeltools.Method):
         following example demonstrates that  we get equivalent results
         for hourly time steps:
 
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> derived.days.update()
         >>> for hru in range(7):
         ...     deficit = (fluxes.dailysaturationvapourpressure[hru] -
@@ -6319,7 +6319,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         a reasonable precalculated value of 106 s/m:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
+        >>> simulationstep("1d")
         >>> parameterstep()
         >>> nhru(7)
         >>> emissivity(0.96)
@@ -6428,7 +6428,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         to demonstrate that we can reproduce the results of the first
         example, which requires to adjust |NetRadiation| and |WG|:
 
-        >>> simulationstep('1h')
+        >>> simulationstep("1h")
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 1.0, 4.5, 8.0, 1.0, 1.0, 1.0, 8.0
         >>> fluxes.netradiation /= 24
@@ -6527,7 +6527,7 @@ class Calc_EvPo_V2(modeltools.Method):
         potential values differ markedly:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
+        >>> simulationstep("1d")
         >>> parameterstep()
         >>> nhru(2)
         >>> lnk(WASSER, ACKER)
@@ -6630,7 +6630,7 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         |WATS| and |WAeS| to zero for water areas:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(8)
         >>> lnk(ACKER, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER, WASSER)
         >>> fluxes.wlatsnow = -1.0, 0.0, 2.0, 4.0, 6.0, 6.0, 6.0, 6.0
@@ -6700,7 +6700,7 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
         (|EvPo|) as long as it is met by available intercepted water (|Inzp|):
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(3)
         >>> lnk(ACKER)
         >>> states.inzp = 0.0, 2.0, 4.0
@@ -6760,7 +6760,7 @@ class Calc_EvB_V2(modeltools.Method):
         response units, there is no soil evapotranspiration:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('1d')
+        >>> simulationstep("1d")
         >>> parameterstep()
         >>> nhru(6)
         >>> lnk(VERS, WASSER, FLUSS, SEE, NADELW, NADELW)
@@ -6860,8 +6860,8 @@ class Calc_QKap_V1(modeltools.Method):
         with different soil water contents:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> nhru(6)
         >>> lnk(ACKER)
         >>> wmax(100.0)
@@ -6970,8 +6970,8 @@ class Calc_QBB_V1(modeltools.Method):
         HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> beta(0.04)
@@ -7088,8 +7088,8 @@ class Calc_QIB1_V1(modeltools.Method):
         HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
@@ -7160,8 +7160,8 @@ class Calc_QIB2_V1(modeltools.Method):
         five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> nhru(8)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
@@ -7358,7 +7358,7 @@ class Calc_BoWa_V1(modeltools.Method):
         to zero and do not need to perform any flux corrections:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nhru(4)
         >>> lnk(FLUSS, SEE, WASSER, VERS)
         >>> states.bowa = 100.0
@@ -7730,8 +7730,8 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         the maximum amount of "slow" direct runoff per time step:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> a1(0.0)
 
         Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning

@@ -9,13 +9,15 @@ import tempfile
 import time
 from typing import IO
 from typing import *
+
 # ...from site-packages
 import wrapt
+
 # ...from HydPy
 import hydpy
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PrintStyle:
@@ -26,19 +28,18 @@ class PrintStyle:
     font: int
     file: IO
 
-    def __init__(self, color: int, font: int, file: Optional[IO] = None) \
-            -> None:
+    def __init__(self, color: int, font: int, file: Optional[IO] = None) -> None:
         self.color = color
         self.font = font
         self.file = sys.stdout if file is None else file
 
     def __enter__(self) -> None:
         if hydpy.pub.options.printincolor:
-            print(end=f'\x1B[{self.font};30;{self.color}m', file=self.file)
+            print(end=f"\x1B[{self.font};30;{self.color}m", file=self.file)
 
     def __exit__(self, exception, message, traceback_) -> None:
         if hydpy.pub.options.printincolor:
-            print(end='\x1B[0m', file=self.file)
+            print(end="\x1B[0m", file=self.file)
 
 
 _printprogress_indentation = -4
@@ -123,18 +124,18 @@ def print_progress(wrapped, _=None, args=None, kwargs=None):
     _printprogress_indentation += 4
     try:
         if hydpy.pub.options.printprogress:
-            blanks = ' ' * _printprogress_indentation
+            blanks = " " * _printprogress_indentation
             name = wrapped.__name__
-            time_ = time.strftime('%H:%M:%S')
+            time_ = time.strftime("%H:%M:%S")
             with PrintStyle(color=34, font=1):
-                print(f'{blanks}method {name} started at {time_}')
+                print(f"{blanks}method {name} started at {time_}")
             seconds = time.perf_counter()
             sys.stdout.flush()
             wrapped(*args, **kwargs)
-            blanks = ' ' * (_printprogress_indentation+4)
-            seconds = time.perf_counter()-seconds
+            blanks = " " * (_printprogress_indentation + 4)
+            seconds = time.perf_counter() - seconds
             with PrintStyle(color=34, font=1):
-                print(f'{blanks}seconds elapsed: {seconds}')
+                print(f"{blanks}seconds elapsed: {seconds}")
             sys.stdout.flush()
         else:
             wrapped(*args, **kwargs)
@@ -216,33 +217,33 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     """
     nmbitems = len(tuple(iterable))
     if hydpy.pub.options.printprogress and (nmbitems > 1):
-        temp_name = os.path.join(tempfile.gettempdir(),
-                                 'HydPy_progressbar_stdout')
-        temp_stdout = open(temp_name, 'w')
+        temp_name = os.path.join(tempfile.gettempdir(), "HydPy_progressbar_stdout")
+        temp_stdout = open(temp_name, "w")
         real_stdout = sys.stdout
         try:
             sys.stdout = temp_stdout
             nmbstars = min(nmbitems, length)
-            nmbcounts = nmbitems/nmbstars
-            indentation = ' '*max(_printprogress_indentation, 0)
+            nmbcounts = nmbitems / nmbstars
+            indentation = " " * max(_printprogress_indentation, 0)
             with PrintStyle(color=36, font=1, file=real_stdout):
-                print('    %s|%s|\n%s    ' % (indentation,
-                                              '-'*(nmbstars-2),
-                                              indentation),
-                      end='',
-                      file=real_stdout)
-                counts = 1.
+                print(
+                    "    %s|%s|\n%s    "
+                    % (indentation, "-" * (nmbstars - 2), indentation),
+                    end="",
+                    file=real_stdout,
+                )
+                counts = 1.0
                 for next_ in iterable:
-                    counts += 1.
+                    counts += 1.0
                     if counts >= nmbcounts:
-                        print(end='*', file=real_stdout)
+                        print(end="*", file=real_stdout)
                         counts -= nmbcounts
                     yield next_
         finally:
             temp_stdout.close()
             sys.stdout = real_stdout
             print()
-            with open(temp_name, 'r') as temp_stdout:
+            with open(temp_name, "r") as temp_stdout:
                 sys.stdout.write(temp_stdout.read())
             sys.stdout.flush()
     else:

@@ -364,15 +364,15 @@ right colums show the input and output of the ARMA model:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from arma
 from hydpy.models.arma import arma_model
 
 
 class Model(modeltools.AdHocModel):
     """Rimo/Rido version of ARMA (arma_v1)."""
-    INLET_METHODS = (
-        arma_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (arma_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         arma_model.Calc_QPIn_V1,
@@ -384,9 +384,7 @@ class Model(modeltools.AdHocModel):
         arma_model.Calc_QOut_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        arma_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (arma_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

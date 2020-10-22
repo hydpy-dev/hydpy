@@ -41,6 +41,7 @@ class N(parametertools.Parameter):
         >>> q.shape
         (732, 5)
     """
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
     def __call__(self, *args, **kwargs):
@@ -51,33 +52,37 @@ class N(parametertools.Parameter):
         super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
-                if par.name == 'toy':
+                if par.name == "toy":
                     continue
                 if par.NDIM == 1:
                     if isinstance(par, parametertools.SeasonalParameter):
                         par.shape = (None,)
                     else:
                         par.shape = self.value
-                elif ((par.NDIM == 2) and
-                      isinstance(par, parametertools.SeasonalParameter)):
+                elif (par.NDIM == 2) and isinstance(
+                    par, parametertools.SeasonalParameter
+                ):
                     par.shape = (None, self.value)
 
 
 class W(parametertools.Parameter):
     """Wasserstand (water stage) [m]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
 class V(parametertools.Parameter):
     """Wasservolumen bei vorgegebenem Wasserstand (water volume for a
     given water stage) [m³]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class Q(parametertools.SeasonalParameter):
     """Üblicher Seeausfluss bei vorgegebenem Wasserstand (sea outlet discharge
     for a given water stage) [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
 
 
 class MaxDT(parametertools.Parameter):
@@ -136,34 +141,39 @@ following error occurred: The supplied argument must be either an instance \
 of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
 (An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))
     """
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
     def __call__(self, *args, **kwargs):
         try:
             args = [timetools.Period(args[0]).seconds]
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying the set the value of parameter `maxdt` '
-                'of the lake model handled by element `%s`'
+                "While trying the set the value of parameter `maxdt` "
+                "of the lake model handled by element `%s`"
                 % objecttools.devicename(self),
-                '(An example: set `max dt` to 3600 seconds by writing '
-                '`maxdt("1h"))')
+                "(An example: set `max dt` to 3600 seconds by writing " '`maxdt("1h"))',
+            )
         super().__call__(*args, **kwargs)
 
     def __repr__(self):
         try:
-            return "%s('%s')" % (self.name,
-                                 str(timetools.Period.from_seconds(self.value)))
+            return "%s('%s')" % (
+                self.name,
+                str(timetools.Period.from_seconds(self.value)),
+            )
         except BaseException:
-            return '%s(?)' % self.name
+            return "%s(?)" % self.name
 
 
 class MaxDW(parametertools.SeasonalParameter):
     """Maximale Absenkgeschwindigkeit (maximum drop in water level) [m/T]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
 
 
 class Verzw(parametertools.SeasonalParameter):
     """Zu- oder Abschlag des Seeausflusses (addition to or abstraction from
     the seas outlet discharge) [m³/s]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)

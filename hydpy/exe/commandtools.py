@@ -15,6 +15,7 @@ import traceback
 from typing import *
 from typing import IO
 from typing_extensions import Literal
+
 # ...from hydpy
 import hydpy
 from hydpy import tests
@@ -23,26 +24,26 @@ from hydpy.core import objecttools
 
 @overload
 def run_subprocess(
-        command: str,
-        verbose: bool,
-        blocking: Literal[True],
+    command: str,
+    verbose: bool,
+    blocking: Literal[True],
 ) -> subprocess.CompletedProcess:
     """non-blocking"""
 
 
 @overload
 def run_subprocess(
-        command: str,
-        verbose: bool,
-        blocking: Literal[False],
+    command: str,
+    verbose: bool,
+    blocking: Literal[False],
 ) -> subprocess.Popen:
     """blocking"""
 
 
 def run_subprocess(
-        command,
-        verbose=True,
-        blocking=True,
+    command,
+    verbose=True,
+    blocking=True,
 ):
     """Execute the given command in a new process.
 
@@ -77,12 +78,12 @@ def run_subprocess(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            encoding='utf-8',
+            encoding="utf-8",
             shell=True,
             check=False,
             env=dict(os.environ),
         )
-        if verbose:    # due to doctest replacing sys.stdout
+        if verbose:  # due to doctest replacing sys.stdout
             for output in (result1.stdout, result1.stderr):
                 output = output.strip()
                 if output:
@@ -93,7 +94,7 @@ def run_subprocess(
         command,
         stdout=stdouterr,
         stderr=stdouterr,
-        encoding='utf-8',
+        encoding="utf-8",
         shell=True,
         env=dict(os.environ),
     )
@@ -127,14 +128,14 @@ for testing purposes.
     Start to execute the commands ['e=x==y', 'print(e)'] for testing purposes.
     False
     """
-    cmdlist = commands.split(';')
-    print(f'Start to execute the commands {cmdlist} for testing purposes.')
+    cmdlist = commands.split(";")
+    print(f"Start to execute the commands {cmdlist} for testing purposes.")
     for par, value in parameters.items():
-        exec(f'{par} = {value}')
+        exec(f"{par} = {value}")
     for command in cmdlist:
-        command = command.replace('__', 'temptemptemp')
-        command = command.replace('_', ' ')
-        command = command.replace('temptemptemp', '_')
+        command = command.replace("__", "temptemptemp")
+        command = command.replace("_", " ")
+        command = command.replace("temptemptemp", "_")
         exec(command)
 
 
@@ -159,8 +160,9 @@ def test_everything() -> int:
     '.../python... .../hydpy/tests/test_everything.py forcecompiling=False'
     """
     return os.system(
-        f'{sys.executable} {tests.__path__[0]}'
-        f'/test_everything.py forcecompiling=False')
+        f"{sys.executable} {tests.__path__[0]}"
+        f"/test_everything.py forcecompiling=False"
+    )
 
 
 def exec_script(filepath: str) -> None:
@@ -220,12 +222,11 @@ cannot be mistaken with Python built-ins like `for`...)
     ...
     """
     if not os.path.isfile(filepath):
-        raise FileNotFoundError(
-            f'File `{os.path.abspath(filepath)}` does not exist.')
+        raise FileNotFoundError(f"File `{os.path.abspath(filepath)}` does not exist.")
     runpy.run_path(filepath)
 
 
-def start_shell(filepath: str = '') -> None:
+def start_shell(filepath: str = "") -> None:
     """Open an interactive Python shell.
 
     Writing "hyd.py start_shell" into your command line tool opens an
@@ -282,10 +283,10 @@ def start_shell(filepath: str = '') -> None:
     if filepath:
         filepath_ = filepath
     else:
-        filepath_ = '__hydpy_temp__'
-        with open('__hydpy_temp__', 'w') as file_:
-            file_.write('from hydpy import *')
-    subprocess.run([sys.executable, '-i', filepath_], check=True)
+        filepath_ = "__hydpy_temp__"
+        with open("__hydpy_temp__", "w") as file_:
+            file_.write("from hydpy import *")
+    subprocess.run([sys.executable, "-i", filepath_], check=True)
     if not filepath:
         os.remove(filepath_)
 
@@ -297,7 +298,7 @@ def start_shell(filepath: str = '') -> None:
     # console.run_code(compile('from hydpy import *', '_', 'exec'))
 
 
-def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
+def print_latest_logfile(dirpath: str = ".", wait: float = 0.0) -> None:
     """Print the latest log file in the current or the given working directory.
 
     When executing processes in parallel, |print_latest_logfile| may
@@ -330,7 +331,7 @@ the following error:
     filenames = []
     while now <= wait:
         for filename in os.listdir(dirpath):
-            if filename.startswith('hydpy_') and filename.endswith('.log'):
+            if filename.startswith("hydpy_") and filename.endswith(".log"):
                 filenames.append(filename)
         if filenames:
             break
@@ -338,8 +339,9 @@ the following error:
         now = time.perf_counter()
     if not filenames:
         raise FileNotFoundError(
-            f'Cannot find a default HydPy log file in directory '
-            f'{os.path.abspath(dirpath)}.')
+            f"Cannot find a default HydPy log file in directory "
+            f"{os.path.abspath(dirpath)}."
+        )
     with open(sorted(filenames)[-1]) as logfile:
         print(logfile.read())
 
@@ -382,12 +384,11 @@ def prepare_logfile(filename: str) -> str:
     >>> repr_(filepath)    # doctest: +ELLIPSIS
     '...hydpy/tests/iotesting/my_log_file.txt'
     """
-    if filename == 'stdout':
+    if filename == "stdout":
         return filename
-    if filename == 'default':
-        filename = datetime.datetime.now().strftime(
-            'hydpy_%Y-%m-%d_%H-%M-%S.log')
-    with open(filename, 'w'):
+    if filename == "default":
+        filename = datetime.datetime.now().strftime("hydpy_%Y-%m-%d_%H-%M-%S.log")
+    with open(filename, "w"):
         pass
     return os.path.abspath(filename)
 
@@ -395,12 +396,12 @@ def prepare_logfile(filename: str) -> str:
 @contextlib.contextmanager
 def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
     try:
-        if filepath == 'stdout':
+        if filepath == "stdout":
             sys.stdout = LogFileInterface(sys.stdout, logstyle, level_stdout)
             sys.stderr = LogFileInterface(sys.stderr, logstyle, level_stderr)
             yield
         else:
-            with open(filepath, 'a') as logfile:
+            with open(filepath, "a") as logfile:
                 sys.stdout = LogFileInterface(logfile, logstyle, level_stdout)
                 sys.stderr = LogFileInterface(logfile, logstyle, level_stderr)
                 yield
@@ -415,8 +416,8 @@ def execute_scriptfunction() -> Optional[int]:
     Function |execute_scriptfunction| is indirectly applied and
     explained in the documentation on module |hyd|.
     """
-    logstyle = 'plain'
-    logfilepath = prepare_logfile('stdout')
+    logstyle = "plain"
+    logfilepath = prepare_logfile("stdout")
     try:
         args_given = []
         kwargs_given = {}
@@ -429,72 +430,74 @@ def execute_scriptfunction() -> Optional[int]:
                     kwargs_given[key] = value
                 except ValueError:
                     args_given.append(arg)
-        logfilepath = prepare_logfile(kwargs_given.pop('logfile', 'stdout'))
-        logstyle = kwargs_given.pop('logstyle', 'plain')
+        logfilepath = prepare_logfile(kwargs_given.pop("logfile", "stdout"))
+        logstyle = kwargs_given.pop("logstyle", "plain")
         try:
             funcname = str(args_given.pop(0))
         except IndexError:
             raise ValueError(
-                'The first positional argument defining the function '
-                'to be called is missing.'
+                "The first positional argument defining the function "
+                "to be called is missing."
             ) from None
         try:
             func = hydpy.pub.scriptfunctions[funcname]
         except KeyError:
             available_funcs = objecttools.enumeration(
-                sorted(hydpy.pub.scriptfunctions.keys()))
+                sorted(hydpy.pub.scriptfunctions.keys())
+            )
             raise ValueError(
-                f'There is no `{funcname}` function callable by `hyd.py`.  '
-                f'Choose one of the following instead: {available_funcs}.'
+                f"There is no `{funcname}` function callable by `hyd.py`.  "
+                f"Choose one of the following instead: {available_funcs}."
             ) from None
         argspec = inspect.getfullargspec(func)
         args_possible = argspec.args
         if argspec.defaults:
-            args_required = args_possible[:-len(argspec.defaults)]
+            args_required = args_possible[: -len(argspec.defaults)]
         else:
             args_required = args_possible
         nmb_args_possible = len(args_possible)
         nmb_args_required = len(args_required)
         nmb_args_given = len(args_given)
-        if (nmb_args_given < nmb_args_required or
-                nmb_args_given > nmb_args_possible):
-            enum_args_given = ''
+        if nmb_args_given < nmb_args_required or nmb_args_given > nmb_args_possible:
+            enum_args_given = ""
             if nmb_args_given:
-                enum_args_given = (
-                    f' ({objecttools.enumeration(args_given)})')
+                enum_args_given = f" ({objecttools.enumeration(args_given)})"
             if nmb_args_given < nmb_args_required:
                 args = args_required
                 nmb_args = nmb_args_required
-                condition = 'requires'
+                condition = "requires"
             else:
                 args = args_possible
                 nmb_args = nmb_args_possible
-                condition = 'allows'
-            enum_args = ''
+                condition = "allows"
+            enum_args = ""
             if nmb_args:
-                enum_args = f' ({objecttools.enumeration(args)})'
+                enum_args = f" ({objecttools.enumeration(args)})"
             raise ValueError(
-                f'Function `{funcname}` {condition} `{nmb_args:d}` '
-                f'positional arguments{enum_args}, but '
-                f'`{nmb_args_given:d}` are given{enum_args_given}.')
-        with _activate_logfile(logfilepath, logstyle, 'info', 'warning'):
+                f"Function `{funcname}` {condition} `{nmb_args:d}` "
+                f"positional arguments{enum_args}, but "
+                f"`{nmb_args_given:d}` are given{enum_args_given}."
+            )
+        with _activate_logfile(logfilepath, logstyle, "info", "warning"):
             return func(*args_given, **kwargs_given)
     except BaseException as exc:
         if logstyle not in LogFileInterface.style2infotype2string:
-            logstyle = 'plain'
-        with _activate_logfile(logfilepath, logstyle, 'exception', 'exception'):
+            logstyle = "plain"
+        with _activate_logfile(logfilepath, logstyle, "exception", "exception"):
             args = sys.argv[1:]
             nmb = len(args)
             if nmb > 1:
                 argphrase = f'with arguments `{", ".join(args)}`'
             elif nmb == 1:
-                argphrase = f'with argument `{args[0]}`'
+                argphrase = f"with argument `{args[0]}`"
             else:
-                argphrase = 'without arguments'
-            print(f'Invoking hyd.py {argphrase} resulted in the following '
-                  f'error:\n{str(exc)}\n\n'
-                  f'See the following stack traceback for debugging:\n',
-                  file=sys.stderr)
+                argphrase = "without arguments"
+            print(
+                f"Invoking hyd.py {argphrase} resulted in the following "
+                f"error:\n{str(exc)}\n\n"
+                f"See the following stack traceback for debugging:\n",
+                file=sys.stderr,
+            )
             traceback.print_tb(sys.exc_info()[2])
         return 1
 
@@ -528,12 +531,9 @@ class LogFileInterface:
     """
 
     style2infotype2string = {
-        'plain': {'info': '',
-                  'warning': '',
-                  'exception': ''},
-        'prefixed': {'info': 'info: ',
-                     'warning': 'warning: ',
-                     'exception': 'error: '}}
+        "plain": {"info": "", "warning": "", "exception": ""},
+        "prefixed": {"info": "info: ", "warning": "warning: ", "exception": "error: "},
+    }
 
     def __init__(self, logfile: IO, logstyle: str, infotype: str):
         self.logfile = logfile
@@ -541,11 +541,10 @@ class LogFileInterface:
         try:
             stdtype2string = self.style2infotype2string[logstyle]
         except KeyError:
-            styles = objecttools.enumeration(
-                sorted(self.style2infotype2string.keys()))
+            styles = objecttools.enumeration(sorted(self.style2infotype2string.keys()))
             raise ValueError(
-                f'The given log file style {logstyle} is not available.  '
-                f'Please choose one of the following: {styles}.'
+                f"The given log file style {logstyle} is not available.  "
+                f"Please choose one of the following: {styles}."
             ) from None
         self._string = stdtype2string[infotype]
 
@@ -555,17 +554,16 @@ class LogFileInterface:
         So far, we only ignore warning lines like `# -*- coding: utf-8 -*-`
         which occur when using Python 3.6 and 3.7 but not when using Python 3.8.
         """
-        return \
-            (self._infotype == 'warning') and substring.strip().startswith('#')
+        return (self._infotype == "warning") and substring.strip().startswith("#")
 
     def write(self, string: str) -> None:
         """Write the given string as explained in the main documentation
         on class |LogFileInterface|."""
 
         self.logfile.write(
-            '\n'.join(
-                f'{self._string}{substring}' if substring else ''
-                for substring in string.split('\n')
+            "\n".join(
+                f"{self._string}{substring}" if substring else ""
+                for substring in string.split("\n")
                 if not self._ignore(substring)
             )
         )
@@ -596,16 +594,16 @@ def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
     >>> parse_argument("x='3==3'")
     ('x', "'3==3'")
     """
-    idx_equal = string.find('=')
+    idx_equal = string.find("=")
     if idx_equal == -1:
         return string
-    idx_quote = idx_equal+1
+    idx_quote = idx_equal + 1
     for quote in ('"', "'"):
         idx = string.find(quote)
         if -1 < idx < idx_quote:
             idx_quote = idx
     if idx_equal < idx_quote:
-        return string[:idx_equal], string[idx_equal+1:]
+        return string[:idx_equal], string[idx_equal + 1 :]
     return string
 
 
@@ -621,5 +619,5 @@ def print_textandtime(text: str) -> None:
     ...     print_textandtime('something happens')
     something happens (2000-01-01 12:30:00.123456).
     """
-    timestring = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    print(f'{text} ({timestring}).')
+    timestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    print(f"{text} ({timestring}).")

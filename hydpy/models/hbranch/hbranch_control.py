@@ -5,6 +5,7 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import devicetools
@@ -39,6 +40,7 @@ received 1 value(s).
 arranged strictly monotonous, which is not the case for the given values \
 `1.0, 2.0, 2.0, and 3.0`.
     """
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
     def __call__(self, *args, **kwargs):
@@ -47,17 +49,19 @@ arranged strictly monotonous, which is not the case for the given values \
         self.shape = len(args)
         if self.shape[0] < 2:
             raise ValueError(
-                f'Branching via linear interpolation requires '
-                f'at least two supporting points, but '
-                f'parameter {objecttools.elementphrase(self)} '
-                f'received {self.shape[0]} value(s).')
+                f"Branching via linear interpolation requires "
+                f"at least two supporting points, but "
+                f"parameter {objecttools.elementphrase(self)} "
+                f"received {self.shape[0]} value(s)."
+            )
         super().__call__(*args, **kwargs)
-        if min(numpy.diff(self)) <= 0.:
+        if min(numpy.diff(self)) <= 0.0:
             raise ValueError(
-                f'The values of parameter {objecttools.elementphrase(self)} '
-                f'must be arranged strictly monotonous, which is '
-                f'not the case for the given values '
-                f'`{objecttools.enumeration(self)}`.')
+                f"The values of parameter {objecttools.elementphrase(self)} "
+                f"must be arranged strictly monotonous, which is "
+                f"not the case for the given values "
+                f"`{objecttools.enumeration(self)}`."
+            )
 
 
 class YPoints(parametertools.Parameter):
@@ -148,6 +152,7 @@ could not convert string to float: 'xy'
 changed during run time.  If you really need to do this, first initialize a \
 new `branched` sequence and connect it to the respective outlet nodes properly.
     """
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     def __call__(self, *args, **kwargs):
@@ -155,23 +160,23 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
         except exceptiontools.AttributeNotReady:
             raise RuntimeError(
-                f'The shape of parameter {objecttools.elementphrase(self)} '
-                f'depends on the shape of parameter `xpoints`, which has '
-                f'not been defined so far.'
+                f"The shape of parameter {objecttools.elementphrase(self)} "
+                f"depends on the shape of parameter `xpoints`, which has "
+                f"not been defined so far."
             ) from None
         if shape[0] == 0:
             raise ValueError(
-                f'For parameter {objecttools.elementphrase(self)} ' 
-                f'no branches are defined.  Do this via keyword '
-                f'arguments as explained in the documentation.'
+                f"For parameter {objecttools.elementphrase(self)} "
+                f"no branches are defined.  Do this via keyword "
+                f"arguments as explained in the documentation."
             )
         branched = self.subpars.pars.model.sequences.outlets.branched
         if (branched.shape[0] != 0) and (branched.shape[0] != shape[0]):
             raise RuntimeError(
-                'The number of branches of the hbranch model should not '
-                'be changed during run time.  If you really need to do '
-                'this, first initialize a new `branched` sequence and '
-                'connect it to the respective outlet nodes properly.'
+                "The number of branches of the hbranch model should not "
+                "be changed during run time.  If you really need to do "
+                "this, first initialize a new `branched` sequence and "
+                "connect it to the respective outlet nodes properly."
             )
         self.shape = shape
         self.values = numpy.nan
@@ -183,24 +188,24 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                     pass
                 else:
                     raise RuntimeError(
-                        f'Parameter {objecttools.elementphrase(self)} is '
-                        f'supposed to branch to node `{key}`, but such a '
-                        f'node is not available.'
+                        f"Parameter {objecttools.elementphrase(self)} is "
+                        f"supposed to branch to node `{key}`, but such a "
+                        f"node is not available."
                     )
             try:
                 self.values[idx] = value
             except BaseException:
                 if shape[1] != len(value):
                     raise ValueError(
-                        f'Each branch requires the same number of supporting '
-                        f'points as given for parameter `xpoints`, which is '
-                        f'{shape[1]}, but for branch `{key}` of parameter '
-                        f'{objecttools.elementphrase(self)} {len(value)} '
-                        f'values are given.'
+                        f"Each branch requires the same number of supporting "
+                        f"points as given for parameter `xpoints`, which is "
+                        f"{shape[1]}, but for branch `{key}` of parameter "
+                        f"{objecttools.elementphrase(self)} {len(value)} "
+                        f"values are given."
                     ) from None
                 objecttools.augment_excmessage(
-                    f'While trying to set the values for branch `{key}` '
-                    f'of parameter {objecttools.elementphrase(self)}'
+                    f"While trying to set the values for branch `{key}` "
+                    f"of parameter {objecttools.elementphrase(self)}"
                 )
         if branched.shape == (0,):
             branched.shape = shape[0]
@@ -215,12 +220,12 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
             lines = self.commentrepr
             nodenames = self.subpars.pars.model.nodenames
             for (idx, values) in enumerate(self):
-                line = '%s=%s,' % (nodenames[idx], repr(list(values)))
+                line = "%s=%s," % (nodenames[idx], repr(list(values)))
                 if not idx:
-                    lines.append('ypoints('+line)
+                    lines.append("ypoints(" + line)
                 else:
-                    lines.append('        '+line)
-            lines[-1] = lines[-1][:-1]+')'
-            return '\n'.join(lines)
+                    lines.append("        " + line)
+            lines[-1] = lines[-1][:-1] + ")"
+            return "\n".join(lines)
         except BaseException:
-            return 'ypoints(?)'
+            return "ypoints(?)"

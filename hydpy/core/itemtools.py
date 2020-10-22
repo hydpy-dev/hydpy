@@ -5,8 +5,10 @@ modification of the values of |Parameter| and |Sequence_| objects."""
 # ...from standard library
 import abc
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -45,10 +47,11 @@ class ExchangeSpecification:
     >>> spec.series
     False
     """
+
     def __init__(self, master, variable):
         self.master = master
-        entries = variable.split('.')
-        self.series = entries[-1] == 'series'
+        entries = variable.split(".")
+        self.series = entries[-1] == "series"
         if self.series:
             del entries[-1]
         try:
@@ -75,9 +78,9 @@ class ExchangeSpecification:
         if self.subgroup is None:
             variable = self.variable
         else:
-            variable = f'{self.subgroup}.{self.variable}'
+            variable = f"{self.subgroup}.{self.variable}"
         if self.series:
-            variable = f'{variable}.series'
+            variable = f"{variable}.series"
         return variable
 
     def __repr__(self):
@@ -92,29 +95,31 @@ class ExchangeItem:
     targetspecs: ExchangeSpecification
     device2target: Dict[devicetools.Device, variabletools.Variable]
 
-    def _iter_relevantelements(self, selections) -> \
-            Iterator[devicetools.Element]:
+    def _iter_relevantelements(self, selections) -> Iterator[devicetools.Element]:
         for element in selections.elements:
             name1 = element.model.name
-            name2 = name1.rpartition('_')[0]
+            name2 = name1.rpartition("_")[0]
             if self.targetspecs.master in (name1, name2):
                 yield element
 
     @staticmethod
-    def _query_elementvariable(element: devicetools.Element, properties) -> \
-            variabletools.Variable:
+    def _query_elementvariable(
+        element: devicetools.Element, properties
+    ) -> variabletools.Variable:
         model = element.model
         for group in (model.parameters, model.sequences):
             subgroup = getattr(group, properties.subgroup, None)
             if subgroup is not None:
                 return getattr(subgroup, properties.variable)
         raise RuntimeError(
-            f'Model {objecttools.elementphrase(model)} does neither handle '
-            f'a parameter of sequence subgroup named `{properties.subgroup}.')
+            f"Model {objecttools.elementphrase(model)} does neither handle "
+            f"a parameter of sequence subgroup named `{properties.subgroup}."
+        )
 
     @staticmethod
-    def _query_nodevariable(node: devicetools.Node, properties) -> \
-            variabletools.Variable:
+    def _query_nodevariable(
+        node: devicetools.Node, properties
+    ) -> variabletools.Variable:
         return getattr(node.sequences, properties.variable)
 
     def collect_variables(self, selections) -> None:
@@ -219,13 +224,12 @@ handle a parameter of sequence subgroup named `wrong_group.
         """
         self.insert_variables(self.device2target, self.targetspecs, selections)
 
-    def insert_variables(
-            self, device2variable, exchangespec, selections) -> None:
+    def insert_variables(self, device2variable, exchangespec, selections) -> None:
         """Determine the relevant target or base variables (as defined by
         the given |ExchangeSpecification| object) handled by the given
         |Selections| object and insert them into the given `device2variable`
         dictionary."""
-        if self.targetspecs.master in ('node', 'nodes'):
+        if self.targetspecs.master in ("node", "nodes"):
             for node in selections.nodes:
                 variable = self._query_nodevariable(node, exchangespec)
                 device2variable[node] = variable
@@ -275,9 +279,10 @@ into shape ()
             self._value = numpy.full(self.shape, value, dtype=float)
         except BaseException:
             objecttools.augment_excmessage(
-                f'When trying to convert the value(s) `{value}` assigned '
-                f'to {type(self).__name__} `{self.name}` to a '
-                f'numpy array of shape `{self.shape}` and type `float`')
+                f"When trying to convert the value(s) `{value}` assigned "
+                f"to {type(self).__name__} `{self.name}` to a "
+                f"numpy array of shape `{self.shape}` and type `float`"
+            )
 
     @abc.abstractmethod
     def update_variables(self) -> None:
@@ -347,15 +352,17 @@ target variables.
                 else:
                     if shape != variable.shape:
                         raise RuntimeError(
-                            f'{type(self).__name__} `{self.name}` '
-                            f'cannot handle target variables of '
-                            f'different shapes.')
+                            f"{type(self).__name__} `{self.name}` "
+                            f"cannot handle target variables of "
+                            f"different shapes."
+                        )
             if shape is None:
                 raise RuntimeError(
-                    f'Cannot determine the shape of the actual '
-                    f'`{type(self).__name__}` object, as the given '
-                    f'`Selections` object does not handle any '
-                    f'relevant target variables.')
+                    f"Cannot determine the shape of the actual "
+                    f"`{type(self).__name__}` object, as the given "
+                    f"`Selections` object does not handle any "
+                    f"relevant target variables."
+                )
             self.shape = shape
 
     def update_variable(self, variable, value) -> None:
@@ -380,9 +387,10 @@ occurred: The given value `None` cannot be converted to type `float`.
             variable(value)
         except BaseException:
             objecttools.augment_excmessage(
-                f'When trying to update a target variable of '
-                f'{type(self).__name__} `{self.name}` '
-                f'with the value(s) `{value}`')
+                f"When trying to update a target variable of "
+                f"{type(self).__name__} `{self.name}` "
+                f"with the value(s) `{value}`"
+            )
 
 
 class SetItem(ChangeItem):
@@ -395,8 +403,7 @@ class SetItem(ChangeItem):
         self.ndim = int(ndim)
         self._value: numpy.ndarray = None
         self.shape: Tuple[int] = None
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
 
     def update_variables(self) -> None:
         """Assign the current objects |ChangeItem.value| to the values
@@ -469,7 +476,8 @@ class SetItem(ChangeItem):
         return (
             f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
-            f"{self.ndim})")
+            f"{self.ndim})"
+        )
 
 
 class MathItem(ChangeItem):
@@ -506,8 +514,7 @@ class MathItem(ChangeItem):
         self.ndim = int(ndim)
         self._value = None
         self.shape = None
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
         self.device2base = {}
 
     def collect_variables(self, selections) -> None:
@@ -542,7 +549,8 @@ class MathItem(ChangeItem):
         return (
             f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
-            f"'{self.basespecs.specstring}', {self.ndim})")
+            f"'{self.basespecs.specstring}', {self.ndim})"
+        )
 
 
 class AddItem(MathItem):
@@ -589,9 +597,9 @@ together with shapes (2,) (3,)...
                 result = base.value + value
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'When trying to add the value(s) `{value}` of '
-                    f'AddItem `{self.name}` and the value(s) `{base.value}` '
-                    f'of variable {objecttools.devicephrase(base)}'
+                    f"When trying to add the value(s) `{value}` of "
+                    f"AddItem `{self.name}` and the value(s) `{base.value}` "
+                    f"of variable {objecttools.devicephrase(base)}"
                 )
             self.update_variable(target, result)
 
@@ -601,11 +609,10 @@ class GetItem(ExchangeItem):
     |Sequence_| objects of a specific type."""
 
     def __init__(self, master: str, target: str):
-        self.target = target.replace('.', '_')
+        self.target = target.replace(".", "_")
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = 0
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
         self._device2name: Dict[devicetools.Device, str] = {}
 
     def collect_variables(self, selections) -> None:
@@ -631,15 +638,14 @@ class GetItem(ExchangeItem):
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
-            self._device2name[device] = f'{device.name}_{self.target}'
+            self._device2name[device] = f"{device.name}_{self.target}"
         for target in self.device2target.values():
             self.ndim = target.NDIM
             if self.targetspecs.series:
                 self.ndim += 1
             break
 
-    def yield_name2value(self, idx1=None, idx2=None) \
-            -> Iterator[Tuple[str, str]]:
+    def yield_name2value(self, idx1=None, idx2=None) -> Iterator[Tuple[str, str]]:
         """Sequentially return name-value-pairs describing the current state
         of the target variables.
 
@@ -701,4 +707,5 @@ class GetItem(ExchangeItem):
     def __repr__(self):
         return (
             f"{type(self).__name__}("
-            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")
+            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')"
+        )

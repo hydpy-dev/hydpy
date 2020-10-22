@@ -3,8 +3,10 @@
 # import...
 # ...from standard library
 import copy
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -14,16 +16,17 @@ from hydpy.core import timetools
 
 
 def _get_timegrids(func):
-    timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
+    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
     if timegrids is None:
         name = func.__name__[1:]
         raise exceptiontools.AttributeNotReady(
-            f'An Indexer object has been asked for an `{name}` array.  '
-            f'Such an array has neither been determined yet nor can it '
-            f'be determined automatically at the moment.   Either define '
-            f'an `{name}` array manually and pass it to the Indexer '
-            f'object, or make a proper Timegrids object available within '
-            f'the pub module.')
+            f"An Indexer object has been asked for an `{name}` array.  "
+            f"Such an array has neither been determined yet nor can it "
+            f"be determined automatically at the moment.   Either define "
+            f"an `{name}` array manually and pass it to the Indexer "
+            f"object, or make a proper Timegrids object available within "
+            f"the pub module."
+        )
     return timegrids
 
 
@@ -131,7 +134,7 @@ period is `5`.
         self.timegrids = None
 
     def call_fget(self, obj) -> numpy.ndarray:
-        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
+        timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
             self.timegrids = copy.deepcopy(timegrids)
@@ -142,9 +145,7 @@ period is `5`.
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
-        self.timegrids = copy.deepcopy(
-            exceptiontools.getattr_(hydpy.pub, 'timegrids')
-        )
+        self.timegrids = copy.deepcopy(exceptiontools.getattr_(hydpy.pub, "timegrids"))
 
     def call_fdel(self, obj):
         self.fdel()
@@ -160,23 +161,26 @@ period is `5`.
             array = numpy.array(values, dtype=type_)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to assign a new `{name}` '
-                f'index array to an Indexer object')
+                f"While trying to assign a new `{name}` "
+                f"index array to an Indexer object"
+            )
         if array.ndim != 1:
             raise ValueError(
-                f'The `{name}` index array of an Indexer object must be '
-                f'1-dimensional.  However, the given value has interpreted '
-                f'as a {array.ndim}-dimensional object.')
-        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids')
+                f"The `{name}` index array of an Indexer object must be "
+                f"1-dimensional.  However, the given value has interpreted "
+                f"as a {array.ndim}-dimensional object."
+            )
+        timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids")
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(
-                    f'The `{name}` index array of an Indexer object must have '
-                    f'a number of entries fitting to the initialization time '
-                    f'period precisely.  However, the given value has been '
-                    f'interpreted to be of length `{len(array)}` and the '
-                    f'length of the Timegrid object representing the actual '
-                    f'initialisation period is `{len(timegrids.init)}`.')
+                    f"The `{name}` index array of an Indexer object must have "
+                    f"a number of entries fitting to the initialization time "
+                    f"period precisely.  However, the given value has been "
+                    f"interpreted to be of length `{len(array)}` and the "
+                    f"length of the Timegrid object representing the actual "
+                    f"initialisation period is `{len(timegrids.init)}`."
+                )
         return array
 
     @staticmethod
@@ -197,6 +201,7 @@ class Indexer:
     determined automatically based on the |Timegrids| object made
     available through module |pub|.
     """
+
     def __init__(self):
         self._monthofyear = None
         self._monthofyear_timegrids = hash(None)
@@ -222,6 +227,7 @@ class Indexer:
         # pylint does not understand descriptors well enough, so far
         def _monthofyear(date):
             return date.month - 1
+
         return _monthofyear
 
     @IndexerProperty
@@ -244,8 +250,8 @@ class Indexer:
         # pylint: disable=no-self-use
         # pylint does not understand descriptors well enough, so far
         def _dayofyear(date):
-            return (date.dayofyear-1 +
-                    ((date.month > 2) and (not date.leapyear)))
+            return date.dayofyear - 1 + ((date.month > 2) and (not date.leapyear))
+
         return _dayofyear
 
     @IndexerProperty
@@ -295,9 +301,10 @@ class Indexer:
             return refgrid[date]
 
         refgrid = timetools.Timegrid(
-            timetools.Date('2000.01.01'),
-            timetools.Date('2001.01.01'),
-            _get_timegrids(_timeofyear).stepsize)
+            timetools.Date("2000.01.01"),
+            timetools.Date("2001.01.01"),
+            _get_timegrids(_timeofyear).stepsize,
+        )
         return _timeofyear
 
     @IndexerProperty
@@ -333,6 +340,7 @@ class Indexer:
         # pylint: disable=no-self-use
         # pylint does not understand descriptors well enough, so far
         def _standardclocktime(date):
-            t0 = date.hour+(date.minute+date.second/60.)/60.
-            return t0 + hydpy.pub.timegrids.stepsize.hours/2.
+            t0 = date.hour + (date.minute + date.second / 60.0) / 60.0
+            return t0 + hydpy.pub.timegrids.stepsize.hours / 2.0
+
         return _standardclocktime

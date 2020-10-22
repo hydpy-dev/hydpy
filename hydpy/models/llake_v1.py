@@ -320,17 +320,18 @@ Integration tests
 # import...
 # ...from standard library
 from hydpy.core import modeltools
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from llake
 from hydpy.models.llake import llake_model
 
 
 class Model(modeltools.AdHocModel):
     """LARSIM-Lake version of HydPy-L-Lake (llake_v1)."""
-    INLET_METHODS = (
-        llake_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (llake_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         llake_model.Solve_DV_DT_V1,
@@ -344,9 +345,7 @@ class Model(modeltools.AdHocModel):
         llake_model.Interp_QA_V1,
         llake_model.Calc_V_QA_V1,
     )
-    OUTLET_METHODS = (
-        llake_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (llake_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

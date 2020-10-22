@@ -11,8 +11,10 @@ import types
 import warnings
 from typing import *
 from typing_extensions import Protocol
+
 # ...from site-packages
 import numpy
+
 # ...from hydpy
 import hydpy
 from hydpy.core import devicetools
@@ -26,8 +28,8 @@ from hydpy.auxs import iuhtools
 
 
 RuleType = TypeVar(
-    'RuleType',
-    bound='Rule',
+    "RuleType",
+    bound="Rule",
 )
 
 
@@ -70,8 +72,8 @@ class Adaptor(Protocol):
     """
 
     def __call__(
-            self,
-            target: parametertools.Parameter,
+        self,
+        target: parametertools.Parameter,
     ) -> None:
         """Modify the value(s) of the given target |Parameter| object."""
 
@@ -134,17 +136,18 @@ class SumAdaptor(Adaptor):
     ...     control.k
     k(0.6)
     """
-    _rules: Tuple['Rule', ...]
+
+    _rules: Tuple["Rule", ...]
 
     def __init__(
-            self,
-            *rules: 'Rule',
+        self,
+        *rules: "Rule",
     ):
         self._rules = tuple(rules)
 
     def __call__(
-            self,
-            target: parametertools.Parameter,
+        self,
+        target: parametertools.Parameter,
     ) -> None:
         target(sum(rule.value for rule in self._rules))
 
@@ -274,40 +277,37 @@ class FactorAdaptor(Adaptor):
     3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 9.11706, 5.470236, 9.11706, 5.470236,
     9.11706, 5.470236
     """
-    _rule: 'Rule'
+
+    _rule: "Rule"
     _reference: str
     _mask: Optional[str]
 
     def __init__(
-            self,
-            rule: 'Rule',
-            reference: Union[
-                Type[parametertools.Parameter],
-                parametertools.Parameter,
-                str
-            ],
-            mask: Optional[
-                Union[
-                    masktools.BaseMask,
-                    str,
-                ]
-            ] = None,
+        self,
+        rule: "Rule",
+        reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
+        mask: Optional[
+            Union[
+                masktools.BaseMask,
+                str,
+            ]
+        ] = None,
     ):
         self._rule = rule
-        self._reference = str(getattr(reference, 'name', reference))
-        self._mask = getattr(mask, 'name', mask) if mask else None
+        self._reference = str(getattr(reference, "name", reference))
+        self._mask = getattr(mask, "name", mask) if mask else None
 
     def __call__(
-            self,
-            target: parametertools.Parameter,
+        self,
+        target: parametertools.Parameter,
     ) -> None:
         ref = target.subpars[self._reference]
         if self._mask:
             mask = ref.get_submask(self._mask)
             values = ref.values[mask] if ref.NDIM else ref.value
-            target.values[mask] = self._rule.value*values
+            target.values[mask] = self._rule.value * values
         else:
-            target.value = self._rule.value*ref.value
+            target.value = self._rule.value * ref.value
 
 
 class Rule(abc.ABC):
@@ -557,26 +557,20 @@ the following error occurred: Object `Selections("headwaters", \
     _original_parameter_values: Tuple[Union[float, numpy.ndarray], ...]
 
     def __init__(
-            self,
-            *,
-            name: str,
-            parameter: Union[
-                Type[parametertools.Parameter],
-                parametertools.Parameter,
-                str
-            ],
-            value: float,
-            lower: float = -numpy.inf,
-            upper: float = numpy.inf,
-            parameterstep: Optional[timetools.PeriodConstrArg] = None,
-            selections: Optional[
-                Iterable[Union[selectiontools.Selection, str]]
-            ] = None,
-            model: Union[types.ModuleType, str] = None,
+        self,
+        *,
+        name: str,
+        parameter: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
+        value: float,
+        lower: float = -numpy.inf,
+        upper: float = numpy.inf,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
+        model: Union[types.ModuleType, str] = None,
     ) -> None:
         try:
             self.name = name
-            self._parameter = str(getattr(parameter, 'name', parameter))
+            self._parameter = str(getattr(parameter, "name", parameter))
             self.upper = upper
             self.lower = lower
             self.value = value
@@ -586,12 +580,13 @@ the following error occurred: Object `Selections("headwaters", \
                 self._model = str(model)
             if selections is None:
                 selections = hydpy.pub.selections
-                if 'complete' in selections:
+                if "complete" in selections:
                     selections = selectiontools.Selections(selections.complete)
             else:
                 selections = selectiontools.Selections(
                     *(
-                        sel if isinstance(sel, selectiontools.Selection)
+                        sel
+                        if isinstance(sel, selectiontools.Selection)
                         else hydpy.pub.selections[sel]
                         for sel in selections
                     )
@@ -601,38 +596,36 @@ the following error occurred: Object `Selections("headwaters", \
                 self.elements = selections.elements
             else:
                 self.elements = devicetools.Elements(
-                    element for element in selections.elements
+                    element
+                    for element in selections.elements
                     if str(element.model) == self._model
                 )
             if not self.elements:
                 raise ValueError(
-                    f'Object `{selections}` does not handle '
-                    f'any `{self._model}` model instances.'
+                    f"Object `{selections}` does not handle "
+                    f"any `{self._model}` model instances."
                 )
             for element in self.elements:
                 control = element.model.parameters.control
                 if not hasattr(control, self._parameter):
                     raise RuntimeError(
-                        f'Model {objecttools.elementphrase(element.model)} '
-                        f'does not define a control parameter named '
-                        f'`{self._parameter}`.'
+                        f"Model {objecttools.elementphrase(element.model)} "
+                        f"does not define a control parameter named "
+                        f"`{self._parameter}`."
                     )
             self.parameterstep = parameterstep
-            self._original_parameter_values = \
-                self._get_original_parameter_values()
+            self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to initialise the `{type(self).__name__}` '
-                f'rule object `{name}`'
+                f"While trying to initialise the `{type(self).__name__}` "
+                f"rule object `{name}`"
             )
 
     def _get_original_parameter_values(
-            self,
+        self,
     ) -> Tuple[Union[float, numpy.ndarray], ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
-            return tuple(
-                par.revert_timefactor(par.value) for par in self
-            )
+            return tuple(par.revert_timefactor(par.value) for par in self)
 
     @property
     def value(self) -> float:
@@ -674,8 +667,8 @@ Applying the trimmed value `200.0` instead.
 
     @value.setter
     def value(
-            self,
-            value: float,
+        self,
+        value: float,
     ) -> None:
         if self.lower <= value <= self.upper:
             self._value = value
@@ -684,11 +677,11 @@ Applying the trimmed value `200.0` instead.
             if hydpy.pub.options.warntrim:
                 repr_ = objecttools.repr_
                 warnings.warn(
-                    f'The value of the `{type(self).__name__}` object '
-                    f'`{self}` must not be smaller than `{repr_(self.lower)}` '
-                    f'or larger than `{repr_(self.upper)}`, but the '
-                    f'given value is `{repr_(value)}`.  Applying the trimmed '
-                    f'value `{repr_(self._value)}` instead.'
+                    f"The value of the `{type(self).__name__}` object "
+                    f"`{self}` must not be smaller than `{repr_(self.lower)}` "
+                    f"or larger than `{repr_(self.upper)}`, but the "
+                    f"given value is `{repr_(value)}`.  Applying the trimmed "
+                    f"value `{repr_(self._value)}` instead."
                 )
 
     @abc.abstractmethod
@@ -740,8 +733,8 @@ Applying the trimmed value `200.0` instead.
         return self._parameterstep
 
     def _set_parameterstep(
-            self,
-            value: Optional[timetools.PeriodConstrArg],
+        self,
+        value: Optional[timetools.PeriodConstrArg],
     ) -> None:
         if self._time is None:
             self._parameterstep = None
@@ -752,19 +745,19 @@ Applying the trimmed value `200.0` instead.
                     value.check()
                 except RuntimeError:
                     raise RuntimeError(
-                        'Rules which handle time-dependent parameters '
-                        'require information on the parameter timestep '
-                        'size.  Either assign it directly or define '
-                        'it via option `parameterstep`.'
+                        "Rules which handle time-dependent parameters "
+                        "require information on the parameter timestep "
+                        "size.  Either assign it directly or define "
+                        "it via option `parameterstep`."
                     ) from None
             self._parameterstep = timetools.Period(value)
 
     parameterstep = property(_get_parameterstep, _set_parameterstep)
 
     def assignrepr(
-            self,
-            prefix: str,
-            indent: int = 0,
+        self,
+        prefix: str,
+        indent: int = 0,
     ) -> str:
         """Return a string representation of the actual |Rule| object
         prefixed with the given string."""
@@ -772,8 +765,8 @@ Applying the trimmed value `200.0` instead.
         def _none_or_string(obj) -> str:
             return f"'{obj}'" if obj else str(obj)
 
-        blanks = (indent+4)*' '
-        selprefix = f'{blanks}selections='
+        blanks = (indent + 4) * " "
+        selprefix = f"{blanks}selections="
         selline = objecttools.assignrepr_tuple(
             values=tuple(f"'{sel}'" for sel in self._selections),
             prefix=selprefix,
@@ -792,7 +785,7 @@ Applying the trimmed value `200.0` instead.
         )
 
     def __repr__(self) -> str:
-        return self.assignrepr(prefix='')
+        return self.assignrepr(prefix="")
 
     def __str__(self) -> str:
         return self.name
@@ -891,7 +884,7 @@ class Add(Rule):
         objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.value+orig)
+                parameter(self.value + orig)
 
 
 class Multiply(Rule):
@@ -941,12 +934,13 @@ class Multiply(Rule):
     >>> percmax
     percmax(2.05956)
     """
+
     def apply_value(self) -> None:
         """Apply the current (adapted) value on the relevant |Parameter|
         objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.value*orig)
+                parameter(self.value * orig)
 
 
 class CalibrationInterface(Generic[RuleType]):
@@ -1362,9 +1356,9 @@ interface (damp and fc) do not agree with the names in the header of logfile \
     _elements: devicetools.Elements
 
     def __init__(
-            self,
-            hp: hydpytools.HydPy,
-            targetfunction: TargetFunction,
+        self,
+        hp: hydpytools.HydPy,
+        targetfunction: TargetFunction,
     ):
         self._hp = hp
         self._targetfunction = targetfunction
@@ -1375,8 +1369,8 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         self.result = None
 
     def add_rules(
-            self,
-            *rules: RuleType,
+        self,
+        *rules: RuleType,
     ) -> None:
         # noinspection PyTypeChecker
         """Add some |Rule| objects to the actual |CalibrationInterface| object.
@@ -1490,30 +1484,28 @@ interface (damp and fc) do not agree with the names in the header of logfile \
 a rule object named `fc`.
         """
         for rule in rules:
-            rulename = getattr(rule, 'name', rule)
+            rulename = getattr(rule, "name", rule)
             try:
                 del self._rules[rulename]
             except KeyError:
                 raise RuntimeError(
-                    f'The actual calibration interface object does '
-                    f'not handle a rule object named `{rulename}`.'
+                    f"The actual calibration interface object does "
+                    f"not handle a rule object named `{rulename}`."
                 ) from None
         self._update_elements_when_deleting_a_rule()
 
     def make_rules(
-            self,
-            *,
-            rule: Type[RuleType],
-            names: Iterable[str],
-            parameters: Iterable[Union[parametertools.Parameter, str]],
-            values: Iterable[float],
-            lowers: Iterable[float],
-            uppers: Iterable[float],
-            parameterstep: Optional[timetools.PeriodConstrArg] = None,
-            selections: Optional[
-                Iterable[Union[selectiontools.Selection, str]]
-            ] = None,
-            model: Optional[Union[types.ModuleType, str]] = None,
+        self,
+        *,
+        rule: Type[RuleType],
+        names: Iterable[str],
+        parameters: Iterable[Union[parametertools.Parameter, str]],
+        values: Iterable[float],
+        lowers: Iterable[float],
+        uppers: Iterable[float],
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
+        model: Optional[Union[types.ModuleType, str]] = None,
     ) -> None:
         # noinspection PyTypeChecker
         """Create and store new |Rule| objects."""
@@ -1542,10 +1534,10 @@ a rule object named `fc`.
             )
 
     def prepare_logfile(
-            self,
-            logfilepath: str,
-            objectivefunction: str = 'result',
-            documentation: Optional[str] = None
+        self,
+        logfilepath: str,
+        objectivefunction: str = "result",
+        documentation: Optional[str] = None,
     ) -> None:
         """Prepare a log file.
 
@@ -1557,21 +1549,21 @@ a rule object named `fc`.
         further information.
         """
         self._logfilepath = logfilepath
-        with open(logfilepath, 'w') as logfile:
+        with open(logfilepath, "w") as logfile:
             if documentation:
-                lines = (f'# {line}' for line in documentation.split('\n'))
-                logfile.write('\n'.join(lines))
-                logfile.write('\n\n')
-            logfile.write(f'{objectivefunction}\t')
+                lines = (f"# {line}" for line in documentation.split("\n"))
+                logfile.write("\n".join(lines))
+                logfile.write("\n\n")
+            logfile.write(f"{objectivefunction}\t")
             names = (rule.name for rule in self)
-            logfile.write('\t'.join(names))
-            logfile.write('\n')
+            logfile.write("\t".join(names))
+            logfile.write("\n")
             steps = [str(rule.parameterstep) for rule in self]
-            logfile.write('\t'.join(['parameterstep'] + steps))
-            logfile.write('\n')
+            logfile.write("\t".join(["parameterstep"] + steps))
+            logfile.write("\n")
 
     def update_logfile(
-            self,
+        self,
     ) -> None:
         """Update the current log file, if available.
 
@@ -1579,17 +1571,17 @@ a rule object named `fc`.
         further information.
         """
         if self._logfilepath:
-            with open(self._logfilepath, 'a') as logfile:
-                logfile.write(f'{objecttools.repr_(self.result)}\t')
+            with open(self._logfilepath, "a") as logfile:
+                logfile.write(f"{objecttools.repr_(self.result)}\t")
                 logfile.write(
-                    '\t'.join(objecttools.repr_(value) for value in self.values)
+                    "\t".join(objecttools.repr_(value) for value in self.values)
                 )
-                logfile.write('\n')
+                logfile.write("\n")
 
     def read_logfile(
-            self,
-            logfilepath: str,
-            maximisation: bool,
+        self,
+        logfilepath: str,
+        maximisation: bool,
     ) -> None:
         """Read the log file with the given file path.
 
@@ -1600,31 +1592,27 @@ a rule object named `fc`.
             # pylint: disable=not-an-iterable
             # because pylint is wrong!?
             lines = tuple(
-                line for line in logfile
-                if line.strip() and (not line.startswith('#'))
+                line for line in logfile if line.strip() and (not line.startswith("#"))
             )
             # pylint: disable=not-an-iterable
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
-                zip(
-                    lines[0].split()[1:],
-                    lines[1].split()[1:]
-                ),
+            zip(lines[0].split()[1:], lines[1].split()[1:]),
         ):
             if name in self._rules:
                 rule = self._rules[name]
-                if parameterstep == 'None':
+                if parameterstep == "None":
                     parameterstep = None
                 else:
                     parameterstep = timetools.Period(parameterstep)
                 if parameterstep != rule.parameterstep:
                     raise RuntimeError(
-                        f'The current parameterstep of the '
-                        f'`{type(rule).__name__}` rule `{rule.name}` '
-                        f'(`{rule.parameterstep}`) does not agree with the '
-                        f'one documentated in log file `{self._logfilepath}` '
-                        f'(`{parameterstep}`).'
+                        f"The current parameterstep of the "
+                        f"`{type(rule).__name__}` rule `{rule.name}` "
+                        f"(`{rule.parameterstep}`) does not agree with the "
+                        f"one documentated in log file `{self._logfilepath}` "
+                        f"(`{parameterstep}`)."
                     )
                 idx2rule[idx] = rule
             idx2name[idx] = name
@@ -1633,29 +1621,28 @@ a rule object named `fc`.
         if names_int != names_ext:
             enumeration = objecttools.enumeration
             raise RuntimeError(
-                f'The names of the rules handled by the actual calibration '
-                f'interface ({enumeration(sorted(names_int))}) do not agree '
-                f'with the names in the header of logfile '
-                f'`{self._logfilepath}` ({enumeration(sorted(names_ext))}).'
+                f"The names of the rules handled by the actual calibration "
+                f"interface ({enumeration(sorted(names_int))}) do not agree "
+                f"with the names in the header of logfile "
+                f"`{self._logfilepath}` ({enumeration(sorted(names_ext))})."
             )
         jdx_best = 0
         result_best = -numpy.inf if maximisation else numpy.inf
         for jdx, line in enumerate(lines[2:]):
             result = float(line.split()[0])
-            if (
-                    (maximisation and (result > result_best)) or
-                    ((not maximisation) and (result < result_best))
+            if (maximisation and (result > result_best)) or (
+                (not maximisation) and (result < result_best)
             ):
                 jdx_best = jdx
                 result_best = result
 
-        for idx, value in enumerate(lines[jdx_best+2].split()[1:]):
+        for idx, value in enumerate(lines[jdx_best + 2].split()[1:]):
             idx2rule[idx].value = float(value)
         self.result = result_best
 
     def _update_elements_when_adding_a_rule(
-            self,
-            rule: Rule,
+        self,
+        rule: Rule,
     ) -> None:
         self._elements += rule.elements
 
@@ -1701,8 +1688,8 @@ a rule object named `fc`.
         return tuple(rule.upper for rule in self)
 
     def _update_values(
-            self,
-            values: Iterable[float],
+        self,
+        values: Iterable[float],
     ) -> None:
         for rule, value in zip(self, values):
             rule.value = value
@@ -1745,10 +1732,10 @@ a rule object named `fc`.
         return self.result
 
     def perform_calibrationstep(
-            self,
-            values: Iterable,
-            *args: Any,
-            **kwargs: Any,
+        self,
+        values: Iterable,
+        *args: Any,
+        **kwargs: Any,
     ) -> float:
         # pylint: disable=unused-argument
         # for optimisers that pass additional informative data
@@ -1776,8 +1763,8 @@ a rule object named `fc`.
             return self._rules[item]
         except KeyError:
             raise AttributeError(
-                f'The actual calibration interface does neither handle a '
-                f'normal attribute nor a rule object named `{item}`.'
+                f"The actual calibration interface does neither handle a "
+                f"normal attribute nor a rule object named `{item}`."
             ) from None
 
     def __getitem__(self, key: str) -> RuleType:
@@ -1785,12 +1772,12 @@ a rule object named `fc`.
             return self._rules[key]
         except KeyError:
             raise KeyError(
-                f'The actual calibration interface does not handle '
-                f'a rule object named `{key}`.'
+                f"The actual calibration interface does not handle "
+                f"a rule object named `{key}`."
             ) from None
 
     def __repr__(self) -> str:
-        return '\n'.join(repr(rule) for rule in self)
+        return "\n".join(repr(rule) for rule in self)
 
     def __str__(self) -> str:
         return objecttools.classname(self)
@@ -1974,16 +1961,15 @@ agree with the complete set of relevant elements (element1 and element2).
     _element2iuh: Optional[Dict[str, iuhtools.IUH]] = None
 
     def _get_original_parameter_values(
-            self,
+        self,
     ) -> Tuple[Union[float, numpy.ndarray], ...]:
         return tuple(
-            (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy())
-            for par in self
+            (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
         )
 
     def add_iuhs(
-            self,
-            **iuhs: iuhtools.IUH,
+        self,
+        **iuhs: iuhtools.IUH,
     ) -> None:
         """Add one |IUH| object for each relevant |Element| objects.
 
@@ -1996,17 +1982,17 @@ agree with the complete set of relevant elements (element1 and element2).
             if names_int != names_ext:
                 enumeration = objecttools.enumeration
                 raise RuntimeError(
-                    f'The given elements ({enumeration(sorted(names_ext))}) '
-                    f'do not agree with the complete set of relevant '
-                    f'elements ({enumeration(sorted(names_int))}).'
+                    f"The given elements ({enumeration(sorted(names_ext))}) "
+                    f"do not agree with the complete set of relevant "
+                    f"elements ({enumeration(sorted(names_int))})."
                 )
             element2iuh = self._element2iuh = {}
             for element in self.elements:
                 element2iuh[element.name] = iuhs[element.name]
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to add `IUH` objects to the '
-                f'`{type(self).__name__}` rule `{self}`'
+                f"While trying to add `IUH` objects to the "
+                f"`{type(self).__name__}` rule `{self}`"
             )
 
     @property

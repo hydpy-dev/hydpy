@@ -215,6 +215,7 @@ Integration tests
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from hstream
 from hydpy.models.hstream import hstream_masks
 from hydpy.models.hstream import hstream_model
@@ -222,23 +223,19 @@ from hydpy.models.hstream import hstream_model
 
 class Model(modeltools.AdHocModel):
     """The HBV96 version of HydPy-H-Stream (|hstream_v1|)."""
-    INLET_METHODS = (
-        hstream_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (hstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        hstream_model.Calc_QJoints_V1,
-    )
+    RUN_METHODS = (hstream_model.Calc_QJoints_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        hstream_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (hstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |hstream_v1|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = hstream_masks.Masks.CLASSES

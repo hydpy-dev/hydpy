@@ -5,17 +5,18 @@ related to Autoregressive-Moving Average (ARMA) models."""
 # ...from standard library
 import itertools
 import warnings
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
-pyplot = exceptiontools.OptionalImport(
-    'pyplot', ['matplotlib.pyplot'], locals())
-integrate = exceptiontools.OptionalImport(
-    'integrate', ['scipy.integrate'], locals())
+
+pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+integrate = exceptiontools.OptionalImport("integrate", ["scipy.integrate"], locals())
 
 
 class MA:
@@ -221,41 +222,39 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
         return len(self.coefs)
 
     def _quad(self, dt, t):
-        return integrate.quad(
-            self.iuh, max(t-1.+dt, 0.), t+dt)[0]
+        return integrate.quad(self.iuh, max(t - 1.0 + dt, 0.0), t + dt)[0]
 
     def update_coefs(self):
         """(Re)calculate the MA coefficients based on the instantaneous
         unit hydrograph."""
         coefs = []
-        sum_coefs = 0.
+        sum_coefs = 0.0
         moment1 = self.iuh.moment1
-        for t in itertools.count(0., 1.):
-            points = (moment1 % 1,) if t <= moment1 <= (t+2.) else ()
+        for t in itertools.count(0.0, 1.0):
+            points = (moment1 % 1,) if t <= moment1 <= (t + 2.0) else ()
             try:
-                coef = integrate.quad(
-                    self._quad, 0., 1., args=(t,), points=points)[0]
+                coef = integrate.quad(self._quad, 0.0, 1.0, args=(t,), points=points)[0]
             except integrate.IntegrationWarning:
                 idx = int(moment1)
-                coefs = numpy.zeros(idx+2, dtype=float)
-                weight = (moment1-idx)
-                coefs[idx] = (1.-weight)
-                coefs[idx+1] = weight
+                coefs = numpy.zeros(idx + 2, dtype=float)
+                weight = moment1 - idx
+                coefs[idx] = 1.0 - weight
+                coefs[idx + 1] = weight
                 self.coefs = coefs
                 self._raise_integrationwarning(coefs)
-                break   # pragma: no cover
+                break  # pragma: no cover
             sum_coefs += coef
-            if (sum_coefs < .5) and (t > 10.*moment1):
-                if moment1 < .01:
+            if (sum_coefs < 0.5) and (t > 10.0 * moment1):
+                if moment1 < 0.01:
                     self.coefs = numpy.ones(1, dtype=float)
                     self._raise_integrationwarning(self.coefs)
-                    break   # pragma: no cover
+                    break  # pragma: no cover
                 raise RuntimeError(
-                    f'Cannot determine the MA coefficients '
-                    f'corresponding to the instantaneous unit '
-                    f'hydrograph `{repr(self.iuh)}`.'
+                    f"Cannot determine the MA coefficients "
+                    f"corresponding to the instantaneous unit "
+                    f"hydrograph `{repr(self.iuh)}`."
                 )
-            if (sum_coefs > .9) and (coef < self.smallest_coeff):
+            if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
                 coefs = numpy.array(coefs)
                 coefs /= numpy.sum(coefs)
                 self.coefs = coefs
@@ -264,11 +263,11 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
 
     def _raise_integrationwarning(self, coefs):
         warnings.warn(
-            f'During the determination of the MA coefficients '
-            f'corresponding to the instantaneous unit hydrograph '
-            f'`{repr(self.iuh)}` a numerical integration problem '
-            f'occurred.  Please check the calculated coefficients: '
-            f'{objecttools.repr_values(coefs)}.'
+            f"During the determination of the MA coefficients "
+            f"corresponding to the instantaneous unit hydrograph "
+            f"`{repr(self.iuh)}` a numerical integration problem "
+            f"occurred.  Please check the calculated coefficients: "
+            f"{objecttools.repr_values(coefs)}."
         )
 
     @property
@@ -276,16 +275,16 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
         """Turning point (index and value tuple) in the recession part of the
         MA approximation of the instantaneous unit hydrograph."""
         coefs = self.coefs
-        old_dc = coefs[1]-coefs[0]
-        for idx in range(self.order-2):
-            new_dc = coefs[idx+2]-coefs[idx+1]
-            if (old_dc < 0.) and (new_dc > old_dc):
+        old_dc = coefs[1] - coefs[0]
+        for idx in range(self.order - 2):
+            new_dc = coefs[idx + 2] - coefs[idx + 1]
+            if (old_dc < 0.0) and (new_dc > old_dc):
                 return idx, coefs[idx]
             old_dc = new_dc
         raise RuntimeError(
-            'Not able to detect a turning point in the impulse response '
-            'defined by the MA coefficients %s.'
-            % objecttools.repr_values(coefs))
+            "Not able to detect a turning point in the impulse response "
+            "defined by the MA coefficients %s." % objecttools.repr_values(coefs)
+        )
 
     @property
     def delays(self):
@@ -297,31 +296,36 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
         """The first two time delay weighted statistical moments of the
         MA coefficients."""
         moment1 = statstools.calc_mean_time(self.delays, self.coefs)
-        moment2 = statstools.calc_mean_time_deviation(
-            self.delays, self.coefs, moment1)
+        moment2 = statstools.calc_mean_time_deviation(self.delays, self.coefs, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the MA coefficients."""
         try:
             # Works under matplotlib 3.
-            pyplot.bar(x=self.delays+.5, height=self.coefs,
-                       width=1., fill=False, **kwargs)
-        except TypeError:   # pragma: no cover
+            pyplot.bar(
+                x=self.delays + 0.5, height=self.coefs, width=1.0, fill=False, **kwargs
+            )
+        except TypeError:  # pragma: no cover
             # Works under matplotlib 2.
-            pyplot.bar(left=self.delays+.5, height=self.coefs,
-                       width=1., fill=False, **kwargs)
-        pyplot.xlabel('time')
-        pyplot.ylabel('response')
+            pyplot.bar(
+                left=self.delays + 0.5,
+                height=self.coefs,
+                width=1.0,
+                fill=False,
+                **kwargs,
+            )
+        pyplot.xlabel("time")
+        pyplot.ylabel("response")
         if threshold is not None:
             cumsum = numpy.cumsum(self.coefs)
-            idx = numpy.where(cumsum > threshold*cumsum[-1])[0][0]
-            pyplot.xlim(0., idx)
+            idx = numpy.where(cumsum > threshold * cumsum[-1])[0][0]
+            pyplot.xlim(0.0, idx)
         idx, value = self.turningpoint
-        pyplot.plot(idx, value, 'ro')
+        pyplot.plot(idx, value, "ro")
 
     def __repr__(self):
-        return objecttools.assignrepr_tuple(self.coefs, 'MA(coefs=', 70) + ')'
+        return objecttools.assignrepr_tuple(self.coefs, "MA(coefs=", 70) + ")"
 
 
 class ARMA:
@@ -591,7 +595,7 @@ coefficients.
         It is the minimum of |ARMA.max_ar_order| and the number of
         coefficients of the pure |MA| after their turning point.
         """
-        return min(self.max_ar_order, self.ma.order-self.ma.turningpoint[0]-1)
+        return min(self.max_ar_order, self.ma.order - self.ma.turningpoint[0] - 1)
 
     def update_ar_coefs(self):
         """Determine the AR coefficients.
@@ -601,26 +605,27 @@ coefficients.
         a |RuntimeError| is raised.
         """
         del self.ar_coefs
-        for ar_order in range(1, self.effective_max_ar_order+1):
+        for ar_order in range(1, self.effective_max_ar_order + 1):
             self.calc_all_ar_coefs(ar_order, self.ma)
             if self._rel_rmse < self.max_rel_rmse:
                 break
         else:
             with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    f'Method `update_ar_coefs` is not able to determine '
-                    f'the AR coefficients of the ARMA model with the desired '
-                    f'accuracy.  You can either set the tolerance value '
-                    f'`max_rel_rmse` to a higher value or increase the '
-                    f'allowed `max_ar_order`.  An accuracy of `'
-                    f'{objecttools.repr_(self._rel_rmse)}` has been reached '
-                    f'using `{self.effective_max_ar_order}` coefficients.')
+                    f"Method `update_ar_coefs` is not able to determine "
+                    f"the AR coefficients of the ARMA model with the desired "
+                    f"accuracy.  You can either set the tolerance value "
+                    f"`max_rel_rmse` to a higher value or increase the "
+                    f"allowed `max_ar_order`.  An accuracy of `"
+                    f"{objecttools.repr_(self._rel_rmse)}` has been reached "
+                    f"using `{self.effective_max_ar_order}` coefficients."
+                )
 
     @property
     def dev_moments(self):
         """Sum of the absolute deviations between the central moments of the
         instantaneous unit hydrograph and the ARMA approximation."""
-        return numpy.sum(numpy.abs(self.moments-self.ma.moments))
+        return numpy.sum(numpy.abs(self.moments - self.ma.moments))
 
     def norm_coefs(self):
         """Multiply all coefficients by the same factor, so that their sum
@@ -637,7 +642,7 @@ coefficients.
     @property
     def dev_coefs(self):
         """Absolute deviation of |ARMA.sum_coefs| from one."""
-        return abs(self.sum_coefs-1.)
+        return abs(self.sum_coefs - 1.0)
 
     def calc_all_ar_coefs(self, ar_order, ma_model):
         """Determine the AR coeffcients based on a least squares approach.
@@ -654,13 +659,12 @@ coefficients.
         turning_idx, _ = ma_model.turningpoint
         values = ma_model.coefs[turning_idx:]
         self.ar_coefs, residuals = numpy.linalg.lstsq(
-            self.get_a(values, ar_order),
-            self.get_b(values, ar_order),
-            rcond=-1)[:2]
+            self.get_a(values, ar_order), self.get_b(values, ar_order), rcond=-1
+        )[:2]
         if len(residuals) == 1:
-            self._rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
+            self._rel_rmse = numpy.sqrt(residuals[0]) / numpy.sum(values)
         else:
-            self._rel_rmse = 0.
+            self._rel_rmse = 0.0
 
     @staticmethod
     def get_a(values, n):
@@ -668,11 +672,11 @@ coefficients.
         them as a matrix with n columns in a form suitable for the least
         squares approach applied in method |ARMA.update_ar_coefs|.
         """
-        m = len(values)-n
+        m = len(values) - n
         a = numpy.empty((m, n), dtype=float)
         for i in range(m):
-            i0 = i-1 if i > 0 else None
-            i1 = i+n-1
+            i0 = i - 1 if i > 0 else None
+            i1 = i + n - 1
             a[i] = values[i1:i0:-1]
         return numpy.array(a)
 
@@ -692,7 +696,7 @@ coefficients.
         a |RuntimeError| is raised.
         """
         self.ma_coefs = []
-        for ma_order in range(1, self.ma.order+1):
+        for ma_order in range(1, self.ma.order + 1):
             self.calc_next_ma_coef(ma_order, self.ma)
             if self.dev_coefs < self.max_dev_coefs:
                 self.norm_coefs()
@@ -700,17 +704,19 @@ coefficients.
         else:
             with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    f'Method `update_ma_coefs` is not able to determine the '
-                    f'MA coefficients of the ARMA model with the desired '
-                    f'accuracy.  You can set the tolerance value '
-                    f'´max_dev_coefs` to a higher value.  An accuracy of '
-                    f'`{objecttools.repr_(self.dev_coefs)}` has been reached '
-                    f'using `{self.ma.order}` MA coefficients.')
-        if numpy.min(self.response) < 0.:
+                    f"Method `update_ma_coefs` is not able to determine the "
+                    f"MA coefficients of the ARMA model with the desired "
+                    f"accuracy.  You can set the tolerance value "
+                    f"´max_dev_coefs` to a higher value.  An accuracy of "
+                    f"`{objecttools.repr_(self.dev_coefs)}` has been reached "
+                    f"using `{self.ma.order}` MA coefficients."
+                )
+        if numpy.min(self.response) < 0.0:
             warnings.warn(
-                'Note that the smallest response to a standard impulse of the '
-                'determined ARMA model is negative (`%s`).'
-                % objecttools.repr_(numpy.min(self.response)))
+                "Note that the smallest response to a standard impulse of the "
+                "determined ARMA model is negative (`%s`)."
+                % objecttools.repr_(numpy.min(self.response))
+            )
 
     def calc_next_ma_coef(self, ma_order, ma_model):
         """Determine the MA coefficients of the ARMA model based on its
@@ -722,30 +728,30 @@ coefficients.
         for the exact reproduction of the equivalent pure MA coefficient with
         all relevant ARMA coefficients.
         """
-        idx = ma_order-1
+        idx = ma_order - 1
         coef = ma_model.coefs[idx]
         for jdx, ar_coef in enumerate(self.ar_coefs):
-            zdx = idx-jdx-1
+            zdx = idx - jdx - 1
             if zdx >= 0:
-                coef -= ar_coef*ma_model.coefs[zdx]
+                coef -= ar_coef * ma_model.coefs[zdx]
         self.ma_coefs = numpy.concatenate((self.ma_coefs, [coef]))
 
     @property
     def response(self):
         """Return the response to a standard dt impulse."""
         values = []
-        sum_values = 0.
+        sum_values = 0.0
         ma_coefs = self.ma_coefs
         ar_coefs = self.ar_coefs
         ma_order = self.ma_order
         for idx in range(len(self.ma.delays)):
-            value = 0.
+            value = 0.0
             if idx < ma_order:
                 value += ma_coefs[idx]
             for jdx, ar_coef in enumerate(ar_coefs):
-                zdx = idx-jdx-1
+                zdx = idx - jdx - 1
                 if zdx >= 0:
-                    value += ar_coef*values[zdx]
+                    value += ar_coef * values[zdx]
             values.append(value)
             sum_values += value
         return numpy.array(values)
@@ -757,31 +763,38 @@ coefficients.
         timepoints = self.ma.delays
         response = self.response
         moment1 = statstools.calc_mean_time(timepoints, response)
-        moment2 = statstools.calc_mean_time_deviation(
-            timepoints, response, moment1)
+        moment2 = statstools.calc_mean_time_deviation(timepoints, response, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the ARMA response."""
         try:
             # Works under matplotlib 3.
-            pyplot.bar(x=self.ma.delays+.5, height=self.response,
-                       width=1., fill=False, **kwargs)
-        except TypeError:   # pragma: no cover
+            pyplot.bar(
+                x=self.ma.delays + 0.5,
+                height=self.response,
+                width=1.0,
+                fill=False,
+                **kwargs,
+            )
+        except TypeError:  # pragma: no cover
             # Works under matplotlib 2.
-            pyplot.bar(left=self.ma.delays+.5, height=self.response,
-                       width=1., fill=False, **kwargs)
-        pyplot.xlabel('time')
-        pyplot.ylabel('response')
+            pyplot.bar(
+                left=self.ma.delays + 0.5,
+                height=self.response,
+                width=1.0,
+                fill=False,
+                **kwargs,
+            )
+        pyplot.xlabel("time")
+        pyplot.ylabel("response")
         if threshold is not None:
             cumsum = numpy.cumsum(self.response)
-            idx = numpy.where(cumsum > threshold*cumsum[-1])[0][0]
-            pyplot.xlim(0., idx)
+            idx = numpy.where(cumsum > threshold * cumsum[-1])[0][0]
+            pyplot.xlim(0.0, idx)
 
     def __repr__(self):
-        return '%s,\n%s)' % (objecttools.assignrepr_tuple(self.ar_coefs,
-                                                          'ARMA(ar_coefs=',
-                                                          70),
-                             objecttools.assignrepr_tuple(self.ma_coefs,
-                                                          '     ma_coefs=',
-                                                          70))
+        return "%s,\n%s)" % (
+            objecttools.assignrepr_tuple(self.ar_coefs, "ARMA(ar_coefs=", 70),
+            objecttools.assignrepr_tuple(self.ma_coefs, "     ma_coefs=", 70),
+        )

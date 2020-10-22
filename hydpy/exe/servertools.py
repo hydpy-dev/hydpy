@@ -233,6 +233,7 @@ import collections
 import copy
 import mimetypes
 import os
+
 # import http.server   #  moved below for efficiency reasons
 import threading
 import time
@@ -241,6 +242,7 @@ import urllib.parse
 import urllib.request
 import types
 from typing import Any, Dict, List
+
 # ...from HydPy
 import hydpy
 from hydpy import conf
@@ -256,6 +258,7 @@ from hydpy.exe import commandtools
 # see the documentation on method `start_server` for explanations
 mimetypes.inited = True
 import http.server
+
 mimetypes.inited = False
 # pylint: enable=wrong-import-position, wrong-import-order
 
@@ -361,25 +364,25 @@ class ServerState:
         InfoArray([ nan,  nan,  nan,  nan,  nan])
         """
         write = commandtools.print_textandtime
-        write(f'Start HydPy project `{projectname}`')
+        write(f"Start HydPy project `{projectname}`")
         hp = hydpytools.HydPy(projectname)
-        write(f'Read configuration file `{xmlfile}`')
+        write(f"Read configuration file `{xmlfile}`")
         interface = xmltools.XMLInterface(xmlfile)
-        write('Interpret the defined options')
+        write("Interpret the defined options")
         interface.update_options()
-        write('Interpret the defined period')
+        write("Interpret the defined period")
         interface.update_timegrids()
-        write('Read all network files')
+        write("Read all network files")
         hp.prepare_network()
-        write('Activate the selected network')
+        write("Activate the selected network")
         hp.update_devices(
             selection=interface.fullselection,
         )
-        write('Read the required control files')
+        write("Read the required control files")
         hp.prepare_models()
-        write('Read the required condition files')
+        write("Read the required condition files")
         interface.conditions_io.load_conditions()
-        write('Read the required time series files')
+        write("Read the required time series files")
         interface.series_io.prepare_series()
         interface.exchange.prepare_series()
         interface.series_io.load_series()
@@ -837,25 +840,25 @@ but have not been calculated so far.
     # due to "GET" and "POST" method names in accordance
     # with BaseHTTPRequestHandler
 
-    _requesttype: str   # either "GET" or "POST"
-    _statuscode: int    # either 200, 400, or 500
+    _requesttype: str  # either "GET" or "POST"
+    _statuscode: int  # either 200, 400, or 500
     _inputs: Dict[str, str]
     _outputs: Dict[str, Any]
 
     def do_GET(self) -> None:
         """Select and apply the currently requested GET method."""
-        self._requesttype = 'GET'
+        self._requesttype = "GET"
         self._do_get_or_post()
 
     def do_POST(self) -> None:
         """Select and apply the currently requested POST method."""
-        self._requesttype = 'POST'
+        self._requesttype = "POST"
         self._do_get_or_post()
 
     def _do_get_or_post(self) -> None:
         self._statuscode = 200
         try:
-            if self._requesttype == 'POST':
+            if self._requesttype == "POST":
                 self._prepare_inputs()
             self._outputs = collections.OrderedDict()
             method = self._get_method(self._methodname)
@@ -864,30 +867,29 @@ but have not been calculated so far.
         except BaseException as exc:
             if self._statuscode not in (200, 400):
                 self._statuscode = 500
-            self.send_error(
-                self._statuscode, f'{type(exc).__name__}: {exc}')
+            self.send_error(self._statuscode, f"{type(exc).__name__}: {exc}")
 
     def _prepare_inputs(self) -> None:
-        content_length = int(self.headers['Content-Length'])
-        string = str(self.rfile.read(content_length), encoding='utf-8')
+        content_length = int(self.headers["Content-Length"])
+        string = str(self.rfile.read(content_length), encoding="utf-8")
         self._inputs = collections.OrderedDict()
-        for line in string.split('\n'):
+        for line in string.split("\n"):
             try:
                 line = line.strip()
                 if line:
-                    key, value = line.split('=')
+                    key, value = line.split("=")
                     self._inputs[key.strip()] = value.strip()
             except BaseException as exc:
                 self._statuscode = 400
                 raise RuntimeError(
-                    f'The POST method `{self._externalname}` received a '
-                    f'wrongly formated data body.  The following line has been '
-                    f'extracted but cannot be further processed: `{line}`.'
+                    f"The POST method `{self._externalname}` received a "
+                    f"wrongly formated data body.  The following line has been "
+                    f"extracted but cannot be further processed: `{line}`."
                 ) from exc
 
     @property
     def _id(self) -> str:
-        return self._get_queryparameter('id')
+        return self._get_queryparameter("id")
 
     def _get_queryparameter(self, name) -> str:
         query = urllib.parse.urlparse(self.path).query
@@ -896,8 +898,8 @@ but have not been calculated so far.
         except KeyError:
             self._statuscode = 400
             raise RuntimeError(
-                f'For the {self._requesttype} method `{self._externalname}` '
-                f'no query parameter `{name}` is given.'
+                f"For the {self._requesttype} method `{self._externalname}` "
+                f"no query parameter `{name}` is given."
             ) from None
 
     @property
@@ -906,16 +908,14 @@ but have not been calculated so far.
 
     @property
     def _methodname(self) -> str:
-        return f'{self._requesttype}_{self._externalname}'
+        return f"{self._requesttype}_{self._externalname}"
 
     def _get_method(self, name) -> types.MethodType:
         try:
             return getattr(self, name)
         except AttributeError:
             self._statuscode = 400
-            raise RuntimeError(
-                f'No method `{name}` available.'
-            ) from None
+            raise RuntimeError(f"No method `{name}` available.") from None
 
     def _apply_method(self, method) -> None:
         try:
@@ -923,14 +923,14 @@ but have not been calculated so far.
         except BaseException:
             self._statuscode = 500
             objecttools.augment_excmessage(
-                f'While trying to execute method `{method.__name__}`')
+                f"While trying to execute method `{method.__name__}`"
+            )
 
     def _write_output(self) -> None:
-        string = '\n'.join(f'{key} = {value}' for key, value
-                           in self._outputs.items())
-        bstring = bytes(string, encoding='utf-8')
+        string = "\n".join(f"{key} = {value}" for key, value in self._outputs.items())
+        bstring = bytes(string, encoding="utf-8")
         self.send_response(self._statuscode)
-        self.send_header('Content-type', 'text/html')
+        self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(bstring)
 
@@ -951,7 +951,7 @@ but have not been calculated so far.
         self._execute()
 
     def _execute(self) -> None:
-        for name in self._get_queryparameter('methods').split(','):
+        for name in self._get_queryparameter("methods").split(","):
             self._apply_method(self._get_method(name))
 
     def POST_evaluate(self) -> None:
@@ -967,13 +967,15 @@ but have not been calculated so far.
 
     def GET_status(self) -> None:
         """Return "status = ready" as soon as possible."""
-        self._outputs['status'] = 'ready'
+        self._outputs["status"] = "ready"
 
     def GET_close_server(self) -> None:
         """Stop and close the *HydPy* server."""
+
         def _close_server():
             self.server.shutdown()
             self.server.server_close()
+
         shutter = threading.Thread(target=_close_server)
         shutter.deamon = True
         shutter.start()
@@ -1018,8 +1020,8 @@ but have not been calculated so far.
         """Change the current simulation |Timegrid|."""
         init = hydpy.pub.timegrids.init
         sim = hydpy.pub.timegrids.sim
-        sim.firstdate = self._inputs['firstdate']
-        sim.lastdate = self._inputs['lastdate']
+        sim.firstdate = self._inputs["firstdate"]
+        sim.lastdate = self._inputs["lastdate"]
         state.idx1 = init[sim.firstdate]
         state.idx2 = init[sim.lastdate]
 
@@ -1048,7 +1050,7 @@ but have not been calculated so far.
     def POST_parameteritemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
         them to their respective |Parameter| objects."""
-        self._post_itemvalues('parameter', state.parameteritems)
+        self._post_itemvalues("parameter", state.parameteritems)
 
     def GET_conditionitemvalues(self) -> None:
         """Get the values of all |ChangeItem| objects handling |StateSequence|
@@ -1059,7 +1061,7 @@ but have not been calculated so far.
     def POST_conditionitemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
         them to their respective |StateSequence| or |LogSequence| objects."""
-        self._post_itemvalues('condition', state.conditionitems)
+        self._post_itemvalues("condition", state.conditionitems)
 
     def GET_getitemvalues(self) -> None:
         """Get the values of all |Variable| objects observed by the
@@ -1088,9 +1090,9 @@ but have not been calculated so far.
             if state.idx1:
                 self._statuscode = 500
                 raise RuntimeError(
-                    f'Conditions for ID `{self._id}` and time point '
-                    f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
-                    f'but have not been calculated so far.'
+                    f"Conditions for ID `{self._id}` and time point "
+                    f"`{hydpy.pub.timegrids.sim.firstdate}` are required, "
+                    f"but have not been calculated so far."
                 ) from None
             state.hp.conditions = state.init_conditions
 
@@ -1119,8 +1121,9 @@ but have not been calculated so far.
     def GET_save_modifiedconditionitemvalues(self) -> None:
         """ToDo: extend functionality"""
         for item in state.conditionitems:
-            state.modifiedconditionitemvalues[self._id][item.name] = \
-                copy.deepcopy(list(item.device2target.values())[0].value)
+            state.modifiedconditionitemvalues[self._id][item.name] = copy.deepcopy(
+                list(item.device2target.values())[0].value
+            )
 
     def GET_savedmodifiedconditionitemvalues(self) -> None:
         """ToDo: extend functionality"""
@@ -1160,16 +1163,14 @@ but have not been calculated so far.
     @staticmethod
     def _get_itemtype(item) -> str:
         if item.targetspecs.series:
-            return f'TimeSeries{item.ndim-1}D'
-        return f'Double{item.ndim}D'
+            return f"TimeSeries{item.ndim-1}D"
+        return f"Double{item.ndim}D"
 
     def _write_timegrid(self, timegrid):
         utcoffset = hydpy.pub.options.utcoffset
-        self._outputs['firstdate'] = timegrid.firstdate.to_string(
-            'iso1', utcoffset)
-        self._outputs['lastdate'] = timegrid.lastdate.to_string(
-            'iso1', utcoffset)
-        self._outputs['stepsize'] = timegrid.stepsize
+        self._outputs["firstdate"] = timegrid.firstdate.to_string("iso1", utcoffset)
+        self._outputs["lastdate"] = timegrid.lastdate.to_string("iso1", utcoffset)
+        self._outputs["stepsize"] = timegrid.stepsize
 
     def _post_itemvalues(self, typename, items) -> None:
         for item in items:
@@ -1178,7 +1179,7 @@ but have not been calculated so far.
             except KeyError:
                 self._statuscode = 500
                 raise RuntimeError(
-                    f'A value for {typename} item `{item.name}` is missing.'
+                    f"A value for {typename} item `{item.name}` is missing."
                 ) from None
             item.value = eval(value)
             item.update_variables()
@@ -1204,24 +1205,26 @@ def start_server(socket, projectname, xmlfilename: str) -> None:
     |start_server| calls |mimetypes.init| as usual, (over)writes
     `mimetypes.txt`, and tries to proceed as expected.
     """
-    filepath = os.path.join(conf.__path__[0], 'mimetypes.txt')
+    filepath = os.path.join(conf.__path__[0], "mimetypes.txt")
     try:
         with open(filepath) as file_:
             dict_ = eval(open(file_.read()))
     except BaseException:
         mimetypes.init()
         dict_ = mimetypes.types_map.copy()
-        dict_.update({
-            '': 'application/octet-stream',
-            '.py': 'text/plain',
-            '.c': 'text/plain',
-            '.h': 'text/plain',
-            })
-        with open(filepath, 'w') as file_:
+        dict_.update(
+            {
+                "": "application/octet-stream",
+                ".py": "text/plain",
+                ".c": "text/plain",
+                ".h": "text/plain",
+            }
+        )
+        with open(filepath, "w") as file_:
             file_.write(str(dict_))
     HydPyServer.extensions_map = dict_
     state.initialise(projectname, xmlfilename)
-    server = http.server.HTTPServer(('', int(socket)), HydPyServer)
+    server = http.server.HTTPServer(("", int(socket)), HydPyServer)
     server.serve_forever()
 
 
@@ -1255,11 +1258,12 @@ the following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            urllib.request.urlopen(f'http://localhost:{port}/status')
+            urllib.request.urlopen(f"http://localhost:{port}/status")
             break
         except urllib.error.URLError:
             time.sleep(0.1)
             now = time.perf_counter()
     else:
         raise urllib.error.URLError(
-            f'Waited for {seconds} seconds without response on port {port}.')
+            f"Waited for {seconds} seconds without response on port {port}."
+        )

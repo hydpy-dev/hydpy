@@ -9,4 +9,5 @@ from hydpy.core import sequencetools
 
 class Outputs(sequencetools.OutletSequence):
     """Outputs [?]."""
+
     NDIM, NUMERIC = 1, False

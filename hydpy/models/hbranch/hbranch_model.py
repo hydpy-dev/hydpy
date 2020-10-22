@@ -80,6 +80,7 @@ class Calc_Outputs_V1(modeltools.Method):
         >>> print(check_selectedvariables(Calc_Outputs_V1))
         Possibly erroneously selected (REQUIREDSEQUENCES): Input
     """
+
     CONTROLPARAMETERS = (
         hbranch_control.XPoints,
         hbranch_control.YPoints,
@@ -88,12 +89,9 @@ class Calc_Outputs_V1(modeltools.Method):
         hbranch_derived.NmbPoints,
         hbranch_derived.NmbBranches,
     )
-    REQUIREDSEQUENCES = (
-        hbranch_fluxes.Input,
-    )
-    RESULTSEQUENCES = (
-        hbranch_fluxes.Outputs,
-    )
+    REQUIREDSEQUENCES = (hbranch_fluxes.Input,)
+    RESULTSEQUENCES = (hbranch_fluxes.Outputs,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -105,11 +103,9 @@ class Calc_Outputs_V1(modeltools.Method):
                 break
         # ...and use it for linear interpolation (or extrapolation).
         for bdx in range(der.nmbbranches):
-            flu.outputs[bdx] = (
-                (flu.input-con.xpoints[pdx-1]) *
-                (con.ypoints[bdx, pdx]-con.ypoints[bdx, pdx-1]) /
-                (con.xpoints[pdx]-con.xpoints[pdx-1]) +
-                con.ypoints[bdx, pdx-1])
+            flu.outputs[bdx] = (flu.input - con.xpoints[pdx - 1]) * (
+                con.ypoints[bdx, pdx] - con.ypoints[bdx, pdx - 1]
+            ) / (con.xpoints[pdx] - con.xpoints[pdx - 1]) + con.ypoints[bdx, pdx - 1]
 
 
 class Pick_Input_V1(modeltools.Method):
@@ -129,17 +125,15 @@ class Pick_Input_V1(modeltools.Method):
         >>> print(check_selectedvariables(Pick_Input_V1))
         Possibly erroneously selected (RESULTSEQUENCES): Input
     """
-    REQUIREDSEQUENCES = (
-        hbranch_inlets.Total,
-    )
-    RESULTSEQUENCES = (
-        hbranch_fluxes.Input,
-    )
+
+    REQUIREDSEQUENCES = (hbranch_inlets.Total,)
+    RESULTSEQUENCES = (hbranch_fluxes.Input,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.input = 0.
+        flu.input = 0.0
         for idx in range(inl.len_total):
             flu.input += inl.total[idx][0]
 
@@ -150,15 +144,11 @@ class Pass_Outputs_V1(modeltools.Method):
     Basic equation:
       :math:`Branched_i = Outputs_i`
     """
-    DERIVEDPARAMETERS = (
-        hbranch_derived.NmbBranches,
-    )
-    REQUIREDSEQUENCES = (
-        hbranch_fluxes.Outputs,
-    )
-    RESULTSEQUENCES = (
-        hbranch_outlets.Branched,
-    )
+
+    DERIVEDPARAMETERS = (hbranch_derived.NmbBranches,)
+    REQUIREDSEQUENCES = (hbranch_fluxes.Outputs,)
+    RESULTSEQUENCES = (hbranch_outlets.Branched,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -170,17 +160,12 @@ class Pass_Outputs_V1(modeltools.Method):
 
 class Model(modeltools.AdHocModel):
     """The HydPy-H-Branch model."""
-    INLET_METHODS = (
-        Pick_Input_V1,
-    )
+
+    INLET_METHODS = (Pick_Input_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        Calc_Outputs_V1,
-    )
+    RUN_METHODS = (Calc_Outputs_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        Pass_Outputs_V1,
-    )
+    OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
@@ -244,17 +229,17 @@ of element `branch`.
         if total.shape != (len(nodes),):
             total.shape = len(nodes)
         for idx, node in enumerate(nodes):
-            double = node.get_double('inlets')
+            double = node.get_double("inlets")
             total.set_pointer(double, idx)
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
             except AttributeError:
                 raise RuntimeError(
-                    f'Model {objecttools.elementphrase(self)} tried '
-                    f'to connect to an outlet node named `{name}`, '
-                    f'which is not an available outlet node of element '
-                    f'`{self.element.name}`.'
+                    f"Model {objecttools.elementphrase(self)} tried "
+                    f"to connect to an outlet node named `{name}`, "
+                    f"which is not an available outlet node of element "
+                    f"`{self.element.name}`."
                 ) from None
-            double = outlet.get_double('outlets')
+            double = outlet.get_double("outlets")
             self.sequences.outlets.branched.set_pointer(double, idx)

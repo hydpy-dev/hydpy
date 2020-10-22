@@ -19,8 +19,10 @@ import types
 import warnings
 from typing import *
 from typing_extensions import Literal
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy import docs
@@ -35,18 +37,14 @@ from hydpy.core import timetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.tests import iotesting
+
 if TYPE_CHECKING:
     from hydpy.core import modeltools
-matplotlib = exceptiontools.OptionalImport(
-    'matplotlib', ['matplotlib'], locals())
-pyplot = exceptiontools.OptionalImport(
-    'pyplot', ['matplotlib.pyplot'], locals())
-pandas = exceptiontools.OptionalImport(
-    'pandas', ['pandas'], locals())
-plotly = exceptiontools.OptionalImport(
-    'plotly', ['plotly'], locals())
-subplots = exceptiontools.OptionalImport(
-    'subplots', ['plotly.subplots'], locals())
+matplotlib = exceptiontools.OptionalImport("matplotlib", ["matplotlib"], locals())
+pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
+plotly = exceptiontools.OptionalImport("plotly", ["plotly"], locals())
+subplots = exceptiontools.OptionalImport("subplots", ["plotly.subplots"], locals())
 
 
 class StdOutErr:
@@ -70,7 +68,7 @@ class StdOutErr:
 
     def __exit__(self, exception, message, traceback_):
         if not self.texts:
-            self.print_('no failures occurred')
+            self.print_("no failures occurred")
         else:
             for text in self.texts:
                 self.print_(text)
@@ -79,12 +77,12 @@ class StdOutErr:
 
     def write(self, text: str) -> None:
         """Memorise the given text for later writing."""
-        self.texts.extend(text.split('\n'))
+        self.texts.extend(text.split("\n"))
 
     def print_(self, text: str) -> None:
         """Print the memorised text to the original `sys.stdout`."""
         if text.strip():
-            self.stdout.write(self.indent*' ' + text + '\n')
+            self.stdout.write(self.indent * " " + text + "\n")
 
     def flush(self) -> None:
         """Do nothing."""
@@ -111,8 +109,8 @@ class Tester:
     def __init__(self):
         frame = inspect.currentframe().f_back
         self.filepath = frame.f_code.co_filename
-        self.package = frame.f_locals['__package__']
-        self.ispackage = os.path.split(self.filepath)[-1] == '__init__.py'
+        self.package = frame.f_locals["__package__"]
+        self.ispackage = os.path.split(self.filepath)[-1] == "__init__.py"
 
     @property
     def filenames(self) -> List[str]:
@@ -139,8 +137,10 @@ class Tester:
         """
         if self.ispackage:
             return sorted(
-                fn for fn in os.listdir(os.path.dirname(self.filepath))
-                if fn.endswith('.py'))
+                fn
+                for fn in os.listdir(os.path.dirname(self.filepath))
+                if fn.endswith(".py")
+            )
         return [os.path.split(self.filepath)[1]]
 
     @property
@@ -165,8 +165,11 @@ class Tester:
         >>> hland_v1.tester.modulenames
         ['hland_v1']
         """
-        return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
-                if (fn.endswith('.py') and not fn.startswith('_'))]
+        return [
+            os.path.split(fn)[-1].split(".")[0]
+            for fn in self.filenames
+            if (fn.endswith(".py") and not fn.startswith("_"))
+        ]
 
     def perform_tests(self):
         """Perform all doctests either in Python or in Cython mode depending
@@ -268,53 +271,64 @@ hydpy.models.hland.hland_control.ZoneType
         color = 34 if hydpy.pub.options.usecython else 36
         with printtools.PrintStyle(color=color, font=4):
             print(
-                'Test %s %s in %sython mode.'
-                % ('package' if self.ispackage else 'module',
-                   self.package if self.ispackage else
-                   self.modulenames[0],
-                   'C' if hydpy.pub.options.usecython else 'P'))
+                "Test %s %s in %sython mode."
+                % (
+                    "package" if self.ispackage else "module",
+                    self.package if self.ispackage else self.modulenames[0],
+                    "C" if hydpy.pub.options.usecython else "P",
+                )
+            )
         with printtools.PrintStyle(color=color, font=2):
             for name in self.modulenames:
-                print('    * %s:' % name, )
+                print(
+                    "    * %s:" % name,
+                )
                 # pylint: disable=not-callable
                 # pylint does understand that all options are callable
                 # except option `printincolor`!?
-                with StdOutErr(indent=8), \
-                        opt.ellipsis(0), \
-                        opt.printincolor(False), \
-                        opt.printprogress(False), \
-                        opt.reprcomments(False), \
-                        opt.reprdigits(6), \
-                        opt.usedefaultvalues(False), \
-                        opt.utclongitude(15), \
-                        opt.utcoffset(60), \
-                        opt.warnsimulationstep(False), \
-                        opt.warntrim(False), \
-                        opt.parameterstep(timetools.Period('1d')), \
-                        opt.simulationstep(timetools.Period()), \
-                        devicetools.clear_registries_temporarily():
+                with StdOutErr(indent=8), opt.ellipsis(0), opt.printincolor(
+                    False
+                ), opt.printprogress(False), opt.reprcomments(False), opt.reprdigits(
+                    6
+                ), opt.usedefaultvalues(
+                    False
+                ), opt.utclongitude(
+                    15
+                ), opt.utcoffset(
+                    60
+                ), opt.warnsimulationstep(
+                    False
+                ), opt.warntrim(
+                    False
+                ), opt.parameterstep(
+                    timetools.Period("1d")
+                ), opt.simulationstep(
+                    timetools.Period()
+                ), devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
                     projectname = exceptiontools.getattr_(
                         hydpy.pub,
-                        'projectname',
+                        "projectname",
                         None,
                     )
                     del hydpy.pub.projectname
                     timegrids = exceptiontools.getattr_(
                         hydpy.pub,
-                        'timegrids',
+                        "timegrids",
                         None,
                     )
                     del hydpy.pub.timegrids
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()
                     try:
-                        modulename = '.'.join((self.package, name))
+                        modulename = ".".join((self.package, name))
                         module = importlib.import_module(modulename)
                         with warnings.catch_warnings():
                             doctest.testmod(
-                                module, extraglobs={'testing': True},
-                                optionflags=doctest.ELLIPSIS)
+                                module,
+                                extraglobs={"testing": True},
+                                optionflags=doctest.ELLIPSIS,
+                            )
                     finally:
                         hydpy.pub.projectname = projectname
                         if timegrids is not None:
@@ -378,7 +392,7 @@ class Test:
     @property
     def nmb_rows(self):
         """The number of rows of the table."""
-        return len(self.raw_first_col_strings)+1
+        return len(self.raw_first_col_strings) + 1
 
     @property
     def nmb_cols(self):
@@ -393,10 +407,9 @@ class Test:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for dummy in range(len(parseq)-1):
-                strings.append('')
-            if ((parseq.name == 'sim') and
-                    isinstance(parseq, sequencetools.Sequence_)):
+            for dummy in range(len(parseq) - 1):
+                strings.append("")
+            if (parseq.name == "sim") and isinstance(parseq, sequencetools.Sequence_):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -413,8 +426,7 @@ class Test:
                 if parseq.NDIM == 0:
                     strings[-1].append(objecttools.repr_(array[idx]))
                 else:
-                    strings[-1].extend(
-                        objecttools.repr_(value) for value in array[idx])
+                    strings[-1].extend(objecttools.repr_(value) for value in array[idx])
         return strings
 
     @property
@@ -436,28 +448,29 @@ class Test:
     @property
     def col_separators(self):
         """The separators for adjacent columns."""
-        seps = ['| ']
+        seps = ["| "]
         for parseq in self.parseqs:
-            seps.append(' | ')
-            for dummy in range(len(parseq)-1):
-                seps.append('  ')
-        seps.append(' |')
+            seps.append(" | ")
+            for dummy in range(len(parseq) - 1):
+                seps.append("  ")
+        seps.append(" |")
         return seps
 
     @property
     def row_nmb_characters(self):
         """The number of characters of a single row of the table."""
-        return (sum(self.col_widths)+
-                sum((len(sep) for sep in self.col_separators)))
+        return sum(self.col_widths) + sum((len(sep) for sep in self.col_separators))
 
     @staticmethod
     def _interleave(separators, strings, widths):
         """Generate a table line from the given arguments."""
-        lst = [value for (separator, string, width)
-               in zip(separators, strings, widths)
-               for value in (separator, string.rjust(width))]
+        lst = [
+            value
+            for (separator, string, width) in zip(separators, strings, widths)
+            for value in (separator, string.rjust(width))
+        ]
         lst.append(separators[-1])
-        return ''.join(lst)
+        return "".join(lst)
 
     def make_table(self, idx1=None, idx2=None) -> str:
         """Return the result table between the given indices."""
@@ -471,7 +484,7 @@ class Test:
                 col_widths,
             )
         )
-        lines.append('-'*self.row_nmb_characters)
+        lines.append("-" * self.row_nmb_characters)
         for strings_in_line in self.raw_body_strings[idx1:idx2]:
             lines.append(
                 self._interleave(
@@ -480,7 +493,7 @@ class Test:
                     col_widths,
                 )
             )
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def print_table(self, idx1=None, idx2=None):
         """Print the result table between the given indices."""
@@ -512,7 +525,7 @@ class IntegrationTest(Test):
     sequence values can be changed between different test runs.
     """
 
-    HEADER_OF_FIRST_COL = 'date'
+    HEADER_OF_FIRST_COL = "date"
     """The header of the first column containing dates."""
 
     plotting_options = PlottingOptions()
@@ -539,36 +552,36 @@ class IntegrationTest(Test):
 
     @overload
     def __call__(
-            self,
-            filename: Optional[str] = None,
-            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-            update_parameters: bool = True,
-            get_conditions: Literal[None] = None,
-            use_conditions: Optional[timetools.DateConstrArg] = None,
+        self,
+        filename: Optional[str] = None,
+        axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        update_parameters: bool = True,
+        get_conditions: Literal[None] = None,
+        use_conditions: Optional[timetools.DateConstrArg] = None,
     ) -> None:
         """do not return conditions"""
 
     @overload
     def __call__(
-            self,
-            filename: Optional[str] = None,
-            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-            update_parameters: bool = True,
-            get_conditions: timetools.DateConstrArg = None,
-            use_conditions: Optional[timetools.DateConstrArg] = None,
+        self,
+        filename: Optional[str] = None,
+        axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        update_parameters: bool = True,
+        get_conditions: timetools.DateConstrArg = None,
+        use_conditions: Optional[timetools.DateConstrArg] = None,
     ) -> Dict[sequencetools.IOSequence, Union[float, numpy.array]]:
         """do return conditions"""
 
     def __call__(
-            self,
-            filename=None,
-            axis1=None,
-            axis2=None,
-            update_parameters=True,
-            get_conditions=None,
-            use_conditions=None,
+        self,
+        filename=None,
+        axis1=None,
+        axis2=None,
+        update_parameters=True,
+        get_conditions=None,
+        use_conditions=None,
     ):
         """Prepare and perform an integration test and print and eventually
         plot its results.
@@ -657,9 +670,9 @@ datetime of the Python standard library for for further information.
         >>> tester.dateformat
         '%x'
         """
-        dateformat = vars(self).get('dateformat')
+        dateformat = vars(self).get("dateformat")
         if dateformat is None:
-            return timetools.Date.formatstrings['iso2']
+            return timetools.Date.formatstrings["iso2"]
         return dateformat
 
     @dateformat.setter
@@ -668,12 +681,12 @@ datetime of the Python standard library for for further information.
             datetime.datetime(2000, 1, 1).strftime(dateformat)
         except BaseException as exc:
             raise ValueError(
-                f'The given date format `{dateformat}` is not a valid '
-                f'format string for `datetime` objects.  Please read '
-                f'the documentation on module datetime of the Python '
-                f'standard library for for further information.'
+                f"The given date format `{dateformat}` is not a valid "
+                f"format string for `datetime` objects.  Please read "
+                f"the documentation on module datetime of the Python "
+                f"standard library for for further information."
             ) from exc
-        vars(self)['dateformat'] = dateformat
+        vars(self)["dateformat"] = dateformat
 
     @staticmethod
     def get_output_array(parseqs):
@@ -689,14 +702,14 @@ datetime of the Python standard library for for further information.
         does not result in the desired outcome."""
         for node in self.nodes:
             if not node.entries:
-                node.deploymode = 'oldsim'
+                node.deploymode = "oldsim"
             sim = node.sequences.sim
             sim.activate_ram()
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
-        subseqs = getattr(self.element.model.sequences, 'inputs', ())
+        subseqs = getattr(self.element.model.sequences, "inputs", ())
         for seq in subseqs:
             seq.activate_ram()
 
@@ -704,7 +717,7 @@ datetime of the Python standard library for for further information.
         """Return a list of all input, flux and state sequences of the model
         as well as the simulation sequences of all nodes."""
         seqs = []
-        for name in ('inputs', 'fluxes', 'states'):
+        for name in ("inputs", "fluxes", "states"):
             subseqs = getattr(self.element.model.sequences, name, ())
             for seq in subseqs:
                 seqs.append(seq)
@@ -713,9 +726,9 @@ datetime of the Python standard library for for further information.
         return seqs
 
     def prepare_model(
-            self,
-            update_parameters: bool,
-            use_conditions: Optional[timetools.DateConstrArg],
+        self,
+        update_parameters: bool,
+        use_conditions: Optional[timetools.DateConstrArg],
     ) -> None:
         """Derive the secondary parameter values, prepare all required time
         series and set the initial conditions."""
@@ -734,14 +747,13 @@ datetime of the Python standard library for for further information.
         """Set the values of the simulation sequences of all outlet nodes to
         zero."""
         for node in self.nodes:
-            if ((node in self.element.outlets) or
-                    (node in self.element.senders)):
-                node.sequences.sim[:] = 0.
+            if (node in self.element.outlets) or (node in self.element.senders):
+                node.sequences.sim[:] = 0.0
 
     def reset_inits(self):
         """Set all initial conditions of all models."""
         with hydpy.pub.options.trimvariables(False):
-            for subname in ('states', 'logs'):
+            for subname in ("states", "logs"):
                 for element in self.elements:
                     for seq in getattr(element.model.sequences, subname, ()):
                         try:
@@ -750,10 +762,10 @@ datetime of the Python standard library for for further information.
                             pass
 
     def plot(
-            self,
-            filename: str,
-            axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-            axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        self,
+        filename: str,
+        axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
     ):
         """Save a plotly HTML file plotting the current test results.
 
@@ -773,8 +785,8 @@ datetime of the Python standard library for for further information.
             if isinstance(sequence_, act_types2):
                 act_names2.append(name)
 
-        if not filename.endswith('.html'):
-            filename += '.html'
+        if not filename.endswith(".html"):
+            filename += ".html"
         if self.plotting_options.activated:
             axis1 = self.plotting_options.activated
             axis2 = ()
@@ -810,7 +822,7 @@ datetime of the Python standard library for for further information.
                 _update_act_names(sequence)
             else:
                 for idx in range(sequence.shape[0]):
-                    subname = f'{name}_{idx+1}'
+                    subname = f"{name}_{idx+1}"
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
                     sel_series.append(list(sequence.series[:, idx]))
@@ -819,7 +831,7 @@ datetime of the Python standard library for for further information.
         fig = subplots.make_subplots(
             rows=1,
             cols=1,
-            specs=[[{'secondary_y': True}]],
+            specs=[[{"secondary_y": True}]],
         )
         fig.update_xaxes(
             showgrid=False,
@@ -833,7 +845,7 @@ datetime of the Python standard library for for further information.
             showlegend=True,
         )
 
-        cmap = pyplot.get_cmap('tab20', 2*len(sel_names))
+        cmap = pyplot.get_cmap("tab20", 2 * len(sel_names))
         dates = list(
             pandas.date_range(
                 start=hydpy.pub.timegrids.init.firstdate.datetime,
@@ -842,7 +854,7 @@ datetime of the Python standard library for for further information.
             )
         )
         for idx, (name, series, unit) in enumerate(
-                zip(sel_names, sel_series, sel_units)
+            zip(sel_names, sel_series, sel_units)
         ):
             fig.add_trace(
                 plotly.graph_objects.Scattergl(
@@ -850,8 +862,8 @@ datetime of the Python standard library for for further information.
                     y=series,
                     name=f"{name} [{unit}] (1)",
                     visible=name in act_names1,
-                    legendgroup='axis 1',
-                    line={'color': matplotlib.colors.rgb2hex(cmap(2*idx))},
+                    legendgroup="axis 1",
+                    line={"color": matplotlib.colors.rgb2hex(cmap(2 * idx))},
                 ),
             )
             fig.add_trace(
@@ -860,25 +872,25 @@ datetime of the Python standard library for for further information.
                     y=series,
                     name=f"{name} [{unit}] (2)",
                     visible=name in act_names2,
-                    legendgroup='axis 2',
-                    line={'color': matplotlib.colors.rgb2hex(cmap(2*idx+1))},
+                    legendgroup="axis 2",
+                    line={"color": matplotlib.colors.rgb2hex(cmap(2 * idx + 1))},
                 ),
                 secondary_y=True,
             )
 
         buttons = []
         for label, visibles in (
-                ['add all to y-axis 1', [True, False]],
-                ['remove all', [False, False]],
-                ['add all to y-axis 2', [False, True]],
+            ["add all to y-axis 1", [True, False]],
+            ["remove all", [False, False]],
+            ["add all to y-axis 2", [False, True]],
         ):
             subbuttons = [
                 {
-                    'label': label,
-                    'method': 'restyle',
-                    'args': [
+                    "label": label,
+                    "method": "restyle",
+                    "args": [
                         {
-                            'visible': len(sel_sequences)*visibles,
+                            "visible": len(sel_sequences) * visibles,
                         }
                     ],
                 }
@@ -886,57 +898,58 @@ datetime of the Python standard library for for further information.
             for idx, name in enumerate(sel_names):
                 subbuttons.append(
                     {
-                        'label': name,
-                        'method': 'restyle',
-                        'args': [
+                        "label": name,
+                        "method": "restyle",
+                        "args": [
                             {
                                 "visible": visibles,
                             },
-                            [2*idx, 2*idx+1]],
+                            [2 * idx, 2 * idx + 1],
+                        ],
                     }
                 )
             buttons.append(subbuttons)
 
         fig.update_layout(
-            hovermode='x unified',
+            hovermode="x unified",
             updatemenus=[
                 {
-                    'active': 0,
-                    'xanchor': 'left',
-                    'x': 0.,
-                    'yanchor': 'bottom',
-                    'y': 1.02,
-                    'buttons': buttons[0],
+                    "active": 0,
+                    "xanchor": "left",
+                    "x": 0.0,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[0],
                 },
                 {
-                    'active': 0,
-                    'xanchor': 'center',
-                    'x': .5,
-                    'yanchor': 'bottom',
-                    'y': 1.02,
-                    'buttons': buttons[1],
+                    "active": 0,
+                    "xanchor": "center",
+                    "x": 0.5,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[1],
                 },
                 {
-                    'active': 0,
-                    'xanchor': 'right',
-                    'x': 1.,
-                    'yanchor': 'bottom',
-                    'y': 1.02,
-                    'buttons': buttons[2],
+                    "active": 0,
+                    "xanchor": "right",
+                    "x": 1.0,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[2],
                 },
             ],
             legend={
-                'tracegroupgap': 100,
+                "tracegroupgap": 100,
             },
         )
 
-        fig.write_html(os.path.join(docs.__path__[0], 'html_', filename))
+        fig.write_html(os.path.join(docs.__path__[0], "html_", filename))
 
 
 class UnitTest(Test):
     """Defines unit doctests for a single model method."""
 
-    HEADER_OF_FIRST_COL = 'ex.'
+    HEADER_OF_FIRST_COL = "ex."
     """The header of the first column containing sequential numbers."""
 
     nexts = ArrayDescriptor()
@@ -947,8 +960,7 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, first_example=1, last_example=1,
-                 parseqs=None):
+    def __init__(self, model, method, first_example=1, last_example=1, parseqs=None):
         del self.inits
         del self.nexts
         del self.results
@@ -965,18 +977,17 @@ class UnitTest(Test):
     @property
     def nmb_examples(self):
         """The number of examples to be calculated."""
-        return self.last_example_calc-self.first_example_calc+1
+        return self.last_example_calc - self.first_example_calc + 1
 
     @property
     def idx0(self):
         """The first index of the examples selected for printing."""
-        return self.first_example_plot-self.first_example_calc
+        return self.first_example_plot - self.first_example_calc
 
     @property
     def idx1(self):
         """The last index of the examples selected for printing."""
-        return self.nmb_examples-(self.last_example_calc -
-                                  self.last_example_plot)
+        return self.nmb_examples - (self.last_example_calc - self.last_example_plot)
 
     def __call__(self, first_example=None, last_example=None):
         if first_example is None:
@@ -1002,8 +1013,10 @@ class UnitTest(Test):
     @property
     def raw_first_col_strings(self):
         """The raw integer strings of the first column, except the header."""
-        return [str(example) for example in
-                range(self.first_example_plot, self.last_example_plot+1)]
+        return [
+            str(example)
+            for example in range(self.first_example_plot, self.last_example_plot + 1)
+        ]
 
     def memorise_inits(self):
         """Memorise all initial conditions."""
@@ -1015,7 +1028,7 @@ class UnitTest(Test):
         respective parameters and/or sequences."""
         for parseq in self.parseqs:
             shape = [len(self.raw_first_col_strings)] + list(parseq.shape)
-            type_ = getattr(parseq, 'TYPE', float)
+            type_ = getattr(parseq, "TYPE", float)
             array = numpy.full(shape, numpy.nan, type_)
             setattr(self.results, parseq.name, array)
 
@@ -1044,14 +1057,15 @@ class UnitTest(Test):
 class _Open:
 
     __readingerror = (
-        'Reading is not possible at the moment.  Please see the '
-        'documentation on class `Open` of module `testtools` '
-        'for further information.')
+        "Reading is not possible at the moment.  Please see the "
+        "documentation on class `Open` of module `testtools` "
+        "for further information."
+    )
 
     def __init__(self, path, mode, *args, **kwargs):
         # pylint: disable=unused-argument
         # all further positional and keyword arguments are ignored.
-        self.path = path.replace(os.sep, '/')
+        self.path = path.replace(os.sep, "/")
         self.mode = mode
         self.texts = []
         self.entered = False
@@ -1085,20 +1099,20 @@ class _Open:
 
     def close(self):
         """Replace the `close` method of file objects."""
-        text = ''.join(self.texts)
+        text = "".join(self.texts)
         maxchars = len(self.path)
         lines = []
-        for line in text.split('\n'):
+        for line in text.split("\n"):
             if not line:
-                line = '<BLANKLINE>'
+                line = "<BLANKLINE>"
             lines.append(line)
             maxchars = max(maxchars, len(line))
-        text = '\n'.join(lines)
-        print('~'*maxchars)
+        text = "\n".join(lines)
+        print("~" * maxchars)
         print(self.path)
-        print('-'*maxchars)
+        print("-" * maxchars)
         print(text)
-        print('~'*maxchars)
+        print("~" * maxchars)
 
 
 class Open:
@@ -1158,6 +1172,7 @@ for further information.
 Please see the documentation on class `Open` of module `testtools` \
 for further information.
     """
+
     def __init__(self):
         self.open = builtins.open
 
@@ -1245,6 +1260,7 @@ class TestIO:
     files into the `test` subpackage to assure no covered lines are
     reported as uncovered.
     """
+
     def __init__(self, clear_own=False, clear_all=False):
         self._clear_own = clear_own
         self._clear_all = clear_all
@@ -1255,16 +1271,16 @@ class TestIO:
         self._path = os.getcwd()
         os.chdir(os.path.join(iotesting.__path__[0]))
         if self._clear_own:
-            self._olds = os.listdir('.')
+            self._olds = os.listdir(".")
         return self
 
     def __exit__(self, exception, message, traceback_):
-        for file in os.listdir('.'):
-            if file.startswith('.coverage'):
+        for file in os.listdir("."):
+            if file.startswith(".coverage"):
                 shutil.move(file, os.path.join(self._path, file))
-            if ((file != '__init__.py') and
-                    (self._clear_all or
-                     (self._clear_own and (file not in self._olds)))):
+            if (file != "__init__.py") and (
+                self._clear_all or (self._clear_own and (file not in self._olds))
+            ):
                 if os.path.exists(file):
                     if os.path.isfile(file):
                         os.remove(file)
@@ -1307,7 +1323,7 @@ abstract methods array, dimensions, read, subdevicenames, write
     >>> classname(ncvar)
     'NetCDFVariableBase_'
     """
-    concrete = type(abstract.__name__ + '_', (abstract,), {})
+    concrete = type(abstract.__name__ + "_", (abstract,), {})
     concrete.__abstractmethods__ = frozenset()
     return concrete
 
@@ -1401,27 +1417,28 @@ class NumericalDifferentiator:
 
     __NMBNODES = 3
     __XSHIFTS = {
-        'forward': numpy.array([0., 1., 2.]),
-        'backward': numpy.array([-2., -1., 0.]),
-        'central': numpy.array([-1., 0., 1.]),
+        "forward": numpy.array([0.0, 1.0, 2.0]),
+        "backward": numpy.array([-2.0, -1.0, 0.0]),
+        "central": numpy.array([-1.0, 0.0, 1.0]),
     }
     __YCOEFFS = {
-        'forward': numpy.array([-3., 4., -1.])/2.,
-        'backward': numpy.array([1., -4., 3])/2.,
-        'central': numpy.array([-1., 0., 1])/2.,
+        "forward": numpy.array([-3.0, 4.0, -1.0]) / 2.0,
+        "backward": numpy.array([1.0, -4.0, 3]) / 2.0,
+        "central": numpy.array([-1.0, 0.0, 1]) / 2.0,
     }
 
     def __init__(
-            self,
-            xsequence: sequencetools.ModelSequence,
-            ysequences: Iterable[sequencetools.ModelSequence],
-            methods: Iterable['modeltools.Method'],
-            dx: float = 1e-6,
-            method: Literal['forward', 'central', 'backward'] = 'forward'):
+        self,
+        xsequence: sequencetools.ModelSequence,
+        ysequences: Iterable[sequencetools.ModelSequence],
+        methods: Iterable["modeltools.Method"],
+        dx: float = 1e-6,
+        method: Literal["forward", "central", "backward"] = "forward",
+    ):
         self._xsequence = xsequence
         self._ysequences = tuple(ysequences)
         self._methods = tuple(methods)
-        self._span = dx/2.
+        self._span = dx / 2.0
         self._method = method
 
     @property
@@ -1439,16 +1456,17 @@ class NumericalDifferentiator:
             nmb = 1
         else:
             nmb = len(xvalues)
-        yvalues = {ysequence: numpy.empty((nmb, self.__NMBNODES))
-                   for ysequence in self._ysequences}
+        yvalues = {
+            ysequence: numpy.empty((nmb, self.__NMBNODES))
+            for ysequence in self._ysequences
+        }
         try:
             for idx, shift in enumerate(self._xshifts):
-                self._xsequence.values = xvalues+shift
+                self._xsequence.values = xvalues + shift
                 for method in self._methods:
                     method()
                 for ysequence in self._ysequences:
-                    yvalues[ysequence][:, idx] = \
-                        copy.deepcopy(ysequence.values)
+                    yvalues[ysequence][:, idx] = copy.deepcopy(ysequence.values)
             return yvalues
         finally:
             self._xsequence.values = xvalues
@@ -1457,17 +1475,18 @@ class NumericalDifferentiator:
     def _derivatives(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
         return {
             ysequence: numpy.dot(self._ycoeffs, yvalues.T)
-            for ysequence, yvalues in self._yvalues.items()}
+            for ysequence, yvalues in self._yvalues.items()
+        }
 
     def __call__(self):
         for ysequence, derivatives in self._derivatives.items():
-            print(f'd_{ysequence.name}/d_{self._xsequence.name}', end=': ')
+            print(f"d_{ysequence.name}/d_{self._xsequence.name}", end=": ")
             objecttools.print_values(derivatives, width=1000)
 
 
 def update_integrationtests(
-        applicationmodel: Union[types.ModuleType, str],
-        resultfilepath: str,
+    applicationmodel: Union[types.ModuleType, str],
+    resultfilepath: str,
 ) -> None:
     """Write the docstring of the given application model, updated with
     the current simulation results, to file.
@@ -1526,44 +1545,42 @@ def update_integrationtests(
 |  0.0 |  0.0 |  0.0 |
     <BLANKLINE>
     """
-    module = importlib.import_module(
-        f'hydpy.models.{applicationmodel}'
-    )
+    module = importlib.import_module(f"hydpy.models.{applicationmodel}")
     docstring: str = module.__doc__
-    stringio = io.StringIO   # pylint: disable=no-member
+    stringio = io.StringIO  # pylint: disable=no-member
     with stringio() as resultfile, contextlib.redirect_stdout(resultfile):
         module.tester.perform_tests()
         result = resultfile.getvalue()
     oldlines, newlines = [], []
     expected, got = False, False
     nmb_replacements = 0
-    for line in result.split('\n'):
+    for line in result.split("\n"):
         line = line.strip()
-        if line == 'Expected:':
+        if line == "Expected:":
             expected = True
-        elif line == 'Got:':
+        elif line == "Got:":
             expected = False
             got = True
-        elif got and ('***********************************' in line):
+        elif got and ("***********************************" in line):
             expected = False
             got = False
             if oldlines or newlines:
                 nmb_replacements += 1
                 docstring = docstring.replace(
-                    '\n'.join(oldlines),
-                    '\n'.join(newlines),
+                    "\n".join(oldlines),
+                    "\n".join(newlines),
                 )
                 docstring = docstring.replace(
-                    '\n'.join(f'    {line}' for line in oldlines),
-                    '\n'.join(f'    {line}' for line in newlines),
+                    "\n".join(f"    {line}" for line in oldlines),
+                    "\n".join(f"    {line}" for line in newlines),
                 )
             oldlines, newlines = [], []
         elif expected:
             oldlines.append(line)
         elif got:
             newlines.append(line)
-    with open(resultfilepath, 'w', encoding='utf-8') as resultfile:
-        resultfile.write(f'Number of replacements: {nmb_replacements}\n\n')
+    with open(resultfilepath, "w", encoding="utf-8") as resultfile:
+        resultfile.write(f"Number of replacements: {nmb_replacements}\n\n")
         resultfile.write(docstring)
 
 
@@ -1574,8 +1591,8 @@ def _enumerate(variables: Iterable[variabletools.Variable]) -> str:
 
 
 def check_methodorder(
-        model: 'modeltools.Model',
-        indent: int = 0,
+    model: "modeltools.Model",
+    indent: int = 0,
 ) -> str:
     """Check that *HydPy* calls the methods of the given application model
     in the correct order for each simulation step.
@@ -1647,7 +1664,7 @@ which are not among the result sequences of any of its predecessors: TKor
     >>> print(check_methodorder(Model))
     <BLANKLINE>
     """
-    blanks = ' '*indent
+    blanks = " " * indent
     results: List[str] = []
     excluded = (
         sequencetools.InputSequence,
@@ -1659,28 +1676,27 @@ which are not among the result sequences of any of its predecessors: TKor
     methods = tuple(model.get_methods())
     for idx, method1 in enumerate(methods):
         required = set(
-            seq for seq in method1.REQUIREDSEQUENCES
-            if not issubclass(seq, excluded)
+            seq for seq in method1.REQUIREDSEQUENCES if not issubclass(seq, excluded)
         )
         for method0 in methods[:idx]:
             for seq in itertools.chain(
-                    method0.RESULTSEQUENCES,
-                    method0.UPDATEDSEQUENCES,
+                method0.RESULTSEQUENCES,
+                method0.UPDATEDSEQUENCES,
             ):
                 if seq in required:
                     required.remove(seq)
         if required:
             results.append(
-                f'{blanks}Method {method1.__name__} requires the following '
-                f'sequences, which are not among the result sequences of any '
-                f'of its predecessors: {_enumerate(required)}'
+                f"{blanks}Method {method1.__name__} requires the following "
+                f"sequences, which are not among the result sequences of any "
+                f"of its predecessors: {_enumerate(required)}"
             )
-    return '\n'.join(results)
+    return "\n".join(results)
 
 
 def check_selectedvariables(
-        method: 'modeltools.Method',
-        indent: int = 0,
+    method: "modeltools.Method",
+    indent: int = 0,
 ) -> str:
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
@@ -1794,30 +1810,30 @@ def check_selectedvariables(
     <BLANKLINE>
     """
     prefixes = (
-        'con',
-        'der',
-        'fix',
-        'inp',
-        'flu',
-        'sta',
-        'old',
-        'new',
-        'log',
-        'aid',
-        'inl',
-        'out',
-        'rec',
-        'sen',
+        "con",
+        "der",
+        "fix",
+        "inp",
+        "flu",
+        "sta",
+        "old",
+        "new",
+        "log",
+        "aid",
+        "inl",
+        "out",
+        "rec",
+        "sen",
     )
     groups = (
-        'CONTROLPARAMETERS',
-        'DERIVEDPARAMETERS',
-        'FIXEDPARAMETERS',
-        'REQUIREDSEQUENCES',
-        'UPDATEDSEQUENCES',
-        'RESULTSEQUENCES',
+        "CONTROLPARAMETERS",
+        "DERIVEDPARAMETERS",
+        "FIXEDPARAMETERS",
+        "REQUIREDSEQUENCES",
+        "UPDATEDSEQUENCES",
+        "RESULTSEQUENCES",
     )
-    blanks = ' '*indent
+    blanks = " " * indent
     results: List[str] = []
     # search for variables that are used in the source code but not
     # among the selected variables:
@@ -1825,20 +1841,16 @@ def check_selectedvariables(
     vars_source = set()
     unbound_vars = inspect.getclosurevars(method.__call__).unbound
     for var, prefix in itertools.product(unbound_vars, prefixes):
-        if f'{prefix}.{var}' in source:
-            if var.startswith('len_'):
+        if f"{prefix}.{var}" in source:
+            if var.startswith("len_"):
                 var = var[4:]
             vars_source.add(var)
     vars_selected = set()
     for group in groups:
-        vars_selected.update(
-            g.__name__.lower() for g in getattr(method, group)
-        )
-    diff = vars_source-vars_selected
+        vars_selected.update(g.__name__.lower() for g in getattr(method, group))
+    diff = vars_source - vars_selected
     if diff:
-        results.append(
-            f'{blanks}Definitely missing: {objecttools.enumeration(diff)}'
-        )
+        results.append(f"{blanks}Definitely missing: {objecttools.enumeration(diff)}")
 
     # search for variables selected by at least one submethod
     # but not by the method calling these submethods:
@@ -1847,22 +1859,18 @@ def check_selectedvariables(
         found_problem = False
         for submethod in method.SUBMETHODS:
             vars_submethods = set(getattr(submethod, group))
-            if group == 'REQUIREDSEQUENCES':
+            if group == "REQUIREDSEQUENCES":
                 vars_method.update(
                     set(method.UPDATEDSEQUENCES).intersection(
                         submethod.REQUIREDSEQUENCES
                     )
                 )
-            diff = vars_submethods-vars_method
+            diff = vars_submethods - vars_method
             if diff:
                 if not found_problem:
                     found_problem = True
-                    results.append(
-                        f'{blanks}Possibly missing ({group}):'
-                    )
-                results.append(
-                    f'{blanks}    {submethod.__name__}: {_enumerate(diff)}'
-                )
+                    results.append(f"{blanks}Possibly missing ({group}):")
+                results.append(f"{blanks}    {submethod.__name__}: {_enumerate(diff)}")
 
     # search for selected variables that are neither used within the
     # source code nor selected by any submethod:
@@ -1874,13 +1882,14 @@ def check_selectedvariables(
     for group, vars_method in group2vars_method.items():
         vars_submethods = group2vars_submethods[group]
         diff = [
-            method for method in vars_method-vars_submethods
+            method
+            for method in vars_method - vars_submethods
             if method.__name__.lower() not in vars_source
         ]
         if diff:
             results.append(
-                f'{blanks}Possibly erroneously selected ({group}): '
-                f'{_enumerate(diff)}'
+                f"{blanks}Possibly erroneously selected ({group}): "
+                f"{_enumerate(diff)}"
             )
 
     # search for variables that are selected multiple times:
@@ -1895,13 +1904,13 @@ def check_selectedvariables(
                 vars2 = getattr(method, group2)
                 dupl.update(set(vars1).intersection(vars2))
     if dupl:
-        results.append(f'{blanks}Duplicates: {_enumerate(dupl)}')
-    return '\n'.join(results)
+        results.append(f"{blanks}Duplicates: {_enumerate(dupl)}")
+    return "\n".join(results)
 
 
 def perform_consistencychecks(
-        applicationmodel=Union[types.ModuleType, str],
-        indent: int = 0,
+    applicationmodel=Union[types.ModuleType, str],
+    indent: int = 0,
 ) -> str:
     """Perform all available consistency checks for the given application model.
 
@@ -1943,30 +1952,28 @@ not among the result sequences of any of its predecessors: DryAirPressure
     >>> print(perform_consistencychecks('lland_v3'))
     <BLANKLINE>
     """
-    blanks = ' '*indent
+    blanks = " " * indent
     model = importtools.prepare_model(applicationmodel)
     results: List[str] = []
     method2errors: Dict[str, str] = {}
     for method in model.get_methods():
-        if 'check_selectedvariables(' not in method.__doc__:
+        if "check_selectedvariables(" not in method.__doc__:
             subresult = check_selectedvariables(
                 method=method,
-                indent=indent+8,
+                indent=indent + 8,
             )
             if subresult:
                 method2errors[method.__name__] = subresult
     if method2errors:
         results.append(
-            f'{blanks}Potential consistency problems for individual methods:'
+            f"{blanks}Potential consistency problems for individual methods:"
         )
         for method, errors in method2errors.items():
-            results.append(f'{blanks}   Method {method}:')
+            results.append(f"{blanks}   Method {method}:")
             results.append(errors)
-    if 'check_methodorder(' not in model.__doc__:
-        subresult = check_methodorder(model, indent+4)
+    if "check_methodorder(" not in model.__doc__:
+        subresult = check_methodorder(model, indent + 4)
         if subresult:
-            results.append(
-                f'{blanks}Potential consistency problems between methods:'
-            )
+            results.append(f"{blanks}Potential consistency problems between methods:")
             results.append(subresult)
-    return '\n'.join(results)
+    return "\n".join(results)

@@ -350,9 +350,11 @@ Integration tests
 # import...
 # ...from standard library
 from hydpy.core import modeltools
+
 # ...from HydPy
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -360,6 +362,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 5 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -388,9 +391,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V1,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (
         dam_model.Pass_Outflow_V1,
         dam_model.Update_LoggedOutflow_V1,

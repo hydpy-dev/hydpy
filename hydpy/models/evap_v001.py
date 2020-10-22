@@ -196,6 +196,7 @@ from hydpy.models.evap import evap_model
 
 class Model(modeltools.AdHocModel):
     """Version 1 of the Evap model."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

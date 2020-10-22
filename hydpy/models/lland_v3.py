@@ -1855,6 +1855,7 @@ hourly simulation results:
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
@@ -1863,9 +1864,8 @@ from hydpy.models.lland.lland_constants import *
 
 class Model(modeltools.AdHocModel):
     """Penman-Monteith and Knauf version of HydPy-L-Land (|lland_v3|)."""
-    INLET_METHODS = (
-        lland_model.Pick_QZ_V1,
-    )
+
+    INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         lland_model.Return_AdjustedWindSpeed_V1,
@@ -1978,9 +1978,7 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_QAH_V1,
         lland_model.Calc_QA_V1,
     )
-    OUTLET_METHODS = (
-        lland_model.Pass_QA_V1,
-    )
+    OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
     SUBMODELS = (
         lland_model.PegasusESnow,
@@ -1991,6 +1989,7 @@ class Model(modeltools.AdHocModel):
 
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v3|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES

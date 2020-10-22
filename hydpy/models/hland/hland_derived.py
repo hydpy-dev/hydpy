@@ -5,9 +5,11 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import parametertools
+
 # ...from hland
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
@@ -16,7 +18,8 @@ from hydpy.models.hland.hland_constants import ILAKE, GLACIER
 
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
     CONTROLPARAMETERS = (
         hland_control.ZoneArea,
@@ -39,14 +42,15 @@ class RelSoilArea(parametertools.Parameter):
         """
         con = self.subpars.pars.control
         temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == GLACIER] = 0.
-        temp[con.zonetype.values == ILAKE] = 0.
-        self(numpy.sum(temp)/con.area)
+        temp[con.zonetype.values == GLACIER] = 0.0
+        temp[con.zonetype.values == ILAKE] = 0.0
+        self(numpy.sum(temp) / con.area)
 
 
 class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
     CONTROLPARAMETERS = (
         hland_control.ZoneArea,
@@ -69,12 +73,13 @@ class RelLandArea(parametertools.Parameter):
         """
         con = self.subpars.pars.control
         temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == ILAKE] = 0.
-        self(numpy.sum(temp)/con.area)
+        temp[con.zonetype.values == ILAKE] = 0.0
+        self(numpy.sum(temp) / con.area)
 
 
-class RelZoneArea(parametertools.RelSubweightsMixin,
-                  hland_parameters.ParameterComplete):
+class RelZoneArea(
+    parametertools.RelSubweightsMixin, hland_parameters.ParameterComplete
+):
     """Relative zone area of all zone types [-].
 
     >>> from hydpy.models.hland import *
@@ -86,12 +91,14 @@ class RelZoneArea(parametertools.RelSubweightsMixin,
     >>> derived.relzonearea
     relzonearea(field=0.1, forest=0.4, glacier=0.2, ilake=0.3)
     """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
 
-class RelSoilZoneArea(parametertools.RelSubweightsMixin,
-                      hland_parameters.ParameterSoil):
+class RelSoilZoneArea(
+    parametertools.RelSubweightsMixin, hland_parameters.ParameterSoil
+):
     """Relative zone area of all |FIELD| and |FOREST| zones [-].
 
     >>> from hydpy.models.hland import *
@@ -103,12 +110,14 @@ class RelSoilZoneArea(parametertools.RelSubweightsMixin,
     >>> derived.relsoilzonearea
     relsoilzonearea(field=0.2, forest=0.8)
     """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
 
-class RelLandZoneArea(parametertools.RelSubweightsMixin,
-                      hland_parameters.ParameterLand):
+class RelLandZoneArea(
+    parametertools.RelSubweightsMixin, hland_parameters.ParameterLand
+):
     """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].
 
     >>> from hydpy.models.hland import *
@@ -120,12 +129,14 @@ class RelLandZoneArea(parametertools.RelSubweightsMixin,
     >>> derived.rellandzonearea
     rellandzonearea(field=0.142857, forest=0.571429, glacier=0.285714)
     """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
 
 class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -147,16 +158,15 @@ class TTM(hland_parameters.ParameterLand):
         ttm(-1.0)
         """
         con = self.subpars.pars.control
-        self(con.tt+con.dttm)
+        self(con.tt + con.dttm)
 
 
 class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
-    CONTROLPARAMETERS = (
-        hland_control.RecStep,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.RecStep,)
 
     def update(self):
         """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
@@ -180,17 +190,16 @@ class DT(parametertools.Parameter):
         >>> recstep.value
         5
         """
-        self(1/self.subpars.pars.control.recstep)
+        self(1 / self.subpars.pars.control.recstep)
 
 
 class UH(parametertools.Parameter):
     """Unit hydrograph ordinates based on a isosceles triangle [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
-    CONTROLPARAMETERS = (
-        hland_control.MaxBaz,
-    )
+    CONTROLPARAMETERS = (hland_control.MaxBaz,)
 
     def update(self):
         """Update |UH| based on |MaxBaz|.
@@ -261,10 +270,10 @@ class UH(parametertools.Parameter):
         maxbaz = self.subpars.pars.control.maxbaz.value
         quh = self.subpars.pars.model.sequences.logs.quh
         # Determine UH parameters...
-        if maxbaz <= 1.:
+        if maxbaz <= 1.0:
             # ...when MaxBaz smaller than or equal to the simulation time step.
             self.shape = 1
-            self(1.)
+            self(1.0)
             quh.shape = 1
         else:
             # ...when MaxBaz is greater than the simulation time step.
@@ -273,44 +282,44 @@ class UH(parametertools.Parameter):
             # Now comes a terrible trick due to rounding problems coming from
             # the conversation of the SMHI parameter set to the HydPy
             # parameter set.  Time to get rid of it...
-            if (full % 1.) < 1e-4:
-                full //= 1.
+            if (full % 1.0) < 1e-4:
+                full //= 1.0
             full_f = int(numpy.floor(full))
             full_c = int(numpy.ceil(full))
-            half = full/2.
+            half = full / 2.0
             half_f = int(numpy.floor(half))
             half_c = int(numpy.ceil(half))
-            full_2 = full**2.
+            full_2 = full ** 2.0
             # Calculate the triangle ordinate(s)...
             self.shape = full_c
             uh = self.values
             quh.shape = full_c
             # ...of the rising limb.
-            points = numpy.arange(1, half_f+1)
-            uh[:half_f] = (2.*points-1.)/(2.*full_2)
+            points = numpy.arange(1, half_f + 1)
+            uh[:half_f] = (2.0 * points - 1.0) / (2.0 * full_2)
             # ...around the peak (if it exists).
-            if numpy.mod(half, 1.) != 0.:
-                uh[half_f] = (
-                    (half_c-half)/full +
-                    (2*half**2.-half_f**2.-half_c**2.)/(2.*full_2))
+            if numpy.mod(half, 1.0) != 0.0:
+                uh[half_f] = (half_c - half) / full + (
+                    2 * half ** 2.0 - half_f ** 2.0 - half_c ** 2.0
+                ) / (2.0 * full_2)
             # ...of the falling limb (eventually except the last one).
-            points = numpy.arange(half_c+1., full_f+1.)
-            uh[half_c:full_f] = 1./full-(2.*points-1.)/(2.*full_2)
+            points = numpy.arange(half_c + 1.0, full_f + 1.0)
+            uh[half_c:full_f] = 1.0 / full - (2.0 * points - 1.0) / (2.0 * full_2)
             # ...at the end (if not already done).
-            if numpy.mod(full, 1.) != 0.:
-                uh[full_f] = (
-                    (full-full_f)/full-(full_2-full_f**2.)/(2.*full_2))
+            if numpy.mod(full, 1.0) != 0.0:
+                uh[full_f] = (full - full_f) / full - (full_2 - full_f ** 2.0) / (
+                    2.0 * full_2
+                )
             # Normalize the ordinates.
-            self(uh/numpy.sum(uh))
+            self(uh / numpy.sum(uh))
 
 
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        hland_control.Area,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (hland_control.Area,)
 
     def update(self):
         """Update |QFactor| based on |Area| and the current simulation
@@ -325,6 +334,7 @@ class QFactor(parametertools.Parameter):
         qfactor(1.157407)
         """
         self(
-            self.subpars.pars.control.area*1000. /
-            hydpy.pub.options.simulationstep.seconds
+            self.subpars.pars.control.area
+            * 1000.0
+            / hydpy.pub.options.simulationstep.seconds
         )

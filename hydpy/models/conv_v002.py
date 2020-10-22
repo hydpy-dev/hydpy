@@ -105,17 +105,12 @@ from hydpy.models.conv import conv_model
 
 class Model(conv_model.Model):
     """Version 2 of the Conv model."""
-    INLET_METHODS = (
-        conv_model.Pick_Inputs_V1,
-    )
+
+    INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        conv_model.Calc_Outputs_V2,
-    )
+    RUN_METHODS = (conv_model.Calc_Outputs_V2,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        conv_model.Pass_Outputs_V1,
-    )
+    OUTLET_METHODS = (conv_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

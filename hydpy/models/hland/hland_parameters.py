@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+
 # ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_masks
@@ -61,6 +62,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr.mask in icmax.mask
     False
     """
+
     MODEL_CONSTANTS = hland_constants.CONSTANTS
     mask = hland_masks.Complete()
 
@@ -93,6 +95,7 @@ class ParameterSoil(ParameterComplete):
     >>> round_(icmax.average_values())
     3.75
     """
+
     mask = hland_masks.Soil()
 
 
@@ -118,6 +121,7 @@ class ParameterLand(ParameterComplete):
     >>> round_(whc.average_values())
     5.5
     """
+
     mask = hland_masks.Land()
 
 
@@ -142,6 +146,7 @@ class ParameterLake(ParameterComplete):
     >>> round_(ttice.average_values())
     9.0
     """
+
     mask = hland_masks.ILake()
 
 
@@ -167,6 +172,7 @@ class ParameterGlacier(ParameterComplete):
     >>> round_(gmelt.average_values())
     8.0
     """
+
     mask = hland_masks.Glacier()
 
 
@@ -192,4 +198,5 @@ class ParameterNoGlacier(ParameterComplete):
     >>> round_(ecorr.average_values())
     5.5
     """
+
     mask = hland_masks.NoGlacier()

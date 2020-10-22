@@ -47,16 +47,14 @@ class Solve_DV_DT_V1(modeltools.Method):
     Basic equation:
       :math:`\\frac{dV}{dt}= QZ - QA(V)`
     """
-    DERIVEDPARAMETERS = (
-        llake_derived.NmbSubsteps,
-    )
-    UPDATEDSEQUENCES = (
-        llake_states.V,
-    )
+
+    DERIVEDPARAMETERS = (llake_derived.NmbSubsteps,)
+    UPDATEDSEQUENCES = (llake_states.V,)
     RESULTSEQUENCES = (
         llake_aides.V,
         llake_fluxes.QA,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -64,7 +62,7 @@ class Solve_DV_DT_V1(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         aid = model.sequences.aides.fastaccess
-        flu.qa = 0.
+        flu.qa = 0.0
         aid.v = old.v
         for _ in range(der.nmbsubsteps):
             model.calc_vq()
@@ -99,6 +97,7 @@ class Calc_VQ_V1(modeltools.Method):
         >>> aides.vq
         vq(243200.0)
     """
+
     DERIVEDPARAMETERS = (
         llake_derived.Seconds,
         llake_derived.NmbSubsteps,
@@ -107,15 +106,14 @@ class Calc_VQ_V1(modeltools.Method):
         llake_aides.V,
         llake_fluxes.QZ,
     )
-    RESULTSEQUENCES = (
-        llake_aides.VQ,
-    )
+    RESULTSEQUENCES = (llake_aides.VQ,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        aid.vq = 2.*aid.v+der.seconds/der.nmbsubsteps*flu.qz
+        aid.vq = 2.0 * aid.v + der.seconds / der.nmbsubsteps * flu.qz
 
 
 class Interp_QA_V1(modeltools.Method):
@@ -200,6 +198,7 @@ class Interp_QA_V1(modeltools.Method):
         vq(10.0) qa(0.0)
 
     """
+
     CONTROLPARAMETERS = (
         llake_control.N,
         llake_control.Q,
@@ -208,12 +207,9 @@ class Interp_QA_V1(modeltools.Method):
         llake_derived.TOY,
         llake_derived.VQ,
     )
-    REQUIREDSEQUENCES = (
-        llake_aides.VQ,
-    )
-    RESULTSEQUENCES = (
-        llake_aides.QA,
-    )
+    REQUIREDSEQUENCES = (llake_aides.VQ,)
+    RESULTSEQUENCES = (llake_aides.QA,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -223,11 +219,10 @@ class Interp_QA_V1(modeltools.Method):
         for jdx in range(1, con.n):
             if der.vq[idx, jdx] >= aid.vq:
                 break
-        aid.qa = ((aid.vq-der.vq[idx, jdx-1]) *
-                  (con.q[idx, jdx]-con.q[idx, jdx-1]) /
-                  (der.vq[idx, jdx]-der.vq[idx, jdx-1]) +
-                  con.q[idx, jdx-1])
-        aid.qa = max(aid.qa, 0.)
+        aid.qa = (aid.vq - der.vq[idx, jdx - 1]) * (
+            con.q[idx, jdx] - con.q[idx, jdx - 1]
+        ) / (der.vq[idx, jdx] - der.vq[idx, jdx - 1]) + con.q[idx, jdx - 1]
+        aid.qa = max(aid.qa, 0.0)
 
 
 class Calc_V_QA_V1(modeltools.Method):
@@ -280,24 +275,24 @@ class Calc_V_QA_V1(modeltools.Method):
         depend on the (outer) simulation step size but on the (inner)
         calculation step size defined by parameter `maxdt`.
     """
+
     DERIVEDPARAMETERS = (
         llake_derived.NmbSubsteps,
         llake_derived.Seconds,
     )
-    REQUIREDSEQUENCES = (
-        llake_fluxes.QZ,
-    )
+    REQUIREDSEQUENCES = (llake_fluxes.QZ,)
     UPDATEDSEQUENCES = (
         llake_aides.QA,
         llake_aides.V,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        aid.qa = min(aid.qa, flu.qz+der.nmbsubsteps/der.seconds*aid.v)
-        aid.v = max(aid.v+der.seconds/der.nmbsubsteps*(flu.qz-aid.qa), 0.)
+        aid.qa = min(aid.qa, flu.qz + der.nmbsubsteps / der.seconds * aid.v)
+        aid.v = max(aid.v + der.seconds / der.nmbsubsteps * (flu.qz - aid.qa), 0.0)
 
 
 class Interp_W_V1(modeltools.Method):
@@ -342,17 +337,15 @@ class Interp_W_V1(modeltools.Method):
         the range of the (`v`,`w`) pairs, the outer two highest pairs are
         used for linear extrapolation.
     """
+
     CONTROLPARAMETERS = (
         llake_control.N,
         llake_control.V,
         llake_control.W,
     )
-    REQUIREDSEQUENCES = (
-        llake_states.V,
-    )
-    RESULTSEQUENCES = (
-        llake_states.W,
-    )
+    REQUIREDSEQUENCES = (llake_states.V,)
+    RESULTSEQUENCES = (llake_states.W,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -360,10 +353,9 @@ class Interp_W_V1(modeltools.Method):
         for jdx in range(1, con.n):
             if con.v[jdx] >= new.v:
                 break
-        new.w = ((new.v-con.v[jdx-1]) *
-                 (con.w[jdx]-con.w[jdx-1]) /
-                 (con.v[jdx]-con.v[jdx-1]) +
-                 con.w[jdx-1])
+        new.w = (new.v - con.v[jdx - 1]) * (con.w[jdx] - con.w[jdx - 1]) / (
+            con.v[jdx] - con.v[jdx - 1]
+        ) + con.w[jdx - 1]
 
 
 class Interp_V_V1(modeltools.Method):
@@ -407,17 +399,15 @@ class Interp_V_V1(modeltools.Method):
         example is allowed.  For volumes outside the range of the (`w`,`v`)
         pairs, the outer two highest pairs are used for linear extrapolation.
     """
+
     CONTROLPARAMETERS = (
         llake_control.N,
         llake_control.V,
         llake_control.W,
     )
-    REQUIREDSEQUENCES = (
-        llake_states.W,
-    )
-    RESULTSEQUENCES = (
-        llake_states.V,
-    )
+    REQUIREDSEQUENCES = (llake_states.W,)
+    RESULTSEQUENCES = (llake_states.V,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -425,10 +415,9 @@ class Interp_V_V1(modeltools.Method):
         for jdx in range(1, con.n):
             if con.w[jdx] >= new.w:
                 break
-        new.v = ((new.w-con.w[jdx-1]) *
-                 (con.v[jdx]-con.v[jdx-1]) /
-                 (con.w[jdx]-con.w[jdx-1]) +
-                 con.v[jdx-1])
+        new.v = (new.w - con.w[jdx - 1]) * (con.v[jdx] - con.v[jdx - 1]) / (
+            con.w[jdx] - con.w[jdx - 1]
+        ) + con.v[jdx - 1]
 
 
 class Corr_DW_V1(modeltools.Method):
@@ -546,21 +535,19 @@ class Corr_DW_V1(modeltools.Method):
         >>> fluxes.qa
         qa(5.62963)
     """
-    CONTROLPARAMETERS = (
-        llake_control.MaxDW,
-    )
+
+    CONTROLPARAMETERS = (llake_control.MaxDW,)
     DERIVEDPARAMETERS = (
         llake_derived.TOY,
         llake_derived.Seconds,
     )
-    REQUIREDSEQUENCES = (
-        llake_fluxes.QZ,
-    )
+    REQUIREDSEQUENCES = (llake_fluxes.QZ,)
     UPDATEDSEQUENCES = (
         llake_states.W,
         llake_states.V,
         llake_fluxes.QA,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -569,10 +556,10 @@ class Corr_DW_V1(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         idx = der.toy[model.idx_sim]
-        if (con.maxdw[idx] > 0.) and ((old.w-new.w) > con.maxdw[idx]):
-            new.w = old.w-con.maxdw[idx]
+        if (con.maxdw[idx] > 0.0) and ((old.w - new.w) > con.maxdw[idx]):
+            new.w = old.w - con.maxdw[idx]
             model.interp_v()
-            flu.qa = flu.qz+(old.v-new.v)/der.seconds
+            flu.qa = flu.qz + (old.v - new.v) / der.seconds
 
 
 class Modify_QA_V1(modeltools.Method):
@@ -635,22 +622,18 @@ class Modify_QA_V1(modeltools.Method):
         >>> fluxes.qa
         qa(2.0)
     """
-    CONTROLPARAMETERS = (
-        llake_control.Verzw,
-    )
-    DERIVEDPARAMETERS = (
-        llake_derived.TOY,
-    )
-    UPDATEDSEQUENCES = (
-        llake_fluxes.QA,
-    )
+
+    CONTROLPARAMETERS = (llake_control.Verzw,)
+    DERIVEDPARAMETERS = (llake_derived.TOY,)
+    UPDATEDSEQUENCES = (llake_fluxes.QA,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         idx = der.toy[model.idx_sim]
-        flu.qa = max(flu.qa-con.verzw[idx], 0.)
+        flu.qa = max(flu.qa - con.verzw[idx], 0.0)
 
 
 class Pick_Q_V1(modeltools.Method):
@@ -659,17 +642,15 @@ class Pick_Q_V1(modeltools.Method):
     Basic equation:
       :math:`QZ = \\sum Q`
     """
-    REQUIREDSEQUENCES = (
-        llake_inlets.Q,
-    )
-    RESULTSEQUENCES = (
-        llake_fluxes.QZ,
-    )
+
+    REQUIREDSEQUENCES = (llake_inlets.Q,)
+    RESULTSEQUENCES = (llake_fluxes.QZ,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.qz = 0.
+        flu.qz = 0.0
         for idx in range(inl.len_q):
             flu.qz += inl.q[idx][0]
 
@@ -680,12 +661,10 @@ class Pass_Q_V1(modeltools.Method):
     Basic equation:
       :math:`Q = QA`
     """
-    REQUIREDSEQUENCES = (
-        llake_fluxes.QA,
-    )
-    RESULTSEQUENCES = (
-        llake_outlets.Q,
-    )
+
+    REQUIREDSEQUENCES = (llake_fluxes.QA,)
+    RESULTSEQUENCES = (llake_outlets.Q,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -695,9 +674,8 @@ class Pass_Q_V1(modeltools.Method):
 
 class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Lake."""
-    INLET_METHODS = (
-        Pick_Q_V1,
-    )
+
+    INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Solve_DV_DT_V1,
@@ -711,8 +689,6 @@ class Model(modeltools.AdHocModel):
         Interp_QA_V1,
         Calc_V_QA_V1,
     )
-    OUTLET_METHODS = (
-        Pass_Q_V1,
-    )
+    OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

@@ -13,13 +13,16 @@ import inspect
 import textwrap
 import warnings
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import parametertools
@@ -29,35 +32,32 @@ if TYPE_CHECKING:
 
 
 GroupType = TypeVar(
-    'GroupType',
-    'parametertools.Parameters',
-    'sequencetools.Sequences',
-    'devicetools.Node',
+    "GroupType",
+    "parametertools.Parameters",
+    "sequencetools.Sequences",
+    "devicetools.Node",
 )
 SubVariablesType = TypeVar(
-    'SubVariablesType',
-    bound='SubVariables',
+    "SubVariablesType",
+    bound="SubVariables",
 )
 VariableType = TypeVar(
-    'VariableType',
-    bound='Variable',
+    "VariableType",
+    bound="Variable",
 )
 FastAccessType = TypeVar(
-    'FastAccessType',
-    bound='FastAccess',
-
+    "FastAccessType",
+    bound="FastAccess",
 )
 
 INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating point values
 but not for integer values."""
 
-TYPE2MISSINGVALUE = {float: numpy.nan,
-                     int: INT_NAN,
-                     bool: False}
+TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: 'Variable', lower=None, upper=None) -> None:
+def trim(self: "Variable", lower=None, upper=None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
     Usually, users do not need to apply function |trim| directly.
@@ -369,7 +369,7 @@ of parameter `var` is `str`.
             lower = self.SPAN[0]
         if upper is None:
             upper = self.SPAN[1]
-        type_ = getattr(self, 'TYPE', float)
+        type_ = getattr(self, "TYPE", float)
         if type_ is float:
             if self.NDIM == 0:
                 _trim_float_0d(self, lower, upper)
@@ -384,10 +384,11 @@ of parameter `var` is `str`.
             pass
         else:
             raise NotImplementedError(
-                f'Method `trim` can only be applied on parameters '
-                f'handling floating point, integer, or boolean values, '
+                f"Method `trim` can only be applied on parameters "
+                f"handling floating point, integer, or boolean values, "
                 f'but the "value type" of parameter `{self.name}` is '
-                f'`{self.TYPE.__name__}`.')
+                f"`{self.TYPE.__name__}`."
+            )
 
 
 def _trim_float_0d(self, lower, upper):
@@ -426,10 +427,9 @@ def _trim_float_nd(self, lower, upper):
         old = values.copy()
         trimmed = numpy.clip(values, lower, upper)
         self.values = trimmed
-        if (numpy.any((old + get_tolerance(old)) <
-                      (lower - get_tolerance(lower))) or
-                numpy.any((old - get_tolerance(old)) >
-                          (upper + get_tolerance(upper)))):
+        if numpy.any(
+            (old + get_tolerance(old)) < (lower - get_tolerance(lower))
+        ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
             _warn_trim(self, oldvalue=old, newvalue=trimmed)
     values[idxs] = numpy.nan
 
@@ -441,8 +441,9 @@ def _trim_int_0d(self, lower, upper):
         upper = -INT_NAN
     if (self != INT_NAN) and ((self < lower) or (self > upper)):
         raise ValueError(
-            f'The value `{self.value}` of parameter '
-            f'{objecttools.elementphrase(self)} is not valid.')
+            f"The value `{self.value}` of parameter "
+            f"{objecttools.elementphrase(self)} is not valid."
+        )
 
 
 def _trim_int_nd(self, lower, upper):
@@ -457,8 +458,9 @@ def _trim_int_nd(self, lower, upper):
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         raise ValueError(
-            f'At least one value of parameter '
-            f'{objecttools.elementphrase(self)} is not valid.')
+            f"At least one value of parameter "
+            f"{objecttools.elementphrase(self)} is not valid."
+        )
     self[idxs] = INT_NAN
 
 
@@ -479,49 +481,49 @@ def get_tolerance(values):
     ...     numpy.array([1.0, numpy.inf, 2.0, -numpy.inf])), 16)
     0.000000000000001, 0.0, 0.000000000000002, 0.0
     """
-    tolerance = numpy.abs(values*1e-15)
-    if hasattr(tolerance, '__setitem__'):
-        tolerance[numpy.isinf(tolerance)] = 0.
+    tolerance = numpy.abs(values * 1e-15)
+    if hasattr(tolerance, "__setitem__"):
+        tolerance[numpy.isinf(tolerance)] = 0.0
     elif numpy.isinf(tolerance):
-        tolerance = 0.
+        tolerance = 0.0
     return tolerance
 
 
 def _warn_trim(self, oldvalue, newvalue):
     if hydpy.pub.options.warntrim:
         warnings.warn(
-            f'For variable {objecttools.devicephrase(self)} at least one '
-            f'value needed to be trimmed.  The old and the new value(s) '
-            f'are `{objecttools.repr_numbers(oldvalue)}` and '
-            f'`{objecttools.repr_numbers(newvalue)}`, respectively.'
+            f"For variable {objecttools.devicephrase(self)} at least one "
+            f"value needed to be trimmed.  The old and the new value(s) "
+            f"are `{objecttools.repr_numbers(oldvalue)}` and "
+            f"`{objecttools.repr_numbers(newvalue)}`, respectively."
         )
 
 
-def _compare_variables_function_generator(
-        method_string, aggregation_func):
+def _compare_variables_function_generator(method_string, aggregation_func):
     """Return a function to be used as a comparison method for class |Variable|.
 
     Pass the specific method (e.g. `__eq__`) and the corresponding
     operator (e.g. `==`) as strings.  Also pass either |numpy.all| or
     |numpy.any| for aggregating multiple boolean values.
     """
+
     def comparison_function(self, other):
         """Wrapper for comparison functions for class |Variable|."""
         if self is other:
-            return method_string in ('__eq__', '__le__', '__ge__')
+            return method_string in ("__eq__", "__le__", "__ge__")
         try:
             ls = len(self)
             lo = len(other)
             if (ls != 1) and (lo != 1) and (ls != lo):
-                if method_string == '__eq__':
+                if method_string == "__eq__":
                     return False
-                if method_string == '__ne__':
+                if method_string == "__ne__":
                     return True
         except TypeError:
             pass
         method = getattr(self.value, method_string)
         try:
-            if hasattr(type(other), '__hydpy__get_value__'):
+            if hasattr(type(other), "__hydpy__get_value__"):
                 other = other.__hydpy__get_value__()
             result = method(other)
             if result is NotImplemented:
@@ -529,9 +531,11 @@ def _compare_variables_function_generator(
             return aggregation_func(result)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to compare variable '
-                f'{objecttools.elementphrase(self)} with object '
-                f'`{other}` of type `{type(other).__name__}`')
+                f"While trying to compare variable "
+                f"{objecttools.elementphrase(self)} with object "
+                f"`{other}` of type `{type(other).__name__}`"
+            )
+
     return comparison_function
 
 
@@ -540,15 +544,15 @@ class FastAccess:
     sequences when working in pure Python mode."""
 
     def _get_attribute(self, name, suffix, default=None):
-        return getattr(self, f'_{name}_{suffix}', default)
+        return getattr(self, f"_{name}_{suffix}", default)
 
     def _set_attribute(self, name, suffix, value):
-        return setattr(self, f'_{name}_{suffix}', value)
+        return setattr(self, f"_{name}_{suffix}", value)
 
     def __iter__(self):
         """Iterate over all sequence names."""
         for key in vars(self).keys():
-            if not key.startswith('_'):
+            if not key.startswith("_"):
                 yield key
 
 
@@ -988,15 +992,18 @@ operands could not be broadcast together with shapes (2,) (3,)...
     >>> type('Var', (Variable,), {'__doc__': 'Discharge m³/s].'}).unit
     '?'
     """
+
     # Subclasses need to define...
     NDIM: int
     TYPE: Type
     # ...and optionally...
-    SPAN: Tuple[Union[int, float, bool, None],
-                Union[int, float, bool, None]] = (None, None)
+    SPAN: Tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
+        None,
+        None,
+    )
     INIT: Union[int, float, bool, None] = None
 
-    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
+    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ("subvars", "fastaccess")
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
     strict_valuehandling: ClassVar[bool] = True
@@ -1027,11 +1034,11 @@ operands could not be broadcast together with shapes (2,) (3,)...
     @classmethod
     def _get_unit(cls) -> str:
         descr = objecttools.description(cls)
-        idx1 = descr.find('[')+1
-        idx2 = descr.find(']')
+        idx1 = descr.find("[") + 1
+        idx2 = descr.find("]")
         if 0 < idx1 < idx2:
             return descr[idx1:idx2]
-        return '?'
+        return "?"
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """To be called by the |SubVariables| object when preparing a
@@ -1040,15 +1047,9 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> Tuple[
-        Union[
-            float,
-            int,
-            bool,
-            'pointerutils.Double',
-        ],
-        bool,
-    ]:
+    def initinfo(
+        self,
+    ) -> Tuple[Union[float, int, bool, "pointerutils.Double",], bool,]:
         """To be overridden."""
 
     def __hydpy__get_value__(self):
@@ -1159,12 +1160,13 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         """
         value = self._prepare_getvalue(
             self.__valueready or not self.strict_valuehandling,
-            getattr(self.fastaccess, self.name, None))
+            getattr(self.fastaccess, self.name, None),
+        )
         if value is None:
-            substring = 'values have' if self.NDIM else 'value has'
+            substring = "values have" if self.NDIM else "value has"
             raise exceptiontools.AttributeNotReady(
-                f'For variable {objecttools.devicephrase(self)}, '
-                f'no {substring} been defined so far.'
+                f"For variable {objecttools.devicephrase(self)}, "
+                f"no {substring} been defined so far."
             )
         return value
 
@@ -1175,8 +1177,9 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
             self.__valueready = True
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to set the value(s) of variable '
-                f'{objecttools.devicephrase(self)}')
+                f"While trying to set the value(s) of variable "
+                f"{objecttools.devicephrase(self)}"
+            )
 
     def _prepare_getvalue(self, readyflag: bool, value):
         if readyflag:
@@ -1189,28 +1192,29 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
     def _prepare_setvalue(self, value):
         if self.NDIM:
-            value = getattr(value, 'value', value)
+            value = getattr(value, "value", value)
             try:
                 value = numpy.full(self.shape, value, dtype=self.TYPE)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to convert the value(s) `{value}` '
-                    f'to a numpy ndarray with shape `{self.shape}` '
-                    f'and type `{self.TYPE.__name__}`')
+                    f"While trying to convert the value(s) `{value}` "
+                    f"to a numpy ndarray with shape `{self.shape}` "
+                    f"and type `{self.TYPE.__name__}`"
+                )
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
                     raise ValueError(
-                        f'{len(value)} values are assigned to the scalar '
-                        f'variable {objecttools.devicephrase(self)}.'
+                        f"{len(value)} values are assigned to the scalar "
+                        f"variable {objecttools.devicephrase(self)}."
                     )
                 value = value[0]
             try:
                 value = self.TYPE(value)
             except BaseException:
                 raise TypeError(
-                    f'The given value `{value}` cannot be converted '
-                    f'to type `{self.TYPE.__name__}`.'
+                    f"The given value `{value}` cannot be converted "
+                    f"to type `{self.TYPE.__name__}`."
                 ) from None
         return value
 
@@ -1365,9 +1369,9 @@ as `var` can only be `()`, but `(2,)` is given.
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
             raise exceptiontools.AttributeNotReady(
-                f'Shape information for variable '
-                f'{objecttools.devicephrase(self)} can only '
-                f'be retrieved after it has been defined.'
+                f"Shape information for variable "
+                f"{objecttools.devicephrase(self)} can only "
+                f"be retrieved after it has been defined."
             )
         return ()
 
@@ -1377,25 +1381,25 @@ as `var` can only be `()`, but `(2,)` is given.
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array: numpy.ndarray = numpy.full(
-                    shape, initvalue, dtype=self.TYPE)
+                array: numpy.ndarray = numpy.full(shape, initvalue, dtype=self.TYPE)
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
-                    f'While trying create a new numpy ndarray for variable '
-                    f'{objecttools.devicephrase(self)}')
+                    f"While trying create a new numpy ndarray for variable "
+                    f"{objecttools.devicephrase(self)}"
+                )
             if array.ndim != self.NDIM:
                 setattr(self.fastaccess, self.name, None)
                 raise ValueError(
-                    f'Variable {objecttools.devicephrase(self)} is '
-                    f'{self.NDIM}-dimensional, but the given '
-                    f'shape indicates `{array.ndim}` dimensions.')
+                    f"Variable {objecttools.devicephrase(self)} is "
+                    f"{self.NDIM}-dimensional, but the given "
+                    f"shape indicates `{array.ndim}` dimensions."
+                )
             setattr(self.fastaccess, self.name, array)
             self.__shapeready = True
         else:
             if shape:
-                setattr(self.fastaccess, self.name,
-                        TYPE2MISSINGVALUE[self.TYPE])
+                setattr(self.fastaccess, self.name, TYPE2MISSINGVALUE[self.TYPE])
                 self._raise_wrongshape(shape)
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
@@ -1405,9 +1409,10 @@ as `var` can only be `()`, but `(2,)` is given.
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
-            f'The shape information of 0-dimensional variables '
-            f'as {objecttools.devicephrase(self)} can only be `()`, '
-            f'but `{shape}` is given.')
+            f"The shape information of 0-dimensional variables "
+            f"as {objecttools.devicephrase(self)} can only be `()`, "
+            f"but `{shape}` is given."
+        )
 
     def verify(self) -> None:
         """Raises a |RuntimeError| if at least one of the required values
@@ -1462,30 +1467,26 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         try:
             self.__valueready = True
             # noinspection PyTypeChecker
-            nmbnan: int = numpy.sum(
-                numpy.isnan(
-                    numpy.array(self.value)[self.mask]
-                )
-            )
+            nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
         finally:
             self.__valueready = valueready
         if nmbnan:
-            text = 'value has' if nmbnan == 1 else 'values have'
+            text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(
-                f'For variable {objecttools.devicephrase(self)}, '
-                f'{nmbnan} required {text} not been set yet: '
-                f'{objecttools.flatten_repr(self)}.'
+                f"For variable {objecttools.devicephrase(self)}, "
+                f"{nmbnan} required {text} not been set yet: "
+                f"{objecttools.flatten_repr(self)}."
             )
 
     @property
-    def refweights(self) -> 'Variable':
+    def refweights(self) -> "Variable":
         """Reference to a |Parameter| object that defines weighting
         coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.  Must be overwritten by subclasses,
         when required."""
         raise AttributeError(
-            f'Variable {objecttools.devicephrase(self)} does '
-            f'not define any weighting coefficients.'
+            f"Variable {objecttools.devicephrase(self)} does "
+            f"not define any weighting coefficients."
         )
 
     def average_values(self, *args, **kwargs) -> float:
@@ -1654,12 +1655,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             mask = self.get_submask(*args, **kwargs)
             if numpy.any(mask):
                 weights = self.refweights[mask]
-                return numpy.sum(weights*self[mask])/numpy.sum(weights)
+                return numpy.sum(weights * self[mask]) / numpy.sum(weights)
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to calculate the mean value of variable '
-                f'{objecttools.devicephrase(self)}')
+                f"While trying to calculate the mean value of variable "
+                f"{objecttools.devicephrase(self)}"
+            )
 
     @property
     def availablemasks(self) -> masktools.Masks:
@@ -1683,7 +1685,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         >>> hp.nodes.dill.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools
         """
-        model = getattr(self.subvars.vars, 'model', None)
+        model = getattr(self.subvars.vars, "model", None)
         if model:
             return model.masks
         return self.subvars.vars.masks
@@ -1704,9 +1706,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 mask = mask + self._prepare_mask(key, masks, **value)
             if mask not in self.mask:
                 raise ValueError(
-                    f'Based on the arguments `{args}` and `{kwargs}` '
-                    f'the mask `{repr(mask)}` has been determined, '
-                    f'which is not a submask of `{repr(self.mask)}`.')
+                    f"Based on the arguments `{args}` and `{kwargs}` "
+                    f"the mask `{repr(mask)}` has been determined, "
+                    f"which is not a submask of `{repr(self.mask)}`."
+                )
         else:
             mask = self.mask
         return mask
@@ -1735,8 +1738,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return self.value
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to access the value(s) of variable '
-                f'{objecttools.devicephrase(self)} with key `{key}`')
+                f"While trying to access the value(s) of variable "
+                f"{objecttools.devicephrase(self)} with key `{key}`"
+            )
 
     def __setitem__(self, key, value):
         try:
@@ -1747,15 +1751,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 self.value = value
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to set the value(s) of variable '
-                f'{objecttools.devicephrase(self)} with key `{key}`')
+                f"While trying to set the value(s) of variable "
+                f"{objecttools.devicephrase(self)} with key `{key}`"
+            )
 
     @staticmethod
     def _check_key(key):
         if key not in (0, slice(None, None, None)):
             raise IndexError(
-                'The only allowed keys for 0-dimensional variables '
-                'are `0` and `:`.')
+                "The only allowed keys for 0-dimensional variables " "are `0` and `:`."
+            )
 
     def __len__(self):
         try:
@@ -1765,79 +1770,79 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), '__hydpy__get_value__'):
+            if hasattr(type(other), "__hydpy__get_value__"):
                 value = other.value
             else:
                 value = other
             result = getattr(self.value, methodname)(value)
-            if ((result is NotImplemented) and
-                    (not self.NDIM) and (self.TYPE is int)):
+            if (result is NotImplemented) and (not self.NDIM) and (self.TYPE is int):
                 result = getattr(float(self.value), methodname)(value)
             return result
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to {description} variable '
-                f'{objecttools.devicephrase(self)} and '
-                f'`{type(other).__name__}` instance `{other}`')
+                f"While trying to {description} variable "
+                f"{objecttools.devicephrase(self)} and "
+                f"`{type(other).__name__}` instance `{other}`"
+            )
 
     def __add__(self, other):
-        return self._do_math(other, '__add__', 'add')
+        return self._do_math(other, "__add__", "add")
 
     def __radd__(self, other):
-        return self._do_math(other, '__radd__', 'add')
+        return self._do_math(other, "__radd__", "add")
 
     def __iadd__(self, other):
-        self.value = self._do_math(other, '__add__', 'add')
+        self.value = self._do_math(other, "__add__", "add")
         return self
 
     def __sub__(self, other):
-        return self._do_math(other, '__sub__', 'subtract')
+        return self._do_math(other, "__sub__", "subtract")
 
     def __rsub__(self, other):
-        return self._do_math(other, '__rsub__', 'subtract')
+        return self._do_math(other, "__rsub__", "subtract")
 
     def __isub__(self, other):
-        self.value = self._do_math(other, '__sub__', 'subtract')
+        self.value = self._do_math(other, "__sub__", "subtract")
         return self
 
     def __mul__(self, other):
-        return self._do_math(other, '__mul__', 'multiply')
+        return self._do_math(other, "__mul__", "multiply")
 
     def __rmul__(self, other):
-        return self._do_math(other, '__rmul__', 'multiply')
+        return self._do_math(other, "__rmul__", "multiply")
 
     def __imul__(self, other):
-        self.value = self._do_math(other, '__mul__', 'multiply')
+        self.value = self._do_math(other, "__mul__", "multiply")
         return self
 
     def __truediv__(self, other):
-        return self._do_math(other, '__truediv__', 'divide')
+        return self._do_math(other, "__truediv__", "divide")
 
     def __rtruediv__(self, other):
-        return self._do_math(other, '__rtruediv__', 'divide')
+        return self._do_math(other, "__rtruediv__", "divide")
 
     def __itruediv__(self, other):
-        self.value = self._do_math(other, '__truediv__', 'divide')
+        self.value = self._do_math(other, "__truediv__", "divide")
         return self
 
     def __floordiv__(self, other):
-        return self._do_math(other, '__floordiv__', 'floor divide')
+        return self._do_math(other, "__floordiv__", "floor divide")
 
     def __rfloordiv__(self, other):
-        return self._do_math(other, '__rfloordiv__', 'floor divide')
+        return self._do_math(other, "__rfloordiv__", "floor divide")
 
     def __ifloordiv__(self, other):
-        self.value = self._do_math(other, '__floordiv__', 'floor divide')
+        self.value = self._do_math(other, "__floordiv__", "floor divide")
         return self
 
     def __mod__(self, other):
-        return self._do_math(other, '__mod__', 'mod divide')
+        return self._do_math(other, "__mod__", "mod divide")
 
     def __rmod__(self, other):
-        return self._do_math(other, '__rmod__', 'mod divide')
+        return self._do_math(other, "__rmod__", "mod divide")
 
     def __imod__(self, other):
-        self.value = self._do_math(other, '__mod__', 'mod divide')
+        self.value = self._do_math(other, "__mod__", "mod divide")
         return self
 
     def __divmod__(self, other):
@@ -1847,13 +1852,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return self.__rfloordiv__(other), self.__rmod__(other)
 
     def __pow__(self, other):
-        return self._do_math(other, '__pow__', 'exponentiate')
+        return self._do_math(other, "__pow__", "exponentiate")
 
     def __rpow__(self, other):
-        return self._do_math(other, '__rpow__', 'exponentiate (reflectively)')
+        return self._do_math(other, "__rpow__", "exponentiate (reflectively)")
 
     def __ipow__(self, other):
-        self.value = self._do_math(other, '__pow__', 'exponentiate')
+        self.value = self._do_math(other, "__pow__", "exponentiate")
         return self
 
     def __pos__(self):
@@ -1866,10 +1871,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return abs(self.value)
 
     def __invert__(self):
-        return 1./self.value
+        return 1.0 / self.value
 
     def __floor__(self):
-        result = self.value // 1.
+        result = self.value // 1.0
         try:
             return int(result)
         except TypeError:
@@ -1882,19 +1887,20 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         except TypeError:
             return numpy.array(result, dtype=int)
 
-    __lt__ = _compare_variables_function_generator('__lt__', numpy.all)
-    __le__ = _compare_variables_function_generator('__le__', numpy.all)
-    __eq__ = _compare_variables_function_generator('__eq__', numpy.all)
-    __ne__ = _compare_variables_function_generator('__ne__', numpy.any)
-    __ge__ = _compare_variables_function_generator('__ge__', numpy.all)
-    __gt__ = _compare_variables_function_generator('__gt__', numpy.all)
+    __lt__ = _compare_variables_function_generator("__lt__", numpy.all)
+    __le__ = _compare_variables_function_generator("__le__", numpy.all)
+    __eq__ = _compare_variables_function_generator("__eq__", numpy.all)
+    __ne__ = _compare_variables_function_generator("__ne__", numpy.any)
+    __ge__ = _compare_variables_function_generator("__ge__", numpy.all)
+    __gt__ = _compare_variables_function_generator("__gt__", numpy.all)
 
     def _typeconversion(self, type_):
         if self.NDIM:
             raise TypeError(
-                f'The variable {objecttools.devicephrase(self)} is '
-                f'{self.NDIM}-dimensional and thus cannot be converted '
-                f'to a scalar {type_.__name__} value.')
+                f"The variable {objecttools.devicephrase(self)} is "
+                f"{self.NDIM}-dimensional and thus cannot be converted "
+                f"to a scalar {type_.__name__} value."
+            )
         return type_(self.value)
 
     def __bool__(self):
@@ -1924,12 +1930,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """
         if hydpy.pub.options.reprcomments:
             return [
-                f'# {line}' for line in
-                    textwrap.wrap(
-                        text=objecttools.description(self),
-                        width=72,
-                        break_long_words=False,
-                    )
+                f"# {line}"
+                for line in textwrap.wrap(
+                    text=objecttools.description(self),
+                    width=72,
+                    break_long_words=False,
+                )
             ]
         return []
 
@@ -1938,7 +1944,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
 
 def sort_variables(
-        variables: Iterable[Type[VariableType]],
+    variables: Iterable[Type[VariableType]],
 ) -> Tuple[Type[VariableType], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
@@ -1954,9 +1960,12 @@ def sort_variables(
     NmbZones
     ZoneType
     """
-    return tuple(var_ for (idx, var_) in sorted(
-        (var_.__hydpy__subclasscounter__, var_) for var_ in variables
-    ))
+    return tuple(
+        var_
+        for (idx, var_) in sorted(
+            (var_.__hydpy__subclasscounter__, var_) for var_ in variables
+        )
+    )
 
 
 class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
@@ -2061,6 +2070,7 @@ named `wrong`.
     >>> len(subvars)
     1
     """
+
     CLASSES: Tuple[Type[VariableType], ...]
     vars: GroupType
     _name2variable: Dict[str, VariableType] = {}
@@ -2069,9 +2079,9 @@ named `wrong`.
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
     def __init__(
-            self: SubVariablesType,
-            master: GroupType,
-            cls_fastaccess: Optional[Type[FastAccessType]] = None
+        self: SubVariablesType,
+        master: GroupType,
+        cls_fastaccess: Optional[Type[FastAccessType]] = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2101,8 +2111,8 @@ named `wrong`.
             return self._name2variable[item]
         except KeyError:
             raise AttributeError(
-                f'Collection object {objecttools.devicephrase(self)} '
-                f'does not handle a variable named `{item}`.'
+                f"Collection object {objecttools.devicephrase(self)} "
+                f"does not handle a variable named `{item}`."
             ) from None
 
     def __getattr__(self, name) -> VariableType:
@@ -2110,9 +2120,9 @@ named `wrong`.
             return self._name2variable[name]
         except KeyError:
             raise AttributeError(
-                f'Collection object {objecttools.devicephrase(self)} '
-                f'does neither handle a variable nor another attribute '
-                f'named {name}.'
+                f"Collection object {objecttools.devicephrase(self)} "
+                f"does neither handle a variable nor another attribute "
+                f"named {name}."
             ) from None
 
     def __setattr__(self, name, value):
@@ -2132,15 +2142,17 @@ named `wrong`.
     def __repr__(self) -> str:
         lines = []
         if hydpy.pub.options.reprcomments:
-            lines.append(f'# {type(self).__name__} object defined '
-                         f'in module {objecttools.modulename(self)},\n'
-                         f'# handling the following variables:')
+            lines.append(
+                f"# {type(self).__name__} object defined "
+                f"in module {objecttools.modulename(self)},\n"
+                f"# handling the following variables:"
+            )
         for variable in self:
             try:
                 lines.append(repr(variable))
             except BaseException:
-                lines.append(f'{variable.name}(?)')
-        return '\n'.join(lines)
+                lines.append(f"{variable.name}(?)")
+        return "\n".join(lines)
 
     def __dir__(self) -> List[str]:
         """
@@ -2161,9 +2173,9 @@ named `wrong`.
 
 
 def to_repr(
-        self: Variable,
-        values,
-        brackets1d: Optional[bool] = False,
+    self: Variable,
+    values,
+    brackets1d: Optional[bool] = False,
 ) -> str:
     """Return a valid string representation for the given |Variable|
     object.
@@ -2217,17 +2229,16 @@ def to_repr(
          [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
           46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
     """
-    prefix = f'{self.name}('
+    prefix = f"{self.name}("
     if isinstance(values, str):
-        string = f'{self.name}({values})'
+        string = f"{self.name}({values})"
     elif self.NDIM == 0:
-        string = f'{self.name}({objecttools.repr_(values)})'
+        string = f"{self.name}({objecttools.repr_(values)})"
     elif self.NDIM == 1:
         if brackets1d:
-            string = objecttools.assignrepr_list(values, prefix, 72) + ')'
+            string = objecttools.assignrepr_list(values, prefix, 72) + ")"
         else:
-            string = objecttools.assignrepr_values(
-                values, prefix, 72) + ')'
+            string = objecttools.assignrepr_values(values, prefix, 72) + ")"
     else:
-        string = objecttools.assignrepr_list2(values, prefix, 72) + ')'
-    return '\n'.join(self.commentrepr + [string])
+        string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
+    return "\n".join(self.commentrepr + [string])

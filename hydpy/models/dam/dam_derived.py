@@ -5,6 +5,7 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
@@ -13,7 +14,7 @@ from hydpy.models.dam import dam_control
 
 class TOY(parametertools.TOYParameter):
     """References the |Indexer.timeofyear| index array provided by the
-     instance of class |Indexer| available in module |pub|. [-]."""
+    instance of class |Indexer| available in module |pub|. [-]."""
 
 
 class Seconds(parametertools.SecondsParameter):
@@ -21,13 +22,11 @@ class Seconds(parametertools.SecondsParameter):
 
 
 class RemoteDischargeSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s].
-    """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s]."""
 
-    CONTROLPARAMETERS = (
-        dam_control.RemoteDischargeSafety,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -57,11 +56,10 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
 class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
     for smoothing kernel |smooth_logistic1| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.NearDischargeMinimumTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -93,11 +91,10 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
 class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
     for smoothing kernel |smooth_logistic2| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.NearDischargeMinimumTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -129,11 +126,10 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
 class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance|
     for smoothing kernel |smooth_logistic1| [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelMinimumTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelMinimumTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -161,11 +157,10 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from
     |WaterLevelMinimumRemoteTolerance| [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelMinimumRemoteTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -195,11 +190,10 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
 class WaterLevelRelieveSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelRelieveTolerance|
     for smoothing kernel |smooth_logistic1| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelRelieveTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelRelieveTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -231,11 +225,10 @@ class WaterLevelRelieveSmoothPar(parametertools.Parameter):
 class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
     for smoothing kernel |smooth_logistic1| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelSupplyTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelSupplyTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -267,11 +260,10 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
 class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance|
     for smoothing kernel |smooth_min1| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.HighestRemoteTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.HighestRemoteTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -328,19 +320,19 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         if numpy.isinf(control.highestremotedischarge):
             self(0.0)
         else:
-            self(control.highestremotedischarge *
-                 smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
-                 )
+            self(
+                control.highestremotedischarge
+                * smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
+            )
 
 
 class VolumeSmoothParLog1(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance|
     for smoothing kernel |smooth_logistic1| [Mio. m³]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.VolumeTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -361,18 +353,20 @@ class VolumeSmoothParLog1(parametertools.Parameter):
         >>> round_(smooth_logistic1(2.5, derived.volumesmoothparlog1))
         0.99
         """
-        self(smoothtools.calc_smoothpar_logistic1(
-            self.subpars.pars.control.volumetolerance))
+        self(
+            smoothtools.calc_smoothpar_logistic1(
+                self.subpars.pars.control.volumetolerance
+            )
+        )
 
 
 class VolumeSmoothParLog2(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance|
     for smoothing kernel |smooth_logistic2| [Mio. m³]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.VolumeTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -393,18 +387,20 @@ class VolumeSmoothParLog2(parametertools.Parameter):
         >>> round_(smooth_logistic2(2.5, derived.volumesmoothparlog2))
         2.51
         """
-        self(smoothtools.calc_smoothpar_logistic2(
-            self.subpars.pars.control.volumetolerance))
+        self(
+            smoothtools.calc_smoothpar_logistic2(
+                self.subpars.pars.control.volumetolerance
+            )
+        )
 
 
 class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |DischargeTolerance|
     for smoothing kernels |smooth_min1| and |smooth_max1| [m³/s]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        dam_control.DischargeTolerance,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.DischargeTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -429,5 +425,8 @@ class DischargeSmoothPar(parametertools.Parameter):
         >>> round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))
         1.49
         """
-        self(smoothtools.calc_smoothpar_max1(
-            self.subpars.pars.control.dischargetolerance))
+        self(
+            smoothtools.calc_smoothpar_max1(
+                self.subpars.pars.control.dischargetolerance
+            )
+        )

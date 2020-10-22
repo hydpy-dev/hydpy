@@ -790,6 +790,7 @@ a larger value than |CFMax|:
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from hland
 from hydpy.models.hland import hland_model
 from hydpy.models.hland import hland_masks
@@ -798,6 +799,7 @@ from hydpy.models.hland.hland_constants import *
 
 class Model(modeltools.AdHocModel):
     """HBV96 version of HydPy-H-Land (|hland_v1|)."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
@@ -829,15 +831,14 @@ class Model(modeltools.AdHocModel):
         hland_model.Calc_QT_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        hland_model.Pass_Q_v1,
-    )
+    OUTLET_METHODS = (hland_model.Pass_Q_v1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |hland_v1|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = hland_masks.Masks.CLASSES

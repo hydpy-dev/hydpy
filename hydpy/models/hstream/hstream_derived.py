@@ -5,6 +5,7 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.hstream import hstream_control
@@ -12,11 +13,10 @@ from hydpy.models.hstream import hstream_control
 
 class NmbSegments(parametertools.Parameter):
     """Number of river segments [-]."""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        hstream_control.Lag,
-    )
+    CONTROLPARAMETERS = (hstream_control.Lag,)
 
     def update(self):
         """Determines in how many segments the whole reach needs to be
@@ -62,16 +62,15 @@ class NmbSegments(parametertools.Parameter):
         """
         pars = self.subpars.pars
         self(int(round(pars.control.lag)))
-        pars.model.sequences.states.qjoints.shape = self+1
+        pars.model.sequences.states.qjoints.shape = self + 1
 
 
 class C1(parametertools.Parameter):
     """First coefficient of the Muskingum working formula [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
 
-    CONTROLPARAMETERS = (
-        hstream_control.Damp,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.5)
+
+    CONTROLPARAMETERS = (hstream_control.Damp,)
 
     def update(self):
         """Update |C1| based on :math:`c_1 = \\frac{Damp}{1+Damp}`.
@@ -108,16 +107,15 @@ class C1(parametertools.Parameter):
             c1(0.5)
         """
         damp = self.subpars.pars.control.damp
-        self(numpy.clip(damp/(1.+damp), 0., .5))
+        self(numpy.clip(damp / (1.0 + damp), 0.0, 0.5))
 
 
 class C3(parametertools.Parameter):
     """Third coefficient of the muskingum working formula [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
 
-    DERIVEDPARAMETERS = (
-        C1,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.5)
+
+    DERIVEDPARAMETERS = (C1,)
 
     def update(self):
         """Update |C3| based on :math:`c_1 = c_3`.
@@ -136,7 +134,8 @@ class C3(parametertools.Parameter):
 
 class C2(parametertools.Parameter):
     """Second coefficient of the muskingum working formula [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
     DERIVEDPARAMETERS = (
         C1,
@@ -168,4 +167,4 @@ class C2(parametertools.Parameter):
             c2(1.0)
         """
         der = self.subpars
-        self(numpy.clip(1. - der.c1 - der.c3, 0., 1.))
+        self(numpy.clip(1.0 - der.c1 - der.c3, 0.0, 1.0))

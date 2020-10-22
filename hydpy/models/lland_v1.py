@@ -1405,6 +1405,7 @@ content of the snow layer finally exceeds its holding capacity:
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
@@ -1413,9 +1414,8 @@ from hydpy.models.lland.lland_constants import *
 
 class Model(modeltools.AdHocModel):
     """Turc-Wendling/degree-day version of HydPy-L-Land."""
-    INLET_METHODS = (
-        lland_model.Pick_QZ_V1,
-    )
+
+    INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     RUN_METHODS = (
@@ -1454,15 +1454,14 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_QAH_V1,
         lland_model.Calc_QA_V1,
     )
-    OUTLET_METHODS = (
-        lland_model.Pass_QA_V1,
-    )
+    OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v1|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES

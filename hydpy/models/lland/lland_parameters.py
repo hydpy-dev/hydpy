@@ -6,6 +6,7 @@
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+
 # ...from lland
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_masks
@@ -37,6 +38,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> round_(kg.average_values())
     2.0
     """
+
     MODEL_CONSTANTS = lland_constants.CONSTANTS
     mask = lland_masks.Complete()
 
@@ -69,6 +71,7 @@ class ParameterLand(ParameterComplete):
     >>> round_(tgr.average_values())
     4.0
     """
+
     mask = lland_masks.Land()
 
 
@@ -94,6 +97,7 @@ class ParameterSoil(ParameterComplete):
     >>> round_(wmax.average_values())
     400.0
     """
+
     mask = lland_masks.Soil()
 
 
@@ -153,16 +157,16 @@ occurred: Keyword `feld` is not among the available model constants.
         try:
             super().__call__(*args, **kwargs)
         except TypeError as exc:
-            if 'relative' in kwargs:
+            if "relative" in kwargs:
                 if len(kwargs) == 1:
-                    self(float(kwargs['relative']) * self.subpars.wmax)
+                    self(float(kwargs["relative"]) * self.subpars.wmax)
                 else:
                     raise TypeError(
-                        f'While trying to set the values of parameter '
-                        f'{objecttools.elementphrase(self)} with arguments '
-                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
-                        f'It is not allowed to use keyword `relative` and '
-                        f'other keywords at the same time.'
+                        f"While trying to set the values of parameter "
+                        f"{objecttools.elementphrase(self)} with arguments "
+                        f"`{objecttools.enumeration(kwargs.keys())}`:  "
+                        f"It is not allowed to use keyword `relative` and "
+                        f"other keywords at the same time."
                     ) from None
             else:
                 raise exc
@@ -171,8 +175,24 @@ occurred: Keyword `feld` is not among the available model constants.
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
     ROWNAMES = tuple(
-        key.lower() for (idx, key) in sorted(
-            (idx, key) for (key, idx) in lland_constants.CONSTANTS.items()))
+        key.lower()
+        for (idx, key) in sorted(
+            (idx, key) for (key, idx) in lland_constants.CONSTANTS.items()
+        )
+    )

@@ -10,13 +10,14 @@ from hydpy.models.lstream import lstream_control
 
 
 class Sek(parametertools.SecondsParameter):
-    """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
+    """Sekunden im Simulationszeitschritt (Number of seconds of the selected
     simulation time step) [s]."""
 
 
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     CONTROLPARAMETERS = (
         lstream_control.BBV,
@@ -41,17 +42,18 @@ class HV(parametertools.LeftRightParameter):
             hv(0.0)
         """
         con = self.subpars.pars.control
-        self(0.)
+        self(0.0)
         for idx in range(2):
-            if (con.bbv[idx] > 0.) and (con.bnv[idx] > 0.):
-                self.values[idx] = con.bbv[idx]/con.bnv[idx]
+            if (con.bbv[idx] > 0.0) and (con.bnv[idx] > 0.0):
+                self.values[idx] = con.bbv[idx] / con.bnv[idx]
 
 
 class MFM(parametertools.Parameter):
     """Produkt der zeitkonstanten Terme der Manning-Strickler-Formel für das
     Hauptgerinne (product of the time-constant terms of the Manning-Strickler
     equation, calculated for the main channel) [m^(1/3)/s]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
     CONTROLPARAMETERS = (
         lstream_control.EKM,
@@ -73,14 +75,15 @@ class MFM(parametertools.Parameter):
             mfm(10.0)
         """
         con = self.subpars.pars.control
-        self(con.ekm*con.skm*con.gef**.5)
+        self(con.ekm * con.skm * con.gef ** 0.5)
 
 
 class MFV(parametertools.LeftRightParameter):
     """Produkt der zeitkonstanten Terme der Manning-Strickler-Formel für
     beide Vorländer (product of the time-constant terms of the Manning-Strickler
     equation, calculated for both forelands) [m^(1/3)/s]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     CONTROLPARAMETERS = (
         lstream_control.EKV,
@@ -102,18 +105,17 @@ class MFV(parametertools.LeftRightParameter):
             mfv(left=5.0, right=20.0)
         """
         con = self.subpars.pars.control
-        self(con.ekv*con.skv*con.gef**.5)
+        self(con.ekv * con.skv * con.gef ** 0.5)
 
 
 class BNMF(parametertools.Parameter):
     """Hilfsterm zur Berechnung des benetzten Böschungsumfangs im
     Hauptgerinne (auxiliary term for the calculation of the wetted
     perimeter of the slope of the main channel) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.BNM,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (lstream_control.BNM,)
 
     def update(self):
         """Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.
@@ -126,18 +128,17 @@ class BNMF(parametertools.Parameter):
             >>> derived.bnmf
             bnmf(2.236068)
         """
-        self((1.+self.subpars.pars.control.bnm**2)**.5)
+        self((1.0 + self.subpars.pars.control.bnm ** 2) ** 0.5)
 
 
 class BNVF(parametertools.LeftRightParameter):
     """Hilfsterm zur Berechnung des benetzten Böschungsumfangs der Vorländer
     (auxiliary term for the calculation of the wetted perimeter of the slope
     of both forelands) [m]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.BNV,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (lstream_control.BNV,)
 
     def update(self):
         """Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.
@@ -150,18 +151,17 @@ class BNVF(parametertools.LeftRightParameter):
             >>> derived.bnvf
             bnvf(left=2.236068, right=3.162278)
         """
-        self((1.+self.subpars.pars.control.bnv**2)**.5)
+        self((1.0 + self.subpars.pars.control.bnv ** 2) ** 0.5)
 
 
 class BNVRF(parametertools.LeftRightParameter):
     """Hilfsterm zur Berechnung des benetzten Böschungsumfangs der
     Vorlandränder (auxiliary term for the calculation of the wetted
     perimeter of the slope of both outer embankments) [m]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.BNVR,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (lstream_control.BNVR,)
 
     def update(self):
         """Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
@@ -174,7 +174,7 @@ class BNVRF(parametertools.LeftRightParameter):
             >>> derived.bnvrf
             bnvrf(left=2.236068, right=3.162278)
         """
-        self((1.+self.subpars.pars.control.bnvr**2)**.5)
+        self((1.0 + self.subpars.pars.control.bnvr ** 2) ** 0.5)
 
 
 class HRP(parametertools.Parameter):
@@ -182,11 +182,10 @@ class HRP(parametertools.Parameter):
     mit Regularisierungsfunktion |smooth_logistic2| (regularisation parameter
     for water stage to be used when applying regularisation function
     |smooth_logistic2|) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.HR,
-    )
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (lstream_control.HR,)
 
     def update(self):
         """Calculate the smoothing parameter value.

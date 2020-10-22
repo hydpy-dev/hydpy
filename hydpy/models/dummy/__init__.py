@@ -7,6 +7,7 @@ component while maintaining the network structure.
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from dummy
 from hydpy.models.dummy.dummy_model import Model
 

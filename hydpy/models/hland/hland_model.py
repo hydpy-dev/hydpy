@@ -5,9 +5,11 @@
 # imports...
 # ...from standard library
 from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
+
 # ...from hland
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
 from hydpy.models.hland import hland_control
@@ -47,18 +49,15 @@ class Calc_TC_V1(modeltools.Method):
         >>> fluxes.tc
         tc(5.0, 3.8)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.TCAlt,
         hland_control.ZoneZ,
         hland_control.ZRelT,
     )
-    REQUIREDSEQUENCES = (
-        hland_inputs.T,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.TC,
-    )
+    REQUIREDSEQUENCES = (hland_inputs.T,)
+    RESULTSEQUENCES = (hland_fluxes.TC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -66,7 +65,7 @@ class Calc_TC_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
+            flu.tc[k] = inp.t - con.tcalt[k] * (con.zonez[k] - con.zrelt)
 
 
 class Calc_TMean_V1(modeltools.Method):
@@ -90,27 +89,20 @@ class Calc_TMean_V1(modeltools.Method):
         >>> fluxes.tmean
         tmean(6.0)
     """
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneArea,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TC,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.TMean,
-    )
+
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    REQUIREDSEQUENCES = (hland_fluxes.TC,)
+    RESULTSEQUENCES = (hland_fluxes.TMean,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.tmean = 0.
+        flu.tmean = 0.0
         for k in range(con.nmbzones):
-            flu.tmean += der.relzonearea[k]*flu.tc[k]
+            flu.tmean += der.relzonearea[k] * flu.tc[k]
 
 
 class Calc_FracRain_V1(modeltools.Method):
@@ -151,30 +143,28 @@ class Calc_FracRain_V1(modeltools.Method):
         >>> fluxes.fracrain
         fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.TT,
         hland_control.TTInt,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TC,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.FracRain,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.TC,)
+    RESULTSEQUENCES = (hland_fluxes.FracRain,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if flu.tc[k] >= (con.tt[k]+con.ttint[k]/2.):
-                flu.fracrain[k] = 1.
-            elif flu.tc[k] <= (con.tt[k]-con.ttint[k]/2.):
-                flu.fracrain[k] = 0.
+            if flu.tc[k] >= (con.tt[k] + con.ttint[k] / 2.0):
+                flu.fracrain[k] = 1.0
+            elif flu.tc[k] <= (con.tt[k] - con.ttint[k] / 2.0):
+                flu.fracrain[k] = 0.0
             else:
-                flu.fracrain[k] = ((flu.tc[k]-(con.tt[k]-con.ttint[k]/2.)) /
-                                   con.ttint[k])
+                flu.fracrain[k] = (
+                    flu.tc[k] - (con.tt[k] - con.ttint[k] / 2.0)
+                ) / con.ttint[k]
 
 
 class Calc_RFC_SFC_V1(modeltools.Method):
@@ -219,14 +209,13 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         >>> fluxes.sfc
         sfc(1.2, 0.9, 0.6, 0.3, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.RfCF,
         hland_control.SfCF,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.FracRain,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.FracRain,)
     RESULTSEQUENCES = (
         hland_fluxes.RfC,
         hland_fluxes.SfC,
@@ -237,8 +226,8 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.rfc[k] = flu.fracrain[k]*con.rfcf[k]
-            flu.sfc[k] = (1.-flu.fracrain[k])*con.sfcf[k]
+            flu.rfc[k] = flu.fracrain[k] * con.rfcf[k]
+            flu.sfc[k] = (1.0 - flu.fracrain[k]) * con.sfcf[k]
 
 
 class Calc_PC_V1(modeltools.Method):
@@ -289,6 +278,7 @@ class Calc_PC_V1(modeltools.Method):
         pc(0.0, 0.0, 0.0, 0.0, 0.0)
 
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.PCAlt,
@@ -301,9 +291,7 @@ class Calc_PC_V1(modeltools.Method):
         hland_fluxes.RfC,
         hland_fluxes.SfC,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.PC,
-    )
+    RESULTSEQUENCES = (hland_fluxes.PC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -311,11 +299,11 @@ class Calc_PC_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.pc[k] = inp.p*(1.+con.pcalt[k]*(con.zonez[k]-con.zrelp))
-            if flu.pc[k] <= 0.:
-                flu.pc[k] = 0.
+            flu.pc[k] = inp.p * (1.0 + con.pcalt[k] * (con.zonez[k] - con.zrelp))
+            if flu.pc[k] <= 0.0:
+                flu.pc[k] = 0.0
             else:
-                flu.pc[k] *= con.pcorr[k]*(flu.rfc[k]+flu.sfc[k])
+                flu.pc[k] *= con.pcorr[k] * (flu.rfc[k] + flu.sfc[k])
 
 
 class Calc_EP_V1(modeltools.Method):
@@ -361,6 +349,7 @@ class Calc_EP_V1(modeltools.Method):
         >>> fluxes.ep
         ep(0.0, 2.0, 3.0, 4.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ETF,
@@ -370,9 +359,7 @@ class Calc_EP_V1(modeltools.Method):
         hland_inputs.TN,
         hland_fluxes.TMean,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.EP,
-    )
+    RESULTSEQUENCES = (hland_fluxes.EP,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -380,8 +367,8 @@ class Calc_EP_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.ep[k] = inp.epn*(1.+con.etf[k]*(flu.tmean-inp.tn))
-            flu.ep[k] = min(max(flu.ep[k], 0.), 2.*inp.epn)
+            flu.ep[k] = inp.epn * (1.0 + con.etf[k] * (flu.tmean - inp.tn))
+            flu.ep[k] = min(max(flu.ep[k], 0.0), 2.0 * inp.epn)
 
 
 class Calc_EPC_V1(modeltools.Method):
@@ -437,6 +424,7 @@ class Calc_EPC_V1(modeltools.Method):
         epc(0.0, 0.0, 0.0, 0.0)
 
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ECorr,
@@ -449,21 +437,22 @@ class Calc_EPC_V1(modeltools.Method):
         hland_fluxes.EP,
         hland_fluxes.PC,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.EPC,
-    )
+    RESULTSEQUENCES = (hland_fluxes.EPC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.epc[k] = (flu.ep[k]*con.ecorr[k] *
-                          (1. - con.ecalt[k]*(con.zonez[k]-con.zrele)))
-            if flu.epc[k] <= 0.:
-                flu.epc[k] = 0.
+            flu.epc[k] = (
+                flu.ep[k]
+                * con.ecorr[k]
+                * (1.0 - con.ecalt[k] * (con.zonez[k] - con.zrele))
+            )
+            if flu.epc[k] <= 0.0:
+                flu.epc[k] = 0.0
             else:
-                flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
+                flu.epc[k] *= modelutils.exp(-con.epf[k] * flu.pc[k])
 
 
 class Calc_TF_Ic_V1(modeltools.Method):
@@ -529,20 +518,15 @@ class Calc_TF_Ic_V1(modeltools.Method):
         >>> fluxes.tf
         tf(5.0, 5.0, 3.0, 3.0, 4.0, 5.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.IcMax,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.PC,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.Ic,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.TF,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.PC,)
+    UPDATEDSEQUENCES = (hland_states.Ic,)
+    RESULTSEQUENCES = (hland_fluxes.TF,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -551,11 +535,11 @@ class Calc_TF_Ic_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST):
-                flu.tf[k] = max(flu.pc[k]-(con.icmax[k]-sta.ic[k]), 0.)
-                sta.ic[k] += flu.pc[k]-flu.tf[k]
+                flu.tf[k] = max(flu.pc[k] - (con.icmax[k] - sta.ic[k]), 0.0)
+                sta.ic[k] += flu.pc[k] - flu.tf[k]
             else:
                 flu.tf[k] = flu.pc[k]
-                sta.ic[k] = 0.
+                sta.ic[k] = 0.0
 
 
 class Calc_EI_Ic_V1(modeltools.Method):
@@ -618,19 +602,14 @@ class Calc_EI_Ic_V1(modeltools.Method):
         >>> fluxes.ei
         ei(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.EPC,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.Ic,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.EI,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.EPC,)
+    UPDATEDSEQUENCES = (hland_states.Ic,)
+    RESULTSEQUENCES = (hland_fluxes.EI,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -642,8 +621,8 @@ class Calc_EI_Ic_V1(modeltools.Method):
                 flu.ei[k] = min(flu.epc[k], sta.ic[k])
                 sta.ic[k] -= flu.ei[k]
             else:
-                flu.ei[k] = 0.
-                sta.ic[k] = 0.
+                flu.ei[k] = 0.0
+                sta.ic[k] = 0.0
 
 
 class Calc_SP_WC_V1(modeltools.Method):
@@ -696,6 +675,7 @@ class Calc_SP_WC_V1(modeltools.Method):
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
@@ -717,12 +697,12 @@ class Calc_SP_WC_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                if (flu.rfc[k]+flu.sfc[k]) > 0.:
-                    sta.wc[k] += flu.tf[k]*flu.rfc[k]/(flu.rfc[k]+flu.sfc[k])
-                    sta.sp[k] += flu.tf[k]*flu.sfc[k]/(flu.rfc[k]+flu.sfc[k])
+                if (flu.rfc[k] + flu.sfc[k]) > 0.0:
+                    sta.wc[k] += flu.tf[k] * flu.rfc[k] / (flu.rfc[k] + flu.sfc[k])
+                    sta.sp[k] += flu.tf[k] * flu.sfc[k] / (flu.rfc[k] + flu.sfc[k])
             else:
-                sta.wc[k] = 0.
-                sta.sp[k] = 0.
+                sta.wc[k] = 0.0
+                sta.sp[k] = 0.0
 
 
 class Calc_Melt_SP_WC_V1(modeltools.Method):
@@ -803,24 +783,19 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         >>> states.wc
         wc(0.0, 8.0, 8.0, 8.0, 7.0, 2.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.CFMax,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.TTM,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TC,
-    )
+    DERIVEDPARAMETERS = (hland_derived.TTM,)
+    REQUIREDSEQUENCES = (hland_fluxes.TC,)
     UPDATEDSEQUENCES = (
         hland_states.WC,
         hland_states.SP,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.Melt,
-    )
+    RESULTSEQUENCES = (hland_fluxes.Melt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -831,16 +806,17 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
                 if flu.tc[k] > der.ttm[k]:
-                    flu.melt[k] = min(con.cfmax[k] *
-                                      (flu.tc[k]-der.ttm[k]), sta.sp[k])
+                    flu.melt[k] = min(
+                        con.cfmax[k] * (flu.tc[k] - der.ttm[k]), sta.sp[k]
+                    )
                     sta.sp[k] -= flu.melt[k]
                     sta.wc[k] += flu.melt[k]
                 else:
-                    flu.melt[k] = 0.
+                    flu.melt[k] = 0.0
             else:
-                flu.melt[k] = 0.
-                sta.wc[k] = 0.
-                sta.sp[k] = 0.
+                flu.melt[k] = 0.0
+                sta.wc[k] = 0.0
+                sta.sp[k] = 0.0
 
 
 class Calc_Refr_SP_WC_V1(modeltools.Method):
@@ -941,25 +917,20 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         >>> states.wc
         wc(0.0, 0.4, 0.4, 0.4, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.CFR,
         hland_control.CFMax,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.TTM,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TC,
-    )
+    DERIVEDPARAMETERS = (hland_derived.TTM,)
+    REQUIREDSEQUENCES = (hland_fluxes.TC,)
     UPDATEDSEQUENCES = (
         hland_states.WC,
         hland_states.SP,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.Refr,
-    )
+    RESULTSEQUENCES = (hland_fluxes.Refr,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -970,16 +941,17 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
                 if flu.tc[k] < der.ttm[k]:
-                    flu.refr[k] = min(con.cfr[k]*con.cfmax[k] *
-                                      (der.ttm[k]-flu.tc[k]), sta.wc[k])
+                    flu.refr[k] = min(
+                        con.cfr[k] * con.cfmax[k] * (der.ttm[k] - flu.tc[k]), sta.wc[k]
+                    )
                     sta.sp[k] += flu.refr[k]
                     sta.wc[k] -= flu.refr[k]
                 else:
-                    flu.refr[k] = 0.
+                    flu.refr[k] = 0.0
             else:
-                flu.refr[k] = 0.
-                sta.wc[k] = 0.
-                sta.sp[k] = 0.
+                flu.refr[k] = 0.0
+                sta.wc[k] = 0.0
+                sta.sp[k] = 0.0
 
 
 class Calc_In_WC_V1(modeltools.Method):
@@ -1044,6 +1016,7 @@ class Calc_In_WC_V1(modeltools.Method):
         Note that for the single lake zone, stand precipitation is
         directly passed to `in_` in all three examples.
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
@@ -1053,12 +1026,8 @@ class Calc_In_WC_V1(modeltools.Method):
         hland_fluxes.TF,
         hland_states.SP,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.In_,
-    )
+    UPDATEDSEQUENCES = (hland_states.WC,)
+    RESULTSEQUENCES = (hland_fluxes.In_,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1067,11 +1036,11 @@ class Calc_In_WC_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                flu.in_[k] = max(sta.wc[k]-con.whc[k]*sta.sp[k], 0.)
+                flu.in_[k] = max(sta.wc[k] - con.whc[k] * sta.sp[k], 0.0)
                 sta.wc[k] -= flu.in_[k]
             else:
                 flu.in_[k] = flu.tf[k]
-                sta.wc[k] = 0.
+                sta.wc[k] = 0.0
 
 
 class Calc_GlMelt_In_V1(modeltools.Method):
@@ -1119,24 +1088,19 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         >>> gmelt.values
         array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.GMelt,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.TTM,
-    )
+    DERIVEDPARAMETERS = (hland_derived.TTM,)
     REQUIREDSEQUENCES = (
         hland_states.SP,
         hland_fluxes.TC,
     )
-    UPDATEDSEQUENCES = (
-        hland_fluxes.In_,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.GlMelt,
-    )
+    UPDATEDSEQUENCES = (hland_fluxes.In_,)
+    RESULTSEQUENCES = (hland_fluxes.GlMelt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1145,12 +1109,15 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if ((con.zonetype[k] == GLACIER) and
-                    (sta.sp[k] <= 0.) and (flu.tc[k] > der.ttm[k])):
-                flu.glmelt[k] = con.gmelt[k]*(flu.tc[k]-der.ttm[k])
+            if (
+                (con.zonetype[k] == GLACIER)
+                and (sta.sp[k] <= 0.0)
+                and (flu.tc[k] > der.ttm[k])
+            ):
+                flu.glmelt[k] = con.gmelt[k] * (flu.tc[k] - der.ttm[k])
                 flu.in_[k] += flu.glmelt[k]
             else:
-                flu.glmelt[k] = 0.
+                flu.glmelt[k] = 0.0
 
 
 class Calc_R_SM_V1(modeltools.Method):
@@ -1214,21 +1181,16 @@ class Calc_R_SM_V1(modeltools.Method):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.FC,
         hland_control.Beta,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.In_,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.SM,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.R,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.In_,)
+    UPDATEDSEQUENCES = (hland_states.SM,)
+    RESULTSEQUENCES = (hland_fluxes.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1237,15 +1199,15 @@ class Calc_R_SM_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST):
-                if con.fc[k] > 0.:
-                    flu.r[k] = flu.in_[k]*(sta.sm[k]/con.fc[k])**con.beta[k]
-                    flu.r[k] = max(flu.r[k], sta.sm[k]+flu.in_[k]-con.fc[k])
+                if con.fc[k] > 0.0:
+                    flu.r[k] = flu.in_[k] * (sta.sm[k] / con.fc[k]) ** con.beta[k]
+                    flu.r[k] = max(flu.r[k], sta.sm[k] + flu.in_[k] - con.fc[k])
                 else:
                     flu.r[k] = flu.in_[k]
-                sta.sm[k] += flu.in_[k]-flu.r[k]
+                sta.sm[k] += flu.in_[k] - flu.r[k]
             else:
                 flu.r[k] = flu.in_[k]
-                sta.sm[k] = 0.
+                sta.sm[k] = 0.0
 
 
 class Calc_CF_SM_V1(modeltools.Method):
@@ -1355,6 +1317,7 @@ class Calc_CF_SM_V1(modeltools.Method):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
@@ -1365,12 +1328,8 @@ class Calc_CF_SM_V1(modeltools.Method):
         hland_fluxes.R,
         hland_states.UZ,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.SM,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.CF,
-    )
+    UPDATEDSEQUENCES = (hland_states.SM,)
+    RESULTSEQUENCES = (hland_fluxes.CF,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1379,16 +1338,16 @@ class Calc_CF_SM_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST):
-                if con.fc[k] > 0.:
-                    flu.cf[k] = con.cflux[k]*(1.-sta.sm[k]/con.fc[k])
-                    flu.cf[k] = min(flu.cf[k], sta.uz+flu.r[k])
-                    flu.cf[k] = min(flu.cf[k], con.fc[k]-sta.sm[k])
+                if con.fc[k] > 0.0:
+                    flu.cf[k] = con.cflux[k] * (1.0 - sta.sm[k] / con.fc[k])
+                    flu.cf[k] = min(flu.cf[k], sta.uz + flu.r[k])
+                    flu.cf[k] = min(flu.cf[k], con.fc[k] - sta.sm[k])
                 else:
-                    flu.cf[k] = 0.
+                    flu.cf[k] = 0.0
                 sta.sm[k] += flu.cf[k]
             else:
-                flu.cf[k] = 0.
-                sta.sm[k] = 0.
+                flu.cf[k] = 0.0
+                sta.sm[k] = 0.0
 
 
 class Calc_EA_SM_V1(modeltools.Method):
@@ -1481,6 +1440,7 @@ class Calc_EA_SM_V1(modeltools.Method):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
@@ -1493,12 +1453,8 @@ class Calc_EA_SM_V1(modeltools.Method):
         hland_fluxes.EPC,
         hland_fluxes.EI,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.SM,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.EA,
-    )
+    UPDATEDSEQUENCES = (hland_states.SM,)
+    RESULTSEQUENCES = (hland_fluxes.EA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1507,21 +1463,22 @@ class Calc_EA_SM_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST):
-                if sta.sp[k] <= 0.:
-                    if (con.lp[k]*con.fc[k]) > 0.:
-                        flu.ea[k] = flu.epc[k]*sta.sm[k]/(con.lp[k]*con.fc[k])
+                if sta.sp[k] <= 0.0:
+                    if (con.lp[k] * con.fc[k]) > 0.0:
+                        flu.ea[k] = flu.epc[k] * sta.sm[k] / (con.lp[k] * con.fc[k])
                         flu.ea[k] = min(flu.ea[k], flu.epc[k])
                     else:
                         flu.ea[k] = flu.epc[k]
-                    flu.ea[k] -= max(con.ered[k] *
-                                     (flu.ea[k]+flu.ei[k]-flu.epc[k]), 0.)
+                    flu.ea[k] -= max(
+                        con.ered[k] * (flu.ea[k] + flu.ei[k] - flu.epc[k]), 0.0
+                    )
                     flu.ea[k] = min(flu.ea[k], sta.sm[k])
                 else:
-                    flu.ea[k] = 0.
+                    flu.ea[k] = 0.0
                 sta.sm[k] -= flu.ea[k]
             else:
-                flu.ea[k] = 0.
-                sta.sm[k] = 0.
+                flu.ea[k] = 0.0
+                sta.sm[k] = 0.0
 
 
 class Calc_InUZ_V1(modeltools.Method):
@@ -1556,30 +1513,27 @@ class Calc_InUZ_V1(modeltools.Method):
         inuz(0.0)
 
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelLandZoneArea,
-    )
+    DERIVEDPARAMETERS = (hland_derived.RelLandZoneArea,)
     REQUIREDSEQUENCES = (
         hland_fluxes.R,
         hland_fluxes.CF,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.InUZ,
-    )
+    RESULTSEQUENCES = (hland_fluxes.InUZ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuz = 0.
+        flu.inuz = 0.0
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                flu.inuz += der.rellandzonearea[k]*(flu.r[k]-flu.cf[k])
+                flu.inuz += der.rellandzonearea[k] * (flu.r[k] - flu.cf[k])
 
 
 class Calc_ContriArea_V1(modeltools.Method):
@@ -1657,6 +1611,7 @@ class Calc_ContriArea_V1(modeltools.Method):
 
         ...leads to contributing area values of 100 %.
     """
+
     CONTROLPARAMETERS = (
         hland_control.RespArea,
         hland_control.NmbZones,
@@ -1668,12 +1623,8 @@ class Calc_ContriArea_V1(modeltools.Method):
         hland_derived.RelSoilArea,
         hland_derived.RelSoilZoneArea,
     )
-    REQUIREDSEQUENCES = (
-        hland_states.SM,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.ContriArea,
-    )
+    REQUIREDSEQUENCES = (hland_states.SM,)
+    RESULTSEQUENCES = (hland_fluxes.ContriArea,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1681,13 +1632,14 @@ class Calc_ContriArea_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.contriarea = 1.
-        if con.resparea and (der.relsoilarea > 0.):
+        flu.contriarea = 1.0
+        if con.resparea and (der.relsoilarea > 0.0):
             for k in range(con.nmbzones):
                 if con.zonetype[k] in (FIELD, FOREST):
-                    if con.fc[k] > 0.:
-                        flu.contriarea *= \
-                            (sta.sm[k]/con.fc[k])**der.relsoilzonearea[k]
+                    if con.fc[k] > 0.0:
+                        flu.contriarea *= (
+                            sta.sm[k] / con.fc[k]
+                        ) ** der.relsoilzonearea[k]
             flu.contriarea **= con.beta[k]
 
 
@@ -1847,22 +1799,19 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         >>> states.uz
         uz(0.378292)
     """
+
     CONTROLPARAMETERS = (
         hland_control.RecStep,
         hland_control.PercMax,
         hland_control.K,
         hland_control.Alpha,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.DT,
-    )
+    DERIVEDPARAMETERS = (hland_derived.DT,)
     REQUIREDSEQUENCES = (
         hland_fluxes.ContriArea,
         hland_fluxes.InUZ,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.UZ,
-    )
+    UPDATEDSEQUENCES = (hland_states.UZ,)
     RESULTSEQUENCES = (
         hland_fluxes.Perc,
         hland_fluxes.Q0,
@@ -1874,17 +1823,18 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.perc = 0.
-        flu.q0 = 0.
+        flu.perc = 0.0
+        flu.q0 = 0.0
         for dummy in range(con.recstep):
-            sta.uz += der.dt*flu.inuz
-            d_perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
+            sta.uz += der.dt * flu.inuz
+            d_perc = min(der.dt * con.percmax * flu.contriarea, sta.uz)
             sta.uz -= d_perc
             flu.perc += d_perc
-            if sta.uz > 0.:
-                if flu.contriarea > 0.:
-                    d_q0 = (der.dt*con.k *
-                            (sta.uz/flu.contriarea)**(1.+con.alpha))
+            if sta.uz > 0.0:
+                if flu.contriarea > 0.0:
+                    d_q0 = (
+                        der.dt * con.k * (sta.uz / flu.contriarea) ** (1.0 + con.alpha)
+                    )
                     d_q0 = min(d_q0, sta.uz)
                 else:
                     d_q0 = sta.uz
@@ -1938,6 +1888,7 @@ class Calc_LZ_V1(modeltools.Method):
         >>> states.lz
         lz(13.0)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
@@ -1950,9 +1901,7 @@ class Calc_LZ_V1(modeltools.Method):
         hland_fluxes.Perc,
         hland_fluxes.PC,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.LZ,
-    )
+    UPDATEDSEQUENCES = (hland_states.LZ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1960,10 +1909,10 @@ class Calc_LZ_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.lz += der.rellandarea*flu.perc
+        sta.lz += der.rellandarea * flu.perc
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
-                sta.lz += der.relzonearea[k]*flu.pc[k]
+                sta.lz += der.relzonearea[k] * flu.pc[k]
 
 
 class Calc_EL_LZ_V1(modeltools.Method):
@@ -2013,24 +1962,19 @@ class Calc_EL_LZ_V1(modeltools.Method):
         >>> states.lz
         lz(-0.05)
     """
+
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
         hland_control.TTIce,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneArea,
-    )
+    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
     REQUIREDSEQUENCES = (
         hland_fluxes.TC,
         hland_fluxes.EPC,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.LZ,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.EL,
-    )
+    UPDATEDSEQUENCES = (hland_states.LZ,)
+    RESULTSEQUENCES = (hland_fluxes.EL,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2041,9 +1985,9 @@ class Calc_EL_LZ_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if (con.zonetype[k] == ILAKE) and (flu.tc[k] > con.ttice[k]):
                 flu.el[k] = flu.epc[k]
-                sta.lz -= der.relzonearea[k]*flu.el[k]
+                sta.lz -= der.relzonearea[k] * flu.el[k]
             else:
-                flu.el[k] = 0.
+                flu.el[k] = 0.0
 
 
 class Calc_Q1_LZ_V1(modeltools.Method):
@@ -2111,26 +2055,23 @@ class Calc_Q1_LZ_V1(modeltools.Method):
         >>> k4.value
         0.1
     """
+
     CONTROLPARAMETERS = (
         hland_control.K4,
         hland_control.Gamma,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.LZ,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.Q1,
-    )
+    UPDATEDSEQUENCES = (hland_states.LZ,)
+    RESULTSEQUENCES = (hland_fluxes.Q1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        if sta.lz > 0.:
-            flu.q1 = con.k4*sta.lz**(1.+con.gamma)
+        if sta.lz > 0.0:
+            flu.q1 = con.k4 * sta.lz ** (1.0 + con.gamma)
         else:
-            flu.q1 = 0.
+            flu.q1 = 0.0
         sta.lz -= flu.q1
 
 
@@ -2157,22 +2098,19 @@ class Calc_InUH_V1(modeltools.Method):
         inuh(3.0)
 
     """
-    DERIVEDPARAMETERS = (
-        hland_derived.RelLandArea,
-    )
+
+    DERIVEDPARAMETERS = (hland_derived.RelLandArea,)
     REQUIREDSEQUENCES = (
         hland_fluxes.Q0,
         hland_fluxes.Q1,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.InUH,
-    )
+    RESULTSEQUENCES = (hland_fluxes.InUH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuh = der.rellandarea*flu.q0+flu.q1
+        flu.inuh = der.rellandarea * flu.q0 + flu.q1
 
 
 class Calc_OutUH_QUH_V1(modeltools.Method):
@@ -2245,27 +2183,20 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
         >>> logs.quh
         quh(0.0)
     """
-    DERIVEDPARAMETERS = (
-        hland_derived.UH,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.InUH,
-    )
-    UPDATEDSEQUENCES = (
-        hland_logs.QUH,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.OutUH,
-    )
+
+    DERIVEDPARAMETERS = (hland_derived.UH,)
+    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
+    UPDATEDSEQUENCES = (hland_logs.QUH,)
+    RESULTSEQUENCES = (hland_fluxes.OutUH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        flu.outuh = der.uh[0]*flu.inuh+log.quh[0]
+        flu.outuh = der.uh[0] * flu.inuh + log.quh[0]
         for jdx in range(1, len(der.uh)):
-            log.quh[jdx-1] = der.uh[jdx]*flu.inuh+log.quh[jdx]
+            log.quh[jdx - 1] = der.uh[jdx] * flu.inuh + log.quh[jdx]
 
 
 class Calc_QT_V1(modeltools.Method):
@@ -2305,35 +2236,25 @@ class Calc_QT_V1(modeltools.Method):
         >>> fluxes.qt
         qt(2.0)
     """
-    CONTROLPARAMETERS = (
-        hland_control.Abstr,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.QFactor,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.OutUH,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.QT,
-    )
+
+    CONTROLPARAMETERS = (hland_control.Abstr,)
+    DERIVEDPARAMETERS = (hland_derived.QFactor,)
+    REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
+    RESULTSEQUENCES = (hland_fluxes.QT,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qt = max(der.qfactor*flu.outuh-con.abstr, 0.)
+        flu.qt = max(der.qfactor * flu.outuh - con.abstr, 0.0)
 
 
 class Pass_Q_v1(modeltools.Method):
     """Update the outlet link sequence."""
-    REQUIREDSEQUENCES = (
-        hland_fluxes.QT,
-    )
-    RESULTSEQUENCES = (
-        hland_outlets.Q,
-    )
+
+    REQUIREDSEQUENCES = (hland_fluxes.QT,)
+    RESULTSEQUENCES = (hland_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2344,6 +2265,7 @@ class Pass_Q_v1(modeltools.Method):
 
 class Model(modeltools.AdHocModel):
     """The HydPy-H-Land base model."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
@@ -2375,8 +2297,6 @@ class Model(modeltools.AdHocModel):
         Calc_QT_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        Pass_Q_v1,
-    )
+    OUTLET_METHODS = (Pass_Q_v1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

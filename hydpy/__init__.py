@@ -14,12 +14,15 @@ import os
 import pkgutil
 import warnings
 from typing import *
+
 # ...from site-packages
 import numpy
 from numpy import nan
+
 # ...from HydPy
 from hydpy.core import pubtools
-pub = pubtools.Pub('pub')
+
+pub = pubtools.Pub("pub")
 from hydpy import config
 from hydpy import models
 from hydpy.core import dummytools
@@ -122,115 +125,117 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()
 
-warnings.filterwarnings('ignore', r'tostring')
+warnings.filterwarnings("ignore", r"tostring")
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:
 try:
     # pylint: disable=unexpected-keyword-arg
-    numpy.set_printoptions(legacy='1.13')
-except TypeError:   # pragma: no cover
+    numpy.set_printoptions(legacy="1.13")
+except TypeError:  # pragma: no cover
     pass
 
-pub.scriptfunctions['await_server'] = await_server
-pub.scriptfunctions['exec_commands'] = exec_commands
-pub.scriptfunctions['exec_script'] = exec_script
-pub.scriptfunctions['run_simulation'] = run_simulation
-pub.scriptfunctions['start_shell'] = start_shell
-pub.scriptfunctions['start_server'] = start_server
-pub.scriptfunctions['test_everything'] = test_everything
-pub.scriptfunctions['xml_replace'] = xml_replace
+pub.scriptfunctions["await_server"] = await_server
+pub.scriptfunctions["exec_commands"] = exec_commands
+pub.scriptfunctions["exec_script"] = exec_script
+pub.scriptfunctions["run_simulation"] = run_simulation
+pub.scriptfunctions["start_shell"] = start_shell
+pub.scriptfunctions["start_server"] = start_server
+pub.scriptfunctions["test_everything"] = test_everything
+pub.scriptfunctions["xml_replace"] = xml_replace
 
-__all__ = ['aggregate_series',
-           'config',
-           'pub',
-           'Auxfiler',
-           'Element',
-           'Elements',
-           'FusedVariable',
-           'Node',
-           'Nodes',
-           'AttributeNotReady',
-           'attrready',
-           'getattr_',
-           'hasattr_',
-           'HydPyDeprecationWarning',
-           'HydPy',
-           'prepare_model',
-           'reverse_model_wildcard_import',
-           'print_values',
-           'classname',
-           'repr_',
-           'round_',
-           'Selection',
-           'Selections',
-           'Date',
-           'Period',
-           'Timegrid',
-           'Timegrids',
-           'TOY',
-           'make_abc_testable',
-           'NumericalDifferentiator',
-           'IntegrationTest',
-           'Open',
-           'TestIO',
-           'INT_NAN',
-           'sort_variables',
-           'UnitTest',
-           'update_integrationtests',
-           'ARMA',
-           'MA',
-           'ANN',
-           'ann',
-           'SeasonalANN',
-           'Adaptor',
-           'Add',
-           'CalibrationInterface',
-           'FactorAdaptor',
-           'Multiply',
-           'Replace',
-           'ReplaceIUH',
-           'Rule',
-           'SumAdaptor',
-           'TargetFunction',
-           'LinearStorageCascade',
-           'TranslationDiffusionEquation',
-           'AddItem',
-           'GetItem',
-           'SetItem',
-           'RiverBasinNumber',
-           'RiverBasinNumbers',
-           'RiverBasinNumbers2Selection',
-           'dummies',
-           'nan',
-           'bias_abs',
-           'bias_rel',
-           'calc_mean_time',
-           'calc_mean_time_deviation',
-           'corr',
-           'corr2',
-           'evaluationtable',
-           'filter_series',
-           'hsepd',
-           'hsepd_manual',
-           'hsepd_pdf',
-           'kge',
-           'nse',
-           'nse_log',
-           'prepare_arrays',
-           'rmse',
-           'std_ratio',
-           'XMLInterface',
-           'run_simulation',
-           'exec_commands',
-           'test_everything',
-           'exec_script',
-           'execute_scriptfunction',
-           'start_shell',
-           'run_subprocess',
-           'print_latest_logfile',
-           'xml_replace',
-           'await_server',
-           'start_server']
+__all__ = [
+    "aggregate_series",
+    "config",
+    "pub",
+    "Auxfiler",
+    "Element",
+    "Elements",
+    "FusedVariable",
+    "Node",
+    "Nodes",
+    "AttributeNotReady",
+    "attrready",
+    "getattr_",
+    "hasattr_",
+    "HydPyDeprecationWarning",
+    "HydPy",
+    "prepare_model",
+    "reverse_model_wildcard_import",
+    "print_values",
+    "classname",
+    "repr_",
+    "round_",
+    "Selection",
+    "Selections",
+    "Date",
+    "Period",
+    "Timegrid",
+    "Timegrids",
+    "TOY",
+    "make_abc_testable",
+    "NumericalDifferentiator",
+    "IntegrationTest",
+    "Open",
+    "TestIO",
+    "INT_NAN",
+    "sort_variables",
+    "UnitTest",
+    "update_integrationtests",
+    "ARMA",
+    "MA",
+    "ANN",
+    "ann",
+    "SeasonalANN",
+    "Adaptor",
+    "Add",
+    "CalibrationInterface",
+    "FactorAdaptor",
+    "Multiply",
+    "Replace",
+    "ReplaceIUH",
+    "Rule",
+    "SumAdaptor",
+    "TargetFunction",
+    "LinearStorageCascade",
+    "TranslationDiffusionEquation",
+    "AddItem",
+    "GetItem",
+    "SetItem",
+    "RiverBasinNumber",
+    "RiverBasinNumbers",
+    "RiverBasinNumbers2Selection",
+    "dummies",
+    "nan",
+    "bias_abs",
+    "bias_rel",
+    "calc_mean_time",
+    "calc_mean_time_deviation",
+    "corr",
+    "corr2",
+    "evaluationtable",
+    "filter_series",
+    "hsepd",
+    "hsepd_manual",
+    "hsepd_pdf",
+    "kge",
+    "nse",
+    "nse_log",
+    "prepare_arrays",
+    "rmse",
+    "std_ratio",
+    "XMLInterface",
+    "run_simulation",
+    "exec_commands",
+    "test_everything",
+    "exec_script",
+    "execute_scriptfunction",
+    "start_shell",
+    "run_subprocess",
+    "print_latest_logfile",
+    "xml_replace",
+    "await_server",
+    "start_server",
+]
 
 sequence2alias: Dict[sequencetools.TypesInOutSequence, str] = {}
 
@@ -241,18 +246,19 @@ _select = (
 )
 for moduleinfo in pkgutil.walk_packages(models.__path__):
     if moduleinfo.ispkg:
-        for group in ('inputs', 'fluxes', 'states'):
-            modulepath = \
-                f'hydpy.models.{moduleinfo.name}.{moduleinfo.name}_{group}'
+        for group in ("inputs", "fluxes", "states"):
+            modulepath = f"hydpy.models.{moduleinfo.name}.{moduleinfo.name}_{group}"
             try:
                 module = importlib.import_module(modulepath)
             except ModuleNotFoundError:
                 continue
             for member in vars(module).values():
-                if ((getattr(member, '__module__', None) == modulepath)
-                        and issubclass(member, _select) and
-                        member.NDIM == 0):
-                    alias = f'{moduleinfo.name}_{member.__name__}'
+                if (
+                    (getattr(member, "__module__", None) == modulepath)
+                    and issubclass(member, _select)
+                    and member.NDIM == 0
+                ):
+                    alias = f"{moduleinfo.name}_{member.__name__}"
                     sequence2alias[member] = alias
                     locals()[alias] = member
                     __all__.append(alias)
@@ -261,7 +267,7 @@ for moduleinfo in pkgutil.walk_packages(models.__path__):
 if config.USEAUTODOC:
     with warnings.catch_warnings():
         warnings.filterwarnings(
-            action='ignore',
+            action="ignore",
             category=FutureWarning,
         )
         from hydpy import auxs
@@ -269,23 +275,25 @@ if config.USEAUTODOC:
         from hydpy import cythons
         from hydpy import exe
         from hydpy.core import autodoctools
+
         substituter = autodoctools.prepare_mainsubstituter()
         for subpackage in (auxs, core, cythons, exe):
             for filename in os.listdir(subpackage.__path__[0]):
-                if filename.endswith('.py') and not filename.startswith('_'):
+                if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
-                        f'{subpackage.__name__}.{filename[:-3]}')
+                        f"{subpackage.__name__}.{filename[:-3]}"
+                    )
                     autodoctools.autodoc_module(module)
-        autodoctools.autodoc_module(importlib.import_module('hydpy.examples'))
+        autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         with pub.options.autocompile(False):
             for filename in os.listdir(models.__path__[0]):
                 path = os.path.join(models.__path__[0], filename)
-                if os.path.isdir(path) and not filename.startswith('_'):
-                    module = importlib.import_module(
-                        f'{models.__name__}.{filename}')
+                if os.path.isdir(path) and not filename.startswith("_"):
+                    module = importlib.import_module(f"{models.__name__}.{filename}")
                     autodoctools.autodoc_basemodel(module)
             for filename in os.listdir(models.__path__[0]):
-                if filename.endswith('.py') and not filename.startswith('_'):
+                if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
-                        f'{models.__name__}.{filename[:-3]}')
+                        f"{models.__name__}.{filename[:-3]}"
+                    )
                     autodoctools.autodoc_applicationmodel(module)

@@ -497,9 +497,10 @@ Integration tests
 
 # import...
 # ...from HydPy
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -507,6 +508,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 4 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -525,9 +527,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pic_LoggedRequiredRemoteRelease_V2,
         dam_model.Pic_LoggedAllowedRemoteRelieve_V1,
     )
-    ADD_METHODS = (
-        dam_model.Fix_Min1_V1,
-    )
+    ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
@@ -540,9 +540,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V3,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V3,)
     OUTLET_METHODS = (
         dam_model.Pass_Outflow_V1,
         dam_model.Pass_ActualRemoteRelease_V1,

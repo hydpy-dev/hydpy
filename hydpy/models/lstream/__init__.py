@@ -29,6 +29,7 @@ degree of "smoothness".  Please read the related documentation of module
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.auxs.anntools import ann
+
 # ...from lstream
 from hydpy.models.lstream.lstream_model import Model
 

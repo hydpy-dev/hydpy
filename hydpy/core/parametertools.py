@@ -7,8 +7,10 @@ import inspect
 import textwrap
 import time
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy import config
@@ -17,6 +19,7 @@ from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
+
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import masktools
@@ -25,13 +28,13 @@ if TYPE_CHECKING:
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
-time.strptime('1999', '%Y')
+time.strptime("1999", "%Y")
 
 
 def get_controlfileheader(
-        model: Union[str, 'modeltools.Model'],
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None
+    model: Union[str, "modeltools.Model"],
+    parameterstep: Optional[timetools.PeriodConstrArg] = None,
+    simulationstep: Optional[timetools.PeriodConstrArg] = None,
 ) -> str:
     """Return the header of a regular or auxiliary parameter control file.
 
@@ -82,10 +85,12 @@ def get_controlfileheader(
             simulationstep = hydpy.pub.options.simulationstep
         else:
             simulationstep = timetools.Period(simulationstep)
-        return (f"# -*- coding: utf-8 -*-\n\n"
-                f"from hydpy.models.{model} import *\n\n"
-                f"simulationstep('{simulationstep}')\n"
-                f"parameterstep('{options.parameterstep}')\n\n")
+        return (
+            f"# -*- coding: utf-8 -*-\n\n"
+            f"from hydpy.models.{model} import *\n\n"
+            f"simulationstep('{simulationstep}')\n"
+            f"parameterstep('{options.parameterstep}')\n\n"
+        )
 
 
 class IntConstant(int):
@@ -95,7 +100,7 @@ class IntConstant(int):
         const = int.__new__(cls, value)
         const.__doc__ = None
         frame = inspect.currentframe().f_back
-        const.__module__ = frame.f_locals['__name__']
+        const.__module__ = frame.f_locals["__name__"]
         return const
 
 
@@ -107,7 +112,7 @@ class Constants(dict):
 
     def __init__(self, *args, **kwargs):
         frame = inspect.currentframe().f_back
-        self.__module__ = frame.f_locals.get('__name__')
+        self.__module__ = frame.f_locals.get("__name__")
         if not (args or kwargs):
             for (key, value) in frame.f_locals.items():
                 if key.isupper() and isinstance(value, IntConstant):
@@ -127,7 +132,7 @@ class Constants(dict):
                 sources = file_.read().split('"""')
             for code, doc in zip(sources[::2], sources[1::2]):
                 code = code.strip()
-                key = code.split('\n')[-1].split()[0]
+                key = code.split("\n")[-1].split()[0]
                 value = self.get(key)
                 if value:
                     value.__doc__ = doc
@@ -158,26 +163,27 @@ class Parameters:
     2
     """
 
-    model: 'modeltools.Model'
-    control: 'SubParameters'
-    derived: 'SubParameters'
-    fixed: 'SubParameters'
-    solver: 'SubParameters'
+    model: "modeltools.Model"
+    control: "SubParameters"
+    derived: "SubParameters"
+    fixed: "SubParameters"
+    solver: "SubParameters"
 
     def __init__(self, kwargs):
-        self.model = kwargs.get('model')
-        self.control = self._prepare_subpars('control', kwargs)
-        self.derived = self._prepare_subpars('derived', kwargs)
-        self.fixed = self._prepare_subpars('fixed', kwargs)
-        self.solver = self._prepare_subpars('solver', kwargs)
+        self.model = kwargs.get("model")
+        self.control = self._prepare_subpars("control", kwargs)
+        self.derived = self._prepare_subpars("derived", kwargs)
+        self.fixed = self._prepare_subpars("fixed", kwargs)
+        self.solver = self._prepare_subpars("solver", kwargs)
 
     def _prepare_subpars(self, shortname, kwargs):
-        fullname = f'{shortname.capitalize()}Parameters'
-        cls = kwargs.get(
-            fullname, type(fullname, (SubParameters,), {'CLASSES': ()}))
-        return cls(self,
-                   getattr(kwargs.get('cythonmodule'), fullname, None),
-                   kwargs.get('cymodel'))
+        fullname = f"{shortname.capitalize()}Parameters"
+        cls = kwargs.get(fullname, type(fullname, (SubParameters,), {"CLASSES": ()}))
+        return cls(
+            self,
+            getattr(kwargs.get("cythonmodule"), fullname, None),
+            kwargs.get("cymodel"),
+        )
 
     def update(self) -> None:
         """Call method |Parameter.update| of all "secondary" parameters.
@@ -223,14 +229,17 @@ variable `lag`, no value has been defined so far.
                     par.update()
                 except BaseException:
                     objecttools.augment_excmessage(
-                        f'While trying to update parameter '
-                        f'{objecttools.elementphrase(par)}')
+                        f"While trying to update parameter "
+                        f"{objecttools.elementphrase(par)}"
+                    )
 
     def save_controls(
-            self, filepath: Optional[str] = None,
-            parameterstep: Optional[timetools.PeriodConstrArg] = None,
-            simulationstep: Optional[timetools.PeriodConstrArg] = None,
-            auxfiler: 'auxfiletools.Auxfiler' = None):
+        self,
+        filepath: Optional[str] = None,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: "auxfiletools.Auxfiler" = None,
+    ):
         """Write the control parameters to file.
 
         Usually, a control file consists of a header (see the documentation
@@ -283,31 +292,30 @@ it is usally assumed to be consistent with the name of the element \
 handling the model.
         """
         variable2auxfile = getattr(auxfiler, str(self.model), None)
-        lines = [get_controlfileheader(
-            self.model, parameterstep, simulationstep)]
+        lines = [get_controlfileheader(self.model, parameterstep, simulationstep)]
         with hydpy.pub.options.parameterstep(parameterstep):
             for par in self.control:
                 if variable2auxfile:
                     auxfilename = variable2auxfile.get_filename(par)
                     if auxfilename:
-                        lines.append(
-                            f"{par.name}(auxfile='{auxfilename}')\n")
+                        lines.append(f"{par.name}(auxfile='{auxfilename}')\n")
                         continue
-                lines.append(repr(par) + '\n')
-        text = ''.join(lines)
+                lines.append(repr(par) + "\n")
+        text = "".join(lines)
         if filepath:
-            with open(filepath, mode='w', encoding='utf-8') as controlfile:
+            with open(filepath, mode="w", encoding="utf-8") as controlfile:
                 controlfile.write(text)
         else:
             filename = objecttools.devicename(self)
-            if filename == '?':
+            if filename == "?":
                 raise RuntimeError(
-                    'To save the control parameters of a model to a file, '
-                    'its filename must be known.  This can be done, by '
-                    'passing a filename to function `save_controls` '
-                    'directly.  But in complete HydPy applications, it is '
-                    'usally assumed to be consistent with the name of the '
-                    'element handling the model.')
+                    "To save the control parameters of a model to a file, "
+                    "its filename must be known.  This can be done, by "
+                    "passing a filename to function `save_controls` "
+                    "directly.  But in complete HydPy applications, it is "
+                    "usally assumed to be consistent with the name of the "
+                    "element handling the model."
+                )
             hydpy.pub.controlmanager.save_file(filename, text)
 
     def verify(self) -> None:
@@ -358,7 +366,7 @@ set yet: c1(?).
                 par.verify()
 
     @property
-    def secondary_subpars(self) -> Iterator['SubParameters']:
+    def secondary_subpars(self) -> Iterator["SubParameters"]:
         """Iterate through all subgroups of "secondary" parameters.
 
         These secondary parameter subgroups are the `derived` parameters
@@ -374,7 +382,7 @@ set yet: c1(?).
         for subpars in (self.derived, self.solver):
             yield subpars
 
-    def __iter__(self) -> Iterator['SubParameters']:
+    def __iter__(self) -> Iterator["SubParameters"]:
         for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
                 yield subpars
@@ -401,7 +409,7 @@ class FastAccessParameter(variabletools.FastAccess):
 class SubParameters(
     variabletools.SubVariables[
         Parameters,
-        'Parameter',
+        "Parameter",
         FastAccessParameter,
     ],
 ):
@@ -460,14 +468,15 @@ class SubParameters(
     """
 
     pars: Parameters
-    _cymodel: Optional['typingtools.CyModelProtocol']
+    _cymodel: Optional["typingtools.CyModelProtocol"]
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
-            self,
-            master: Parameters,
-            cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
-            cymodel: Optional['typingtools.CyModelProtocol'] = None):
+        self,
+        master: Parameters,
+        cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
+        cymodel: Optional["typingtools.CyModelProtocol"] = None,
+    ):
         self.pars = master
         self._cymodel = cymodel
         super().__init__(
@@ -748,6 +757,7 @@ the following error occurred: While trying to convert the value(s) \
 the following error occurred: could not broadcast input array from \
 shape (2) into shape (2,3)
     """
+
     TIME: Optional[bool]
 
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
@@ -755,24 +765,24 @@ shape (2) into shape (2,3)
     def __call__(self, *args, **kwargs):
         if args and kwargs:
             raise ValueError(
-                f'For parameter {objecttools.elementphrase(self)} '
-                f'both positional and keyword arguments are given, '
-                f'which is ambiguous.'
+                f"For parameter {objecttools.elementphrase(self)} "
+                f"both positional and keyword arguments are given, "
+                f"which is ambiguous."
             )
         if not args and not kwargs:
             raise ValueError(
-                f'For parameter {objecttools.elementphrase(self)} neither '
-                f'a positional nor a keyword argument is given.'
+                f"For parameter {objecttools.elementphrase(self)} neither "
+                f"a positional nor a keyword argument is given."
             )
-        auxfile = kwargs.pop('auxfile', None)
+        auxfile = kwargs.pop("auxfile", None)
         if auxfile:
             if kwargs:
                 raise ValueError(
-                    f'It is not allowed to combine keyword `auxfile` with '
-                    f'other keywords, but for parameter '
-                    f'{objecttools.elementphrase(self)} also the following '
-                    f'keywords are used: '
-                    f'{objecttools.enumeration(kwargs.keys())}.'
+                    f"It is not allowed to combine keyword `auxfile` with "
+                    f"other keywords, but for parameter "
+                    f"{objecttools.elementphrase(self)} also the following "
+                    f"keywords are used: "
+                    f"{objecttools.enumeration(kwargs.keys())}."
                 )
             values = self._get_values_from_auxiliaryfile(auxfile)
             self.values = self.apply_timefactor(values)
@@ -782,8 +792,8 @@ shape (2) into shape (2,3)
             self.values = self.apply_timefactor(numpy.array(args))
         else:
             raise NotImplementedError(
-                f'The value(s) of parameter {objecttools.elementphrase(self)} '
-                f'could not be set based on the given keyword arguments.'
+                f"The value(s) of parameter {objecttools.elementphrase(self)} "
+                f"could not be set based on the given keyword arguments."
             )
         self.trim()
 
@@ -800,16 +810,16 @@ shape (2) into shape (2,3)
                 namespace = frame.f_locals
                 try:
                     subnamespace = {
-                        'model': namespace['model'],
-                        'focus': self,
+                        "model": namespace["model"],
+                        "focus": self,
                     }
                     break
                 except KeyError:
                     frame = frame.f_back
             else:
                 raise RuntimeError(
-                    'Cannot determine the corresponding model.  Use the '
-                    '`auxfile` keyword in usual parameter control files only.'
+                    "Cannot determine the corresponding model.  Use the "
+                    "`auxfile` keyword in usual parameter control files only."
                 )
             filetools.ControlManager.read2dict(auxfile, subnamespace)
             subself = subnamespace[self.name]
@@ -817,13 +827,13 @@ shape (2) into shape (2,3)
                 return subself.__hydpy__get_value__()
             except exceptiontools.AttributeNotReady:
                 raise RuntimeError(
-                    f'The selected auxiliary file does not define '
-                    f'value(s) for parameter `{self.name}`.'
+                    f"The selected auxiliary file does not define "
+                    f"value(s) for parameter `{self.name}`."
                 ) from None
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to extract information for parameter '
-                f'`{self.name}` from file `{auxfile}`'
+                f"While trying to extract information for parameter "
+                f"`{self.name}` from file `{auxfile}`"
             )
 
     @property
@@ -838,7 +848,7 @@ shape (2) into shape (2,3)
         else:
             initvalue, initflag = self.initinfo
             if initflag:
-                setattr(self, 'value', initvalue)
+                setattr(self, "value", initvalue)
             else:
                 setattr(self.fastaccess, self.name, initvalue)
 
@@ -905,7 +915,7 @@ shape (2) into shape (2,3)
         """
         init = self.INIT
         if (init is not None) and hydpy.pub.options.usedefaultvalues:
-            with hydpy.pub.options.parameterstep('1d'):
+            with hydpy.pub.options.parameterstep("1d"):
                 return self.apply_timefactor(init), True
         return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
 
@@ -963,12 +973,12 @@ parameter and a simulation time step size first.
             options = hydpy.pub.options
             if not (options.parameterstep and options.simulationstep):
                 raise RuntimeError(
-                    'To calculate the conversion factor for adapting '
-                    'the values of the time-dependent parameters, '
-                    'you need to define both a parameter and a simulation '
-                    'time step size first.'
+                    "To calculate the conversion factor for adapting "
+                    "the values of the time-dependent parameters, "
+                    "you need to define both a parameter and a simulation "
+                    "time step size first."
                 ) from None
-            date1 = timetools.Date('2000.01.01')
+            date1 = timetools.Date("2000.01.01")
             date2 = date1 + options.simulationstep
             parfactor = timetools.Timegrids(
                 timetools.Timegrid(
@@ -1081,8 +1091,9 @@ parameter and a simulation time step size first.
 implement method `update`.
         """
         raise RuntimeError(
-            f'Parameter {objecttools.elementphrase(self)} does not '
-            f'implement method `update`.')
+            f"Parameter {objecttools.elementphrase(self)} does not "
+            f"implement method `update`."
+        )
 
     def compress_repr(self) -> Optional[str]:
         """Try to find a compressed parameter value representation and
@@ -1196,8 +1207,8 @@ implement method `update`.
         >>> test
         test([[]])
         """
-        if not exceptiontools.attrready(self, 'value'):
-            return '?'
+        if not exceptiontools.attrready(self, "value"):
+            return "?"
         if not self:
             return f"{self.NDIM * '['}{self.NDIM * ']'}"
         unique = numpy.unique(self[self.mask])
@@ -1217,12 +1228,12 @@ implement method `update`.
             islong = (len(self) > 255) if (values is None) else False
             return variabletools.to_repr(self, values, islong)
         lines = self.commentrepr
-        if exceptiontools.attrready(self, 'value'):
+        if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
         else:
-            value = '?'
-        lines.append(f'{self.name}({objecttools.repr_(value)})')
-        return '\n'.join(lines)
+            value = "?"
+        lines.append(f"{self.name}({objecttools.repr_(value)})")
+        return "\n".join(lines)
 
     def __dir__(self):
         """
@@ -1307,6 +1318,7 @@ class NameParameter(Parameter):
     >>> landtype   # doctest: +ELLIPSIS
     landtype([WATER, SOIL, ..., SOIL, GLACIER])
     """
+
     NDIM = 1
     TYPE = int
     TIME = None
@@ -1314,8 +1326,8 @@ class NameParameter(Parameter):
 
     def __repr__(self) -> str:
         string = super().compress_repr()
-        if string in ('?', '[]'):
-            return f'{self.name}({string})'
+        if string in ("?", "[]"):
+            return f"{self.name}({string})"
         if string is None:
             values = self.values
         else:
@@ -1325,16 +1337,16 @@ class NameParameter(Parameter):
         if len(self) > 255:
             string = objecttools.assignrepr_list(
                 values=names,
-                prefix=f'{self.name}(',
+                prefix=f"{self.name}(",
                 width=70,
             )
         else:
             string = objecttools.assignrepr_values(
                 values=names,
-                prefix=f'{self.name}(',
+                prefix=f"{self.name}(",
                 width=70,
             )
-        return f'{string})'
+        return f"{string})"
 
 
 class ZipParameter(Parameter):
@@ -1521,6 +1533,7 @@ error occurred: could not convert string to float: 'test'
 'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', \
 'value', 'values', 'verify', 'water']
     """
+
     NDIM = 1
     MODEL_CONSTANTS: Dict[str, int]
 
@@ -1532,14 +1545,14 @@ error occurred: could not convert string to float: 'test'
                 self._own_call(kwargs)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to set the values of parameter '
-                    f'{objecttools.elementphrase(self)} based on keyword '
-                    f'arguments `{objecttools.enumeration(kwargs)}`'
+                    f"While trying to set the values of parameter "
+                    f"{objecttools.elementphrase(self)} based on keyword "
+                    f"arguments `{objecttools.enumeration(kwargs)}`"
                 )
 
     def _own_call(
-            self,
-            kwargs: Dict[str, Any],
+        self,
+        kwargs: Dict[str, Any],
     ) -> None:
         mask = self.mask
         self.values = numpy.nan
@@ -1547,9 +1560,9 @@ error occurred: could not convert string to float: 'test'
         allidxs = mask.refindices.values
         relidxs = mask.relevantindices
         counter = 0
-        if 'default' in kwargs:
+        if "default" in kwargs:
             check = False
-            values[mask] = kwargs.pop('default')
+            values[mask] = kwargs.pop("default")
         else:
             check = True
         for (key, value) in kwargs.items():
@@ -1560,13 +1573,12 @@ error occurred: could not convert string to float: 'test'
                     counter += 1
             except KeyError:
                 raise TypeError(
-                    f'Keyword `{key}` is not among the '
-                    f'available model constants.'
+                    f"Keyword `{key}` is not among the " f"available model constants."
                 ) from None
         if check and (counter < len(relidxs)):
             raise TypeError(
-                'The given keywords are incomplete '
-                'and no default value is available.'
+                "The given keywords are incomplete "
+                "and no default value is available."
             )
         values[:] = self.apply_timefactor(values)
         self.trim()
@@ -1578,9 +1590,9 @@ error occurred: could not convert string to float: 'test'
                 key.lower() for key in self.MODEL_CONSTANTS.keys()
             )
             raise AttributeError(
-                f'`{name}` is neither a normal attribute of parameter '
-                f'{objecttools.elementphrase(self)} nor among the '
-                f'following special attributes: {names}.'
+                f"`{name}` is neither a normal attribute of parameter "
+                f"{objecttools.elementphrase(self)} nor among the "
+                f"following special attributes: {names}."
             )
         sel_constant = self.MODEL_CONSTANTS[name_]
         used_constants = self.mask.refindices.values
@@ -1595,9 +1607,9 @@ error occurred: could not convert string to float: 'test'
                 self.values[used_constants == sel_constant] = value
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying the set the value(s) of parameter '
-                    f'{objecttools.elementphrase(self)} related to the '
-                    f'special attribute `{name}`'
+                    f"While trying the set the value(s) of parameter "
+                    f"{objecttools.elementphrase(self)} related to the "
+                    f"special attribute `{name}`"
                 )
         else:
             super().__setattr__(name, value)
@@ -1605,7 +1617,7 @@ error occurred: could not convert string to float: 'test'
     def __repr__(self) -> str:
         string = super().compress_repr()
         if string is not None:
-            return f'{self.name}({string})'
+            return f"{self.name}({string})"
         results = []
         mask = self.mask
         refindices = mask.refindices.values
@@ -1615,22 +1627,18 @@ error occurred: could not convert string to float: 'test'
                 unique = self.revert_timefactor(unique)
                 length = len(unique)
                 if length == 1:
-                    results.append(
-                        f'{key.lower()}={objecttools.repr_(unique[0])}')
+                    results.append(f"{key.lower()}={objecttools.repr_(unique[0])}")
                 elif length > 1:
                     return super().__repr__()
         string = objecttools.assignrepr_values(
             values=sorted(results),
-            prefix=f'{self.name}(',
+            prefix=f"{self.name}(",
             width=70,
         )
-        return f'{string})'
+        return f"{string})"
 
     def __dir__(self):
-        return (
-            super().__dir__() +
-            [key.lower() for key in self.MODEL_CONSTANTS.keys()]
-        )
+        return super().__dir__() + [key.lower() for key in self.MODEL_CONSTANTS.keys()]
 
 
 class SeasonalParameter(Parameter):
@@ -1798,6 +1806,7 @@ shape (2) into shape (366,3)
 
         >>> del pub.timegrids
     """
+
     TYPE = float
 
     strict_valuehandling: ClassVar[bool] = False
@@ -1821,9 +1830,10 @@ shape (2) into shape (366,3)
                     setattr(self, str(timetools.TOY(toystr)), values)
                 except BaseException:
                     objecttools.augment_excmessage(
-                        f'While trying to define the seasonal parameter '
-                        f'value {objecttools.elementphrase(self)} for '
-                        f'time of year `{toystr}`')
+                        f"While trying to define the seasonal parameter "
+                        f"value {objecttools.elementphrase(self)} for "
+                        f"time of year `{toystr}`"
+                    )
             self.refresh()
 
     def refresh(self) -> None:
@@ -1919,10 +1929,11 @@ shape (2) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        self._toy2values = {toy: self._toy2values[toy] for toy
-                            in sorted(self._toy2values.keys())}
+        self._toy2values = {
+            toy: self._toy2values[toy] for toy in sorted(self._toy2values.keys())
+        }
         if not self:
-            self.values[:] = 0.
+            self.values[:] = 0.0
         elif len(self) == 1:
             values = list(self._toy2values.values())[0]
             self.values[:] = self.apply_timefactor(values)
@@ -2016,12 +2027,12 @@ shape (2) into shape (366,3)
         xys = list(self)
         for idx, (x1, y1) in enumerate(xys):
             if x1 > xnew:
-                x0, y0 = xys[idx-1]
+                x0, y0 = xys[idx - 1]
                 break
         else:
             x0, y0 = xys[-1]
             x1, y1 = xys[0]
-        return y0 + (y1-y0) / (x1 - x0) * (xnew - x0)
+        return y0 + (y1 - y0) / (x1 - x0) * (xnew - x0)
 
     @property
     def toys(self) -> Tuple[timetools.TOY, ...]:
@@ -2100,13 +2111,14 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         simulationstep = hydpy.pub.options.simulationstep
         if not simulationstep:
             raise RuntimeError(
-                f'It is not possible the set the shape of the seasonal '
-                f'parameter {objecttools.elementphrase(self)} at the '
-                f'moment.  You need to define the simulation step size '
-                f'first.  However, in complete HydPy projects this step'
-                f'size is indirectly defined via `pub.timegrids.stepsize` '
-                f'automatically.')
-        shape_[0] = int(numpy.ceil(timetools.Period('366d')/simulationstep))
+                f"It is not possible the set the shape of the seasonal "
+                f"parameter {objecttools.elementphrase(self)} at the "
+                f"moment.  You need to define the simulation step size "
+                f"first.  However, in complete HydPy projects this step"
+                f"size is indirectly defined via `pub.timegrids.stepsize` "
+                f"automatically."
+            )
+        shape_[0] = int(numpy.ceil(timetools.Period("366d") / simulationstep))
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
         super().__hydpy__set_shape__(shape_)
 
@@ -2120,13 +2132,13 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
             return self._toy2values[timetools.TOY(name)]
         except KeyError:
             raise AttributeError(
-                f'Seasonal parameter {objecttools.elementphrase(self)} '
-                f'has neither a normal attribute nor does it handle a '
+                f"Seasonal parameter {objecttools.elementphrase(self)} "
+                f"has neither a normal attribute nor does it handle a "
                 f'"time of year" named `{name}`.'
             ) from None
 
     def __setattr__(self, name, value):
-        if name.startswith('toy_'):
+        if name.startswith("toy_"):
             try:
                 if self.NDIM == 1:
                     value = float(value)
@@ -2136,9 +2148,9 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to add a new or change an existing '
-                    f'toy-value pair for the seasonal parameter '
-                    f'{objecttools.elementphrase(self)}'
+                    f"While trying to add a new or change an existing "
+                    f"toy-value pair for the seasonal parameter "
+                    f"{objecttools.elementphrase(self)}"
                 )
         else:
             super().__setattr__(name, value)
@@ -2152,32 +2164,31 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 self.refresh()
             except KeyError:
                 raise AttributeError(
-                    f'Seasonal parameter {objecttools.elementphrase(self)} '
-                    f'has neither a normal attribute nor does it handle a '
+                    f"Seasonal parameter {objecttools.elementphrase(self)} "
+                    f"has neither a normal attribute nor does it handle a "
                     f'"time of year" named `{name}`.'
                 ) from None
 
     def __repr__(self):
-
         def _assignrepr(value_, prefix_):
             if self.NDIM == 1:
                 return objecttools.assignrepr_value(value_, prefix_)
             return objecttools.assignrepr_list(value_, prefix_, width=79)
 
         if not self:
-            return f'{self.name}()'
+            return f"{self.name}()"
         toy0 = timetools.TOY0
         if (len(self) == 1) and (toy0 in self._toy2values):
             return f'{_assignrepr(self._toy2values[toy0], f"{self.name}(")})'
         lines = []
-        blanks = ' '*(len(self.name)+1)
+        blanks = " " * (len(self.name) + 1)
         for idx, (toy, value) in enumerate(self):
             if idx == 0:
-                lines.append(_assignrepr(value, f'{self.name}({toy}='))
+                lines.append(_assignrepr(value, f"{self.name}({toy}="))
             else:
-                lines.append(_assignrepr(value, f'{blanks}{toy}='))
-        lines[-1] += ')'
-        return ',\n'.join(lines)
+                lines.append(_assignrepr(value, f"{blanks}{toy}="))
+        lines[-1] += ")"
+        return ",\n".join(lines)
 
     def __len__(self):
         return len(self._toy2values)
@@ -2286,6 +2297,7 @@ index 1 is out of bounds for axis 0 with size 1
 element `?` via attribute `summer`, the following error occurred: \
 index 1 is out of bounds for axis 0 with size 1
     """
+
     NDIM = 1
     ENTRYNAMES: ClassVar[Tuple[str, ...]]
 
@@ -2305,21 +2317,21 @@ index 1 is out of bounds for axis 0 with size 1
                 except KeyError:
                     err = (key for key in self.ENTRYNAMES if key not in kwargs)
                     raise ValueError(
-                        f'When setting parameter '
-                        f'{objecttools.elementphrase(self)} via keyword '
-                        f'arguments, each string defined '
-                        f'in `ENTRYNAMES` must be used as a keyword, '
-                        f'but the following keywords are not: '
-                        f'`{objecttools.enumeration(err)}`.'
+                        f"When setting parameter "
+                        f"{objecttools.elementphrase(self)} via keyword "
+                        f"arguments, each string defined "
+                        f"in `ENTRYNAMES` must be used as a keyword, "
+                        f"but the following keywords are not: "
+                        f"`{objecttools.enumeration(err)}`."
                     ) from None
             if len(kwargs) != len(self.ENTRYNAMES):
                 err = (key for key in kwargs if key not in self.ENTRYNAMES)
                 raise ValueError(
-                    f'When setting parameter '
-                    f'{objecttools.elementphrase(self)} via keyword '
-                    f'arguments, each keyword must be defined in '
-                    f'`ENTRYNAMES`, but the following keywords are not: '
-                    f'`{objecttools.enumeration(err)}`.'
+                    f"When setting parameter "
+                    f"{objecttools.elementphrase(self)} via keyword "
+                    f"arguments, each keyword must be defined in "
+                    f"`ENTRYNAMES`, but the following keywords are not: "
+                    f"`{objecttools.enumeration(err)}`."
                 ) from None
 
     def __getattr__(self, key):
@@ -2328,13 +2340,13 @@ index 1 is out of bounds for axis 0 with size 1
                 return self.values[self.ENTRYNAMES.index(key)]
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to retrieve a value from parameter '
-                    f'{objecttools.elementphrase(self)} via the '
-                    f'attribute `{key}`'
+                    f"While trying to retrieve a value from parameter "
+                    f"{objecttools.elementphrase(self)} via the "
+                    f"attribute `{key}`"
                 )
         raise AttributeError(
-            f'Parameter {objecttools.elementphrase(self)} does '
-            f'not handle an attribute named `{key}`.'
+            f"Parameter {objecttools.elementphrase(self)} does "
+            f"not handle an attribute named `{key}`."
         )
 
     def __setattr__(self, key, values):
@@ -2343,8 +2355,8 @@ index 1 is out of bounds for axis 0 with size 1
                 self.values[self.ENTRYNAMES.index(key)] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to assign a new value to parameter '
-                    f'{objecttools.elementphrase(self)} via attribute `{key}`'
+                    f"While trying to assign a new value to parameter "
+                    f"{objecttools.elementphrase(self)} via attribute `{key}`"
                 )
         else:
             super().__setattr__(key, values)
@@ -2352,26 +2364,28 @@ index 1 is out of bounds for axis 0 with size 1
     def __repr__(self):
         lines = self.commentrepr
         values = self.revert_timefactor(self.values)
-        prefix = f'{self.name}('
+        prefix = f"{self.name}("
         if len(numpy.unique(values)) == 1:
-            lines.append(f'{prefix}{objecttools.repr_(values[0])})')
+            lines.append(f"{prefix}{objecttools.repr_(values[0])})")
         else:
-            blanks = ' '*len(prefix)
-            string = ', '.join(f'{key}={objecttools.repr_(value)}'
-                               for key, value in zip(self.ENTRYNAMES, values))
+            blanks = " " * len(prefix)
+            string = ", ".join(
+                f"{key}={objecttools.repr_(value)}"
+                for key, value in zip(self.ENTRYNAMES, values)
+            )
             for idx, substring in enumerate(
-                    textwrap.wrap(
-                        text=string,
-                        width=max(70-len(prefix), 30),
-                        break_long_words=False,
-                    )
+                textwrap.wrap(
+                    text=string,
+                    width=max(70 - len(prefix), 30),
+                    break_long_words=False,
+                )
             ):
                 if idx:
-                    lines.append(f'{blanks}{substring}')
+                    lines.append(f"{blanks}{substring}")
                 else:
-                    lines.append(f'{prefix}{substring}')
-            lines[-1] += ')'
-        return '\n'.join(lines)
+                    lines.append(f"{prefix}{substring}")
+            lines[-1] += ")"
+        return "\n".join(lines)
 
     def __dir__(self):
         """
@@ -2411,8 +2425,21 @@ class MonthParameter(KeywordParameter1D):
     wg2z(jan=3.0, feb=4.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
-    ENTRYNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+
+    ENTRYNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
 
 
 class KeywordParameter2D(Parameter):
@@ -2551,6 +2578,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
            south=[False, False, False, False, False, False, False, False,
                   False, False])
     """
+
     NDIM = 2
     ROWNAMES: ClassVar[Tuple[str, ...]]
     COLNAMES: ClassVar[Tuple[str, ...]]
@@ -2564,7 +2592,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         rowcolmappings = {}
         for (idx, rowname) in enumerate(rownames):
             for (jdx, colname) in enumerate(colnames):
-                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+                rowcolmappings["_".join((rowname, colname))] = (idx, jdx)
         cls._ROWCOLMAPPINGS = rowcolmappings
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
@@ -2581,12 +2609,12 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 except KeyError:
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
-                        f'While setting parameter '
-                        f'{objecttools.elementphrase(self)} via row '
-                        f'related keyword arguments, each string defined '
-                        f'in `ROWNAMES` must be used as a keyword, '
-                        f'but the following keywords are not: '
-                        f'`{objecttools.enumeration(miss)}`.'
+                        f"While setting parameter "
+                        f"{objecttools.elementphrase(self)} via row "
+                        f"related keyword arguments, each string defined "
+                        f"in `ROWNAMES` must be used as a keyword, "
+                        f"but the following keywords are not: "
+                        f"`{objecttools.enumeration(miss)}`."
                     ) from None
 
     def __getattr__(self, key):
@@ -2595,18 +2623,18 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 return self.values[self.ROWNAMES.index(key), :]
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to retrieve values from parameter '
-                    f'{objecttools.elementphrase(self)} via the row '
-                    f'related attribute `{key}`'
+                    f"While trying to retrieve values from parameter "
+                    f"{objecttools.elementphrase(self)} via the row "
+                    f"related attribute `{key}`"
                 )
         if key in self.COLNAMES:
             try:
                 return self.values[:, self.COLNAMES.index(key)]
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to retrieve values from parameter '
-                    f'{objecttools.elementphrase(self)} via the column '
-                    f'related attribute `{key}`'
+                    f"While trying to retrieve values from parameter "
+                    f"{objecttools.elementphrase(self)} via the column "
+                    f"related attribute `{key}`"
                 )
         if key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
@@ -2614,14 +2642,14 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 return self.values[idx, jdx]
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to retrieve values from parameter '
-                    f'{objecttools.elementphrase(self)} via the row '
-                    f'and column related attribute `{key}`'
+                    f"While trying to retrieve values from parameter "
+                    f"{objecttools.elementphrase(self)} via the row "
+                    f"and column related attribute `{key}`"
                 )
         raise AttributeError(
-            f'Parameter {objecttools.elementphrase(self)} does neither '
-            f'handle a normal attribute nor a row or column related '
-            f'attribute named `{key}`.'
+            f"Parameter {objecttools.elementphrase(self)} does neither "
+            f"handle a normal attribute nor a row or column related "
+            f"attribute named `{key}`."
         )
 
     def __setattr__(self, key, values):
@@ -2630,18 +2658,18 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 self.values[self.ROWNAMES.index(key), :] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to assign new values to parameter '
-                    f'{objecttools.elementphrase(self)} via the row '
-                    f'related attribute `{key}`'
+                    f"While trying to assign new values to parameter "
+                    f"{objecttools.elementphrase(self)} via the row "
+                    f"related attribute `{key}`"
                 )
         elif key in self.COLNAMES:
             try:
                 self.values[:, self.COLNAMES.index(key)] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to assign new values to parameter '
-                    f'{objecttools.elementphrase(self)} via the column '
-                    f'related attribute `{key}`'
+                    f"While trying to assign new values to parameter "
+                    f"{objecttools.elementphrase(self)} via the column "
+                    f"related attribute `{key}`"
                 )
         elif key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
@@ -2649,9 +2677,9 @@ a normal attribute nor a row or column related attribute named `wrong`.
                 self.values[idx, jdx] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to assign new values to parameter '
-                    f'{objecttools.elementphrase(self)} via the row '
-                    f'and column related attribute `{key}`'
+                    f"While trying to assign new values to parameter "
+                    f"{objecttools.elementphrase(self)} via the row "
+                    f"and column related attribute `{key}`"
                 )
         else:
             super().__setattr__(key, values)
@@ -2659,14 +2687,15 @@ a normal attribute nor a row or column related attribute named `wrong`.
     def __repr__(self):
         lines = self.commentrepr
         values = self.revert_timefactor(self.values)
-        prefix = f'{self.name}('
-        blanks = ' '*len(prefix)
+        prefix = f"{self.name}("
+        blanks = " " * len(prefix)
         for (idx, key) in enumerate(self.ROWNAMES):
-            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
-            lines.append(objecttools.assignrepr_list(
-                values[idx, :], subprefix, 75) + ',')
-        lines[-1] = lines[-1][:-1] + ')'
-        return '\n'.join(lines)
+            subprefix = f"{prefix}{key}=" if idx == 0 else f"{blanks}{key}="
+            lines.append(
+                objecttools.assignrepr_list(values[idx, :], subprefix, 75) + ","
+            )
+        lines[-1] = lines[-1][:-1] + ")"
+        return "\n".join(lines)
 
     def __dir__(self):
         """
@@ -2681,8 +2710,12 @@ a normal attribute nor a row or column related attribute named `wrong`.
 'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
 'strict_valuehandling'...]
         """
-        return (tuple(objecttools.dir_(self)) + self.ROWNAMES +
-                self.COLNAMES + tuple(self._ROWCOLMAPPINGS.keys()))
+        return (
+            tuple(objecttools.dir_(self))
+            + self.ROWNAMES
+            + self.COLNAMES
+            + tuple(self._ROWCOLMAPPINGS.keys())
+        )
 
 
 class RelSubweightsMixin:
@@ -2696,7 +2729,7 @@ class RelSubweightsMixin:
     implementations like class |hland_derived.RelSoilZoneArea|.
     """
 
-    mask: 'masktools.BaseMask'
+    mask: "masktools.BaseMask"
     refweights: Parameter
     __setitem__: Callable
 
@@ -2705,7 +2738,7 @@ class RelSubweightsMixin:
         mask = self.mask
         weights = self.refweights[mask]
         self[~mask] = numpy.nan
-        self[mask] = weights/numpy.sum(weights)
+        self[mask] = weights / numpy.sum(weights)
 
 
 class LeftRightParameter(Parameter):
@@ -2772,6 +2805,7 @@ parameter value must be given, but is not.
     >>> floodplainwidth
     floodplainwidth(left=3.0, right=4.0)
     """
+
     NDIM = 1
     strict_valuehandling: ClassVar[bool] = False
 
@@ -2779,22 +2813,22 @@ parameter value must be given, but is not.
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            left = kwargs.get('left', kwargs.get('l'))
+            left = kwargs.get("left", kwargs.get("l"))
             if left is None:
                 raise ValueError(
-                    f'When setting the values of parameter '
-                    f'{objecttools.elementphrase(self)} via keyword '
+                    f"When setting the values of parameter "
+                    f"{objecttools.elementphrase(self)} via keyword "
                     f'arguments, either `left` or `l` for the "left" '
-                    f'parameter value must be given, but is not.'
+                    f"parameter value must be given, but is not."
                 ) from None
             self.left = left
-            right = kwargs.get('right', kwargs.get('r'))
+            right = kwargs.get("right", kwargs.get("r"))
             if right is None:
                 raise ValueError(
-                    f'When setting the values of parameter '
-                    f'{objecttools.elementphrase(self)} via keyword '
+                    f"When setting the values of parameter "
+                    f"{objecttools.elementphrase(self)} via keyword "
                     f'arguments, either `right` or `r` for the "right" '
-                    f'parameter value must be given, but is not.'
+                    f"parameter value must be given, but is not."
                 ) from None
             self.right = right
 
@@ -2824,10 +2858,10 @@ parameter value must be given, but is not.
         lines = self.commentrepr
         values = [objecttools.repr_(value) for value in self.values]
         if values[0] == values[1]:
-            lines.append(f'{self.name}({values[0]})')
+            lines.append(f"{self.name}({values[0]})")
         else:
-            lines.append(f'{self.name}(left={values[0]}, right={values[1]})')
-        return '\n'.join(lines)
+            lines.append(f"{self.name}(left={values[0]}, right={values[1]})")
+        return "\n".join(lines)
 
 
 class FixedParameter(Parameter):
@@ -2862,7 +2896,7 @@ class FixedParameter(Parameter):
         (50.0, True)
         """
         try:
-            with hydpy.pub.options.parameterstep('1d'):
+            with hydpy.pub.options.parameterstep("1d"):
                 return self.apply_timefactor(self.INIT), True
         except (AttributeError, RuntimeError):
             return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
@@ -2894,7 +2928,7 @@ class FixedParameter(Parameter):
         >>> round_(fixed.lambdag.value)
         0.02592
         """
-        with hydpy.pub.options.parameterstep('1d'):
+        with hydpy.pub.options.parameterstep("1d"):
             self(self.INIT)
 
 
@@ -3000,6 +3034,7 @@ class SolverParameter(Parameter):
     >>> modtol
     modtol(0.01)
     """
+
     INIT: Union[int, float, bool]
 
     def __init__(self, subvars):
@@ -3041,8 +3076,9 @@ class SolverParameter(Parameter):
         """
         if self._alternative_initvalue is None:
             raise AttributeError(
-                f'No alternative initial value for solver parameter '
-                f'{objecttools.elementphrase(self)} has been defined so far.')
+                f"No alternative initial value for solver parameter "
+                f"{objecttools.elementphrase(self)} has been defined so far."
+            )
         return self._alternative_initvalue
 
     @alternative_initvalue.setter
@@ -3056,10 +3092,11 @@ class SolverParameter(Parameter):
 
 class SecondsParameter(Parameter):
     """The length of the actual simulation step size in seconds [s]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of seconds from the current simulation time step.
@@ -3078,10 +3115,11 @@ class SecondsParameter(Parameter):
 
 class HoursParameter(Parameter):
     """The length of the actual simulation step size in hours [h]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of hours from the current simulation time step.
@@ -3100,10 +3138,11 @@ class HoursParameter(Parameter):
 
 class DaysParameter(Parameter):
     """The length of the actual simulation step size in days [d]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of days from the current simulation time step.
@@ -3123,6 +3162,7 @@ class DaysParameter(Parameter):
 class TOYParameter(Parameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
+
     NDIM = 1
     TYPE = int
     TIME = None
@@ -3154,6 +3194,7 @@ class TOYParameter(Parameter):
 class MOYParameter(Parameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
+
     NDIM = 1
     TYPE = int
     TIME = None
@@ -3185,6 +3226,7 @@ class MOYParameter(Parameter):
 class DOYParameter(Parameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
+
     NDIM = 1
     TYPE = int
     TIME = None
@@ -3216,10 +3258,11 @@ class DOYParameter(Parameter):
 class SCTParameter(Parameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
+
     NDIM = 1
     TYPE = float
     TIME = None
-    SPAN = (0., 86400.)
+    SPAN = (0.0, 86400.0)
 
     def update(self) -> None:
         """Reference the actual |Indexer.standardclocktime| array of the
@@ -3247,6 +3290,7 @@ class SCTParameter(Parameter):
 class UTCLongitudeParameter(Parameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
+
     NDIM = 0
     TYPE = int
     TIME = None

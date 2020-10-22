@@ -6,16 +6,17 @@ eventually dynamical) typing."""
 import abc
 from typing import *
 from typing_extensions import Protocol
+
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
     from hydpy.cythons.autogen import pointerutils
 
-T = TypeVar('T')
-T1 = TypeVar('T1')
-T2 = TypeVar('T2')
-T3 = TypeVar('T3')
+T = TypeVar("T")
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
 
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
@@ -30,7 +31,7 @@ Vector = MutableMapping[int, float]
 class IterableNonString(abc.ABC):
     """Abstract base class for checking if an object is iterable but not a
     string.
-    
+
     >>> from hydpy.core.typingtools import IterableNonString
     >>> isinstance('asdf', IterableNonString)
     False
@@ -45,9 +46,9 @@ class IterableNonString(abc.ABC):
 
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, '__iter__') and
-                not (isinstance(subclass, str) or
-                     issubclass(subclass, str)))
+        return hasattr(subclass, "__iter__") and not (
+            isinstance(subclass, str) or issubclass(subclass, str)
+        )
 
 
 class VariableProtocol(Protocol):
@@ -90,14 +91,14 @@ class CyModelProtocol(Protocol):
 
 
 __all__ = [
-    'IterableNonString',
-    'Mayberable1',
-    'Mayberable2',
-    'Mayberable3',
-    'MayNonerable1',
-    'MayNonerable2',
-    'MayNonerable3',
-    'Vector',
-    'VariableProtocol',
-    'CyModelProtocol',
+    "IterableNonString",
+    "Mayberable1",
+    "Mayberable2",
+    "Mayberable3",
+    "MayNonerable1",
+    "MayNonerable2",
+    "MayNonerable3",
+    "Vector",
+    "VariableProtocol",
+    "CyModelProtocol",
 ]

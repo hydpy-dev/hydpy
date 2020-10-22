@@ -9,8 +9,10 @@ other test data.
 import os
 import shutil
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy import data
@@ -115,28 +117,28 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     testtools.TestIO.clear()
     hydpy.pub.sequencemanager = filetools.SequenceManager()
     with testtools.TestIO():
-        hydpy.pub.sequencemanager.inputdirpath = 'inputpath'
-        hydpy.pub.sequencemanager.fluxdirpath = 'outputpath'
-        hydpy.pub.sequencemanager.statedirpath = 'outputpath'
-        hydpy.pub.sequencemanager.nodedirpath = 'nodepath'
+        hydpy.pub.sequencemanager.inputdirpath = "inputpath"
+        hydpy.pub.sequencemanager.fluxdirpath = "outputpath"
+        hydpy.pub.sequencemanager.statedirpath = "outputpath"
+        hydpy.pub.sequencemanager.nodedirpath = "nodepath"
 
-    hydpy.pub.timegrids = '2000-01-01', '2000-01-05', '1d'
+    hydpy.pub.timegrids = "2000-01-01", "2000-01-05", "1d"
 
-    node1 = devicetools.Node('node1')
-    node2 = devicetools.Node('node2', variable='T')
+    node1 = devicetools.Node("node1")
+    node2 = devicetools.Node("node2", variable="T")
     nodes = devicetools.Nodes(node1, node2)
-    element1 = devicetools.Element('element1', outlets=node1)
-    element2 = devicetools.Element('element2', outlets=node1)
-    element3 = devicetools.Element('element3', outlets=node1)
+    element1 = devicetools.Element("element1", outlets=node1)
+    element2 = devicetools.Element("element2", outlets=node1)
+    element3 = devicetools.Element("element3", outlets=node1)
     elements = devicetools.Elements(element1, element2, element3)
 
-    element1.model = importtools.prepare_model('lland_v1')
-    element2.model = importtools.prepare_model('lland_v1')
-    element3.model = importtools.prepare_model('lland_v2')
+    element1.model = importtools.prepare_model("lland_v1")
+    element2.model = importtools.prepare_model("lland_v1")
+    element3.model = importtools.prepare_model("lland_v2")
 
     for idx, element in enumerate(elements):
         parameters = element.model.parameters
-        parameters.control.nhru(idx+1)
+        parameters.control.nhru(idx + 1)
         parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
 
@@ -158,8 +160,9 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         return value2_
 
     value1 = 0
-    for subname, seqname in zip(['inputs', 'fluxes', 'states'],
-                                ['nied', 'nkor', 'bowa']):
+    for subname, seqname in zip(
+        ["inputs", "fluxes", "states"], ["nied", "nkor", "bowa"]
+    ):
         for element in elements:
             subseqs = getattr(element.model.sequences, subname)
             value1 = init_values(getattr(subseqs, seqname), value1)
@@ -222,15 +225,16 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
         testtools.TestIO.clear()
         dirpath = iotesting.__path__[0]
     shutil.copytree(
-        os.path.join(data.__path__[0], 'LahnH'),
-        os.path.join(dirpath, 'LahnH'))
-    seqpath = os.path.join(dirpath, 'LahnH', 'series')
-    for folder in ('output', 'node', 'temp'):
+        os.path.join(data.__path__[0], "LahnH"), os.path.join(dirpath, "LahnH")
+    )
+    seqpath = os.path.join(dirpath, "LahnH", "series")
+    for folder in ("output", "node", "temp"):
         os.makedirs(os.path.join(seqpath, folder))
 
 
-def prepare_full_example_2(lastdate='1996-01-05') -> (
-        hydpytools.HydPy, hydpy.pub, testtools.TestIO):
+def prepare_full_example_2(
+    lastdate="1996-01-05",
+) -> (hydpytools.HydPy, hydpy.pub, testtools.TestIO):
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function
@@ -268,7 +272,7 @@ def prepare_full_example_2(lastdate='1996-01-05') -> (
     """
     prepare_full_example_1()
     with testtools.TestIO():
-        hp = hydpytools.HydPy('LahnH')
-        hydpy.pub.timegrids = '1996-01-01', lastdate, '1d'
+        hp = hydpytools.HydPy("LahnH")
+        hydpy.pub.timegrids = "1996-01-01", lastdate, "1d"
         hp.prepare_everything()
     return hp, hydpy.pub, testtools.TestIO

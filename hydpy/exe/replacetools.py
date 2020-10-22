@@ -6,8 +6,7 @@
 from hydpy.core import objecttools
 
 
-def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) \
-        -> None:
+def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -> None:
     """Read the content of an XML template file (XMLT), apply the given
     `replacements` to its substitution  markers, and write the result into
     an XML file with the same name but ending with `xml` instead of `xmlt`.
@@ -159,56 +158,59 @@ for marker `e4`.
     <e2>Element 2</e2>
     """
     keywords = set(replacements.keys())
-    templatename = f'{filename}.xmlt'
-    targetname = f'{filename}.xml'
+    templatename = f"{filename}.xmlt"
+    targetname = f"{filename}.xml"
     if printflag:
-        print(f'template file: {templatename}')
-        print(f'target file: {targetname}')
-        print('replacements:')
+        print(f"template file: {templatename}")
+        print(f"target file: {targetname}")
+        print("replacements:")
     with open(templatename) as templatefile:
         templatebody = templatefile.read()
-    parts = templatebody.replace('<!--|', '|-->').split('|-->')
+    parts = templatebody.replace("<!--|", "|-->").split("|-->")
     defaults = {}
     for idx, part in enumerate(parts):
         if idx % 2:
-            subparts = part.partition('=')
+            subparts = part.partition("=")
             if subparts[2]:
                 parts[idx] = subparts[0]
                 if subparts[0] not in replacements:
-                    if ((subparts[0] in defaults) and
-                            (defaults[subparts[0]] != str(subparts[2]))):
+                    if (subparts[0] in defaults) and (
+                        defaults[subparts[0]] != str(subparts[2])
+                    ):
                         raise RuntimeError(
-                            f'Template file `{templatename}` defines '
-                            f'different default values for marker '
-                            f'`{subparts[0]}`.')
+                            f"Template file `{templatename}` defines "
+                            f"different default values for marker "
+                            f"`{subparts[0]}`."
+                        )
                     defaults[subparts[0]] = str(subparts[2])
     markers = parts[1::2]
     try:
         unused_keywords = keywords.copy()
         for idx, part in enumerate(parts):
             if idx % 2:
-                argument_info = 'given argument'
+                argument_info = "given argument"
                 newpart = replacements.get(part)
                 if newpart is None:
-                    argument_info = 'default argument'
+                    argument_info = "default argument"
                     newpart = defaults.get(part)
                 if newpart is None:
-                    raise RuntimeError(
-                        f'Marker `{part}` cannot be replaced.')
+                    raise RuntimeError(f"Marker `{part}` cannot be replaced.")
                 if printflag:
-                    print(f'  {part} --> {newpart} ({argument_info})')
+                    print(f"  {part} --> {newpart} ({argument_info})")
                 parts[idx] = str(newpart)
                 unused_keywords.discard(part)
-        targetbody = ''.join(parts)
+        targetbody = "".join(parts)
         if unused_keywords:
             raise RuntimeError(
-                f'Keyword(s) `{objecttools.enumeration(unused_keywords)}` '
-                f'cannot be used.')
-        with open(targetname, 'w') as targetfile:
+                f"Keyword(s) `{objecttools.enumeration(unused_keywords)}` "
+                f"cannot be used."
+            )
+        with open(targetname, "w") as targetfile:
             targetfile.write(targetbody)
     except BaseException:
         objecttools.augment_excmessage(
-            f'While trying to replace the markers '
-            f'`{objecttools.enumeration(sorted(set(markers)))}` of the '
-            f'XML template file `{templatename}` with the available '
-            f'keywords `{objecttools.enumeration(sorted(keywords))}`')
+            f"While trying to replace the markers "
+            f"`{objecttools.enumeration(sorted(set(markers)))}` of the "
+            f"XML template file `{templatename}` with the available "
+            f"keywords `{objecttools.enumeration(sorted(keywords))}`"
+        )

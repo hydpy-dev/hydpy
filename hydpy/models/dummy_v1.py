@@ -47,20 +47,18 @@ Integration tests
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from dummy
 from hydpy.models.dummy import dummy_model
 
 
 class Model(modeltools.AdHocModel):
     """The HydPy-Dummy model."""
-    INLET_METHODS = (
-        dummy_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (dummy_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        dummy_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (dummy_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

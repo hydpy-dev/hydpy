@@ -1294,6 +1294,7 @@ we need to adapt the |PET| values to the changed |TemL| values):
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
@@ -1302,9 +1303,8 @@ from hydpy.models.lland.lland_constants import *
 
 class Model(modeltools.AdHocModel):
     """External PET/degree-day version of HydPy-L-Land."""
-    INLET_METHODS = (
-        lland_model.Pick_QZ_V1,
-    )
+
+    INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         lland_model.Calc_QZH_V1,
@@ -1343,15 +1343,14 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_QA_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        lland_model.Pass_QA_V1,
-    )
+    OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v2|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES

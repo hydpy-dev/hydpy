@@ -64,14 +64,14 @@ class NmbLogEntries(parametertools.Parameter):
 cannot be determined for a the current simulation step size.  The fraction of \
 the memory period (1d) and the simulation step size (5h) leaves a remainder.
         """
-        nmb = '1d'/hydpy.pub.timegrids.stepsize
+        nmb = "1d" / hydpy.pub.timegrids.stepsize
         if nmb % 1:
             raise ValueError(
-                f'The value of parameter {objecttools.elementphrase(self)} '
-                f'cannot be determined for a the current simulation step '
-                f'size.  The fraction of the memory period (1d) and the '
-                f'simulation step size ({hydpy.pub.timegrids.stepsize}) '
-                f'leaves a remainder.'
+                f"The value of parameter {objecttools.elementphrase(self)} "
+                f"cannot be determined for a the current simulation step "
+                f"size.  The fraction of the memory period (1d) and the "
+                f"simulation step size ({hydpy.pub.timegrids.stepsize}) "
+                f"leaves a remainder."
             )
         self(nmb)
         for seq in self.subpars.pars.model.sequences.logs:
@@ -80,11 +80,10 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
 
 class LatitudeRad(parametertools.Parameter):
     """The latitude [rad]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.5708, 1.5708)
 
-    CONTROLPARAMETERS = (
-        evap_control.Latitude,
-    )
+    CONTROLPARAMETERS = (evap_control.Latitude,)
 
     def update(self):
         """Update |LatitudeRad| based on parameter |Latitude|.
@@ -103,4 +102,4 @@ class LatitudeRad(parametertools.Parameter):
         45.0: 0.785398
         90.0: 1.570796
         """
-        self.value = 3.141592653589793/180.*self.subpars.pars.control.latitude
+        self.value = 3.141592653589793 / 180.0 * self.subpars.pars.control.latitude

@@ -12,6 +12,7 @@ import inspect
 import types
 import warnings
 from typing import *
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -39,18 +40,18 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     if timestep is not None:
         hydpy.pub.options.parameterstep = timestep
     namespace = inspect.currentframe().f_back.f_locals
-    model = namespace.get('model')
+    model = namespace.get("model")
     if model is None:
-        model = namespace['Model']()
-        namespace['model'] = model
-        if hydpy.pub.options.usecython and 'cythonizer' in namespace:
-            cythonizer = namespace['cythonizer']
-            namespace['cythonmodule'] = cythonizer.cymodule
+        model = namespace["Model"]()
+        namespace["model"] = model
+        if hydpy.pub.options.usecython and "cythonizer" in namespace:
+            cythonizer = namespace["cythonizer"]
+            namespace["cythonmodule"] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
-            namespace['cymodel'] = model.cymodel
+            namespace["cymodel"] = model.cymodel
             model.cymodel.parameters = cythonizer.cymodule.Parameters()
             model.cymodel.sequences = cythonizer.cymodule.Sequences()
-            for numpars_name in ('NumConsts', 'NumVars'):
+            for numpars_name in ("NumConsts", "NumVars"):
                 if hasattr(cythonizer.cymodule, numpars_name):
                     numpars_new = getattr(cythonizer.cymodule, numpars_name)()
                     numpars_old = getattr(model, numpars_name.lower())
@@ -58,27 +59,27 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
             for name in dir(model.cymodel):
-                if (not name.startswith('_')) and hasattr(model, name):
+                if (not name.startswith("_")) and hasattr(model, name):
                     setattr(model, name, getattr(model.cymodel, name))
         model.parameters = prepare_parameters(namespace)
         model.sequences = prepare_sequences(namespace)
-        namespace['parameters'] = model.parameters
+        namespace["parameters"] = model.parameters
         for pars in model.parameters:
             namespace[pars.name] = pars
-        namespace['sequences'] = model.sequences
+        namespace["sequences"] = model.sequences
         for seqs in model.sequences:
             namespace[seqs.name] = seqs
-        if 'Masks' in namespace:
-            model.masks = namespace['Masks']()
-            namespace['masks'] = model.masks
-        for submodelclass in namespace['Model'].SUBMODELS:
+        if "Masks" in namespace:
+            model.masks = namespace["Masks"]()
+            namespace["masks"] = model.masks
+        for submodelclass in namespace["Model"].SUBMODELS:
             submodel = submodelclass(model)
             setattr(model, submodel.name, submodel)
     try:
-        namespace.update(namespace['CONSTANTS'])
+        namespace.update(namespace["CONSTANTS"])
     except KeyError:
         pass
-    focus = namespace.get('focus')
+    focus = namespace.get("focus")
     for par in model.parameters.control:
         if (focus is None) or (par is focus):
             namespace[par.name] = par
@@ -89,27 +90,27 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
 def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
-    cls_parameters = dict_.get('Parameters', parametertools.Parameters)
+    cls_parameters = dict_.get("Parameters", parametertools.Parameters)
     return cls_parameters(dict_)
 
 
 def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
-    cls_sequences = dict_.get('Sequences', sequencetools.Sequences)
+    cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
     return cls_sequences(
-        model=dict_.get('model'),
-        cls_inlets=dict_.get('InletSequences'),
-        cls_receivers=dict_.get('ReceiverSequences'),
-        cls_inputs=dict_.get('InputSequences'),
-        cls_fluxes=dict_.get('FluxSequences'),
-        cls_states=dict_.get('StateSequences'),
-        cls_logs=dict_.get('LogSequences'),
-        cls_aides=dict_.get('AideSequences'),
-        cls_outlets=dict_.get('OutletSequences'),
-        cls_senders=dict_.get('SenderSequences'),
-        cymodel=dict_.get('cymodel'),
-        cythonmodule=dict_.get('cythonmodule')
+        model=dict_.get("model"),
+        cls_inlets=dict_.get("InletSequences"),
+        cls_receivers=dict_.get("ReceiverSequences"),
+        cls_inputs=dict_.get("InputSequences"),
+        cls_fluxes=dict_.get("FluxSequences"),
+        cls_states=dict_.get("StateSequences"),
+        cls_logs=dict_.get("LogSequences"),
+        cls_aides=dict_.get("AideSequences"),
+        cls_outlets=dict_.get("OutletSequences"),
+        cls_senders=dict_.get("SenderSequences"),
+        cymodel=dict_.get("cymodel"),
+        cythonmodule=dict_.get("cythonmodule"),
     )
 
 
@@ -172,7 +173,7 @@ def reverse_model_wildcard_import() -> None:
     NameError: name 'test' is not defined
     """
     namespace = inspect.currentframe().f_back.f_locals
-    model = namespace.get('model')
+    model = namespace.get("model")
     if model is not None:
         for subpars in model.parameters:
             for par in subpars:
@@ -186,9 +187,19 @@ def reverse_model_wildcard_import() -> None:
                 namespace.pop(type(seq).__name__, None)
             namespace.pop(subseqs.name, None)
             namespace.pop(type(subseqs).__name__, None)
-        for name in ('parameters', 'sequences', 'masks', 'model',
-                     'Parameters', 'Sequences', 'Masks', 'Model',
-                     'cythonizer', 'cymodel', 'cythonmodule'):
+        for name in (
+            "parameters",
+            "sequences",
+            "masks",
+            "model",
+            "Parameters",
+            "Sequences",
+            "Masks",
+            "Model",
+            "cythonizer",
+            "cymodel",
+            "cythonmodule",
+        ):
             namespace.pop(name, None)
         for key in list(namespace.keys()):
             try:
@@ -198,8 +209,10 @@ def reverse_model_wildcard_import() -> None:
                 pass
 
 
-def prepare_model(module: Union[types.ModuleType, str],
-                  timestep: Optional[timetools.PeriodConstrArg] = None):
+def prepare_model(
+    module: Union[types.ModuleType, str],
+    timestep: Optional[timetools.PeriodConstrArg] = None,
+):
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file prepares an individual
@@ -220,15 +233,15 @@ def prepare_model(module: Union[types.ModuleType, str],
     try:
         model = module.Model()
     except AttributeError:
-        module = importlib.import_module(f'hydpy.models.{module}')
+        module = importlib.import_module(f"hydpy.models.{module}")
         model = module.Model()
-    if hydpy.pub.options.usecython and hasattr(module, 'cythonizer'):
+    if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
         cymodel.parameters = cymodule.Parameters()
         cymodel.sequences = cymodule.Sequences()
         model.cymodel = cymodel
-        for numpars_name in ('NumConsts', 'NumVars'):
+        for numpars_name in ("NumConsts", "NumVars"):
             if hasattr(cymodule, numpars_name):
                 numpars_new = getattr(cymodule, numpars_name)()
                 numpars_old = getattr(model, numpars_name.lower())
@@ -236,17 +249,16 @@ def prepare_model(module: Union[types.ModuleType, str],
                     setattr(numpars_new, name_numpar, numpar)
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):
-            if (not name.startswith('_')) and hasattr(model, name):
+            if (not name.startswith("_")) and hasattr(model, name):
                 setattr(model, name, getattr(cymodel, name))
-        dict_ = {'cythonmodule': cymodule,
-                 'cymodel': cymodel}
+        dict_ = {"cythonmodule": cymodule, "cymodel": cymodel}
     else:
         dict_ = {}
     dict_.update(vars(module))
-    dict_['model'] = model
+    dict_["model"] = model
     model.parameters = prepare_parameters(dict_)
     model.sequences = prepare_sequences(dict_)
-    if hasattr(module, 'Masks'):
+    if hasattr(module, "Masks"):
         model.masks = module.Masks()
     for submodelclass in module.Model.SUBMODELS:
         submodel = submodelclass(model)
@@ -289,20 +301,22 @@ are initialised based on the actual simulation time step as defined under \
     """
     if hydpy.pub.options.warnsimulationstep:
         warnings.warn(
-            'Note that the applied function `simulationstep` is intended for '
-            'testing purposes only.  When doing a HydPy simulation, parameter '
-            'values are initialised based on the actual simulation time step '
-            'as defined under `pub.timegrids.stepsize` and the value given '
-            'to `simulationstep` is ignored.')
+            "Note that the applied function `simulationstep` is intended for "
+            "testing purposes only.  When doing a HydPy simulation, parameter "
+            "values are initialised based on the actual simulation time step "
+            "as defined under `pub.timegrids.stepsize` and the value given "
+            "to `simulationstep` is ignored."
+        )
     hydpy.pub.options.simulationstep = timestep
 
 
 def controlcheck(
-        controldir: str = 'default',
-        projectdir: Optional[str] = None,
-        controlfile: Optional[str] = None,
-        firstdate: Optional[timetools.DateConstrArg] = None,
-        stepsize: Optional[timetools.PeriodConstrArg] = None) -> None:
+    controldir: str = "default",
+    projectdir: Optional[str] = None,
+    controlfile: Optional[str] = None,
+    firstdate: Optional[timetools.DateConstrArg] = None,
+    stepsize: Optional[timetools.PeriodConstrArg] = None,
+) -> None:
     """Define the corresponding control file within a condition file.
 
     Function |controlcheck| serves similar purposes as function
@@ -522,61 +536,60 @@ as function arguments.
     complete *HydPy* project.
     """
     namespace = inspect.currentframe().f_back.f_locals
-    model = namespace.get('model')
+    model = namespace.get("model")
     if model is None:
         if not controlfile:
-            controlfile = os.path.split(namespace['__file__'])[-1]
+            controlfile = os.path.split(namespace["__file__"])[-1]
         if projectdir is None:
-            projectdir = (
-                os.path.split(
-                    os.path.split(
-                        os.path.split(os.getcwd())[0])[0])[-1])
-        dirpath = os.path.abspath(os.path.join(
-            '..', '..', '..', projectdir, 'control', controldir))
-        if not (
-                exceptiontools.attrready(hydpy.pub, 'timegrids') or
-                (stepsize is None)
-        ):
+            projectdir = os.path.split(os.path.split(os.path.split(os.getcwd())[0])[0])[
+                -1
+            ]
+        dirpath = os.path.abspath(
+            os.path.join("..", "..", "..", projectdir, "control", controldir)
+        )
+        if not (exceptiontools.attrready(hydpy.pub, "timegrids") or (stepsize is None)):
             if firstdate is None:
                 try:
                     firstdate = timetools.Date.from_string(
-                        os.path.split(os.getcwd())[-1].partition('_')[-1])
+                        os.path.split(os.getcwd())[-1].partition("_")[-1]
+                    )
                 except (ValueError, TypeError):
                     pass
             else:
                 firstdate = timetools.Date(firstdate)
             if firstdate is not None:
                 stepsize = timetools.Period(stepsize)
-                hydpy.pub.timegrids = (
-                    firstdate, firstdate + 1000 * stepsize, stepsize)
+                hydpy.pub.timegrids = (firstdate, firstdate + 1000 * stepsize, stepsize)
 
         class CM(filetools.ControlManager):
             """Tempory |ControlManager| class."""
+
             currentpath = dirpath
 
         cwd = os.getcwd()
         try:
             os.chdir(dirpath)
-            model = CM().load_file(filename=controlfile)['model']
+            model = CM().load_file(filename=controlfile)["model"]
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to load the control file `{controlfile}` '
-                f'from directory `{objecttools.repr_(dirpath)}`')
+                f"While trying to load the control file `{controlfile}` "
+                f"from directory `{objecttools.repr_(dirpath)}`"
+            )
         finally:
             os.chdir(cwd)
         try:
             model.parameters.update()
         except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
-                'To apply function `controlcheck` requires time '
-                'information for some model types.  Please define '
-                'the `Timegrids` object of module `pub` manually '
-                'or pass the required information (`stepsize` and '
-                'eventually `firstdate`) as function arguments.'
+                "To apply function `controlcheck` requires time "
+                "information for some model types.  Please define "
+                "the `Timegrids` object of module `pub` manually "
+                "or pass the required information (`stepsize` and "
+                "eventually `firstdate`) as function arguments."
             ) from exc
 
-        namespace['model'] = model
-        for name in ('states', 'logs'):
+        namespace["model"] = model
+        for name in ("states", "logs"):
             subseqs = getattr(model.sequences, name, None)
             if subseqs is not None:
                 for seq in subseqs:

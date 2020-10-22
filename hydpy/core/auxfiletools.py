@@ -29,6 +29,7 @@ implemented in module |selectiontools|).
 # ...from standard library
 import copy
 import types
+
 # ...from HydPy
 import hydpy
 from hydpy.core import importtools
@@ -163,6 +164,7 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
     >>> from hydpy import dummies
     >>> dummies.aux = aux
     """
+
     def __init__(self):
         with objecttools.ResetAttrFuncs(self):
             self._dict = {}
@@ -170,13 +172,13 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
     def __iadd__(self, values):
         try:
             for model in self._get_models(values):
-                self._dict[str(model)] = Variable2Auxfile(
-                    _master=self, _model=model)
+                self._dict[str(model)] = Variable2Auxfile(_master=self, _model=model)
             return self
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to add one ore more models '
-                'to the actual auxiliary file handler')
+                "While trying to add one ore more models "
+                "to the actual auxiliary file handler"
+            )
 
     def __isub__(self, values):
         try:
@@ -185,19 +187,20 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
                     del self._dict[str(model)]
                 except KeyError:
                     raise AttributeError(
-                        f'The handler does not contain model `{model}`.'
+                        f"The handler does not contain model `{model}`."
                     ) from None
             return self
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to remove one or more models '
-                'from the actual auxiliary file handler'
+                "While trying to remove one or more models "
+                "from the actual auxiliary file handler"
             )
 
     @staticmethod
     def _get_models(values):
         for value in objecttools.extract(
-                values, (str, types.ModuleType, modeltools.Model)):
+            values, (str, types.ModuleType, modeltools.Model)
+        ):
             yield importtools.prepare_model(value)
 
     def __getattr__(self, name):
@@ -205,20 +208,20 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
             return self._dict[name]
         except KeyError:
             raise AttributeError(
-                f'The actual auxiliary file handler does neither have a '
-                f'standard member nor does it handle a model named `{name}`.'
+                f"The actual auxiliary file handler does neither have a "
+                f"standard member nor does it handle a model named `{name}`."
             ) from None
 
     def __setattr__(self, name, value):
         raise AttributeError(
-            'Auxiliary file handler do not support setting attributes.  '
-            'Use the `+=` operator to register additional models instead.'
+            "Auxiliary file handler do not support setting attributes.  "
+            "Use the `+=` operator to register additional models instead."
         )
 
     def __delattr__(self, name):
         raise AttributeError(
-            'Auxiliary file handler do not support deleting attributes.  '
-            'Use the `-=` operator to remove registered models instead.'
+            "Auxiliary file handler do not support deleting attributes.  "
+            "Use the `-=` operator to remove registered models instead."
         )
 
     def __iter__(self):
@@ -232,7 +235,7 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         >>> from hydpy import dummies
         >>> dummies.aux.modelnames
         ['lland_v1', 'lland_v2', 'lstream_v001']
-    """
+        """
         return sorted(self._dict.keys())
 
     def save(self, parameterstep=None, simulationstep=None):
@@ -291,21 +294,26 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         options = hydpy.pub.options
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
-                with options.parameterstep(parameterstep), \
-                         options.simulationstep(simulationstep):
-                    lines = [parametertools.get_controlfileheader(
-                        modelname, parameterstep, simulationstep)]
+                with options.parameterstep(parameterstep), options.simulationstep(
+                    simulationstep
+                ):
+                    lines = [
+                        parametertools.get_controlfileheader(
+                            modelname, parameterstep, simulationstep
+                        )
+                    ]
                     for par in getattr(var2aux, filename):
-                        lines.append(repr(par) + '\n')
-                hydpy.pub.controlmanager.save_file(filename, ''.join(lines))
+                        lines.append(repr(par) + "\n")
+                hydpy.pub.controlmanager.save_file(filename, "".join(lines))
 
     __copy__ = objecttools.copy_
 
     __deepcopy__ = objecttools.deepcopy_
 
     def __repr__(self):
-        return objecttools.assignrepr_values(
-            self.modelnames, 'Auxfiler(', width=70) + ')'
+        return (
+            objecttools.assignrepr_values(self.modelnames, "Auxfiler(", width=70) + ")"
+        )
 
     def __dir__(self):
         """
@@ -428,14 +436,14 @@ variable handled by the actual Variable2AuxFile object.
         if variables:
             return variables
         raise AttributeError(
-            f'`{name}` is neither a filename nor a name of a variable '
-            f'handled by the actual Variable2AuxFile object.')
+            f"`{name}` is neither a filename nor a name of a variable "
+            f"handled by the actual Variable2AuxFile object."
+        )
 
     def __setattr__(self, filename, variables):
         try:
             self._check_filename(filename)
-            new_vars = objecttools.extract(
-                variables, (typingtools.VariableProtocol,))
+            new_vars = objecttools.extract(variables, (typingtools.VariableProtocol,))
             for new_var in new_vars:
                 self._check_variable(new_var)
                 fn2var = self._type2filename2variable.get(type(new_var), {})
@@ -444,8 +452,9 @@ variable handled by the actual Variable2AuxFile object.
                 self._type2filename2variable[type(new_var)] = fn2var
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to extend the range of variables handled by '
-                'the actual Variable2AuxFile object')
+                "While trying to extend the range of variables handled by "
+                "the actual Variable2AuxFile object"
+            )
 
     def _check_filename(self, filename):
         objecttools.valid_variable_identifier(filename)
@@ -453,25 +462,29 @@ variable handled by the actual Variable2AuxFile object.
             for dummy, var2aux in self._master:
                 if (var2aux is not self) and (filename in var2aux.filenames):
                     raise ValueError(
-                        f'Filename `{filename}` is already allocated to '
-                        f'another `Variable2Auxfile` object.')
+                        f"Filename `{filename}` is already allocated to "
+                        f"another `Variable2Auxfile` object."
+                    )
 
     def _check_variable(self, variable):
-        if (self._model and not isinstance(
-                variable, self._model.parameters.control.CLASSES)):
+        if self._model and not isinstance(
+            variable, self._model.parameters.control.CLASSES
+        ):
             raise TypeError(
-                f'Variable type `{type(variable).__name__}` is '
-                f'not handled by model `{self._model}`.')
+                f"Variable type `{type(variable).__name__}` is "
+                f"not handled by model `{self._model}`."
+            )
 
     @staticmethod
     def _check_duplicate(fn2var, new_var, filename):
         for (reg_fn, reg_var) in fn2var.items():
             if (reg_fn != filename) and (reg_var == new_var):
                 raise ValueError(
-                    f'You tried to allocate variable `{repr(new_var)}` '
-                    f'to filename `{filename}`, but an equal '
-                    f'`{type(new_var).__name__}` object has '
-                    f'already been allocated to filename `{reg_fn}`.')
+                    f"You tried to allocate variable `{repr(new_var)}` "
+                    f"to filename `{filename}`, but an equal "
+                    f"`{type(new_var).__name__}` object has "
+                    f"already been allocated to filename `{reg_fn}`."
+                )
 
     def remove(self, *values):
         """Remove the defined variables.
@@ -540,13 +553,15 @@ variable handled by the actual Variable2AuxFile object.
                             deleted_something = True
                 if not deleted_something:
                     raise ValueError(
-                        f'`{repr(value)}` is neither a registered '
-                        f'filename nor a registered variable.')
+                        f"`{repr(value)}` is neither a registered "
+                        f"filename nor a registered variable."
+                    )
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to remove the given object `{value}` '
-                    f'of type `{type(value).__name__}` from the '
-                    f'actual Variable2AuxFile object')
+                    f"While trying to remove the given object `{value}` "
+                    f"of type `{type(value).__name__}` from the "
+                    f"actual Variable2AuxFile object"
+                )
 
     @property
     def types(self):
@@ -617,8 +632,10 @@ variable handled by the actual Variable2AuxFile object.
     __deepcopy__ = objecttools.deepcopy_
 
     def __repr__(self):
-        return objecttools.assignrepr_values(
-            self.filenames, 'Variable2Auxfile(', width=70) + ')'
+        return (
+            objecttools.assignrepr_values(self.filenames, "Variable2Auxfile(", width=70)
+            + ")"
+        )
 
     def __dir__(self):
         """
@@ -628,6 +645,8 @@ variable handled by the actual Variable2AuxFile object.
         eqb, eqd1, eqd2, eqi1, eqi2, file1, file2, filenames, get_filename,
         remove, types, variables
         """
-        return (objecttools.dir_(self) +
-                self.filenames +
-                [type_.__name__.lower() for type_ in self.types])
+        return (
+            objecttools.dir_(self)
+            + self.filenames
+            + [type_.__name__.lower() for type_ in self.types]
+        )

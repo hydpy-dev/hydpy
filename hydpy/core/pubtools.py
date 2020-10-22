@@ -4,6 +4,7 @@
 # ...from standard library
 import types
 from typing import *
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
@@ -12,6 +13,7 @@ from hydpy.core import optiontools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+
 if TYPE_CHECKING:
     from hydpy.cythons.autogen import configutils
 
@@ -22,14 +24,13 @@ class _PubProperty(
         propertytools.OutputType,
     ]
 ):
-
     def __init__(self):
         super().__init__(self._fget)
 
     def _fget(self, obj):
         raise exceptiontools.AttributeNotReady(
-            f'Attribute {self.name} of module `pub` '
-            f'is not defined at the moment.')
+            f"Attribute {self.name} of module `pub` " f"is not defined at the moment."
+        )
 
 
 class TimegridsProperty(
@@ -140,7 +141,7 @@ module `pub` is not defined at the moment.
     """
 
     options: optiontools.Options
-    config: 'configutils.Config'
+    config: "configutils.Config"
 
     projectname = _PubProperty[
         str,

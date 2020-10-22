@@ -5,6 +5,7 @@
 # ...from standard-library
 import importlib
 from typing import *
+
 # ...from HydPy
 from hydpy.core import objecttools
 
@@ -18,8 +19,8 @@ class AttributeNotReady(RuntimeError):
 
 
 def attrready(
-        obj: Any,
-        name: str,
+    obj: Any,
+    name: str,
 ) -> bool:
     """Return |False| when trying the access the attribute of the given object
     results in an |AttributeNotReady| error and otherwise return |True|.
@@ -54,8 +55,8 @@ def attrready(
 
 
 def hasattr_(
-        obj: Any,
-        name: str,
+    obj: Any,
+    name: str,
 ) -> bool:
     """Return |True| or |False| whether the object has an attribute with the
     given name or not.
@@ -87,13 +88,13 @@ def hasattr_(
         return True
 
 
-_GETATTR_NO_DEFAULT = type('_GETATTR_NO_DEFAULT', (), {})
+_GETATTR_NO_DEFAULT = type("_GETATTR_NO_DEFAULT", (), {})
 
 
 def getattr_(
-        obj: Any,
-        name: str,
-        default: Any = _GETATTR_NO_DEFAULT,
+    obj: Any,
+    name: str,
+    default: Any = _GETATTR_NO_DEFAULT,
 ) -> bool:
     """Return the attribute with the given name or, if it does not exist,
     the default value, if available.
@@ -179,17 +180,17 @@ specific functionalities.
     """
 
     def __init__(
-            self,
-            name: str,
-            modules: List[str],
-            namespace: Dict[str, Any],
+        self,
+        name: str,
+        modules: List[str],
+        namespace: Dict[str, Any],
     ) -> None:
         self._name = name
         self._modules = modules
         self._namespace = namespace
 
     def __getattr__(self, name: str) -> Any:
-        if name == '__wrapped__':
+        if name == "__wrapped__":
             raise AttributeError
         module = None
         for modulename in self._modules:
@@ -202,7 +203,8 @@ specific functionalities.
         if module:
             return getattr(module, name)
         raise OptionalModuleNotAvailable(
-            f'HydPy could not load one of the following modules: '
-            f'`{objecttools.enumeration(self._modules)}`.  These modules are '
-            f'no general requirement but installing at least one of them '
-            f'is necessary for some specific functionalities.')
+            f"HydPy could not load one of the following modules: "
+            f"`{objecttools.enumeration(self._modules)}`.  These modules are "
+            f"no general requirement but installing at least one of them "
+            f"is necessary for some specific functionalities."
+        )

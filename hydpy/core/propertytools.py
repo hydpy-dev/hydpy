@@ -8,12 +8,13 @@ import abc
 import inspect
 import types
 from typing import *
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
-InputType = TypeVar('InputType')
-OutputType = TypeVar('OutputType')
+InputType = TypeVar("InputType")
+OutputType = TypeVar("OutputType")
 
 
 def fgetdummy(*args):
@@ -31,8 +32,9 @@ should never been called, but has been called with argument(s): arg1.
     """
     raise NotImplementedError(
         f'The "unready" default `fget` function `fgetdummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 def fsetdummy(*args):
@@ -50,8 +52,9 @@ should never been called, but has been called with argument(s): arg1 and arg2.
     """
     raise NotImplementedError(
         f'The "unready" default `fset` function `fsetdummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 def fdeldummy(*args):
@@ -69,8 +72,9 @@ should never been called, but has been called with argument(s): arg1.
     """
     raise NotImplementedError(
         f'The "unready" default `fdel` function `fdeldummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 class BaseProperty(Generic[InputType, OutputType]):
@@ -160,15 +164,15 @@ class BaseProperty(Generic[InputType, OutputType]):
         self.objtype: Any = objtype
         self.module = inspect.getmodule(objtype)
         if self.module is not None:
-            if not hasattr(self.module, '__test__'):
-                self.module.__dict__['__test__'] = dict()
+            if not hasattr(self.module, "__test__"):
+                self.module.__dict__["__test__"] = dict()
         self.name: str = name
-        doc = getattr(self, '__doc__')
+        doc = getattr(self, "__doc__")
         if doc:
             self.set_doc(doc)
 
     @overload
-    def __get__(self, obj: None, objtype) -> 'BaseProperty':
+    def __get__(self, obj: None, objtype) -> "BaseProperty":
         """get the property"""
 
     @overload
@@ -180,22 +184,25 @@ class BaseProperty(Generic[InputType, OutputType]):
             return self
         if self.fget is fgetdummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not gettable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not gettable."
+            )
         return self.call_fget(obj)
 
     def __set__(self, obj, value: InputType) -> None:
         if self.fset is fsetdummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not settable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not settable."
+            )
         self.call_fset(obj, value)
 
     def __delete__(self, obj) -> None:
         if self.fdel is fdeldummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not deletable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not deletable."
+            )
         self.call_fdel(obj)
 
     def set_doc(self, doc: str):
@@ -203,9 +210,9 @@ class BaseProperty(Generic[InputType, OutputType]):
         possible, to the `__test__` dictionary of the module of its
         owner class."""
         self.__doc__ = doc
-        if hasattr(self, 'module'):
-            ref = f'{self.objtype.__name__}.{self.name}'
-            self.module.__dict__['__test__'][ref] = doc
+        if hasattr(self, "module"):
+            ref = f"{self.objtype.__name__}.{self.name}"
+            self.module.__dict__["__test__"][ref] = doc
 
     @abc.abstractmethod
     def call_fget(self, obj) -> OutputType:
@@ -219,21 +226,21 @@ class BaseProperty(Generic[InputType, OutputType]):
     def call_fdel(self, obj) -> None:
         """Method for implementing special deleter functionalities."""
 
-    def getter(self, fget: Callable) -> 'BaseProperty':
+    def getter(self, fget: Callable) -> "BaseProperty":
         """Add the given getter function and its docstring to the
-         property and return it."""
-        setattr(self, 'fget', fget)
-        self.set_doc(getattr(fget, '__doc__'))
+        property and return it."""
+        setattr(self, "fget", fget)
+        self.set_doc(getattr(fget, "__doc__"))
         return self
 
-    def setter(self, fset: Callable) -> 'BaseProperty':
+    def setter(self, fset: Callable) -> "BaseProperty":
         """Add the given setter function to the property and return it."""
-        setattr(self, 'fset', fset)
+        setattr(self, "fset", fset)
         return self
 
-    def deleter(self, fdel: Callable) -> 'BaseProperty':
+    def deleter(self, fdel: Callable) -> "BaseProperty":
         """Add the given deleter function to the property and return it."""
-        setattr(self, 'fdel', fdel)
+        setattr(self, "fdel", fdel)
         return self
 
 
@@ -325,8 +332,9 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
-            f'Attribute `{self.name}` of object '
-            f'{objecttools.devicephrase(obj)} has not been prepared so far.')
+            f"Attribute `{self.name}` of object "
+            f"{objecttools.devicephrase(obj)} has not been prepared so far."
+        )
 
     def call_fset(self, obj, value: InputType) -> None:
         """Call `fset` and mark the attribute as ready."""
@@ -485,10 +493,11 @@ attribute `x` first.
         for req in self.protected:
             if not req.isready(obj):
                 raise exceptiontools.AttributeNotReady(
-                    f'Attribute `{self.name}` of object '
-                    f'{objecttools.devicephrase(obj)} is not usable '
-                    f'so far.  At least, you have to prepare attribute '
-                    f'`{req.name}` first.')
+                    f"Attribute `{self.name}` of object "
+                    f"{objecttools.devicephrase(obj)} is not usable "
+                    f"so far.  At least, you have to prepare attribute "
+                    f"`{req.name}` first."
+                )
 
     def call_fget(self, obj) -> OutputType:
         """Call `fget` when all required attributes are ready,

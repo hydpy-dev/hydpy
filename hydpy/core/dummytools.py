@@ -100,15 +100,15 @@ class Dummies:
             delattr(self, name)
 
     def __setattr__(self, name, value):
-        object.__setattr__(self, '_'+name, value)
+        object.__setattr__(self, "_" + name, value)
 
     def __getattr__(self, name):
         try:
-            obj = object.__getattribute__(self, '_'+name)
+            obj = object.__getattribute__(self, "_" + name)
         except AttributeError:
             raise AttributeError(
-                f'Dummies object does not handle an object '
-                f'named `{name}` at the moment.'
+                f"Dummies object does not handle an object "
+                f"named `{name}` at the moment."
             ) from None
         try:
             return copy.deepcopy(obj)

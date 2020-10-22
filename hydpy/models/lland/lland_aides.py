@@ -9,6 +9,7 @@ from hydpy.core import sequencetools
 
 class SNRatio(sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
+
     NDIM, NUMERIC = 1, False
 
 
@@ -18,4 +19,5 @@ class TempS(sequencetools.AideSequence):
     Note that the value of sequence |TempS| is |numpy.nan| for snow-free
     surfaces.
     """
+
     NDIM, NUMERIC = 1, False

@@ -223,23 +223,28 @@ import abc
 import collections
 import itertools
 import os
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
-netcdf4 = exceptiontools.OptionalImport(
-    'netcdf4', ['netCDF4', 'h5netcdf.legacyapi'], locals())
 
-IntOrSlice = TypeVar('IntOrSlice', int, slice)
+netcdf4 = exceptiontools.OptionalImport(
+    "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
+)
+
+IntOrSlice = TypeVar("IntOrSlice", int, slice)
 
 dimmapping = {
-    'nmb_timepoints': 'time',
-    'nmb_subdevices': 'stations',
-    'nmb_characters': 'char_leng_name'}
+    "nmb_timepoints": "time",
+    "nmb_subdevices": "stations",
+    "nmb_characters": "char_leng_name",
+}
 """Maps dimension name terms from HydPy terms NetCDF.
 
 You can change this mapping if it does not suit your requirements.  For
@@ -250,9 +255,7 @@ call this dimension "location" instead of "stations" within NetCDF files:
 >>> dimmapping['nmb_subdevices'] = 'location'
 """
 
-varmapping = {
-    'timepoints': 'time',
-    'subdevices': 'station_id'}
+varmapping = {"timepoints": "time", "subdevices": "station_id"}
 """Maps variable name terms from HydPy terms NetCDF.
 
 You can change this mapping if it does not suit your requirements.  For 
@@ -291,11 +294,10 @@ def str2chars(strings) -> numpy.ndarray:
     for name in strings:
         maxlen = max(maxlen, len(name))
     # noinspection PyTypeChecker
-    chars = numpy.full(
-        (len(strings), maxlen), b'', dtype='|S1')
+    chars = numpy.full((len(strings), maxlen), b"", dtype="|S1")
     for idx, name in enumerate(strings):
         for jdx, char in enumerate(name):
-            chars[idx, jdx] = char.encode('utf-8')
+            chars[idx, jdx] = char.encode("utf-8")
     return chars
 
 
@@ -316,10 +318,10 @@ def chars2str(chars) -> List[str]:
         substrings = collections.deque()
         for char in subchars:
             if char:
-                substrings.append(char.decode('utf-8'))
+                substrings.append(char.decode("utf-8"))
             else:
-                substrings.append('')
-        strings.append(''.join(substrings))
+                substrings.append("")
+        strings.append("".join(substrings))
     return list(strings)
 
 
@@ -353,9 +355,9 @@ to the NetCDF file `test.nc`, the following error occurred: ...
         ncfile.createDimension(name, length)
     except BaseException:
         objecttools.augment_excmessage(
-            'While trying to add dimension `%s` with length `%d` '
-            'to the NetCDF file `%s`'
-            % (name, length, get_filepath(ncfile)))
+            "While trying to add dimension `%s` with length `%d` "
+            "to the NetCDF file `%s`" % (name, length, get_filepath(ncfile))
+        )
 
 
 def create_variable(ncfile, name, datatype, dimensions) -> None:
@@ -387,19 +389,19 @@ occurred: ...
 
     >>> ncfile.close()
     """
-    default = fillvalue if (datatype == 'f8') else None
+    default = fillvalue if (datatype == "f8") else None
     try:
-        ncfile.createVariable(
-            name, datatype, dimensions=dimensions, fill_value=default)
+        ncfile.createVariable(name, datatype, dimensions=dimensions, fill_value=default)
         ncfile[name].long_name = name
     except BaseException:
         objecttools.augment_excmessage(
-            'While trying to add variable `%s` with datatype `%s` '
-            'and dimensions `%s` to the NetCDF file `%s`'
-            % (name, datatype, dimensions, get_filepath(ncfile)))
+            "While trying to add variable `%s` with datatype `%s` "
+            "and dimensions `%s` to the NetCDF file `%s`"
+            % (name, datatype, dimensions, get_filepath(ncfile))
+        )
 
 
-def query_variable(ncfile, name) -> 'netcdf4.Variable':
+def query_variable(ncfile, name) -> "netcdf4.Variable":
     """Return the variable with the given name from the given NetCDF file.
 
     Essentially, |query_variable| just performs a key assess via the
@@ -426,8 +428,8 @@ def query_variable(ncfile, name) -> 'netcdf4.Variable':
         return ncfile[name]
     except (IndexError, KeyError):
         raise OSError(
-            f'NetCDF file `{get_filepath(ncfile)}` does not contain '
-            f'variable `{name}`.'
+            f"NetCDF file `{get_filepath(ncfile)}` does not contain "
+            f"variable `{name}`."
         ) from None
 
 
@@ -447,12 +449,13 @@ def query_timegrid(ncfile) -> timetools.Timegrid:
              '2007-01-01 00:00:00',
              '1d')
     """
-    timepoints = ncfile[varmapping['timepoints']]
+    timepoints = ncfile[varmapping["timepoints"]]
     refdate = timetools.Date.from_cfunits(timepoints.units)
     return timetools.Timegrid.from_timepoints(
         timepoints=timepoints[:],
         refdate=refdate,
-        unit=timepoints.units.strip().split()[0])
+        unit=timepoints.units.strip().split()[0],
+    )
 
 
 def query_array(ncfile, name) -> numpy.ndarray:
@@ -482,7 +485,7 @@ def query_array(ncfile, name) -> numpy.ndarray:
     """
     variable = query_variable(ncfile, name)
     maskedarray = variable[:]
-    fillvalue_ = getattr(variable, '_FillValue', numpy.nan)
+    fillvalue_ = getattr(variable, "_FillValue", numpy.nan)
     if not numpy.isnan(fillvalue_):
         maskedarray[maskedarray.mask] = numpy.nan
     return maskedarray.data
@@ -499,7 +502,7 @@ def get_filepath(ncfile) -> str:
     ...         get_filepath(ncfile)
     'test.nc'
     """
-    return ncfile.filepath() if hasattr(ncfile, 'filepath') else ncfile.filename
+    return ncfile.filepath() if hasattr(ncfile, "filepath") else ncfile.filename
 
 
 class NetCDFInterface:
@@ -673,8 +676,7 @@ a member named `lland_v3`.
         self._flatten = flatten
         self._isolate = isolate
         self._timeaxis = timeaxis
-        self.folders: 'Dict[str, Dict[str, NetCDFFile]]' = \
-            collections.OrderedDict()
+        self.folders: "Dict[str, Dict[str, NetCDFFile]]" = collections.OrderedDict()
 
     def log(self, sequence, infoarray) -> None:
         """Prepare a |NetCDFFile| object suitable for the given |IOSequence|
@@ -683,17 +685,16 @@ a member named `lland_v3`.
         if isinstance(sequence, sequencetools.ModelSequence):
             descr = sequence.descr_model
         else:
-            descr = 'node'
+            descr = "node"
         if self._isolate:
-            descr = '%s_%s' % (descr, sequence.descr_sequence)
-            if ((infoarray is not None) and
-                    (infoarray.info['type'] != 'unmodified')):
-                descr = '%s_%s' % (descr, infoarray.info['type'])
+            descr = "%s_%s" % (descr, sequence.descr_sequence)
+            if (infoarray is not None) and (infoarray.info["type"] != "unmodified"):
+                descr = "%s_%s" % (descr, infoarray.info["type"])
         dirpath = sequence.dirpath_ext
         try:
             files = self.folders[dirpath]
         except KeyError:
-            files: Dict[str, 'NetCDFFile'] = collections.OrderedDict()
+            files: Dict[str, "NetCDFFile"] = collections.OrderedDict()
             self.folders[dirpath] = files
         try:
             file_ = files[descr]
@@ -703,24 +704,23 @@ a member named `lland_v3`.
                 flatten=self._flatten,
                 isolate=self._isolate,
                 timeaxis=self._timeaxis,
-                dirpath=dirpath)
+                dirpath=dirpath,
+            )
             files[descr] = file_
         file_.log(sequence, infoarray)
 
     def read(self) -> None:
-        """Call method |NetCDFFile.read| of all handled |NetCDFFile| objects.
-        """
+        """Call method |NetCDFFile.read| of all handled |NetCDFFile| objects."""
         for folder in self.folders.values():
             for file_ in folder.values():
                 file_.read()
 
     def write(self) -> None:
-        """Call method |NetCDFFile.write| of all handled |NetCDFFile| objects.
-        """
+        """Call method |NetCDFFile.write| of all handled |NetCDFFile| objects."""
         if self.folders:
             init = hydpy.pub.timegrids.init
-            timeunits = init.firstdate.to_cfunits('hours')
-            timepoints = init.to_timepoints('hours')
+            timeunits = init.firstdate.to_cfunits("hours")
+            timepoints = init.to_timepoints("hours")
             for folder in self.folders.values():
                 for file_ in folder.values():
                     file_.write(timeunits, timepoints)
@@ -734,15 +734,16 @@ a member named `lland_v3`.
     @property
     def filenames(self) -> Tuple[str, ...]:
         """A |tuple| of names of all handled |NetCDFFile| objects."""
-        return tuple(sorted(set(itertools.chain(
-            *(_.keys() for _ in self.folders.values())))))
+        return tuple(
+            sorted(set(itertools.chain(*(_.keys() for _ in self.folders.values()))))
+        )
 
     def __getattr__(self, name):
         counter = 0
         memory = None
         for foldername, folder in self.folders.items():
             for filename, file_ in folder.items():
-                if name == f'{foldername}_{filename}':
+                if name == f"{foldername}_{filename}":
                     return file_
                 if name == filename:
                     counter += 1
@@ -751,13 +752,15 @@ a member named `lland_v3`.
             return memory
         if counter > 1:
             raise AttributeError(
-                f'The current NetCDFInterface object does handle '
-                f'multiple NetCDFFile objects named `{name}`.  '
-                f'Please be more specific.')
+                f"The current NetCDFInterface object does handle "
+                f"multiple NetCDFFile objects named `{name}`.  "
+                f"Please be more specific."
+            )
         raise AttributeError(
-            f'The current NetCDFInterface object does neither handle '
-            f'a NetCDFFile object named `{name}` nor does it define a '
-            f'member named `{name}`.')
+            f"The current NetCDFInterface object does neither handle "
+            f"a NetCDFFile object named `{name}` nor does it define a "
+            f"member named `{name}`."
+        )
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_
@@ -767,7 +770,7 @@ a member named `lland_v3`.
         counter = collections.defaultdict(lambda: 0)
         for foldername, folder in self.folders.items():
             for filename in folder.keys():
-                adds_long.append(f'{foldername}_{filename}')
+                adds_long.append(f"{foldername}_{filename}")
                 counter[filename] += 1
         adds_short = [name for name, nmb in counter.items() if nmb == 1]
         return objecttools.dir_(self) + adds_long + adds_short
@@ -856,8 +859,7 @@ named `state_bowa`.
         self._isolate = isolate
         self._timeaxis = timeaxis
         self._dirpath = dirpath
-        self.variables: 'Dict[str, NetCDFVariableBase]' = \
-            collections.OrderedDict()
+        self.variables: "Dict[str, NetCDFVariableBase]" = collections.OrderedDict()
 
     def log(self, sequence, infoarray) -> None:
         """Pass the given |IoSequence| to a suitable instance of
@@ -966,11 +968,12 @@ named `state_bowa`.
         ...     mock.assert_called_once_with(
         ...         name='input_nied', timeaxis=0, isolate=False)
         """
-        aggregated = ((infoarray is not None) and
-                      (infoarray.info['type'] != 'unmodified'))
+        aggregated = (infoarray is not None) and (
+            infoarray.info["type"] != "unmodified"
+        )
         descr = sequence.descr_sequence
         if aggregated:
-            descr = '_'.join([descr, infoarray.info['type']])
+            descr = "_".join([descr, infoarray.info["type"]])
         if descr in self.variables:
             var_ = self.variables[descr]
         else:
@@ -980,16 +983,14 @@ named `state_bowa`.
                 cls = NetCDFVariableFlat
             else:
                 cls = NetCDFVariableDeep
-            var_ = cls(name=descr,
-                       isolate=self._isolate,
-                       timeaxis=self._timeaxis)
+            var_ = cls(name=descr, isolate=self._isolate, timeaxis=self._timeaxis)
             self.variables[descr] = var_
         var_.log(sequence, infoarray)
 
     @property
     def filepath(self) -> str:
         """The NetCDF file path."""
-        return os.path.join(self._dirpath, self.name + '.nc')
+        return os.path.join(self._dirpath, self.name + ".nc")
 
     def read(self) -> None:
         """Open an existing NetCDF file temporarily and call method
@@ -1002,30 +1003,31 @@ named `state_bowa`.
                     variable.read(ncfile, timegrid)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to read data from NetCDF file `{self.filepath}`')
+                f"While trying to read data from NetCDF file `{self.filepath}`"
+            )
 
     def write(self, timeunit, timepoints) -> None:
         """Open a new NetCDF file temporarily and call method
         |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
-            ncfile.Conventions = 'CF-1.6'
+            ncfile.Conventions = "CF-1.6"
             self._insert_timepoints(ncfile, timepoints, timeunit)
             for variable in self.variables.values():
                 variable.write(ncfile)
 
     @staticmethod
     def _insert_timepoints(ncfile, timepoints, timeunit) -> None:
-        dim_name = dimmapping['nmb_timepoints']
-        var_name = varmapping['timepoints']
+        dim_name = dimmapping["nmb_timepoints"]
+        var_name = varmapping["timepoints"]
         create_dimension(ncfile, dim_name, len(timepoints))
-        create_variable(ncfile, var_name, 'f8', (dim_name,))
+        create_variable(ncfile, var_name, "f8", (dim_name,))
         var_ = ncfile[var_name]
         var_[:] = timepoints
         var_.units = timeunit
         var_.standard_name = var_name
-        var_.calendar = 'standard'
-        var_.delncattr('_FillValue')
+        var_.calendar = "standard"
+        var_.delncattr("_FillValue")
 
     @property
     def variablenames(self) -> Tuple[str, ...]:
@@ -1037,9 +1039,9 @@ named `state_bowa`.
             return self.variables[name]
         except KeyError:
             raise AttributeError(
-                f'The NetCDFFile object `{self.name}` does '
-                f'neither handle a NetCDF variable named `{name}` '
-                f'nor does it define a member named `{name}`.'
+                f"The NetCDFFile object `{self.name}` does "
+                f"neither handle a NetCDF variable named `{name}` "
+                f"nor does it define a member named `{name}`."
             ) from None
 
     __copy__ = objecttools.copy_
@@ -1050,7 +1052,8 @@ named `state_bowa`.
 
 
 _NetCDFVariableInfo = collections.namedtuple(
-    '_NetCDFVariableInfo', ['sequence', 'array'])
+    "_NetCDFVariableInfo", ["sequence", "array"]
+)
 
 
 class Subdevice2Index:
@@ -1068,9 +1071,9 @@ class Subdevice2Index:
             return self.dict_[name_subdevice]
         except KeyError:
             raise OSError(
-                f'No data for sequence `{self.name_sequence}` and '
-                f'(sub)device `{name_subdevice}` in NetCDF file '
-                f'`{self.name_ncfile}` available.'
+                f"No data for sequence `{self.name_sequence}` and "
+                f"(sub)device `{name_subdevice}` in NetCDF file "
+                f"`{self.name_ncfile}` available."
             ) from None
 
 
@@ -1099,16 +1102,15 @@ handles time) or `1` (the second axis handles time), but for variable \
         _timeaxis = int(timeaxis)
         if _timeaxis not in (0, 1):
             raise ValueError(
-                f'The argument `timeaxis` must be either `0` '
-                f'(the first axis handles time) or `1` (the '
-                f'second axis handles time), but for variable '
-                f'`{name}` of class {type(self).__name__} ' 
-                f'the value `{timeaxis}` is given.')
+                f"The argument `timeaxis` must be either `0` "
+                f"(the first axis handles time) or `1` (the "
+                f"second axis handles time), but for variable "
+                f"`{name}` of class {type(self).__name__} "
+                f"the value `{timeaxis}` is given."
+            )
         self._timeaxis: int = _timeaxis
-        self.sequences: Dict[str, sequencetools.IOSequence] = \
-            collections.OrderedDict()
-        self.arrays: Dict[str, sequencetools.InfoArray] = \
-            collections.OrderedDict()
+        self.sequences: Dict[str, sequencetools.IOSequence] = collections.OrderedDict()
+        self.arrays: Dict[str, sequencetools.InfoArray] = collections.OrderedDict()
 
     def log(self, sequence, infoarray) -> None:
         """Log the given |IOSequence| object either for reading or writing
@@ -1180,7 +1182,7 @@ nor does it define a member named `element2`.
         >>> NetCDFVariableBase_('name', isolate=False, timeaxis=1).prefix
         'name_'
         """
-        return '' if self._isolate else '%s_' % self.name
+        return "" if self._isolate else "%s_" % self.name
 
     def insert_subdevices(self, ncfile) -> None:
         """Insert a variable of the names of the (sub)devices of the logged
@@ -1229,14 +1231,13 @@ nor does it define a member named `element2`.
         >>> file2.close()
         """
         prefix = self.prefix
-        nmb_subdevices = '%s%s' % (prefix, dimmapping['nmb_subdevices'])
-        nmb_characters = '%s%s' % (prefix, dimmapping['nmb_characters'])
-        subdevices = '%s%s' % (prefix, varmapping['subdevices'])
+        nmb_subdevices = "%s%s" % (prefix, dimmapping["nmb_subdevices"])
+        nmb_characters = "%s%s" % (prefix, dimmapping["nmb_characters"])
+        subdevices = "%s%s" % (prefix, varmapping["subdevices"])
         statchars = str2chars(self.subdevicenames)
         create_dimension(ncfile, nmb_subdevices, statchars.shape[0])
         create_dimension(ncfile, nmb_characters, statchars.shape[1])
-        create_variable(
-            ncfile, subdevices, 'S1', (nmb_subdevices, nmb_characters))
+        create_variable(ncfile, subdevices, "S1", (nmb_subdevices, nmb_characters))
         ncfile[subdevices][:, :] = statchars
 
     def query_subdevices(self, ncfile) -> List[str]:
@@ -1274,8 +1275,10 @@ coordinate locations of variable `flux_prec`.
 
         >>> ncfile.close()
         """
-        tests = ['%s%s' % (prefix, varmapping['subdevices'])
-                 for prefix in ('%s_' % self.name, '')]
+        tests = [
+            "%s%s" % (prefix, varmapping["subdevices"])
+            for prefix in ("%s_" % self.name, "")
+        ]
         for subdevices in tests:
             try:
                 chars = ncfile[subdevices][:]
@@ -1284,10 +1287,11 @@ coordinate locations of variable `flux_prec`.
                 pass
         else:
             raise IOError(
-                'NetCDF file `%s` does neither contain a variable '
-                'named `%s` nor `%s` for defining the coordinate '
-                'locations of variable `%s`.'
-                % (get_filepath(ncfile), tests[0], tests[1], self.name))
+                "NetCDF file `%s` does neither contain a variable "
+                "named `%s` nor `%s` for defining the coordinate "
+                "locations of variable `%s`."
+                % (get_filepath(ncfile), tests[0], tests[1], self.name)
+            )
         return chars2str(chars)
 
     def query_subdevice2index(self, ncfile) -> Subdevice2Index:
@@ -1341,13 +1345,14 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
     def _test_duplicate_exists(self, ncfile, subdevices) -> None:
         if len(subdevices) != len(set(subdevices)):
             for idx, name1 in enumerate(subdevices):
-                for name2 in subdevices[idx+1:]:
+                for name2 in subdevices[idx + 1 :]:
                     if name1 == name2:
                         raise OSError(
-                            'The NetCDF file `%s` contains duplicate '
-                            '(sub)device names for variable `%s` (the '
-                            'first found duplicate is `%s`).'
-                            % (get_filepath(ncfile), self.name, name1))
+                            "The NetCDF file `%s` contains duplicate "
+                            "(sub)device names for variable `%s` (the "
+                            "first found duplicate is `%s`)."
+                            % (get_filepath(ncfile), self.name, name1)
+                        )
 
     def sort_timeplaceentries(self, timeentry, placeentry) -> Tuple[Any, Any]:
         """Return a |tuple| containing the given `timeentry` and `placeentry`
@@ -1367,8 +1372,9 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             return placeentry, timeentry
         return timeentry, placeentry
 
-    def get_timeplaceslice(self, placeindex) -> \
-            Union[Tuple[slice, int], Tuple[int, slice]]:
+    def get_timeplaceslice(
+        self, placeindex
+    ) -> Union[Tuple[slice, int], Tuple[int, slice]]:
         """Return a |tuple| for indexing a complete time series of a certain
         location available in |NetCDFVariableBase.array|.
 
@@ -1397,9 +1403,9 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             return _NetCDFVariableInfo(self.sequences[name], self.arrays[name])
         except KeyError:
             raise AttributeError(
-                f'The NetCDFVariable object `{self.name}` does neither '
-                f'handle time series data under the (sub)device name '
-                f'`{name}` nor does it define a member named `{name}`.'
+                f"The NetCDFVariable object `{self.name}` does neither "
+                f"handle time series data under the (sub)device name "
+                f"`{name}` nor does it define a member named `{name}`."
             ) from None
 
     def __dir__(self):
@@ -1427,7 +1433,7 @@ class DeepAndAggMixin:
         array = self.array
         for dimension, length in zip(dimensions[2:], array.shape[2:]):
             create_dimension(ncfile, dimension, length)
-        create_variable(ncfile, self.name, 'f8', dimensions)
+        create_variable(ncfile, self.name, "f8", dimensions)
         ncfile[self.name][:] = array
 
 
@@ -1468,8 +1474,9 @@ class AggAndFlatMixin:
         """
         self: NetCDFVariableBase
         return self.sort_timeplaceentries(
-            dimmapping['nmb_timepoints'],
-            '%s%s' % (self.prefix, dimmapping['nmb_subdevices']))
+            dimmapping["nmb_timepoints"],
+            "%s%s" % (self.prefix, dimmapping["nmb_subdevices"]),
+        )
 
 
 class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
@@ -1753,12 +1760,11 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         >>> ncvar.dimensions
         ('time', 'stations', 'axis3')
         """
-        nmb_timepoints = dimmapping['nmb_timepoints']
-        nmb_subdevices = '%s%s' % (self.prefix, dimmapping['nmb_subdevices'])
-        dimensions = list(self.sort_timeplaceentries(
-            nmb_timepoints, nmb_subdevices))
+        nmb_timepoints = dimmapping["nmb_timepoints"]
+        nmb_subdevices = "%s%s" % (self.prefix, dimmapping["nmb_subdevices"])
+        dimensions = list(self.sort_timeplaceentries(nmb_timepoints, nmb_subdevices))
         for idx in range(list(self.sequences.values())[0].NDIM):
-            dimensions.append('%saxis%d' % (self.prefix, idx + 3))
+            dimensions.append("%saxis%d" % (self.prefix, idx + 3))
         return tuple(dimensions)
 
     def read(self, ncfile, timegrid_data) -> None:
@@ -1775,8 +1781,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         for subdevice, sequence in self.sequences.items():
             idx = subdev2index.get_index(subdevice)
             values = array[self.get_slices(idx, sequence.shape)]
-            sequence.series = sequence.adjust_series(
-                timegrid_data, values)
+            sequence.series = sequence.adjust_series(timegrid_data, values)
 
 
 class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
@@ -1864,7 +1869,8 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         (4, 3)
         """
         return self.sort_timeplaceentries(
-            len(hydpy.pub.timegrids.init), len(self.sequences))
+            len(hydpy.pub.timegrids.init), len(self.sequences)
+        )
 
     @property
     def array(self) -> numpy.ndarray:
@@ -1923,9 +1929,9 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
 `flux_nkor` and other sequences as well) is not invertible.
         """
         raise RuntimeError(
-            'The process of aggregating values (of sequence `%s` and '
-            'other sequences as well) is not invertible.'
-            % self.name)
+            "The process of aggregating values (of sequence `%s` and "
+            "other sequences as well) is not invertible." % self.name
+        )
 
 
 class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
@@ -2033,7 +2039,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         """
         return self.sort_timeplaceentries(
             len(hydpy.pub.timegrids.init),
-            sum(len(seq) for seq in self.sequences.values()))
+            sum(len(seq) for seq in self.sequences.values()),
+        )
 
     @property
     def array(self) -> numpy.ndarray:
@@ -2089,8 +2096,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         array = numpy.full(self.shape, fillvalue, dtype=float)
         idx0 = 0
         idxs: List[Any] = [slice(None)]
-        for seq, subarray in zip(self.sequences.values(),
-                                 self.arrays.values()):
+        for seq, subarray in zip(self.sequences.values(), self.arrays.values()):
             for prod in self._product(seq.shape):
                 subsubarray = subarray[tuple(idxs + list(prod))]
                 array[self.get_timeplaceslice(idx0)] = subsubarray
@@ -2132,9 +2138,9 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         stats: List[str] = collections.deque()
         for devicename, seq in self.sequences.items():
             if seq.NDIM:
-                temp = devicename + '_'
+                temp = devicename + "_"
                 for prod in self._product(seq.shape):
-                    stats.append(temp + '_'.join(str(idx) for idx in prod))
+                    stats.append(temp + "_".join(str(idx) for idx in prod))
             else:
                 stats.append(devicename)
         return tuple(stats)
@@ -2176,11 +2182,11 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
                 else:
                     subshape = (array.shape[0],) + seq.shape
                 subarray = numpy.empty(subshape)
-                temp = devicename + '_'
+                temp = devicename + "_"
                 for prod in self._product(seq.shape):
-                    station = temp + '_'.join(str(idx) for idx in prod)
+                    station = temp + "_".join(str(idx) for idx in prod)
                     idx0 = subdev2index.get_index(station)
-                    subarray[idxs+prod] = array[self.get_timeplaceslice(idx0)]
+                    subarray[idxs + prod] = array[self.get_timeplaceslice(idx0)]
             else:
                 idx = subdev2index.get_index(devicename)
                 subarray = array[self.get_timeplaceslice(idx)]
@@ -2193,5 +2199,5 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         for some examples.
         """
         self.insert_subdevices(ncfile)
-        create_variable(ncfile, self.name, 'f8', self.dimensions)
+        create_variable(ncfile, self.name, "f8", self.dimensions)
         ncfile[self.name][:] = self.array

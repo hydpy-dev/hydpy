@@ -6,8 +6,10 @@
 import copy
 import types
 from typing import *
+
 # ...from site-packages
 import networkx
+
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -164,10 +166,10 @@ Selections objects, single Selection objects, or iterables containing \
     """
 
     def __init__(
-            self,
-            *selections: 'Selection',
+        self,
+        *selections: "Selection",
     ) -> None:
-        self.__selections: Dict[str, 'Selection'] = {}
+        self.__selections: Dict[str, "Selection"] = {}
         for selection in selections:
             self += selection
 
@@ -217,9 +219,9 @@ Selections objects, single Selection objects, or iterables containing \
         return elements
 
     def find(
-            self,
-            device: devicetools.DeviceType,
-    ) -> 'Selections':
+        self,
+        device: devicetools.DeviceType,
+    ) -> "Selections":
         """Return all |Selection| objects containing the given |Node| or
         |Element| object.
 
@@ -240,27 +242,26 @@ Selections objects, single Selection objects, or iterables containing \
         >>> selections.find(elements.e2)
         Selections()
         """
-        attr = 'nodes' if isinstance(device, devicetools.Node) else 'elements'
+        attr = "nodes" if isinstance(device, devicetools.Node) else "elements"
         selections = (
-            selection for selection in self
-            if device in getattr(selection, attr)
+            selection for selection in self if device in getattr(selection, attr)
         )
         return Selections(*selections)
 
-    def __getattr__(self, key: str) -> 'Selection':
+    def __getattr__(self, key: str) -> "Selection":
         try:
             return self.__selections[key]
         except KeyError:
             raise AttributeError(
-                f'The actual Selections object handles neither a normal '
-                f'attribute nor a Selection object called `{key}` that '
-                f'could be returned.'
+                f"The actual Selections object handles neither a normal "
+                f"attribute nor a Selection object called `{key}` that "
+                f"could be returned."
             ) from None
 
     def __setattr__(
-            self,
-            name: str,
-            value: Any,
+        self,
+        name: str,
+        value: Any,
     ) -> None:
         if isinstance(value, Selection):
             self[name] = value
@@ -268,68 +269,69 @@ Selections objects, single Selection objects, or iterables containing \
             super().__setattr__(name, value)
 
     def __delattr__(
-            self,
-            key: str,
+        self,
+        key: str,
     ) -> None:
         try:
             del self.__selections[key]
         except KeyError:
             raise AttributeError(
-                f'The actual Selections object handles neither a normal '
-                f'attribute nor a Selection object called `{key}` that '
-                f'could be deleted.'
+                f"The actual Selections object handles neither a normal "
+                f"attribute nor a Selection object called `{key}` that "
+                f"could be deleted."
             ) from None
 
     def __getitem__(
-            self,
-            key: str,
-    ) -> 'Selection':
+        self,
+        key: str,
+    ) -> "Selection":
         try:
             return self.__selections[key]
         except KeyError:
             raise KeyError(
-                f'The actual Selections object does not handle '
-                f'a Selection object called `{key}` that could '
-                f'be returned.'
+                f"The actual Selections object does not handle "
+                f"a Selection object called `{key}` that could "
+                f"be returned."
             ) from None
 
     def __setitem__(
-            self,
-            key: 'str',
-            value: 'Selection',
+        self,
+        key: "str",
+        value: "Selection",
     ) -> None:
         if key != value.name:
             raise ValueError(
-                f'To avoid inconsistencies when handling Selection '
-                f'objects as attributes of a Selections object, '
-                f'attribute name and Selection name must be identical.  '
-                f'However,  for selection `{value.name}` the given '
-                f'attribute name is `{key}`.')
+                f"To avoid inconsistencies when handling Selection "
+                f"objects as attributes of a Selections object, "
+                f"attribute name and Selection name must be identical.  "
+                f"However,  for selection `{value.name}` the given "
+                f"attribute name is `{key}`."
+            )
         self.__selections[key] = value
 
     def __delitem__(
-            self,
-            key: str,
+        self,
+        key: str,
     ) -> None:
         try:
             del self.__selections[key]
         except KeyError:
             raise KeyError(
-                f'The actual Selections object does not handle '
-                f'a Selection object called `{key}` that could '
-                f'be deleted.'
+                f"The actual Selections object does not handle "
+                f"a Selection object called `{key}` that could "
+                f"be deleted."
             ) from None
 
     def __contains__(
-            self,
-            value: Union[str, 'Selection'],
+        self,
+        value: Union[str, "Selection"],
     ) -> bool:
         try:
             return value in self.__selections.values()
         except AttributeError:
             return value in self.names
 
-    def __iter__(self) -> Iterator['Selection']:
+    def __iter__(self) -> Iterator["Selection"]:
         return iter(self.__selections.values())
 
     def __len__(self) -> int:
@@ -337,8 +339,8 @@ Selections objects, single Selection objects, or iterables containing \
 
     @staticmethod
     def __getiterable(
-            value: typingtools.Mayberable1['Selection'],
-    ) -> List['Selection']:
+        value: typingtools.Mayberable1["Selection"],
+    ) -> List["Selection"]:
         """Try to convert the given argument to a |list| of  |Selection|
         objects and return it.
         """
@@ -346,16 +348,16 @@ Selections objects, single Selection objects, or iterables containing \
             return list(objecttools.extract(value, (Selection,)))
         except TypeError:
             raise TypeError(
-                f'Binary operations on Selections objects are defined for '
-                f'other Selections objects, single Selection objects, or '
-                f'iterables containing `Selection` objects, but the type of '
-                f'the given argument is `{type(value).__name__}`.'
+                f"Binary operations on Selections objects are defined for "
+                f"other Selections objects, single Selection objects, or "
+                f"iterables containing `Selection` objects, but the type of "
+                f"the given argument is `{type(value).__name__}`."
             ) from None
 
     def __add__(
-            self,
-            other: typingtools.Mayberable1['Selection'],
-    ) -> 'Selections':
+        self,
+        other: typingtools.Mayberable1["Selection"],
+    ) -> "Selections":
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
@@ -363,18 +365,18 @@ Selections objects, single Selection objects, or iterables containing \
         return new
 
     def __iadd__(
-            self,
-            other: typingtools.Mayberable1['Selection'],
-    ) -> 'Selections':
+        self,
+        other: typingtools.Mayberable1["Selection"],
+    ) -> "Selections":
         selections = self.__getiterable(other)
         for selection in selections:
             setattr(self, selection.name, selection)
         return self
 
     def __sub__(
-            self,
-            other: typingtools.Mayberable1['Selection'],
-    ) -> 'Selections':
+        self,
+        other: typingtools.Mayberable1["Selection"],
+    ) -> "Selections":
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
@@ -385,9 +387,9 @@ Selections objects, single Selection objects, or iterables containing \
         return new
 
     def __isub__(
-            self,
-            other: typingtools.Mayberable1['Selection'],
-    ) -> 'Selections':
+        self,
+        other: typingtools.Mayberable1["Selection"],
+    ) -> "Selections":
         selections = self.__getiterable(other)
         for selection in selections:
             try:
@@ -397,33 +399,31 @@ Selections objects, single Selection objects, or iterables containing \
         return self
 
     def __eq__(
-            self,
-            other: Any,
+        self,
+        other: Any,
     ) -> bool:
         try:
-            return ((self.nodes == self.nodes) and
-                    (self.elements == other.elements))
+            return (self.nodes == self.nodes) and (self.elements == other.elements)
         except AttributeError:
             pass
         return False
 
-    def __copy__(self) -> 'Selections':
+    def __copy__(self) -> "Selections":
         return type(self)(*self.__selections.values())
 
     def __repr__(self) -> str:
-        return self.assignrepr('')
+        return self.assignrepr("")
 
     def assignrepr(
-            self,
-            prefix: str = '',
+        self,
+        prefix: str = "",
     ) -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
-                prefix += '%s(' % type(self).__name__
-                repr_ = objecttools.assignrepr_values(
-                    sorted(self.names), prefix, 70)
-                return repr_ + ')'
+                prefix += "%s(" % type(self).__name__
+                repr_ = objecttools.assignrepr_values(sorted(self.names), prefix, 70)
+                return repr_ + ")"
 
     def __dir__(self) -> List[str]:
         return objecttools.dir_(self) + list(self.names)
@@ -546,19 +546,19 @@ attribute 'nodes'
     elements: devicetools.Elements
 
     def __init__(
-            self,
-            name: str,
-            nodes: devicetools.NodesConstrArg = None,
-            elements: devicetools.ElementsConstrArg = None,
+        self,
+        name: str,
+        nodes: devicetools.NodesConstrArg = None,
+        elements: devicetools.ElementsConstrArg = None,
     ) -> None:
         self.name = str(name)
         self.nodes = devicetools.Nodes(nodes).copy()
         self.elements = devicetools.Elements(elements).copy()
 
     def _check_device(
-            self,
-            device: devicetools.DeviceType,
-            type_of_device: str,
+        self,
+        device: devicetools.DeviceType,
+        type_of_device: str,
     ) -> devicetools.DeviceType:
         if isinstance(device, devicetools.Node):
             device = self.nodes[device.name]
@@ -566,17 +566,17 @@ attribute 'nodes'
             device = self.elements[device.name]
         else:
             raise TypeError(
-                f'Either a `Node` or an `Element` object is required as the '
+                f"Either a `Node` or an `Element` object is required as the "
                 f'"{type_of_device} device", but the given `device` value '
-                f'is of type `{type(device).__name__}`.'
+                f"is of type `{type(device).__name__}`."
             )
         return device
 
     def search_upstream(
-            self,
-            device: devicetools.DeviceType,
-            name: str = 'upstream',
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+        name: str = "upstream",
+    ) -> "Selection":
         """Return the network upstream of the given starting point, including
         the starting point itself.
 
@@ -644,7 +644,7 @@ selection `headwaters`, the following error occurred: 'No node named \
                   elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
         """
         try:
-            device = self._check_device(device, 'outlet')
+            device = self._check_device(device, "outlet")
             devices = networkx.ancestors(
                 G=hydpytools.create_directedgraph(self),
                 source=device,
@@ -652,20 +652,25 @@ selection `headwaters`, the following error occurred: 'No node named \
             devices.add(device)
             return Selection(
                 name=name,
-                nodes=[device for device in devices
-                       if isinstance(device, devicetools.Node)],
-                elements=[device for device in devices
-                          if isinstance(device, devicetools.Element)],
+                nodes=[
+                    device for device in devices if isinstance(device, devicetools.Node)
+                ],
+                elements=[
+                    device
+                    for device in devices
+                    if isinstance(device, devicetools.Element)
+                ],
             )
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to determine an upstream network of '
-                f'selection `{self.name}`')
+                f"While trying to determine an upstream network of "
+                f"selection `{self.name}`"
+            )
 
     def select_upstream(
-            self,
-            device: devicetools.DeviceType,
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+    ) -> "Selection":
         """Restrict the current selection to the network upstream of the given
         starting point, including the starting point itself.
 
@@ -678,9 +683,9 @@ selection `headwaters`, the following error occurred: 'No node named \
         return self
 
     def deselect_upstream(
-            self,
-            device: devicetools.DeviceType,
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+    ) -> "Selection":
         """Remove the network upstream of the given starting point from the
         current selection, including the starting point itself.
 
@@ -693,10 +698,10 @@ selection `headwaters`, the following error occurred: 'No node named \
         return self
 
     def search_downstream(
-            self,
-            device: devicetools.DeviceType,
-            name: str = 'downstream',
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+        name: str = "downstream",
+    ) -> "Selection":
         """Return the network downstream of the given starting point,
         including the starting point itself.
 
@@ -765,7 +770,7 @@ selection `headwaters`, the following error occurred: 'No node named \
                             "land_lahn_3", "stream_dill_lahn_2"))
         """
         try:
-            device = self._check_device(device, 'inlet')
+            device = self._check_device(device, "inlet")
             devices = networkx.descendants(
                 G=hydpytools.create_directedgraph(self),
                 source=device,
@@ -773,20 +778,25 @@ selection `headwaters`, the following error occurred: 'No node named \
             devices.add(device)
             return Selection(
                 name=name,
-                nodes=[device for device in devices
-                       if isinstance(device, devicetools.Node)],
-                elements=[device for device in devices
-                          if isinstance(device, devicetools.Element)],
+                nodes=[
+                    device for device in devices if isinstance(device, devicetools.Node)
+                ],
+                elements=[
+                    device
+                    for device in devices
+                    if isinstance(device, devicetools.Element)
+                ],
             )
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to determine a downstream network of '
-                f'selection `{self.name}`')
+                f"While trying to determine a downstream network of "
+                f"selection `{self.name}`"
+            )
 
     def select_downstream(
-            self,
-            device: devicetools.DeviceType,
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+    ) -> "Selection":
         """Restrict the current selection to the network downstream of the
         given starting point, including the starting point itself.
 
@@ -799,9 +809,9 @@ selection `headwaters`, the following error occurred: 'No node named \
         return self
 
     def deselect_downstream(
-            self,
-            device: devicetools.DeviceType,
-    ) -> 'Selection':
+        self,
+        device: devicetools.DeviceType,
+    ) -> "Selection":
         """Remove the network downstream of the given starting point from the
         current selection, including the starting point itself.
 
@@ -814,10 +824,10 @@ selection `headwaters`, the following error occurred: 'No node named \
         return self
 
     def search_modeltypes(
-            self,
-            *models: ModelTypesArg,
-            name: str = 'modeltypes',
-    ) -> 'Selection':
+        self,
+        *models: ModelTypesArg,
+        name: str = "modeltypes",
+    ) -> "Selection":
         """Return a |Selection| object containing only the elements
         currently handling models of the given types.
 
@@ -886,19 +896,18 @@ No module named 'hydpy.models.wrong'
                     selection.elements += element
         except BaseException:
             values = objecttools.enumeration(models)
-            classes = objecttools.enumeration(
-                type(model).__name__ for model in models)
+            classes = objecttools.enumeration(type(model).__name__ for model in models)
             objecttools.augment_excmessage(
-                f'While trying to determine the elements of selection '
-                f'`{self.name}` handling the model defined by the '
-                f'argument(s) `{values}` of type(s) `{classes}`'
+                f"While trying to determine the elements of selection "
+                f"`{self.name}` handling the model defined by the "
+                f"argument(s) `{values}` of type(s) `{classes}`"
             )
         return selection
 
     def select_modeltypes(
-            self,
-            *models: ModelTypesArg,
-    ) -> 'Selection':
+        self,
+        *models: ModelTypesArg,
+    ) -> "Selection":
         """Restrict the current |Selection| object to all elements
         containing the given model types (removes all nodes).
 
@@ -910,9 +919,9 @@ No module named 'hydpy.models.wrong'
         return self
 
     def deselect_modeltypes(
-            self,
-            *models: ModelTypesArg,
-    ) -> 'Selection':
+        self,
+        *models: ModelTypesArg,
+    ) -> "Selection":
         """Restrict the current selection to all elements not containing the
         given model types (removes all nodes).
 
@@ -924,10 +933,10 @@ No module named 'hydpy.models.wrong'
         return self
 
     def search_nodenames(
-            self,
-            *substrings: str,
-            name: str = 'nodenames',
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+        name: str = "nodenames",
+    ) -> "Selection":
         """Return a new selection containing all nodes of the current
         selection with a name containing at least one of the given substrings.
 
@@ -985,16 +994,16 @@ requires string as left operand, not list
         except BaseException:
             values = objecttools.enumeration(substrings)
             objecttools.augment_excmessage(
-                f'While trying to determine the nodes of selection '
-                f'`{self.name}` with names containing at least one '
-                f'of the given substrings `{values}`'
+                f"While trying to determine the nodes of selection "
+                f"`{self.name}` with names containing at least one "
+                f"of the given substrings `{values}`"
             )
         return selection
 
     def select_nodenames(
-            self,
-            *substrings: str,
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+    ) -> "Selection":
         """Restrict the current selection to all nodes with a name
         containing at least one of the given substrings  (does not
         affect any elements).
@@ -1006,9 +1015,9 @@ requires string as left operand, not list
         return self
 
     def deselect_nodenames(
-            self,
-            *substrings: str,
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+    ) -> "Selection":
         """Restrict the current selection to all nodes with a name
         not containing at least one of the given substrings (does not
         affect any elements).
@@ -1020,10 +1029,10 @@ requires string as left operand, not list
         return self
 
     def search_elementnames(
-            self,
-            *substrings: str,
-            name: str = 'elementnames',
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+        name: str = "elementnames",
+    ) -> "Selection":
         """Return a new selection containing all elements of the current
         selection with a name containing at least one of the given substrings.
 
@@ -1080,16 +1089,16 @@ requires string as left operand, not list
         except BaseException:
             values = objecttools.enumeration(substrings)
             objecttools.augment_excmessage(
-                f'While trying to determine the elements of selection '
-                f'`{self.name}` with names containing at least one '
-                f'of the given substrings `{values}`'
+                f"While trying to determine the elements of selection "
+                f"`{self.name}` with names containing at least one "
+                f"of the given substrings `{values}`"
             )
         return selection
 
     def select_elementnames(
-            self,
-            *substrings: str,
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+    ) -> "Selection":
         """Restrict the current selection to all elements with a name
         containing at least one of the given substrings (does not
         affect any nodes).
@@ -1101,9 +1110,9 @@ requires string as left operand, not list
         return self
 
     def deselect_elementnames(
-            self,
-            *substrings: str,
-    ) -> 'Selection':
+        self,
+        *substrings: str,
+    ) -> "Selection":
         """Restrict the current selection to all elements with a name
         not containing at least one of the given substrings.   (does
         not affect any nodes).
@@ -1115,18 +1124,18 @@ requires string as left operand, not list
         return self
 
     def copy(
-            self,
-            name: str,
-    ) -> 'Selection':
+        self,
+        name: str,
+    ) -> "Selection":
         """Return a new |Selection| object with the given name and copies
         of the handles |Nodes| and |Elements| objects based on method
         |Devices.copy|."""
         return type(self)(name, copy.copy(self.nodes), copy.copy(self.elements))
 
     def save_networkfile(
-            self,
-            filepath: Union[str, None] = None,
-            write_defaultnodes: bool = True,
+        self,
+        filepath: Union[str, None] = None,
+        write_defaultnodes: bool = True,
     ) -> None:
         """Save the selection as a network file.
 
@@ -1244,130 +1253,125 @@ hland_T, lland_Nied
             for sequence in fusedvariable:
                 aliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
-            filepath = self.name + '.py'
-        with open(filepath, 'w', encoding="utf-8") as file_:
-            file_.write('# -*- coding: utf-8 -*-\n')
+            filepath = self.name + ".py"
+        with open(filepath, "w", encoding="utf-8") as file_:
+            file_.write("# -*- coding: utf-8 -*-\n")
             if fusedvariables:
-                file_.write('\nfrom hydpy import Element, FusedVariable, Node')
+                file_.write("\nfrom hydpy import Element, FusedVariable, Node")
             else:
-                file_.write('\nfrom hydpy import Element, Node')
+                file_.write("\nfrom hydpy import Element, Node")
             if aliases:
-                file_.write(
-                    f'\nfrom hydpy import {", ".join(sorted(aliases))}\n\n'
-                )
+                file_.write(f'\nfrom hydpy import {", ".join(sorted(aliases))}\n\n')
             else:
-                file_.write('\n\n')
+                file_.write("\n\n")
             for fusedvariable in sorted(fusedvariables, key=str):
-                file_.write(f'{fusedvariable} = {repr(fusedvariable)}\n')
+                file_.write(f"{fusedvariable} = {repr(fusedvariable)}\n")
             if fusedvariables:
-                file_.write('\n')
+                file_.write("\n")
             written = False
             for node in self.nodes:
-                if write_defaultnodes or (node.variable != 'Q'):
-                    file_.write('\n' + repr(node) + '\n')
+                if write_defaultnodes or (node.variable != "Q"):
+                    file_.write("\n" + repr(node) + "\n")
                     written = True
             if written:
-                file_.write('\n')
+                file_.write("\n")
             for element in self.elements:
-                file_.write('\n' + repr(element) + '\n')
+                file_.write("\n" + repr(element) + "\n")
 
     def __len__(self) -> int:
         return len(self.nodes) + len(self.elements)
 
     _ERRORMESSAGE = (
-        'selection `{self.name}` with object `{other}` '
-        'of type `{classname(other)}`'
+        "selection `{self.name}` with object `{other}` of type `{classname(other)}`"
     )
 
-    @objecttools.excmessage_decorator(f'add {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"add {_ERRORMESSAGE}")
     def __iadd__(
-            self,
-            other: 'Selection',
-    ) -> 'Selection':
+        self,
+        other: "Selection",
+    ) -> "Selection":
         self.nodes += other.nodes
         self.elements += other.elements
         return self
 
-    @objecttools.excmessage_decorator(f'subtract {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"subtract {_ERRORMESSAGE}")
     def __isub__(
-            self,
-            other: 'Selection',
-    ) -> 'Selection':
+        self,
+        other: "Selection",
+    ) -> "Selection":
         self.nodes -= other.nodes
         self.elements -= other.elements
         return self
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __lt__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes < other.nodes) and
-                (self.elements < other.elements))
+        return (self.nodes < other.nodes) and (self.elements < other.elements)
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __le__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes <= other.nodes) and
-                (self.elements <= other.elements))
+        return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __eq__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes == other.nodes) and
-                (self.elements == other.elements))
+        return (self.nodes == other.nodes) and (self.elements == other.elements)
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ne__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes != other.nodes) or
-                (self.elements != other.elements))
+        return (self.nodes != other.nodes) or (self.elements != other.elements)
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ge__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes >= other.nodes) and
-                (self.elements >= other.elements))
+        return (self.nodes >= other.nodes) and (self.elements >= other.elements)
 
-    @objecttools.excmessage_decorator(f'compare {_ERRORMESSAGE}')
+    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __gt__(
-            self,
-            other: 'Selection',
+        self,
+        other: "Selection",
     ) -> bool:
-        return ((self.nodes > other.nodes) and
-                (self.elements >= other.elements))
+        return (self.nodes > other.nodes) and (self.elements >= other.elements)
 
     def __str__(self) -> str:
         return self.name
 
     def __repr__(self) -> str:
-        return self.assignrepr('')
+        return self.assignrepr("")
 
     def assignrepr(
-            self,
-            prefix: str = '',
+        self,
+        prefix: str = "",
     ) -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     classname = type(self).__name__
-                    blanks = ' ' * (len(prefix+classname) + 1)
+                    blanks = " " * (len(prefix + classname) + 1)
                     nodestr = objecttools.assignrepr_tuple(
-                        self.nodes.names, blanks+'nodes=', 70)
+                        self.nodes.names, blanks + "nodes=", 70
+                    )
                     elementstr = objecttools.assignrepr_tuple(
-                        self.elements.names, blanks + 'elements=', 70)
-                    return (f'{prefix}{classname}("{self.name}",\n'
-                            f'{nodestr},\n'
-                            f'{elementstr})')
+                        self.elements.names, blanks + "elements=", 70
+                    )
+                    return (
+                        f'{prefix}{classname}("{self.name}",\n'
+                        f"{nodestr},\n"
+                        f"{elementstr})"
+                    )
 
     def __dir__(self) -> List[str]:
         """

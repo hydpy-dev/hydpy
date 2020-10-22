@@ -5,9 +5,11 @@
 import itertools
 import warnings
 from typing import *
+
 # ...from site-packages
 import numpy
 import networkx
+
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -18,6 +20,7 @@ from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.core import typingtools
+
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
 
@@ -682,8 +685,7 @@ at the moment.
         nodes = self._nodes
         if nodes is None:
             raise AttributeError(
-                'The actual HydPy instance does not handle any '
-                'nodes at the moment.'
+                "The actual HydPy instance does not handle any " "nodes at the moment."
             )
         return nodes
 
@@ -726,8 +728,8 @@ at the moment.
         elements = self._elements
         if elements is None:
             raise AttributeError(
-                'The actual HydPy instance does not handle any '
-                'elements at the moment.'
+                "The actual HydPy instance does not handle any "
+                "elements at the moment."
             )
         return elements
 
@@ -961,15 +963,16 @@ Use method `prepare_models` instead.
         """
         self.prepare_models()
         warnings.warn(
-            'Method `init_models` of class `HydPy` is deprecated.  '
-            'Use method `prepare_models` instead.',
-            exceptiontools.HydPyDeprecationWarning)
+            "Method `init_models` of class `HydPy` is deprecated.  "
+            "Use method `prepare_models` instead.",
+            exceptiontools.HydPyDeprecationWarning,
+        )
 
     def save_controls(
-            self,
-            parameterstep: Optional[timetools.PeriodConstrArg] = None,
-            simulationstep: Optional[timetools.PeriodConstrArg] = None,
-            auxfiler: Optional['auxfiletools.Auxfiler'] = None,
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
     ) -> None:
         """Write the control files of all current |Element| objects.
 
@@ -1514,11 +1517,11 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for further information.
         """
         return {
-            'Number of nodes': len(self.nodes),
-            'Number of elements': len(self.elements),
-            'Number of end nodes': len(self.endnodes),
-            'Number of distinct networks': len(self.segregatednetworks),
-            'Applied node variables': self.variables
+            "Number of nodes": len(self.nodes),
+            "Number of elements": len(self.elements),
+            "Number of end nodes": len(self.endnodes),
+            "Number of distinct networks": len(self.segregatednetworks),
+            "Applied node variables": self.variables,
         }
 
     def print_networkproperties(self) -> None:
@@ -1547,7 +1550,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for key, value in self.networkproperties.items():
             if isinstance(value, typingtools.IterableNonString):
                 value = objecttools.enumeration(value)
-            print(f'{key}: {value}')
+            print(f"{key}: {value}")
 
     @property
     def endnodes(self) -> devicetools.Nodes:
@@ -1601,15 +1604,14 @@ one value needed to be trimmed.  The old and the new value(s) are \
         endnodes = devicetools.Nodes()
         for node in self.nodes:
             for element in node.exits:
-                if ((element in self.elements) and
-                        (node not in element.receivers)):
+                if (element in self.elements) and (node not in element.receivers):
                     break
             else:
                 endnodes += node
         return endnodes
 
     @property
-    def segregatednetworks(self) -> 'selectiontools.Selections':
+    def segregatednetworks(self) -> "selectiontools.Selections":
         """The number of segregated networks defined by the currently
         relevant |Node| and |Element| objects.
 
@@ -1743,8 +1745,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         sels1 = selectiontools.Selections()
         sels2 = selectiontools.Selections()
-        complete = selectiontools.Selection(
-            'complete', self.nodes, self.elements)
+        complete = selectiontools.Selection("complete", self.nodes, self.elements)
         for node in self.endnodes:
             sel = complete.copy(node.name).select_upstream(node)
             sels1 += sel
@@ -1805,27 +1806,27 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
     @overload
     def update_devices(
-            self,
-            *,
-            selection: 'selectiontools.Selection',
+        self,
+        *,
+        selection: "selectiontools.Selection",
     ) -> None:
         """Selection as input"""
 
     @overload
     def update_devices(
-            self,
-            *,
-            nodes: devicetools.NodesConstrArg = ...,
-            elements: devicetools.ElementsConstrArg = ...,
+        self,
+        *,
+        nodes: devicetools.NodesConstrArg = ...,
+        elements: devicetools.ElementsConstrArg = ...,
     ) -> None:
         """Devices as input"""
 
     def update_devices(
-            self,
-            *,
-            selection=None,
-            nodes=None,
-            elements=None,
+        self,
+        *,
+        selection=None,
+        nodes=None,
+        elements=None,
     ) -> None:
         """Determine the order, in which method |HydPy.simulate| processes
         the currently relevant |Node| and |Element| objects.
@@ -1943,9 +1944,9 @@ argument at the same time.
         devices_given = (nodes is not None) or (elements is not None)
         if selection_given and devices_given:
             raise ValueError(
-                'Method `update_devices` of class `HydPy` does not allow '
-                'to use both the `selection` argument and the `nodes` or  '
-                'the `elements` argument at the same time.'
+                "Method `update_devices` of class `HydPy` does not allow "
+                "to use both the `selection` argument and the `nodes` or  "
+                "the `elements` argument at the same time."
             )
         if selection_given:
             self.nodes = selection.nodes
@@ -1968,7 +1969,8 @@ argument at the same time.
         nodes = self.nodes.names
         elements = self.elements.names
         self.deviceorder = [
-            device for device in devices
+            device
+            for device in devices
             if (device.name in nodes) or (device.name in elements)
         ]
 
@@ -1983,17 +1985,17 @@ argument at the same time.
         """
         funcs = []
         for node in self.nodes:
-            if node.deploymode in ('oldsim', 'obs_oldsim'):
+            if node.deploymode in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_simdata)
-            if node.deploymode in ('obs', 'obs_newsim', 'obs_oldsim'):
+            if node.deploymode in ("obs", "obs_newsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_obsdata)
         for node in self.nodes:
-            if node.deploymode not in ('oldsim', 'obs_oldsim'):
+            if node.deploymode not in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)
-            elif device.deploymode in ('obs_newsim', 'obs_oldsim'):
+            elif device.deploymode in ("obs_newsim", "obs_oldsim"):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
         for element in self.elements:
             if element.senders:
@@ -2004,7 +2006,7 @@ argument at the same time.
         for element in self.elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploymode not in ('oldsim', 'obs_oldsim'):
+            if node.deploymode not in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.save_simdata)
         return funcs
 
@@ -2220,9 +2222,10 @@ Use method `simulate` instead.
         """
         self.simulate()
         warnings.warn(
-            'Method `doit` of class `HydPy` is deprecated.  '
-            'Use method `simulate` instead.',
-            exceptiontools.HydPyDeprecationWarning)
+            "Method `doit` of class `HydPy` is deprecated.  "
+            "Use method `simulate` instead.",
+            exceptiontools.HydPyDeprecationWarning,
+        )
 
     def prepare_allseries(self, ramflag: bool = True) -> None:
         """Allow all current |IOSequence| objects to handle time-series
@@ -2359,7 +2362,7 @@ Use method `simulate` instead.
 
 
 def create_directedgraph(
-        devices: Union[HydPy, 'selectiontools.Selection'],
+    devices: Union[HydPy, "selectiontools.Selection"],
 ) -> networkx.DiGraph:
     """Create a directed graph based on the given devices."""
     digraph = networkx.DiGraph()

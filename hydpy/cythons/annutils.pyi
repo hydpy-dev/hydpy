@@ -1,4 +1,3 @@
-
 from typing import Sequence
 import numpy
 
@@ -17,13 +16,8 @@ class ANN:
     inputs: numpy.ndarray
     outputs: numpy.ndarray
     neurons: numpy.ndarray
-
-    def calculate_values(self) -> None:
-        ...
-
-    def calculate_derivatives(self, idx_input: int) -> None:
-        ...
-
+    def calculate_values(self) -> None: ...
+    def calculate_derivatives(self, idx_input: int) -> None: ...
 
 class SeasonalANN:
 
@@ -33,9 +27,5 @@ class SeasonalANN:
     ratios: numpy.ndarray
     inputs: numpy.ndarray
     outputs: numpy.ndarray
-
-    def __init__(self, ann:Sequence[ANN]):
-        ...
-
-    def calculate_values(self, idx_season:int) -> None:
-        ...
+    def __init__(self, ann: Sequence[ANN]): ...
+    def calculate_values(self, idx_season: int) -> None: ...

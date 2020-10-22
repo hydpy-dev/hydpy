@@ -89,23 +89,19 @@ Integration tests
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from hbranch
 from hydpy.models.hbranch import hbranch_model
 
 
 class Model(hbranch_model.Model):
     """The HBV96 version of HydPy-H-Stream (hbranch_v1)."""
-    INLET_METHODS = (
-        hbranch_model.Pick_Input_V1,
-    )
+
+    INLET_METHODS = (hbranch_model.Pick_Input_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        hbranch_model.Calc_Outputs_V1,
-    )
+    RUN_METHODS = (hbranch_model.Calc_Outputs_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        hbranch_model.Pass_Outputs_V1,
-    )
+    OUTLET_METHODS = (hbranch_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

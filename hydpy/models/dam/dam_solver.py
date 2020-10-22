@@ -5,6 +5,7 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.dam import dam_control
@@ -12,18 +13,17 @@ from hydpy.models.dam import dam_control
 
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m3/s]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
     INIT = 0.01
 
-    CONTROLPARAMETERS = (
-        dam_control.CatchmentArea,
-    )
+    CONTROLPARAMETERS = (dam_control.CatchmentArea,)
 
     def modify_init(self):
-        """""Adjust and return the value of class constant `INIT`.
+        """ ""Adjust and return the value of class constant `INIT`.
 
         Note that the default initial value 0.01 refers to mm and the
         actual simulation step size.  Hence the actual default initial
@@ -45,20 +45,22 @@ class AbsErrorMax(parametertools.SolverParameter):
         pars = self.subpars.pars
         catchmentarea = pars.control.catchmentarea
         seconds = pars.derived.seconds
-        return self.INIT*catchmentarea*1000./seconds
+        return self.INIT * catchmentarea * 1000.0 / seconds
 
 
 class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [1/T]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
     INIT = numpy.nan
 
 
 class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
@@ -68,6 +70,7 @@ class RelDTMin(parametertools.SolverParameter):
 
 class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
+
     NDIM = 0
     TYPE = float
     TIME = None

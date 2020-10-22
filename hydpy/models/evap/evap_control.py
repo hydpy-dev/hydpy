@@ -10,22 +10,26 @@ from hydpy.core import parametertools
 
 class Latitude(parametertools.Parameter):
     """The latitude [decimal degrees]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90., 90.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90.0, 90.0)
 
 
 class Longitude(parametertools.Parameter):
     """The longitude [decimal degrees]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180., 180.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180.0, 180.0)
 
 
 class MeasuringHeightWindSpeed(parametertools.Parameter):
     """The height above ground of the wind speed measurements [m]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
 class AngstromConstant(parametertools.Parameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
     def trim(self, lower=None, upper=None):
         """Trim values following :math:`AngstromConstant \\leq  1 -
@@ -44,19 +48,20 @@ class AngstromConstant(parametertools.Parameter):
         if upper is None:
             upper = exceptiontools.getattr_(
                 self.subpars.angstromfactor,
-                'value',
+                "value",
                 None,
             )
             if upper is None:
-                upper = 1.
+                upper = 1.0
             else:
-                upper = 1. - upper
+                upper = 1.0 - upper
         super().trim(lower, upper)
 
 
 class AngstromFactor(parametertools.Parameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`AngstromFactor \\leq  1 -
@@ -76,11 +81,11 @@ class AngstromFactor(parametertools.Parameter):
         if upper is None:
             upper = exceptiontools.getattr_(
                 self.subpars.angstromconstant,
-                'value',
+                "value",
                 None,
             )
             if upper is None:
-                upper = 1.
+                upper = 1.0
             else:
-                upper = 1. - upper
+                upper = 1.0 - upper
         super().trim(lower, upper)

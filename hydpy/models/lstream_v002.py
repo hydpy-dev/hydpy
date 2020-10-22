@@ -285,6 +285,7 @@ flow is 660 m³/s instead of 659 m³/s):
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from lstream
 from hydpy.models.lstream import lstream_fluxes
 from hydpy.models.lstream import lstream_model
@@ -293,18 +294,15 @@ from hydpy.models.lstream import lstream_solver
 
 class Model(lstream_model.Model):
     """Version 3 of HydPy-L-Stream."""
+
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,
         lstream_solver.RelErrorMax,
         lstream_solver.RelDTMin,
         lstream_solver.RelDTMax,
     )
-    SOLVERSEQUENCES = (
-        lstream_fluxes.QG,
-    )
-    INLET_METHODS = (
-        lstream_model.Pick_Q_V1,
-    )
+    SOLVERSEQUENCES = (lstream_fluxes.QG,)
+    INLET_METHODS = (lstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
@@ -312,12 +310,8 @@ class Model(lstream_model.Model):
         lstream_model.Calc_QG_V2,
         lstream_model.Calc_QA_V1,
     )
-    FULL_ODE_METHODS = (
-        lstream_model.Update_VG_V1,
-    )
-    OUTLET_METHODS = (
-        lstream_model.Pass_Q_V1,
-    )
+    FULL_ODE_METHODS = (lstream_model.Update_VG_V1,)
+    OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

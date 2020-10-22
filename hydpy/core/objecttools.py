@@ -12,24 +12,27 @@ import sys
 import textwrap
 from typing import NoReturn
 from typing import *
+
 # ...from site-packages
 import wrapt
+
 # ...from HydPy
 import hydpy
 from hydpy.core import typingtools
+
 if TYPE_CHECKING:
     from hydpy.core import devicetools
 
 
 _builtinnames = set(dir(builtins))
 
-T = TypeVar('T')
-T1 = TypeVar('T1')
-T2 = TypeVar('T2')
-T3 = TypeVar('T3')
-ReprArg = Union[numbers.Number,
-                Iterable[numbers.Number],
-                Iterable[Iterable[numbers.Number]]]
+T = TypeVar("T")
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
+ReprArg = Union[
+    numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
+]
 
 
 def dir_(self: Any) -> List[str]:
@@ -65,11 +68,11 @@ def dir_(self: Any) -> List[str]:
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for key in vars(thing).keys():
-            if hydpy.pub.options.dirverbose or not key.startswith('_'):
+            if hydpy.pub.options.dirverbose or not key.startswith("_"):
                 names.add(key)
     if names:
         return list(names)
-    return [' ']
+    return [" "]
 
 
 def classname(self: Any) -> str:
@@ -98,7 +101,7 @@ def value_of_type(value: Any) -> str:
     >>> value_of_type(999)
     'value `999` of type `int`'
     """
-    return f'value `{value}` of type `{classname(value)}`'
+    return f"value `{value}` of type `{classname(value)}`"
 
 
 def modulename(self: Any) -> str:
@@ -109,17 +112,17 @@ def modulename(self: Any) -> str:
     >>> print(modulename(pub.options))
     optiontools
     """
-    return self.__module__.split('.')[-1]
+    return self.__module__.split(".")[-1]
 
 
-def _search_device(self: Any) -> Optional['devicetools.Device']:
+def _search_device(self: Any) -> Optional["devicetools.Device"]:
     while True:
         if self is None:
             return None
-        device = vars(self).get('element', vars(self).get('node'))
+        device = vars(self).get("element", vars(self).get("node"))
         if device is not None:
             return device
-        for test in ('model', 'seqs', 'pars', 'subvars'):
+        for test in ("model", "seqs", "pars", "subvars"):
             master = vars(self).get(test)
             if master is not None:
                 self = master
@@ -147,19 +150,19 @@ def devicename(self: Any) -> str:
     'e1'
     """
     device = _search_device(self)
-    return getattr(device, 'name', '?')
+    return getattr(device, "name", "?")
 
 
 def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
-    name_ = getattr(self, 'name', type(self).__name__.lower())
+    name_ = getattr(self, "name", type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
-        return f'`{name_}` of {objname} `{device.name}`'
+        return f"`{name_}` of {objname} `{device.name}`"
     if objname:
-        return f'`{name_}` of {objname} `?`'
+        return f"`{name_}` of {objname} `?`"
     if device:
-        return f'`{name_}` of {type(device).__name__.lower()} `{device.name}`'
-    return f'`{name_}`'
+        return f"`{name_}` of {type(device).__name__.lower()} `{device.name}`"
+    return f"`{name_}`"
 
 
 def elementphrase(self: Any) -> str:
@@ -182,7 +185,7 @@ def elementphrase(self: Any) -> str:
     >>> elementphrase(model)
     '`test` of element `e1`'
     """
-    return _devicephrase(self, 'element')
+    return _devicephrase(self, "element")
 
 
 def nodephrase(self: Any) -> str:
@@ -204,7 +207,7 @@ def nodephrase(self: Any) -> str:
     >>> nodephrase(n1.sequences.sim)
     '`sim` of node `n1`'
     """
-    return _devicephrase(self, 'node')
+    return _devicephrase(self, "node")
 
 
 def devicephrase(self: Any) -> str:
@@ -260,15 +263,17 @@ Python built-ins like `for`...)
     """
     if string in _builtinnames or not string.isidentifier():
         raise ValueError(
-            f'The given name string `{string}` does not define a valid '
-            f'variable identifier.  Valid identifiers do not contain '
-            f'characters like `-` or empty spaces, do not start with '
-            f'numbers, cannot be mistaken with Python built-ins like '
-            f'`for`...)')
+            f"The given name string `{string}` does not define a valid "
+            f"variable identifier.  Valid identifiers do not contain "
+            f"characters like `-` or empty spaces, do not start with "
+            f"numbers, cannot be mistaken with Python built-ins like "
+            f"`for`...)"
+        )
 
 
 def augment_excmessage(
-        prefix: Optional[str] = None, suffix: Optional[str] = None) -> NoReturn:
+    prefix: Optional[str] = None, suffix: Optional[str] = None
+) -> NoReturn:
     """Augment an exception message with additional information while keeping
     the original traceback.
 
@@ -311,13 +316,13 @@ the following error occurred: ('info 1', 'info 2')
     exc_old = sys.exc_info()[1]
     message = str(exc_old)
     if prefix is not None:
-        message = f'{prefix}, the following error occurred: {message}'
+        message = f"{prefix}, the following error occurred: {message}"
     if suffix is not None:
-        message = f'{message} {suffix}'
+        message = f"{message} {suffix}"
     try:
         exc_new = type(exc_old)(message)
     except BaseException:
-        exc_name = str(type(exc_old)).split("'")[1].split('.')[-1]
+        exc_name = str(type(exc_old)).split("'")[1].split(".")[-1]
         exc_type = type(exc_name, (BaseException,), {})
         exc_type.__module__ = exc_old.__module__
         raise exc_type(message) from exc_old
@@ -429,6 +434,7 @@ type(s) for +=: 'int' and 'str'
     >>> add.__name__
     'add'
     """
+
     @wrapt.decorator
     def wrapper(wrapped, instance, args, kwargs):
         """Apply |augment_excmessage| when the wrapped function fails."""
@@ -437,18 +443,18 @@ type(s) for +=: 'int' and 'str'
             return wrapped(*args, **kwargs)
         except BaseException:
             info = kwargs.copy()
-            info['self'] = instance
+            info["self"] = instance
             argnames = inspect.getfullargspec(wrapped).args
-            if argnames and (argnames[0] == 'self'):
+            if argnames and (argnames[0] == "self"):
                 argnames = argnames[1:]
             for argname, arg in zip(argnames, args):
                 info[argname] = arg
             for argname in argnames:
                 if argname not in info:
-                    info[argname] = '?'
-            message = eval(
-                f"f'While trying to {description_}'", globals(), info)
+                    info[argname] = "?"
+            message = eval(f"f'While trying to {description_}'", globals(), info)
             augment_excmessage(message)
+
     return wrapper
 
 
@@ -548,9 +554,15 @@ class ResetAttrFuncs:
     `__copy__` and `__deepcopy__` themselves.
 
     """
-    __slots__ = ('cls', 'name2func')
-    funcnames = ('__getattr__', '__setattr__', '__delattr__',
-                 '__copy__', '__deepcopy__')
+
+    __slots__ = ("cls", "name2func")
+    funcnames = (
+        "__getattr__",
+        "__setattr__",
+        "__delattr__",
+        "__copy__",
+        "__deepcopy__",
+    )
 
     def __init__(self, obj):
         self.cls = type(obj)
@@ -561,9 +573,9 @@ class ResetAttrFuncs:
 
     def __enter__(self):
         for name_ in self.name2func:
-            if name_ in ('__setattr__', '__delattr__'):
+            if name_ in ("__setattr__", "__delattr__"):
                 setattr(self.cls, name_, getattr(object, name_))
-            elif name_ == '__getattr__':
+            elif name_ == "__getattr__":
                 setattr(self.cls, name_, object.__getattribute__)
             else:
                 setattr(self.cls, name_, None)
@@ -603,13 +615,13 @@ class _PreserveStrings:
 
     def __init__(self, preserve_strings: bool) -> None:
         self.newvalue = preserve_strings
-        self.oldvalue = getattr(repr_, '_preserve_strings')
+        self.oldvalue = getattr(repr_, "_preserve_strings")
 
     def __enter__(self):
-        setattr(repr_, '_preserve_strings', self.newvalue)
+        setattr(repr_, "_preserve_strings", self.newvalue)
 
     def __exit__(self, type_, value, traceback):
-        setattr(repr_, '_preserve_strings', self.oldvalue)
+        setattr(repr_, "_preserve_strings", self.oldvalue)
 
 
 class _Repr:
@@ -623,20 +635,21 @@ class _Repr:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
-            string = value.replace('\\', '/')
+            string = value.replace("\\", "/")
             if self._preserve_strings:
                 return f'"{string}"'
             return string
-        if (isinstance(value, numbers.Real) and
-                (not isinstance(value, numbers.Integral))):
+        if isinstance(value, numbers.Real) and (
+            not isinstance(value, numbers.Integral)
+        ):
             value = float(value)
             if decimals > -1:
-                string = '{0:.{1}f}'.format(value, decimals)
-                string = string.rstrip('0')
-                if string.endswith('.'):
-                    string += '0'
-                if string == '-0.0':
-                    return '0.0'
+                string = "{0:.{1}f}".format(value, decimals)
+                string = string.rstrip("0")
+                if string.endswith("."):
+                    string += "0"
+                if string == "-0.0":
+                    return "0.0"
                 return string
         return repr(value)
 
@@ -746,7 +759,7 @@ def repr_values(values: Iterable[Any]) -> str:
 
     Note that the returned string is not wrapped.
     """
-    return ', '.join(repr_(value) for value in values)
+    return ", ".join(repr_(value) for value in values)
 
 
 def repr_numbers(values: ReprArg) -> str:
@@ -774,11 +787,11 @@ def repr_numbers(values: ReprArg) -> str:
         if isinstance(value, numbers.Number):
             result.append(repr_(value))
         else:
-            result.append(', '.join(repr_(v) for v in value))
+            result.append(", ".join(repr_(v) for v in value))
             ndim = 2
     if ndim == 1:
-        return ', '.join(result)
-    return '; '.join(result)
+        return ", ".join(result)
+    return "; ".join(result)
 
 
 def print_values(values: Iterable[Any], width: int = 70) -> None:
@@ -800,9 +813,9 @@ def print_values(values: Iterable[Any], width: int = 70) -> None:
     17, 18, 19, 20
     """
     for line in textwrap.wrap(
-            text=repr_values(values),
-            width=width,
-            break_long_words=False,
+        text=repr_values(values),
+        width=width,
+        break_long_words=False,
     ):
         print(line)
 
@@ -824,8 +837,8 @@ def repr_tuple(values: Iterable[Any]) -> str:
     '(1.0,)'
     """
     if len(list(values)) == 1:
-        return f'({repr_values(values)},)'
-    return f'({repr_values(values)})'
+        return f"({repr_values(values)},)"
+    return f"({repr_values(values)})"
 
 
 def repr_list(values: Iterable[Any]) -> str:
@@ -838,7 +851,7 @@ def repr_list(values: Iterable[Any]) -> str:
 
     Note that the returned string is not wrapped.
     """
-    return f'[{repr_values(values)}]'
+    return f"[{repr_values(values)}]"
 
 
 def assignrepr_value(value: Any, prefix: str) -> str:
@@ -892,35 +905,35 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
          11, 12)
     """
     ellipsis_ = int(hydpy.pub.options.ellipsis)
-    if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
+    if (ellipsis_ > 0) and (len(values) > 2 * ellipsis_):
         string = (
-            f'{repr_values(values[:ellipsis_])}'
-            f', ...,'
-            f'{repr_values(values[-ellipsis_:])}'
+            f"{repr_values(values[:ellipsis_])}"
+            f", ...,"
+            f"{repr_values(values[-ellipsis_:])}"
         )
     else:
         string = repr_values(values)
-    blanks = ' '*len(prefix)
+    blanks = " " * len(prefix)
     if width is None:
         wrapped = [string]
         _fakeend = 0
     else:
         width -= len(prefix)
         wrapped = textwrap.wrap(
-            text=string+'_'*_fakeend,
+            text=string + "_" * _fakeend,
             width=width,
             break_long_words=False,
         )
     if not wrapped:
-        wrapped = ['']
+        wrapped = [""]
     lines = []
     for (idx, line) in enumerate(wrapped):
         if idx == 0:
-            lines.append(f'{prefix}{line}')
+            lines.append(f"{prefix}{line}")
         else:
-            lines.append(f'{blanks}{line}')
-    string = '\n'.join(lines)
-    return string[:len(string)-_fakeend]
+            lines.append(f"{blanks}{line}")
+    string = "\n".join(lines)
+    return string[: len(string) - _fakeend]
 
 
 class _AlwaysBracketed:
@@ -928,17 +941,17 @@ class _AlwaysBracketed:
 
     def __init__(self, value):
         self.new_value = value
-        self.old_value = getattr(_AssignReprBracketed, '_always_bracketed')
+        self.old_value = getattr(_AssignReprBracketed, "_always_bracketed")
 
     def __enter__(self):
-        setattr(_AssignReprBracketed, '_always_bracketed', self.new_value)
+        setattr(_AssignReprBracketed, "_always_bracketed", self.new_value)
 
     def __exit__(self, type_, value, traceback):
-        setattr(_AssignReprBracketed, '_always_bracketed', self.old_value)
+        setattr(_AssignReprBracketed, "_always_bracketed", self.old_value)
 
 
 class _AssignReprBracketed:
-    """"Double Singleton class", see the documentation on
+    """ "Double Singleton class", see the documentation on
     |assignrepr_tuple| and |assignrepr_list|."""
 
     _always_bracketed = True
@@ -951,14 +964,17 @@ class _AssignReprBracketed:
         if (nmb_values == 1) and not self._always_bracketed:
             return assignrepr_value(values[0], prefix)
         if nmb_values:
-            string = assignrepr_values(
-                values=values,
-                prefix=prefix+self._brackets[0],
-                width=width,
-                _fakeend=1,
-            ) + self._brackets[1]
-            if (len(values) == 1) and (self._brackets[1] == ')'):
-                return string[:-1] + ',)'
+            string = (
+                assignrepr_values(
+                    values=values,
+                    prefix=prefix + self._brackets[0],
+                    width=width,
+                    _fakeend=1,
+                )
+                + self._brackets[1]
+            )
+            if (len(values) == 1) and (self._brackets[1] == ")"):
+                return string[:-1] + ",)"
             return string
         return prefix + self._brackets
 
@@ -968,7 +984,7 @@ class _AssignReprBracketed:
         return _AlwaysBracketed(always_bracketed)
 
 
-assignrepr_tuple = _AssignReprBracketed('()')
+assignrepr_tuple = _AssignReprBracketed("()")
 """Return a prefixed, wrapped and properly aligned tuple string
 representation of the given values using function |repr|.
 
@@ -1008,7 +1024,7 @@ test = (10,)
 """
 
 
-assignrepr_list = _AssignReprBracketed('[]')
+assignrepr_list = _AssignReprBracketed("[]")
 """Return a prefixed, wrapped and properly aligned list string
 representation of the given values using function |repr|.
 
@@ -1062,34 +1078,34 @@ def assignrepr_values2(values, prefix):
     test()
     """
     lines = []
-    blanks = ' '*len(prefix)
+    blanks = " " * len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(f'{prefix}{repr_values(subvalues)},')
+            lines.append(f"{prefix}{repr_values(subvalues)},")
         else:
-            lines.append(f'{blanks}{repr_values(subvalues)},')
+            lines.append(f"{blanks}{repr_values(subvalues)},")
     lines[-1] = lines[-1][:-1]
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
     |repr|."""
-    brackets = getattr(assignrepr_bracketed1, '_brackets')
+    brackets = getattr(assignrepr_bracketed1, "_brackets")
     prefix += brackets[0]
     lines = []
-    blanks = ' '*len(prefix)
+    blanks = " " * len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
             lines.append(assignrepr_bracketed1(subvalues, prefix, width))
         else:
             lines.append(assignrepr_bracketed1(subvalues, blanks, width))
-        lines[-1] += ','
-    if (len(values) > 1) or (brackets != '()'):
+        lines[-1] += ","
+    if (len(values) > 1) or (brackets != "()"):
         lines[-1] = lines[-1][:-1]
     lines[-1] += brackets[1]
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def assignrepr_tuple2(values, prefix, width=None):
@@ -1163,24 +1179,24 @@ def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
     |repr|."""
-    brackets = getattr(assignrepr_bracketed1, '_brackets')
+    brackets = getattr(assignrepr_bracketed1, "_brackets")
     prefix += brackets[0]
     lines = []
-    blanks = ' '*len(prefix)
+    blanks = " " * len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
             lines.append(
-                _assignrepr_bracketed2(
-                    assignrepr_bracketed1, subvalues, prefix, width))
+                _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, prefix, width)
+            )
         else:
             lines.append(
-                _assignrepr_bracketed2(
-                    assignrepr_bracketed1, subvalues, blanks, width))
-        lines[-1] += ','
-    if (len(values) > 1) or (brackets != '()'):
+                _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, blanks, width)
+            )
+        lines[-1] += ","
+    if (len(values) > 1) or (brackets != "()"):
         lines[-1] = lines[-1][:-1]
     lines[-1] += brackets[1]
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def assignrepr_tuple3(values, prefix, width=None):
@@ -1343,16 +1359,15 @@ def flatten_repr(self):
     Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \
 length_orig=3.0, nmb_subsections=4, length_adj=2.0)
     """
-    string = ' '.join(string.strip() for string in repr(self).split('\n'))
-    idx = string.find('(')
-    string = f'{string[:idx]}({string[idx+1:].strip()}'
-    if string.endswith(', )'):
-        string = f'{string[:-3]})'
+    string = " ".join(string.strip() for string in repr(self).split("\n"))
+    idx = string.find("(")
+    string = f"{string[:idx]}({string[idx+1:].strip()}"
+    if string.endswith(", )"):
+        string = f"{string[:-3]})"
     return string
 
 
-def round_(values, decimals=None, width=0,
-           lfill=None, rfill=None, **kwargs):
+def round_(values, decimals=None, width=0, lfill=None, rfill=None, **kwargs):
     """Prints values with a maximum number of digits in doctests.
 
     See the documentation on function |repr| for more details.  And
@@ -1394,8 +1409,9 @@ arguments `lfill` and `rfill`.  This is not allowed.
             string = repr_(values)
         if (lfill is not None) and (rfill is not None):
             raise ValueError(
-                'For function `round_` values are passed for both arguments '
-                '`lfill` and `rfill`.  This is not allowed.')
+                "For function `round_` values are passed for both arguments "
+                "`lfill` and `rfill`.  This is not allowed."
+            )
         if (lfill is not None) or (rfill is not None):
             width = max(width, len(string))
             if lfill is not None:
@@ -1407,35 +1423,35 @@ arguments `lfill` and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-        values: Any,
-        types_: Tuple[Type[T1]],
-        skip: bool = ...,
+    values: Any,
+    types_: Tuple[Type[T1]],
+    skip: bool = ...,
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
 
 @overload
 def extract(
-        values: Any,
-        types_: Tuple[Type[T1], Type[T2]],
-        skip: bool = ...,
+    values: Any,
+    types_: Tuple[Type[T1], Type[T2]],
+    skip: bool = ...,
 ) -> Iterator[Union[T1, T2]]:
     """Extract all objects of two defined types."""
 
 
 @overload
 def extract(
-        values: Any,
-        types_: Tuple[Type[T1], Type[T2], Type[T3]],
-        skip: bool = ...,
+    values: Any,
+    types_: Tuple[Type[T1], Type[T2], Type[T3]],
+    skip: bool = ...,
 ) -> Iterator[Union[T1, T2, T3]]:
     """Extract all objects of three defined types."""
 
 
 def extract(
-        values,
-        types_,
-        skip=False,
+    values,
+    types_,
+    skip=False,
 ):
     """Return a generator that extracts certain objects from `values`.
 
@@ -1483,22 +1499,21 @@ the following classes: str and int.
     else:
         try:
             if isinstance(values, str):
-                raise TypeError('asdf')
+                raise TypeError("asdf")
             for value in values:
                 for subvalue in extract(value, types_, skip):
                     yield subvalue
         except TypeError as exc:
-            if exc.args[0].startswith('The given (sub)value'):
+            if exc.args[0].startswith("The given (sub)value"):
                 raise exc
-            enum = enumeration(
-                types_, converter=lambda x: x.__name__)
+            enum = enumeration(types_, converter=lambda x: x.__name__)
             raise TypeError(
-                f'The given (sub)value `{repr(values)}` is not an '
-                f'instance of the following classes: {enum}.'
+                f"The given (sub)value `{repr(values)}` is not an "
+                f"instance of the following classes: {enum}."
             ) from None
 
 
-def enumeration(values, converter=str, default=''):
+def enumeration(values, converter=str, default=""):
     """Return an enumeration string based on the given values.
 
     The following four examples show the standard output of function
@@ -1541,11 +1556,11 @@ def enumeration(values, converter=str, default=''):
     if len(values) == 1:
         return values[0]
     if len(values) == 2:
-        return ' and '.join(values)
+        return " and ".join(values)
     ellipsis_ = int(hydpy.pub.options.ellipsis)
-    if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
-        values = values[:ellipsis_] + ['...'] + values[-ellipsis_:]
-    return ', and '.join((', '.join(values[:-1]), values[-1]))
+    if (ellipsis_ > 0) and (len(values) > 2 * ellipsis_):
+        values = values[:ellipsis_] + ["..."] + values[-ellipsis_:]
+    return ", and ".join((", ".join(values[:-1]), values[-1]))
 
 
 def description(self: Any) -> str:
@@ -1564,6 +1579,6 @@ the original traceback.'
     >>> description(type('Test', (), {}))
     'no description available'
     """
-    if self.__doc__ in (None, ''):
-        return 'no description available'
-    return ' '.join(self.__doc__.split('\n\n')[0].split())
+    if self.__doc__ in (None, ""):
+        return "no description available"
+    return " ".join(self.__doc__.split("\n\n")[0].split())

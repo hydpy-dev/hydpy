@@ -5,8 +5,10 @@
 # import...
 # ...from standard library
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
@@ -71,6 +73,7 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     (Node("in2", variable="Q"), Node("in0", variable="Q"), \
 Node("in3", variable="Q"))
     """
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -88,22 +91,22 @@ Node("in3", variable="Q"))
         self.__hydpy__set_value__(coordinates)
 
     def __repr__(self) -> str:
-        prefix = f'{self.name}('
-        blanks = ' '*len(prefix)
+        prefix = f"{self.name}("
+        blanks = " " * len(prefix)
         lines = []
         if self.nodes:
             for idx, node in enumerate(self.nodes):
-                entry = f'{node.name}={tuple(self.values[idx, :])}'
+                entry = f"{node.name}={tuple(self.values[idx, :])}"
                 if not idx:
-                    lines.append(f'{prefix}{entry}')
+                    lines.append(f"{prefix}{entry}")
                 else:
-                    lines.append(f'{blanks}{entry}')
-                if idx < len(self.nodes)-1:
-                    lines[-1] += ','
+                    lines.append(f"{blanks}{entry}")
+                if idx < len(self.nodes) - 1:
+                    lines[-1] += ","
                 else:
-                    lines[-1] += ')'
-            return '\n'.join(lines)
-        return f'{prefix}?)'
+                    lines[-1] += ")"
+            return "\n".join(lines)
+        return f"{prefix}?)"
 
 
 class InputCoordinates(Coordinates):
@@ -136,6 +139,7 @@ class MaxNmbInputs(parametertools.Parameter):
     >>> maxnmbinputs
     maxnmbinputs(2)
     """
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
@@ -171,4 +175,5 @@ element `?` is not valid.
 
 class Power(parametertools.Parameter):
     """Power parameter for calculating inverse distance weights [-]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

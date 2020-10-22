@@ -34,14 +34,14 @@ class Pegasus(modeltools.Submodel):
     _cysubmodel: rootutils.PegasusBase
 
     def find_x(
-            self,
-            x0: float,
-            x1: float,
-            xmin: float,
-            xmax: float,
-            xtol: float,
-            ytol: float,
-            itermax: int,
+        self,
+        x0: float,
+        x1: float,
+        xmin: float,
+        xmax: float,
+        xtol: float,
+        ytol: float,
+        itermax: int,
     ) -> float:
         """Find the relevant root within the interval
         :math:`x0 \\leq x \\leq x1` with an accuracy meeting at least

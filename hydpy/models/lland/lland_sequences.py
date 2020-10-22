@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+
 # ...from lland
 from hydpy.models.lland import lland_derived
 
@@ -27,9 +28,8 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> round_(fluxes.nkor.average_values())
     2.5
     """
-    DERIVEDPARAMETERS = (
-        lland_derived.AbsFHRU,
-    )
+
+    DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
     def refweights(self):
@@ -59,9 +59,8 @@ class State1DSequence(sequencetools.StateSequence):
     >>> round_(states.bowa.average_values())
     30.0
     """
-    DERIVEDPARAMETERS = (
-        lland_derived.AbsFHRU,
-    )
+
+    DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
     def refweights(self):

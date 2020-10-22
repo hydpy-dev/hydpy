@@ -27,6 +27,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> round_(fluxes.pc.average_values())
     2.5
     """
+
     mask = hland_masks.Complete()
 
     @property
@@ -57,6 +58,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> round_(states.sm.average_values())
     30.0
     """
+
     mask = hland_masks.Complete()
 
     @property

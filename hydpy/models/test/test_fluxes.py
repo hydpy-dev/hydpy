@@ -12,6 +12,6 @@ class Q(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0., None)
 
 
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the Test model."""
-    CLASSES = (Q,)
+class QV(sequencetools.FluxSequence):
+    """Storage loss vector [mm/T]"""
+    NDIM, NUMERIC, SPAN = 1, True, (0., None)

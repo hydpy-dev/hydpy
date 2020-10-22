@@ -7,23 +7,16 @@
 from hydpy.core import sequencetools
 
 
-class Q(sequencetools.LinkSequence):
+class Q(sequencetools.OutletSequence):
     """Discharge [m³/s]."""
     NDIM, NUMERIC = 0, False
 
 
-class S(sequencetools.LinkSequence):
+class S(sequencetools.OutletSequence):
     """Water supply [m³/s]."""
     NDIM, NUMERIC = 0, False
 
 
-class R(sequencetools.LinkSequence):
+class R(sequencetools.OutletSequence):
     """Water relieve [m³/s]."""
     NDIM, NUMERIC = 0, False
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of the dam model."""
-    CLASSES = (Q,
-               S,
-               R)

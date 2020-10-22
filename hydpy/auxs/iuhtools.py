@@ -37,8 +37,8 @@ class ParameterIUH:
         self.name = name
         self._name = '_'+name
         self.type_ = type_
-        self.__doc__ = ('Instantaneous unit hydrograph parameter %s.' % name
-                        if doc is None else str(doc))
+        self.__doc__ = (f'Instantaneous unit hydrograph parameter: '
+                        f'{name if doc is None else str(doc)}')
 
     def __get__(self, obj, type_=None):
         return self if obj is None else getattr(obj, self._name, None)
@@ -48,10 +48,10 @@ class ParameterIUH:
             return self.type_(value)
         except BaseException:
             raise TypeError(
-                'The value `%s` of type `%s` could not be converted to type '
-                '`%s` of the instantaneous unit hydrograph parameter `%s`.'
-                % (value, objecttools.classname(value),
-                   objecttools.classname(self.type_), self.name))
+                f'The value `{value}` of type `{type(value).__name__}` could '
+                f'not be converted to type `{self.type_.__name__}` of the '
+                f'instantaneous unit hydrograph parameter `{self.name}`.'
+            ) from None
 
 
 class PrimaryParameterIUH(ParameterIUH):
@@ -155,14 +155,14 @@ class IUH(_MetaIUH):
                 setattr(self, key, value)
         else:
             raise ValueError(
-                'When passing primary parameter values as initialization '
-                'arguments of the instantaneous unit hydrograph class `%s`, '
-                'or when using method `set_primary_parameters, one has to '
-                'to define all values at once via keyword arguments.  '
-                'But instead of the primary parameter names `%s` the '
-                'following keywords were given: %s.'
-                % (objecttools.classname(self),
-                   ', '.join(required), ', '.join(given)))
+                f'When passing primary parameter values as initialization '
+                f'arguments of the instantaneous unit hydrograph class '
+                f'`{type(self).__name__}`, or when using method '
+                f'`set_primary_parameters`, one has to to define all values '
+                f'at once via keyword arguments.  But instead of the primary '
+                f'parameter names `{objecttools.enumeration(required)}` the '
+                f'following keywords were given: '
+                f'{objecttools.enumeration(given)}.')
 
     @property
     def primary_parameters_complete(self):
@@ -248,7 +248,7 @@ class IUH(_MetaIUH):
         return numpy.array([self.moment1, self.moment2])
 
     def __repr__(self):
-        parts = [objecttools.classname(self), '(']
+        parts = [type(self).__name__, '(']
         for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
@@ -275,8 +275,9 @@ class TranslationDiffusionEquation(IUH):
 
       :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`
 
-    There are three primary parameter whichs values need to be defined by
-    the user:
+    There are three primary parameters, |TranslationDiffusionEquation.u|,
+    |TranslationDiffusionEquation.d|, and |TranslationDiffusionEquation.x|,
+    whichs values need to be defined by the user:
 
     >>> from hydpy import TranslationDiffusionEquation
     >>> tde = TranslationDiffusionEquation(u=5., d=15., x=50.)
@@ -390,18 +391,20 @@ class TranslationDiffusionEquation(IUH):
     ValueError: When passing primary parameter values as initialization \
 arguments of the instantaneous unit hydrograph class \
 `TranslationDiffusionEquation`, or when using method \
-`set_primary_parameters, one has to to define all values at once via \
-keyword arguments.  But instead of the primary parameter names `d, u, x` \
-the following keywords were given: d, u.
+`set_primary_parameters`, one has to to define all values at once via \
+keyword arguments.  But instead of the primary parameter names `d, u, and x` \
+the following keywords were given: d and u.
     """
-    u = PrimaryParameterIUH('u', doc='Wave velocity.')
-    d = PrimaryParameterIUH('d', doc='Diffusion coefficient.')
-    x = PrimaryParameterIUH('x', doc='Routing distance.')
+    u = PrimaryParameterIUH('u', doc='Wave velocity [L/T].')
+    d = PrimaryParameterIUH('d', doc='Diffusion coefficient [L²/T].')
+    x = PrimaryParameterIUH('x', doc='Routing distance [L].')
     a = SecondaryParameterIUH('a', doc='Distance related coefficient.')
     b = SecondaryParameterIUH('b', doc='Velocity related coefficient.')
 
     def calc_secondary_parameters(self):
-        """Determine the values of the secondary parameters `a` and `b`."""
+        """Determine the values of the secondary parameters
+         |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.
+         """
         self.a = self.x/(2.*self.d**.5)
         self.b = self.u/(2.*self.d**.5)
 
@@ -429,7 +432,8 @@ class LinearStorageCascade(IUH):
     with:
       :math:`c = \\frac{1}{k \\cdot \\gamma(n)}`
 
-    After defining the values of the two primary parameters, the function
+    After defining the values of the two primary parameters
+    |LinearStorageCascade.n| and |LinearStorageCascade.k|, the function
     object can be applied:
 
     >>> from hydpy import LinearStorageCascade
@@ -442,13 +446,14 @@ class LinearStorageCascade(IUH):
     0.122042, 0.028335, 0.004273, 0.00054
 
     """
-    n = PrimaryParameterIUH('n', doc='Number of linear storages.')
+    n = PrimaryParameterIUH('n', doc='Number of linear storages [-].')
     k = PrimaryParameterIUH(
-        'k', doc='Time of concentration of each individual storage.')
+        'k', doc='Time of concentration of each individual storage [T].')
     c = SecondaryParameterIUH('c', doc='Proportionality factor.')
 
     def calc_secondary_parameters(self):
-        """Determine the value of the secondary parameter `c`."""
+        """Determine the value of the secondary parameter
+        |LinearStorageCascade.c|."""
         self.c = 1./(self.k*special.gamma(self.n))
 
     def __call__(self, t) -> numpy.ndarray:

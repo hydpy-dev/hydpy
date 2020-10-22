@@ -158,19 +158,23 @@ the following error occurred: hour must be in 0..23
     """
 
     # These are the so far accepted date format strings.
-    formatstrings = collections.OrderedDict([
-        ('os', '%Y_%m_%d_%H_%M_%S'),
-        ('iso2', '%Y-%m-%d %H:%M:%S'),
-        ('iso1', '%Y-%m-%dT%H:%M:%S'),
-        ('din1', '%d.%m.%Y %H:%M:%S'),
-        ('din2', '%Y.%m.%d %H:%M:%S')])
+    formatstrings = dict(
+        os='%Y_%m_%d_%H_%M_%S',
+        iso2='%Y-%m-%d %H:%M:%S',
+        iso1='%Y-%m-%dT%H:%M:%S',
+        din1='%d.%m.%Y %H:%M:%S',
+        din2='%Y.%m.%d %H:%M:%S',
+        raw='%Y%m%d%H%M%S',
+    )
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
     _lastformatstring = 'os', formatstrings['os']
 
     datetime: datetime_.datetime
 
-    def __new__(cls, date: DateConstrArg) -> 'Date':
+    def __new__(
+            cls, date: DateConstrArg,
+    ) -> 'Date':
         try:
             if isinstance(date, Date):
                 return cls.from_date(date)
@@ -181,14 +185,17 @@ the following error occurred: hour must be in 0..23
             raise TypeError(
                 f'The supplied argument must be either an instance of '
                 f'`Date`, `datetime.datetime`, or `str`.  The given '
-                f'arguments type is `{objecttools.classname(date)}`.')
+                f'arguments type is `{type(date).__name__}`.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a `Date` '
                 f'object based on argument `{date}`')
 
     @classmethod
-    def from_date(cls, date: 'Date') -> 'Date':
+    def from_date(
+            cls,
+            date: 'Date',
+    ) -> 'Date':
         """Create a new |Date| object based on another |Date| object and
         return it.
 
@@ -211,7 +218,10 @@ the following error occurred: hour must be in 0..23
         return self
 
     @classmethod
-    def from_datetime(cls, date: datetime_.datetime) -> 'Date':
+    def from_datetime(
+            cls,
+            date: datetime_.datetime,
+    ) -> 'Date':
         """Create a new |Date| object based on a |datetime.datetime| object
         and return it.
 
@@ -258,7 +268,10 @@ but for the given `datetime` object it is `2` instead.
         return self
 
     @classmethod
-    def from_string(cls, date: str) -> 'Date':
+    def from_string(
+            cls,
+            date: str,
+    ) -> 'Date':
         """Create a new |Date| object based on a |datetime.datetime| object
         and return it.
 
@@ -288,6 +301,11 @@ but for the given `datetime` object it is `2` instead.
         'din1'
         >>> Date('1997.11.01 00:00:00').style
         'din2'
+
+        The `raw` style avoids any unnecessary characters:
+
+        >>> Date('19971101000000').style
+        'raw'
 
         You are allowed to abbreviate the input strings:
 
@@ -323,6 +341,12 @@ but for the given `datetime` object it is `2` instead.
         ValueError: The given string `1997/11/01` does not agree with any \
 of the supported format styles.
 
+        >>> Date.from_string('1997111')
+        Traceback (most recent call last):
+        ...
+        ValueError: The given string `1997111` does not agree with any \
+of the supported format styles.
+
         >>> Date.from_string('1997-11-01 +0000001')
         Traceback (most recent call last):
         ...
@@ -346,7 +370,9 @@ invalid literal for int() with base 10: '0X'
         return self
 
     @staticmethod
-    def _extract_offset(string: str) -> Tuple[str, Optional[str]]:
+    def _extract_offset(
+            string: str,
+    ) -> Tuple[str, Optional[str]]:
         if 'Z' in string:
             return string.split('Z')[0].strip(), '+0000'
         if '+' in string:
@@ -359,27 +385,46 @@ invalid literal for int() with base 10: '0X'
 
     @classmethod
     def _extract_date(
-            cls, substring: str, string: str) -> Tuple[str, datetime_.datetime]:
+            cls,
+            substring: str,
+            string: str,
+    ) -> Tuple[str, datetime_.datetime]:
         strptime = datetime_.datetime.strptime
         try:
             style, format_ = cls._lastformatstring
             return style, strptime(substring, format_)
-        except ValueError:
-            for (style, format_) in cls.formatstrings.items():
-                for dummy in range(4):
-                    try:
-                        datetime = strptime(substring, format_)
-                        cls._lastformatstring = style, format_
-                        return style, datetime
-                    except ValueError:
-                        format_ = format_[:-3]
+        except ValueError as exc:
+            if substring.isdigit():
+                format_ = cls.formatstrings['raw'][:len(substring)-2]
+                try:
+                    datetime = strptime(substring, format_)
+                except ValueError:
+                    raise ValueError(
+                        f'The given string `{string}` does not agree '
+                        f'with any of the supported format styles.'
+                    ) from exc
+                cls._lastformatstring = 'raw', format_
+                return 'raw', datetime
+            for style, format_ in cls.formatstrings.items():
+                if style != 'raw':
+                    for _ in range(4):
+                        try:
+                            datetime = strptime(substring, format_)
+                            cls._lastformatstring = style, format_
+                            return style, datetime
+                        except ValueError:
+                            format_ = format_[:-3]
             raise ValueError(
                 f'The given string `{string}` does not agree '
-                f'with any of the supported format styles.')
+                f'with any of the supported format styles.'
+            ) from exc
 
     @staticmethod
-    def _modify_date(date: datetime_.datetime, offset: str, string: str) \
-            -> datetime_.datetime:
+    def _modify_date(
+            date: datetime_.datetime,
+            offset: str,
+            string: str,
+    ) -> datetime_.datetime:
         try:
             if offset is None:
                 return date
@@ -391,17 +436,23 @@ invalid literal for int() with base 10: '0X'
                 minutes = int(offset[:-2])*60 + int(offset[-2:])
             else:
                 raise ValueError(
-                    'wrong number of offset characters')
+                    'wrong number of offset characters'
+                )
             delta = datetime_.timedelta(
                 minutes=factor*minutes-hydpy.pub.options.utcoffset)
-            return date - delta
+            new_date = date-delta
         except BaseException:
-            raise objecttools.augment_excmessage(
+            objecttools.augment_excmessage(
                 f'While trying to apply the time zone offset '
-                f'defined by string `{string}`')
+                f'defined by string `{string}`'
+            )
+        return new_date
 
     @classmethod
-    def from_array(cls, array: numpy.ndarray) -> 'Date':
+    def from_array(
+            cls,
+            array: numpy.ndarray,
+    ) -> 'Date':
         """Return a |Date| instance based on date information (year,
         month, day, hour, minute, second) stored as the first entries of
         the successive rows of a |numpy.ndarray|.
@@ -446,7 +497,10 @@ invalid literal for int() with base 10: '0X'
                             self.minute, self.second], dtype=float)
 
     @classmethod
-    def from_cfunits(cls, units: str) -> 'Date':
+    def from_cfunits(
+            cls,
+            units: str,
+    ) -> 'Date':
         """Return a |Date| object representing the reference date of the
         given `units` string agreeing with the NetCDF-CF conventions.
 
@@ -507,8 +561,11 @@ occurred: No other decimal fraction of a second than "0" allowed.
                 f'While trying to parse the date of the NetCDF-CF "units" '
                 f'string `{units}`')
 
-    def to_cfunits(self, unit: str = 'hours', utcoffset: Optional[int] = None) \
-            -> str:
+    def to_cfunits(
+            self,
+            unit: str = 'hours',
+            utcoffset: Optional[int] = None,
+    ) -> str:
         """Return a `units` string agreeing with the NetCDF-CF conventions.
 
         By default, method |Date.to_cfunits| uses `hours` as the time unit
@@ -575,7 +632,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return vars(self).get('style', 'iso2')
 
     @style.setter
-    def style(self, style: str) -> None:
+    def style(
+            self,
+            style: str,
+    ) -> None:
         if style in self.formatstrings:
             vars(self)['style'] = style
         else:
@@ -583,7 +643,11 @@ occurred: No other decimal fraction of a second than "0" allowed.
             raise AttributeError(
                 f'Date format style `{style}` is not available.')
 
-    def _set_thing(self, thing: str, value: int) -> None:
+    def _set_thing(
+            self,
+            thing: str,
+            value: int,
+    ) -> None:
         """Convenience method for `year.fset`, `month.fset`..."""
         try:
             kwargs = {}
@@ -611,7 +675,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.second
 
     @second.setter
-    def second(self, second: int) -> None:
+    def second(
+            self,
+            second: int,
+    ) -> None:
         self._set_thing('second', second)
 
     @property
@@ -629,7 +696,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.minute
 
     @minute.setter
-    def minute(self, minute: int) -> None:
+    def minute(
+            self,
+            minute: int,
+    ) -> None:
         self._set_thing('minute', minute)
 
     @property
@@ -647,7 +717,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.hour
 
     @hour.setter
-    def hour(self, hour: int) -> None:
+    def hour(
+            self,
+            hour: int,
+    ) -> None:
         self._set_thing('hour', hour)
 
     @property
@@ -665,7 +738,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.day
 
     @day.setter
-    def day(self, day: int) -> None:
+    def day(
+            self,
+            day: int,
+    ) -> None:
         self._set_thing('day', day)
 
     @property
@@ -683,7 +759,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.month
 
     @month.setter
-    def month(self, month: int) -> None:
+    def month(
+            self,
+            month: int,
+    ) -> None:
         self._set_thing('month', month)
 
     @property
@@ -704,7 +783,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return self.datetime.year
 
     @year.setter
-    def year(self, year: int) -> None:
+    def year(
+            self,
+            year: int,
+    ) -> None:
         self._set_thing('year', year)
 
     @property
@@ -759,7 +841,10 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return type(self)._firstmonth_wateryear
 
     @refmonth.setter
-    def refmonth(self, value: Union[int, str]):
+    def refmonth(
+            self,
+            value: Union[int, str],
+    ):
         try:
             refmonth = int(value)
         except ValueError:
@@ -771,11 +856,13 @@ occurred: No other decimal fraction of a second than "0" allowed.
             except ValueError:
                 raise ValueError(
                     f'The given argument `{value}` cannot be '
-                    f'interpreted as a month.')
+                    f'interpreted as a month.'
+                ) from None
         if not 0 < refmonth < 13:
             raise ValueError(
                 f'The reference month must be a value between one '
-                f'(January) and twelve (December) but `{value}` is given')
+                f'(January) and twelve (December) but `{value}` is given'
+            )
         type(self)._firstmonth_wateryear = refmonth
 
     @property
@@ -839,22 +926,41 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return (((year % 4) == 0) and
                 (((year % 100) != 0) or ((year % 400) == 0)))
 
-    def __add__(self, other: PeriodConstrArg) -> 'Date':
+    def __add__(
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Date':
         new = self.from_datetime(self.datetime + Period(other).timedelta)
         new.style = self.style
         return new
 
-    def __iadd__(self, other: PeriodConstrArg) -> 'Date':
+    def __iadd__(
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Date':
         self.datetime += Period(other).timedelta
         return self
 
     @overload
-    def __sub__(self, other: DateConstrArg) -> 'Period':
+    def __sub__(
+            self,
+            other: Union['Date', datetime_.datetime],
+    ) -> 'Period':
         """Determine the period between two dates."""
 
     @overload
-    def __sub__(self, other: PeriodConstrArg) -> 'Date':
+    def __sub__(
+            self,
+            other: Union['Period', datetime_.timedelta],
+    ) -> 'Date':
         """Subtract a period from the actual date."""
+
+    @overload
+    def __sub__(
+            self,
+            other: str,
+    ) -> Union['Date', 'Period']:
+        """Result depends on the string."""
 
     def __sub__(self, other):
         if isinstance(other, (Date, datetime_.datetime, str)):
@@ -870,47 +976,81 @@ occurred: No other decimal fraction of a second than "0" allowed.
             except BaseException:
                 pass
         raise TypeError(
-            f'Object `{other}` of type `{objecttools.classname(other)}` '
-            f'cannot be substracted from a `Date` instance.')
+            f'Object `{other}` of type `{type(other).__name__}` '
+            f'cannot be substracted from a `Date` instance.'
+        )
 
-    def __rsub__(self, other: DateConstrArg) -> 'Period':
+    def __rsub__(
+            self,
+            other: DateConstrArg,
+    ) -> 'Period':
         return Period(type(self)(other).datetime-self.datetime)
 
-    def __isub__(self, other: PeriodConstrArg) -> 'Date':
+    def __isub__(   # type: ignore
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Date':
+        # without more flexible ways to relate types to string patterns,
+        # there is nothing we can do about it (except providing a less
+        # flexible interface, of course)
         self.datetime -= Period(other).timedelta
         return self
 
-    def __lt__(self, other: DateConstrArg) -> bool:
+    def __lt__(
+            self,
+            other: DateConstrArg,
+    ) -> bool:
         return self.datetime < type(self)(other).datetime
 
-    def __le__(self, other: DateConstrArg) -> bool:
+    def __le__(
+            self,
+            other: DateConstrArg,
+    ) -> bool:
         return self.datetime <= type(self)(other).datetime
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.datetime == type(self)(other).datetime
         except BaseException:
             return False
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.datetime != type(self)(other).datetime
         except BaseException:
             return True
 
-    def __gt__(self, other: DateConstrArg) -> bool:
+    def __gt__(
+            self,
+            other: DateConstrArg,
+    ) -> bool:
         return self.datetime > type(self)(other).datetime
 
-    def __ge__(self, other: DateConstrArg) -> bool:
+    def __ge__(
+            self,
+            other: DateConstrArg,
+    ) -> bool:
         return self.datetime >= type(self)(other).datetime
 
-    def __deepcopy__(self, dict_) -> 'Date':
+    def __deepcopy__(
+            self,
+            dict_,
+    ) -> 'Date':
         new = type(self).from_date(self)
         new.datetime = copy.deepcopy(self.datetime)
         return new
 
-    def to_string(self, style: Optional[str] = None,
-                  utcoffset: Optional[int] = None) -> str:
+    def to_string(
+            self,
+            style: Optional[str] = None,
+            utcoffset: Optional[int] = None,
+    ) -> str:
         """Return a |str| object, representing the actual date following
         the given style and the eventually given UTC offset (in minutes).
 
@@ -959,8 +1099,11 @@ occurred: No other decimal fraction of a second than "0" allowed.
             date = self.datetime + datetime_.timedelta(minutes=offset)
         return date.strftime(self.formatstrings[style]) + string
 
-    def to_repr(self, style: Optional[str] = None,
-                utcoffset: Optional[int] = None) -> str:
+    def to_repr(
+            self,
+            style: Optional[str] = None,
+            utcoffset: Optional[int] = None,
+    ) -> str:
         """Similar as method |Date.to_string|, but returns a proper
         string representation instead.
 
@@ -1130,7 +1273,10 @@ from object `wrong` of type `str`.
     (False, False, True)
     """
 
-    def __new__(cls, period: Optional[PeriodConstrArg] = None) -> 'Period':
+    def __new__(
+            cls,
+            period: Optional[PeriodConstrArg] = None,
+    ) -> 'Period':
         try:
             if isinstance(period, Period):
                 return cls.from_period(period)
@@ -1143,14 +1289,19 @@ from object `wrong` of type `str`.
             raise TypeError(
                 f'The supplied argument must be either an instance of '
                 f'`Period`, `datetime.timedelta`, or `str`, but the '
-                f'given type is `{objecttools.classname(period)}`.')
+                f'given type is `{type(period).__name__}`.'
+            )
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a `Period` '
-                f'object based argument `{period}`')
+                f'object based argument `{period}`'
+            )
 
     @classmethod
-    def from_period(cls, period: 'Period') -> 'Period':
+    def from_period(
+            cls,
+            period: 'Period',
+    ) -> 'Period':
         """Create a new |Period| object based on another |Period| object and
         return it.
 
@@ -1170,7 +1321,10 @@ from object `wrong` of type `str`.
         return self
 
     @classmethod
-    def from_timedelta(cls, period: datetime_.timedelta) -> 'Period':
+    def from_timedelta(
+            cls,
+            period: datetime_.timedelta,
+    ) -> 'Period':
         """Create a new |Period| object based on a |datetime.timedelta|
         object and return it.
 
@@ -1196,8 +1350,9 @@ However, for the given `timedelta` object it is `1` instead.
         return self
 
     @staticmethod
-    def _check_timedelta(period: datetime_.timedelta) \
-            -> datetime_.timedelta:
+    def _check_timedelta(
+            period: datetime_.timedelta,
+    ) -> datetime_.timedelta:
         if period.microseconds:
             raise ValueError(
                 f'For `Period` instances, microseconds must be zero.  '
@@ -1206,7 +1361,10 @@ However, for the given `timedelta` object it is `1` instead.
         return period
 
     @classmethod
-    def from_string(cls, period: str) -> 'Period':
+    def from_string(
+            cls,
+            period: str,
+    ) -> 'Period':
         """Create a new |Period| object based on a |str| object and return it.
 
         The string must consist of a leading integer number followed by
@@ -1251,7 +1409,9 @@ Instead, the last character is `D`.
         return self
 
     @staticmethod
-    def _get_timedelta_from_string(period):
+    def _get_timedelta_from_string(
+            period: str,
+    ) -> datetime_.timedelta:
         try:
             number = float(period[:-1])
             if number != int(number):
@@ -1261,7 +1421,8 @@ Instead, the last character is `D`.
                 f'All characters of the given period string, '
                 f'except the last one which represents the unit, '
                 f'need to define an integer number.  Instead, '
-                f'these characters are `{period[:-1]}`.')
+                f'these characters are `{period[:-1]}`.'
+            ) from None
         unit = period[-1]
         if unit == 'd':
             return datetime_.timedelta(number, 0)
@@ -1274,10 +1435,14 @@ Instead, the last character is `D`.
         raise ValueError(
             f'The last character of the given period string needs to '
             f'be either `d` (days), `h` (hours), `m` (minutes),  or `s` '
-            f'(seconds).  Instead, the last character is `{unit}`.')
+            f'(seconds).  Instead, the last character is `{unit}`.'
+        )
 
     @classmethod
-    def from_seconds(cls, seconds: int) -> 'Period':
+    def from_seconds(
+            cls,
+            seconds: int,
+    ) -> 'Period':
         """Create a new |Period| object based on the given integer number
         of seconds and return it.
 
@@ -1288,7 +1453,10 @@ Instead, the last character is `D`.
         return cls.from_timedelta(datetime_.timedelta(0, int(seconds)))
 
     @classmethod
-    def from_cfunits(cls, units):
+    def from_cfunits(
+            cls,
+            units: str,
+    ) -> 'Period':
         """Create a |Period| object representing the time unit of the
         given `units` string agreeing with the NetCDF-CF conventions
         and return it.
@@ -1307,8 +1475,7 @@ Instead, the last character is `D`.
         """
         return cls.from_string(f'1{units.strip()[0]}')
 
-    @property
-    def timedelta(self) -> datetime_.timedelta:
+    def _get_timedelta(self) -> datetime_.timedelta:
         """The handled |datetime.timedelta| object.
 
         You are allowed to change and delete the handled |datetime.timedelta|
@@ -1353,8 +1520,7 @@ object at the moment.
                 'timedelta object at the moment.')
         return timedelta
 
-    @timedelta.setter
-    def timedelta(self, period: Optional[PeriodConstrArg]) -> None:
+    def _set_timedelta(self, period: Optional[PeriodConstrArg]) -> None:
         if isinstance(period, Period):
             vars(self)['timedelta'] = vars(period).get('timedelta')
         elif isinstance(period, datetime_.timedelta):
@@ -1365,11 +1531,16 @@ object at the moment.
             raise TypeError(
                 f'The supplied argument must be either an instance '
                 f'of `Period´, `datetime.timedelta` or `str`.  The given '
-                f'arguments type is `{objecttools.classname(period)}`.')
+                f'arguments type is `{type(period).__name__}`.')
 
-    @timedelta.deleter
-    def timedelta(self) -> None:
+    def _del_timedelta(self) -> None:
         vars(self)['timedelta'] = None
+
+    timedelta = property(
+        _get_timedelta,
+        _set_timedelta,
+        _del_timedelta,
+    )
 
     @property
     def unit(self) -> str:
@@ -1438,17 +1609,47 @@ object at the moment.
         """
         return self.timedelta.total_seconds() / 86400
 
+    def check(self) -> None:
+        """Raise a |RuntimeError| if the step size is undefined at the
+        moment.
+
+        >>> from hydpy import Period
+        >>> Period('1d').check()
+        >>> Period().check()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: No step size defined at the moment.
+        """
+        # pylint: disable=protected-access
+        if not self:
+            raise RuntimeError(
+                'No step size defined at the moment.'
+            )
+
     def __bool__(self) -> bool:
         return bool(getattr(self, 'timedelta', None))
 
     @overload
-    def __add__(self, other: DateConstrArg) -> 'Period':
+    def __add__(
+            self,
+            other: Union['Date', datetime_.datetime],
+    ) -> 'Date':
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __add__(self, other: PeriodConstrArg) -> 'Date':
+    def __add__(
+            self,
+            other: Union['Period', datetime_.timedelta],
+    ) -> 'Period':
         """Add the |Period| object to another |Period| object."""
 
+    @overload
+    def __add__(
+            self,
+            other: str,
+    ) -> Union['Date', 'Period']:
+        """Result depends on the actual string."""
+        
     def __add__(self, other):
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
@@ -1465,34 +1666,75 @@ object at the moment.
             except BaseException:
                 pass
         raise TypeError(
-            f'Object `{other}` of type `{objecttools.classname(other)}` '
+            f'Object `{other}` of type `{type(other).__name__}` '
             f'cannot be added to a `Period` instance.')
 
     @overload
-    def __radd__(self, other: DateConstrArg) -> 'Period':
+    def __radd__(
+            self,
+            other: Union['Date', datetime_.datetime],
+    ) -> 'Date':
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __radd__(self, other: PeriodConstrArg) -> 'Date':
+    def __radd__(
+            self,
+            other: Union['Period', datetime_.timedelta],
+    ) -> 'Period':
         """Add the |Period| object to another |Period| object."""
+
+    @overload
+    def __radd__(
+            self,
+            other: str,
+    ) -> Union['Date', 'Period']:
+        """Result depends on the string."""
 
     def __radd__(self, other):
         return self.__add__(other)
 
-    def __iadd__(self, other: PeriodConstrArg) -> 'Period':
+    def __iadd__(   # type: ignore
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Period':
+        # without more flexible ways to relate types to string patterns,
+        # there is nothing we can do about it (except providing a less
+        # flexible interface, of course)
         self.timedelta += Period(other).timedelta
         return self
 
-    def __sub__(self, other: PeriodConstrArg) -> 'Period':
+    def __sub__(
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Period':
         return Period.from_timedelta(self.timedelta - Period(other).timedelta)
 
     @overload
-    def __rsub__(self, other: DateConstrArg) -> 'Period':
+    def __rsub__(   # type: ignore
+            self,
+            other: Union['Date', datetime_.datetime],
+    ) -> 'Period':
+        # without more flexible ways to relate types to string patterns,
+        # there is nothing we can do about it (except providing a less
+        # flexible interface, of course)
         """Subtract the |Period| object from a |Date| object."""
 
     @overload
-    def __rsub__(self, other: PeriodConstrArg) -> 'Date':
+    def __rsub__(   # type: ignore
+            self,
+            other: Union['Period', datetime_.timedelta],
+    ) -> 'Date':
+        # without more flexible ways to relate types to string patterns,
+        # there is nothing we can do about it (except providing a less
+        # flexible interface, of course)
         """Subtract the |Period| object from another |Period| object."""
+
+    @overload
+    def __rsub__(
+            self,
+            other: str,
+    ) -> Union['Date', 'Period']:
+        """Result depends on string."""
 
     def __rsub__(self, other):
         if isinstance(other, (Date, datetime_.datetime, str)):
@@ -1511,28 +1753,46 @@ object at the moment.
                 pass
         raise TypeError(
             f'A `Period` instance cannot be subtracted from object '
-            f'`{other}` of type `{objecttools.classname(other)}`.')
+            f'`{other}` of type `{type(other).__name__}`.')
 
-    def __isub__(self, other: PeriodConstrArg) -> 'Period':
+    def __isub__(
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Period':
         self.timedelta -= Period(other).timedelta
         return self
 
-    def __mul__(self, other: float) -> 'Period':
+    def __mul__(
+            self,
+            other: float,
+    ) -> 'Period':
         return Period.from_timedelta(self.timedelta * other)
 
-    def __rmul__(self, other: float) -> 'Period':
+    def __rmul__(
+            self,
+            other: float,
+    ) -> 'Period':
         return self.__mul__(other)
 
-    def __imul__(self, other: float) -> 'Period':
+    def __imul__(
+            self,
+            other: float,
+    ) -> 'Period':
         self.timedelta *= other
         return self
 
     @overload
-    def __truediv__(self, other: PeriodConstrArg) -> float:
+    def __truediv__(
+            self,
+            other: PeriodConstrArg,
+    ) -> float:
         """Divide the |Period| object through another |Period| object."""
 
     @overload
-    def __truediv__(self, other: float) -> 'Period':
+    def __truediv__(
+            self,
+            other: float,
+    ) -> 'Period':
         """Divide the |Period| object through a number object."""
 
     def __truediv__(self, other):
@@ -1540,23 +1800,44 @@ object at the moment.
             return Period.from_timedelta(self.timedelta / other)
         return self.seconds / Period(other).seconds
 
-    def __rtruediv__(self, other: PeriodConstrArg) -> float:
+    def __rtruediv__(
+            self,
+            other: PeriodConstrArg,
+    ) -> float:
         return Period(other).seconds / self.seconds
 
-    def __itruediv__(self, other: float) -> 'Period':
+    def __itruediv__(   # type: ignore
+            self,
+            other: float,
+    ) -> 'Period':
+        # without more flexible ways to relate types to string patterns,
+        # there is nothing we can do about it (except providing a less
+        # flexible interface, of course)
         self.timedelta /= other
         return self
 
-    def __floordiv__(self, other: PeriodConstrArg) -> int:
+    def __floordiv__(
+            self,
+            other: PeriodConstrArg,
+    ) -> int:
         return self.timedelta // Period(other).timedelta
 
-    def __rfloordiv__(self, other: PeriodConstrArg) -> int:
+    def __rfloordiv__(
+            self,
+            other: PeriodConstrArg,
+    ) -> int:
         return Period(other).timedelta // self.timedelta
 
-    def __mod__(self, other: PeriodConstrArg) -> 'Period':
+    def __mod__(
+            self,
+            other: PeriodConstrArg,
+    ) -> 'Period':
         return Period.from_timedelta(self.timedelta % Period(other).timedelta)
 
-    def __rmod__(self, other: PeriodConstrArg) -> 'Period':
+    def __rmod__(
+            self,
+            other: Union['Period', datetime_.timedelta],
+    ) -> 'Period':
         return Period.from_timedelta(Period(other).timedelta % self.timedelta)
 
     def __pos__(self) -> 'Period':
@@ -1568,28 +1849,46 @@ object at the moment.
     def __abs__(self):
         return Period.from_timedelta(abs(self.timedelta))
 
-    def __lt__(self, other: PeriodConstrArg) -> bool:
+    def __lt__(
+            self,
+            other: PeriodConstrArg,
+    ) -> bool:
         return self.timedelta < Period(other).timedelta
 
-    def __le__(self, other: PeriodConstrArg) -> bool:
+    def __le__(
+            self,
+            other: PeriodConstrArg,
+    ) -> bool:
         return self.timedelta <= Period(other).timedelta
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.timedelta == Period(other).timedelta
         except BaseException:
             return False
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.timedelta != Period(other).timedelta
         except BaseException:
             return True
 
-    def __gt__(self, other: PeriodConstrArg) -> bool:
+    def __gt__(
+            self,
+            other: PeriodConstrArg,
+    ) -> bool:
         return self.timedelta > Period(other).timedelta
 
-    def __ge__(self, other: PeriodConstrArg) -> bool:
+    def __ge__(
+            self,
+            other: PeriodConstrArg,
+    ) -> bool:
         return self.timedelta >= Period(other).timedelta
 
     def __str__(self) -> str:
@@ -1733,7 +2032,8 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
             self,
             firstdate: DateConstrArg,
             lastdate: DateConstrArg,
-            stepsize: PeriodConstrArg):
+            stepsize: PeriodConstrArg,
+    ):
         try:
             self.firstdate = firstdate
             self.lastdate = lastdate
@@ -1744,8 +2044,7 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
                 f'While trying to prepare a Trimegrid object based on the '
                 f'arguments `{firstdate}`, `{lastdate}`, and `{stepsize}`')
 
-    @property
-    def firstdate(self) -> Date:
+    def _get_firstdate(self) -> Date:
         """The start date of the relevant period.
 
         You can query and alter the value of property |Timegrid.firstdate|
@@ -1764,12 +2063,18 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         """
         return vars(self)['firstdate']
 
-    @firstdate.setter
-    def firstdate(self, firstdate: DateConstrArg):
+    def _set_firstdate(
+            self,
+            firstdate: DateConstrArg,
+    ):
         vars(self)['firstdate'] = Date(firstdate)
 
-    @property
-    def lastdate(self) -> Date:
+    firstdate = property(
+        _get_firstdate,
+        _set_firstdate,
+    )
+
+    def _get_lastdate(self) -> Date:
         """The end date of the relevant period.
 
         You can query and alter the value of property |Timegrid.lastdate|
@@ -1788,12 +2093,18 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         """
         return vars(self)['lastdate']
 
-    @lastdate.setter
-    def lastdate(self, lastdate: DateConstrArg) -> None:
+    def _set_lastdate(
+            self,
+            lastdate: DateConstrArg,
+    ) -> None:
         vars(self)['lastdate'] = Date(lastdate)
 
-    @property
-    def stepsize(self) -> Period:
+    lastdate = property(
+        _get_lastdate,
+        _set_lastdate,
+    )
+
+    def _get_stepsize(self) -> Period:
         """The time-series data and simulation step size.
 
         You can query and alter the value of property |Timegrid.stepsize|
@@ -1812,12 +2123,22 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
         """
         return vars(self)['stepsize']
 
-    @stepsize.setter
-    def stepsize(self, stepsize: PeriodConstrArg) -> None:
+    def _set_stepsize(
+            self,
+            stepsize: PeriodConstrArg,
+    ) -> None:
         vars(self)['stepsize'] = Period(stepsize)
 
+    stepsize = property(
+        _get_stepsize,
+        _set_stepsize,
+    )
+
     @classmethod
-    def from_array(cls, array: numpy.ndarray) -> 'Timegrid':
+    def from_array(
+            cls,
+            array: numpy.ndarray,
+    ) -> 'Timegrid':
         """Create a |Timegrid| instance based on information stored in
         the first 13 rows of a |numpy.ndarray| object and return it.
 
@@ -1866,7 +2187,8 @@ are required, but the given array consist of 12 entries/rows only.
             raise IndexError(
                 f'To define a Timegrid instance via an array, 13 '
                 f'numbers are required, but the given array '
-                f'consist of {len(array)} entries/rows only.')
+                f'consist of {len(array)} entries/rows only.'
+            ) from None
 
     def to_array(self) -> numpy.ndarray:
         """Return a 1-dimensional |numpy| |numpy.ndarray| storing the
@@ -1886,7 +2208,8 @@ are required, but the given array consist of 12 entries/rows only.
             cls,
             timepoints: Sequence,
             refdate: DateConstrArg,
-            unit: str = 'hours') -> 'Timegrid':
+            unit: str = 'hours',
+    ) -> 'Timegrid':
         """Return a |Timegrid| object representing the given starting
         `timepoints` related to the given `refdate`.
 
@@ -1924,17 +2247,18 @@ are required, but the given array consist of 12 entries/rows only.
                  '6h')
         """
         refdate = Date(refdate)
-        unit = Period.from_cfunits(unit)
+        period = Period.from_cfunits(unit)
         delta = timepoints[1]-timepoints[0]
-        firstdate = refdate+timepoints[0]*unit
-        lastdate = refdate+(timepoints[-1]+delta)*unit
+        firstdate = refdate+timepoints[0]*period
+        lastdate = refdate+(timepoints[-1]+delta)*period
         stepsize = (lastdate-firstdate)/len(timepoints)
         return cls(firstdate, lastdate, stepsize)
 
     def to_timepoints(
             self,
             unit: str = 'hours',
-            offset: Union[float, PeriodConstrArg] = 0.0) -> numpy.ndarray:
+            offset: Union[float, PeriodConstrArg] = 0.0,
+    ) -> numpy.ndarray:
         """Return a |numpy.ndarray| representing the starting time points
         of the |Timegrid| object.
 
@@ -1965,15 +2289,18 @@ are required, but the given array consist of 12 entries/rows only.
         >>> timegrid.to_timepoints(unit='day', offset='1d')
         array([ 1.  ,  1.25,  1.5 ,  1.75])
         """
-        unit = Period.from_cfunits(unit)
+        period = Period.from_cfunits(unit)
         if not isinstance(offset, (float, int)):
-            offset = Period(offset)/unit
-        step = self.stepsize/unit
+            offset = Period(offset)/period
+        step = self.stepsize/period
         nmb = len(self)
         variable = numpy.linspace(offset, offset+step*(nmb-1), nmb)
         return variable
 
-    def array2series(self, array: numpy.ndarray) -> numpy.ndarray:
+    def array2series(
+            self,
+            array: numpy.ndarray,
+    ) -> numpy.ndarray:
         """Prefix the information of the actual |Timegrid| object to the
         given array and return it.
 
@@ -2122,11 +2449,17 @@ date (`2000-01-01 00:00:00`) is inconsistent.
         return abs(int((self.lastdate-self.firstdate) / self.stepsize))
 
     @overload
-    def __getitem__(self, key: int) -> Date:
+    def __getitem__(
+            self,
+            key: int,
+    ) -> Date:
         """Get the date corresponding to the given index value."""
 
     @overload
-    def __getitem__(self, key: DateConstrArg) -> int:
+    def __getitem__(
+            self,
+            key: DateConstrArg,
+    ) -> int:
         """Get the index value corresponding to the given date."""
 
     def __getitem__(self, key):
@@ -2149,21 +2482,33 @@ date (`2000-01-01 00:00:00`) is inconsistent.
             yield from_datetime(dt)
             dt = dt + td
 
-    def _containsdate(self, date: Date) -> bool:
+    def _containsdate(
+            self,
+            date: Date,
+    ) -> bool:
         return ((self.firstdate <= date <= self.lastdate) and not
                 ((date-self.firstdate) % self.stepsize))
 
-    def _containstimegrid(self, timegrid: 'Timegrid') -> bool:
+    def _containstimegrid(
+            self,
+            timegrid: 'Timegrid',
+    ) -> bool:
         return (self._containsdate(timegrid.firstdate) and
                 self._containsdate(timegrid.lastdate) and
                 (timegrid.stepsize == self.stepsize))
 
-    def __contains__(self, other: Union[DateConstrArg, 'Timegrid']):
+    def __contains__(
+            self,
+            other: Union[DateConstrArg, 'Timegrid'],
+    ):
         if isinstance(other, Timegrid):
             return self._containstimegrid(other)
         return self._containsdate(Date(other))
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return ((self.firstdate == other.firstdate) and
                     (self.lastdate == other.lastdate) and
@@ -2180,7 +2525,8 @@ date (`2000-01-01 00:00:00`) is inconsistent.
     def assignrepr(
             self, prefix: str,
             style: Optional[str] = None,
-            utcoffset: Optional[int] = None) -> str:
+            utcoffset: Optional[int] = None,
+    ) -> str:
         """Return a |repr| string with a prefixed assignment.
 
         >>> from hydpy import Timegrid
@@ -2236,11 +2582,6 @@ class Timegrids:
     >>> timegrids == Timegrids('2000-01-01', '2001-01-01', '1d')
     True
 
-    Also, you can pass another |Timegrids| object:
-
-    >>> timegrids == Timegrids(timegrids)
-    True
-
     To define a simulation time grid different from the initialisation
     time grid, pass them as two individual |Timegrid| objects:
 
@@ -2263,30 +2604,72 @@ class Timegrids:
              '2000-07-01 00:00:00',
              '1d')
 
+    Class |Timegrids| supports keyword arguments:
+
+    >>> Timegrid(firstdate='2000-01-01 00:00:00',
+    ...          lastdate='2001-01-01 00:00:00',
+    ...          stepsize='1d')
+    Timegrid('2000-01-01 00:00:00',
+             '2001-01-01 00:00:00',
+             '1d')
+
+    >>> Timegrid('2000-01-01 00:00:00',
+    ...          '2001-01-01 00:00:00',
+    ...          stepsize='1d')
+    Timegrid('2000-01-01 00:00:00',
+             '2001-01-01 00:00:00',
+             '1d')
+
+    >>> Timegrids(init=Timegrid('2000-01-01 00:00:00',
+    ...                         '2001-01-01 00:00:00',
+    ...                         '1d'),
+    ...           sim=Timegrid('2000-01-01 00:00:00',
+    ...                        '2000-07-01 00:00:00',
+    ...                        '1d'))
+    Timegrids(Timegrid('2000-01-01 00:00:00',
+                       '2001-01-01 00:00:00',
+                       '1d'),
+              Timegrid('2000-01-01 00:00:00',
+                       '2000-07-01 00:00:00',
+                       '1d'))
+
     Wrong arguments should result in understandable error messages:
 
     >>> Timegrids(1, 2, 3, 4)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define a new Timegrids object based on \
+    TypeError: While trying to define a new `Timegrids` object based on the \
 arguments `1, 2, 3, and 4`, the following error occurred: Initialising \
 `Timegrids` objects requires one, two, or three arguments but `4` are given.
 
     >>> Timegrids('wrong')
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `wrong`, the following error occurred: When passing a single \
-argument to the constructor of class `Timegrids`, the argument must be \
-a `Timegrid` or a `Timegrids` object, but a `str` is given.
+    ValueError: While trying to define a new `Timegrids` object based on the \
+arguments `wrong`, the following error occurred: Initialising a `Timegrids` \
+object either requires one or two `Timegrid` objects or two dates objects \
+(of type `Date`, `datetime`, or `str`) and one period object (of type \
+`Period`, `timedelta`, or `str`), but objects of the types `str, None, \
+and None` are given.
 
-    >>> Timegrids('very', 'wrong')
+    >>> Timegrids(wrong=Timegrid('2000-01-01', '2001-01-01', '1d'))
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `very and wrong`, the following error occurred: When passing \
-two arguments to the constructor of class `Timegrids`, both argument \
-must be `Timegrid` object, but the first one is of type `str`.
+    TypeError: While trying to define a new `Timegrids` object based on the \
+arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, \
+the following error occurred: Initialising class `Timegrids` does not \
+support the following given keywords: `wrong`.
+
+    >>> Timegrids(
+    ...     Timegrid('2000-01-01', '2001-01-01', '1d'),
+    ...     init=Timegrid('2000-01-01', '2001-01-01', '1d'))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to define a new `Timegrids` object based on the \
+arguments `Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d') and \
+Timegrid('2000-01-01 00:00:00', '2001-01-01 00:00:00', '1d')`, the following \
+error occurred: There is a conflict between the given positional and keyword \
+arguments.
 
     Two |Timegrids| objects are equal if both the respective initialisation
     and simulation periods are equal:
@@ -2307,52 +2690,99 @@ must be `Timegrid` object, but the first one is of type `str`.
     False
     """
 
-    def __new__(cls, *args: Union[Timegrid, DateConstrArg, PeriodConstrArg]):
-        if (len(args) == 1) and isinstance(args[0], Timegrids):
-            return args[0]
-        return super().__new__(cls)
+    init: Timegrid
+    """|Timegrid| object covering the whole initialisation period."""
+    sim: Timegrid
+    """|Timegrid| object covering the actual simulation period only."""
 
-    def __init__(self, *args: Any):
+    @overload
+    def __init__(
+        self,
+        init: Timegrid,
+        sim: Optional[Timegrid] = ...,
+    ):
+        """from timegrids"""
+
+    @overload
+    def __init__(
+        self,
+        firstdate: DateConstrArg,
+        lastdate: DateConstrArg,
+        stepsize: PeriodConstrArg,
+    ):
+        """from timegrid constructor arguments"""
+
+    def __init__(self, *args, **kwargs):
+        values = list(args)+list(kwargs.values())
         try:
-            nmbargs = len(args)
-            if not nmbargs or nmbargs > 3:
-                raise ValueError(
+            if not 1 <= len(values) <= 3:
+                raise TypeError(
                     f'Initialising `Timegrids` objects requires one, two, '
-                    f'or three arguments but `{nmbargs}` are given.')
-            if nmbargs == 1:
-                if isinstance(args[0], Timegrids):
-                    pass
-                elif isinstance(args[0], Timegrid):
-                    self.init = args[0]
-                    self.sim = copy.deepcopy(args[0])
-                else:
-                    raise TypeError(
-                        f'When passing a single argument to the constructor '
-                        f'of class `Timegrids`, the argument must be a '
-                        f'`Timegrid` or a `Timegrids` object, but a '
-                        f'`{objecttools.classname(args[0])}` is given.')
-            elif nmbargs == 2:
-                for idx, arg in enumerate(args):
-                    if not isinstance(arg, Timegrid):
-                        number = 'second' if idx else 'first'
+                    f'or three arguments but `{len(values)}` are given.'
+                )
+            arguments = [None, None, None]
+            for idx, arg in enumerate(args):
+                arguments[idx] = arg
+            for idx, name in (
+                (0, 'init'),
+                (1, 'sim'),
+                (0, 'firstdate'),
+                (1, 'lastdate'),
+                (2, 'stepsize'),
+            ):
+                value = kwargs.pop(name, None)
+                if value is not None:
+                    if arguments[idx] is None:
+                        arguments[idx] = value
+                    else:
                         raise TypeError(
-                            f'When passing two arguments to the constructor '
-                            f'of class `Timegrids`, both argument must be '
-                            f'`Timegrid` object, but the {number} one is of '
-                            f'type `{objecttools.classname(args[0])}`.')
-                self.init = args[0]
-                self.sim = args[1]
-            elif nmbargs == 3:
-                self.init = Timegrid(args[0], args[1], args[2])
-                self.sim = Timegrid(args[0], args[1], args[2])
+                            'There is a conflict between the given '
+                            'positional and keyword arguments.'
+                        )
+            if kwargs:
+                raise TypeError(
+                    f'Initialising class `Timegrids` does not support the '
+                    f'following given keywords: '
+                    f'`{objecttools.enumeration(kwargs.keys())}`.'
+                )
+            arg1, arg2, arg3 = arguments
+            if (
+                    isinstance(arg1, Timegrid) and
+                    ((arg2 is None) or isinstance(arg2, Timegrid)) and
+                    (arg3 is None)
+            ):
+                self.init = copy.deepcopy(arg1)
+                if arg2 is None:
+                    self.sim = copy.deepcopy(arg1)
+                else:
+                    self.sim = copy.deepcopy(arg2)
+            elif (
+                    isinstance(arg1, (Date, datetime_.datetime, str)) and
+                    isinstance(arg2, (Date, datetime_.datetime, str)) and
+                    isinstance(arg3, (Period, datetime_.timedelta, str))
+            ):
+                self.init = Timegrid(arg1, arg2, arg3)
+                self.sim = Timegrid(arg1, arg2, arg3)
+            else:
+                types_ = objecttools.enumeration(
+                    'None' if arg is None else type(arg).__name__
+                    for arg in arguments
+                )
+                raise ValueError(
+                    f'Initialising a `Timegrids` object either requires one '
+                    f'or two `Timegrid` objects or two dates objects (of '
+                    f'type `Date`, `datetime`, or `str`) and one period '
+                    f'object (of type `Period`, `timedelta`, or `str`), '
+                    f'but objects of the types `{types_}` are given.'
+                )
             self.verify()
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to define a new Timegrids object based on '
-                f'arguments `{objecttools.enumeration(args)}`')
+                f'While trying to define a new `Timegrids` object based on '
+                f'the arguments `{objecttools.enumeration(values)}`'
+            )
 
-    @property
-    def stepsize(self) -> Period:
+    def _get_stepsize(self) -> Period:
         """Stepsize of all handled |Timegrid| objects.
 
         You can change the (the identical) |Timegrid.stepsize| of all
@@ -2382,10 +2812,17 @@ must be `Timegrid` object, but the first one is of type `str`.
         """
         return self.init.stepsize
 
-    @stepsize.setter
-    def stepsize(self, stepsize: PeriodConstrArg) -> None:
+    def _set_stepsize(
+            self,
+            stepsize: PeriodConstrArg,
+    ) -> None:
         self.init.stepsize = Period(stepsize)
         self.sim.stepsize = Period(stepsize)
+
+    stepsize = property(
+        _get_stepsize,
+        _set_stepsize,
+    )
 
     def verify(self) -> None:
         """Raise a |ValueError| if the different |Timegrid| objects are
@@ -2400,8 +2837,8 @@ must be `Timegrid` object, but the first one is of type `str`.
         ...     Timegrid('2000-01-01', '2002-01-01', '1d'))
         Traceback (most recent call last):
         ...
-        ValueError: While trying to define a new Timegrids object based \
-on arguments `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d') \
+        ValueError: While trying to define a new `Timegrids` object based on \
+the arguments `Timegrid('2001-01-01 00:00:00', '2002-01-01 00:00:00', '1d') \
 and Timegrid('2000-01-01 00:00:00', '2002-01-01 00:00:00', '1d')`, the \
 following error occurred: The first date of the initialisation period \
 (`2001-01-01 00:00:00`) must not be later than the first date of the \
@@ -2473,36 +2910,42 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to verify the initialisation '
-                f'time grid `{self.init}`')
+                f'time grid `{self.init}`'
+            )
         try:
             self.sim.verify()
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to verify the simulation '
-                f'time grid `{self.init}`')
+                f'time grid `{self.init}`'
+            )
         if self.init.firstdate > self.sim.firstdate:
             raise ValueError(
                 f'The first date of the initialisation period '
                 f'(`{self.init.firstdate}`) must not be later '
                 f'than the first date of the simulation period '
-                f'(`{self.sim.firstdate}`).')
+                f'(`{self.sim.firstdate}`).'
+            )
         if self.init.lastdate < self.sim.lastdate:
             raise ValueError(
                 f'The last date of the initialisation period '
                 f'(`{self.init.lastdate}`) must not be earlier '
                 f'than the last date of the simulation period '
-                f'(`{self.sim.lastdate}`).')
+                f'(`{self.sim.lastdate}`).'
+            )
         if self.init.stepsize != self.sim.stepsize:
             raise ValueError(
                 f'The initialisation stepsize (`{self.init.stepsize}`) '
                 f'must be identical with the simulation stepsize '
-                f'(`{self.sim.stepsize}`).')
+                f'(`{self.sim.stepsize}`).'
+            )
         try:
             self.init[self.sim.firstdate]
-        except ValueError:
+        except ValueError as exc:
             raise ValueError(
                 f'The simulation time grid `{self.sim}` is not properly '
-                f'alligned on the initialisation time grid `{self.init}`.')
+                f'alligned on the initialisation time grid `{self.init}`.'
+            ) from exc
 
     @property
     def simindices(self) -> Tuple[int, int]:
@@ -2520,7 +2963,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         """
         return self.init[self.sim.firstdate], self.init[self.sim.lastdate]
 
-    def qfactor(self, area: float) -> float:
+    def qfactor(
+            self,
+            area: float,
+    ) -> float:
         """Return the factor for converting `mm/stepsize` to `m³/s` for
         a reference area, given in `km²`.
 
@@ -2534,7 +2980,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         """
         return area * 1000. / self.stepsize.seconds
 
-    def parfactor(self, stepsize: PeriodConstrArg) -> float:
+    def parfactor(
+            self,
+            stepsize: PeriodConstrArg,
+    ) -> float:
         """Return the factor for adjusting time-dependent parameter values
         to the actual simulation step size (the given `stepsize` must be
         related to the original parameter values).
@@ -2548,7 +2997,14 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         """
         return self.stepsize / Period(stepsize)
 
-    def __eq__(self, other: Any) -> bool:
+    def __iter__(self) -> Iterator[Timegrid]:
+        yield self.init
+        yield self.sim
+
+    def __eq__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return ((self.init == other.init) and
                     (self.sim == other.sim))
@@ -2558,7 +3014,10 @@ is `365d`, which is not an integral multiple of the step size `3d`.
     def __repr__(self) -> str:
         return self.assignrepr('')
 
-    def assignrepr(self, prefix: str) -> str:
+    def assignrepr(
+            self,
+            prefix: str,
+    ) -> str:
         """Return a |repr| string with a prefixed assignment."""
         caller = 'Timegrids('
         blanks = ' ' * (len(prefix) + len(caller))
@@ -2630,11 +3089,19 @@ class TOY:
     Ill-defined constructor arguments result in error messages like
     the following:
 
+    >>> TOY('something')
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to initialise a TOY object based on argument \
+value `something` of type `str`, the following error occurred: When passing \
+a prefixed string, you need to define at least the month.
+
+
     >>> TOY('2_30_4_5_6')
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise a TOY object based on argument \
-`value `2_30_4_5_6` of type `str`, the following error occurred: While \
+value `2_30_4_5_6` of type `str`, the following error occurred: While \
 trying to retrieve the day, the following error occurred: The value of \
 property `day` of the actual TOY (time of year) object must lie within \
 the range `(1, 29)`, as the month has already been set to `2`, but the \
@@ -2729,12 +3196,20 @@ has already been set to `31`.
     _ENDDATE = Date.from_datetime(datetime_.datetime(2001, 1, 1))
 
     month: int
+    """The month of the current the actual time of the year."""
     day: int
+    """The day of the current the actual time of the year."""
     hour: int
+    """The hour of the current the actual time of the year."""
     minute: int
+    """The minute of the current the actual time of the year."""
     second: int
+    """The second of the current the actual time of the year."""
 
-    def __init__(self, value: Union[str, Date] = ''):
+    def __init__(
+            self,
+            value: Union[str, Date] = '',
+    ):
         try:
             if isinstance(value, Date):
                 datetime = value.datetime
@@ -2744,6 +3219,10 @@ has already been set to `31`.
             else:
                 values = value.split('_')
                 if not values[0].isdigit():
+                    if values[0] and (len(values) == 1):
+                        raise ValueError(
+                            'When passing a prefixed string, you need '
+                            'to define at least the month.')
                     del values[0]
                 for prop in self._PROPERTIES:
                     try:
@@ -2761,21 +3240,27 @@ has already been set to `31`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a TOY object based on '
-                f'argument `{objecttools.value_of_type(value)}')
+                f'argument {objecttools.value_of_type(value)}')
 
-    def __setattr__(self, name: str, value: int) -> None:
+    def __setattr__(
+            self,
+            name: str,
+            value: int,
+    ) -> None:
         if name not in self._PROPERTIES:
             raise AttributeError(
                 f'TOY (time of year) objects only allow to set the '
                 f'properties {objecttools.enumeration(self._PROPERTIES.keys())}'
-                f', but `{name}` is given.')
+                f', but `{name}` is given.'
+            )
         try:
             value = int(value)
         except ValueError:
             raise ValueError(
                 f'For TOY (time of year) objects, all properties must be of '
                 f'type `int`, but the {objecttools.value_of_type(value)} '
-                f'given for property `{name}` cannot be converted to `int`.')
+                f'given for property `{name}` cannot be converted to `int`.'
+            ) from None
         if (name == 'day') and hasattr(self, 'month'):
             bounds = (1, calendar.monthrange(2000, self.month)[1])
             if not bounds[0] <= value <= bounds[1]:
@@ -2783,7 +3268,8 @@ has already been set to `31`.
                     f'The value of property `day` of the actual TOY '
                     f'(time of year) object must lie within the range '
                     f'`{bounds}`, as the month has already been set to '
-                    f'`{self.month}`, but the given value is `{value}`.')
+                    f'`{self.month}`, but the given value is `{value}`.'
+                )
         elif (name == 'month') and hasattr(self, 'day'):
             bounds = (1, calendar.monthrange(2000, value)[1])
             if not bounds[0] <= self.day <= bounds[1]:
@@ -2791,14 +3277,16 @@ has already been set to `31`.
                     f'The value of property `month` of the actual TOY '
                     f'(time of year) object must not be the given value '
                     f'`{value}`, as the day has already been set to '
-                    f'`{self.day}`.')
+                    f'`{self.day}`.'
+                )
         else:
             bounds = self._PROPERTIES[name]
             if not bounds[0] <= value <= bounds[1]:
                 raise ValueError(
                     f'The value of property `{name}` of TOY (time of '
                     f'year) objects must lie within the range `{bounds}`, '
-                    f'but the given value is `{value}`.')
+                    f'but the given value is `{value}`.'
+                )
         super().__setattr__(name, value)
         vars(self)['seconds_passed'] = None
         vars(self)['seconds_left'] = None
@@ -2954,44 +3442,68 @@ has already been set to `31`.
             relevant[:centred[date1+shift]] = True
         return centred, relevant
 
-
-    def __sub__(self, other: 'TOY') -> float:
+    def __sub__(
+            self,
+            other: 'TOY',
+    ) -> float:
         if self >= other:
             return self.seconds_passed - other.seconds_passed
         return self.seconds_passed + other.seconds_left
 
-    def __lt__(self, other: 'TOY') -> bool:
+    def __lt__(
+            self,
+            other: 'TOY',
+    ) -> bool:
         return self.seconds_passed < other.seconds_passed
 
-    def __le__(self, other: 'TOY') -> bool:
+    def __le__(
+            self,
+            other: 'TOY',
+    ) -> bool:
         return self.seconds_passed <= other.seconds_passed
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.seconds_passed == other.seconds_passed
         except AttributeError:
             return False
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(
+            self,
+            other: Any,
+    ) -> bool:
         try:
             return self.seconds_passed != other.seconds_passed
         except AttributeError:
             return True
 
-    def __gt__(self, other: 'TOY') -> bool:
+    def __gt__(
+            self,
+            other: 'TOY',
+    ) -> bool:
         return self.seconds_passed > other.seconds_passed
 
-    def __ge__(self, other: 'TOY') -> bool:
+    def __ge__(
+            self,
+            other: 'TOY',
+    ) -> bool:
         return self.seconds_passed >= other.seconds_passed
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(str)
 
-    def __str__(self):
+    def __str__(self) -> str:
         string = '_'.join(str(getattr(self, prop)) for prop
                           in self._PROPERTIES.keys())
         return f"toy_{string}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
                                       in self._PROPERTIES.keys())
+
+
+TOY0 = TOY('1_1_0_0_0')
+"""The very first time of the year."""

@@ -80,31 +80,117 @@ class WAeS(lland_sequences.State1DSequence):
         super().trim(lower, upper)
 
 
+class ESnow(lland_sequences.State1DSequence):
+    """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
+    energy content of the snow layer with respect to 0°C) [MJ/m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
+
+
+class TauS(lland_sequences.State1DSequence):
+    """Dimensionsloses Alter der Schneedecke (dimensionless age of the snow
+    layer) [-].
+
+    If there is no snow-layer, the value of |TauS| is |numpy.nan|.
+    """
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
+
+
+class EBdn(lland_sequences.State1DSequence):
+    """Energiegehalt des Bodenwassers (energy content of the soil water)
+    [MJ/m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
+
+
 class BoWa(lland_sequences.State1DSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
     mask = lland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`BoWa \\leq NFk`.
+        """Trim values in accordance with :math:`BoWa \\leq WMax`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(5)
-        >>> nfk(200.)
+        >>> wmax(200.)
         >>> states.bowa(-100.,0., 100., 200., 300.)
         >>> states.bowa
         bowa(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.nfk
+            upper = self.subseqs.seqs.model.parameters.control.wmax
         super().trim(lower, upper)
+
+
+# class SInz(lland_sequences.State1DSequence):
+#     """Wasseräquivalent Schnee des Interzeptionsspeichers [mm]."""
+#     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+#
+#     def trim(self, lower=None, upper=None):
+#         """Trim values in accordance with :math:`WAeS \\leq PWMax
+#         \\cdot WATS`.
+#
+#         >>> from hydpy.models.lland import *
+#         >>> parameterstep('1d')
+#         >>> nhru(7)
+#         >>> pwmax(2.)
+#         >>> states.stinz = 0., 0., 0., 5., 5., 5., 5.
+#         >>> states.sinz(-1., 0., 1., -1., 5., 10., 20.)
+#         >>> states.sinz
+#         sinz(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
+#         """
+#         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+#         stinz = self.subseqs.stinz
+#         if upper is None:
+#             upper = pwmax*stinz
+#         super().trim(lower, upper)
+
+
+# class STInz(lland_sequences.State1DSequence):
+#     """Wasseräquivalent Trockenschnee des Schnee-Interzeptionsspeichers [mm].
+#     """
+#     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+#
+#     def trim(self, lower=None, upper=None):
+#         """Trim values in accordance with :math:`WAeS \\leq PWMax
+#         \\cdot WATS`, or at least in accordance with if :math:`WATS \\geq 0`.
+#
+#         >>> from hydpy.models.lland import *
+#         >>> parameterstep('1d')
+#         >>> nhru(7)
+#         >>> pwmax(2.0)
+#         >>> states.sinz = -1., 0., 1., -1., 5., 10., 20.
+#         >>> states.stinz(-1., 0., 0., 5., 5., 5., 5.)
+#         >>> states.stinz
+#         stinz(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
+#         """
+#         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+#         sinz = self.subseqs.sinz
+#         if lower is None:
+#             lower = numpy.clip(sinz/pwmax, 0., numpy.inf)
+#             lower[numpy.isnan(lower)] = 0.0
+#         super().trim(lower, upper)
+
+
+class ESnowInz(lland_sequences.State1DSequence):
+    """Kälteinhalt der Schneedecke des Interzeptionsspeichers [MJ/m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Land()
+
+
+class ASInz(lland_sequences.State1DSequence):
+    """Dimensionsloses Alter der Schneedecke des Interzeptionsspeichers."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
 
 class QDGZ1(sequencetools.StateSequence):
     """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
     the less responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGZ2(sequencetools.StateSequence):
@@ -134,7 +220,7 @@ class QBGZ(sequencetools.StateSequence):
 class QDGA1(sequencetools.StateSequence):
     """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from
     the less responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA2(sequencetools.StateSequence):
@@ -159,21 +245,3 @@ class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
     storage compartment for base flow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of the HydPy-L-Land model."""
-    CLASSES = (Inzp,
-               WATS,
-               WAeS,
-               BoWa,
-               QDGZ1,
-               QDGZ2,
-               QIGZ1,
-               QIGZ2,
-               QBGZ,
-               QDGA1,
-               QDGA2,
-               QIGA1,
-               QIGA2,
-               QBGA)

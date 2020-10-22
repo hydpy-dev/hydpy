@@ -1,9 +1,14 @@
+venv
 *.spyderproject
 *.spyderworkspace
+.pydevproject
+.project
+.settings/*
 *.pyc
 *.c
 *.h
 temp
+hydpy/conf/mimetypes.txt
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
 hydpy/cythons/autogen/*.pyi
@@ -12,7 +17,7 @@ hydpy/cythons/autogen/*.pxd
 hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
 hydpy/conf/HydPyConfigBase.xsd
-hydpy/docs/html/*.html
+hydpy/docs/html_/*.html
 hydpy/docs/auto
 hydpy/tests/iotesting/*
 !hydpy/test/iotesting/__init__.py
@@ -32,3 +37,5 @@ test.py
 .idea/*
 make_hydpy_installer.cfg
 lib/*
+temp/*
+hydpy/docs/bibliography/refs.bib.bak

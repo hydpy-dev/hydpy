@@ -53,7 +53,7 @@ class N(parametertools.Parameter):
             for par in subpars:
                 if par.name == 'toy':
                     continue
-                elif par.NDIM == 1:
+                if par.NDIM == 1:
                     if isinstance(par, parametertools.SeasonalParameter):
                         par.shape = (None,)
                     else:
@@ -167,14 +167,3 @@ class Verzw(parametertools.SeasonalParameter):
     """Zu- oder Abschlag des Seeausflusses (addition to or abstraction from
     the seas outlet discharge) [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-L-Lake, directly defined by the user."""
-    CLASSES = (N,
-               W,
-               V,
-               Q,
-               MaxDT,
-               MaxDW,
-               Verzw)

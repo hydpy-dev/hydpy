@@ -9,7 +9,10 @@ arbitrary variables.  Calculations are performed for each branch
 individually by linear interpolation (or extrapolation) following
 tabulated supporting points.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 10 hours:
 
@@ -78,63 +81,33 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hbranch_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hbranch_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from hbranch
 from hydpy.models.hbranch import hbranch_model
-from hydpy.models.hbranch import hbranch_control
-from hydpy.models.hbranch import hbranch_derived
-from hydpy.models.hbranch import hbranch_fluxes
-from hydpy.models.hbranch import hbranch_inlets
-from hydpy.models.hbranch import hbranch_outlets
 
 
 class Model(hbranch_model.Model):
     """The HBV96 version of HydPy-H-Stream (hbranch_v1)."""
-    INLET_METHODS = (hbranch_model.pick_input_v1,)
+    INLET_METHODS = (
+        hbranch_model.Pick_Input_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (hbranch_model.calc_outputs_v1,)
+    RUN_METHODS = (
+        hbranch_model.Calc_Outputs_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (hbranch_model.pass_outputs_v1,)
+    OUTLET_METHODS = (
+        hbranch_model.Pass_Outputs_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hbranch_v1, directly defined by the user."""
-    CLASSES = (hbranch_control.XPoints,
-               hbranch_control.YPoints)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of hbranch_v1, indirectly defined by the user."""
-    CLASSES = (hbranch_derived.NmbBranches,
-               hbranch_derived.NmbPoints)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of hbranch_v1."""
-    CLASSES = (hbranch_fluxes.Input,
-               hbranch_fluxes.Outputs)
-
-
-class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of hbranch_v1."""
-    CLASSES = (hbranch_inlets.Total,)
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of hbranch_v1."""
-    CLASSES = (hbranch_outlets.Branched,)
+    SUBMODELS = ()
 
 
 tester = Tester()

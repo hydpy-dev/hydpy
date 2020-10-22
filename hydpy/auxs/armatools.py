@@ -15,12 +15,7 @@ from hydpy.auxs import statstools
 pyplot = exceptiontools.OptionalImport(
     'pyplot', ['matplotlib.pyplot'], locals())
 integrate = exceptiontools.OptionalImport(
-    'integrate',
-    ['scipy.integrate'],
-    locals(),
-    ['import warnings',
-     'from scipy import integrate',
-     'warnings.filterwarnings("error", category=integrate.IntegrationWarning)'])
+    'integrate', ['scipy.integrate'], locals())
 
 
 class MA:
@@ -140,13 +135,10 @@ class MA:
     RuntimeError: Not able to detect a turning point in the impulse response \
 defined by the MA coefficients 1.0, 1.0, 1.0.
 
-    The next example requires reactivating the warning suppressed above
-    (and under Python 2.7 some registry clearing):
+    The next example requires reactivating the warning suppressed above:
 
     >>> warnings.filterwarnings(
     ...     'error', category=integrate.IntegrationWarning)
-    >>> from scipy.integrate import quadpack
-    >>> quadpack.__warningregistry__ = {}
 
     The MA coefficients need to be approximated numerically.  For very
     spiky response function, the underlying integration algorithm might
@@ -168,6 +160,34 @@ integration problem occurred.  \
 Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
     >>> ma
     MA(coefs=(0.0, 0.0, 0.0, 0.0, 0.75, 0.25))
+
+    For very steep response functions, numerical integration might fail:
+
+    >>> ma = MA(iuh=lambda x: stats.norm.pdf(x, 4.0, 1e-6))
+    >>> ma.iuh.moment1 = 4.0
+    >>> ma.update_coefs()   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Cannot determine the MA coefficients corresponding to the \
+instantaneous unit hydrograph `...`.
+
+    For very fast responses, there should be only one MA coefficient that
+    has the value 1.  Method |MA.update_coefs| provides a heuristic for
+    such cases where numerical integration fails.  As we are not sure
+    that this heuristic works in all possible cases, |MA.update_coefs|
+    raises the following warning in such cases:
+
+    >>> ma = MA(iuh=lambda x: 1e6*numpy.exp(-1e6*x))
+    >>> ma.iuh.moment1 = 6.931e-7
+    >>> ma # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: During the determination of the MA coefficients \
+corresponding to the instantaneous unit hydrograph `...` a numerical \
+integration problem occurred.  Please check the calculated coefficients: 1.0.
+
+    >>> ma
+    MA(coefs=(1.0,))
     """
 
     smallest_coeff = 1e-9
@@ -222,21 +242,34 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                 coefs[idx] = (1.-weight)
                 coefs[idx+1] = weight
                 self.coefs = coefs
-                warnings.warn(
-                    'During the determination of the MA coefficients '
-                    'corresponding to the instantaneous unit hydrograph '
-                    '`%s` a numerical integration problem occurred.  '
-                    'Please check the calculated coefficients: %s.'
-                    % (repr(self.iuh), objecttools.repr_values(coefs)))
+                self._raise_integrationwarning(coefs)
                 break   # pragma: no cover
             sum_coefs += coef
+            if (sum_coefs < .5) and (t > 10.*moment1):
+                if moment1 < .01:
+                    self.coefs = numpy.ones(1, dtype=float)
+                    self._raise_integrationwarning(self.coefs)
+                    break   # pragma: no cover
+                raise RuntimeError(
+                    f'Cannot determine the MA coefficients '
+                    f'corresponding to the instantaneous unit '
+                    f'hydrograph `{repr(self.iuh)}`.'
+                )
             if (sum_coefs > .9) and (coef < self.smallest_coeff):
                 coefs = numpy.array(coefs)
                 coefs /= numpy.sum(coefs)
                 self.coefs = coefs
                 break
-            else:
-                coefs.append(coef)
+            coefs.append(coef)
+
+    def _raise_integrationwarning(self, coefs):
+        warnings.warn(
+            f'During the determination of the MA coefficients '
+            f'corresponding to the instantaneous unit hydrograph '
+            f'`{repr(self.iuh)}` a numerical integration problem '
+            f'occurred.  Please check the calculated coefficients: '
+            f'{objecttools.repr_values(coefs)}.'
+        )
 
     @property
     def turningpoint(self):
@@ -366,7 +399,7 @@ class ARMA:
                    -0.000004, 0.00001, -0.000008, -0.000009, -0.000004,
                    -0.000001))
 
-    The number of AR coeffcients is actually reduced.  However, the are
+    The number of AR coeffcients is actually reduced.  However, there are
     now even more MA coefficients, possibly trying to compensate the lower
     accuracy of the AR coefficients, and there is a slight decrease in
     the precision of the moments:
@@ -388,8 +421,8 @@ class ARMA:
          ma_coefs=(0.019321, 0.052687, 0.075124, 0.096486, 0.089452,
                    0.060853, 0.02904, 0.008929, 0.001397))
 
-    Now the total number of is in fact decreased, and the loss in accuracy
-    is still small:
+    Now the total number of coefficients is in fact decreased, and the loss
+    in accuracy is still small:
 
     >>> arma.order
     (3, 9)

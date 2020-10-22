@@ -5,26 +5,20 @@
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.models.arma import arma_derived
+from hydpy.models.arma import arma_fluxes
+from hydpy.models.arma import arma_logs
+from hydpy.models.arma import arma_inlets
+from hydpy.models.arma import arma_outlets
 
 
-def calc_qpin_v1(self):
+class Calc_QPIn_V1(modeltools.Method):
     """Calculate the input discharge portions of the different response
     functions.
 
-    Required derived parameters:
-      |Nmb|
-      |MaxQ|
-      |DiffQ|
-
-    Required flux sequence:
-      |QIn|
-
-    Calculated flux sequences:
-      |QPIn|
-
     Examples:
 
-        Initialize an arma model with three different response functions:
+        Initialise an |arma| model with three different response functions:
 
         >>> from hydpy.models.arma import *
         >>> parameterstep()
@@ -37,76 +31,86 @@ def calc_qpin_v1(self):
         functions and their successive differences:
 
         >>> derived.maxq(0.0, 2.0, 6.0)
-        >>> derived.diffq(2., 4.)
+        >>> derived.diffq(2.0, 4.0)
 
-        The first six examples are performed for inflow values ranging from
-        0 to 12 m³/s:
+        The first seven examples deal with inflow values ranging from
+        -1 to 12 m³/s (note that |arma| even routes negative discharges,
+        which are below the 0 m²/s threshold):
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model, model.calc_qpin_v1,
-        ...     last_example=6,
+        ...     last_example=7,
         ...     parseqs=(fluxes.qin, fluxes.qpin))
-        >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
+        >>> test.nexts.qin = -1.0, 0.0, 1.0, 2.0, 4.0, 6.0, 12.0
         >>> test()
-        | ex. |  qin |           qpin |
-        -------------------------------
-        |   1 |  0.0 | 0.0  0.0   0.0 |
-        |   2 |  1.0 | 1.0  0.0   0.0 |
-        |   3 |  2.0 | 2.0  0.0   0.0 |
-        |   4 |  4.0 | 2.0  2.0   0.0 |
-        |   5 |  6.0 | 2.0  4.0   0.0 |
-        |   6 | 12.0 | 2.0  4.0   6.0 |
+        | ex. |  qin |            qpin |
+        --------------------------------
+        |   1 | -1.0 | -1.0  0.0   0.0 |
+        |   2 |  0.0 |  0.0  0.0   0.0 |
+        |   3 |  1.0 |  1.0  0.0   0.0 |
+        |   4 |  2.0 |  2.0  0.0   0.0 |
+        |   5 |  4.0 |  2.0  2.0   0.0 |
+        |   6 |  6.0 |  2.0  4.0   0.0 |
+        |   7 | 12.0 |  2.0  4.0   6.0 |
 
-
-        The following two additional examples are just supposed to
-        demonstrate method |calc_qpin_v1| also functions properly if
-        there is only one response function, wherefore total discharge
-        does not need to be divided:
+        The following two additional examples are demonstrate that method
+        |Calc_QPIn_V1| also functions properly if there is only one response
+        function, wherefore there is no need to divide the total discharge:
 
         >>> derived.nmb = 1
         >>> derived.maxq.shape = 1
         >>> derived.diffq.shape = 0
         >>> fluxes.qpin.shape = 1
-        >>> derived.maxq(0.)
+        >>> derived.maxq(0.0)
 
         >>> test = UnitTest(
         ...     model, model.calc_qpin_v1,
-        ...     first_example=7, last_example=8,
+        ...     first_example=8, last_example=10,
         ...                 parseqs=(fluxes.qin,
         ...                          fluxes.qpin))
-        >>> test.nexts.qin = 0., 12.
+        >>> test.nexts.qin = -1.0, 0.0, 12.0
         >>> test()
         | ex. |  qin | qpin |
         ---------------------
-        |   7 |  0.0 |  0.0 |
-        |   8 | 12.0 | 12.0 |
-
+        |   8 | -1.0 | -1.0 |
+        |   9 |  0.0 |  0.0 |
+        |  10 | 12.0 | 12.0 |
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for idx in range(der.nmb-1):
-        if flu.qin < der.maxq[idx]:
-            flu.qpin[idx] = 0.
-        elif flu.qin < der.maxq[idx+1]:
-            flu.qpin[idx] = flu.qin-der.maxq[idx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+        arma_derived.MaxQ,
+        arma_derived.DiffQ,
+    )
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QIn,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QPIn,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for idx in range(der.nmb-1):
+            if flu.qin < der.maxq[idx]:
+                if idx == 0:
+                    flu.qpin[idx] = flu.qin
+                else:
+                    flu.qpin[idx] = 0.
+            elif flu.qin < der.maxq[idx+1]:
+                flu.qpin[idx] = flu.qin-der.maxq[idx]
+            else:
+                flu.qpin[idx] = der.diffq[idx]
+        if der.nmb == 1:
+            flu.qpin[0] = flu.qin
         else:
-            flu.qpin[idx] = der.diffq[idx]
-    flu.qpin[der.nmb-1] = max(flu.qin-der.maxq[der.nmb-1], 0.)
+            flu.qpin[der.nmb-1] = max(flu.qin-der.maxq[der.nmb-1], 0.)
 
 
-def calc_login_v1(self):
+class Update_LogIn_V1(modeltools.Method):
     """Refresh the input log sequence for the different MA processes.
-
-    Required derived parameters:
-      |Nmb|
-      |MA_Order|
-
-    Required flux sequence:
-      |QPIn|
-
-    Updated log sequence:
-      |LogIn|
 
     Example:
 
@@ -133,41 +137,43 @@ def calc_login_v1(self):
 
         >>> fluxes.qpin = 7.0, 8.0, 9.0
 
-        Through applying method |calc_login_v1| all values already
+        Through applying method |Update_LogIn_V1| all values already
         existing are shifted to the right ("into the past").  Values,
         which are no longer required due to the limited order or the
         different MA processes, are discarded.  The new values are
         inserted in the first column:
 
-        >>> model.calc_login_v1()
+        >>> model.update_login_v1()
         >>> logs.login
         login([[7.0, nan, nan],
                [8.0, 2.0, nan],
                [9.0, 4.0, 5.0]])
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(der.nmb):
-        for jdx in range(der.ma_order[idx]-2, -1, -1):
-            log.login[idx, jdx+1] = log.login[idx, jdx]
-    for idx in range(der.nmb):
-        log.login[idx, 0] = flu.qpin[idx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+        arma_derived.MA_Order,
+    )
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QPIn,
+    )
+    UPDATEDSEQUENCES = (
+        arma_logs.LogIn,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmb):
+            for jdx in range(der.ma_order[idx]-2, -1, -1):
+                log.login[idx, jdx+1] = log.login[idx, jdx]
+        for idx in range(der.nmb):
+            log.login[idx, 0] = flu.qpin[idx]
 
 
-def calc_qma_v1(self):
+class Calc_QMA_V1(modeltools.Method):
     """Calculate the discharge responses of the different MA processes.
-
-    Required derived parameters:
-      |Nmb|
-      |MA_Order|
-      |MA_Coefs|
-
-    Required log sequence:
-      |LogIn|
-
-    Calculated flux sequence:
-      |QMA|
 
     Examples:
 
@@ -199,7 +205,7 @@ def calc_qma_v1(self):
         ...               (2.0, 3.0, nan),
         ...               (4.0, 5.0, 6.0))
 
-        Applying method |calc_qma_v1| is equivalent to calculating the
+        Applying method |Calc_QMA_V1| is equivalent to calculating the
         inner product of the different rows of both matrices:
 
         >>> model.calc_qma_v1()
@@ -207,28 +213,31 @@ def calc_qma_v1(self):
         qma(1.0, 2.2, 4.7)
 
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(der.nmb):
-        flu.qma[idx] = 0.
-        for jdx in range(der.ma_order[idx]):
-            flu.qma[idx] += der.ma_coefs[idx, jdx] * log.login[idx, jdx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+        arma_derived.MA_Order,
+        arma_derived.MA_Coefs,
+    )
+    REQUIREDSEQUENCES = (
+        arma_logs.LogIn,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QMA,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmb):
+            flu.qma[idx] = 0.
+            for jdx in range(der.ma_order[idx]):
+                flu.qma[idx] += der.ma_coefs[idx, jdx] * log.login[idx, jdx]
 
 
-def calc_qar_v1(self):
+class Calc_QAR_V1(modeltools.Method):
     """Calculate the discharge responses of the different AR processes.
-
-    Required derived parameters:
-      |Nmb|
-      |AR_Order|
-      |AR_Coefs|
-
-    Required log sequence:
-      |LogOut|
-
-    Calculated flux sequence:
-      |QAR|
 
     Examples:
 
@@ -264,7 +273,7 @@ def calc_qar_v1(self):
         ...                (2.0, 3.0, nan),
         ...                (4.0, 5.0, 6.0))
 
-        Applying method |calc_qar_v1| is equivalent to calculating the
+        Applying method |Calc_QAR_V1| is equivalent to calculating the
         inner product of the different rows of both matrices:
 
         >>> model.calc_qar_v1()
@@ -272,27 +281,31 @@ def calc_qar_v1(self):
         qar(0.0, 1.0, 2.2, 4.7)
 
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(der.nmb):
-        flu.qar[idx] = 0.
-        for jdx in range(der.ar_order[idx]):
-            flu.qar[idx] += der.ar_coefs[idx, jdx] * log.logout[idx, jdx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+        arma_derived.AR_Order,
+        arma_derived.AR_Coefs,
+    )
+    REQUIREDSEQUENCES = (
+        arma_logs.LogOut,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QAR,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmb):
+            flu.qar[idx] = 0.
+            for jdx in range(der.ar_order[idx]):
+                flu.qar[idx] += der.ar_coefs[idx, jdx] * log.logout[idx, jdx]
 
 
-def calc_qpout_v1(self):
+class Calc_QPOut_V1(modeltools.Method):
     """Calculate the ARMA results for the different response functions.
-
-    Required derived parameter:
-      |Nmb|
-
-    Required flux sequences:
-      |QMA|
-      |QAR|
-
-    Calculated flux sequence:
-      |QPOut|
 
     Examples:
 
@@ -307,7 +320,7 @@ def calc_qpout_v1(self):
 
         Define the output values of the MA and of the AR processes
         associated with the three response functions and apply
-        method |calc_qpout_v1|:
+        method |Calc_QPOut_V1|:
 
         >>> fluxes.qar = 4.0, 5.0, 6.0
         >>> fluxes.qma = 1.0, 2.0, 3.0
@@ -315,24 +328,27 @@ def calc_qpout_v1(self):
         >>> fluxes.qpout
         qpout(5.0, 7.0, 9.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for idx in range(der.nmb):
-        flu.qpout[idx] = flu.qma[idx]+flu.qar[idx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+    )
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QMA,
+        arma_fluxes.QAR,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QPOut,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for idx in range(der.nmb):
+            flu.qpout[idx] = flu.qma[idx]+flu.qar[idx]
 
 
-def calc_logout_v1(self):
+class Update_LogOut_V1(modeltools.Method):
     """Refresh the log sequence for the different AR processes.
-
-    Required derived parameters:
-      |Nmb|
-      |AR_Order|
-
-    Required flux sequence:
-      |QPOut|
-
-    Updated log sequence:
-      |LogOut|
 
     Example:
 
@@ -362,13 +378,13 @@ def calc_logout_v1(self):
 
         >>> fluxes.qpout = 6.0, 7.0, 8.0, 9.0
 
-        Through applying method |calc_logout_v1| all values already
+        Through applying method |Update_LogOut_V1| all values already
         existing are shifted to the right ("into the past").  Values, which
         are no longer required due to the limited order or the different
         AR processes, are discarded.  The new values are inserted in the
         first column:
 
-        >>> model.calc_logout_v1()
+        >>> model.update_logout_v1()
         >>> logs.logout
         logout([[nan, nan, nan],
                 [7.0, nan, nan],
@@ -376,28 +392,32 @@ def calc_logout_v1(self):
                 [9.0, 3.0, 4.0]])
 
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(der.nmb):
-        for jdx in range(der.ar_order[idx]-2, -1, -1):
-            log.logout[idx, jdx+1] = log.logout[idx, jdx]
-    for idx in range(der.nmb):
-        if der.ar_order[idx] > 0:
-            log.logout[idx, 0] = flu.qpout[idx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+        arma_derived.AR_Order,
+    )
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QPOut,
+    )
+    UPDATEDSEQUENCES = (
+        arma_logs.LogOut,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmb):
+            for jdx in range(der.ar_order[idx]-2, -1, -1):
+                log.logout[idx, jdx+1] = log.logout[idx, jdx]
+        for idx in range(der.nmb):
+            if der.ar_order[idx] > 0:
+                log.logout[idx, 0] = flu.qpout[idx]
 
 
-def calc_qout_v1(self):
+class Calc_QOut_V1(modeltools.Method):
     """Sum up the results of the different response functions.
-
-    Required derived parameter:
-      |Nmb|
-
-    Required flux sequences:
-      |QPOut|
-
-    Calculated flux sequence:
-      |QOut|
 
     Examples:
 
@@ -409,48 +429,83 @@ def calc_qout_v1(self):
         >>> fluxes.qpout.shape = 3
 
         Define the output values of the three response functions and
-        apply method |calc_qout_v1|:
+        apply method |Calc_QOut_V1|:
 
         >>> fluxes.qpout = 1.0, 2.0, 3.0
         >>> model.calc_qout_v1()
         >>> fluxes.qout
         qout(6.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.qout = 0.
-    for idx in range(der.nmb):
-        flu.qout += flu.qpout[idx]
+    DERIVEDPARAMETERS = (
+        arma_derived.Nmb,
+    )
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QPOut,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QOut,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qout = 0.
+        for idx in range(der.nmb):
+            flu.qout += flu.qpout[idx]
 
 
-def pick_q_v1(self):
+class Pick_Q_V1(modeltools.Method):
     """Update inflow."""
-    flu = self.sequences.fluxes.fastaccess
-    inl = self.sequences.inlets.fastaccess
-    flu.qin = 0.
-    for idx in range(inl.len_q):
-        flu.qin += inl.q[idx][0]
+    REQUIREDSEQUENCES = (
+        arma_inlets.Q,
+    )
+    RESULTSEQUENCES = (
+        arma_fluxes.QIn,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.qin = 0.
+        for idx in range(inl.len_q):
+            flu.qin += inl.q[idx][0]
 
 
-def pass_q_v1(self):
+class Pass_Q_V1(modeltools.Method):
     """Update outflow."""
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.q[0] += flu.qout
+    REQUIREDSEQUENCES = (
+        arma_fluxes.QOut,
+    )
+    RESULTSEQUENCES = (
+        arma_outlets.Q,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.q[0] += flu.qout
 
 
 class Model(modeltools.AdHocModel):
     """Base model ARMA."""
-
-    INLET_METHODS = (pick_q_v1,)
+    INLET_METHODS = (
+        Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (calc_qpin_v1,
-                   calc_login_v1,
-                   calc_qma_v1,
-                   calc_qar_v1,
-                   calc_qpout_v1,
-                   calc_logout_v1,
-                   calc_qout_v1)
+    RUN_METHODS = (
+        Calc_QPIn_V1,
+        Update_LogIn_V1,
+        Calc_QMA_V1,
+        Calc_QAR_V1,
+        Calc_QPOut_V1,
+        Update_LogOut_V1,
+        Calc_QOut_V1)
     ADD_METHODS = ()
-    OUTLET_METHODS = (pass_q_v1,)
+    OUTLET_METHODS = (
+        Pass_Q_V1,
+    )
     SENDER_METHODS = ()
+    SUBMODELS = ()

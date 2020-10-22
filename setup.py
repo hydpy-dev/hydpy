@@ -2,9 +2,9 @@
 
 # import...
 # ...from standard library:
-from __future__ import division, print_function
 import os
 import shutil
+import subprocess
 import sys
 # ...from site-packages:
 import Cython.Build
@@ -20,6 +20,9 @@ bdist = bdist_wheel or bdist_wininst or bdist_msi or bdist_egg
 debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
+abspath = 'abspath' in sys.argv
+if abspath:
+    sys.argv.remove('abspath')
 
 if install:
     from distutils.core import setup
@@ -57,7 +60,7 @@ for name in os.listdir('hydpy'):
 packages.append('hydpy.conf')
 packages.append('hydpy.cythons.autogen')
 packages.append('hydpy.docs.figs')
-packages.append('hydpy.docs.html')
+packages.append('hydpy.docs.html_')
 packages.append('hydpy.docs.rst')
 packages.append('hydpy.docs.sphinx')
 packages.append('hydpy.exe')
@@ -112,18 +115,36 @@ else:
             path_in = prep('hydpy', 'cythons', filename)
             path_out = prep('hydpy', 'cythons', 'autogen', filename)
             source2target(path_in, path_out, False)
-            text = open(path_in).read()
-            text = text.replace(' int ', ' '+int_+' ')
-            text = text.replace(' int[', ' '+int_+'[')
             if debug_cython:
-                text = text.replace('nogil', '')
-                text = text.replace('boundscheck=False',
-                                    'boundscheck=True')
-                text = text.replace('wraparound=False',
-                                    'wraparound=True')
-                text = text.replace('initializedcheck=False',
-                                    'initializedcheck=True')
-            open(path_out, 'w').write(text)
+                cythonoptions = (
+                    '# -*- coding: utf-8 -*-\n'
+                    '# !python\n'
+                    '# cython: language_level=3\n'
+                    '# cython: boundscheck=True\n'
+                    '# cython: wraparound=True\n'
+                    '# cython: initializedcheck=True\n'
+                    '# cython: cdivision=False\n'
+                    '# cython: linetrace=True\n'
+                    '# distutils: define_macros=CYTHON_TRACE=1\n'
+                    '# distutils: define_macros=CYTHON_TRACE_NOGIL=1\n'
+                )
+            else:
+                cythonoptions = (
+                    '# -*- coding: utf-8 -*-\n'
+                    '# !python\n'
+                    '# cython: language_level=3\n'
+                    '# cython: boundscheck=False\n'
+                    '# cython: wraparound=False\n'
+                    '# cython: initializedcheck=False\n'
+                    '# cython: cdivision=True\n'
+                )
+            with open(path_in) as file_in:
+                text = file_in.read()
+                text = text.replace(' int ', ' '+int_+' ')
+                text = text.replace(' int[', ' '+int_+'[')
+            with open(path_out, 'w') as file_out:
+                file_out.write(cythonoptions)
+                file_out.write(text)
 
     print_('\nCopy extension module stub files:')
     for ext_name in ext_names:
@@ -152,7 +173,7 @@ with open("README.rst", "r") as readmefile:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='4.0a11',
+      version='4.0a14',
       description='A framework for the development and application of '
                   'hydrological models.',
       long_description=long_description,
@@ -170,6 +191,7 @@ setup(name='HydPy',
           'Operating System :: Microsoft :: Windows',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering'
       ],
@@ -183,6 +205,7 @@ setup(name='HydPy',
       include_package_data=True,
       python_requires='>=3.6',
       install_requires=[
+          'networkx',
           'numpy',
           'scipy',
           'typing_extensions',
@@ -202,6 +225,20 @@ if install:
         print_('\tpath')
         sys.path.insert(0, path)
 
+    # insert the path to the Python executable into the shebang line
+    # of script `hyd.py`, if given:
+    if abspath:
+        print_("\nModify the shebang line of 'hyd.py:")
+        scriptpath = sys.path[0]
+        while not os.path.exists(os.path.join(scriptpath, 'Scripts')):
+            scriptpath = os.path.split(scriptpath)[0]
+        scriptpath = os.path.join(scriptpath, 'Scripts', 'hyd.py')
+        with open(scriptpath) as scriptfile:
+            lines = scriptfile.readlines()
+        lines[0] = f'#!{sys.executable}\n'
+        with open(scriptpath, 'w') as scriptfile:
+            scriptfile.writelines(lines)
+
     # Move `sitecustomize.py` into the site-packages folder for
     # complete measuring code coverage of multiple processes.
     print_(f'\nCopy sitecustomize.py:\n')
@@ -220,7 +257,11 @@ if install:
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
-    exitcode = int(os.system(f'{sys.executable} test_everything.py'))
+    exitcode = subprocess.run(
+        f'{sys.executable} test_everything.py',
+        shell=True,
+        env=dict(os.environ),
+    ).returncode
     if exitcode:
         print_(f'Use this HydPy version with caution on your system.  At '
                f'least one verification test failed.  You should see in the '
@@ -244,14 +285,14 @@ if install:
             except BaseException:
                 print_('\t!!! failed !!!')
 
-    # Copy the generated bokeh plots into the original docs subpackage
+    # Copy the generated plotly plots into the original docs subpackage
     # (on Travis-CI: for including them into the online-documentation).
-    print_('\nCopy bokeh plots backwards:')
-    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html')
-    import hydpy.docs.html
-    for filename in os.listdir(hydpy.docs.html.__path__[0]):
+    print_('\nCopy plotly plots backwards:')
+    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html_')
+    import hydpy.docs.html_
+    for filename in os.listdir(hydpy.docs.html_.__path__[0]):
         if filename.endswith('.html'):
-            path_in = prep(hydpy.docs.html.__path__[0], filename)
+            path_in = prep(hydpy.docs.html_.__path__[0], filename)
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
@@ -269,7 +310,6 @@ if install:
     # Copy the (possibly new) configuration files into the original subpackage.
     print_('\nCopy configuration data backwards:')
     path_conf = os.path.join(oldpath, 'hydpy', 'conf')
-    import hydpy.docs.html
     for filename in os.listdir(hydpy.conf.__path__[0]):
         if not filename.startswith('_'):
             path_in = prep(hydpy.conf.__path__[0], filename)

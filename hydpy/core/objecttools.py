@@ -24,6 +24,9 @@ if TYPE_CHECKING:
 _builtinnames = set(dir(builtins))
 
 T = TypeVar('T')
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')
+T3 = TypeVar('T3')
 ReprArg = Union[numbers.Number,
                 Iterable[numbers.Number],
                 Iterable[Iterable[numbers.Number]]]
@@ -72,48 +75,16 @@ def dir_(self: Any) -> List[str]:
 def classname(self: Any) -> str:
     """Return the class name of the given instance object or class.
 
-    >>> from hydpy.core.objecttools import classname
+    >>> from hydpy import classname
     >>> from hydpy import pub
     >>> classname(float)
     'float'
     >>> classname(pub.options)
     'Options'
-
-    Method |classname| also handles classes returning "plain" string
-    representations (this seems to be relevant when using the
-    |typing| module under Python 3.6 only):
-
-    >>> class MetaClass(type):
-    ...     def __repr__(cls):
-    ...         return 'module.Class'
-    >>> class Class(metaclass=MetaClass):
-    ...     pass
-    >>> classname(Class)
-    'Class'
-    >>> classname(Class())
-    'Class'
     """
     if inspect.isclass(self):
-        string = str(self)
-    else:
-        string = str(type(self))
-    try:
-        string = string.split("'")[1]
-    except IndexError:
-        pass
-    return string.split('.')[-1]
-
-
-def instancename(self: Any) -> str:
-    """Return the class name of the given instance object or class in lower
-    case letters.
-
-    >>> from hydpy.core.objecttools import instancename
-    >>> from hydpy import pub
-    >>> print(instancename(pub.options))
-    options
-    """
-    return classname(self).lower()
+        return self.__name__
+    return type(self).__name__
 
 
 def value_of_type(value: Any) -> str:
@@ -128,37 +99,6 @@ def value_of_type(value: Any) -> str:
     'value `999` of type `int`'
     """
     return f'value `{value}` of type `{classname(value)}`'
-
-
-def get_name(self: Any) -> str:
-    """Return the name of the class of the given instance in lower case letters.
-
-    This function is thought to be implemented as a property.  Otherwise
-    it would violate the principle not to access or manipulate private
-    attributes ("_name"):
-
-    >>> from hydpy.core.objecttools import get_name
-    >>> class Test:
-    ...     name = property(get_name)
-    >>> test1 = Test()
-    >>> test1.name
-    'test'
-    >>> test1._name
-    'test'
-
-    The private attribute is added for performance reasons only.  Note that
-    it is a class attribute:
-
-    >>> test2 = Test()
-    >>> test2._name
-    'test'
-    """
-    cls = type(self)
-    try:
-        return cls.__dict__['_name']
-    except KeyError:
-        setattr(cls, '_name', instancename(self))
-        return cls.__dict__['_name']
 
 
 def modulename(self: Any) -> str:
@@ -211,14 +151,14 @@ def devicename(self: Any) -> str:
 
 
 def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
-    name_ = getattr(self, 'name', instancename(self))
+    name_ = getattr(self, 'name', type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
         return f'`{name_}` of {objname} `{device.name}`'
     if objname:
         return f'`{name_}` of {objname} `?`'
     if device:
-        return f'`{name_}` of {instancename(device)} `{device.name}`'
+        return f'`{name_}` of {type(device).__name__.lower()} `{device.name}`'
     return f'`{name_}`'
 
 
@@ -499,7 +439,7 @@ type(s) for +=: 'int' and 'str'
             info = kwargs.copy()
             info['self'] = instance
             argnames = inspect.getfullargspec(wrapped).args
-            if argnames[0] == 'self':
+            if argnames and (argnames[0] == 'self'):
                 argnames = argnames[1:]
             for argname, arg in zip(argnames, args):
                 info[argname] = arg
@@ -695,6 +635,8 @@ class _Repr:
                 string = string.rstrip('0')
                 if string.endswith('.'):
                     string += '0'
+                if string == '-0.0':
+                    return '0.0'
                 return string
         return repr(value)
 
@@ -857,7 +799,11 @@ def print_values(values: Iterable[Any], width: int = 70) -> None:
     10, 11, 12, 13, 14, 15, 16,
     17, 18, 19, 20
     """
-    for line in textwrap.wrap(repr_values(values), width=width):
+    for line in textwrap.wrap(
+            text=repr_values(values),
+            width=width,
+            break_long_words=False,
+    ):
         print(line)
 
 
@@ -945,11 +891,13 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
          6, 7, 8, 9, 10,
          11, 12)
     """
-    ellipsis_ = hydpy.pub.options.ellipsis
+    ellipsis_ = int(hydpy.pub.options.ellipsis)
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
-        string = (repr_values(values[:ellipsis_]) +
-                  ', ...,' +
-                  repr_values(values[-ellipsis_:]))
+        string = (
+            f'{repr_values(values[:ellipsis_])}'
+            f', ...,'
+            f'{repr_values(values[-ellipsis_:])}'
+        )
     else:
         string = repr_values(values)
     blanks = ' '*len(prefix)
@@ -958,7 +906,11 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
         _fakeend = 0
     else:
         width -= len(prefix)
-        wrapped = textwrap.wrap(string+'_'*_fakeend, width)
+        wrapped = textwrap.wrap(
+            text=string+'_'*_fakeend,
+            width=width,
+            break_long_words=False,
+        )
     if not wrapped:
         wrapped = ['']
     lines = []
@@ -1000,7 +952,11 @@ class _AssignReprBracketed:
             return assignrepr_value(values[0], prefix)
         if nmb_values:
             string = assignrepr_values(
-                values, prefix+self._brackets[0], width, 1) + self._brackets[1]
+                values=values,
+                prefix=prefix+self._brackets[0],
+                width=width,
+                _fakeend=1,
+            ) + self._brackets[1]
             if (len(values) == 1) and (self._brackets[1] == ')'):
                 return string[:-1] + ',)'
             return string
@@ -1331,9 +1287,9 @@ def flatten_repr(self):
     """Remove the newline characters from the string representation of the
     given object and return it.
 
-    Complex string representations like the following one are e. g.
-    convenient when working interactively, but cause line breaks when
-    included in e. g. exception messages:
+    Complex string representations like the following one are convenient
+    when working interactively, but cause line breaks when included in
+    strings like in exception messages:
 
     >>> from hydpy import Node
     >>> node = Node('name', keywords='test')
@@ -1359,8 +1315,40 @@ def flatten_repr(self):
     We print Node("name", variable="Q", keywords="test")!
 
     >>> Node.__str__ = __str__
+
+    The named tuple subclass |lstream_v001.Characteristics| of application
+    model |lstream_v001| uses function |flatten_repr| in the expected manner:
+
+    >>> from hydpy.models.lstream_v001 import Characteristics
+    >>> characteristics = Characteristics(
+    ...     waterstage=1.0,
+    ...     discharge=5.0,
+    ...     derivative=0.1,
+    ...     length_orig=3.0,
+    ...     nmb_subsections=4,
+    ...     length_adj=2.0,
+    ... )
+
+    >>> characteristics
+    Characteristics(
+        waterstage=1.0,
+        discharge=5.0,
+        derivative=0.1,
+        length_orig=3.0,
+        nmb_subsections=4,
+        length_adj=2.0,
+    )
+
+    >>> print(characteristics)
+    Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \
+length_orig=3.0, nmb_subsections=4, length_adj=2.0)
     """
-    return ' '.join(string.strip() for string in repr(self).split('\n'))
+    string = ' '.join(string.strip() for string in repr(self).split('\n'))
+    idx = string.find('(')
+    string = f'{string[:idx]}({string[idx+1:].strip()}'
+    if string.endswith(', )'):
+        string = f'{string[:-3]})'
+    return string
 
 
 def round_(values, decimals=None, width=0,
@@ -1417,8 +1405,38 @@ arguments `lfill` and `rfill`.  This is not allowed.
         print(string, **kwargs)
 
 
-def extract(values: Any, types_: Tuple[Type, ...], skip: bool = False) \
-        -> Iterator[Any]:
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1]],
+        skip: bool = ...,
+) -> Iterator[T1]:
+    """Extract all objects of one defined type."""
+
+
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1], Type[T2]],
+        skip: bool = ...,
+) -> Iterator[Union[T1, T2]]:
+    """Extract all objects of two defined types."""
+
+
+@overload
+def extract(
+        values: Any,
+        types_: Tuple[Type[T1], Type[T2], Type[T3]],
+        skip: bool = ...,
+) -> Iterator[Union[T1, T2, T3]]:
+    """Extract all objects of three defined types."""
+
+
+def extract(
+        values,
+        types_,
+        skip=False,
+):
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions
@@ -1472,10 +1490,12 @@ the following classes: str and int.
         except TypeError as exc:
             if exc.args[0].startswith('The given (sub)value'):
                 raise exc
+            enum = enumeration(
+                types_, converter=lambda x: x.__name__)
             raise TypeError(
                 f'The given (sub)value `{repr(values)}` is not an '
-                f'instance of the following classes: '
-                f'{enumeration(types_, converter=instancename)}.')
+                f'instance of the following classes: {enum}.'
+            ) from None
 
 
 def enumeration(values, converter=str, default=''):
@@ -1498,23 +1518,33 @@ def enumeration(values, converter=str, default=''):
     by the first two examples.  This behaviour can be changed by another
     function expecting a single argument and returning a string:
 
-    >>> from hydpy.core.objecttools import classname
+    >>> from hydpy import classname
     >>> enumeration(('text', 3, []), converter=classname)
     'str, int, and list'
 
-    Furthermore, you can define a default string that is returned
-    in case an empty iterable is given:
+    You can define a default string that is returned in case an empty
+    iterable is given:
 
     >>> enumeration((), default='nothing')
     'nothing'
+
+    Functin |enumeration| respects option |Options.ellipsis|:
+
+    >>> from hydpy import pub
+    >>> with pub.options.ellipsis(3):
+    ...     enumeration(range(10))
+    '0, 1, 2, ..., 7, 8, and 9'
     """
-    values = tuple(converter(value) for value in values)
+    values = list(converter(value) for value in values)
     if not values:
         return default
     if len(values) == 1:
         return values[0]
     if len(values) == 2:
         return ' and '.join(values)
+    ellipsis_ = int(hydpy.pub.options.ellipsis)
+    if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
+        values = values[:ellipsis_] + ['...'] + values[-ellipsis_:]
     return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 

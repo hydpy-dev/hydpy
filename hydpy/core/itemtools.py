@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements so-called exchange items, simplifying the
-modification of the values of |Parameter| and |Sequence| objects."""
+modification of the values of |Parameter| and |Sequence_| objects."""
 # import...
 # ...from standard library
 import abc
@@ -14,7 +14,7 @@ from hydpy.core import variabletools
 
 
 class ExchangeSpecification:
-    """Specification of a specific |Parameter| or |Sequence| type.
+    """Specification of a specific |Parameter| or |Sequence_| type.
 
     |ExchangeSpecification| is a helper class for |ExchangeItem| and its
     subclasses. Its constructor interprets two strings (without any checks
@@ -85,12 +85,12 @@ class ExchangeSpecification:
 
 
 class ExchangeItem:
-    """Base class for exchanging values with multiple |Parameter| or |Sequence|
-    objects of a certain type."""
+    """Base class for exchanging values with multiple |Parameter| or
+    |Sequence_| objects of a certain type."""
 
     master: str
     targetspecs: ExchangeSpecification
-    device2target: Dict
+    device2target: Dict[devicetools.Device, variabletools.Variable]
 
     def _iter_relevantelements(self, selections) -> \
             Iterator[devicetools.Element]:
@@ -236,13 +236,14 @@ handle a parameter of sequence subgroup named `wrong_group.
 
 
 class ChangeItem(ExchangeItem):
-    """Base class for changing the values of multiple |Parameter| or |Sequence|
-    objects of a specific type."""
+    """Base class for changing the values of multiple |Parameter| or
+    |Sequence_| objects of a specific type."""
 
     name: str
     ndim: int
     shape: Tuple[int, ...]
     _value: numpy.ndarray
+    device2target: Dict[devicetools.Device, variabletools.Variable]
 
     @property
     def value(self) -> numpy.ndarray:
@@ -275,7 +276,7 @@ into shape ()
         except BaseException:
             objecttools.augment_excmessage(
                 f'When trying to convert the value(s) `{value}` assigned '
-                f'to {objecttools.classname(self)} `{self.name}` to a '
+                f'to {type(self).__name__} `{self.name}` to a '
                 f'numpy array of shape `{self.shape}` and type `float`')
 
     @abc.abstractmethod
@@ -346,15 +347,15 @@ target variables.
                 else:
                     if shape != variable.shape:
                         raise RuntimeError(
-                            f'{objecttools.classname(self)} `{self.name}` '
-                            f'cannot handle target variables of different '
-                            f'shapes.')
+                            f'{type(self).__name__} `{self.name}` '
+                            f'cannot handle target variables of '
+                            f'different shapes.')
             if shape is None:
                 raise RuntimeError(
                     f'Cannot determine the shape of the actual '
-                    f'`{objecttools.classname(self)}` object, '
-                    f'as the given `Selections` object does not '
-                    f'handle any relevant target variables.')
+                    f'`{type(self).__name__}` object, as the given '
+                    f'`Selections` object does not handle any '
+                    f'relevant target variables.')
             self.shape = shape
 
     def update_variable(self, variable, value) -> None:
@@ -380,13 +381,13 @@ occurred: The given value `None` cannot be converted to type `float`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'When trying to update a target variable of '
-                f'{objecttools.classname(self)} `{self.name}` '
+                f'{type(self).__name__} `{self.name}` '
                 f'with the value(s) `{value}`')
 
 
 class SetItem(ChangeItem):
     """Item for assigning |ChangeItem.value| to multiple |Parameter| or
-    |Sequence| objects of a specific type."""
+    |Sequence_| objects of a specific type."""
 
     def __init__(self, name, master, target, ndim):
         self.name = str(name)
@@ -466,7 +467,7 @@ class SetItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}('{self.name}', "
+            f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
             f"{self.ndim})")
 
@@ -505,7 +506,8 @@ class MathItem(ChangeItem):
         self.ndim = int(ndim)
         self._value = None
         self.shape = None
-        self.device2target = {}
+        self.device2target: \
+            Dict[devicetools.Device, variabletools.Variable] = {}
         self.device2base = {}
 
     def collect_variables(self, selections) -> None:
@@ -538,7 +540,7 @@ class MathItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}('{self.name}', "
+            f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
             f"'{self.basespecs.specstring}', {self.ndim})")
 
@@ -586,22 +588,24 @@ together with shapes (2,) (3,)...
             try:
                 result = base.value + value
             except BaseException:
-                raise objecttools.augment_excmessage(
+                objecttools.augment_excmessage(
                     f'When trying to add the value(s) `{value}` of '
                     f'AddItem `{self.name}` and the value(s) `{base.value}` '
-                    f'of variable {objecttools.devicephrase(base)}')
+                    f'of variable {objecttools.devicephrase(base)}'
+                )
             self.update_variable(target, result)
 
 
 class GetItem(ExchangeItem):
-    """Base class for querying the values of multiple |Parameter| or |Sequence|
-    objects of a specific type."""
+    """Base class for querying the values of multiple |Parameter| or
+    |Sequence_| objects of a specific type."""
 
     def __init__(self, master: str, target: str):
         self.target = target.replace('.', '_')
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = 0
-        self.device2target = {}
+        self.device2target: \
+            Dict[devicetools.Device, variabletools.Variable] = {}
         self._device2name: Dict[devicetools.Device, str] = {}
 
     def collect_variables(self, selections) -> None:
@@ -696,5 +700,5 @@ class GetItem(ExchangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}("
+            f"{type(self).__name__}("
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")

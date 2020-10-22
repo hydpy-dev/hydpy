@@ -3,7 +3,10 @@
 # pylint: enable=missing-docstring
 
 # import...
+# ...from standard library
+import itertools
 # ...from HydPy
+from hydpy.auxs import anntools
 from hydpy.core import parametertools
 
 
@@ -15,6 +18,29 @@ class Laen(parametertools.Parameter):
 class Gef(parametertools.Parameter):
     """Sohlgefälle (channel slope) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+
+class GTS(parametertools.Parameter):
+    """Anzahl Gewässerteilstrecken (number of channel subsections) [-].
+
+    Calling the parameter |GTS| prepares the shape of all 1-dimensional
+    sequences for which each entry corresponds to an individual channel
+    subsection:
+
+    >>> from hydpy.models.lstream import *
+    >>> parameterstep()
+    >>> gts(3)
+    >>> states.h
+    h(nan, nan, nan)
+    """
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+
+    def __call__(self, *args, **kwargs):
+        super().__call__(*args, **kwargs)
+        seqs = self.subpars.pars.model.sequences
+        for seq in itertools.chain(seqs.fluxes, seqs.states, seqs.aides):
+            if seq.NDIM:
+                seq.shape = self.value
 
 
 class HM(parametertools.Parameter):
@@ -60,7 +86,7 @@ class SKM(parametertools.Parameter):
 
 
 class SKV(parametertools.LeftRightParameter):
-    """Rauigkeitsbeiwert Vorländer (roughness coefficient of the both
+    """Rauigkeitsbeiwert Vorländer (roughness coefficient of both
     forelands) [m^(1/3)/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
@@ -77,34 +103,17 @@ class EKV(parametertools.LeftRightParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class QTol(parametertools.Parameter):
-    """Approximationstoleranz Abfluss (discharge related stopping criterion
-    for root-finding algorithms) [m³/s]."""
+class HR(parametertools.Parameter):
+    """Allgemeiner Glättungsparameter für den Wasserstand (general smoothing
+    parameter for the water stage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 1e-6
 
 
-class HTol(parametertools.Parameter):
-    """Approximationstoleranz Wasserstand (water stage related stopping
-    criterion for root-finding algorithms) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 1e-6
+class VG2QG(anntools.ANN):
+    """Künstliches Neuronales Netz zur Abbildung der Abhängigkeit des
+    Abflusses einer Gewässerteilstrecke von deren aktuller Wasserspeicherung
+    (artificial neural network describing the relationship between
+    total discharge and water storage of individual channel subsections [-]."""
 
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters HydPy-L-Stream, directly defined by the user."""
-    CLASSES = (Laen,
-               Gef,
-               HM,
-               BM,
-               BV,
-               BBV,
-               BNM,
-               BNV,
-               BNVR,
-               SKM,
-               SKV,
-               EKM,
-               EKV,
-               QTol,
-               HTol)
+    XLABEL = 'vg [million m³]'
+    YLABEL = 'qg [m³/s]'

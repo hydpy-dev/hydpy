@@ -36,7 +36,10 @@ increased computations times are to be expected.  This is explained
 in some detail at the end of this section.
 
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following examples are performed over a period of 20 days:
 
@@ -52,7 +55,7 @@ Integration examples:
     and add some `natural` discharge of the subcatchment between the dam
     and the cross section (a picture would be helpful).
 
-    We define four nodes.  The `input` node is used to define the inflow into
+    We define four nodes.  The `input_` node is used to define the inflow into
     the dam and the `natural` node is used to define the additional discharge
     of the subcatchment.  The `output` node receives the (unmodified) outflow
     out of dam and the `remote` node receives both the routed outflow of the
@@ -109,7 +112,7 @@ Integration examples:
     is prepared:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -134,33 +137,54 @@ Integration examples:
 
     Finally, we can set the parameter values of the dam model.  For the sake
     of simplicity, the relationship between water level and volume is assumed
-    to be linear in the range relevant for the following examples (between
-    0 to 25 m or 0 to 1e8 m³).  This is approximately true if with the
-    following configuration of the |WaterVolume2WaterLevel| parameter:
+    to be linear, which we accomplish by selecting the identity function as
+    the |anntools.ANN.activation| function of the |WaterVolume2WaterLevel|
+    parameter:
 
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> # This plot confirms the linearity of the defined relationship:
     >>> watervolume2waterlevel.plot(0.0, 100.0)
 
     .. testsetup::
 
+        >>> import os
         >>> from matplotlib import pyplot
+        >>> from hydpy.docs import figs
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_watervolume2waterlevel.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_watervolume2waterlevel.png
+       :width: 400
 
     To focus on the drought related algorithms solely we turn of the flood
     related processes.  This is accomplished by setting the weights and
     intercepts of the |WaterLevel2FloodDischarge| to zero:
 
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_1.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_1.png
+       :width: 400
 
     To confirm that the whole scenario is properly aranged, we also turn of
     of the drought related methods at first:
@@ -227,12 +251,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex02:
 
@@ -277,12 +299,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex03:
 
@@ -324,12 +344,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex04:
 
@@ -373,12 +391,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex05:
 
@@ -419,12 +435,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex5.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex06:
 
@@ -466,12 +480,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex6.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> solver.abserrormax(1e-2)
 
@@ -515,12 +527,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex7.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex08_1:
 
@@ -563,7 +573,7 @@ Integration examples:
     | 13.01. |    0.1 |             1.285036 |               1.323559 |     0.076441 |     -0.023559 |              0.299482 |        0.299482 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.1 |      0.1 | 1.285036 |
     | 14.01. |    0.1 |                  1.3 |               1.185036 |     0.214964 |      0.114964 |              0.585979 |        0.585979 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.2 |      0.1 |      1.3 |
     | 15.01. |    0.1 |                  1.4 |                    1.2 |          0.2 |           0.1 |              0.557422 |        0.557422 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.3 |      0.1 |      1.4 |
-    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |          -0.0 |                  0.35 |            0.35 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.4 |      0.1 |      1.5 |
+    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |           0.0 |                  0.35 |            0.35 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.4 |      0.1 |      1.5 |
     | 17.01. |    0.1 |                  1.6 |                    1.4 |          0.0 |          -0.1 |              0.142578 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.5 |      0.1 |      1.6 |
     | 18.01. |    0.1 |                  1.7 |                    1.5 |          0.0 |          -0.2 |              0.068641 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.6 |      0.1 |      1.7 |
     | 19.01. |    0.1 |                  1.8 |                    1.6 |          0.0 |          -0.3 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |     1.7 |      0.1 |      1.8 |
@@ -571,12 +581,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex8_1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex08_2:
 
@@ -613,12 +621,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex8_2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex8_2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     >>> restricttargetedrelease(True)
 
@@ -667,14 +673,12 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex9.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex9.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
-    This behaviour of the dam model is due to method |calc_actualrelease_v1|
+    This behaviour of the dam model is due to method |Calc_ActualRelease_V1|
     being involved in the set of differential equation that are solved
     approximately by a numerical integration algorithm.  Theoretically,
     we could decrease the local truncation error to decrease this
@@ -693,7 +697,7 @@ Integration examples:
     When using the version of the dam model discussed here, it is instead
     advised to smooth this problematic discontinuity by increasing the
     value of parameter |NearDischargeMinimumTolerance| (which could not be
-    implemented properly if method |calc_actualrelease_v1| would
+    implemented properly if method |Calc_ActualRelease_V1| would
     apply a simple balance equation):
 
     >>> waterlevelminimumtolerance(0.01)
@@ -736,12 +740,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex10.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     So the fluctuation seems to be gone, but there is still some
     inaccuracy in the results.  Note that the last outflow value is smaller
@@ -812,12 +814,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex11.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex11.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     .. _dam_v001_ex12:
 
@@ -860,12 +860,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex12.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex12.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Such negative effects due to information delay cannot be circumvented
     easily, unless one would solve the differential equations of all models
@@ -890,33 +888,32 @@ Integration examples:
     >>> waterlevelminimumtolerance(0.0)
 
     To be able to compare the following numerical results of HydPy-Dam with
-    an analytical solution, we approximate a linear storage retetenion
-    process.  The relationship between water level and volume has already
-    been defined to be (approximately) linear in the range of 0 to 1e8 m³
-    or 0 to 25 m, respectively.  The relationship between flood discharge
-    and the water level is also approximately linear in this range, with a
-    discharge value of 62.5 m³/s for a water level 25 m:
+    an analytical solution, we define a linear storage retetenion process.
+    The relationship between water level and volume has already
+    been defined to be linear and we do the same for the relationship
+    between flood discharge and water level:
 
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_2.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_2.png
+       :width: 400
 
     Hence, for the given simulation step size, the linear storage
     coefficient is approximately 0.054 per day.
-
-    (Please be careful when defining such extremely large and small parameter
-    values for  |WaterVolume2WaterLevel| and |WaterLevel2FloodDischarge|.
-    Otherwise you might get into precision loss trouble, causing the
-    numerical calculations of the dam model to become very slow or the
-    results to be very inaccurate.  So either use `normal` parameter values
-    or check the precision of the results of `watervolume2waterlevel` and
-    |WaterLevel2FloodDischarge| manually before performing the actual
-    simulation runs.)
 
     Now a flood event needs to be defined:
 
@@ -971,12 +968,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex13.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     For a more precise evaluation, you can compare the outflow of the dam
     with the following results of the linear storage cascade with only
@@ -1039,12 +1034,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex14.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex14.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     However, this improvement in accuracy increases the computation time
     significantly.  Now 10.5 calls were required on average:
@@ -1063,13 +1056,23 @@ Integration examples:
 
     >>> solver.abserrormax(1e-2)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-4, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=250.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
 
+        >>> pyplot.savefig(
+        ...     os.path.join(
+        ...         figs.__path__[0],
+        ...         'dam_v001_waterlevel2flooddischarge_3.png',
+        ...     ),
+        ... )
         >>> pyplot.close()
+
+    .. image:: dam_v001_waterlevel2flooddischarge_3.png
+       :width: 400
 
     With this new parameterization of the dam model, the linear storage
     coefficient is approximately 5.4 per day.  This is why the following
@@ -1101,12 +1104,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v001_ex15.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v001_ex15.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     The following calculations show that the dam model reaches the required
     numerical for this extreme parameterizations:
@@ -1138,121 +1139,51 @@ Integration examples:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 # ...from dam
 from hydpy.models.dam import dam_model
-from hydpy.models.dam import dam_control
-from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
-from hydpy.models.dam import dam_fluxes
-from hydpy.models.dam import dam_states
-from hydpy.models.dam import dam_logs
-from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inlets
-from hydpy.models.dam import dam_outlets
-from hydpy.models.dam import dam_receivers
 
 
 class Model(modeltools.ELSModel):
     """Version 1 of HydPy-Dam."""
-
-    INLET_METHODS = (dam_model.pic_inflow_v1,
-                     dam_model.calc_naturalremotedischarge_v1,
-                     dam_model.calc_remotedemand_v1,
-                     dam_model.calc_remotefailure_v1,
-                     dam_model.calc_requiredremoterelease_v1,
-                     dam_model.calc_requiredrelease_v1,
-                     dam_model.calc_targetedrelease_v1)
-    RECEIVER_METHODS = (dam_model.pic_totalremotedischarge_v1,
-                        dam_model.update_loggedtotalremotedischarge_v1)
-    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                        dam_model.calc_waterlevel_v1,
-                        dam_model.calc_actualrelease_v1,
-                        dam_model.calc_flooddischarge_v1,
-                        dam_model.calc_outflow_v1)
-    FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
-    OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                      dam_model.update_loggedoutflow_v1)
+    SOLVERPARAMETERS = (
+        dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
+        dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
+    )
+    SOLVERSEQUENCES = ()
+    INLET_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_NaturalRemoteDischarge_V1,
+        dam_model.Calc_RemoteDemand_V1,
+        dam_model.Calc_RemoteFailure_V1,
+        dam_model.Calc_RequiredRemoteRelease_V1,
+        dam_model.Calc_RequiredRelease_V1,
+        dam_model.Calc_TargetedRelease_V1,
+    )
+    RECEIVER_METHODS = (
+        dam_model.Pic_TotalRemoteDischarge_V1,
+        dam_model.Update_LoggedTotalRemoteDischarge_V1,
+    )
+    ADD_METHODS = ()
+    PART_ODE_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_WaterLevel_V1,
+        dam_model.Calc_ActualRelease_V1,
+        dam_model.Calc_FloodDischarge_V1,
+        dam_model.Calc_Outflow_V1,
+    )
+    FULL_ODE_METHODS = (
+        dam_model.Update_WaterVolume_V1,
+    )
+    OUTLET_METHODS = (
+        dam_model.Pass_Outflow_V1,
+        dam_model.Update_LoggedOutflow_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_control.CatchmentArea,
-               dam_control.NmbLogEntries,
-               dam_control.RemoteDischargeMinimum,
-               dam_control.RemoteDischargeSafety,
-               dam_control.NearDischargeMinimumThreshold,
-               dam_control.NearDischargeMinimumTolerance,
-               dam_control.RestrictTargetedRelease,
-               dam_control.WaterLevelMinimumThreshold,
-               dam_control.WaterLevelMinimumTolerance,
-               dam_control.WaterVolume2WaterLevel,
-               dam_control.WaterLevel2FloodDischarge)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_derived.TOY,
-               dam_derived.Seconds,
-               dam_derived.RemoteDischargeSmoothPar,
-               dam_derived.NearDischargeMinimumSmoothPar1,
-               dam_derived.NearDischargeMinimumSmoothPar2,
-               dam_derived.WaterLevelMinimumSmoothPar)
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_solver.AbsErrorMax,
-               dam_solver.RelDTMin)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_fluxes.Inflow,
-               dam_fluxes.TotalRemoteDischarge,
-               dam_fluxes.NaturalRemoteDischarge,
-               dam_fluxes.RemoteDemand,
-               dam_fluxes.RemoteFailure,
-               dam_fluxes.RequiredRemoteRelease,
-               dam_fluxes.RequiredRelease,
-               dam_fluxes.TargetedRelease,
-               dam_fluxes.ActualRelease,
-               dam_fluxes.FloodDischarge,
-               dam_fluxes.Outflow)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_states.WaterVolume,)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_logs.LoggedTotalRemoteDischarge,
-               dam_logs.LoggedOutflow)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """State sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_aides.WaterLevel,)
-
-
-class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_inlets.Q,)
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_outlets.Q,)
-
-
-class ReceiverSequences(sequencetools.LinkSequences):
-    """Information link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_receivers.Q,)
+    SUBMODELS = ()
 
 
 tester = Tester()

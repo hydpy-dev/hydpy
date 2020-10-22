@@ -426,8 +426,9 @@ def query_variable(ncfile, name) -> 'netcdf4.Variable':
         return ncfile[name]
     except (IndexError, KeyError):
         raise OSError(
-            'NetCDF file `%s` does not contain variable `%s`.'
-            % (get_filepath(ncfile), name))
+            f'NetCDF file `{get_filepath(ncfile)}` does not contain '
+            f'variable `{name}`.'
+        ) from None
 
 
 def query_timegrid(ncfile) -> timetools.Timegrid:
@@ -458,9 +459,9 @@ def query_array(ncfile, name) -> numpy.ndarray:
     """Return the data of the variable with the given name from the given
     NetCDF file.
 
-    The following example shows that |query_array| returns |nan| entries
-    to represent missing values even when the respective NetCDF variable
-    defines a different fill value:
+    The following example shows that |query_array| returns |numpy.nan|
+    entries to represent missing values even when the respective NetCDF
+    variable defines a different fill value:
 
     >>> from hydpy import TestIO
     >>> from hydpy.core.netcdftools import netcdf4
@@ -530,7 +531,7 @@ class NetCDFInterface:
     and two |NetCDFFile| objects for handling the |FluxSequence| objects
     of application models |lland_v1| and |lland_v2|, respectively.
     Sequences of a specific type of model and nodes are always handled
-    in separate NetCDF files, to avoid name conflicts. |InputSequences|
+    in separate NetCDF files, to avoid name conflicts. |InputSequence|
     and |FluxSequence| objects can only be stored in the same NetCDF file
     when one wants to store them in the same folder, of course, which is
     not the case in the given example.  This should become clear when
@@ -1038,7 +1039,8 @@ named `state_bowa`.
             raise AttributeError(
                 f'The NetCDFFile object `{self.name}` does '
                 f'neither handle a NetCDF variable named `{name}` '
-                f'nor does it define a member named `{name}`.')
+                f'nor does it define a member named `{name}`.'
+            ) from None
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_
@@ -1066,11 +1068,10 @@ class Subdevice2Index:
             return self.dict_[name_subdevice]
         except KeyError:
             raise OSError(
-                'No data for sequence `%s` and (sub)device `%s` '
-                'in NetCDF file `%s` available.'
-                % (self.name_sequence,
-                   name_subdevice,
-                   self.name_ncfile))
+                f'No data for sequence `{self.name_sequence}` and '
+                f'(sub)device `{name_subdevice}` in NetCDF file '
+                f'`{self.name_ncfile}` available.'
+            ) from None
 
 
 class NetCDFVariableBase(abc.ABC):
@@ -1101,7 +1102,7 @@ handles time) or `1` (the second axis handles time), but for variable \
                 f'The argument `timeaxis` must be either `0` '
                 f'(the first axis handles time) or `1` (the '
                 f'second axis handles time), but for variable '
-                f'`{name}` of class {objecttools.classname(self)} ' 
+                f'`{name}` of class {type(self).__name__} ' 
                 f'the value `{timeaxis}` is given.')
         self._timeaxis: int = _timeaxis
         self.sequences: Dict[str, sequencetools.IOSequence] = \
@@ -1396,10 +1397,10 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             return _NetCDFVariableInfo(self.sequences[name], self.arrays[name])
         except KeyError:
             raise AttributeError(
-                'The NetCDFVariable object `%s` does neither handle '
-                'time series data under the (sub)device name `%s` '
-                'nor does it define a member named `%s`.'
-                % (self.name, name, name))
+                f'The NetCDFVariable object `{self.name}` does neither '
+                f'handle time series data under the (sub)device name '
+                f'`{name}` nor does it define a member named `{name}`.'
+            ) from None
 
     def __dir__(self):
         return objecttools.dir_(self) + list(self.sequences.keys())

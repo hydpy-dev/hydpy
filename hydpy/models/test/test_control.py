@@ -17,6 +17,12 @@ class K(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of the Test model, directly defined by the user."""
-    CLASSES = (K,)
+class N(parametertools.Parameter):
+    """Number of storages [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+
+    def __call__(self, *args, **kwargs):
+        super().__call__(*args, **kwargs)
+        seqs = self.subpars.pars.model.sequences
+        seqs.states.sv.shape = self
+        seqs.fluxes.qv.shape = self

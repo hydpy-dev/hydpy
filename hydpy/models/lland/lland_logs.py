@@ -31,6 +31,26 @@ class WET0(sequencetools.LogSequence):
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of the HydPy-L-Land model."""
-    CLASSES = (WET0,)
+class LoggedTemL(sequencetools.LogSequence):
+    """Logged air temperature [°C]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedRelativeHumidity(sequencetools.LogSequence):
+    """Logged relative humidity [%]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedSunshineDuration(sequencetools.LogSequence):
+    """Logged sunshine duration [h]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedGlobalRadiation(sequencetools.LogSequence):
+    """Logged global radiation [h]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedWindSpeed2m(sequencetools.LogSequence):
+    """Logged wind speed [m/s]."""
+    NDIM, NUMERIC = 1, False

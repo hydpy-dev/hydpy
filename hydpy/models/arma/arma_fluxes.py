@@ -35,13 +35,3 @@ class QPOut(sequencetools.FluxSequence):
 class QOut(sequencetools.FluxSequence):
     """Total outflow [m³/s]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the ARMA model."""
-    CLASSES = (QIn,
-               QPIn,
-               QMA,
-               QAR,
-               QPOut,
-               QOut)

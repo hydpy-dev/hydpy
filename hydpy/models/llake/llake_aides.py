@@ -20,10 +20,3 @@ class VQ(sequencetools.AideSequence):
 class V(sequencetools.AideSequence):
     """Wasservolumen (water volume) [m³]."""
     NDIM, NUMERIC = 0, False
-
-
-class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of HydPy-L-Lake."""
-    CLASSES = (QA,
-               VQ,
-               V)

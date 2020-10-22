@@ -24,7 +24,10 @@ to relieve the other location (possibly another dam) during floods.
 acceptable `relieve discharge` and passes that information to one single
 or to two separate remote locations.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following integration examples build upon some of the examples
     performed to demonstrate the functionality of model |dam_v001|.
@@ -108,8 +111,7 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.model = model
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 370
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -119,11 +121,12 @@ Integration examples:
     ...            (stream1.model.sequences.logs.login, 0.0)))
     >>> test.dateformat = '%d.%m.'
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> nmblogentries(1)
     >>> remotedischargeminimum(1.4)
@@ -198,12 +201,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex7.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
    :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
 
@@ -236,7 +237,7 @@ Integration examples:
     | 13.01. |    0.1 |             1.285036 |               1.323559 |     0.076441 |     -0.023559 |              0.299482 |                  5.0 |             0.996865 |        0.299482 |             0.1 |           0.1 |             0.199482 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.199482 |        0.996865 |              1.1 |        1.285036 |
     | 14.01. |    0.1 |                  1.3 |               1.185036 |     0.214964 |      0.114964 |              0.585979 |                  5.0 |             0.996865 |        0.585979 |             0.1 |           0.1 |             0.485979 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.485979 |        0.996865 |              1.2 |             1.3 |
     | 15.01. |    0.1 |                  1.4 |                    1.2 |          0.2 |           0.1 |              0.557422 |                  5.0 |             0.996865 |        0.557422 |             0.1 |           0.1 |             0.457422 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.457422 |        0.996865 |              1.3 |             1.4 |
-    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |          -0.0 |                  0.35 |                  5.0 |             0.996865 |            0.35 |             0.1 |           0.1 |                 0.25 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |           0.25 |        0.996865 |              1.4 |             1.5 |
+    | 16.01. |    0.1 |                  1.5 |                    1.3 |          0.1 |           0.0 |                  0.35 |                  5.0 |             0.996865 |            0.35 |             0.1 |           0.1 |                 0.25 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |           0.25 |        0.996865 |              1.4 |             1.5 |
     | 17.01. |    0.1 |                  1.6 |                    1.4 |          0.0 |          -0.1 |              0.142578 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |             0.042578 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |       0.042578 |        0.996865 |              1.5 |             1.6 |
     | 18.01. |    0.1 |                  1.7 |                    1.5 |          0.0 |          -0.2 |              0.068641 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |                  0.0 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |            0.0 |        0.996865 |              1.6 |             1.7 |
     | 19.01. |    0.1 |                  1.8 |                    1.6 |          0.0 |          -0.3 |              0.029844 |                  5.0 |             0.996865 |             0.2 |             0.1 |           0.1 |                  0.0 |            0.0 |      0.1 |     0.54921 |           0.1 |            0.0 |           0.0 |             5.0 |         0.1 |            0.0 |        0.996865 |              1.7 |             1.8 |
@@ -244,12 +245,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex8.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex8.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -287,12 +286,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex10.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex10.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 13 <dam_v001_ex13>`
 
@@ -309,8 +306,9 @@ Integration examples:
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
     >>> neardischargeminimumthreshold(0.0)
     >>> dam_inflow.sequences.sim.series = [
     ...     0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
@@ -344,159 +342,68 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v005_ex13.html"
-            width="100%"
-            height="400px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v005_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from standard library
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from HydPy
 from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 # ...from dam
 from hydpy.models.dam import dam_model
-from hydpy.models.dam import dam_control
-from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
-from hydpy.models.dam import dam_fluxes
-from hydpy.models.dam import dam_states
-from hydpy.models.dam import dam_logs
-from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inlets
-from hydpy.models.dam import dam_outlets
-from hydpy.models.dam import dam_receivers
-from hydpy.models.dam import dam_senders
 
 
 class Model(modeltools.ELSModel):
     """Version 5 of HydPy-Dam."""
-
-    INLET_METHODS = (dam_model.pic_inflow_v2,
-                     dam_model.calc_naturalremotedischarge_v1,
-                     dam_model.calc_remotedemand_v1,
-                     dam_model.calc_remotefailure_v1,
-                     dam_model.calc_requiredremoterelease_v1,
-                     dam_model.calc_requiredrelease_v1,
-                     dam_model.calc_targetedrelease_v1)
-    RECEIVER_METHODS = (dam_model.pic_totalremotedischarge_v1,
-                        dam_model.update_loggedtotalremotedischarge_v1)
-    PART_ODE_METHODS = (dam_model.pic_inflow_v2,
-                        dam_model.calc_waterlevel_v1,
-                        dam_model.calc_actualrelease_v1,
-                        dam_model.calc_flooddischarge_v1,
-                        dam_model.calc_outflow_v1)
-    FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
-    OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                      dam_model.update_loggedoutflow_v1)
-    SENDER_METHODS = (dam_model.calc_missingremoterelease_v1,
-                      dam_model.pass_missingremoterelease_v1,
-                      dam_model.calc_allowedremoterelieve_v2,
-                      dam_model.pass_allowedremoterelieve_v1,
-                      dam_model.calc_requiredremotesupply_v1,
-                      dam_model.pass_requiredremotesupply_v1)
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-Dam, Version 5."""
-    CLASSES = (dam_control.CatchmentArea,
-               dam_control.NmbLogEntries,
-               dam_control.RemoteDischargeMinimum,
-               dam_control.RemoteDischargeSafety,
-               dam_control.NearDischargeMinimumThreshold,
-               dam_control.NearDischargeMinimumTolerance,
-               dam_control.RestrictTargetedRelease,
-               dam_control.WaterLevelMinimumThreshold,
-               dam_control.WaterLevelMinimumTolerance,
-               dam_control.HighestRemoteRelieve,
-               dam_control.WaterLevelRelieveThreshold,
-               dam_control.WaterLevelRelieveTolerance,
-               dam_control.HighestRemoteSupply,
-               dam_control.WaterLevelSupplyThreshold,
-               dam_control.WaterLevelSupplyTolerance,
-               dam_control.WaterVolume2WaterLevel,
-               dam_control.WaterLevel2FloodDischarge)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-Dam, Version 5."""
-    CLASSES = (dam_derived.TOY,
-               dam_derived.Seconds,
-               dam_derived.RemoteDischargeSmoothPar,
-               dam_derived.NearDischargeMinimumSmoothPar1,
-               dam_derived.NearDischargeMinimumSmoothPar2,
-               dam_derived.WaterLevelMinimumSmoothPar,
-               dam_derived.WaterLevelRelieveSmoothPar,
-               dam_derived.WaterLevelSupplySmoothPar)
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of HydPy-Dam, Version 5."""
-    CLASSES = (dam_solver.AbsErrorMax,
-               dam_solver.RelDTMin)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_fluxes.Inflow,
-               dam_fluxes.TotalRemoteDischarge,
-               dam_fluxes.NaturalRemoteDischarge,
-               dam_fluxes.RemoteDemand,
-               dam_fluxes.RemoteFailure,
-               dam_fluxes.RequiredRemoteRelease,
-               dam_fluxes.AllowedRemoteRelieve,
-               dam_fluxes.RequiredRemoteSupply,
-               dam_fluxes.RequiredRelease,
-               dam_fluxes.TargetedRelease,
-               dam_fluxes.ActualRelease,
-               dam_fluxes.MissingRemoteRelease,
-               dam_fluxes.FloodDischarge,
-               dam_fluxes.Outflow)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_states.WaterVolume,)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_logs.LoggedTotalRemoteDischarge,
-               dam_logs.LoggedOutflow)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """State sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_aides.WaterLevel,)
-
-
-class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_inlets.Q,
-               dam_inlets.S,
-               dam_inlets.R)
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_outlets.Q,)
-
-
-class ReceiverSequences(sequencetools.LinkSequences):
-    """Information link sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_receivers.Q,)
-
-
-class SenderSequences(sequencetools.LinkSequences):
-    """Information link sequences of HydPy-Dam, Version 5."""
-    CLASSES = (dam_senders.D,
-               dam_senders.S,
-               dam_senders.R)
+    SOLVERPARAMETERS = (
+        dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
+        dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
+    )
+    SOLVERSEQUENCES = ()
+    INLET_METHODS = (
+        dam_model.Pic_Inflow_V2,
+        dam_model.Calc_NaturalRemoteDischarge_V1,
+        dam_model.Calc_RemoteDemand_V1,
+        dam_model.Calc_RemoteFailure_V1,
+        dam_model.Calc_RequiredRemoteRelease_V1,
+        dam_model.Calc_RequiredRelease_V1,
+        dam_model.Calc_TargetedRelease_V1,
+    )
+    RECEIVER_METHODS = (
+        dam_model.Pic_TotalRemoteDischarge_V1,
+        dam_model.Update_LoggedTotalRemoteDischarge_V1,
+    )
+    ADD_METHODS = ()
+    PART_ODE_METHODS = (
+        dam_model.Pic_Inflow_V2,
+        dam_model.Calc_WaterLevel_V1,
+        dam_model.Calc_ActualRelease_V1,
+        dam_model.Calc_FloodDischarge_V1,
+        dam_model.Calc_Outflow_V1,
+    )
+    FULL_ODE_METHODS = (
+        dam_model.Update_WaterVolume_V1,
+    )
+    OUTLET_METHODS = (
+        dam_model.Pass_Outflow_V1,
+        dam_model.Update_LoggedOutflow_V1,
+    )
+    SENDER_METHODS = (
+        dam_model.Calc_MissingRemoteRelease_V1,
+        dam_model.Pass_MissingRemoteRelease_V1,
+        dam_model.Calc_AllowedRemoteRelieve_V2,
+        dam_model.Pass_AllowedRemoteRelieve_V1,
+        dam_model.Calc_RequiredRemoteSupply_V1,
+        dam_model.Pass_RequiredRemoteSupply_V1,
+    )
+    SUBMODELS = ()
 
 
 tester = Tester()

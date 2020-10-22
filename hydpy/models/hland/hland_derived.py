@@ -6,15 +6,23 @@
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy.core import parametertools
 # ...from hland
 from hydpy.models.hland import hland_parameters
+from hydpy.models.hland import hland_control
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER
 
 
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    CONTROLPARAMETERS = (
+        hland_control.ZoneArea,
+        hland_control.ZoneType,
+        hland_control.Area,
+    )
 
     def update(self):
         """Update |RelSoilArea| based on |Area|, |ZoneArea|, and |ZoneType|.
@@ -39,6 +47,12 @@ class RelSoilArea(parametertools.Parameter):
 class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    CONTROLPARAMETERS = (
+        hland_control.ZoneArea,
+        hland_control.ZoneType,
+        hland_control.Area,
+    )
 
     def update(self):
         """Update |RelLandArea| based on |Area|, |ZoneArea|, and |ZoneType|.
@@ -114,6 +128,11 @@ class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
+    CONTROLPARAMETERS = (
+        hland_control.TT,
+        hland_control.DTTM,
+    )
+
     def update(self):
         """Update |TTM| based on :math:`TTM = TT+DTTM`.
 
@@ -134,6 +153,10 @@ class TTM(hland_parameters.ParameterLand):
 class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    CONTROLPARAMETERS = (
+        hland_control.RecStep,
+    )
 
     def update(self):
         """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
@@ -164,6 +187,10 @@ class UH(parametertools.Parameter):
     """Unit hydrograph ordinates based on a isosceles triangle [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
     strict_valuehandling = False
+
+    CONTROLPARAMETERS = (
+        hland_control.MaxBaz,
+    )
 
     def update(self):
         """Update |UH| based on |MaxBaz|.
@@ -281,6 +308,10 @@ class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        hland_control.Area,
+    )
+
     def update(self):
         """Update |QFactor| based on |Area| and the current simulation
         step size.
@@ -293,18 +324,7 @@ class QFactor(parametertools.Parameter):
         >>> derived.qfactor
         qfactor(1.157407)
         """
-        self(self.subpars.pars.control.area*1000. /
-             self.subpars.qfactor.simulationstep.seconds)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-    CLASSES = (RelZoneArea,
-               RelSoilArea,
-               RelSoilZoneArea,
-               RelLandZoneArea,
-               RelLandArea,
-               TTM,
-               DT,
-               UH,
-               QFactor)
+        self(
+            self.subpars.pars.control.area*1000. /
+            hydpy.pub.options.simulationstep.seconds
+        )

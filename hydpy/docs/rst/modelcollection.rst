@@ -21,7 +21,7 @@ consists of one base model (e.g. |lland|) and a number of application
 models (e.g. |lland_v1|).  The base models offer basic features like
 model parameter classes (e.g. |lland_control.KG|), sequence classes
 (e.g. |lland_fluxes.NKor|) and process equation methods (e.g.
-|lland_model.calc_nkor_v1|), but cannot perform an actual simulation run.
+|lland_model.Calc_NKor_V1|), but cannot perform an actual simulation run.
 This is the task of the application models, which select different
 parameters, sequences, and process equations in a meaningful combination
 and order.
@@ -34,11 +34,11 @@ or hourly time step.
 
 Often base models offer different versions of a method to calculate the
 value of the same variable.  For example, base model |dam| offers two
-methods for picking its |dam_fluxes.Inflow|: |dam_model.pic_inflow_v1|
-and |dam_model.pic_inflow_v2|.  Each application model has to select a
+methods for picking its |dam_fluxes.Inflow|: |dam_model.Pic_Inflow_V1|
+and |dam_model.Pic_Inflow_V2|.  Each application model has to select a
 specific version of the method.  Exemples here are application model
-|dam_v001| selecting |dam_model.pic_inflow_v1| and application model
-|dam_v005| selecting |dam_model.pic_inflow_v2|.  The following example
+|dam_v001| selecting |dam_model.Pic_Inflow_V1| and application model
+|dam_v005| selecting |dam_model.Pic_Inflow_V2|.  The following example
 shows this for application model |dam_v005|:
 
 >>> from hydpy.models.dam_v005 import *
@@ -77,7 +77,10 @@ and will have to be discussed later.
    :hidden:
 
    HydPy-A
+   HydPy-C
+   HydPy-E
    HydPy-D
+   HydPy-Dummy
    HydPy-H
    HydPy-L
    HydPy-T

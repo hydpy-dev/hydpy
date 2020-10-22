@@ -15,9 +15,3 @@ class QZ(sequencetools.FluxSequence):
 class QA(sequencetools.FluxSequence):
     """Seeausfluss (outflow from the lake) [m³/s]."""
     NDIM, NUMERIC = 0, False
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-L-Lake."""
-    CLASSES = (QZ,
-               QA)

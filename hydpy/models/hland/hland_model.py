@@ -3,28 +3,25 @@
 # pylint: enable=missing-docstring
 
 # imports...
+# ...from standard library
+from typing import *
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...from hland
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
+from hydpy.models.hland import hland_control
+from hydpy.models.hland import hland_derived
+from hydpy.models.hland import hland_inputs
+from hydpy.models.hland import hland_fluxes
+from hydpy.models.hland import hland_states
+from hydpy.models.hland import hland_logs
+from hydpy.models.hland import hland_outlets
 
 
-def calc_tc_v1(self):
+class Calc_TC_V1(modeltools.Method):
     """Adjust the measured air temperature to the altitude of the
     individual zones.
-
-    Required control parameters:
-      |NmbZones|
-      |TCAlt|
-      |ZoneZ|
-      |ZRelT|
-
-    Required input sequence:
-      |hland_inputs.T|
-
-    Calculated flux sequences:
-      |TC|
 
     Basic equation:
       :math:`TC = T - TCAlt \\cdot (ZoneZ-ZRelT)`
@@ -50,24 +47,30 @@ def calc_tc_v1(self):
         >>> fluxes.tc
         tc(5.0, 3.8)
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.TCAlt,
+        hland_control.ZoneZ,
+        hland_control.ZRelT,
+    )
+    REQUIREDSEQUENCES = (
+        hland_inputs.T,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.TC,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
 
 
-def calc_tmean_v1(self):
+class Calc_TMean_V1(modeltools.Method):
     """Calculate the areal mean temperature of the subbasin.
-
-    Required derived parameter:
-      |RelZoneArea|
-
-    Required flux sequence:
-      |TC|
-
-    Calculated flux sequences:
-      |TMean|
 
     Examples:
 
@@ -87,28 +90,32 @@ def calc_tmean_v1(self):
         >>> fluxes.tmean
         tmean(6.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.tmean = 0.
-    for k in range(con.nmbzones):
-        flu.tmean += der.relzonearea[k]*flu.tc[k]
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TC,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.TMean,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.tmean = 0.
+        for k in range(con.nmbzones):
+            flu.tmean += der.relzonearea[k]*flu.tc[k]
 
 
-def calc_fracrain_v1(self):
+class Calc_FracRain_V1(modeltools.Method):
     """Determine the temperature-dependent fraction of (liquid) rainfall
     and (total) precipitation.
-
-    Required control parameters:
-      |NmbZones|
-      |TT|,
-      |TTInt|
-
-    Required flux sequence:
-      |TC|
-
-    Calculated flux sequences:
-      |FracRain|
 
     Basic equation:
       :math:`FracRain = \\frac{TC-(TT-\\frac{TTInt}{2})}{TTInt}`
@@ -144,30 +151,35 @@ def calc_fracrain_v1(self):
         >>> fluxes.fracrain
         fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        if flu.tc[k] >= (con.tt[k]+con.ttint[k]/2.):
-            flu.fracrain[k] = 1.
-        elif flu.tc[k] <= (con.tt[k]-con.ttint[k]/2.):
-            flu.fracrain[k] = 0.
-        else:
-            flu.fracrain[k] = ((flu.tc[k]-(con.tt[k]-con.ttint[k]/2.)) /
-                               con.ttint[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.TT,
+        hland_control.TTInt,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TC,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.FracRain,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if flu.tc[k] >= (con.tt[k]+con.ttint[k]/2.):
+                flu.fracrain[k] = 1.
+            elif flu.tc[k] <= (con.tt[k]-con.ttint[k]/2.):
+                flu.fracrain[k] = 0.
+            else:
+                flu.fracrain[k] = ((flu.tc[k]-(con.tt[k]-con.ttint[k]/2.)) /
+                                   con.ttint[k])
 
 
-def calc_rfc_sfc_v1(self):
+class Calc_RFC_SFC_V1(modeltools.Method):
     """Calculate the corrected fractions rainfall/snowfall and total
     precipitation.
-
-    Required control parameters:
-      |NmbZones|
-      |RfCF|
-      |SfCF|
-
-    Calculated flux sequences:
-      |RfC|
-      |SfC|
 
     Basic equations:
       :math:`RfC = RfCF \\cdot FracRain` \n
@@ -207,33 +219,31 @@ def calc_rfc_sfc_v1(self):
         >>> fluxes.sfc
         sfc(1.2, 0.9, 0.6, 0.3, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        flu.rfc[k] = flu.fracrain[k]*con.rfcf[k]
-        flu.sfc[k] = (1.-flu.fracrain[k])*con.sfcf[k]
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.RfCF,
+        hland_control.SfCF,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.FracRain,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.RfC,
+        hland_fluxes.SfC,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            flu.rfc[k] = flu.fracrain[k]*con.rfcf[k]
+            flu.sfc[k] = (1.-flu.fracrain[k])*con.sfcf[k]
 
 
-def calc_pc_v1(self):
+class Calc_PC_V1(modeltools.Method):
     """Apply the precipitation correction factors and adjust precipitation
     to the altitude of the individual zones.
-
-    Required control parameters:
-      |NmbZones|
-      |PCorr|
-      |PCAlt|
-      |ZoneZ|
-      |ZRelP|
-
-    Required input sequence:
-      |P|
-
-    Required flux sequences:
-      |RfC|
-      |SfC|
-
-    Calculated flux sequences:
-      |PC|
 
     Basic equation:
       :math:`PC = P \\cdot PCorr
@@ -279,33 +289,37 @@ def calc_pc_v1(self):
         pc(0.0, 0.0, 0.0, 0.0, 0.0)
 
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        flu.pc[k] = inp.p*(1.+con.pcalt[k]*(con.zonez[k]-con.zrelp))
-        if flu.pc[k] <= 0.:
-            flu.pc[k] = 0.
-        else:
-            flu.pc[k] *= con.pcorr[k]*(flu.rfc[k]+flu.sfc[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.PCAlt,
+        hland_control.ZoneZ,
+        hland_control.ZRelP,
+        hland_control.PCorr,
+    )
+    REQUIREDSEQUENCES = (
+        hland_inputs.P,
+        hland_fluxes.RfC,
+        hland_fluxes.SfC,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.PC,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            flu.pc[k] = inp.p*(1.+con.pcalt[k]*(con.zonez[k]-con.zrelp))
+            if flu.pc[k] <= 0.:
+                flu.pc[k] = 0.
+            else:
+                flu.pc[k] *= con.pcorr[k]*(flu.rfc[k]+flu.sfc[k])
 
 
-def calc_ep_v1(self):
+class Calc_EP_V1(modeltools.Method):
     """Adjust potential norm evaporation to the actual temperature.
-
-    Required control parameters:
-      |NmbZones|
-      |ETF|
-
-    Required input sequence:
-      |EPN|
-      |TN|
-
-    Required flux sequence:
-      |TMean|
-
-    Calculated flux sequences:
-      |EP|
 
     Basic equation:
       :math:`EP = EPN \\cdot (1 + ETF \\cdot (TMean - TN))`
@@ -347,15 +361,30 @@ def calc_ep_v1(self):
         >>> fluxes.ep
         ep(0.0, 2.0, 3.0, 4.0)
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        flu.ep[k] = inp.epn*(1.+con.etf[k]*(flu.tmean-inp.tn))
-        flu.ep[k] = min(max(flu.ep[k], 0.), 2.*inp.epn)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ETF,
+    )
+    REQUIREDSEQUENCES = (
+        hland_inputs.EPN,
+        hland_inputs.TN,
+        hland_fluxes.TMean,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.EP,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            flu.ep[k] = inp.epn*(1.+con.etf[k]*(flu.tmean-inp.tn))
+            flu.ep[k] = min(max(flu.ep[k], 0.), 2.*inp.epn)
 
 
-def calc_epc_v1(self):
+class Calc_EPC_V1(modeltools.Method):
     """Apply the evaporation correction factors and adjust evaporation
     to the altitude of the individual zones.
 
@@ -363,21 +392,6 @@ def calc_epc_v1(self):
     for the subbasin, adjust it to the individual zones in accordance
     with their heights and perform some corrections, among which one
     depends on the actual precipitation.
-
-    Required control parameters:
-      |NmbZones|
-      |ECorr|
-      |ECAlt|
-      |ZoneZ|
-      |ZRelE|
-      |EPF|
-
-    Required flux sequences:
-      |EP|
-      |PC|
-
-    Calculated flux sequences:
-      |EPC|
 
     Basic equation:
       :math:`EPC = EP \\cdot ECorr
@@ -423,34 +437,38 @@ def calc_epc_v1(self):
         epc(0.0, 0.0, 0.0, 0.0)
 
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nmbzones):
-        flu.epc[k] = (flu.ep[k]*con.ecorr[k] *
-                      (1. - con.ecalt[k]*(con.zonez[k]-con.zrele)))
-        if flu.epc[k] <= 0.:
-            flu.epc[k] = 0.
-        else:
-            flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ECorr,
+        hland_control.ECAlt,
+        hland_control.ZoneZ,
+        hland_control.ZRelE,
+        hland_control.EPF,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.EP,
+        hland_fluxes.PC,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.EPC,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            flu.epc[k] = (flu.ep[k]*con.ecorr[k] *
+                          (1. - con.ecalt[k]*(con.zonez[k]-con.zrele)))
+            if flu.epc[k] <= 0.:
+                flu.epc[k] = 0.
+            else:
+                flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
 
 
-def calc_tf_ic_v1(self):
+class Calc_TF_Ic_V1(modeltools.Method):
     """Calculate throughfall and update the interception storage
     accordingly.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |IcMax|
-
-    Required flux sequences:
-      |PC|
-
-    Calculated fluxes sequences:
-      |TF|
-
-    Updated state sequence:
-      |Ic|
 
     Basic equation:
       :math:`TF = \\Bigl \\lbrace
@@ -511,34 +529,38 @@ def calc_tf_ic_v1(self):
         >>> fluxes.tf
         tf(5.0, 5.0, 3.0, 3.0, 4.0, 5.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] in (FIELD, FOREST):
-            flu.tf[k] = max(flu.pc[k]-(con.icmax[k]-sta.ic[k]), 0.)
-            sta.ic[k] += flu.pc[k]-flu.tf[k]
-        else:
-            flu.tf[k] = flu.pc[k]
-            sta.ic[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.IcMax,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.PC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.Ic,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.TF,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                flu.tf[k] = max(flu.pc[k]-(con.icmax[k]-sta.ic[k]), 0.)
+                sta.ic[k] += flu.pc[k]-flu.tf[k]
+            else:
+                flu.tf[k] = flu.pc[k]
+                sta.ic[k] = 0.
 
 
-def calc_ei_ic_v1(self):
+class Calc_EI_Ic_V1(modeltools.Method):
     """Calculate interception evaporation and update the interception
     storage accordingly.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-
-    Required flux sequences:
-      |EPC|
-
-    Calculated fluxes sequences:
-      |EI|
-
-    Updated state sequence:
-      |Ic|
 
     Basic equation:
       :math:`EI = \\Bigl \\lbrace
@@ -596,33 +618,36 @@ def calc_ei_ic_v1(self):
         >>> fluxes.ei
         ei(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] in (FIELD, FOREST):
-            flu.ei[k] = min(flu.epc[k], sta.ic[k])
-            sta.ic[k] -= flu.ei[k]
-        else:
-            flu.ei[k] = 0.
-            sta.ic[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.EPC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.Ic,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.EI,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                flu.ei[k] = min(flu.epc[k], sta.ic[k])
+                sta.ic[k] -= flu.ei[k]
+            else:
+                flu.ei[k] = 0.
+                sta.ic[k] = 0.
 
 
-def calc_sp_wc_v1(self):
+class Calc_SP_WC_V1(modeltools.Method):
     """Add throughfall to the snow layer.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-
-    Required flux sequences:
-      |TF|
-      |RfC|
-      |SfC|
-
-    Updated state sequences:
-      |WC|
-      |SP|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} = TF \\cdot \\frac{SfC}{SfC+RfC}` \n
@@ -671,42 +696,38 @@ def calc_sp_wc_v1(self):
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] != ILAKE:
-            if (flu.rfc[k]+flu.sfc[k]) > 0.:
-                sta.wc[k] += flu.tf[k]*flu.rfc[k]/(flu.rfc[k]+flu.sfc[k])
-                sta.sp[k] += flu.tf[k]*flu.sfc[k]/(flu.rfc[k]+flu.sfc[k])
-        else:
-            sta.wc[k] = 0.
-            sta.sp[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TF,
+        hland_fluxes.RfC,
+        hland_fluxes.SfC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.WC,
+        hland_states.SP,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                if (flu.rfc[k]+flu.sfc[k]) > 0.:
+                    sta.wc[k] += flu.tf[k]*flu.rfc[k]/(flu.rfc[k]+flu.sfc[k])
+                    sta.sp[k] += flu.tf[k]*flu.sfc[k]/(flu.rfc[k]+flu.sfc[k])
+            else:
+                sta.wc[k] = 0.
+                sta.sp[k] = 0.
 
 
-def calc_melt_sp_wc_v1(self):
+class Calc_Melt_SP_WC_V1(modeltools.Method):
     """Calculate melting of the ice content within the snow layer and
     update both the snow layers ice and the water content.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |CFMax|
-
-    Required derived parameter:
-      |TTM|
-
-    Required flux sequences:
-      |TC|
-
-    Calculated fluxes sequences:
-      |Melt|
-
-    Required state sequence:
-      |SP|
-
-    Updatet state sequence:
-        |WC|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} = - Melt` \n
@@ -782,49 +803,49 @@ def calc_melt_sp_wc_v1(self):
         >>> states.wc
         wc(0.0, 8.0, 8.0, 8.0, 7.0, 2.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] != ILAKE:
-            if flu.tc[k] > der.ttm[k]:
-                flu.melt[k] = min(con.cfmax[k] *
-                                  (flu.tc[k]-der.ttm[k]), sta.sp[k])
-                sta.sp[k] -= flu.melt[k]
-                sta.wc[k] += flu.melt[k]
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.CFMax,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.TTM,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.WC,
+        hland_states.SP,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.Melt,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                if flu.tc[k] > der.ttm[k]:
+                    flu.melt[k] = min(con.cfmax[k] *
+                                      (flu.tc[k]-der.ttm[k]), sta.sp[k])
+                    sta.sp[k] -= flu.melt[k]
+                    sta.wc[k] += flu.melt[k]
+                else:
+                    flu.melt[k] = 0.
             else:
                 flu.melt[k] = 0.
-        else:
-            flu.melt[k] = 0.
-            sta.wc[k] = 0.
-            sta.sp[k] = 0.
+                sta.wc[k] = 0.
+                sta.sp[k] = 0.
 
 
-def calc_refr_sp_wc_v1(self):
+class Calc_Refr_SP_WC_V1(modeltools.Method):
     """Calculate refreezing of the water content within the snow layer and
     update both the snow layers ice and the water content.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |CFMax|
-      |CFR|
-
-    Required derived parameter:
-      |TTM|
-
-    Required flux sequences:
-      |TC|
-
-    Calculated fluxes sequences:
-      |Refr|
-
-    Required state sequence:
-      |WC|
-
-    Updated state sequence:
-      |SP|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} =  + Refr` \n
@@ -920,46 +941,50 @@ def calc_refr_sp_wc_v1(self):
         >>> states.wc
         wc(0.0, 0.4, 0.4, 0.4, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] != ILAKE:
-            if flu.tc[k] < der.ttm[k]:
-                flu.refr[k] = min(con.cfr[k]*con.cfmax[k] *
-                                  (der.ttm[k]-flu.tc[k]), sta.wc[k])
-                sta.sp[k] += flu.refr[k]
-                sta.wc[k] -= flu.refr[k]
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.CFR,
+        hland_control.CFMax,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.TTM,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.WC,
+        hland_states.SP,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.Refr,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                if flu.tc[k] < der.ttm[k]:
+                    flu.refr[k] = min(con.cfr[k]*con.cfmax[k] *
+                                      (der.ttm[k]-flu.tc[k]), sta.wc[k])
+                    sta.sp[k] += flu.refr[k]
+                    sta.wc[k] -= flu.refr[k]
+                else:
+                    flu.refr[k] = 0.
             else:
                 flu.refr[k] = 0.
-
-        else:
-            flu.refr[k] = 0.
-            sta.wc[k] = 0.
-            sta.sp[k] = 0.
+                sta.wc[k] = 0.
+                sta.sp[k] = 0.
 
 
-def calc_in_wc_v1(self):
+class Calc_In_WC_V1(modeltools.Method):
     """Calculate the actual water release from the snow layer due to the
     exceedance of the snow layers capacity for (liquid) water.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |WHC|
-
-    Required state sequence:
-      |SP|
-
-    Required flux sequence
-      |TF|
-
-    Calculated fluxes sequences:
-      |In_|
-
-    Updated state sequence:
-      |WC|
 
     Basic equations:
       :math:`\\frac{dWC}{dt} = -In` \n
@@ -1019,38 +1044,39 @@ def calc_in_wc_v1(self):
         Note that for the single lake zone, stand precipitation is
         directly passed to `in_` in all three examples.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] != ILAKE:
-            flu.in_[k] = max(sta.wc[k]-con.whc[k]*sta.sp[k], 0.)
-            sta.wc[k] -= flu.in_[k]
-        else:
-            flu.in_[k] = flu.tf[k]
-            sta.wc[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.WHC,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TF,
+        hland_states.SP,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.WC,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.In_,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                flu.in_[k] = max(sta.wc[k]-con.whc[k]*sta.sp[k], 0.)
+                sta.wc[k] -= flu.in_[k]
+            else:
+                flu.in_[k] = flu.tf[k]
+                sta.wc[k] = 0.
 
 
-def calc_glmelt_in_v1(self):
+class Calc_GlMelt_In_V1(modeltools.Method):
     """Calculate melting from glaciers which are actually not covered by
     a snow layer and add it to the water release of the snow module.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |GMelt|
-
-    Required state sequence:
-      |SP|
-
-    Required flux sequence:
-      |TC|
-
-    Calculated fluxes sequence:
-      |GlMelt|
-
-    Updated flux sequence:
-      |In_|
 
     Basic equation:
 
@@ -1060,7 +1086,6 @@ def calc_glmelt_in_v1(self):
       \\atop
       {0 \\ | \\ SP > 0}
       }`
-
 
     Examples:
 
@@ -1094,36 +1119,42 @@ def calc_glmelt_in_v1(self):
         >>> gmelt.values
         array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if ((con.zonetype[k] == GLACIER) and
-                (sta.sp[k] <= 0.) and (flu.tc[k] > der.ttm[k])):
-            flu.glmelt[k] = con.gmelt[k]*(flu.tc[k]-der.ttm[k])
-            flu.in_[k] += flu.glmelt[k]
-        else:
-            flu.glmelt[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.GMelt,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.TTM,
+    )
+    REQUIREDSEQUENCES = (
+        hland_states.SP,
+        hland_fluxes.TC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_fluxes.In_,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.GlMelt,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if ((con.zonetype[k] == GLACIER) and
+                    (sta.sp[k] <= 0.) and (flu.tc[k] > der.ttm[k])):
+                flu.glmelt[k] = con.gmelt[k]*(flu.tc[k]-der.ttm[k])
+                flu.in_[k] += flu.glmelt[k]
+            else:
+                flu.glmelt[k] = 0.
 
 
-def calc_r_sm_v1(self):
+class Calc_R_SM_V1(modeltools.Method):
     """Calculate effective precipitation and update soil moisture.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |FC|
-      |Beta|
-
-    Required fluxes sequence:
-      |In_|
-
-    Calculated flux sequence:
-      |R|
-
-    Updated state sequence:
-      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = IN - R` \n
@@ -1183,42 +1214,42 @@ def calc_r_sm_v1(self):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] in (FIELD, FOREST):
-            if con.fc[k] > 0.:
-                flu.r[k] = flu.in_[k]*(sta.sm[k]/con.fc[k])**con.beta[k]
-                flu.r[k] = max(flu.r[k], sta.sm[k]+flu.in_[k]-con.fc[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.FC,
+        hland_control.Beta,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.In_,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.SM,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.R,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                if con.fc[k] > 0.:
+                    flu.r[k] = flu.in_[k]*(sta.sm[k]/con.fc[k])**con.beta[k]
+                    flu.r[k] = max(flu.r[k], sta.sm[k]+flu.in_[k]-con.fc[k])
+                else:
+                    flu.r[k] = flu.in_[k]
+                sta.sm[k] += flu.in_[k]-flu.r[k]
             else:
                 flu.r[k] = flu.in_[k]
-            sta.sm[k] += flu.in_[k]-flu.r[k]
-        else:
-            flu.r[k] = flu.in_[k]
-            sta.sm[k] = 0.
+                sta.sm[k] = 0.
 
 
-def calc_cf_sm_v1(self):
+class Calc_CF_SM_V1(modeltools.Method):
     """Calculate capillary flow and update soil moisture.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |FC|
-      |CFlux|
-
-    Required fluxes sequence:
-      |R|
-
-    Required state sequence:
-      |UZ|
-
-    Calculated flux sequence:
-      |CF|
-
-    Updated state sequence:
-      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = CF` \n
@@ -1324,45 +1355,44 @@ def calc_cf_sm_v1(self):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] in (FIELD, FOREST):
-            if con.fc[k] > 0.:
-                flu.cf[k] = con.cflux[k]*(1.-sta.sm[k]/con.fc[k])
-                flu.cf[k] = min(flu.cf[k], sta.uz+flu.r[k])
-                flu.cf[k] = min(flu.cf[k], con.fc[k]-sta.sm[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.FC,
+        hland_control.CFlux,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.R,
+        hland_states.UZ,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.SM,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.CF,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                if con.fc[k] > 0.:
+                    flu.cf[k] = con.cflux[k]*(1.-sta.sm[k]/con.fc[k])
+                    flu.cf[k] = min(flu.cf[k], sta.uz+flu.r[k])
+                    flu.cf[k] = min(flu.cf[k], con.fc[k]-sta.sm[k])
+                else:
+                    flu.cf[k] = 0.
+                sta.sm[k] += flu.cf[k]
             else:
                 flu.cf[k] = 0.
-            sta.sm[k] += flu.cf[k]
-        else:
-            flu.cf[k] = 0.
-            sta.sm[k] = 0.
+                sta.sm[k] = 0.
 
 
-def calc_ea_sm_v1(self):
+class Calc_EA_SM_V1(modeltools.Method):
     """Calculate soil evaporation and update soil moisture.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |FC|
-      |LP|
-      |ERed|
-
-    Required fluxes sequences:
-      |EPC|
-      |EI|
-
-    Required state sequence:
-      |SP|
-
-    Calculated flux sequence:
-      |EA|
-
-    Updated state sequence:
-      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = - EA` \n
@@ -1451,44 +1481,51 @@ def calc_ea_sm_v1(self):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if con.zonetype[k] in (FIELD, FOREST):
-            if sta.sp[k] <= 0.:
-                if (con.lp[k]*con.fc[k]) > 0.:
-                    flu.ea[k] = flu.epc[k]*sta.sm[k]/(con.lp[k]*con.fc[k])
-                    flu.ea[k] = min(flu.ea[k], flu.epc[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.LP,
+        hland_control.FC,
+        hland_control.ERed,
+    )
+    REQUIREDSEQUENCES = (
+        hland_states.SP,
+        hland_fluxes.EPC,
+        hland_fluxes.EI,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.SM,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.EA,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                if sta.sp[k] <= 0.:
+                    if (con.lp[k]*con.fc[k]) > 0.:
+                        flu.ea[k] = flu.epc[k]*sta.sm[k]/(con.lp[k]*con.fc[k])
+                        flu.ea[k] = min(flu.ea[k], flu.epc[k])
+                    else:
+                        flu.ea[k] = flu.epc[k]
+                    flu.ea[k] -= max(con.ered[k] *
+                                     (flu.ea[k]+flu.ei[k]-flu.epc[k]), 0.)
+                    flu.ea[k] = min(flu.ea[k], sta.sm[k])
                 else:
-                    flu.ea[k] = flu.epc[k]
-                flu.ea[k] -= max(con.ered[k] *
-                                 (flu.ea[k]+flu.ei[k]-flu.epc[k]), 0.)
-                flu.ea[k] = min(flu.ea[k], sta.sm[k])
+                    flu.ea[k] = 0.
+                sta.sm[k] -= flu.ea[k]
             else:
                 flu.ea[k] = 0.
-            sta.sm[k] -= flu.ea[k]
-        else:
-            flu.ea[k] = 0.
-            sta.sm[k] = 0.
+                sta.sm[k] = 0.
 
 
-def calc_inuz_v1(self):
+class Calc_InUZ_V1(modeltools.Method):
     """Accumulate the total inflow into the upper zone layer.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-
-    Required derived parameters:
-      |RelLandZoneArea|
-
-    Required fluxes sequences:
-      |R|
-      |CF|
-
-    Calculated flux sequence:
-      |InUZ|
 
     Basic equation:
       :math:`InUZ = R - CF`
@@ -1519,39 +1556,41 @@ def calc_inuz_v1(self):
         inuz(0.0)
 
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.inuz = 0.
-    for k in range(con.nmbzones):
-        if con.zonetype[k] != ILAKE:
-            flu.inuz += der.rellandzonearea[k]*(flu.r[k]-flu.cf[k])
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelLandZoneArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.R,
+        hland_fluxes.CF,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.InUZ,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.inuz = 0.
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                flu.inuz += der.rellandzonearea[k]*(flu.r[k]-flu.cf[k])
 
 
-def calc_contriarea_v1(self):
+class Calc_ContriArea_V1(modeltools.Method):
     """Determine the relative size of the contributing area of the whole
     subbasin.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-      |RespArea|
-      |FC|
-      |Beta|
-
-    Required derived parameter:
-    |RelSoilArea|
-
-    Required state sequence:
-      |SM|
-
-    Calculated fluxes sequences:
-      |ContriArea|
 
     Basic equation:
       :math:`ContriArea = \\left( \\frac{SM}{FC} \\right)^{Beta}`
 
     Examples:
+
         Four zones are initialized, but only the first two zones
         of type field and forest are taken into account in the calculation
         of the relative contributing area of the catchment (even, if also
@@ -1618,48 +1657,46 @@ def calc_contriarea_v1(self):
 
         ...leads to contributing area values of 100 %.
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    if con.resparea and (der.relsoilarea > 0.):
-        flu.contriarea = 0.
-        for k in range(con.nmbzones):
-            if con.zonetype[k] in (FIELD, FOREST):
-                if con.fc[k] > 0.:
-                    flu.contriarea += (der.relsoilzonearea[k] *
-                                       (sta.sm[k]/con.fc[k])**con.beta[k])
-                else:
-                    flu.contriarea += der.relsoilzonearea[k]
-    else:
+    CONTROLPARAMETERS = (
+        hland_control.RespArea,
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.FC,
+        hland_control.Beta,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelSoilArea,
+        hland_derived.RelSoilZoneArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_states.SM,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.ContriArea,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
         flu.contriarea = 1.
+        if con.resparea and (der.relsoilarea > 0.):
+            for k in range(con.nmbzones):
+                if con.zonetype[k] in (FIELD, FOREST):
+                    if con.fc[k] > 0.:
+                        flu.contriarea *= \
+                            (sta.sm[k]/con.fc[k])**der.relsoilzonearea[k]
+            flu.contriarea **= con.beta[k]
 
 
-def calc_q0_perc_uz_v1(self):
+class Calc_Q0_Perc_UZ_V1(modeltools.Method):
     """Perform the upper zone layer routine which determines percolation
     to the lower zone layer and the fast response of the hland model.
 
     Note that the system behaviour of this method depends strongly on the
     specifications of the options |RespArea| and |RecStep|.
-
-    Required control parameters:
-      |RecStep|
-      |PercMax|
-      |K|
-      |Alpha|
-
-    Required derived parameters:
-      |DT|
-
-    Required fluxes sequence:
-      |InUZ|
-
-    Calculated fluxes sequences:
-      |Perc|
-      |Q0|
-
-    Updated state sequence:
-      |UZ|
 
     Basic equations:
       :math:`\\frac{dUZ}{dt} = InUZ - Perc - Q0` \n
@@ -1810,47 +1847,55 @@ def calc_q0_perc_uz_v1(self):
         >>> states.uz
         uz(0.378292)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    flu.perc = 0.
-    flu.q0 = 0.
-    for dummy in range(con.recstep):
-        sta.uz += der.dt*flu.inuz
-        d_perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
-        sta.uz -= d_perc
-        flu.perc += d_perc
-        if sta.uz > 0.:
-            if flu.contriarea > 0.:
-                d_q0 = (der.dt*con.k *
-                        (sta.uz/flu.contriarea)**(1.+con.alpha))
-                d_q0 = min(d_q0, sta.uz)
-            else:
-                d_q0 = sta.uz
-            sta.uz -= d_q0
-            flu.q0 += d_q0
+    CONTROLPARAMETERS = (
+        hland_control.RecStep,
+        hland_control.PercMax,
+        hland_control.K,
+        hland_control.Alpha,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.DT,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.ContriArea,
+        hland_fluxes.InUZ,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.UZ,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.Perc,
+        hland_fluxes.Q0,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu.perc = 0.
+        flu.q0 = 0.
+        for dummy in range(con.recstep):
+            sta.uz += der.dt*flu.inuz
+            d_perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
+            sta.uz -= d_perc
+            flu.perc += d_perc
+            if sta.uz > 0.:
+                if flu.contriarea > 0.:
+                    d_q0 = (der.dt*con.k *
+                            (sta.uz/flu.contriarea)**(1.+con.alpha))
+                    d_q0 = min(d_q0, sta.uz)
+                else:
+                    d_q0 = sta.uz
+                sta.uz -= d_q0
+                flu.q0 += d_q0
 
 
-def calc_lz_v1(self):
+class Calc_LZ_V1(modeltools.Method):
     """Update the lower zone layer in accordance with percolation from
     upper groundwater to lower groundwater and/or in accordance with
     lake precipitation.
-
-    Required control parameters:
-      |NmbZones|
-      |ZoneType|
-
-    Required derived parameters:
-      |RelLandArea|
-      |RelZoneArea|
-
-    Required fluxes sequences:
-      |PC|
-      |Perc|
-
-    Updated state sequence:
-      |LZ|
 
     Basic equation:
       :math:`\\frac{dLZ}{dt} = Perc + Pc`
@@ -1893,33 +1938,36 @@ def calc_lz_v1(self):
         >>> states.lz
         lz(13.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    sta.lz += der.rellandarea*flu.perc
-    for k in range(con.nmbzones):
-        if con.zonetype[k] == ILAKE:
-            sta.lz += der.relzonearea[k]*flu.pc[k]
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelLandArea,
+        hland_derived.RelZoneArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.Perc,
+        hland_fluxes.PC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.LZ,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        sta.lz += der.rellandarea*flu.perc
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == ILAKE:
+                sta.lz += der.relzonearea[k]*flu.pc[k]
 
 
-def calc_el_lz_v1(self):
+class Calc_EL_LZ_V1(modeltools.Method):
     """Calculate lake evaporation.
-
-    Required control parameters:
-        |NmbZones|
-        |ZoneType|
-        |TTIce|
-
-    Required derived parameters:
-        |RelZoneArea|
-
-    Required fluxes sequences:
-        |TC|
-        |EPC|
-
-    Updated state sequence:
-        |LZ|
 
     Basic equations:
         :math:`\\frac{dLZ}{dt} = -EL` \n
@@ -1965,30 +2013,41 @@ def calc_el_lz_v1(self):
         >>> states.lz
         lz(-0.05)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nmbzones):
-        if (con.zonetype[k] == ILAKE) and (flu.tc[k] > con.ttice[k]):
-            flu.el[k] = flu.epc[k]
-            sta.lz -= der.relzonearea[k]*flu.el[k]
-        else:
-            flu.el[k] = 0.
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.TTIce,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.TC,
+        hland_fluxes.EPC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.LZ,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.EL,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if (con.zonetype[k] == ILAKE) and (flu.tc[k] > con.ttice[k]):
+                flu.el[k] = flu.epc[k]
+                sta.lz -= der.relzonearea[k]*flu.el[k]
+            else:
+                flu.el[k] = 0.
 
 
-def calc_q1_lz_v1(self):
+class Calc_Q1_LZ_V1(modeltools.Method):
     """Calculate the slow response of the lower zone layer.
-
-    Required control parameters:
-        |K4|
-        |Gamma|
-
-    Calculated fluxes sequence:
-        |Q1|
-
-    Updated state sequence:
-        |LZ|
 
     Basic equations:
         :math:`\\frac{dLZ}{dt} = -Q1` \n
@@ -2052,28 +2111,31 @@ def calc_q1_lz_v1(self):
         >>> k4.value
         0.1
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    if sta.lz > 0.:
-        flu.q1 = con.k4*sta.lz**(1.+con.gamma)
-    else:
-        flu.q1 = 0.
-    sta.lz -= flu.q1
+    CONTROLPARAMETERS = (
+        hland_control.K4,
+        hland_control.Gamma,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.LZ,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.Q1,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        if sta.lz > 0.:
+            flu.q1 = con.k4*sta.lz**(1.+con.gamma)
+        else:
+            flu.q1 = 0.
+        sta.lz -= flu.q1
 
 
-def calc_inuh_v1(self):
+class Calc_InUH_V1(modeltools.Method):
     """Calculate the unit hydrograph input.
-
-    Required derived parameters:
-      |RelLandArea|
-
-    Required flux sequences:
-      |Q0|
-      |Q1|
-
-    Calculated flux sequence:
-      |InUH|
 
     Basic equation:
         :math:`InUH = Q0 + Q1`
@@ -2095,27 +2157,26 @@ def calc_inuh_v1(self):
         inuh(3.0)
 
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.inuh = der.rellandarea*flu.q0+flu.q1
+    DERIVEDPARAMETERS = (
+        hland_derived.RelLandArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.Q0,
+        hland_fluxes.Q1,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.InUH,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.inuh = der.rellandarea*flu.q0+flu.q1
 
 
-def calc_outuh_quh_v1(self):
+class Calc_OutUH_QUH_V1(modeltools.Method):
     """Calculate the unit hydrograph output (convolution).
-
-    Required derived parameters:
-        |UH|
-
-    Required flux sequences:
-        |Q0|
-        |Q1|
-        |InUH|
-
-    Updated log sequence:
-        |QUH|
-
-    Calculated flux sequence:
-        |OutUH|
 
     Examples:
 
@@ -2184,28 +2245,34 @@ def calc_outuh_quh_v1(self):
         >>> logs.quh
         quh(0.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.outuh = der.uh[0]*flu.inuh+log.quh[0]
-    for jdx in range(1, len(der.uh)):
-        log.quh[jdx-1] = der.uh[jdx]*flu.inuh+log.quh[jdx]
+    DERIVEDPARAMETERS = (
+        hland_derived.UH,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.InUH,
+    )
+    UPDATEDSEQUENCES = (
+        hland_logs.QUH,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.OutUH,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu.outuh = der.uh[0]*flu.inuh+log.quh[0]
+        for jdx in range(1, len(der.uh)):
+            log.quh[jdx-1] = der.uh[jdx]*flu.inuh+log.quh[jdx]
 
 
-def calc_qt_v1(self):
+class Calc_QT_V1(modeltools.Method):
     """Calculate the total discharge after possible abstractions.
 
-    Required control parameter:
-      |Abstr|
-
-    Required flux sequence:
-      |OutUH|
-
-    Calculated flux sequence:
-      |QT|
-
     Basic equation:
-        :math:`QT = max(OutUH - Abstr, 0)`
+        :math:`QT = max(QFactor \\cdot OutUH - Abstr, 0)`
 
     Examples:
 
@@ -2215,71 +2282,101 @@ def calc_qt_v1(self):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> abstr(2.0)
-        >>> fluxes.outuh = 2.0
+        >>> abstr(1.0)
+        >>> derived.qfactor(0.5)
+        >>> fluxes.outuh = 4.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(1.0)
-        >>> fluxes.outuh = 1.0
+        >>> fluxes.outuh = 2.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(0.0)
-        >>> fluxes.outuh = 0.5
+        >>> fluxes.outuh = 1.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(0.0)
 
         Note that "negative abstractions" are allowed:
 
-        >>> abstr(-2.0)
-        >>> fluxes.outuh = 1.0
+        >>> abstr(-1.0)
+        >>> fluxes.outuh = 2.0
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(2.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.qt = max(flu.outuh-con.abstr, 0.)
+    CONTROLPARAMETERS = (
+        hland_control.Abstr,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.QFactor,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.OutUH,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.QT,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qt = max(der.qfactor*flu.outuh-con.abstr, 0.)
 
 
-def update_q_v1(self):
+class Pass_Q_v1(modeltools.Method):
     """Update the outlet link sequence."""
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.q[0] += der.qfactor*flu.qt
+    REQUIREDSEQUENCES = (
+        hland_fluxes.QT,
+    )
+    RESULTSEQUENCES = (
+        hland_outlets.Q,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.q[0] += flu.qt
 
 
 class Model(modeltools.AdHocModel):
     """The HydPy-H-Land base model."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
-    RUN_METHODS = (calc_tc_v1,
-                   calc_tmean_v1,
-                   calc_fracrain_v1,
-                   calc_rfc_sfc_v1,
-                   calc_pc_v1,
-                   calc_ep_v1,
-                   calc_epc_v1,
-                   calc_tf_ic_v1,
-                   calc_ei_ic_v1,
-                   calc_sp_wc_v1,
-                   calc_melt_sp_wc_v1,
-                   calc_refr_sp_wc_v1,
-                   calc_in_wc_v1,
-                   calc_glmelt_in_v1,
-                   calc_r_sm_v1,
-                   calc_cf_sm_v1,
-                   calc_ea_sm_v1,
-                   calc_inuz_v1,
-                   calc_contriarea_v1,
-                   calc_q0_perc_uz_v1,
-                   calc_lz_v1,
-                   calc_el_lz_v1,
-                   calc_q1_lz_v1,
-                   calc_inuh_v1,
-                   calc_outuh_quh_v1,
-                   calc_qt_v1)
+    RUN_METHODS = (
+        Calc_TC_V1,
+        Calc_TMean_V1,
+        Calc_FracRain_V1,
+        Calc_RFC_SFC_V1,
+        Calc_PC_V1,
+        Calc_EP_V1,
+        Calc_EPC_V1,
+        Calc_TF_Ic_V1,
+        Calc_EI_Ic_V1,
+        Calc_SP_WC_V1,
+        Calc_Melt_SP_WC_V1,
+        Calc_Refr_SP_WC_V1,
+        Calc_In_WC_V1,
+        Calc_GlMelt_In_V1,
+        Calc_R_SM_V1,
+        Calc_CF_SM_V1,
+        Calc_EA_SM_V1,
+        Calc_InUZ_V1,
+        Calc_ContriArea_V1,
+        Calc_Q0_Perc_UZ_V1,
+        Calc_LZ_V1,
+        Calc_EL_LZ_V1,
+        Calc_Q1_LZ_V1,
+        Calc_InUH_V1,
+        Calc_OutUH_QUH_V1,
+        Calc_QT_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (update_q_v1,)
+    OUTLET_METHODS = (
+        Pass_Q_v1,
+    )
     SENDER_METHODS = ()
+    SUBMODELS = ()

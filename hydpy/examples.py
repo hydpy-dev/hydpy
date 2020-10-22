@@ -9,13 +9,18 @@ other test data.
 import os
 import shutil
 from typing import *
+# ...from site-packages
+import numpy
 # ...from HydPy
 import hydpy
 from hydpy import data
 from hydpy.core import devicetools
+from hydpy.core import importtools
+from hydpy.core import filetools
 from hydpy.core import hydpytools
 from hydpy.core import testtools
 from hydpy.tests import iotesting
+from hydpy.models import lland
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
@@ -107,11 +112,9 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> numpy.all(bowa3.series == bowa3.testarray)
     InfoArray(False, dtype=bool)
     """
-    from hydpy import TestIO
-    TestIO.clear()
-    from hydpy.core.filetools import SequenceManager
-    hydpy.pub.sequencemanager = SequenceManager()
-    with TestIO():
+    testtools.TestIO.clear()
+    hydpy.pub.sequencemanager = filetools.SequenceManager()
+    with testtools.TestIO():
         hydpy.pub.sequencemanager.inputdirpath = 'inputpath'
         hydpy.pub.sequencemanager.fluxdirpath = 'outputpath'
         hydpy.pub.sequencemanager.statedirpath = 'outputpath'
@@ -119,32 +122,33 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     hydpy.pub.timegrids = '2000-01-01', '2000-01-05', '1d'
 
-    from hydpy import Node, Nodes, Element, Elements, prepare_model
-    node1 = Node('node1')
-    node2 = Node('node2', variable='T')
-    nodes = Nodes(node1, node2)
-    element1 = Element('element1', outlets=node1)
-    element2 = Element('element2', outlets=node1)
-    element3 = Element('element3', outlets=node1)
-    elements = Elements(element1, element2, element3)
+    node1 = devicetools.Node('node1')
+    node2 = devicetools.Node('node2', variable='T')
+    nodes = devicetools.Nodes(node1, node2)
+    element1 = devicetools.Element('element1', outlets=node1)
+    element2 = devicetools.Element('element2', outlets=node1)
+    element3 = devicetools.Element('element3', outlets=node1)
+    elements = devicetools.Elements(element1, element2, element3)
 
-    from hydpy.models import lland_v1, lland_v2
-    element1.model = prepare_model(lland_v1)
-    element2.model = prepare_model(lland_v1)
-    element3.model = prepare_model(lland_v2)
+    element1.model = importtools.prepare_model('lland_v1')
+    element2.model = importtools.prepare_model('lland_v1')
+    element3.model = importtools.prepare_model('lland_v2')
 
-    from hydpy.models.lland import ACKER
     for idx, element in enumerate(elements):
         parameters = element.model.parameters
         parameters.control.nhru(idx+1)
-        parameters.control.lnk(ACKER)
+        parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
 
+    # pylint: disable=not-callable
+    # pylint usually understands that all options are callable
+    # but, for unknown reasons, not in the following line:
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries()
         elements.prepare_inputseries()
         elements.prepare_fluxseries()
         elements.prepare_stateseries()
+    # pylint: enable=not-callable
 
     def init_values(seq, value1_):
         value2_ = value1_ + len(seq.series.flatten())
@@ -153,7 +157,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         seq.series = seq.testarray.copy()
         return value2_
 
-    import numpy
     value1 = 0
     for subname, seqname in zip(['inputs', 'fluxes', 'states'],
                                 ['nied', 'nkor', 'bowa']):

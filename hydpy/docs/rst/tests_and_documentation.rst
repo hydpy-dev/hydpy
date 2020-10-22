@@ -81,12 +81,7 @@ the current core package contains a module named "objecttools":
     'module'
 
 The Python script `test_everything.py`_ collects the doctests of all
-modules and executes them.  Additionally, it executes the "conventional"
-unit tests defined in subpackage `tests`_.  For us, maintaining two
-testing frameworks in parallel has proven to be distracting rather than
-helpful, which is why we are going to replace all "conventional" by
-doctests successively.  Hence, do not add further "conventional" unit
-test when developing new *HydPy* features.
+modules and executes them.
 
 We measure the "code coverage" (the number of executed code lines divided
 by the total number of code lines), determined by the `coverage library`_.

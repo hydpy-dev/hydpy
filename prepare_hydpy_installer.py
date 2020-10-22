@@ -1,8 +1,12 @@
 
+from distutils.version import StrictVersion
 import importlib
+import json
 import os
+import packaging.version
 import shutil
 import sys
+import urllib
 
 
 with open('make_hydpy_installer.cfgt') as file_:
@@ -30,10 +34,35 @@ for idx, line in enumerate(lines):
             version_info = importlib.import_module('tornado').version_info
             version = '.'.join(str(v) for v in version_info[:3])
         else:
-            version = importlib.import_module(name).__version__
+            try:
+                version = '.'.join(
+                    str(number) for number in
+                    packaging.version.parse(
+                        importlib.import_module(name).__version__
+                    ).release
+                )
+            except AttributeError:
+                data = json.load(
+                    urllib.request.urlopen(
+                        urllib.request.Request(
+                            f'https://pypi.python.org/pypi/{name}/json'
+                        )
+                    )
+                )
+                versions = (
+                    packaging.version.parse(v) for v in data["releases"]
+                )
+                version = str(max(v for v in versions if not v.is_prerelease))
         lines[idx] = line.replace('[auto]', version)
 with open('make_hydpy_installer.cfg', 'w') as file_:
     file_.writelines(lines)
+
+
+wheeldir = 'extra_wheel_sources'
+if os.path.exists(wheeldir):
+    shutil.rmtree(wheeldir)
+os.makedirs(wheeldir)
+os.system(f'{sys.executable} -m pip wheel retrying --wheel-dir={wheeldir}')
 
 for folderpath in sys.path:
     if os.path.isdir(folderpath):

@@ -5,19 +5,14 @@
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.models.hstream import hstream_derived
+from hydpy.models.hstream import hstream_states
+from hydpy.models.hstream import hstream_inlets
+from hydpy.models.hstream import hstream_outlets
 
 
-def calc_qjoints_v1(self):
+class Calc_QJoints_V1(modeltools.Method):
     """Apply the routing equation.
-
-    Required derived parameters:
-      |NmbSegments|
-      |C1|
-      |C2|
-      |C3|
-
-    Updated state sequence:
-      |QJoints|
 
     Basic equation:
       :math:`Q_{space+1,time+1} =
@@ -95,39 +90,76 @@ def calc_qjoints_v1(self):
         >>> states.qjoints
         qjoints(6.0, 5.875, 5.0625, 4.1875, 3.46875)
     """
-    der = self.parameters.derived.fastaccess
-    new = self.sequences.states.fastaccess_new
-    old = self.sequences.states.fastaccess_old
-    for j in range(der.nmbsegments):
-        new.qjoints[j+1] = (der.c1*new.qjoints[j] +
-                            der.c2*old.qjoints[j] +
-                            der.c3*old.qjoints[j+1])
+    DERIVEDPARAMETERS = (
+        hstream_derived.NmbSegments,
+        hstream_derived.C1,
+        hstream_derived.C2,
+        hstream_derived.C3,
+    )
+    UPDATEDSEQUENCES = (
+        hstream_states.QJoints,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        new = model.sequences.states.fastaccess_new
+        old = model.sequences.states.fastaccess_old
+        for j in range(der.nmbsegments):
+            new.qjoints[j+1] = (der.c1*new.qjoints[j] +
+                                der.c2*old.qjoints[j] +
+                                der.c3*old.qjoints[j+1])
 
 
-def pick_q_v1(self):
+class Pick_Q_V1(modeltools.Method):
     """Assign the actual value of the inlet sequence to the upper joint
     of the subreach upstream."""
-    inl = self.sequences.inlets.fastaccess
-    new = self.sequences.states.fastaccess_new
-    new.qjoints[0] = 0.
-    for idx in range(inl.len_q):
-        new.qjoints[0] += inl.q[idx][0]
+    REQUIREDSEQUENCES = (
+        hstream_inlets.Q,
+    )
+    RESULTSEQUENCES = (
+        hstream_states.QJoints,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inl = model.sequences.inlets.fastaccess
+        new = model.sequences.states.fastaccess_new
+        new.qjoints[0] = 0.
+        for idx in range(inl.len_q):
+            new.qjoints[0] += inl.q[idx][0]
 
 
-def pass_q_v1(self):
+class Pass_Q_V1(modeltools.Method):
     """Assing the actual value of the lower joint of of the subreach
     downstream to the outlet sequence."""
-    der = self.parameters.derived.fastaccess
-    new = self.sequences.states.fastaccess_new
-    out = self.sequences.outlets.fastaccess
-    out.q[0] += new.qjoints[der.nmbsegments]
+    DERIVEDPARAMETERS = (
+        hstream_derived.NmbSegments,
+    )
+    REQUIREDSEQUENCES = (
+        hstream_states.QJoints,
+    )
+    RESULTSEQUENCES = (
+        hstream_outlets.Q,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        new = model.sequences.states.fastaccess_new
+        out = model.sequences.outlets.fastaccess
+        out.q[0] += new.qjoints[der.nmbsegments]
 
 
 class Model(modeltools.AdHocModel):
     """The HydPy-H-Stream model."""
-    INLET_METHODS = (pick_q_v1,)
+    INLET_METHODS = (
+        Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (calc_qjoints_v1,)
+    RUN_METHODS = (
+        Calc_QJoints_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (pass_q_v1,)
+    OUTLET_METHODS = (
+        Pass_Q_V1,
+    )
     SENDER_METHODS = ()
+    SUBMODELS = ()

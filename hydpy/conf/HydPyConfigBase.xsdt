@@ -14,12 +14,31 @@
 
     <element name="options">
         <complexType>
-            <sequence>
+            <choice maxOccurs="unbounded">
                 <element name="checkseries"
                          type="boolean"
-                         minOccurs="0"/>
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="flattennetcdf"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="isolatenetcdf"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="parameterstep"
+                         minOccurs="0"
+                         maxOccurs="1">
+                    <simpleType>
+                        <restriction base="string">
+                            <pattern value="[0-9]+[smhd]"/>
+                        </restriction>
+                    </simpleType>
+                </element>
                 <element name="reprdigits"
-                         minOccurs="0">
+                         minOccurs="0"
+                         maxOccurs="1">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="-1"/>
@@ -27,32 +46,9 @@
                         </restriction>
                     </simpleType>
                 </element>
-                <element name="usecython"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="usedefaultvalues"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="utcoffset"
-                         type="integer"
-                         minOccurs="0"/>
-                <element name="warnmissingobsfile"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="warnmissingsimfile"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="warntrim"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="flattennetcdf"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="isolatenetcdf"
-                         type="boolean"
-                         minOccurs="0"/>
                 <element name="timeaxisnetcdf"
-                         minOccurs="0">
+                         minOccurs="0"
+                         maxOccurs="1">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="0"/>
@@ -60,7 +56,31 @@
                         </restriction>
                     </simpleType>
                 </element>
-            </sequence>
+                <element name="usecython"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="usedefaultvalues"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="utcoffset"
+                         type="integer"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="warnmissingobsfile"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="warnmissingsimfile"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+                <element name="warntrim"
+                         type="boolean"
+                         minOccurs="0"
+                         maxOccurs="1"/>
+            </choice>
         </complexType>
     </element>
 

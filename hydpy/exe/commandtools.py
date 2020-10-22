@@ -14,14 +14,36 @@ import time
 import traceback
 from typing import *
 from typing import IO
+from typing_extensions import Literal
 # ...from hydpy
 import hydpy
 from hydpy import tests
 from hydpy.core import objecttools
 
 
-def run_subprocess(command: str, verbose: bool = True, blocking: bool = True) \
-        -> Optional[subprocess.Popen]:
+@overload
+def run_subprocess(
+        command: str,
+        verbose: bool,
+        blocking: Literal[True],
+) -> subprocess.CompletedProcess:
+    """non-blocking"""
+
+
+@overload
+def run_subprocess(
+        command: str,
+        verbose: bool,
+        blocking: Literal[False],
+) -> subprocess.Popen:
+    """blocking"""
+
+
+def run_subprocess(
+        command,
+        verbose=True,
+        blocking=True,
+):
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess|
@@ -30,13 +52,14 @@ def run_subprocess(command: str, verbose: bool = True, blocking: bool = True) \
     >>> from hydpy import run_subprocess
     >>> import platform
     >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
-    >>> run_subprocess(f'python -c print{esc}(1+1{esc})')
+    >>> result = run_subprocess(f'python -c print{esc}(1+1{esc})')
     2
 
     With verbose being |False|, |run_subprocess| does never print out
     anything:
 
-    >>> run_subprocess(f'python -c print{esc}(1+1{esc})', verbose=False)
+    >>> result = run_subprocess(
+    ...     f'python -c print{esc}(1+1{esc})', verbose=False)
 
     >>> process = run_subprocess('python', blocking=False, verbose=False)
     >>> process.kill()
@@ -55,20 +78,25 @@ def run_subprocess(command: str, verbose: bool = True, blocking: bool = True) \
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding='utf-8',
-            shell=True)
+            shell=True,
+            check=False,
+            env=dict(os.environ),
+        )
         if verbose:    # due to doctest replacing sys.stdout
             for output in (result1.stdout, result1.stderr):
                 output = output.strip()
                 if output:
                     print(output)
-        return None
+        return result1
     stdouterr = None if verbose else subprocess.DEVNULL
     result2 = subprocess.Popen(
         command,
         stdout=stdouterr,
         stderr=stdouterr,
         encoding='utf-8',
-        shell=True)
+        shell=True,
+        env=dict(os.environ),
+    )
     return result2
 
 
@@ -151,11 +179,12 @@ def exec_script(filepath: str) -> None:
     >>> from hydpy import print_latest_logfile, Node, TestIO, run_subprocess
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     result = run_subprocess(
+    ...         'hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
-    File `...test.py` does not exist.
+    File `...temp.py` does not exist.
     ...
 
     Function |exec_script| can use all *HydPy* features.  As a simple
@@ -163,10 +192,11 @@ resulted in the following error:
     and prints its string representation (into the log file):
 
     >>> with TestIO():
-    ...     with open('test.py', 'w') as file_:
+    ...     with open('temp.py', 'w') as file_:
     ...         _ = file_.write('from hydpy import Node\\n')
     ...         _ = file_.write('print(repr(Node("valid_name")))\\n')
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     result = run_subprocess(
+    ...         'hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()
     Node("valid_name", variable="Q")
     <BLANKLINE>
@@ -174,12 +204,13 @@ resulted in the following error:
     Errors are reported as usual:
 
     >>> with TestIO():
-    ...     with open('test.py', 'w') as file_:
+    ...     with open('temp.py', 'w') as file_:
     ...         _ = file_.write('from hydpy import Node\\n')
     ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     result = run_subprocess(
+    ...         'hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
     While trying to initialize a `Node` object with value `invalid name` of \
 type `str`, the following error occurred: The given name string `invalid name` \
@@ -254,7 +285,7 @@ def start_shell(filepath: str = '') -> None:
         filepath_ = '__hydpy_temp__'
         with open('__hydpy_temp__', 'w') as file_:
             file_.write('from hydpy import *')
-    subprocess.run([sys.executable, '-i', filepath_])
+    subprocess.run([sys.executable, '-i', filepath_], check=True)
     if not filepath:
         os.remove(filepath_)
 
@@ -279,7 +310,7 @@ def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
     >>> from hydpy import TestIO, print_latest_logfile, run_subprocess
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     run_subprocess('hyd.py')
+    ...     result = run_subprocess('hyd.py')
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -287,8 +318,8 @@ def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
 ...iotesting.
 
     >>> with TestIO():
-    ...     run_subprocess('hyd.py logfile="default" test=1')
-    ...     run_subprocess('hyd.py logfile="default" test=2')
+    ...     result1 = run_subprocess('hyd.py logfile="default" test=1')
+    ...     result2 = run_subprocess('hyd.py logfile="default" test=2')
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `logfile=default, test=2` resulted in \
 the following error:
@@ -303,9 +334,8 @@ the following error:
                 filenames.append(filename)
         if filenames:
             break
-        else:
-            time.sleep(0.1)
-            now = time.perf_counter()
+        time.sleep(0.1)
+        now = time.perf_counter()
     if not filenames:
         raise FileNotFoundError(
             f'Cannot find a default HydPy log file in directory '
@@ -315,6 +345,7 @@ the following error:
 
 
 def prepare_logfile(filename: str) -> str:
+    # noinspection PyCallingNonCallable
     """Prepare an empty log file eventually and return its absolute path.
 
     When passing the "filename" `stdout`, |prepare_logfile| does not
@@ -384,6 +415,8 @@ def execute_scriptfunction() -> Optional[int]:
     Function |execute_scriptfunction| is indirectly applied and
     explained in the documentation on module |hyd|.
     """
+    logstyle = 'plain'
+    logfilepath = prepare_logfile('stdout')
     try:
         args_given = []
         kwargs_given = {}
@@ -403,7 +436,8 @@ def execute_scriptfunction() -> Optional[int]:
         except IndexError:
             raise ValueError(
                 'The first positional argument defining the function '
-                'to be called is missing.')
+                'to be called is missing.'
+            ) from None
         try:
             func = hydpy.pub.scriptfunctions[funcname]
         except KeyError:
@@ -411,7 +445,8 @@ def execute_scriptfunction() -> Optional[int]:
                 sorted(hydpy.pub.scriptfunctions.keys()))
             raise ValueError(
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
-                f'Choose one of the following instead: {available_funcs}.')
+                f'Choose one of the following instead: {available_funcs}.'
+            ) from None
         argspec = inspect.getfullargspec(func)
         args_possible = argspec.args
         if argspec.defaults:
@@ -502,6 +537,7 @@ class LogFileInterface:
 
     def __init__(self, logfile: IO, logstyle: str, infotype: str):
         self.logfile = logfile
+        self._infotype = infotype
         try:
             stdtype2string = self.style2infotype2string[logstyle]
         except KeyError:
@@ -509,15 +545,30 @@ class LogFileInterface:
                 sorted(self.style2infotype2string.keys()))
             raise ValueError(
                 f'The given log file style {logstyle} is not available.  '
-                f'Please choose one of the following: {styles}.')
+                f'Please choose one of the following: {styles}.'
+            ) from None
         self._string = stdtype2string[infotype]
+
+    def _ignore(self, substring: str) -> bool:
+        """Tell if a substring should be ignored.
+
+        So far, we only ignore warning lines like `# -*- coding: utf-8 -*-`
+        which occur when using Python 3.6 and 3.7 but not when using Python 3.8.
+        """
+        return \
+            (self._infotype == 'warning') and substring.strip().startswith('#')
 
     def write(self, string: str) -> None:
         """Write the given string as explained in the main documentation
         on class |LogFileInterface|."""
-        self.logfile.write('\n'.join(
-            f'{self._string}{substring}' if substring else ''
-            for substring in string.split('\n')))
+
+        self.logfile.write(
+            '\n'.join(
+                f'{self._string}{substring}' if substring else ''
+                for substring in string.split('\n')
+                if not self._ignore(substring)
+            )
+        )
 
     def __getattr__(self, name):
         return getattr(self.logfile, name)
@@ -559,6 +610,7 @@ def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
 
 
 def print_textandtime(text: str) -> None:
+    # noinspection PyCallingNonCallable
     """Print the given string and the current date and time with high
     precision for logging purposes.
 

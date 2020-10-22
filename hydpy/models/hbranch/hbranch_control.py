@@ -7,9 +7,10 @@
 import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import parametertools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 
 
 class XPoints(parametertools.Parameter):
@@ -152,23 +153,26 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
     def __call__(self, *args, **kwargs):
         try:
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
-        except AttributeError:
+        except exceptiontools.AttributeNotReady:
             raise RuntimeError(
                 f'The shape of parameter {objecttools.elementphrase(self)} '
                 f'depends on the shape of parameter `xpoints`, which has '
-                f'not been defined so far.')
+                f'not been defined so far.'
+            ) from None
         if shape[0] == 0:
             raise ValueError(
                 f'For parameter {objecttools.elementphrase(self)} ' 
                 f'no branches are defined.  Do this via keyword '
-                f'arguments as explained in the documentation.')
+                f'arguments as explained in the documentation.'
+            )
         branched = self.subpars.pars.model.sequences.outlets.branched
         if (branched.shape[0] != 0) and (branched.shape[0] != shape[0]):
             raise RuntimeError(
                 'The number of branches of the hbranch model should not '
                 'be changed during run time.  If you really need to do '
                 'this, first initialize a new `branched` sequence and '
-                'connect it to the respective outlet nodes properly.')
+                'connect it to the respective outlet nodes properly.'
+            )
         self.shape = shape
         self.values = numpy.nan
         for idx, (key, value) in enumerate(sorted(kwargs.items())):
@@ -181,7 +185,8 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                     raise RuntimeError(
                         f'Parameter {objecttools.elementphrase(self)} is '
                         f'supposed to branch to node `{key}`, but such a '
-                        f'node is not available.')
+                        f'node is not available.'
+                    )
             try:
                 self.values[idx] = value
             except BaseException:
@@ -191,10 +196,12 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                         f'points as given for parameter `xpoints`, which is '
                         f'{shape[1]}, but for branch `{key}` of parameter '
                         f'{objecttools.elementphrase(self)} {len(value)} '
-                        f'values are given.')
+                        f'values are given.'
+                    ) from None
                 objecttools.augment_excmessage(
                     f'While trying to set the values for branch `{key}` '
-                    f'of parameter {objecttools.elementphrase(self)}')
+                    f'of parameter {objecttools.elementphrase(self)}'
+                )
         if branched.shape == (0,):
             branched.shape = shape[0]
         self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
@@ -217,14 +224,3 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
             return '\n'.join(lines)
         except BaseException:
             return 'ypoints(?)'
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hbranch, directly defined by the user.
-
-    Note that the number of supporting points handled parameter |XPoints|
-    and |YPoints| must be identical.  First define the values of parameter
-    |XPoints|, then the values  of parameter |YPoints|.
-    """
-    CLASSES = (XPoints,
-               YPoints)

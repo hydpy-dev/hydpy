@@ -9,7 +9,10 @@ coefficients (parameters |C1|, |C2|, and |C3|) control attenuation
 (parameter |Damp|).  For |NmbSegments| only integer values are allowed,
 which is why the translation time cannot be varied continuously.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 20 hours:
 
@@ -22,7 +25,7 @@ Integration Test:
     >>> from hydpy.models.hstream_v1 import *
     >>> parameterstep('1h')
 
-    The |lstream_v1| model, handled by |Element| `stream`, queries its
+    The |hstream_v1| model, handled by |Element| `stream`, queries its
     inflow from two |Node| objects (`input1` and `input2`) and passes its
     outflow to a single |Node| object (`output`):
 
@@ -84,12 +87,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 2**
 
@@ -126,12 +127,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 3**
 
@@ -168,12 +167,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 4**
 
@@ -208,71 +205,42 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from hstream
 from hydpy.models.hstream import hstream_masks
 from hydpy.models.hstream import hstream_model
-from hydpy.models.hstream import hstream_control
-from hydpy.models.hstream import hstream_derived
-from hydpy.models.hstream import hstream_states
-from hydpy.models.hstream import hstream_inlets
-from hydpy.models.hstream import hstream_outlets
 
 
 class Model(modeltools.AdHocModel):
     """The HBV96 version of HydPy-H-Stream (|hstream_v1|)."""
-    INLET_METHODS = (hstream_model.pick_q_v1,)
+    INLET_METHODS = (
+        hstream_model.Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (hstream_model.calc_qjoints_v1,)
+    RUN_METHODS = (
+        hstream_model.Calc_QJoints_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (hstream_model.pass_q_v1,)
+    OUTLET_METHODS = (
+        hstream_model.Pass_Q_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of |hstream_v1|, directly defined by the user."""
-    CLASSES = (hstream_control.Lag,
-               hstream_control.Damp)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of |hstream_v1|, indirectly defined by the user."""
-    CLASSES = (hstream_derived.NmbSegments,
-               hstream_derived.C1,
-               hstream_derived.C3,
-               hstream_derived.C2)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of |hstream_v1|."""
-    CLASSES = (hstream_states.QJoints,)
-
-
-class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of |hstream_v1|."""
-    CLASSES = (hstream_inlets.Q,)
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of hstream_v1."""
-    CLASSES = (hstream_outlets.Q,)
+    SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |hstream_v1|."""
+    # pylint: disable=no-member
+    # bug of pylint 2.4?
     CLASSES = hstream_masks.Masks.CLASSES
 
 

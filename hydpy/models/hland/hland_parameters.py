@@ -51,6 +51,15 @@ class ParameterComplete(parametertools.ZipParameter):
     1.8
     >>> round_(pcorr.average_values(model.masks.field, 'forest'))
     1.8
+
+    All other masks (e.g. |hland_masks.Soil| used by |ParameterSoil|
+    subclasses as |hland_control.IcMax|) are subsets of mask
+    |hland_masks.Complete|:
+
+    >>> icmax.mask in pcorr.mask
+    True
+    >>> pcorr.mask in icmax.mask
+    False
     """
     MODEL_CONSTANTS = hland_constants.CONSTANTS
     mask = hland_masks.Complete()

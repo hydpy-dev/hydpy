@@ -5,21 +5,16 @@
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.models.test import test_control
+from hydpy.models.test import test_solver
+from hydpy.models.test import test_fluxes
+from hydpy.models.test import test_states
 
 
-def calc_q_v1(self):
+class Calc_Q_V1(modeltools.Method):
     """Calculate the actual storage loss.
 
     This simple equation is continuous but potentially stiff.
-
-    Required control parameter:
-      |K|
-
-    Required state sequence:
-     |S|
-
-    Calculated flux sequence:
-      |Q|
 
     Basic equation:
       :math:`Q = K \\cdot S`
@@ -34,25 +29,27 @@ def calc_q_v1(self):
        >>> fluxes.q
        q(1.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    flu.q = con.k*sta.s
+    CONTROLPARAMETERS = (
+        test_control.K,
+    )
+    REQUIREDSEQUENCES = (
+        test_states.S,
+    )
+    RESULTSEQUENCES = (
+        test_fluxes.Q,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu.q = con.k*sta.s
 
 
-def calc_q_v2(self):
+class Calc_Q_V2(modeltools.Method):
     """Calculate the actual storage loss.
 
     This simple equation is discontinuous.
-
-    Required control parameter:
-      |K|
-
-    Required state sequence:
-      |S|
-
-    Calculated flux sequence:
-      |Q|
 
     Basic equation:
       :math:`Q = \\Bigl \\lbrace
@@ -76,23 +73,66 @@ def calc_q_v2(self):
        >>> fluxes.q
        q(0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    if sta.s > 0.:
-        flu.q = con.k
-    else:
-        flu.q = 0.
+    CONTROLPARAMETERS = (
+        test_control.K,
+    )
+    REQUIREDSEQUENCES = (
+        test_states.S,
+    )
+    RESULTSEQUENCES = (
+        test_fluxes.Q,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        if sta.s > 0.:
+            flu.q = con.k
+        else:
+            flu.q = 0.
 
 
-def calc_s_v1(self):
+class Calc_QV_V1(modeltools.Method):
+    """Calculate the actual storage losses.
+
+    Identical with |Calc_Q_V1|, but working on a vector of states.
+
+    Basic equation:
+      :math:`Q = K \\cdot S`
+
+    Example:
+
+       >>> from hydpy.models.test import *
+       >>> parameterstep()
+       >>> n(2)
+       >>> k(0.5)
+       >>> states.sv = 2.0, 3.0
+       >>> model.calc_qv_v1()
+       >>> fluxes.qv
+       qv(1.0, 1.5)
+    """
+    CONTROLPARAMETERS = (
+        test_control.N,
+        test_control.K,
+    )
+    REQUIREDSEQUENCES = (
+        test_states.SV,
+    )
+    RESULTSEQUENCES = (
+        test_fluxes.QV,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for i in range(con.n):
+            flu.qv[i] = con.k*sta.sv[i]
+
+
+class Calc_S_V1(modeltools.Method):
     """Calculate the actual storage content.
-
-    Required flux sequence:
-      |Q|
-
-    Calculated state sequence:
-     |S|
 
     Basic equation:
       :math:`\\frac{dS}{dt} = Q`
@@ -107,18 +147,79 @@ def calc_s_v1(self):
        >>> states.s
        s(0.2)
     """
-    flu = self.sequences.fluxes.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    new.s = old.s-flu.q
+    REQUIREDSEQUENCES = (
+        test_fluxes.Q,
+    )
+    UPDATEDSEQUENCES = (
+        test_states.S,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.s = old.s-flu.q
+
+
+class Calc_SV_V1(modeltools.Method):
+    """Calculate the actual storage contenst.
+
+    Identical with |Calc_S_V1|, but working on a vector of fluxes.
+
+    Basic equation:
+      :math:`\\frac{dS}{dt} = Q`
+
+    Example:
+
+       >>> from hydpy.models.test import *
+       >>> parameterstep()
+       >>> n(2)
+       >>> states.sv.old = 1.0, 2.0
+       >>> fluxes.qv = 0.8
+       >>> model.calc_sv_v1()
+       >>> states.sv
+       sv(0.2, 1.2)
+    """
+    CONTROLPARAMETERS = (
+        test_control.N,
+    )
+    REQUIREDSEQUENCES = (
+        test_fluxes.QV,
+    )
+    UPDATEDSEQUENCES = (
+        test_states.SV,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        for i in range(con.n):
+            new.sv[i] = old.sv[i]-flu.qv[i]
 
 
 class Model(modeltools.ELSModel):
     """Test model."""
+    SOLVERPARAMETERS = (
+        test_solver.AbsErrorMax,
+        test_solver.RelErrorMax,
+        test_solver.RelDTMin,
+        test_solver.RelDTMax,
+    )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
-    PART_ODE_METHODS = (calc_q_v1,
-                        calc_q_v2)
-    FULL_ODE_METHODS = (calc_s_v1,)
+    ADD_METHODS = ()
+    PART_ODE_METHODS = (
+        Calc_Q_V1,
+        Calc_Q_V2,
+        Calc_QV_V1,
+    )
+    FULL_ODE_METHODS = (
+        Calc_S_V1,
+        Calc_SV_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELS = ()

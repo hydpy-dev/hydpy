@@ -25,11 +25,3 @@ class TN(sequencetools.InputSequence):
 class EPN(sequencetools.InputSequence):
     """Normal potential evaporation [mm]."""
     NDIM, NUMERIC = 0, False
-
-
-class InputSequences(sequencetools.InputSequences):
-    """Input sequences of the hland model."""
-    CLASSES = (P,
-               T,
-               TN,
-               EPN)

@@ -26,18 +26,18 @@ from hydpy.core.typingtools import *
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
-    Function |parameterstep| should usually be applied in a line
-    immediately behind the model import.  Defining the step size of
-    time-dependent parameters is a prerequisite to access any
-    model-specific parameter.
+    Function |parameterstep| should usually be applied in a line immediately
+    behind the model import or behind calling function |simulationstep|.
+    Defining the step size of time-dependent parameters is a prerequisite to
+    access any model-specific parameter.
 
-    Note that |parameterstep| implements some namespace magic utilizing
+    Note that |parameterstep| implements some namespace magic utilising
     the module |inspect|, which makes things a little complicated for
-    framework developers, but it eases the definition of parameter
+    framework developers.  Still it eases the definition of parameter
     control files for framework users.
     """
     if timestep is not None:
-        parametertools.Parameter.parameterstep(timestep)
+        hydpy.pub.options.parameterstep = timestep
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
@@ -69,8 +69,11 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
         for seqs in model.sequences:
             namespace[seqs.name] = seqs
         if 'Masks' in namespace:
-            model.masks = namespace['Masks'](model)
+            model.masks = namespace['Masks']()
             namespace['masks'] = model.masks
+        for submodelclass in namespace['Model'].SUBMODELS:
+            submodel = submodelclass(model)
+            setattr(model, submodel.name, submodel)
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:
@@ -174,15 +177,15 @@ def reverse_model_wildcard_import() -> None:
         for subpars in model.parameters:
             for par in subpars:
                 namespace.pop(par.name, None)
-                namespace.pop(objecttools.classname(par), None)
+                namespace.pop(type(par).__name__, None)
             namespace.pop(subpars.name, None)
-            namespace.pop(objecttools.classname(subpars), None)
+            namespace.pop(type(subpars).__name__, None)
         for subseqs in model.sequences:
             for seq in subseqs:
                 namespace.pop(seq.name, None)
-                namespace.pop(objecttools.classname(seq), None)
+                namespace.pop(type(seq).__name__, None)
             namespace.pop(subseqs.name, None)
-            namespace.pop(objecttools.classname(subseqs), None)
+            namespace.pop(type(subseqs).__name__, None)
         for name in ('parameters', 'sequences', 'masks', 'model',
                      'Parameters', 'Sequences', 'Masks', 'Model',
                      'cythonizer', 'cymodel', 'cythonmodule'):
@@ -213,7 +216,7 @@ def prepare_model(module: Union[types.ModuleType, str],
     |prepare_model| properly.
     """
     if timestep is not None:
-        parametertools.Parameter.parameterstep(timetools.Period(timestep))
+        hydpy.pub.options.parameterstep = timetools.Period(timestep)
     try:
         model = module.Model()
     except AttributeError:
@@ -244,19 +247,22 @@ def prepare_model(module: Union[types.ModuleType, str],
     model.parameters = prepare_parameters(dict_)
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
-        model.masks = module.Masks(model)
+        model.masks = module.Masks()
+    for submodelclass in module.Model.SUBMODELS:
+        submodel = submodelclass(model)
+        setattr(model, submodel.name, submodel)
     return model
 
 
 def simulationstep(timestep) -> None:
-    """ Define a simulation time step size for testing purposes within a
+    """Define a simulation time step size for testing purposes within a
     parameter control file.
 
     Using |simulationstep| only affects the values of time-dependent
     parameters, when `pub.timegrids.stepsize` is not defined.  It thus
-    does not influence usual hydpy simulations at all.  Use it to check
+    does not influence usual *HydPy* simulations at all.  Use it to check
     your parameter control files.  Write it in a line immediately behind
-    the line calling function |parameterstep|.
+    the model import.
 
     To clarify its purpose, function |simulationstep| raises a warning
     when executed from within a control file:
@@ -269,15 +275,16 @@ def simulationstep(timestep) -> None:
     >>> from hydpy import pub
     >>> with pub.options.warnsimulationstep(True):
     ...     from hydpy.models.hland_v1 import *
-    ...     parameterstep('1d')
     ...     simulationstep('1h')
+    ...     parameterstep('1d')
     Traceback (most recent call last):
     ...
     UserWarning: Note that the applied function `simulationstep` is intended \
 for testing purposes only.  When doing a HydPy simulation, parameter values \
 are initialised based on the actual simulation time step as defined under \
 `pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.
-    >>> k4.simulationstep
+
+    >>> pub.options.simulationstep
     Period('1h')
     """
     if hydpy.pub.options.warnsimulationstep:
@@ -287,7 +294,7 @@ are initialised based on the actual simulation time step as defined under \
             'values are initialised based on the actual simulation time step '
             'as defined under `pub.timegrids.stepsize` and the value given '
             'to `simulationstep` is ignored.')
-    parametertools.Parameter.simulationstep(timestep)
+    hydpy.pub.options.simulationstep = timestep
 
 
 def controlcheck(
@@ -324,7 +331,7 @@ def controlcheck(
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write('\\n'.join(lines))
     ...     print()
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     <BLANKLINE>
     ...
     While trying to set the value(s) of variable `sm`, the following error \
@@ -433,7 +440,7 @@ the following error occurred: ...
 
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
 
     If the directory name does imply the initialisation date to be within
     January 2000 instead of July 2000, we correctly get the following warning:
@@ -443,7 +450,7 @@ the following error occurred: ...
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     For variable `inzp` at least one value needed to be trimmed.  \
@@ -453,10 +460,10 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     One can define an alternative initialisation date via argument
     `firstdate`:
 
-    >>> text_old = ('controlcheck(projectdir="LahnH", '
-    ...             'controldir="default", stepsize="1d")')
-    >>> text_new = ('controlcheck(projectdir="LahnH", controldir="default", '
-    ...             'firstdate="2100-07-15", stepsize="1d")')
+    >>> text_old = ("controlcheck(projectdir=r'LahnH', "
+    ...             "controldir='default', stepsize='1d')")
+    >>> text_new = ("controlcheck(projectdir=r'LahnH', controldir='default', "
+    ...             "firstdate='2100-07-15', stepsize='1d')")
     >>> with TestIO():
     ...     os.chdir(cwd_new)
     ...     with open('land_dill.py') as file_:
@@ -464,7 +471,7 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     text = text.replace(text_old, text_new)
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
 
     Default condition directory names do not contain any information about
     the simulation step size.  Hence, one needs to define it explicitly for
@@ -474,10 +481,10 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     os.chdir(cwd_new)
     ...     with open('land_dill.py') as file_:
     ...         text = file_.read()
-    ...     text = text.replace('stepsize="1d"', '')
+    ...     text = text.replace("stepsize='1d'", '')
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     To apply function `controlcheck` requires time information for some \
@@ -497,10 +504,10 @@ as function arguments.
     ...     os.chdir(cwd_new)
     ...     with open('land_dill.py') as file_:
     ...         text = file_.read()
-    ...     text = text.replace('firstdate="2100-07-15"', 'stepsize="1d"')
+    ...     text = text.replace("firstdate='2100-07-15'", "stepsize='1d'")
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write(text)
-    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    ...     result = run_subprocess('hyd.py exec_script land_dill.py')
     Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
 in the following error:
     To apply function `controlcheck` requires time information for some \
@@ -526,7 +533,10 @@ as function arguments.
                         os.path.split(os.getcwd())[0])[0])[-1])
         dirpath = os.path.abspath(os.path.join(
             '..', '..', '..', projectdir, 'control', controldir))
-        if hydpy.pub.get('timegrids') is None and stepsize is not None:
+        if not (
+                exceptiontools.attrready(hydpy.pub, 'timegrids') or
+                (stepsize is None)
+        ):
             if firstdate is None:
                 try:
                     firstdate = timetools.Date.from_string(
@@ -556,13 +566,14 @@ as function arguments.
             os.chdir(cwd)
         try:
             model.parameters.update()
-        except exceptiontools.AttributeNotReady:
+        except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
                 'To apply function `controlcheck` requires time '
                 'information for some model types.  Please define '
                 'the `Timegrids` object of module `pub` manually '
                 'or pass the required information (`stepsize` and '
-                'eventually `firstdate`) as function arguments.')
+                'eventually `firstdate`) as function arguments.'
+            ) from exc
 
         namespace['model'] = model
         for name in ('states', 'logs'):

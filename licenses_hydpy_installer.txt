@@ -12,6 +12,7 @@ setuptools: https://github.com/pypa/setuptools/blob/master/LICENSE
 pyparsing: https://github.com/pyparsing/pyparsing/blob/master/LICENSE
 python-dateutil: https://github.com/dateutil/dateutil/blob/master/LICENSE
 NetCDF4: https://github.com/Unidata/netcdf4-python/blob/master/COPYING
+NetworkX: https://github.com/networkx/networkx/blob/master/LICENSE.txt
 cftime: https://github.com/Unidata/cftime/blob/master/COPYING
 pandas: https://github.com/pandas-dev/pandas/blob/master/LICENSE
 pytz: https://github.com/newvem/pytz/blob/master/LICENSE.txt
@@ -22,6 +23,8 @@ PyYAML: https://github.com/yaml/pyyaml/blob/master/LICENSE
 packaging: https://github.com/pypa/packaging/blob/master/LICENSE
 attrs: https://github.com/python-attrs/attrs/blob/master/LICENSE
 Pillow: https://github.com/python-pillow/Pillow/blob/master/LICENSE
+plotly: https://github.com/plotly/plotly.py/blob/master/LICENSE.txt
+retrying: https://github.com/rholder/retrying/blob/master/LICENSE
 tornado: https://github.com/tornadoweb/tornado/blob/stable/LICENSE
 wrapt: https://github.com/GrahamDumpleton/wrapt/blob/develop/LICENSE
 bokeh: https://github.com/bokeh/bokeh/blob/master/LICENSE.txt

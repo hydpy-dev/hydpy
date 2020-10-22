@@ -106,8 +106,10 @@ class Dummies:
         try:
             obj = object.__getattribute__(self, '_'+name)
         except AttributeError:
-            raise AttributeError('Dummies object does not handle an object '
-                                 'named `%s` at the moment.' % name)
+            raise AttributeError(
+                f'Dummies object does not handle an object '
+                f'named `{name}` at the moment.'
+            ) from None
         try:
             return copy.deepcopy(obj)
         except BaseException:

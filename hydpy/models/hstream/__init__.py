@@ -8,11 +8,6 @@ routing problem.
 # ...from HydPy
 from hydpy.exe.modelimports import *
 # ...from hstream
-from hydpy.models.hstream.hstream_control import ControlParameters
-from hydpy.models.hstream.hstream_derived import DerivedParameters
-from hydpy.models.hstream.hstream_states import StateSequences
-from hydpy.models.hstream.hstream_inlets import InletSequences
-from hydpy.models.hstream.hstream_outlets import OutletSequences
 from hydpy.models.hstream.hstream_masks import Masks
 from hydpy.models.hstream.hstream_model import Model
 

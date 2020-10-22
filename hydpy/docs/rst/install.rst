@@ -1,6 +1,6 @@
 
 .. _Python Package Index: https://pypi.org/project/HydPy/
-.. _Python 3.6 or 3.7: https://www.python.org/downloads/
+.. _Python 3.6, 3.7, or 3.8: https://www.python.org/downloads/
 .. _numpy: http://www.numpy.org/
 .. _netcdf4: http://unidata.github.io/netcdf4-python/
 .. _Kalypso: https://kalypso.bjoernsen.de/index.php?id=382&L=1
@@ -24,7 +24,7 @@ Installation Instructions
 =========================
 
 Starting with version 3.0 *HydPy* is available on the
-`Python Package Index`_.  That means, with `Python 3.6 or 3.7`_
+`Python Package Index`_.  That means, with `Python 3.6, 3.7, or 3.8`_
 on your computer and having access to the internet, you only have
 to type::
 
@@ -54,7 +54,7 @@ for the latest version of the *HydPy* installer.
 Selecting a Python distribution
 --------------------------------
 
-Using *HydPy* requires installing `Python 3.6 or 3.7`_ first.  If you
+Using *HydPy* requires installing `Python 3.6, 3.7, or 3.8`_ first.  If you
 are new to Python, we recommend installing a convenient Python distribution
 like `Anaconda`_, already containing many scientific and mathematical tools
 as well as the integrated development environment `Spyder`_.  A more

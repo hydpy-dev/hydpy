@@ -11,42 +11,200 @@ https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894
 # import...
 # ...from standard library
 import abc
+import importlib
+import itertools
 import os
 import types
 from typing import *
 # ...from site-packages
-from typing import Dict, Set
-
 import numpy
 # ...from HydPy
 from hydpy import conf
+from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core import variabletools
 from hydpy.cythons import modelutils
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
     from hydpy.core import masktools
-    from hydpy.core import sequencetools
+
+
+class Method:
+    """Base class for defining (hydrological) calculation methods."""
+    SUBMETHODS: Tuple[Type['Method'], ...] = ()
+    CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+
+    __call__: Callable
+
+    def __init_subclass__(cls):
+        cls.__call__.CYTHONIZE = True
+
+
+class IndexProperty:
+    """Base class for index descriptors like |Idx_Sim|."""
+
+    def __set_name__(self, owner: 'Model', name: str) -> None:
+        self.name = name.lower()
+
+    def __get__(self, obj: 'Model', objtype=None):
+        if obj is None:
+            return self
+        if obj.cymodel:
+            return getattr(obj.cymodel, self.name)
+        return vars(obj).get(self.name, 0)
+
+    def __set__(self, obj: 'Model', value: int) -> None:
+        if obj.cymodel:
+            setattr(obj.cymodel, self.name, value)
+        else:
+            vars(obj)[self.name] = value
+
+
+class Idx_Sim(IndexProperty):
+    # noinspection PyUnresolvedReferences
+    """The simulation step index.
+
+    Some model methods require to know the index of the current simulation
+    step (with respect to the initialisation period), which one usually
+    updates by passing it to |Model.simulate|.  However, you are allowed
+    to change it manually via the |modeltools.Idx_Sim| descriptor, which is
+    often beneficial during testing:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep('1d')
+    >>> model.idx_sim
+    0
+    >>> model.idx_sim = 1
+    >>> model.idx_sim
+    1
+
+    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects
+    are aware of their name:
+
+    >>> Model.idx_sim.name
+    'idx_sim'
+    """
+
+
+class Idx_HRU(IndexProperty):
+    """The hydrological response unit index.
+
+    See class :class:`~hydpy.core.modeltools.Idx_HRU` for an
+    explanation  on the purpose and handling of objects of
+    :class:`~hydpy.core.modeltools.IndexProperty` subclasses.
+    """
 
 
 class Model:
+    # noinspection PyUnresolvedReferences
     """Base class for all hydrological models.
 
     Class |Model| provides everything to create a usable application
     model, except method |Model.simulate|.  See class |AdHocModel| and
     |ELSModel|, which implement this method.
+
+    Each final |Model| object has two attributes named `parameters` and
+    `sequences`, providing access to all parameter and sequence values,
+    respectively.  For example, the application model |hland_v1| so
+    provides access to the control parameter |hland_control.NmbZones|
+    and the input sequence |hland_inputs.P|:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep('1d')
+    >>> model.parameters.control.nmbzones
+    nmbzones(?)
+    >>> model.sequences.inputs.p
+    p(nan)
+
+    Both attributes are dynamic.  You need to add them manually whenever
+    you want to prepare a workable |Model| object on your own (see the
+    factory functions |prepare_model| and |parameterstep|, which do this
+    regularly).  In case you forget to do so, you get the following
+    error message:
+
+    >>> from hydpy.models.hland_v1 import Model
+    >>> Model().parameters
+    Traceback (most recent call last):
+    ...
+    AttributeError: The dynamic attribute `parameters` of `hland_v1` of \
+element `?` is not available at the moment.
+    >>> Model().sequences
+    Traceback (most recent call last):
+    ...
+    AttributeError: The dynamic attribute `sequences` of `hland_v1` of \
+element `?` is not available at the moment.
+
+    Other wrong attribute names result in the familiar error message:
+
+    >>> Model().wrong
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'Model' object has no attribute 'wrong'
+
+    Similar to `parameters` and `sequences`, there is also the dynamic
+    `masks` attribute, making all predefined masks of the actual model
+    type available within in a |Masks| objects:
+
+    >>> model.masks
+    complete of module hydpy.models.hland.hland_masks
+    land of module hydpy.models.hland.hland_masks
+    noglacier of module hydpy.models.hland.hland_masks
+    soil of module hydpy.models.hland.hland_masks
+    field of module hydpy.models.hland.hland_masks
+    forest of module hydpy.models.hland.hland_masks
+    ilake of module hydpy.models.hland.hland_masks
+    glacier of module hydpy.models.hland.hland_masks
+
+    You can use these masks, for example, to average the zone-specific
+    precipitation values handled by sequence |hland_fluxes.PC|.
+    When passing no argument, method |Variable.average_values|
+    applies the `complete` mask.  Pass mask `land` to average the
+    values of all zones except those of type |hland_constants.ILAKE|:
+
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> zonearea(1.0)
+    >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
+    >>> fluxes.pc.average_values()
+    4.0
+    >>> fluxes.pc.average_values(model.masks.land)
+    3.0
+
+    Attribute `masks` is, in contrast to attributes `parameters` and
+    `sequences`, optional, which we indicate by a different error message:
+
+    >>> from hydpy import prepare_model
+    >>> prepare_model('test_v1').masks
+    Traceback (most recent call last):
+    ...
+    AttributeError: Model ``test_v1` of element `?`` does not handle \
+a group of masks (at the moment).
     """
 
     element: Optional['devicetools.Element']
     cymodel: Optional[typingtools.CyModelProtocol]
     _name: ClassVar[Optional[str]] = None
+    parameters: parametertools.Parameters
+    sequences: sequencetools.Sequences
+    masks: 'masktools.Masks'
+    idx_sim = Idx_Sim()
 
-    INLET_METHODS: Tuple[Callable, ...]
-    OUTLET_METHODS: Tuple[Callable, ...]
-    RECEIVER_METHODS: Tuple[Callable, ...]
-    SENDER_METHODS: Tuple[Callable, ...]
-    _METHOD_GROUPS: Tuple[str, ...]
+    INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
+    METHOD_GROUPS: ClassVar[Tuple[Type[Method], ...]]
+    SUBMODELS: ClassVar[Tuple[Type['Submodel'], ...]]
+
+    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
     def __init__(self) -> None:
         self.cymodel = None
@@ -55,15 +213,14 @@ class Model:
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to
-        methods and assign them to the model instance.
-        """
-        for name_group in self._METHOD_GROUPS:
+        methods and assign them to the model instance."""
+        for name_group in self.METHOD_GROUPS:
             functions = getattr(self, name_group, ())
             shortname2method: Dict[str, types.MethodType] = {}
             shortnames: Set[str] = set()
             for func in functions:
-                name_func = func.__name__
-                method = types.MethodType(func, self)
+                method = types.MethodType(func.__call__, self)
+                name_func = func.__name__.lower()
                 setattr(self, name_func, method)
                 shortname = '_'.join(name_func.split('_')[:-1])
                 if shortname not in shortnames:
@@ -76,20 +233,22 @@ class Model:
                     setattr(self, shortname, method)
 
     def connect(self) -> None:
-        """Connect all |LinkSequence| objects of the actual model to
-        the corresponding |NodeSequence| objects.
+        # noinspection PyUnresolvedReferences
+        """Connect all |LinkSequence| objects and the selected |InputSequence|
+        and |OutputSequence| objects of the actual model to the corresponding
+        |NodeSequence| objects.
 
-        You cannot connect the link sequences until the |Model| object
-        itself is connected to an |Element| object referencing the
-        required |Node| objects:
+        You cannot connect any sequences until the |Model| object itself
+        is connected to an |Element| object referencing the required |Node|
+        objects:
 
         >>> from hydpy import prepare_model
         >>> prepare_model('hstream_v1').connect()
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the node connection of the \
-`inlet` sequences of the model handled by element `?`, the following \
-error occurred: 'NoneType' object has no attribute 'inlets'
+`input` sequences of the model handled by element `?`, the following \
+error occurred: 'NoneType' object has no attribute 'inputs'
 
         The application model |hstream_v1| can receive inflow from an
         arbitrary number of upstream nodes and passes its outflow to
@@ -124,8 +283,8 @@ error occurred: 'NoneType' object has no attribute 'inlets'
         sim(6.0)
 
         To show some possible errors and related error messages, we
-        define three additional nodes of, two handling variables
-        different from discharge (`Q`):
+        define three additional nodes, two handling variables different
+        from discharge (`Q`):
 
         >>> in3 = Node('in3', variable='X')
         >>> out2 = Node('out2', variable='Q')
@@ -198,15 +357,221 @@ to any sequences: in2.
 `sender` sequences of the model handled by element `element7`, the \
 following error occurred: The following nodes have not been connected \
 to any sequences: in2.
+
+        The above examples explain how to connect link sequences to their
+        nodes.  Such connections are relatively hard requirements
+        (|hstream_v1| definitively needs inflow provided from a node,
+        which the node itself typically receives from another model).
+        In contrast, connections between input or output sequences and nodes
+        are optional.  If one defines such a connection for an input sequence,
+        it receives data from the related node; otherwise, it uses its
+        individually managed data, usually read from a file.  If one defines
+        such a connection for an output sequence, it passes its internal
+        data to the related node; otherwise, nothing happens.
+
+        We demonstrate this functionality by focussing on the input sequences
+        |hland_inputs.T| and |hland_inputs.P| and the output sequences
+        |hland_fluxes.Q0| and |hland_states.UZ| of application model |hland_v1|.
+        |hland_inputs.T| uses its own data (which we define manually, but we
+        could read it from a file as well), whereas |hland_inputs.P| gets its
+        data from node `inp1`.  Flux sequence |hland_fluxes.Q0| and state
+        sequence |hland_states.UZ| pass their data to two separate output
+        nodes, whereas all other fluxes and states do not.  This functionality
+        requires to tell each node which sequence it should connect to, which
+        we do by passing the sequence types (or the globally available aliases
+        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword
+        of different node objects:
+
+        >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
+
+        >>> inp1 = Node('inp1', variable=hland_P)
+        >>> outp1 = Node('outp1', variable=hland_Q0)
+        >>> outp2 = Node('outp2', variable=hland_UZ)
+        >>> element8 = Element('element8',
+        ...                    outlets=out1,
+        ...                    inputs=inp1,
+        ...                    outputs=[outp1, outp2])
+        >>> element8.model = prepare_model('hland_v1')
+        >>> element8.prepare_inputseries()
+        >>> element8.model.idx_sim = 2
+        >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
+        >>> inp1.sequences.sim(9.0)
+        >>> element8.model.load_data()
+        >>> element8.model.sequences.inputs.t
+        t(3.0)
+        >>> element8.model.sequences.inputs.p
+        p(9.0)
+        >>> element8.model.sequences.fluxes.q0 = 99.0
+        >>> element8.model.sequences.states.uz = 999.0
+        >>> element8.model.update_outputs()
+        >>> outp1.sequences.sim
+        sim(99.0)
+        >>> outp2.sequences.sim
+        sim(999.0)
+
+        Instead of using single |InputSequence| and |OutputSequence|
+        subclasses, one can create and apply fused variables, combining
+        multiple subclasses (see the documentation on class |FusedVariable|
+        for more information and a more realistic example):
+
+        >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
+        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
+        >>> inp2 = Node('inp2', variable=Precip)
+        >>> FastRunoff = FusedVariable('FastRunoff', hland_Q0, lland_QDGZ)
+        >>> outp3 = Node('outp3', variable=FastRunoff)
+        >>> element9 = Element('element9',
+        ...                    outlets=out1,
+        ...                    inputs=inp2,
+        ...                    outputs=outp3)
+        >>> element9.model = prepare_model('hland_v1')
+        >>> inp2.sequences.sim(9.0)
+        >>> element9.model.load_data()
+        >>> element9.model.sequences.inputs.p
+        p(9.0)
+        >>> element9.model.sequences.fluxes.q0 = 99.0
+        >>> element9.model.update_outputs()
+        >>> outp3.sequences.sim
+        sim(99.0)
+
+        Method |Model.connect| reports if one of the given fused variables
+        does not find a fitting sequence:
+
+        >>> from hydpy import lland_TemL
+        >>> Wrong = FusedVariable('Wrong', lland_Nied, lland_TemL)
+        >>> inp3 = Node('inp3', variable=Wrong)
+        >>> element10 = Element('element10',
+        ...                     outlets=out1,
+        ...                     inputs=inp3)
+        >>> element10.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the \
+`input` sequences of the model handled by element `element10`, the following \
+error occurred: None of the input sequences of model `hland_v1` is among \
+the sequences of the fused variable `Wrong` of node `inp3`.
+
+        >>> outp4 = Node('outp4', variable=Wrong)
+        >>> element11 = Element('element11',
+        ...                     outlets=out1,
+        ...                     outputs=outp4)
+        >>> element11.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the \
+`output` sequences of the model handled by element `element11`, the \
+following error occurred: None of the output sequences of model `hland_v1` \
+is among the sequences of the fused variable `Wrong` of node `outp4`.
+
+        Selecting wrong sequences results in the following errors messages:
+
+        >>> outp5 = Node('outp5', variable=hland_Q0)
+        >>> element12 = Element('element12',
+        ...                     outlets=out1,
+        ...                     inputs=outp5)
+        >>> element12.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element12`, the following error \
+occurred: No input sequence of model hland_v1` is named `q0`.
+
+        >>> inp5 = Node('inp5', variable=hland_P)
+        >>> element13 = Element('element13',
+        ...                     outlets=out1,
+        ...                     outputs=inp5)
+        >>> element13.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `output` \
+sequences of the model handled by element `element13`, the following error \
+occurred: No flux or state sequence of model `hland_v1` is named `p`.
+
+        So far, you can build connections to 0-dimensional output sequences
+        only:
+
+        >>> from hydpy.models.hland.hland_fluxes import PC
+        >>> outp6 = Node('outp6', variable=PC)
+        >>> element14 = Element('element14',
+        ...                     outlets=out1,
+        ...                     outputs=outp6)
+        >>> element14.model = prepare_model('hland_v1')
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to build the node connection of the `output` \
+sequences of the model handled by element `element14`, the following error \
+occurred: Only connections with 0-dimensional output sequences are supported, \
+but sequence `pc` is 1-dimensional.
+
+        .. testsetup::
+
+            >>> Node.clear_all()
+            >>> Element.clear_all()
+            >>> FusedVariable.clear_registry()
         """
+        group = 'inputs'
         try:
+            for node in self.element.inputs:
+                if isinstance(node.variable, devicetools.FusedVariable):
+                    for sequence in self.sequences.inputs:
+                        if sequence in node.variable:
+                            break
+                    else:
+                        raise TypeError(
+                            f'None of the input sequences of model `{self}` '
+                            f'is among the sequences of the fused variable '
+                            f'`{node.variable}` of node `{node.name}`.'
+                        )
+                else:
+                    name = node.variable.__name__.lower()
+                    try:
+                        sequence = getattr(self.sequences.inputs, name)
+                    except AttributeError:
+                        raise TypeError(
+                            f'No input sequence of model '
+                            f'{self}` is named `{name}`.'
+                        ) from None
+                sequence.set_pointer(node.get_double(group))
+            group = 'outputs'
+            for node in self.element.outputs:
+                if isinstance(node.variable, devicetools.FusedVariable):
+                    for sequence in itertools.chain(
+                            self.sequences.fluxes,
+                            self.sequences.states,
+                    ):
+                        if sequence in node.variable:
+                            break
+                    else:
+                        raise TypeError(
+                            f'None of the output sequences of model `{self}` '
+                            f'is among the sequences of the fused variable '
+                            f'`{node.variable}` of node `{node.name}`.'
+                        )
+                else:
+                    name = node.variable.__name__.lower()
+                    sequence = getattr(self.sequences.fluxes, name, None)
+                    if sequence is None:
+                        sequence = getattr(self.sequences.states, name, None)
+                    if sequence is None:
+                        raise TypeError(
+                            f'No flux or state sequence of model '
+                            f'`{self}` is named `{name}`.'
+                        )
+                if sequence.NDIM > 0:
+                    raise TypeError(
+                        f'Only connections with 0-dimensional output '
+                        f'sequences are supported, but sequence '
+                        f'`{sequence.name}` is {sequence.NDIM}-dimensional.'
+                    )
+                sequence.set_pointer(node.get_double(group))
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to build the node connection of '
                 f'the `{group[:-1]}` sequences of the model handled '
-                f'by element `{objecttools.devicename(self)}`')
+                f'by element `{objecttools.devicename(self)}`'
+            )
 
     def _connect_subgroup(self, group: str) -> None:
         available_nodes = getattr(self.element, group)
@@ -214,7 +579,7 @@ to any sequences: in2.
         applied_nodes = []
         for seq in links:
             selected_nodes = tuple(node for node in available_nodes
-                                   if node.variable.lower() == seq.name)
+                                   if str(node.variable).lower() == seq.name)
             if seq.NDIM == 0:
                 if not selected_nodes:
                     raise RuntimeError(
@@ -270,99 +635,6 @@ to any sequences: in2.
             type(self)._name = name
         return name
 
-    @property
-    def parameters(self) -> parametertools.Parameters:
-        """All parameters of the actual model.
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> hasattr(model, 'parameters')
-        True
-
-        When using the standard model import mechanism (see functions
-        |parameterstep| and |prepare_model|) and not demolishing a
-        correctly prepared model, you should never encounter a
-        situation where the following error occurs:
-
-        >>> del vars(model)['parameters']
-        >>> model.parameters
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `hland_v1` of element `?` does not handle \
-any parameters so far.
-        """
-        parameters = vars(self).get('parameters')
-        if parameters is None:
-            raise AttributeError(
-                f'Model {objecttools.elementphrase(self)} '
-                f'does not handle any parameters so far.')
-        return parameters
-
-    @parameters.setter
-    def parameters(self, parameters: parametertools.Parameters) -> None:
-        vars(self)['parameters'] = parameters
-
-    @property
-    def sequences(self) -> 'sequencetools.Sequences':
-        """All sequences of the actual model.
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> hasattr(model, 'sequences')
-        True
-
-        When using the standard model import mechanism (see functions
-        |parameterstep| and |prepare_model|) and not demolishing a
-        correctly prepared model, you should never encounter a
-        situation where the following error occurs:
-
-        >>> del vars(model)['sequences']
-        >>> model.sequences
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `hland_v1` of element `?` does not handle \
-any sequences so far.
-        """
-        sequences = vars(self).get('sequences')
-        if sequences is None:
-            raise AttributeError(
-                f'Model {objecttools.elementphrase(self)} '
-                f'does not handle any sequences so far.')
-        return sequences
-
-    @sequences.setter
-    def sequences(self, sequences: 'sequencetools.Sequences') -> None:
-        vars(self)['sequences'] = sequences
-
-    @property
-    def idx_sim(self) -> int:
-        """The index of the current simulation time step.
-
-        Some methods require to know the index of the current simulation
-        step (with respect to the initialisation period),  which one
-        usually updates by passing it to method  |Model.simulate|.
-        However, you are allowed to change it manually, which is often
-        beneficial when testing some methods:
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> model.idx_sim
-        0
-        >>> model.idx_sim = 1
-        >>> model.idx_sim
-        1
-        """
-        if self.cymodel:
-            return self.cymodel.idx_sim
-        return vars(self).get('idx_sim', 0)
-
-    @idx_sim.setter
-    def idx_sim(self, value: int) -> None:
-        if self.cymodel:
-            self.cymodel.idx_sim = value
-        else:
-            vars(self)['idx_sim'] = int(value)
-
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
@@ -389,9 +661,17 @@ any sequences so far.
     def update_inlets(self) -> None:
         """Call all methods defined as "INLET_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     INLET_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     INLET_METHODS = print_1, print_2
         >>> Test().update_inlets()
         1
         2
@@ -400,14 +680,22 @@ any sequences so far.
         this generic Python version with a model-specific Cython version.
         """
         for method in self.INLET_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_outlets(self) -> None:
         """Call all methods defined as "OUTLET_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     OUTLET_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     OUTLET_METHODS = print_1, print_2
         >>> Test().update_outlets()
         1
         2
@@ -416,16 +704,22 @@ any sequences so far.
         this generic Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_receivers(self, idx: int) -> None:
         """Call all methods defined as "RECEIVER_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...        print(test.idx_sim+1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(test.idx_sim+2)
         >>> class Test(AdHocModel):
-        ...     RECEIVER_METHODS = (
-        ...         lambda self: print(test.idx_sim+1),
-        ...         lambda self: print(test.idx_sim+2))
+        ...     RECEIVER_METHODS = print_1, print_2
         >>> test = Test()
         >>> test.update_receivers(1)
         2
@@ -436,16 +730,22 @@ any sequences so far.
         """
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_senders(self, idx: int) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...        print(test.idx_sim+1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(test.idx_sim+2)
         >>> class Test(AdHocModel):
-        ...     SENDER_METHODS = (
-        ...         lambda self: print(test.idx_sim+1),
-        ...         lambda self: print(test.idx_sim+2))
+        ...     SENDER_METHODS = print_1, print_2
         >>> test = Test()
         >>> test.update_senders(1)
         2
@@ -456,7 +756,7 @@ any sequences so far.
         """
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
-            method(self)
+            method.__call__(self)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute
@@ -468,62 +768,166 @@ any sequences so far.
         if self.sequences:
             self.sequences.states.new2old()
 
-    @property
-    def masks(self) -> 'masktools.Masks':
-        """All predefined masks of the actual model type contained in a
-        |Masks| objects.
+    def update_outputs(self) -> None:
+        """Call method |OutputSequences.update_outputs| of subattributes
+        `sequences.fluxes` and `sequences.states`.
 
-        To give an example, we show the masks implemented by the
-        |hland_v1| application model:
-
-        >>> from hydpy.models.hland_v1 import *
-        >>> parameterstep('1d')
-        >>> model.masks
-        complete of module hydpy.models.hland.hland_masks
-        land of module hydpy.models.hland.hland_masks
-        noglacier of module hydpy.models.hland.hland_masks
-        soil of module hydpy.models.hland.hland_masks
-        field of module hydpy.models.hland.hland_masks
-        forest of module hydpy.models.hland.hland_masks
-        ilake of module hydpy.models.hland.hland_masks
-        glacier of module hydpy.models.hland.hland_masks
-
-        You can use them, for example, to average the zone-specific
-        precipitation values handled by sequence |hland_fluxes.PC|.
-        When passing no argument, method |Variable.average_values|
-        applies the `complete` mask.  Pass mask `land` to average the
-        values of all zones except those of type |hland_constants.ILAKE|:
-
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-        >>> zonearea(1.0)
-        >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
-        >>> fluxes.pc.average_values()
-        4.0
-        >>> fluxes.pc.average_values(model.masks.land)
-        3.0
-
-        To try to query the masks of a model not implementing any masks
-        results in the following error:
-
-        >>> from hydpy import prepare_model
-        >>> prepare_model('test_v1').masks
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `test_v1` does not handle a group of masks.
+        When working in Cython mode, the standard model import overrides
+        this generic Python version with a model-specific Cython version.
         """
-        masks = vars(self).get('masks')
-        if masks is None:
-            raise AttributeError(
-                f'Model `{self.name}` does not handle a group of masks.')
-        return masks
+        self.sequences.fluxes.update_outputs()
+        self.sequences.states.update_outputs()
 
-    @masks.setter
-    def masks(self, masks: 'masktools.Masks') -> None:
-        vars(self)['masks'] = masks
+    @classmethod
+    def get_methods(cls) -> Iterator[Method]:
+        """Convenience method for iterating through all methods selected by
+        a |Model| subclass.
+
+        >>> from hydpy.models import hland_v1
+        >>> for method in hland_v1.Model.get_methods():
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Calc_TC_V1
+        Calc_TMean_V1
+        ...
+        Calc_QT_V1
+        Pass_Q_v1
+
+        Note that function |Model.get_methods| returns the "raw" |Method|
+        objects instead of the modified Python or Cython functions used
+        for performing calculations.
+        """
+        for name_group in getattr(cls, 'METHOD_GROUPS', ()):
+            for method in getattr(cls, name_group, ()):
+                yield method
 
     def __str__(self) -> str:
         return self.name
+
+    def __init_subclass__(cls):
+
+        modulename = cls.__module__
+        if modulename.count('.') > 2:
+            modulename = modulename.rpartition('.')[0]
+        module = importlib.import_module(modulename)
+        modelname = modulename.split('.')[-1]
+
+        allsequences = set()
+        st = sequencetools
+        infos = (
+            (st.InletSequences, st.InletSequence, set()),
+            (st.ReceiverSequences, st.ReceiverSequence, set()),
+            (st.InputSequences, st.InputSequence, set()),
+            (st.FluxSequences, st.FluxSequence, set()),
+            (st.StateSequences, st.StateSequence, set()),
+            (st.LogSequences, st.LogSequence, set()),
+            (st.AideSequences, st.AideSequence, set()),
+            (st.OutletSequences, st.OutletSequence, set()),
+            (st.SenderSequences, st.SenderSequence, set()),
+        )
+        for method in cls.get_methods():
+            for sequence in itertools.chain(
+                    method.REQUIREDSEQUENCES,
+                    method.UPDATEDSEQUENCES,
+                    method.RESULTSEQUENCES):
+                for _, typesequence, sequences in infos:
+                    if issubclass(sequence, typesequence):
+                        sequences.add(sequence)
+        for typesequences, _, sequences in infos:
+            allsequences.update(sequences)
+            classname = typesequences.__name__
+            if not hasattr(module, classname):
+                members = {
+                    'CLASSES': variabletools.sort_variables(sequences),
+                    '__doc__': f'{classname[:-9]} sequences '
+                               f'of model {modelname}.',
+                    '__module__': modulename,
+                }
+                typesequence = type(classname, (typesequences,), members)
+                setattr(module, classname, typesequence)
+
+        fixedparameters = set()
+        controlparameters = set()
+        derivedparameters = set()
+        for host in itertools.chain(cls.get_methods(), allsequences):
+            fixedparameters.update(
+                getattr(host, 'FIXEDPARAMETERS', ()))
+            controlparameters.update(
+                getattr(host, 'CONTROLPARAMETERS', ()))
+            derivedparameters.update(
+                getattr(host, 'DERIVEDPARAMETERS', ()))
+        for par in itertools.chain(controlparameters.copy(),
+                                   derivedparameters.copy(),
+                                   cls.SOLVERPARAMETERS):
+            fixedparameters.update(getattr(par, 'FIXEDPARAMETERS', ()))
+            controlparameters.update(getattr(par, 'CONTROLPARAMETERS', ()))
+            derivedparameters.update(getattr(par, 'DERIVEDPARAMETERS', ()))
+        if controlparameters and not hasattr(module, 'ControlParameters'):
+            module.ControlParameters = type(
+                'ControlParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': variabletools.sort_variables(controlparameters),
+                 '__doc__': f'Control parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if derivedparameters and not hasattr(module, 'DerivedParameters'):
+            module.DerivedParameters = type(
+                'DerivedParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': variabletools.sort_variables(derivedparameters),
+                 '__doc__': f'Derived parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if fixedparameters and not hasattr(module, 'FixedParameters'):
+            module.FixedParameters = type(
+                'FixedParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': variabletools.sort_variables(fixedparameters),
+                 '__doc__': f'Fixed parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if cls.SOLVERPARAMETERS and not hasattr(module, 'SolverParameters'):
+            module.SolverParameters = type(
+                'SolverParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': variabletools.sort_variables(cls.SOLVERPARAMETERS),
+                 '__doc__': f'Solver parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+
+    # sorting with dependencies, or is the definition order always okay?
+    #
+    # @classmethod
+    # def _sort_derivedparameters(
+    #         cls,
+    #         parameters: Iterable[Type[parametertools.Parameter]]
+    # ) -> Tuple[Type[parametertools.Parameter], ...]:
+    #     dps = []
+    #     for newpar in parameters:
+    #         for idx, oldpar in enumerate(dps):
+    #             print(newpar, oldpar, idx)
+    #             if newpar in getattr(oldpar, 'DERIVEDPARAMETERS', ()):
+    #                 dps.insert(idx, newpar)
+    #                 print('done')
+    #                 break
+    #         else:
+    #             dps.append(newpar)
+    #     return tuple(dps)
+
+    def __getattr__(self, item):
+        if item in ('parameters', 'sequences'):
+            raise AttributeError(
+                f'The dynamic attribute `{item}` of '
+                f'{objecttools.elementphrase(self)} is not available '
+                f'at the moment.'
+            )
+        if item == 'masks':
+            raise AttributeError(
+                f'Model `{objecttools.elementphrase(self)}` does not '
+                f'handle a group of masks (at the moment).'
+            )
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{item}'"
+        )
 
 
 class AdHocModel(Model):
@@ -535,17 +939,21 @@ class AdHocModel(Model):
     control (see `Clark and Kavetski`_).
     """
 
-    RUN_METHODS: Tuple[Callable, ...]
-    ADD_METHODS: Tuple[Callable, ...]
-    _METHOD_GROUPS = (
-        'RUN_METHODS', 'ADD_METHODS',
-        'INLET_METHODS', 'OUTLET_METHODS',
-        'RECEIVER_METHODS', 'SENDER_METHODS')
+    RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    METHOD_GROUPS = (
+        'RECEIVER_METHODS',
+        'INLET_METHODS',
+        'RUN_METHODS',
+        'ADD_METHODS',
+        'OUTLET_METHODS',
+        'SENDER_METHODS',
+    )
 
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
-        The required argument `idx` corresponds to property |Model.idx_sim|.
+        The required argument `idx` corresponds to property `idx_sim`
+        (see the main documentation on class |Model|).
 
         You can integrate method |Model.simulate| into your workflows for
         tailor-made simulation runs.  Method |Model.simulate| is complete
@@ -561,10 +969,10 @@ class AdHocModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill.sequences.sim)
         ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.658511)
-        sim(8.842278)
-        sim(7.103614)
-        sim(6.00763)
+        sim(11.78038)
+        sim(8.901179)
+        sim(7.131072)
+        sim(6.017787)
         >>> hp.nodes.dill.sequences.sim.series
         InfoArray([ nan,  nan,  nan,  nan])
 
@@ -578,10 +986,16 @@ class AdHocModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.658511, 8.842278, 7.103614, 6.00763
+        11.78038, 8.901179, 7.131072, 6.017787
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
+
+        .. testsetup::
+
+            >>> from hydpy import Node, Element
+            >>> Node.clear_all()
+            >>> Element.clear_all()
         """
         self.idx_sim = idx
         self.load_data()
@@ -589,13 +1003,22 @@ class AdHocModel(Model):
         self.run()
         self.new2old()
         self.update_outlets()
+        self.update_outputs()
 
     def run(self) -> None:
         """Call all methods defined as "RUN_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     RUN_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     RUN_METHODS = print_1, print_2
         >>> Test().run()
         1
         2
@@ -604,15 +1027,15 @@ class AdHocModel(Model):
         this generic Python version with a model-specific Cython version.
         """
         for method in self.RUN_METHODS:
-            method(self)
+            method.__call__(self)
 
 
 class SolverModel(Model):
     """Base class for hydrological models which solve ordinary differential
     equations with numerical integration algorithms."""
 
-    PART_ODE_METHODS: Tuple[Callable, ...]
-    FULL_ODE_METHODS: Tuple[Callable, ...]
+    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -683,6 +1106,7 @@ class NumVarsELS:
     class |ELSModel| as an example).
     """
 
+    use_relerror: bool
     nmb_calls: int
     t0: float
     t1: float
@@ -690,12 +1114,16 @@ class NumVarsELS:
     dt: float
     idx_method: int
     idx_stage: int
-    error: float
-    last_error: float
-    extrapolated_error: float
+    abserror: float
+    relerror: float
+    last_abserror: float
+    last_relerror: float
+    extrapolated_abserror: float
+    extrapolated_relerror: float
     f0_ready: bool
 
     def __init__(self):
+        self.use_relerror = False
         self.nmb_calls = 0
         self.t0 = 0.
         self.t1 = 0.
@@ -703,9 +1131,12 @@ class NumVarsELS:
         self.dt = 1.
         self.idx_method = 0
         self.idx_stage = 0
-        self.error = 0.
-        self.last_error = 0.
-        self.extrapolated_error = 0.
+        self.abserror = 0.
+        self.relerror = 0.
+        self.last_abserror = 0.
+        self.last_relerror = 0.
+        self.extrapolated_abserror = 0.
+        self.extrapolated_relerror = 0.
         self.f0_ready = False
 
 
@@ -716,9 +1147,9 @@ class ELSModel(SolverModel):
     The "Explicit Lobatto Sequence" is a variable order Runge Kutta
     method combining different Lobatto methods.  Its main idea is to
     first calculate a solution with a lower order method, then to use
-    these results to apply the next higher order method, and to compare
+    these results to apply the next higher-order method, and to compare
     both results.  If they are close enough, the latter results are
-    accepted.  If not, the next higher order method is applied (or,
+    accepted.  If not, the next higher-order method is applied (or,
     if no higher-order method is available, the step size is
     decreased, and the algorithm restarts with the method of the
     lowest order).  So far, the `thorough description`_ of the
@@ -734,10 +1165,18 @@ class ELSModel(SolverModel):
     to avoid needlessly long simulation times.
     """
 
-    _METHOD_GROUPS = (
-        'INLET_METHODS', 'OUTLET_METHODS',
-        'RECEIVER_METHODS', 'SENDER_METHODS',
-        'PART_ODE_METHODS', 'FULL_ODE_METHODS')
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
+    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    METHOD_GROUPS = (
+        'RECEIVER_METHODS',
+        'INLET_METHODS',
+        'PART_ODE_METHODS',
+        'FULL_ODE_METHODS',
+        'ADD_METHODS',
+        'OUTLET_METHODS',
+        'SENDER_METHODS',
+    )
     numconsts: NumConstsELS
     numvars: NumVarsELS
 
@@ -758,8 +1197,10 @@ class ELSModel(SolverModel):
         self.update_inlets()
         self.solve()
         self.update_outlets()
+        self.update_outputs()
 
     def solve(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Solve all `FULL_ODE_METHODS` in parallel.
 
         Implementing numerical integration algorithms that (hopefully)
@@ -778,12 +1219,18 @@ class ELSModel(SolverModel):
         >>> k(0.0)
 
         Second, we assign values to the solver parameters
-        |test_solver.AbsErrorMax| and |test_solver.RelDTMin| to specify
-        the required numerical accuracy and the smallest internal
-        step size:
+        |test_solver.AbsErrorMax|, |test_solver.RelDTMin|, and
+        |test_solver.RelDTMax| to specify the required numerical accuracy
+        and the smallest and largest internal integration step size allowed:
 
-        >>> solver.abserrormax = 1e-2
-        >>> solver.reldtmin = 1e-4
+        >>> solver.abserrormax(0.1)
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(1.0)
+
+        Additionally, we set |test_solver.RelErrorMax| to |numpy.nan|,
+        which disables taking relative errors into account:
+
+        >>> solver.relerrormax(nan)
 
         Calling method |ELSModel.solve| correctly calculates zero
         discharge (|test_fluxes.Q|) and thus does not change the water
@@ -836,10 +1283,10 @@ class ELSModel(SolverModel):
 
         After decreasing the allowed error by one order of magnitude,
         |ELSModel| requires four method calls (again, one for the
-        first order and one for the second order method, and two
-        additional calls for the third order method):
+        first order and one for the second-order method, and two
+        additional calls for the third-order method):
 
-        >>> solver.abserrormax = 1e-3
+        >>> solver.abserrormax(0.001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -853,10 +1300,10 @@ class ELSModel(SolverModel):
         4
 
         After decreasing |test_solver.AbsErrorMax| by a factor of ten
-        again, |ELSModel| needs one further higher order method, which
+        again, |ELSModel| needs one further higher-order method, which
         requires three additional calls, making a sum of seven:
 
-        >>> solver.abserrormax = 1e-4
+        >>> solver.abserrormax(0.0001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -873,7 +1320,7 @@ class ELSModel(SolverModel):
         (just for testing, way beyond hydrological requirements), in
         one single step, but now requires a total of 29 method calls:
 
-        >>> solver.abserrormax = 1e-12
+        >>> solver.abserrormax(1e-12)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -892,7 +1339,7 @@ class ELSModel(SolverModel):
         by about 40% per time step, |ELSModel| needs seven method calls
         to meet a "normal" error tolerance:
 
-        >>> solver.abserrormax = 1e-2
+        >>> solver.abserrormax(0.01)
         >>> k(0.5)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -948,9 +1395,10 @@ class ELSModel(SolverModel):
         44
 
         If we prevent |ELSModel| from compensating its problems by
-        decreasing the step size, it does not achieve satisfying results:
+        disallowing it to reduce its integration step size, it does not
+        achieve satisfying results:
 
-        >>> solver.reldtmin = 1.0
+        >>> solver.reldtmin(1.0)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -963,12 +1411,30 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         46
 
-        You can restrict the number of Lobatto methods that are allowed
-        to be used.  Using two methods only is an inefficient choice for
-        the given initial value problem, but at least solves it with the
+        You can restrict the allowed maximum integration step size, which
+        can help to prevent from loosing to much performance due to trying
+        to solve too stiff problems, repeatedly:
+
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(0.25)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.016806)
+        >>> fluxes.q
+        q(0.983194)
+        >>> round_(model.numvars.dt)
+        0.25
+        >>> model.numvars.nmb_calls
+        33
+
+        Alternatively, you can restrict the available number of Lobatto
+        methods.  Using two methods only is an inefficient choice for the
+        given initial value problem, but at least solves it with the
         required accuracy:
 
-        >>> solver.reldtmin = 1e-4
+        >>> solver.reldtmax(1.0)
         >>> model.numconsts.nmb_methods = 2
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -982,9 +1448,67 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         74
 
+        In the above examples, we control numerical accuracies based on
+        absolute error estimates only via parameter |test_solver.AbsErrorMax|.
+        After assigning an actual value to parameter |test_solver.RelErrorMax|,
+        |ELSModel| also takes relative errors into account.  We modify some
+        of the above examples to show how this works.
+
+        Generally, it is sufficient to meet one of both criteria.  If we
+        repeat the second example with a relaxed absolute but a strict
+        relative tolerance, we reproduce the original result due to our
+        absolute criteria being the relevant one:
+
+        >>> solver.abserrormax(0.1)
+        >>> solver.relerrormax(0.000001)
+        >>> k(0.1)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.905)
+        >>> fluxes.q
+        q(0.095)
+
+        The same holds for the opposite case of a strict absolute but a
+        relaxed relative tolerance:
+
+        >>> solver.abserrormax(0.000001)
+        >>> solver.relerrormax(0.1)
+        >>> k(0.1)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.905)
+        >>> fluxes.q
+        q(0.095)
+
+        Reiterating the "more dynamical parameterisation" example results
+        in slightly different but also correct results:
+
+        >>> k(0.5)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.607196)
+        >>> fluxes.q
+        q(0.392804)
+
+        Reiterating the stiffest example with a relative instead of an
+        absolute error tolerance of 0.1 achieves higher accuracy, as
+        to be expected due to the value of |test_states.S| being far
+        below 1.0 for some time:
+
+        >>> k(4.0)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.0185)
+        >>> fluxes.q
+        q(0.9815)
+
         Besides its weaknesses with stiff problems, |ELSModel| cannot
         solve discontinuous problems well.  We use the |test_v1| example
-        model to demonstrate how |ELSModel| sbehaves when confronted
+        model to demonstrate how |ELSModel| behaves when confronted
         with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
@@ -996,8 +1520,10 @@ class ELSModel(SolverModel):
         affect the considered simulation step:
 
         >>> k(0.5)
-        >>> solver.abserrormax = 1e-2
-        >>> solver.reldtmin = 1e-4
+        >>> solver.abserrormax(0.01)
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(1.0)
+        >>> solver.relerrormax(nan)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1040,14 +1566,18 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
         """
+        self.numvars.use_relerror = not modelutils.isnan(
+            self.parameters.solver.relerrormax)
         self.numvars.t0, self.numvars.t1 = 0., 1.
-        self.numvars.dt_est = 1.
+        self.numvars.dt_est = 1.*self.parameters.solver.reldtmax
         self.numvars.f0_ready = False
         self.reset_sum_fluxes()
         while self.numvars.t0 < self.numvars.t1-1e-14:
-            self.numvars.last_error = 999999.
+            self.numvars.last_abserror = modelutils.inf
+            self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
                 self.numvars.t1-self.numvars.t0,
+                1.*self.parameters.solver.reldtmax,
                 max(self.numvars.dt_est, self.parameters.solver.reldtmin))
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
@@ -1074,24 +1604,33 @@ class ELSModel(SolverModel):
                 self.extrapolate_error()
                 if self.numvars.idx_method == 1:
                     continue
-                elif self.numvars.error <= self.parameters.solver.abserrormax:
-                    self.numvars.dt_est = (self.numconsts.dt_increase *
-                                           self.numvars.dt)
+                if ((self.numvars.abserror <=
+                     self.parameters.solver.abserrormax) or
+                        (self.numvars.relerror <=
+                         self.parameters.solver.relerrormax)):
+                    self.numvars.dt_est = \
+                        self.numconsts.dt_increase*self.numvars.dt
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()
                     break
-                elif ((self.numvars.extrapolated_error >
-                       self.parameters.solver.abserrormax) and
-                      (self.numvars.dt > self.parameters.solver.reldtmin)):
+                decrease_dt = self.numvars.dt > self.parameters.solver.reldtmin
+                decrease_dt = decrease_dt and (
+                    self.numvars.extrapolated_abserror >
+                    self.parameters.solver.abserrormax)
+                if self.numvars.use_relerror:
+                    decrease_dt = decrease_dt and (
+                        self.numvars.extrapolated_relerror >
+                        self.parameters.solver.relerrormax)
+                if decrease_dt:
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
                     break
-                else:
-                    self.numvars.last_error = self.numvars.error
-                    self.numvars.f0_ready = True
+                self.numvars.last_abserror = self.numvars.abserror
+                self.numvars.last_relerror = self.numvars.relerror
+                self.numvars.f0_ready = True
             else:
                 if self.numvars.dt <= self.parameters.solver.reldtmin:
                     self.numvars.f0_ready = False
@@ -1105,6 +1644,7 @@ class ELSModel(SolverModel):
         self.get_sum_fluxes()
 
     def calculate_single_terms(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1117,9 +1657,10 @@ class ELSModel(SolverModel):
         """
         self.numvars.nmb_calls = self.numvars.nmb_calls+1
         for method in self.PART_ODE_METHODS:
-            method(self)
+            method.__call__(self)
 
     def calculate_full_terms(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1134,11 +1675,14 @@ class ELSModel(SolverModel):
         0.75
         """
         for method in self.FULL_ODE_METHODS:
-            method(self)
+            method.__call__(self)
 
     def get_point_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Load the states corresponding to the actual stage.
 
+        >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1147,10 +1691,27 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:4] = 0.0, 0.0, 1.0, 0.0
         >>> model.get_point_states()
-        >>> states.s.old
+        >>> round_(states.s.old)
         2.0
-        >>> states.s.new
+        >>> round_(states.s.new)
         1.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 3.0, 3.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(states.fastaccess._sv_points)
+        >>> points[:4, 0] = 0.0, 0.0, 1.0, 0.0
+        >>> points[:4, 1] = 0.0, 0.0, 2.0, 0.0
+        >>> model.get_point_states()
+        >>> print_values(states.sv.old)
+        3.0, 3.0
+        >>> print_values(states.sv.new)
+        1.0, 2.0
         """
         self._get_states(self.numvars.idx_stage, 'points')
 
@@ -1161,8 +1722,11 @@ class ELSModel(SolverModel):
             state.new = temp[idx]
 
     def set_point_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the states corresponding to the actual stage.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1171,15 +1735,33 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:] = 0.
         >>> model.set_point_states()
-        >>> from hydpy import round_
-        >>> round_(points[:4])
+        >>> print_values(points[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 1.0, 2.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(states.fastaccess._sv_points)
+        >>> points[:] = 0.
+        >>> model.set_point_states()
+        >>> print_values(points[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(points[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_stage, 'points')
 
     def set_result_states(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the final states of the actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1188,9 +1770,24 @@ class ELSModel(SolverModel):
         >>> results = numpy.asarray(states.fastaccess._s_results)
         >>> results[:] = 0.0
         >>> model.set_result_states()
-        >>> from hydpy import round_
-        >>> round_(results[:4])
+        >>> print_values(results[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 1.0, 2.0
+        >>> model.numvars.idx_method = 2
+        >>> results = numpy.asarray(states.fastaccess._sv_results)
+        >>> results[:] = 0.0
+        >>> model.set_result_states()
+        >>> print_values(results[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(results[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_method, 'results')
 
@@ -1201,6 +1798,8 @@ class ELSModel(SolverModel):
             temp[idx] = state.new
 
     def get_sum_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Get the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -1210,40 +1809,86 @@ class ELSModel(SolverModel):
         >>> model.get_sum_fluxes()
         >>> fluxes.q
         q(1.0)
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 0.0, 0.0
+        >>> numpy.asarray(fluxes.fastaccess._qv_sum)[:] = 1.0, 2.0
+        >>> model.get_sum_fluxes()
+        >>> fluxes.qv
+        qv(1.0, 2.0)
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
             flux(getattr(fluxes.fastaccess, f'_{flux.name}_sum'))
 
     def set_point_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the fluxes corresponding to the actual stage.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.q = 1.
+        >>> fluxes.q = 1.0
         >>> model.numvars.idx_stage = 2
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
-        >>> points[:] = 0.
+        >>> points[:] = 0.0
         >>> model.set_point_fluxes()
-        >>> from hydpy import round_
-        >>> round_(points[:4])
+        >>> print_values(points[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 1.0, 2.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(fluxes.fastaccess._qv_points)
+        >>> points[:] = 0.0
+        >>> model.set_point_fluxes()
+        >>> print_values(points[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(points[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_stage, 'points')
 
     def set_result_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Save the final fluxes of the actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.q = 1.
+        >>> fluxes.q = 1.0
         >>> model.numvars.idx_method = 2
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
-        >>> results[:] = 0.
+        >>> results[:] = 0.0
         >>> model.set_result_fluxes()
         >>> from hydpy import round_
-        >>> round_(results[:4])
+        >>> print_values(results[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 1.0, 2.0
+        >>> model.numvars.idx_method = 2
+        >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
+        >>> results[:] = 0.0
+        >>> model.set_result_fluxes()
+        >>> print_values(results[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(results[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_method, 'results')
 
@@ -1254,24 +1899,44 @@ class ELSModel(SolverModel):
             temp[idx] = flux
 
     def integrate_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Perform a dot multiplication between the fluxes and the
         A coefficients associated with the different stages of the
         actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
         >>> model.numvars.idx_stage = 1
         >>> model.numvars.dt = 0.5
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
-        >>> points[:4] = 15., 2., -999., 0.
+        >>> points[:4] = 15.0, 2.0, -999.0, 0.0
         >>> model.integrate_fluxes()
         >>> from hydpy import round_
         >>> from hydpy import pub
-        >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.q
         q(2.9375)
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> model.numvars.idx_method = 2
+        >>> model.numvars.idx_stage = 1
+        >>> model.numvars.dt = 0.5
+        >>> points = numpy.asarray(fluxes.fastaccess._qv_points)
+        >>> points[:4, 0] = 1.0, 1.0, -999.0, 0.0
+        >>> points[:4, 1] = 15.0, 2.0, -999.0, 0.0
+        >>> model.integrate_fluxes()
+        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        0.375, 0.125
+        >>> fluxes.qv
+        qv(0.25, 2.9375)
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
@@ -1283,20 +1948,39 @@ class ELSModel(SolverModel):
                  numpy.dot(coefs, points[:self.numvars.idx_method]))
 
     def reset_sum_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Set the sum of the fluxes calculated so far to zero.
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.fastaccess._q_sum = 5.
+        >>> fluxes.fastaccess._q_sum = 5.0
         >>> model.reset_sum_fluxes()
         >>> fluxes.fastaccess._q_sum
         0.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> import numpy
+        >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
+        >>> sums[:] = 5.0, 5.0
+        >>> model.reset_sum_fluxes()
+        >>> print_values(fluxes.fastaccess._qv_sum)
+        0.0, 0.0
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
+            if flux.NDIM:
+                getattr(fluxes.fastaccess, f'_{flux.name}_sum')[:] = 0.
+            else:
+                setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
 
     def addup_fluxes(self) -> None:
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
         """Add up the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -1306,6 +1990,18 @@ class ELSModel(SolverModel):
         >>> model.addup_fluxes()
         >>> fluxes.fastaccess._q_sum
         3.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
+        >>> sums[:] = 1.0, 2.0
+        >>> fluxes.qv(3.0, 4.0)
+        >>> model.addup_fluxes()
+        >>> print_values(sums)
+        4.0, 6.0
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
@@ -1314,29 +2010,107 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f'_{flux.name}_sum', sum_)
 
     def calculate_error(self) -> None:
-        """Estimate the numerical error based on the fluxes calculated
-        by the current and the last method.
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
+        """Estimate the numerical error based on the relevant fluxes
+        calculated by the current and the last method.
 
+        "Relevant fluxes" are those contained within the `SOLVERSEQUENCES`
+        tuple.  If this tuple is empty, method |ELSModel.calculate_error|
+        selects all flux sequences of the respective model with a |True|
+        `NUMERIC` attribute.
+
+        >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> model.numvars.idx_method = 2
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
-        >>> results[:4] = 0., 3., 4., 0.
+        >>> results[:5] = 0.0, 0.0, 3.0, 4.0, 4.0
+        >>> model.numvars.use_relerror = False
+        >>> model.numvars.idx_method = 3
         >>> model.calculate_error()
-        >>> from hydpy import round_
-        >>> round_(model.numvars.error)
+        >>> round_(model.numvars.abserror)
         1.0
+        >>> model.numvars.relerror
+        inf
+
+        >>> model.numvars.use_relerror = True
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        1.0
+        >>> round_(model.numvars.relerror)
+        0.25
+
+        >>> model.numvars.idx_method = 4
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> round_(model.numvars.relerror)
+        0.0
+
+        >>> model.numvars.idx_method = 1
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> model.numvars.relerror
+        inf
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> model.numvars.use_relerror = True
+        >>> model.numvars.idx_method = 3
+        >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
+        >>> results[:5, 0] = 0.0, 0.0, -4.0, -2.0, -2.0
+        >>> results[:5, 1] = 0.0, 0.0, -8.0, -4.0, -4.0
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        4.0
+        >>> round_(model.numvars.relerror)
+        1.0
+
+        >>> model.numvars.idx_method = 4
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> round_(model.numvars.relerror)
+        0.0
+
+        >>> model.numvars.idx_method = 1
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> model.numvars.relerror
+        inf
         """
-        self.numvars.error = 0.
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = numpy.inf
         fluxes = self.sequences.fluxes
+        solversequences = self.SOLVERSEQUENCES
         for flux in fluxes.numericsequences:
+            if solversequences and not isinstance(flux, solversequences):
+                continue
             results = getattr(fluxes.fastaccess, f'_{flux.name}_results')
-            diff = (results[self.numvars.idx_method] -
-                    results[self.numvars.idx_method-1])
-            self.numvars.error = max(self.numvars.error,
-                                     numpy.max(numpy.abs(diff)))
+            absdiff = (results[self.numvars.idx_method] -
+                       results[self.numvars.idx_method-1])
+            self.numvars.abserror = max(
+                self.numvars.abserror, numpy.max(numpy.abs(absdiff)))
+            if self.numvars.use_relerror:
+                idxs = results[self.numvars.idx_method] != 0.
+                if numpy.any(idxs):
+                    reldiff = numpy.abs(
+                        absdiff[idxs]/results[self.numvars.idx_method][idxs])
+                else:
+                    reldiff = numpy.inf
+                self.numvars.relerror = max(
+                    self.numvars.relerror, numpy.max(numpy.abs(reldiff)))
 
     def extrapolate_error(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Estimate the numerical error expected when applying all methods
         available based on the results of the current and the last method.
 
@@ -1346,23 +2120,100 @@ class ELSModel(SolverModel):
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> model.numvars.error = 1e-2
-        >>> model.numvars.last_error = 1e-1
+        >>> model.numvars.use_relerror = False
+        >>> model.numvars.abserror = 0.01
+        >>> model.numvars.last_abserror = 0.1
         >>> model.numvars.idx_method = 10
         >>> model.extrapolate_error()
         >>> from hydpy import round_
-        >>> round_(model.numvars.extrapolated_error)
+        >>> round_(model.numvars.extrapolated_abserror)
         0.01
+        >>> model.numvars.extrapolated_relerror
+        inf
+
+        >>> model.numvars.use_relerror = True
+        >>> model.numvars.relerror = 0.001
+        >>> model.numvars.last_relerror = 0.01
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_abserror)
+        0.01
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.001
+
         >>> model.numvars.idx_method = 9
         >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_error)
+        >>> round_(model.numvars.extrapolated_abserror)
         0.001
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.0001
+
+        >>> model.numvars.relerror = inf
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_relerror)
+        inf
+
+        >>> model.numvars.abserror = 0.0
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_abserror)
+        0.0
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.0
         """
-        if self.numvars.idx_method > 2:
-            self.numvars.extrapolated_error = modelutils.exp(
-                modelutils.log(self.numvars.error) +
-                (modelutils.log(self.numvars.error) -
-                 modelutils.log(self.numvars.last_error)) *
-                (self.numconsts.nmb_methods-self.numvars.idx_method))
+        if self.numvars.abserror <= 0.:
+            self.numvars.extrapolated_abserror = 0.
+            self.numvars.extrapolated_relerror = 0.
         else:
-            self.numvars.extrapolated_error = -999.9
+            if self.numvars.idx_method > 2:
+                self.numvars.extrapolated_abserror = modelutils.exp(
+                    modelutils.log(self.numvars.abserror) +
+                    (modelutils.log(self.numvars.abserror) -
+                     modelutils.log(self.numvars.last_abserror)) *
+                    (self.numconsts.nmb_methods-self.numvars.idx_method))
+            else:
+                self.numvars.extrapolated_abserror = -999.9
+            if self.numvars.use_relerror:
+                if self.numvars.idx_method > 2:
+                    if modelutils.isinf(self.numvars.relerror):
+                        self.numvars.extrapolated_relerror = modelutils.inf
+                    else:
+                        self.numvars.extrapolated_relerror = modelutils.exp(
+                            modelutils.log(self.numvars.relerror) +
+                            (modelutils.log(self.numvars.relerror) -
+                             modelutils.log(self.numvars.last_relerror)) *
+                            (self.numconsts.nmb_methods-self.numvars.idx_method)
+                        )
+                else:
+                    self.numvars.extrapolated_relerror = -999.9
+            else:
+                self.numvars.extrapolated_relerror = modelutils.inf
+
+
+class Submodel:
+    """Base class for implementing "submodels" that serve to deal with
+    (possibly complicated) general mathematical algorithms (e.g.
+    root-finding algorithms) within hydrological model methods.
+
+
+    You might find class |Submodel| useful when trying to implement
+    algorithms requiring some interaction with the respective model
+    without any Python overhead.  See the modules |roottools| and
+    `rootutils` as an example, implementing Python interfaces and
+    Cython implementations of a root-finding algorithms, respectively.
+    """
+
+    METHODS: ClassVar[Tuple[Type[Method], ...]]
+    CYTHONBASECLASS: ClassVar[Type]
+    PYTHONCLASS: ClassVar[Type]
+    _cysubmodel: Type
+
+    def __init_subclass__(cls):
+        cls.name = cls.__name__.lower()
+
+    def __init__(self, model: Model) -> None:
+        if model.cymodel:
+            self._cysubmodel = getattr(model.cymodel, self.name)
+        else:
+            self._cysubmodel = self.PYTHONCLASS()
+            for idx, methodtype in enumerate(self.METHODS):
+                setattr(self._cysubmodel, f'method{idx}',
+                        getattr(model, methodtype.__name__.lower()))

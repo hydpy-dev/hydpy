@@ -11,7 +11,10 @@ The following explanations focus on this difference.  For further
 information on the usage of |dam_v002| please read the documentation
 on model |dam_v001|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     Each of the following examples is a repetition of an example performed
     to demonstrate the functionality of model |dam_v001|.  To achieve
@@ -47,8 +50,7 @@ Integration examples:
     object of node `remote`:
 
     >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 200
-    >>> IntegrationTest.plotting_options.activated=(
+    >>> IntegrationTest.plotting_options.activated = (
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
@@ -66,11 +68,12 @@ Integration examples:
     than |dam_v001|, all parameter settings are identical:
 
     >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
+    ...     weights_input=1.0, weights_output=0.25,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0)
     >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
+    ...     weights_input=0.0, weights_output=0.0,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> neardischargeminimumthreshold(0.2)
     >>> neardischargeminimumtolerance(0.2)
@@ -109,12 +112,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex7.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex7.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
 
     :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
@@ -156,12 +157,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex8_1.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex8_1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -212,8 +211,9 @@ Integration examples:
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+    ...     weights_input=1.0, weights_output=2.5,
+    ...     intercepts_hidden=0.0, intercepts_output=0.0,
+    ...     activation=0))
 
     >>> neardischargeminimumthreshold(0.0)
     >>> input_.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
@@ -246,119 +246,56 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="dam_v002_ex13.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="dam_v002_ex13.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 # ...from dam
 from hydpy.models.dam import dam_model
-from hydpy.models.dam import dam_control
-from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
-from hydpy.models.dam import dam_fluxes
-from hydpy.models.dam import dam_states
-from hydpy.models.dam import dam_logs
-from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inlets
-from hydpy.models.dam import dam_outlets
-from hydpy.models.dam import dam_receivers
 
 
 class Model(modeltools.ELSModel):
     """Version 2 of HydPy-Dam."""
-
-    INLET_METHODS = (dam_model.pic_inflow_v1,
-                     dam_model.calc_requiredremoterelease_v2,
-                     dam_model.calc_requiredrelease_v1,
-                     dam_model.calc_targetedrelease_v1)
-    RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v1,)
-    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                        dam_model.calc_waterlevel_v1,
-                        dam_model.calc_actualrelease_v1,
-                        dam_model.calc_flooddischarge_v1,
-                        dam_model.calc_outflow_v1)
-    FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
-    OUTLET_METHODS = (dam_model.pass_outflow_v1,)
+    SOLVERPARAMETERS = (
+        dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
+        dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
+    )
+    SOLVERSEQUENCES = ()
+    INLET_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_RequiredRemoteRelease_V2,
+        dam_model.Calc_RequiredRelease_V1,
+        dam_model.Calc_TargetedRelease_V1,
+    )
+    RECEIVER_METHODS = (
+        dam_model.Pic_LoggedRequiredRemoteRelease_V1,
+    )
+    ADD_METHODS = ()
+    PART_ODE_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_WaterLevel_V1,
+        dam_model.Calc_ActualRelease_V1,
+        dam_model.Calc_FloodDischarge_V1,
+        dam_model.Calc_Outflow_V1,
+    )
+    FULL_ODE_METHODS = (
+        dam_model.Update_WaterVolume_V1,
+    )
+    OUTLET_METHODS = (
+        dam_model.Pass_Outflow_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-Dam, Version 2."""
-    CLASSES = (dam_control.CatchmentArea,
-               dam_control.NearDischargeMinimumThreshold,
-               dam_control.NearDischargeMinimumTolerance,
-               dam_control.RestrictTargetedRelease,
-               dam_control.WaterLevelMinimumThreshold,
-               dam_control.WaterLevelMinimumTolerance,
-               dam_control.WaterVolume2WaterLevel,
-               dam_control.WaterLevel2FloodDischarge)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-Dam, Version 2."""
-    CLASSES = (dam_derived.TOY,
-               dam_derived.Seconds,
-               dam_derived.NearDischargeMinimumSmoothPar1,
-               dam_derived.NearDischargeMinimumSmoothPar2,
-               dam_derived.WaterLevelMinimumSmoothPar)
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of HydPy-Dam, Version 2."""
-    CLASSES = (dam_solver.AbsErrorMax,
-               dam_solver.RelDTMin)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_fluxes.Inflow,
-               dam_fluxes.RequiredRemoteRelease,
-               dam_fluxes.RequiredRelease,
-               dam_fluxes.TargetedRelease,
-               dam_fluxes.ActualRelease,
-               dam_fluxes.FloodDischarge,
-               dam_fluxes.Outflow)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_states.WaterVolume,)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_logs.LoggedRequiredRemoteRelease,)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """State sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_aides.WaterLevel,)
-
-
-class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_inlets.Q,)
-
-
-class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_outlets.Q,)
-
-
-class ReceiverSequences(sequencetools.LinkSequences):
-    """Information link sequences of HydPy-Dam, Version 2."""
-    CLASSES = (dam_receivers.D,)
+    SUBMODELS = ()
 
 
 tester = Tester()

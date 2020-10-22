@@ -12,6 +12,6 @@ class S(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0., None)
 
 
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of the Test model."""
-    CLASSES = (S,)
+class SV(sequencetools.StateSequence):
+    """Storage content vector[mm]."""
+    NDIM, NUMERIC, SPAN = 1, True, (0., None)

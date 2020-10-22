@@ -32,6 +32,7 @@ from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core import variabletools
 from hydpy.docs import figs
 from hydpy.docs import sphinx
 from hydpy.docs import rst
@@ -41,10 +42,10 @@ AUTOPATH = os.path.join(docs.__path__[0], 'auto')
 if os.path.exists(AUTOPATH):
     shutil.rmtree(AUTOPATH)
 os.makedirs(AUTOPATH)
-shutil.copytree(os.path.join(docs.__path__[0], 'html'),
-                os.path.join(AUTOPATH, 'html'))
+shutil.copytree(os.path.join(docs.__path__[0], 'html_'),
+                os.path.join(AUTOPATH, 'html_'))
 try:
-    shutil.move(os.path.join(AUTOPATH, 'html', 'coverage.html'),
+    shutil.move(os.path.join(AUTOPATH, 'html_', 'coverage.html'),
                 os.path.join(AUTOPATH, 'coverage.html'))
 except BaseException:
     print('coverage.html could not be moved')
@@ -55,9 +56,7 @@ except BaseException:
 for filename in os.listdir(models.__path__[0]):
     if not filename.startswith('_'):
         filename = filename.split('.')[0]
-        importlib.import_module(
-            '%s.%s'
-            % (models.__name__, filename))
+        importlib.import_module(f'{models.__name__}.{filename}')
 hydpy.substituter.update_slaves()
 
 # Write one rst file for each module (including the ones defining application
@@ -66,7 +65,6 @@ hydpy.substituter.update_slaves()
 # the substitution replacement commands relevant for the respective module
 # or package.
 path2source = {}
-excludemembers = ", ".join(autodoctools.EXCLUDE_MEMBERS)
 for subpackage in (auxs, core, cythons, exe, models, hydpy):
     if subpackage is hydpy:
         filenames = ['examples.py']
@@ -76,23 +74,29 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
     for filename in filenames:
         is_module = (
             (filename.endswith('py') or filename.endswith('pyx')) and
-            (filename != '__init__.py'))
+            (filename != '__init__.py')
+        )
         is_package = (
             (subpackage is models) and
             ('.' not in filename) and
-            (filename not in ('build', '__pycache__')))
+            (filename not in ('build', '__pycache__'))
+        )
         if is_module:
             path = os.path.join(subpackage.__path__[0], filename)
             with open(path, encoding='utf-8') as file_:
                 sources = [file_.read()]
             module = importlib.import_module(
-                '%s.%s' % (subpackage.__name__, filename.split('.')[0]))
+                f'{subpackage.__name__}.{filename.split(".")[0]}'
+            )
             for member in getattr(module, '__dict__', {}).values():
                 if (inspect.isclass(member) and
-                        issubclass(member, (modeltools.Model,
-                                            parametertools.SubParameters,
-                                            sequencetools.SubSequences,
-                                            masktools.Masks))):
+                        issubclass(
+                            member,
+                            (modeltools.Model,
+                             parametertools.SubParameters,
+                             sequencetools.SubSequences,
+                             masktools.Masks),
+                        )):
                     sources.append(member.__doc__ if member.__doc__ else '')
             source = '\n'.join(sources)
         if is_package:
@@ -104,25 +108,35 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
                     with open(subpath, encoding='utf-8') as file_:
                         sources.append(file_.read())
             source = '\n'.join(sources)
+            module = importlib.import_module(
+                f'{subpackage.__name__}.{filename.split(".")[0]}'
+            )
         filename = filename.split('.')[0]
         if (is_module and (subpackage is models)) or is_package:
-            module = importlib.import_module(
-                '%s.%s' % (models.__name__, filename))
+            module = importlib.import_module(f'{models.__name__}.{filename}')
             substituter = module.substituter
         if is_module or is_package:
-            lines = []
-            lines.append('')
-            lines.append('.. _%s:' % filename)
-            lines.append('')
-            lines.append(filename)
-            lines.append('=' * len(filename))
-            lines.append('')
-            lines.append('.. automodule:: %s'
-                         % '.'.join((subpackage.__name__, filename)))
-            lines.append('    :members:')
-            lines.append('    :show-inheritance:')
-            lines.append(f'    :exclude-members: {excludemembers}')
-            lines.append('')
+            _exc_mem = list(autodoctools.EXCLUDE_MEMBERS)
+            if subpackage is models:
+                for member in vars(module).values():
+                    if (inspect.isclass(member) and
+                            issubclass(member, variabletools.SubVariables) and
+                            not member.CLASSES):
+                        _exc_mem.append(member.__name__)
+            excludemembers = ', '.join(_exc_mem)
+            lines = [
+                '',
+                f'.. _{filename}:',
+                '',
+                filename,
+                '='*len(filename),
+                '',
+                f'.. automodule:: {".".join((subpackage.__name__, filename))}',
+                '    :members:',
+                '    :show-inheritance:',
+                f'    :exclude-members: {excludemembers}',
+                '',
+            ]
             path = os.path.join(AUTOPATH, filename+'.rst')
             with open(path, 'w', encoding="utf-8") as file_:
                 path2source[path] = source

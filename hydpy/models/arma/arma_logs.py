@@ -17,9 +17,3 @@ class LogOut(sequencetools.LogSequence):
     """The past outflow portions for the application of the
     different AR processes [m³/s]."""
     NDIM, NUMERIC, SPAN = 2, False, (None, None)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of the ARMA model."""
-    CLASSES = (LogIn,
-               LogOut)

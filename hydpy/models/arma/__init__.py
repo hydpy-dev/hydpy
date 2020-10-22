@@ -8,12 +8,6 @@ based on autoregressive (AR) and moving-average (MA) methods.
 # ...from HydPy
 from hydpy.exe.modelimports import *
 # ...from arma
-from hydpy.models.arma.arma_control import ControlParameters
-from hydpy.models.arma.arma_derived import DerivedParameters
-from hydpy.models.arma.arma_fluxes import FluxSequences
-from hydpy.models.arma.arma_logs import LogSequences
-from hydpy.models.arma.arma_inlets import InletSequences
-from hydpy.models.arma.arma_outlets import OutletSequences
 from hydpy.models.arma.arma_model import Model
 
 tester = Tester()

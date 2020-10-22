@@ -7,14 +7,7 @@ matrix:
   include:
     - python: 3.6
     - python: 3.7
-      dist: xenial
-      sudo: true
-      addons:
-        apt:
-          packages:
-            - libhdf5-serial-dev
-            - netcdf-bin
-            - libnetcdf-dev
+    - python: 3.8
 
 install:
   - pip install --upgrade pip setuptools wheel
@@ -24,20 +17,24 @@ install:
   - pip install matplotlib
   - pip install bokeh
   - pip install coverage
+  - pip install networkx
+  - pip install netCDF4
   - pip install pandas
+  - pip install plotly
   - pip install pylint
   - pip install typing_extensions
   - pip install wrapt
-  - pip install xmlschema==1.0.9
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install travis-sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxcontrib-fulltoc; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxprettysearchresults; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install netCDF4; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install netCDF4; fi
+  - pip install xmlschema
+  - pip install docutils
+  - pip install sphinx
+  - pip install travis-sphinx
+  - pip install sphinxcontrib-fulltoc
+  - pip install sphinxprettysearchresults
+  - pip install sphinxcontrib.bibtex
 
 script:
   - python setup.py install
+  - python hydpy/tests/check_consistency.py
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py; fi

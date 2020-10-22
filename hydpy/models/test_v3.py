@@ -22,6 +22,7 @@ class Model(modeltools.ELSModel):
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         test_model.Calc_QV_V1,
     )
@@ -30,6 +31,7 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

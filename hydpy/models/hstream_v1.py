@@ -9,7 +9,10 @@ coefficients (parameters |C1|, |C2|, and |C3|) control attenuation
 (parameter |Damp|).  For |NmbSegments| only integer values are allowed,
 which is why the translation time cannot be varied continuously.
 
-Integration Test:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     We perform the following examples over a simulation period of 20 hours:
 
@@ -84,12 +87,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 2**
 
@@ -126,12 +127,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 3**
 
@@ -168,12 +167,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     **Example 4**
 
@@ -208,12 +205,10 @@ Integration Test:
 
     .. raw:: html
 
-        <iframe
-            src="hstream_v1_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="hstream_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from HydPy
@@ -239,6 +234,7 @@ class Model(modeltools.AdHocModel):
         hstream_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 class Masks(masktools.Masks):

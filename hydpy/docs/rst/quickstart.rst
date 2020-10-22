@@ -133,7 +133,7 @@ run so far.  We catch up on this by calling the method |HydPy.simulate|:
 Now, we can inspect the freshly calculated discharge values:
 
 >>> round_(hp.nodes.lahn_3.sequences.sim.series)
-53.793428, 37.157714, 31.835184, 28.375294
+54.043745, 37.320814, 31.922053, 28.413644
 
 You could now write the results to file, print them into a figure,
 evaluate them statistically, or -- if you don't like them -- change
@@ -143,4 +143,5 @@ As you can see, a few lines of code are often enough to let *HydPy* execute
 complex tasks in a standard-manner.  However, *HydPy* offers a fine level
 of control, allowing you to define specific workflows solving individual
 problems.  Take your time to understand these first examples fully and
-then follow the more detailed explanations mentioned above.
+then follow the more detailed explanations in the documentation on the
+|HydPy| class.

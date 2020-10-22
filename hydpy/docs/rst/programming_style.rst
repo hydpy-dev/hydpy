@@ -562,7 +562,7 @@ Each docstring of a calculation method must contain at least a short
 description, lists of the required, calculated, and updated variables
 (linked via substitutions), the basic equation in `LaTeX`_ style,
 and doctests covering all anticipated usages of the method, even the
-unlikely ones.  The docstrings of all |Parameter| or |Sequence|
+unlikely ones.  The docstrings of all |Parameter| or |Sequence_|
 subclasses containing "special" source code (for example modifications
 of |trim|) must contain doctests addressing these code sections.
 Finally, write integration tests for each application model based on

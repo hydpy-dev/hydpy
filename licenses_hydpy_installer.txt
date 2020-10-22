@@ -23,6 +23,8 @@ PyYAML: https://github.com/yaml/pyyaml/blob/master/LICENSE
 packaging: https://github.com/pypa/packaging/blob/master/LICENSE
 attrs: https://github.com/python-attrs/attrs/blob/master/LICENSE
 Pillow: https://github.com/python-pillow/Pillow/blob/master/LICENSE
+plotly: https://github.com/plotly/plotly.py/blob/master/LICENSE.txt
+retrying: https://github.com/rholder/retrying/blob/master/LICENSE
 tornado: https://github.com/tornadoweb/tornado/blob/stable/LICENSE
 wrapt: https://github.com/GrahamDumpleton/wrapt/blob/develop/LICENSE
 bokeh: https://github.com/bokeh/bokeh/blob/master/LICENSE.txt

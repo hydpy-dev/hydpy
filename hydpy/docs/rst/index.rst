@@ -116,9 +116,11 @@ Sections :ref:`core` covers the basic functionalities of the
 
    install
    quickstart
+   how_to
    framework
    modelcollection
    development
    Example Projects <examples>
+   Bibliography <zbibliography>
 
 

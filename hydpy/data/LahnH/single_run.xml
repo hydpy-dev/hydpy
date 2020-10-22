@@ -4,16 +4,17 @@
 
     <options>
         <checkseries>true</checkseries>
+        <flattennetcdf>true</flattennetcdf>
+        <isolatenetcdf>true</isolatenetcdf>
+        <parameterstep>1d</parameterstep>
         <reprdigits>6</reprdigits>
+        <timeaxisnetcdf>0</timeaxisnetcdf>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>
         <warntrim>true</warntrim>
-        <flattennetcdf>true</flattennetcdf>
-        <isolatenetcdf>true</isolatenetcdf>
-        <timeaxisnetcdf>0</timeaxisnetcdf>
     </options>
 
     <timegrid>

@@ -68,6 +68,17 @@ class Calc_Outputs_V1(modeltools.Method):
         >>> fluxes.outputs
         outputs(branch1=0.0,
                 branch2=5.0)
+
+    ToDo Technical checks:
+
+        Note that method the name of sequence |Input| causes a false alarm
+        here.  It would be best to use a name not in conflict with Pythons's
+        |input| statement:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.hbranch.hbranch_model import Calc_Outputs_V1
+        >>> print(check_selectedvariables(Calc_Outputs_V1))
+        Possibly erroneously selected (REQUIREDSEQUENCES): Input
     """
     CONTROLPARAMETERS = (
         hbranch_control.XPoints,
@@ -106,6 +117,17 @@ class Pick_Input_V1(modeltools.Method):
 
     Basic equation:
       :math:`Input = \\sum Total`
+
+    ToDo Technical checks:
+
+        Note that method the name of sequence |Input| causes a false alarm
+        here.  It would be best to use a name not in conflict with Pythons's
+        |input| statement:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.hbranch.hbranch_model import Pick_Input_V1
+        >>> print(check_selectedvariables(Pick_Input_V1))
+        Possibly erroneously selected (RESULTSEQUENCES): Input
     """
     REQUIREDSEQUENCES = (
         hbranch_inlets.Total,
@@ -160,6 +182,7 @@ class Model(modeltools.AdHocModel):
         Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
     def __init__(self):
         super().__init__()
@@ -226,11 +249,12 @@ of element `branch`.
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
-                double = outlet.get_double('outlets')
             except AttributeError:
                 raise RuntimeError(
                     f'Model {objecttools.elementphrase(self)} tried '
                     f'to connect to an outlet node named `{name}`, '
                     f'which is not an available outlet node of element '
-                    f'`{self.element.name}`.')
+                    f'`{self.element.name}`.'
+                ) from None
+            double = outlet.get_double('outlets')
             self.sequences.outlets.branched.set_pointer(double, idx)

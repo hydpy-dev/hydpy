@@ -2,9 +2,9 @@
 
 # import...
 # ...from standard library:
-from __future__ import division, print_function
 import os
 import shutil
+import subprocess
 import sys
 # ...from site-packages:
 import Cython.Build
@@ -119,6 +119,7 @@ else:
                 cythonoptions = (
                     '# -*- coding: utf-8 -*-\n'
                     '# !python\n'
+                    '# cython: language_level=3\n'
                     '# cython: boundscheck=True\n'
                     '# cython: wraparound=True\n'
                     '# cython: initializedcheck=True\n'
@@ -131,6 +132,7 @@ else:
                 cythonoptions = (
                     '# -*- coding: utf-8 -*-\n'
                     '# !python\n'
+                    '# cython: language_level=3\n'
                     '# cython: boundscheck=False\n'
                     '# cython: wraparound=False\n'
                     '# cython: initializedcheck=False\n'
@@ -171,7 +173,7 @@ with open("README.rst", "r") as readmefile:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='4.0a11',
+      version='4.0a14',
       description='A framework for the development and application of '
                   'hydrological models.',
       long_description=long_description,
@@ -189,6 +191,7 @@ setup(name='HydPy',
           'Operating System :: Microsoft :: Windows',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering'
       ],
@@ -254,7 +257,11 @@ if install:
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
-    exitcode = int(os.system(f'{sys.executable} test_everything.py'))
+    exitcode = subprocess.run(
+        f'{sys.executable} test_everything.py',
+        shell=True,
+        env=dict(os.environ),
+    ).returncode
     if exitcode:
         print_(f'Use this HydPy version with caution on your system.  At '
                f'least one verification test failed.  You should see in the '
@@ -278,9 +285,9 @@ if install:
             except BaseException:
                 print_('\t!!! failed !!!')
 
-    # Copy the generated bokeh plots into the original docs subpackage
+    # Copy the generated plotly plots into the original docs subpackage
     # (on Travis-CI: for including them into the online-documentation).
-    print_('\nCopy bokeh plots backwards:')
+    print_('\nCopy plotly plots backwards:')
     path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html_')
     import hydpy.docs.html_
     for filename in os.listdir(hydpy.docs.html_.__path__[0]):

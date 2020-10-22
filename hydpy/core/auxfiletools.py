@@ -3,13 +3,11 @@
 
 In HydPy, parameter values are usually not shared between different
 model objects handled by different elements, even if the model objects
-model objects handled by different elements, even if the model objects
 are of the same type (e.g. HBV).  This offers flexibility in applying
-different parameterization schemes.  But very often, modellers prefer
+different parameterisation schemes.  But very often, modellers prefer
 to use a very limited amount of values for certain parameters (at least
 within hydrologically homogeneous regions).  Hence, the downside of
 this flexibility is that the same parameter values might be defined in
-hundreds or even thousands of parameter control files (one file for
 hundreds or even thousands of parameter control files (one file for
 each model/element).
 
@@ -187,12 +185,14 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
                     del self._dict[str(model)]
                 except KeyError:
                     raise AttributeError(
-                        f'The handler does not contain model `{model}`.')
+                        f'The handler does not contain model `{model}`.'
+                    ) from None
             return self
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to remove one or more models '
-                'from the actual auxiliary file handler')
+                'from the actual auxiliary file handler'
+            )
 
     @staticmethod
     def _get_models(values):
@@ -206,21 +206,24 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         except KeyError:
             raise AttributeError(
                 f'The actual auxiliary file handler does neither have a '
-                f'standard member nor does it handle a model named `{name}`.')
+                f'standard member nor does it handle a model named `{name}`.'
+            ) from None
 
     def __setattr__(self, name, value):
         raise AttributeError(
             'Auxiliary file handler do not support setting attributes.  '
-            'Use the `+=` operator to register additional models instead.')
+            'Use the `+=` operator to register additional models instead.'
+        )
 
     def __delattr__(self, name):
         raise AttributeError(
             'Auxiliary file handler do not support deleting attributes.  '
-            'Use the `-=` operator to remove registered models instead.')
+            'Use the `-=` operator to remove registered models instead.'
+        )
 
     def __iter__(self):
         for (key, value) in sorted(self._dict.items()):
-            yield (key, value)
+            yield key, value
 
     @property
     def modelnames(self):
@@ -285,11 +288,11 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
-        par = parametertools.Parameter
+        options = hydpy.pub.options
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
-                with par.parameterstep(parameterstep), \
-                         par.simulationstep(simulationstep):
+                with options.parameterstep(parameterstep), \
+                         options.simulationstep(simulationstep):
                     lines = [parametertools.get_controlfileheader(
                         modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):
@@ -457,7 +460,7 @@ variable handled by the actual Variable2AuxFile object.
         if (self._model and not isinstance(
                 variable, self._model.parameters.control.CLASSES)):
             raise TypeError(
-                f'Variable type `{objecttools.classname(variable)}` is '
+                f'Variable type `{type(variable).__name__}` is '
                 f'not handled by model `{self._model}`.')
 
     @staticmethod
@@ -467,7 +470,7 @@ variable handled by the actual Variable2AuxFile object.
                 raise ValueError(
                     f'You tried to allocate variable `{repr(new_var)}` '
                     f'to filename `{filename}`, but an equal '
-                    f'`{objecttools.classname(new_var)}` object has '
+                    f'`{type(new_var).__name__}` object has '
                     f'already been allocated to filename `{reg_fn}`.')
 
     def remove(self, *values):
@@ -542,7 +545,7 @@ variable handled by the actual Variable2AuxFile object.
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to remove the given object `{value}` '
-                    f'of type `{objecttools.classname(value)}` from the '
+                    f'of type `{type(value).__name__}` from the '
                     f'actual Variable2AuxFile object')
 
     @property
@@ -550,8 +553,7 @@ variable handled by the actual Variable2AuxFile object.
         """A list of all handled variable types.
 
         >>> from hydpy import dummies
-        >>> from hydpy.core.objecttools import classname
-        >>> [classname(type_) for type_ in dummies.v2af.types]
+        >>> [type_.__name__ for type_ in dummies.v2af.types]
         ['EQB', 'EQD1', 'EQD2', 'EQI1', 'EQI2']
         """
         return sorted(self._type2filename2variable.keys(), key=str)
@@ -628,4 +630,4 @@ variable handled by the actual Variable2AuxFile object.
         """
         return (objecttools.dir_(self) +
                 self.filenames +
-                [objecttools.instancename(type_) for type_ in self.types])
+                [type_.__name__.lower() for type_ in self.types])

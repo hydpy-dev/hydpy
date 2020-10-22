@@ -23,7 +23,10 @@ to vary in time, as explained for the outflow vector.
 Note that the accuracy of the results calculated by lake_v1 depend
 on the internal step size parameter |MaxDT|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following calculations are performed over a period of 20 days:
 
@@ -53,31 +56,33 @@ Integration examples:
     actually passed to `sim`:
 
     >>> from hydpy import IntegrationTest
+    >>> IntegrationTest.plotting_options.activated=(
+    ...     fluxes.qz, fluxes.qa)
     >>> test = IntegrationTest(lake,
     ...                        seqs=(fluxes.qz, fluxes.qa,
     ...                              nodes.output.sequences.sim,
     ...                              states.v, states.w),
-    ...                        inits=((states.v, 0.),
-    ...                               (states.w, 0.)))
+    ...                        inits=((states.v, 0.0),
+    ...                               (states.w, 0.0)))
     >>> test.dateformat = '%d.%m.'
 
     Set the values of those control parameter, which remain fixed for all
     three example simulations, in the most simple manner:
 
     >>> n(2)
-    >>> w(0., 1.)
-    >>> v(0., 1e6)
-    >>> q(0., 10.)
+    >>> w(0.0, 1.0)
+    >>> v(0.0, 1e6)
+    >>> q(0.0, 10.0)
     >>> maxdt('1d')
 
     Define two flood events, one for each lake inflow:
 
     >>> nodes.input1.sequences.sim.series = [
-    ...                         0., 0., 1., 3., 2., 1., 0., 0., 0., 0.,
-    ...                         0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
+    ...     0.0, 0.0, 1.0, 3.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+    ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     >>> nodes.input2.sequences.sim.series = [
-    ...                         0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
-    ...                         0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
+    ...     0.0, 1.0, 5.0, 9.0, 8.0, 5.0, 3.0, 2.0, 1.0, 0.0,
+    ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     In the first example, neither a restriction regarding the maximum
     water drop nor a water abstraction is defined.  Hence the sums of
@@ -85,9 +90,9 @@ Integration examples:
     nearly the same.  The maximum of the final output occurs when
     the falling limb of qz intersects with qa:
 
-    >>> maxdw(.0)
-    >>> verzw(0.)
-    >>> test()
+    >>> maxdw(0.0)
+    >>> verzw(0.0)
+    >>> test('llake_v1_ex1')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -111,6 +116,13 @@ Integration examples:
     | 19.01. |  0.0 |  0.00031 |  0.00031 |     17.622262 | 0.000018 |
     | 20.01. |  0.0 | 0.000123 | 0.000123 |      6.989836 | 0.000007 |
 
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
     When the maximum water drop is set to 0.1 m/d, the resulting
     outflow hydrograph shows a plateau in its falling limb.  This
     plateau is placed in the time period, where little inflow occurs
@@ -118,9 +130,9 @@ Integration examples:
     of stored water.  In this time period, qa is limited by the
     maximum water drop allowed:
 
-    >>> maxdw(.1)
-    >>> verzw(0.)
-    >>> test()
+    >>> maxdw(0.1)
+    >>> verzw(0.0)
+    >>> test('llake_v1_ex2')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -144,15 +156,22 @@ Integration examples:
     | 19.01. |  0.0 |  0.01037 |  0.01037 |    589.032976 | 0.000589 |
     | 20.01. |  0.0 | 0.004113 | 0.004113 |    233.638778 | 0.000234 |
 
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
     In the above example, the water balance is still maintained.  This
     is not the case for the last example, where 1 m³/s is subtracted
     from the total outflow.  Regarding its peak time and form, the
     output hydrograph is identical/similar to the one of the first
     example:
 
-    >>> maxdw(.0)
-    >>> verzw(1.)
-    >>> test()
+    >>> maxdw(0.0)
+    >>> verzw(1.0)
+    >>> test('llake_v1_ex3')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -176,6 +195,13 @@ Integration examples:
     | 19.01. |  0.0 |      0.0 |      0.0 |     17.622262 | 0.000018 |
     | 20.01. |  0.0 |      0.0 |      0.0 |      6.989836 | 0.000007 |
 
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
     In the following, the given examples above repeated.  The only
     parameter that will be altered is the internal simulation step size,
     being one hour instead of one day:
@@ -188,9 +214,9 @@ Integration examples:
 
     Repetition of the first experiment:
 
-    >>> maxdw(.0)
-    >>> verzw(0.)
-    >>> test()
+    >>> maxdw(0.0)
+    >>> verzw(0.0)
+    >>> test('llake_v1_ex4')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -214,11 +240,18 @@ Integration examples:
     | 19.01. |  0.0 | 0.000542 | 0.000542 |      34.10619 | 0.000034 |
     | 20.01. |  0.0 | 0.000228 | 0.000228 |      14.37349 | 0.000014 |
 
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
     Repetition of the second experiment:
 
-    >>> maxdw(.1)
-    >>> verzw(0.)
-    >>> test()
+    >>> maxdw(0.1)
+    >>> verzw(0.0)
+    >>> test('llake_v1_ex5')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -242,11 +275,18 @@ Integration examples:
     | 19.01. |  0.0 | 0.012208 | 0.012208 |    768.335707 | 0.000768 |
     | 20.01. |  0.0 | 0.005145 | 0.005145 |    323.802391 | 0.000324 |
 
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
+
     Repetition of the third experiment:
 
-    >>> maxdw(.0)
-    >>> verzw(1.)
-    >>> test()
+    >>> maxdw(0.0)
+    >>> verzw(1.0)
+    >>> test('llake_v1_ex6')
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -269,6 +309,13 @@ Integration examples:
     | 18.01. |  0.0 |      0.0 |      0.0 |     80.928999 | 0.000081 |
     | 19.01. |  0.0 |      0.0 |      0.0 |      34.10619 | 0.000034 |
     | 20.01. |  0.0 |      0.0 |      0.0 |      14.37349 | 0.000014 |
+
+    .. raw:: html
+
+        <a
+            href="llake_v1_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from standard library
@@ -301,6 +348,7 @@ class Model(modeltools.AdHocModel):
         llake_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

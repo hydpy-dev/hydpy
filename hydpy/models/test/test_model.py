@@ -147,9 +147,6 @@ class Calc_S_V1(modeltools.Method):
        >>> states.s
        s(0.2)
     """
-    CONTROLPARAMETERS = (
-        test_control.K,
-    )
     REQUIREDSEQUENCES = (
         test_fluxes.Q,
     )
@@ -185,7 +182,6 @@ class Calc_SV_V1(modeltools.Method):
     """
     CONTROLPARAMETERS = (
         test_control.N,
-        test_control.K,
     )
     REQUIREDSEQUENCES = (
         test_fluxes.QV,
@@ -214,6 +210,7 @@ class Model(modeltools.ELSModel):
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         Calc_Q_V1,
         Calc_Q_V2,
@@ -225,3 +222,4 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELS = ()

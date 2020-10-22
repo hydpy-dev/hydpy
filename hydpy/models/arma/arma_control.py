@@ -244,12 +244,13 @@ Most probably, you defined the same threshold value(s) twice.
     def __getattr__(self, key):
         try:
             std_key = self._standardize_key(key)
-        except AttributeError:
+        except AttributeError as exc:
             raise AttributeError(
                 f'Parameter `{self.name}` of element '
                 f'`{objecttools.devicename(self.subpars)}` does not '
                 f'have an attribute named `{key}` and the name `{key}` '
-                f'is also not a valid threshold value identifier.')
+                f'is also not a valid threshold value identifier.'
+            ) from exc
         if std_key in self._coefs:
             return self._coefs[std_key]
         raise AttributeError(
@@ -267,13 +268,16 @@ Most probably, you defined the same threshold value(s) twice.
                 try:
                     self._coefs[std_key] = value.arma.coefs
                 except AttributeError:
-                    self._coefs[std_key] = (tuple(float(v) for v in value[0]),
-                                            tuple(float(v) for v in value[1]))
+                    self._coefs[std_key] = (
+                        tuple(float(v) for v in value[0]),
+                        tuple(float(v) for v in value[1]),
+                    )
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to set a new threshold ({key}) '
                     f'coefficient pair for parameter `{self.name}` '
-                    f'of element `{objecttools.devicename(self.subpars)}`')
+                    f'of element `{objecttools.devicename(self.subpars)}`'
+                )
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)
@@ -290,7 +294,7 @@ Most probably, you defined the same threshold value(s) twice.
                 integer = int(tuple_[-1])
                 decimal = 0
             return '_'.join(('th', str(integer), str(decimal)))
-        except BaseException:
+        except BaseException as exc:
             raise AttributeError(
                 f'To define different response functions for '
                 f'parameter `{self.name}` of element '
@@ -299,7 +303,8 @@ Most probably, you defined the same threshold value(s) twice.
                 f'additional attributes.  The used name must meet a '
                 f'specific format (see the documentation for further '
                 f'information).  The given name `{key}` does not '
-                f'meet this format.')
+                f'meet this format.'
+            ) from exc
 
     @property
     def thresholds(self):

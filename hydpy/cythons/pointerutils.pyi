@@ -1,7 +1,9 @@
 
 
 class DoubleBase:
-    ...
+
+    def __float__(self) -> float:
+        ...
 
 
 class Double(DoubleBase):

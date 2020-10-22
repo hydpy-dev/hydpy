@@ -600,18 +600,19 @@ class Modify_QA_V1(modeltools.Method):
         Assume that, in accordance with previous calculations, the original
         outflow value is 3 m³/s:
 
-        >>> fluxes.qa = 3.
+        >>> fluxes.qa = 3.0
 
         Prepare the shape of parameter `verzw` (usually, this is done
         automatically when calling parameter `n`):
+
         >>> verzw.shape = (None,)
 
         Set the value of the abstraction on the first half of the second
         day of January to 2 m³/s:
 
-        >>> verzw(_1_1_18=0.,
-        ...       _1_2_6=2.,
-        ...       _1_2_18=0.)
+        >>> verzw(_1_1_18=0.0,
+        ...       _1_2_6=2.0,
+        ...       _1_2_18=0.0)
 
         In the first example `verzw` is simply subtracted from `qa`:
 
@@ -629,7 +630,7 @@ class Modify_QA_V1(modeltools.Method):
         The last example demonstrates, that "negative abstractions" are
         allowed, resulting in an increase in simulated outflow:
 
-        >>> verzw.toy_1_2_6 = -2.
+        >>> verzw.toy_1_2_6 = -2.0
         >>> model.modify_qa_v1()
         >>> fluxes.qa
         qa(2.0)
@@ -714,3 +715,4 @@ class Model(modeltools.AdHocModel):
         Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()

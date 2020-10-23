@@ -311,8 +311,21 @@ occurred: unsupported operand type(s) for +: 'int' and 'str' \
     ...
     hydpy.core.objecttools.WrongError: While showing how prefixing works, \
 the following error occurred: ('info 1', 'info 2')
+
+    Never use function |augment_excmessage| outside except clauses:
+
+    >>> objecttools.augment_excmessage("While trying to do something")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: No exception available.  (Call function `augment_excmessage` \
+only inside except clauses.)
     """
     exc_old = sys.exc_info()[1]
+    if exc_old is None:
+        raise RuntimeError(
+            "No exception available.  (Call function `augment_excmessage` "
+            "only inside except clauses.)"
+        )
     message = str(exc_old)
     if prefix is not None:
         message = f"{prefix}, the following error occurred: {message}"

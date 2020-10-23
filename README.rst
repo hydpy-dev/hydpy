@@ -25,6 +25,9 @@
 .. image:: https://img.shields.io/badge/docs-latest-informational
    :alt: Documentation
    :target: https://hydpy-dev.github.io/hydpy/index.html
+.. image:: https://img.shields.io/github/license/hydpy-dev/hydpy?color=blue
+   :alt: GitHub
+   :target: https://github.com/hydpy-dev/hydpy/blob/master/LICENSE
 
 \
 

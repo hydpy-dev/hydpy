@@ -1,5 +1,6 @@
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
 .. _Pylint: https://www.pylint.org/
+.. _Black: https://github.com/psf/black
 .. _Travis CI: https://travis-ci.com/
 .. _pylintrc: https://github.com/hydpy-dev/hydpy/blob/master/pylintrc
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
@@ -69,23 +70,27 @@ Second, we try to close the gap between the model code, model
 documentation and model tests as well as possible.  Through reading
 (and testing) for example the documentation of a specific model, one
 should exactly understand how this model works within the corresponding
-version of the *HydPy* framework.
+version of the *HydPy* framework.  Third, we want the source code style
+of *HydPy* to be as consistent as possible.  Therefore, we further
+concretise many suggestions of `PEP 8`_ by applying (the standards of)
+`Black`_.
 
 When contributing to the code basis, be aware that even slight changes
 can have significant effects on the  applicability of *HydPy*, and future
 developers must cope with your work.  So, always make sure to check for
 possible side-effects of your code changes.  Structure your code in a
-clear (mainly object-oriented) design.  Refactor thoroughly enough to
-avoid code duplicates.  Last but not least, create smartly thought-through
-APIs for your objects, allowing to use them smoothly both within doctests
-and within the Python shell.
+clear (mainly object-oriented) design and use `Black`_ for automatically
+formatting your code.  Refactor thoroughly enough to avoid code duplicates.
+Last but not least, create smartly thought-through APIs for your objects,
+allowing to use them smoothly both within doctests and within the Python shell.
 
-Be aware of the usage of `Pylint`_ in our `Travis CI`_ continuous integration
-workflow.  `Pylint`_ is a style checker that recognises missing documentation
-sections, repeated or inconsistent method definitions, and much more.  The
-`pylintrc`_ file configures the general behaviour and strictness of `Pylint`_.
-You are allowed to disable some checks locally in case you provide a good
-explanation.  At best, simply at a link to a related issue explaining why
+Be aware of the usage of `Black`_ and `Pylint`_ in our `Travis CI`_ continuous
+integration workflow.  `Black`_ checks that all committed files follow its
+standards.  `Pylint`_ is an additional style checker that recognises missing
+documentation sections, repeated or inconsistent method definitions, and much
+more.  The `pylintrc`_ file configures the general behaviour and strictness of
+`Pylint`_.  You are allowed to disable some checks locally in case you provide
+a good explanation.  At best, simply at a link to a related issue explaining why
 `Pylint`_ is wrong in your particular code section, using the following pattern:
 
 >>> # pylint: disable=abstract-method

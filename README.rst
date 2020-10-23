@@ -18,13 +18,28 @@
 
 .. image:: https://img.shields.io/pypi/v/HydPy
    :alt: PyPI
-   :target: https://pypi.org/project/HydPy/
+   :target: https://pypi.org/project/HydPy
 .. image:: https://img.shields.io/pypi/v/HydPy?label=download
    :alt: Releases
    :target: https://github.com/hydpy-dev/hydpy/releases
 .. image:: https://img.shields.io/badge/docs-latest-informational
    :alt: Documentation
    :target: https://hydpy-dev.github.io/hydpy/index.html
+
+\
+
+.. image:: https://img.shields.io/badge/Coverage-100%20%25-green
+   :alt: Coverage
+   :target: https://coverage.readthedocs.io
+.. image:: https://img.shields.io/badge/Black-All%20done%21-green
+   :alt: Black
+   :target: https://github.com/psf/black
+.. image:: https://img.shields.io/badge/Pylint-10.00/10-green
+   :alt: Pylint
+   :target: https://www.pylint.org/
+.. image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
+   :alt: Mypy
+   :target: https://mypy.readthedocs.io/en/stable
 
 \
 

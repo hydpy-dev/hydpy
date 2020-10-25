@@ -14,7 +14,7 @@ import time
 import traceback
 from typing import *
 from typing import IO
-from typing_extensions import Literal
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 import hydpy
@@ -158,9 +158,9 @@ def test_everything() -> int:
     >>> repr_(system.call_args[0][0])   # doctest: +ELLIPSIS
     '.../python... .../hydpy/tests/test_everything.py forcecompiling=False'
     """
+    testspath: str = tests.__path__[0]  # type: ignore[attr-defined, name-defined]
     return os.system(
-        f"{sys.executable} {tests.__path__[0]}"
-        f"/test_everything.py forcecompiling=False"
+        f"{sys.executable} {testspath}" f"/test_everything.py forcecompiling=False"
     )
 
 

@@ -5,7 +5,7 @@ eventually dynamical) typing."""
 # ...from standard library
 import abc
 from typing import *
-from typing_extensions import Protocol
+from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from hydpy
 if TYPE_CHECKING:

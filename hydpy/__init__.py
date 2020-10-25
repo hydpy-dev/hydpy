@@ -244,7 +244,8 @@ _select = (
     sequencetools.FluxSequence,
     sequencetools.StateSequence,
 )
-for moduleinfo in pkgutil.walk_packages(models.__path__):
+modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
+for moduleinfo in pkgutil.walk_packages([modelpath]):
     if moduleinfo.ispkg:
         for group in ("inputs", "fluxes", "states"):
             modulepath = f"hydpy.models.{moduleinfo.name}.{moduleinfo.name}_{group}"
@@ -278,7 +279,8 @@ if config.USEAUTODOC:
 
         substituter = autodoctools.prepare_mainsubstituter()
         for subpackage in (auxs, core, cythons, exe):
-            for filename in os.listdir(subpackage.__path__[0]):
+            subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+            for filename in os.listdir(subpackagepath):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
                         f"{subpackage.__name__}.{filename[:-3]}"
@@ -286,12 +288,12 @@ if config.USEAUTODOC:
                     autodoctools.autodoc_module(module)
         autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         with pub.options.autocompile(False):
-            for filename in os.listdir(models.__path__[0]):
-                path = os.path.join(models.__path__[0], filename)
+            for filename in os.listdir(modelpath):
+                path = os.path.join(modelpath, filename)
                 if os.path.isdir(path) and not filename.startswith("_"):
                     module = importlib.import_module(f"{models.__name__}.{filename}")
                     autodoctools.autodoc_basemodel(module)
-            for filename in os.listdir(models.__path__[0]):
+            for filename in os.listdir(modelpath):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
                         f"{models.__name__}.{filename[:-3]}"

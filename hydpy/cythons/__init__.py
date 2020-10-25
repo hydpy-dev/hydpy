@@ -11,9 +11,10 @@ import importlib
 # from HydPy
 from hydpy.cythons import autogen
 
+autogenpath: str = autogen.__path__[0]  # type: ignore[attr-defined, name-defined]
 modulenames = [
     str(fn.split(".")[0])
-    for fn in os.listdir(autogen.__path__[0])
+    for fn in os.listdir(autogenpath)
     if (fn.split(".")[-1] in ("pyd", "so") and not fn.startswith("c_"))
 ]
 

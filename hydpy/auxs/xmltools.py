@@ -97,7 +97,7 @@ import itertools
 import os
 from typing import *
 from xml.etree import ElementTree
-from typing_extensions import Literal
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from HydPy
 import hydpy
@@ -489,7 +489,8 @@ correctly refer to one of the available XML schema files \
                     f"does not correctly refer to one of the available XML "
                     f"schema files ({objecttools.enumeration(filenames)})."
                 )
-            schemapath = os.path.join(conf.__path__[0], schemafile)
+            confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+            schemapath = os.path.join(confpath, schemafile)
             schema = xmlschema.XMLSchema(schemapath)
             schema.validate(self.filepath)
         except BaseException:
@@ -1792,7 +1793,8 @@ class XSDWriter:
     you should, if any, be interested in method |XSDWriter.write_xsd| only.
     """
 
-    filepath_source: str = os.path.join(conf.__path__[0], "HydPyConfigBase" + ".xsdt")
+    confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+    filepath_source: str = os.path.join(confpath, "HydPyConfigBase" + ".xsdt")
     filepath_target: str = filepath_source[:-1]
 
     @classmethod
@@ -1843,9 +1845,10 @@ class XSDWriter:
         >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
+        modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
         return sorted(
             str(fn.split(".")[0])
-            for fn in os.listdir(models.__path__[0])
+            for fn in os.listdir(modelspath)
             if (fn.endswith(".py") and (fn != "__init__.py"))
         )
 

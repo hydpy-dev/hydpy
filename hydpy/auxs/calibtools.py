@@ -10,7 +10,7 @@ import abc
 import types
 import warnings
 from typing import *
-from typing_extensions import Protocol
+from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

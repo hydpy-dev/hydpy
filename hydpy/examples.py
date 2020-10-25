@@ -24,6 +24,10 @@ from hydpy.core import testtools
 from hydpy.tests import iotesting
 from hydpy.models import lland
 
+if TYPE_CHECKING:
+    from hydpy.core import pubtools
+    from hydpy.core import timetools
+
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
@@ -223,18 +227,17 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     """
     if dirpath is None:
         testtools.TestIO.clear()
-        dirpath = iotesting.__path__[0]
-    shutil.copytree(
-        os.path.join(data.__path__[0], "LahnH"), os.path.join(dirpath, "LahnH")
-    )
+        dirpath = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+    datapath: str = data.__path__[0]  # type: ignore[attr-defined, name-defined]
+    shutil.copytree(os.path.join(datapath, "LahnH"), os.path.join(dirpath, "LahnH"))
     seqpath = os.path.join(dirpath, "LahnH", "series")
     for folder in ("output", "node", "temp"):
         os.makedirs(os.path.join(seqpath, folder))
 
 
 def prepare_full_example_2(
-    lastdate="1996-01-05",
-) -> (hydpytools.HydPy, hydpy.pub, testtools.TestIO):
+    lastdate: "timetools.DateConstrArg" = "1996-01-05",
+) -> Tuple[hydpytools.HydPy, "pubtools.Pub", Type[testtools.TestIO]]:
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function

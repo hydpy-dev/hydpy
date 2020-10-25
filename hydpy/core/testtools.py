@@ -18,7 +18,7 @@ import sys
 import types
 import warnings
 from typing import *
-from typing_extensions import Literal
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -943,7 +943,8 @@ datetime of the Python standard library for for further information.
             },
         )
 
-        fig.write_html(os.path.join(docs.__path__[0], "html_", filename))
+        docspath = docs.__path__[0]  # type: ignore[attr-defined, name-defined]
+        fig.write_html(os.path.join(docspath, "html_", filename))
 
 
 class UnitTest(Test):
@@ -1269,7 +1270,8 @@ class TestIO:
 
     def __enter__(self):
         self._path = os.getcwd()
-        os.chdir(os.path.join(iotesting.__path__[0]))
+        iotestingpath: str = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+        os.chdir(os.path.join(iotestingpath))
         if self._clear_own:
             self._olds = os.listdir(".")
         return self

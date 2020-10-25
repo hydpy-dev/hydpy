@@ -1205,7 +1205,8 @@ def start_server(socket, projectname, xmlfilename: str) -> None:
     |start_server| calls |mimetypes.init| as usual, (over)writes
     `mimetypes.txt`, and tries to proceed as expected.
     """
-    filepath = os.path.join(conf.__path__[0], "mimetypes.txt")
+    confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+    filepath = os.path.join(confpath, "mimetypes.txt")
     try:
         with open(filepath) as file_:
             dict_ = eval(open(file_.read()))

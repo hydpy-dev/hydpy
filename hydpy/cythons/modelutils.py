@@ -582,7 +582,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.cydirpath)
         True
         """
-        return getattr(cythons.autogen, "__path__")[0]
+        return cythons.autogen.__path__[0]  # type: ignore[attr-defined, name-defined]
 
     @property
     def cymodule(self) -> types.ModuleType:
@@ -728,7 +728,7 @@ class Cythonizer:
          'modelutils.py',
          'hland_v1.py']
         """
-        basepath = hydpy.__path__[0]
+        basepath = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
         filepaths = set()
         for child in vars(self).values():
             try:
@@ -813,7 +813,8 @@ class Cythonizer:
         """
         if hydpy.pub.options.forcecompiling:
             return True
-        foldername = os.path.split(os.path.split(hydpy.__path__[0])[0])[-1]
+        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        foldername = os.path.split(os.path.split(hydpypath)[0])[-1]
         testname = foldername.split("-")[-1]
         if testname in ("pkgs", "packages"):
             return False
@@ -2205,7 +2206,8 @@ class PyxWriter:
         >>> os.path.exists(filepath)
         False
         """
-        filepath = os.path.join(hydpy.__path__[0], f"{self.model.name}.py")
+        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        filepath = os.path.join(hydpypath, f"{self.model.name}.py")
         base = ".".join(self.model.__module__.split(".")[:3])
         with open(filepath, "w") as stubfile:
             stubfile.write(

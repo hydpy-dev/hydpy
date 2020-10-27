@@ -445,7 +445,7 @@ class AngstromConstant(parametertools.MonthParameter):
         >>> angstromconstant(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
         ...                   1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
         >>> angstromconstant
-        angstromconstant(jan=0.0, feb=0.0, mar=0.2, apr=0.4, mai=0.6, jun=0.6,
+        angstromconstant(jan=0.0, feb=0.0, mar=0.2, apr=0.4, may=0.6, jun=0.6,
                          jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
         >>> angstromfactor(None)
         >>> angstromconstant(0.6)
@@ -485,7 +485,7 @@ class AngstromFactor(parametertools.MonthParameter):
         >>> angstromfactor(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
         ...                1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
         >>> angstromfactor
-        angstromfactor(jan=0.0, feb=0.0, mar=0.2, apr=0.4, mai=0.6, jun=0.6,
+        angstromfactor(jan=0.0, feb=0.0, mar=0.2, apr=0.4, may=0.6, jun=0.6,
                        jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
         >>> angstromconstant(None)
         >>> angstromfactor(0.6)

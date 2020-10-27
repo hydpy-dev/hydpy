@@ -3711,7 +3711,7 @@ class Calc_G_V1(modeltools.Method):
         from the soil body to the soil surface) and a negative one for June
         (enery moves for the surface to the body):
 
-        >>> wg2z.mai = 1.0
+        >>> wg2z.may = 1.0
         >>> wg2z.jun = -2.0
 
         The following derived parameters need to be updated:
@@ -3842,7 +3842,7 @@ class Calc_G_V2(modeltools.Method):
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, WASSER, FLUSS, SEE)
-        >>> wg2z.mai = 1.2
+        >>> wg2z.may = 1.2
         >>> wg2z.jun = -2.4
         >>> derived.moy.update()
         >>> derived.days.update()
@@ -4018,7 +4018,7 @@ class Update_EBdn_V1(modeltools.Method):
         >>> derived.seconds.update()
         >>> derived.days.update()
         >>> wg2z.apr = -0.03
-        >>> wg2z.mai = -0.04
+        >>> wg2z.may = -0.04
         >>> states.ebdn = 0.0
         >>> fluxes.wg = 0.0, 0.0, 0.0, 0.5, 1.0, 2.0
         >>> model.idx_sim = 1

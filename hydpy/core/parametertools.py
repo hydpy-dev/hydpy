@@ -2412,7 +2412,7 @@ class MonthParameter(KeywordParameter1D):
     >>> parameterstep("1d")
     >>> wg2z(3.0, 2.0, 1.0, 0.0, -1.0, -2.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0)
     >>> wg2z
-    wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+    wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, may=-1.0, jun=-2.0, jul=-3.0,
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
 
     Note that attribute access provides access to the "real" values related
@@ -2422,7 +2422,7 @@ class MonthParameter(KeywordParameter1D):
     2.0
     >>> wg2z.feb = 4.0
     >>> wg2z
-    wg2z(jan=3.0, feb=4.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+    wg2z(jan=3.0, feb=4.0, mar=1.0, apr=0.0, may=-1.0, jun=-2.0, jul=-3.0,
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
 
@@ -2431,7 +2431,7 @@ class MonthParameter(KeywordParameter1D):
         "feb",
         "mar",
         "apr",
-        "mai",
+        "may",
         "jun",
         "jul",
         "aug",

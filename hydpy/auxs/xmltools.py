@@ -115,14 +115,17 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
 
-netcdf4 = exceptiontools.OptionalImport(
-    "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
-)
-xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
-
 if TYPE_CHECKING:
+    # pylint: disable=ungrouped-imports
+    import netCDF4 as netcdf4
+    import xmlschema
     from hydpy.core import modeltools
     from hydpy.core import variabletools
+else:
+    netcdf4 = exceptiontools.OptionalImport(
+        "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
+    )
+    xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
 
 namespace = (
     "{https://github.com/hydpy-dev/hydpy/releases/download/"

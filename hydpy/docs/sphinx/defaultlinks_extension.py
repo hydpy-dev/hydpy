@@ -2,37 +2,11 @@
 `.. how_to_understand_model_integration_tests::`.
 """
 # import...
-from typing import *
-
-# ...from hydpy
-from hydpy.core import exceptiontools
-
-docutils_nodes = exceptiontools.OptionalImport(
-    "nodes",
-    ["docutils.nodes"],
-    locals(),
-)
-statemachine = exceptiontools.OptionalImport(
-    "nodes",
-    ["docutils.statemachine"],
-    locals(),
-)
-sphinx_nodes = exceptiontools.OptionalImport(
-    "nodes",
-    ["sphinx.util.nodes"],
-    locals(),
-)
-rst = exceptiontools.OptionalImport(
-    "rst",
-    ["docutils.parsers.rst"],
-    locals(),
-)
-
-if TYPE_CHECKING:
-    from docutils import nodes as docutils_nodes
-    from docutils import statemachine
-    from docutils.parsers import rst
-    from sphinx.util import nodes as sphinx_nodes
+# ...from site-packages
+from docutils import nodes as docutils_nodes
+from docutils import statemachine
+from docutils.parsers import rst
+from sphinx.util import nodes as sphinx_nodes
 
 
 class HowToUnderstandIntegrationTests(rst.Directive):

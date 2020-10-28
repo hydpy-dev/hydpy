@@ -9,25 +9,23 @@ from typing_extensions import Literal  # type: ignore[misc]
 # ...from site-packages
 import numpy
 
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
-from hydpy.core import timetools
 from hydpy.auxs import validtools
+from hydpy.core import timetools
 
-pandas: "pandas" = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
-optimize: "optimize" = exceptiontools.OptionalImport(
-    "optimize", ["scipy.optimize"], locals()
-)
-special: "special" = exceptiontools.OptionalImport(
-    "special", ["scipy.special"], locals()
-)
 if TYPE_CHECKING:
     import pandas
     from scipy import optimize
     from scipy import special
+else:
+    pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
+    optimize = exceptiontools.OptionalImport("optimize", ["scipy.optimize"], locals())
+    special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
 
 
 class SimObs(NamedTuple):

@@ -25,9 +25,10 @@ from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 if TYPE_CHECKING:
     from matplotlib import pyplot
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 
 
 class _ANNArrayProperty(

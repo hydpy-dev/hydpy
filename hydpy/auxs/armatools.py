@@ -5,6 +5,7 @@ related to Autoregressive-Moving Average (ARMA) models."""
 # ...from standard library
 import itertools
 import warnings
+from typing import *
 
 # ...from site-packages
 import numpy
@@ -15,8 +16,14 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
-integrate = exceptiontools.OptionalImport("integrate", ["scipy.integrate"], locals())
+if TYPE_CHECKING:
+    from matplotlib import pyplot
+    from scipy import integrate
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    integrate = exceptiontools.OptionalImport(
+        "integrate", ["scipy.integrate"], locals()
+    )
 
 
 class MA:

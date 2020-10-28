@@ -11,6 +11,7 @@ iuh, see the examples or the source code of class
 # ...from standard library
 import abc
 import itertools
+from typing import *
 
 # ...from site-packages
 import numpy
@@ -21,8 +22,12 @@ from hydpy.core import objecttools
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
 
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
-special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
+if TYPE_CHECKING:
+    from matplotlib import pyplot
+    from scipy import special
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
 
 
 class ParameterIUH:

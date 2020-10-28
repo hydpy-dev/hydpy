@@ -1,17 +1,12 @@
 """Sphinx extension introducing `.. integration-test::` directives."""
 # import...
+# from standard library
 from typing import *
 
-# ...from hydpy
-from hydpy.core import exceptiontools
+# ...from site-packages
+from docutils import nodes
+from sphinx.directives import code
 
-if TYPE_CHECKING:
-    from docutils import nodes as nodes_
-    from sphinx.directives import code as code_
-nodes: "nodes_" = exceptiontools.OptionalImport("nodes", ["docutils.nodes"], locals())
-code: "code_" = exceptiontools.OptionalImport(
-    "code", ["sphinx.directives.code"], locals()
-)
 
 counter = 0
 

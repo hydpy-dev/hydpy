@@ -96,12 +96,16 @@ from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.cythons.autogen import pointerutils
 
-pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 if TYPE_CHECKING:
+    # pylint: disable=ungrouped-imports
+    from matplotlib import pyplot
+    import pandas
     from hydpy.core import auxfiletools
     from hydpy.core import modeltools
     from hydpy.core import timetools
+else:
+    pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 
 DeviceType = TypeVar("DeviceType", "Node", "Element")
 DevicesTypeBound = TypeVar("DevicesTypeBound", bound="Devices")

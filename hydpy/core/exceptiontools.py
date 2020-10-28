@@ -4,6 +4,7 @@
 # import...
 # ...from standard-library
 import importlib
+import types
 from typing import *
 
 # ...from HydPy
@@ -147,7 +148,7 @@ class OptionalModuleNotAvailable(ImportError):
     module is not available."""
 
 
-class OptionalImport:
+class OptionalImport(types.ModuleType):
     """Imports the first found module "lazily".
 
     >>> from hydpy.core.exceptiontools import OptionalImport

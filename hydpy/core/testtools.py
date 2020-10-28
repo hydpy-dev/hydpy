@@ -39,12 +39,19 @@ from hydpy.core import variabletools
 from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
+    # pylint: disable=ungrouped-imports
+    import matplotlib
+    from matplotlib import pyplot
+    import pandas
+    import plotly
+    from plotly import subplots
     from hydpy.core import modeltools
-matplotlib = exceptiontools.OptionalImport("matplotlib", ["matplotlib"], locals())
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
-pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
-plotly = exceptiontools.OptionalImport("plotly", ["plotly"], locals())
-subplots = exceptiontools.OptionalImport("subplots", ["plotly.subplots"], locals())
+else:
+    matplotlib = exceptiontools.OptionalImport("matplotlib", ["matplotlib"], locals())
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
+    plotly = exceptiontools.OptionalImport("plotly", ["plotly"], locals())
+    subplots = exceptiontools.OptionalImport("subplots", ["plotly.subplots"], locals())
 
 
 class StdOutErr:

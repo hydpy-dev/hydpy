@@ -25,7 +25,10 @@ from hydpy.models.lstream import lstream_aides
 from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
 
-pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+if typing.TYPE_CHECKING:
+    from matplotlib import pyplot
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 
 
 class Pick_Q_V1(modeltools.Method):

@@ -299,7 +299,10 @@ from hydpy.core import sequencetools
 from hydpy.core import testtools
 from hydpy.core import typingtools
 
-build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
+if TYPE_CHECKING:
+    import Cython.Build as build
+else:
+    build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
 
 
 def get_dllextension() -> str:

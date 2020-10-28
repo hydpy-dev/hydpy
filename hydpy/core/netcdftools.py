@@ -218,11 +218,11 @@ Both methods take the current values of the options |Options.flattennetcdf|,
 """
 # import...
 # ...from standard library
-from typing import Any, Iterator, Dict, List, Tuple, TypeVar, Union
 import abc
 import collections
 import itertools
 import os
+from typing import *
 
 # ...from site-packages
 import numpy
@@ -234,9 +234,10 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
-netcdf4 = exceptiontools.OptionalImport(
-    "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
-)
+if TYPE_CHECKING:
+    import netCDF4 as netcdf4
+else:
+    netcdf4 = exceptiontools.OptionalImport("netcdf4", ["netCDF4"], locals())
 
 IntOrSlice = TypeVar("IntOrSlice", int, slice)
 

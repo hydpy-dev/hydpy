@@ -205,11 +205,18 @@ setup(name='HydPy',
       include_package_data=True,
       python_requires='>=3.6',
       install_requires=[
+          'bokeh',
+          'Cython',
+          'matplotlib',
+          'netCDF4',
           'networkx',
           'numpy',
+          'pandas',
+          'plotly',
           'scipy',
           'typing_extensions',
           'wrapt',
+          'xmlschema',
       ],
       )
 

@@ -17,6 +17,7 @@ from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
 from hydpy.core import timetools
+from hydpy.core import typingtools
 
 if TYPE_CHECKING:
     import pandas
@@ -32,14 +33,14 @@ class SimObs(NamedTuple):
     """A named tuple containing one array of simulated and one array of
     observed values."""
 
-    sim: numpy.ndarray
-    obs: numpy.ndarray
+    sim: typingtools.Vector[float]
+    obs: typingtools.Vector[float]
 
 
 @overload
 def aggregate_series(
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     stepsize: Literal["daily", "d"],
     aggregator: Callable,
     basetime: str = ...,
@@ -49,8 +50,8 @@ def aggregate_series(
 
 @overload
 def aggregate_series(
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     stepsize: Literal["monthly", "m"],
     aggregator: Callable,
 ) -> SimObs:
@@ -78,8 +79,8 @@ def aggregate_series(
 
 @objecttools.excmessage_decorator("aggregate the given series")
 def aggregate_series(
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     stepsize: Literal["daily", "d", "monthly", "m"] = "monthly",
     function: Union[str, Callable] = "mean",
@@ -305,11 +306,13 @@ following ones are supported: `monthly` (default) and `daily`.
     """
     if isinstance(function, str):
         try:
-            function = getattr(numpy, function)
+            realfunction = getattr(numpy, function)
         except AttributeError:
             raise ValueError(
                 f"Module `numpy` does not provide a function named " f"`{function}`."
             ) from None
+    else:
+        realfunction = function
     tg = hydpy.pub.timegrids.init
     if tg.stepsize > "1d":
         raise ValueError(
@@ -365,11 +368,11 @@ following ones are supported: `monthly` (default) and `daily`.
         offset=f"{offset}s",
     )
     try:
-        df_resampled_expanded = resampler.apply(lambda x: function(x.values))
+        df_resampled_expanded = resampler.apply(lambda x: realfunction(x.values))
     except BaseException:
         objecttools.augment_excmessage(
             f"While trying to perform the aggregation based "
-            f"on method `{function.__name__}`"
+            f"on method `{realfunction.__name__}`"
         )
     # noinspection PyUnboundLocalVariable
     idx0 = df_resampled_expanded.first_valid_index()
@@ -384,11 +387,9 @@ following ones are supported: `monthly` (default) and `daily`.
 @overload
 def filter_series(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
-    date_ranges: Optional[
-        Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-    ],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
+    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
 
@@ -396,9 +397,9 @@ def filter_series(
 @overload
 def filter_series(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
-    months: Optional[Iterable[int]],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
+    months: Iterable[int],
 ) -> SimObs:
     """sim and obs and month as arguments"""
 
@@ -407,9 +408,7 @@ def filter_series(
 def filter_series(
     *,
     node: devicetools.Node,
-    date_ranges: Optional[
-        Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-    ],
+    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """node and date_ranges as arguments"""
 
@@ -418,7 +417,7 @@ def filter_series(
 def filter_series(
     *,
     node: devicetools.Node,
-    months: Optional[Iterable[int]],
+    months: Iterable[int],
 ) -> SimObs:
     """node and month as arguments"""
 
@@ -426,8 +425,8 @@ def filter_series(
 @objecttools.excmessage_decorator("filter the given series")
 def filter_series(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     date_ranges: Optional[
         Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
@@ -616,17 +615,7 @@ but both of them are given.
         freq=tg.stepsize.timedelta,
     )
     dataframe_selected = pandas.DataFrame()
-    if (date_ranges is None) and (months is None):
-        raise ValueError(
-            "You need to define either the `date_ranges` or `months` "
-            "argument, but none of them is given."
-        )
-    if (date_ranges is not None) and (months is not None):
-        raise ValueError(
-            "You need to define either the `date_ranges` or `months` "
-            "argument, but both of them are given."
-        )
-    if date_ranges is not None:
+    if (date_ranges is not None) and (months is None):
         for date_range in date_ranges:
             date0 = tg[tg[date_range[0]]]
             date1 = tg[tg[date_range[1]]]
@@ -647,16 +636,26 @@ but both of them are given.
                 )
             idx0 = date0.to_string(style="iso1")
             idx1 = (date1 - tg.stepsize).to_string(style="iso1")
-            selected_dates = dataframe.loc[idx0:idx1]
+            selected_dates = dataframe.loc[idx0:idx1]  # type: ignore[misc]
             dataframe_selected = pandas.concat(
                 [selected_dates, dataframe_selected],
             )
-    else:
+    elif (date_ranges is None) and (months is not None):
         for month in months:
             selected_dates = dataframe.loc[dataframe.index.month == int(month)]
             dataframe_selected = pandas.concat(
                 [selected_dates, dataframe_selected],
             )
+    elif (date_ranges is None) and (months is None):
+        raise ValueError(
+            "You need to define either the `date_ranges` or `months` "
+            "argument, but none of them is given."
+        )
+    else:
+        raise ValueError(
+            "You need to define either the `date_ranges` or `months` "
+            "argument, but both of them are given."
+        )
     dataframe_selected = dataframe_selected.sort_index()
     return SimObs(
         sim=dataframe_selected["sim"],
@@ -665,8 +664,8 @@ but both of them are given.
 
 
 def prepare_arrays(
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> SimObs:
@@ -756,7 +755,7 @@ no value is passed to argument `obs`.
     ValueError: A value is passed to argument `obs` but \
 no value is passed to argument `sim`.
     """
-    if node:
+    if node is not None:
         if sim is not None:
             raise ValueError(
                 "Values are passed to both arguments `sim` and `node`, "
@@ -784,25 +783,25 @@ no value is passed to argument `sim`.
             "Neither a `Node` object is passed to argument `node` nor "
             "are arrays passed to arguments `sim` and `obs`."
         )
-    sim = numpy.asarray(sim)
-    obs = numpy.asarray(obs)
+    sim_ = numpy.asarray(sim)
+    obs_ = numpy.asarray(obs)
     if skip_nan:
-        idxs = ~numpy.isnan(sim) * ~numpy.isnan(obs)
-        sim = sim[idxs]
-        obs = obs[idxs]
+        idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
+        sim_ = sim_[idxs]
+        obs_ = obs_[idxs]
     return SimObs(
-        sim=sim,
-        obs=obs,
+        sim=sim_,
+        obs=obs_,
     )
 
 
 @overload
 def rmse(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
-) -> numpy.ndarray:
+) -> float:
     """node as argument"""
 
 
@@ -818,8 +817,8 @@ def rmse(
 @objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -846,10 +845,10 @@ def rmse(
 @overload
 def nse(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
-) -> numpy.ndarray:
+) -> float:
     """node as argument"""
 
 
@@ -865,8 +864,8 @@ def nse(
 @objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -910,8 +909,8 @@ def nse(
 @overload
 def nse_log(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -929,8 +928,8 @@ def nse_log(
 @objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -974,8 +973,8 @@ def nse_log(
 @overload
 def corr2(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -993,8 +992,8 @@ def corr2(
 @objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1042,8 +1041,8 @@ def corr2(
 @overload
 def kge(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1061,8 +1060,8 @@ def kge(
 @objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1095,8 +1094,8 @@ def kge(
 @overload
 def bias_abs(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1114,8 +1113,8 @@ def bias_abs(
 @objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1146,8 +1145,8 @@ def bias_abs(
 @overload
 def bias_rel(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1165,8 +1164,8 @@ def bias_rel(
 @objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1196,8 +1195,8 @@ def bias_rel(
 @overload
 def std_ratio(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1215,8 +1214,8 @@ def std_ratio(
 @objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1246,8 +1245,8 @@ def std_ratio(
 @overload
 def corr(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1265,8 +1264,8 @@ def corr(
 @objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1300,7 +1299,7 @@ def corr(
     return numpy.corrcoef(sim, obs)[0, 1]
 
 
-def _pars_sepd(xi, beta):
+def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
     gamma1 = special.gamma(3.0 * (1.0 + beta) / 2.0)
     gamma2 = special.gamma((1.0 + beta) / 2.0)
     w_beta = gamma1 ** 0.5 / (1.0 + beta) / gamma2 ** 1.5
@@ -1314,7 +1313,9 @@ def _pars_sepd(xi, beta):
     return mu_xi, sigma_xi, w_beta, c_beta
 
 
-def _pars_h(sigma1, sigma2, sim):
+def _pars_h(
+    sigma1: float, sigma2: float, sim: typingtools.Vector[float]
+) -> typingtools.Vector[float]:
     return sigma1 * numpy.mean(sim) + sigma2 * sim
 
 
@@ -1325,10 +1326,10 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
-) -> numpy.ndarray:
+) -> typingtools.Vector[float]:
     """node as argument"""
 
 
@@ -1341,7 +1342,7 @@ def hsepd_pdf(
     beta: float,
     node: devicetools.Node,
     skip_nan: bool = ...,
-) -> numpy.ndarray:
+) -> typingtools.Vector[float]:
     """sim and obs as arguments"""
 
 
@@ -1355,11 +1356,11 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
-) -> numpy.ndarray:
+) -> typingtools.Vector[float]:
     # noinspection PyUnresolvedReferences
     """Calculate the probability densities based on the
     heteroskedastic skewed exponential power distribution.
@@ -1482,7 +1483,14 @@ def hsepd_pdf(
     return ps
 
 
-def _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs) -> float:
+def _hsepd_manual(
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
+) -> float:
     ps = hsepd_pdf(
         sigma1=sigma1,
         sigma2=sigma2,
@@ -1503,8 +1511,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1532,8 +1540,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1577,8 +1585,8 @@ def hsepd_manual(
 @overload
 def hsepd(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
     inits: Optional[Iterable[float]],
     return_pars: Literal[False],
@@ -1590,8 +1598,8 @@ def hsepd(
 @overload
 def hsepd(
     *,
-    sim: Sequence[float],
-    obs: Sequence[float],
+    sim: typingtools.Vector[float],
+    obs: typingtools.Vector[float],
     skip_nan: bool = ...,
     inits: Optional[Iterable[float]],
     return_pars: Literal[True],
@@ -1629,14 +1637,14 @@ def hsepd(
 )
 def hsepd(
     *,
-    sim: Optional[Sequence[float]] = None,
-    obs: Optional[Sequence[float]] = None,
+    sim: Optional[typingtools.Vector[float]] = None,
+    obs: Optional[typingtools.Vector[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     inits: Optional[Iterable[float]] = None,
     return_pars: bool = False,
     silent: bool = True,
-) -> float:
+) -> Union[float, Tuple[float, Tuple[float, float, float, float]]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1704,13 +1712,15 @@ def hsepd(
     additional instructions for using |hsepd|.
     """
 
-    def transform(pars):
+    def transform(pars: Tuple[float, float, float, float]) -> float:
         """Transform the actual optimisation problem into a function to
         be minimised and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
-        return -_hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
+        return -_hsepd_manual(sigma1, sigma2, xi, beta, sim_, obs_)
 
-    def constrain(sigma1, sigma2, xi, beta):
+    def constrain(
+        sigma1: float, sigma2: float, xi: float, beta: float
+    ) -> Tuple[float, float, float, float]:
         """Apply constraints on the given parameter values."""
         sigma1 = numpy.clip(sigma1, 0.0, None)
         sigma2 = numpy.clip(sigma2, 0.0, None)
@@ -1718,7 +1728,7 @@ def hsepd(
         beta = numpy.clip(beta, -0.99, 5.0)
         return sigma1, sigma2, xi, beta
 
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
@@ -1726,19 +1736,21 @@ def hsepd(
     )
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
-    values = optimize.fmin(transform, inits, ftol=1e-12, xtol=1e-12, disp=not silent)
-    values = constrain(*values)
-    result = _hsepd_manual(*values, sim=sim, obs=obs)
+    original_values = optimize.fmin(
+        transform, inits, ftol=1e-12, xtol=1e-12, disp=not silent
+    )
+    constrained_values = constrain(*original_values)
+    result = _hsepd_manual(*constrained_values, sim=sim_, obs=obs_)
     if return_pars:
         # noinspection PyTypeChecker
-        return result, values
+        return result, constrained_values
     return result
 
 
 @objecttools.excmessage_decorator("calculate the weighted mean time")
 def calc_mean_time(
-    timepoints: Sequence[float],
-    weights: Sequence[float],
+    timepoints: typingtools.Vector[float],
+    weights: typingtools.Vector[float],
 ) -> float:
     """Return the weighted mean of the given time points.
 
@@ -1783,8 +1795,8 @@ one value is negative: weights.
     "calculate the weighted time deviation from mean time"
 )
 def calc_mean_time_deviation(
-    timepoints: Sequence[float],
-    weights: Sequence[float],
+    timepoints: typingtools.Vector[float],
+    weights: typingtools.Vector[float],
     mean_time: Optional[float] = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean
@@ -1846,7 +1858,7 @@ def evaluationtable(
     nodenames: Optional[Sequence[str]] = None,
     critnames: Optional[Sequence[str]] = None,
     skip_nan: bool = False,
-):
+) -> "pandas.DataFrame":
     """Return a table containing the results of the given evaluation
     criteria for the given |Node| objects.
 
@@ -1928,8 +1940,6 @@ which does not match with number of given alternative names being 1.
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
         sim, obs = prepare_arrays(
-            sim=None,
-            obs=None,
             node=node,
             skip_nan=skip_nan,
         )

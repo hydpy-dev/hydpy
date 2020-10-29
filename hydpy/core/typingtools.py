@@ -30,8 +30,7 @@ DataType = TypeVar("DataType")
 
 
 class Vector(Protocol[DataType]):
-    """Protocol class for defining "mathematical", 1-dimensional |Sequence|
-    like objects."""
+    """Protocol class for defining "mathematical", 1-dimensional sequences."""
 
     @overload
     def __getitem__(self, item: int) -> DataType:

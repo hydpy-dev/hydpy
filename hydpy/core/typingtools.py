@@ -25,7 +25,113 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
-Vector = MutableMapping[int, float]
+VectorType = TypeVar("VectorType", bound="Vector")
+DataType = TypeVar("DataType")
+
+
+class Vector(Protocol[DataType]):
+    """Protocol class for defining "mathematical", 1-dimensional |Sequence|
+    like objects."""
+
+    @overload
+    def __getitem__(self, item: int) -> DataType:
+        ...
+
+    @overload
+    def __getitem__(self: VectorType, item: slice) -> VectorType:
+        ...
+
+    @overload
+    def __getitem__(self: VectorType, item: VectorType) -> VectorType:
+        ...
+
+    def __getitem__(
+        self: VectorType, item: Union[int, slice, VectorType]
+    ) -> Union[DataType, VectorType]:
+        ...
+
+    @overload
+    def __setitem__(self, item: int, value: DataType) -> None:
+        ...
+
+    @overload
+    def __setitem__(
+        self, item: slice, value: Union[DataType, Sequence[DataType]]
+    ) -> None:
+        ...
+
+    @overload
+    def __setitem__(
+        self, item: VectorType, value: Union[DataType, Sequence[DataType]]
+    ) -> None:
+        ...
+
+    def __setitem__(
+        self,
+        item: Union[int, slice, VectorType],
+        value: Union[DataType, Sequence[DataType]],
+    ) -> None:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+    def __iter__(self) -> Iterator[DataType]:
+        ...
+
+    def __add__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __radd__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __sub__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __rsub__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __mul__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __rmul__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __truediv__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __rtruediv__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __pow__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __rpow__(self, other: Union[DataType, VectorType]) -> VectorType:
+        ...
+
+    def __ipow__(self, other: Union[DataType, VectorType]) -> None:
+        ...
+
+    def __lt__(self, other: Union[DataType, VectorType]) -> "Vector[int]":
+        ...
+
+    def __le__(self, other: Union[DataType, VectorType]) -> "Vector[int]":
+        ...
+
+    def __eq__(self, other: Union[DataType, VectorType]) -> "Vector[int]":  # type: ignore[override] # pylint: disable=line-too-long
+        ...
+
+    def __ne__(self, other: Union[DataType, VectorType]) -> "Vector[int]":  # type: ignore[override] # pylint: disable=line-too-long
+        ...
+
+    def __ge__(self, other: Union[DataType, VectorType]) -> "Vector[int]":
+        ...
+
+    def __gt__(self, other: Union[DataType, VectorType]) -> "Vector[int]":
+        ...
+
+    def shape(self) -> Tuple[int]:
+        """Shape of the vector."""
 
 
 class IterableNonString(abc.ABC):
@@ -45,7 +151,7 @@ class IterableNonString(abc.ABC):
     """
 
     @classmethod
-    def __subclasshook__(cls, subclass):
+    def __subclasshook__(cls, subclass: Type) -> bool:
         return hasattr(subclass, "__iter__") and not (
             isinstance(subclass, str) or issubclass(subclass, str)
         )

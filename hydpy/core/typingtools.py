@@ -25,8 +25,33 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
+VectorInputType = TypeVar("VectorInputType")
 VectorType = TypeVar("VectorType", bound="Vector")
+DataTypeCov = TypeVar("DataTypeCov", covariant=True)
 DataType = TypeVar("DataType")
+
+
+class VectorInput(Protocol[DataTypeCov]):
+    """Protocol class for providing input to "mathematical", 1-dimensional sequences."""
+
+    @overload
+    def __getitem__(self, item: int) -> DataTypeCov:
+        ...
+
+    @overload
+    def __getitem__(self: VectorInputType, item: slice) -> VectorInputType:
+        ...
+
+    def __getitem__(
+        self: VectorInputType, item: Union[int, slice]
+    ) -> Union[DataTypeCov, VectorInputType]:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+    def __iter__(self) -> Iterator[DataTypeCov]:
+        ...
 
 
 class Vector(Protocol[DataType]):

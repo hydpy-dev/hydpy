@@ -66,11 +66,11 @@ class Vector(Protocol[DataType]):
         ...
 
     @overload
-    def __getitem__(self: VectorType, item: VectorType) -> VectorType:
+    def __getitem__(self: VectorType, item: VectorInput[int]) -> VectorType:
         ...
 
     def __getitem__(
-        self: VectorType, item: Union[int, slice, VectorType]
+        self: VectorType, item: Union[int, slice, VectorInput[int]]
     ) -> Union[DataType, VectorType]:
         ...
 
@@ -80,20 +80,20 @@ class Vector(Protocol[DataType]):
 
     @overload
     def __setitem__(
-        self, item: slice, value: Union[DataType, Sequence[DataType]]
+        self, item: slice, value: Union[DataType, VectorInput[DataType]]
     ) -> None:
         ...
 
     @overload
     def __setitem__(
-        self, item: VectorType, value: Union[DataType, Sequence[DataType]]
+        self, item: VectorInput[int], value: Union[DataType, VectorInput[DataType]]
     ) -> None:
         ...
 
     def __setitem__(
         self,
-        item: Union[int, slice, VectorType],
-        value: Union[DataType, Sequence[DataType]],
+        item: Union[int, slice, VectorInput[int]],
+        value: Union[DataType, VectorInput[DataType]],
     ) -> None:
         ...
 
@@ -131,9 +131,6 @@ class Vector(Protocol[DataType]):
         ...
 
     def __rpow__(self, other: Union[DataType, VectorType]) -> VectorType:
-        ...
-
-    def __ipow__(self, other: Union[DataType, VectorType]) -> None:
         ...
 
     def __lt__(self, other: Union[DataType, VectorType]) -> "Vector[int]":

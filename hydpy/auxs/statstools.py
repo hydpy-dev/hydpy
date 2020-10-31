@@ -9,7 +9,6 @@ from typing_extensions import Literal  # type: ignore[misc]
 # ...from site-packages
 import numpy
 
-
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -39,8 +38,8 @@ class SimObs(NamedTuple):
 
 @overload
 def aggregate_series(
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     stepsize: Literal["daily", "d"],
     aggregator: Callable,
     basetime: str = ...,
@@ -50,8 +49,8 @@ def aggregate_series(
 
 @overload
 def aggregate_series(
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     stepsize: Literal["monthly", "m"],
     aggregator: Callable,
 ) -> SimObs:
@@ -79,8 +78,8 @@ def aggregate_series(
 
 @objecttools.excmessage_decorator("aggregate the given series")
 def aggregate_series(
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     stepsize: Literal["daily", "d", "monthly", "m"] = "monthly",
     function: Union[str, Callable] = "mean",
@@ -341,15 +340,16 @@ following ones are supported: `monthly` (default) and `daily`.
             f"Argument `stepsize` received value `{stepsize}`, but only the "
             f"following ones are supported: `monthly` (default) and `daily`."
         )
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=False,
     )
+    del sim, obs
     dataframe_orig = pandas.DataFrame()
-    dataframe_orig["sim"] = sim
-    dataframe_orig["obs"] = obs
+    dataframe_orig["sim"] = sim_
+    dataframe_orig["obs"] = obs_
     dataframe_orig.index = pandas.date_range(
         start=tg.firstdate.datetime,
         end=(tg.lastdate - tg.stepsize).datetime,
@@ -387,8 +387,8 @@ following ones are supported: `monthly` (default) and `daily`.
 @overload
 def filter_series(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
@@ -397,8 +397,8 @@ def filter_series(
 @overload
 def filter_series(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     months: Iterable[int],
 ) -> SimObs:
     """sim and obs and month as arguments"""
@@ -425,8 +425,8 @@ def filter_series(
 @objecttools.excmessage_decorator("filter the given series")
 def filter_series(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     date_ranges: Optional[
         Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
@@ -600,14 +600,15 @@ occurred: You need to define either the `date_ranges` or `months` argument, \
 but both of them are given.
     """
     dataframe = pandas.DataFrame()
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=False,
     )
-    dataframe["sim"] = sim
-    dataframe["obs"] = obs
+    del sim, obs
+    dataframe["sim"] = sim_
+    dataframe["obs"] = obs_
     tg = hydpy.pub.timegrids.init
     dataframe.index = pandas.date_range(
         start=tg.firstdate.datetime,
@@ -664,8 +665,8 @@ but both of them are given.
 
 
 def prepare_arrays(
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> SimObs:
@@ -798,8 +799,8 @@ no value is passed to argument `sim`.
 @overload
 def rmse(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -817,8 +818,8 @@ def rmse(
 @objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -833,20 +834,21 @@ def rmse(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |rmse|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return numpy.sqrt(numpy.mean((sim - obs) ** 2))
+    del sim, obs
+    return numpy.sqrt(numpy.mean((sim_ - obs_) ** 2))
 
 
 @overload
 def nse(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -864,8 +866,8 @@ def nse(
 @objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -897,20 +899,23 @@ def nse(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |nse|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return 1.0 - numpy.sum((sim - obs) ** 2) / numpy.sum((obs - numpy.mean(obs)) ** 2)
+    del sim, obs
+    return 1.0 - numpy.sum((sim_ - obs_) ** 2) / numpy.sum(
+        (obs_ - numpy.mean(obs_)) ** 2
+    )
 
 
 @overload
 def nse_log(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -928,8 +933,8 @@ def nse_log(
 @objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -959,22 +964,23 @@ def nse_log(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |nse_log|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return 1.0 - numpy.sum((numpy.log(sim) - numpy.log(obs)) ** 2) / numpy.sum(
-        (numpy.log(obs) - numpy.mean(numpy.log(obs))) ** 2
+    del sim, obs
+    return 1.0 - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2) / numpy.sum(
+        (numpy.log(obs_) - numpy.mean(numpy.log(obs_))) ** 2
     )
 
 
 @overload
 def corr2(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -992,8 +998,8 @@ def corr2(
 @objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1027,22 +1033,23 @@ def corr2(
     See the documentation on function |prepare_arrays| for some additional
     instructions for using |corr2|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    if (numpy.std(sim) == 0.0) or (numpy.std(obs) == 0.0):
+    del sim, obs
+    if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
         return numpy.nan
-    return numpy.corrcoef(sim, obs)[0, 1] ** 2
+    return numpy.corrcoef(sim_, obs_)[0, 1] ** 2
 
 
 @overload
 def kge(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1060,8 +1067,8 @@ def kge(
 @objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1078,24 +1085,25 @@ def kge(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |kge|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
+    del sim, obs
     return 1 - numpy.sum(
-        (numpy.corrcoef(sim, obs)[0, 1] - 1) ** 2
-        + (numpy.std(sim) / numpy.std(obs) - 1) ** 2
-        + (numpy.mean(sim) / numpy.mean(obs) - 1) ** 2
+        (numpy.corrcoef(sim_, obs_)[0, 1] - 1) ** 2
+        + (numpy.std(sim_) / numpy.std(obs_) - 1) ** 2
+        + (numpy.mean(sim_) / numpy.mean(obs_) - 1) ** 2
     )
 
 
 @overload
 def bias_abs(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1113,8 +1121,8 @@ def bias_abs(
 @objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1132,21 +1140,22 @@ def bias_abs(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |bias_abs|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
+    del sim, obs
     # noinspection PyTypeChecker
-    return numpy.mean(sim - obs)
+    return numpy.mean(sim_ - obs_)
 
 
 @overload
 def bias_rel(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1164,8 +1173,8 @@ def bias_rel(
 @objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1183,20 +1192,21 @@ def bias_rel(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |bias_rel|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return numpy.mean(sim) / numpy.mean(obs) - 1.0
+    del sim, obs
+    return numpy.mean(sim_) / numpy.mean(obs_) - 1.0
 
 
 @overload
 def std_ratio(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1214,8 +1224,8 @@ def std_ratio(
 @objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1233,20 +1243,21 @@ def std_ratio(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |std_ratio|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return numpy.std(sim) / numpy.std(obs) - 1.0
+    del sim, obs
+    return numpy.std(sim_) / numpy.std(obs_) - 1.0
 
 
 @overload
 def corr(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1264,8 +1275,8 @@ def corr(
 @objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1288,15 +1299,16 @@ def corr(
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |corr|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    if (numpy.std(sim) == 0.0) or (numpy.std(obs) == 0.0):
+    del sim, obs
+    if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
         return numpy.nan
-    return numpy.corrcoef(sim, obs)[0, 1]
+    return numpy.corrcoef(sim_, obs_)[0, 1]
 
 
 def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
@@ -1326,8 +1338,8 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> typingtools.Vector[float]:
     """node as argument"""
@@ -1356,8 +1368,8 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> typingtools.Vector[float]:
@@ -1459,15 +1471,16 @@ def hsepd_pdf(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |hsepd_pdf|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    sigmas = _pars_h(sigma1, sigma2, sim)
+    del sim, obs
+    sigmas = _pars_h(sigma1, sigma2, sim_)
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
-    x, mu = obs, sim
+    x, mu = obs_, sim_
     a = (x - mu) / sigmas
     a_xi = numpy.empty(a.shape)
     idxs = mu_xi + sigma_xi * a < 0.0
@@ -1488,8 +1501,8 @@ def _hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
 ) -> float:
     ps = hsepd_pdf(
         sigma1=sigma1,
@@ -1511,8 +1524,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
 ) -> float:
     """node as argument"""
@@ -1540,8 +1553,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
 ) -> float:
@@ -1573,20 +1586,21 @@ def hsepd_manual(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |hsepd_manual|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
     )
-    return _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
+    del sim, obs
+    return _hsepd_manual(sigma1, sigma2, xi, beta, sim_, obs_)
 
 
 @overload
 def hsepd(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
     inits: Optional[Iterable[float]],
     return_pars: Literal[False],
@@ -1598,8 +1612,8 @@ def hsepd(
 @overload
 def hsepd(
     *,
-    sim: typingtools.Vector[float],
-    obs: typingtools.Vector[float],
+    sim: typingtools.VectorInput[float],
+    obs: typingtools.VectorInput[float],
     skip_nan: bool = ...,
     inits: Optional[Iterable[float]],
     return_pars: Literal[True],
@@ -1637,8 +1651,8 @@ def hsepd(
 )
 def hsepd(
     *,
-    sim: Optional[typingtools.Vector[float]] = None,
-    obs: Optional[typingtools.Vector[float]] = None,
+    sim: Optional[typingtools.VectorInput[float]] = None,
+    obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     inits: Optional[Iterable[float]] = None,
@@ -1749,8 +1763,8 @@ def hsepd(
 
 @objecttools.excmessage_decorator("calculate the weighted mean time")
 def calc_mean_time(
-    timepoints: typingtools.Vector[float],
-    weights: typingtools.Vector[float],
+    timepoints: typingtools.VectorInput[float],
+    weights: typingtools.VectorInput[float],
 ) -> float:
     """Return the weighted mean of the given time points.
 
@@ -1784,8 +1798,8 @@ def calc_mean_time(
 the following error occurred: For the following objects, at least \
 one value is negative: weights.
     """
-    timepoints = numpy.array(timepoints)
-    weights = numpy.array(weights)
+    timepoints = numpy.asarray(timepoints)
+    weights = numpy.asarray(weights)
     validtools.test_equal_shape(timepoints=timepoints, weights=weights)
     validtools.test_non_negative(weights=weights)
     return numpy.dot(timepoints, weights) / numpy.sum(weights)
@@ -1795,8 +1809,8 @@ one value is negative: weights.
     "calculate the weighted time deviation from mean time"
 )
 def calc_mean_time_deviation(
-    timepoints: typingtools.Vector[float],
-    weights: typingtools.Vector[float],
+    timepoints: typingtools.VectorInput[float],
+    weights: typingtools.VectorInput[float],
     mean_time: Optional[float] = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean
@@ -1838,14 +1852,15 @@ def calc_mean_time_deviation(
 from mean time, the following error occurred: For the following objects, \
 at least one value is negative: weights.
     """
-    timepoints = numpy.array(timepoints)
-    weights = numpy.array(weights)
-    validtools.test_equal_shape(timepoints=timepoints, weights=weights)
-    validtools.test_non_negative(weights=weights)
+    timepoints_ = numpy.asarray(timepoints)
+    weights_ = numpy.asarray(weights)
+    del timepoints, weights
+    validtools.test_equal_shape(timepoints=timepoints_, weights=weights_)
+    validtools.test_non_negative(weights=weights_)
     if mean_time is None:
-        mean_time = calc_mean_time(timepoints, weights)
+        mean_time = calc_mean_time(timepoints_, weights_)
     return numpy.sqrt(
-        numpy.dot(weights, (timepoints - mean_time) ** 2) / numpy.sum(weights)
+        numpy.dot(weights_, (timepoints_ - mean_time) ** 2) / numpy.sum(weights_)
     )
 
 

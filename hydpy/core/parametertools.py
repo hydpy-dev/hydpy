@@ -1159,6 +1159,17 @@ implement method `update`.
         >>> test
         test(3.0)
 
+        If trying to access the mask results in an error, |Parameter.compress_repr|
+        behaves as if no mask were available:
+
+        >>> def getattribute(obj, name):
+        ...     if name == 'mask':
+        ...         raise BaseException
+        ...     return object.__getattribute__(obj, name)
+        >>> Test.__getattribute__ = getattribute
+        >>> test
+        test(3.0, 3.0, 3.0, nan)
+
         For a shape of zero, the string representing includes an empty list:
 
         >>> test.shape = 0
@@ -1211,7 +1222,10 @@ implement method `update`.
             return "?"
         if not self:
             return f"{self.NDIM * '['}{self.NDIM * ']'}"
-        unique = numpy.unique(self[self.mask])
+        try:
+            unique = numpy.unique(self[self.mask])
+        except BaseException:
+            unique = numpy.unique(self.values)
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
@@ -1615,7 +1629,7 @@ error occurred: could not convert string to float: 'test'
             super().__setattr__(name, value)
 
     def __repr__(self) -> str:
-        string = super().compress_repr()
+        string = self.compress_repr()
         if string is not None:
             return f"{self.name}({string})"
         results = []

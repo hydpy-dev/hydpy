@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """This module supports writing auxiliary files.
 
-In HydPy, parameter values are usually not shared between different
+In *HydPy*, parameter values are usually not shared between different
 model objects handled by different elements, even if the model objects
 are of the same type (e.g. HBV).  This offers flexibility in applying
 different parameterisation schemes.  But very often, modellers prefer
@@ -11,7 +11,7 @@ this flexibility is that the same parameter values might be defined in
 hundreds or even thousands of parameter control files (one file for
 each model/element).
 
-To decrease this redundancy, HydPy allows for passing names of
+To decrease this redundancy, *HydPy* allows for passing names of
 `auxiliary` control files to parameters defined within `normal`
 control files.  The actual parameter values are than read from the
 auxiliary files, each one possibly referenced within a large number
@@ -29,6 +29,11 @@ implemented in module |selectiontools|).
 # ...from standard library
 import copy
 import types
+from typing import NoReturn
+from typing import *
+
+# ...from site-packages
+import numpy
 
 # ...from HydPy
 import hydpy
@@ -36,8 +41,10 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-from hydpy.core import typingtools
 from hydpy.core import variabletools
+
+if TYPE_CHECKING:
+    from hydpy.core import timetools
 
 
 class Auxfiler:
@@ -165,11 +172,16 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
     >>> dummies.aux = aux
     """
 
-    def __init__(self):
+    _dict: Dict[str, "Variable2Auxfile"]
+
+    def __init__(self) -> None:
         with objecttools.ResetAttrFuncs(self):
             self._dict = {}
 
-    def __iadd__(self, values):
+    def __iadd__(
+        self,
+        values: Iterable[Union[str, types.ModuleType, modeltools.Model]],
+    ) -> "Auxfiler":
         try:
             for model in self._get_models(values):
                 self._dict[str(model)] = Variable2Auxfile(_master=self, _model=model)
@@ -180,7 +192,10 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
                 "to the actual auxiliary file handler"
             )
 
-    def __isub__(self, values):
+    def __isub__(
+        self,
+        values: Iterable[Union[str, types.ModuleType, modeltools.Model]],
+    ) -> "Auxfiler":
         try:
             for model in self._get_models(values):
                 try:
@@ -197,13 +212,21 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
             )
 
     @staticmethod
-    def _get_models(values):
+    def _get_models(
+        values: Iterable[Union[str, types.ModuleType, modeltools.Model]],
+    ) -> Iterator[modeltools.Model]:
         for value in objecttools.extract(
             values, (str, types.ModuleType, modeltools.Model)
         ):
-            yield importtools.prepare_model(value)
+            if isinstance(value, modeltools.Model):
+                yield value
+            else:
+                yield importtools.prepare_model(value)
 
-    def __getattr__(self, name):
+    def __getattr__(
+        self,
+        name: str,
+    ) -> "Variable2Auxfile":
         try:
             return self._dict[name]
         except KeyError:
@@ -212,24 +235,24 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
                 f"standard member nor does it handle a model named `{name}`."
             ) from None
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> NoReturn:
         raise AttributeError(
             "Auxiliary file handler do not support setting attributes.  "
             "Use the `+=` operator to register additional models instead."
         )
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> NoReturn:
         raise AttributeError(
             "Auxiliary file handler do not support deleting attributes.  "
             "Use the `-=` operator to remove registered models instead."
         )
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[str, "Variable2Auxfile"]]:
         for (key, value) in sorted(self._dict.items()):
             yield key, value
 
     @property
-    def modelnames(self):
+    def modelnames(self) -> List[str]:
         """A sorted list of all names of the handled models.
 
         >>> from hydpy import dummies
@@ -238,7 +261,11 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
         """
         return sorted(self._dict.keys())
 
-    def save(self, parameterstep=None, simulationstep=None):
+    def save(
+        self,
+        parameterstep: Optional["timetools.PeriodConstrArg"] = None,
+        simulationstep: Optional["timetools.PeriodConstrArg"] = None,
+    ) -> None:
         """Save all defined auxiliary control files.
 
         The target path is taken from the |ControlManager| object stored
@@ -310,12 +337,12 @@ Variable type `EQD1` is not handled by model `lstream_v001`.
 
     __deepcopy__ = objecttools.deepcopy_
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             objecttools.assignrepr_values(self.modelnames, "Auxfiler(", width=70) + ")"
         )
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy import print_values
         >>> aux = Auxfiler()
@@ -425,13 +452,23 @@ variable handled by the actual Variable2AuxFile object.
     files` are not supported.
     """
 
-    def __init__(self, _master=None, _model=None):
+    _master: Optional[Auxfiler]
+    _model: Optional[modeltools.Model]
+    _type2filename2variable: Dict[
+        Type[parametertools.Parameter], Dict[str, parametertools.Parameter]
+    ]
+
+    def __init__(
+        self,
+        _master: Optional[Auxfiler] = None,
+        _model: Optional[modeltools.Model] = None,
+    ) -> None:
         with objecttools.ResetAttrFuncs(self):
             self._master = _master
             self._model = _model
             self._type2filename2variable = {}
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> List[parametertools.Parameter]:
         variables = self._sort_variables(self._yield_variables(name))
         if variables:
             return variables
@@ -440,10 +477,14 @@ variable handled by the actual Variable2AuxFile object.
             f"handled by the actual Variable2AuxFile object."
         )
 
-    def __setattr__(self, filename, variables):
+    def __setattr__(
+        self,
+        filename: str,
+        variables: parametertools.Parameter,
+    ) -> None:
         try:
             self._check_filename(filename)
-            new_vars = objecttools.extract(variables, (typingtools.VariableProtocol,))
+            new_vars = objecttools.extract(variables, (parametertools.Parameter,))
             for new_var in new_vars:
                 self._check_variable(new_var)
                 fn2var = self._type2filename2variable.get(type(new_var), {})
@@ -456,7 +497,10 @@ variable handled by the actual Variable2AuxFile object.
                 "the actual Variable2AuxFile object"
             )
 
-    def _check_filename(self, filename):
+    def _check_filename(
+        self,
+        filename: str,
+    ) -> None:
         objecttools.valid_variable_identifier(filename)
         if self._master is not None:
             for dummy, var2aux in self._master:
@@ -466,7 +510,10 @@ variable handled by the actual Variable2AuxFile object.
                         f"another `Variable2Auxfile` object."
                     )
 
-    def _check_variable(self, variable):
+    def _check_variable(
+        self,
+        variable: parametertools.Parameter,
+    ) -> None:
         if self._model and not isinstance(
             variable, self._model.parameters.control.CLASSES
         ):
@@ -476,7 +523,11 @@ variable handled by the actual Variable2AuxFile object.
             )
 
     @staticmethod
-    def _check_duplicate(fn2var, new_var, filename):
+    def _check_duplicate(
+        fn2var: Dict[str, parametertools.Parameter],
+        new_var: parametertools.Parameter,
+        filename: str,
+    ) -> None:
         for (reg_fn, reg_var) in fn2var.items():
             if (reg_fn != filename) and (reg_var == new_var):
                 raise ValueError(
@@ -486,7 +537,10 @@ variable handled by the actual Variable2AuxFile object.
                     f"already been allocated to filename `{reg_fn}`."
                 )
 
-    def remove(self, *values):
+    def remove(
+        self,
+        *values: parametertools.Parameter,
+    ) -> None:
         """Remove the defined variables.
 
         The variables to be removed can be selected in two ways.  But the
@@ -564,7 +618,7 @@ variable handled by the actual Variable2AuxFile object.
                 )
 
     @property
-    def types(self):
+    def types(self) -> List[Type[parametertools.Parameter]]:
         """A list of all handled variable types.
 
         >>> from hydpy import dummies
@@ -574,20 +628,20 @@ variable handled by the actual Variable2AuxFile object.
         return sorted(self._type2filename2variable.keys(), key=str)
 
     @property
-    def filenames(self):
+    def filenames(self) -> List[str]:
         """A list of all handled auxiliary file names.
 
         >>> from hydpy import dummies
         >>> dummies.v2af.filenames
         ['file1', 'file2']
         """
-        fns = set()
+        fns: Set[str] = set()
         for fn2var in self._type2filename2variable.values():
             fns.update(fn2var.keys())
         return sorted(fns)
 
     @property
-    def variables(self):
+    def variables(self) -> List[parametertools.Parameter]:
         """A list of all handled variable objects.
 
         >>> from hydpy import dummies
@@ -599,17 +653,28 @@ variable handled by the actual Variable2AuxFile object.
         """
         return self._sort_variables(self._yield_variables())
 
-    def _yield_variables(self, name=None):
+    def _yield_variables(
+        self,
+        name: Optional[str] = None,
+    ) -> Iterator[parametertools.Parameter]:
         for fn2var in self._type2filename2variable.values():
             for fn_, var in fn2var.items():
                 if name in (None, fn_, var.name):
                     yield var
 
     @staticmethod
-    def _sort_variables(variables):
-        return sorted(variables, key=lambda x: (x.name, sum(x)))
+    def _sort_variables(
+        variables: Iterable[parametertools.Parameter],
+    ) -> List[parametertools.Parameter]:
+        return sorted(
+            variables,
+            key=lambda x: (x.name, numpy.sum(x.values) if x.NDIM else x.value),
+        )
 
-    def get_filename(self, variable):
+    def get_filename(
+        self,
+        variable: parametertools.Parameter,
+    ) -> Optional[str]:
         """Return the auxiliary file name the given variable is allocated
         to or |None| if the given variable is not allocated to any
         auxiliary file name.
@@ -631,13 +696,13 @@ variable handled by the actual Variable2AuxFile object.
 
     __deepcopy__ = objecttools.deepcopy_
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             objecttools.assignrepr_values(self.filenames, "Variable2Auxfile(", width=70)
             + ")"
         )
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy import dummies
         >>> from hydpy import print_values

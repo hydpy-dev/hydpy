@@ -574,7 +574,7 @@ class ResetAttrFuncs:
         "__deepcopy__",
     )
 
-    def __init__(self, obj):
+    def __init__(self, obj: Any) -> None:
         self.cls = type(obj)
         self.name2func = {}
         for name_ in self.funcnames:
@@ -878,7 +878,12 @@ def assignrepr_value(value: Any, prefix: str) -> str:
     return prefix + repr_(value)
 
 
-def assignrepr_values(values, prefix, width=None, _fakeend=0):
+def assignrepr_values(
+    values: Sequence[Any],
+    prefix: str,
+    width: Optional[int] = None,
+    _fakeend: int = 0,
+) -> str:
     """Return a prefixed, wrapped and properly aligned string representation
     of the given values using function |repr|.
 

@@ -13,6 +13,7 @@ import inspect
 import textwrap
 import warnings
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -499,46 +500,6 @@ def _warn_trim(self, oldvalue, newvalue):
         )
 
 
-def _compare_variables_function_generator(method_string, aggregation_func):
-    """Return a function to be used as a comparison method for class |Variable|.
-
-    Pass the specific method (e.g. `__eq__`) and the corresponding
-    operator (e.g. `==`) as strings.  Also pass either |numpy.all| or
-    |numpy.any| for aggregating multiple boolean values.
-    """
-
-    def comparison_function(self, other):
-        """Wrapper for comparison functions for class |Variable|."""
-        if self is other:
-            return method_string in ("__eq__", "__le__", "__ge__")
-        try:
-            ls = len(self)
-            lo = len(other)
-            if (ls != 1) and (lo != 1) and (ls != lo):
-                if method_string == "__eq__":
-                    return False
-                if method_string == "__ne__":
-                    return True
-        except TypeError:
-            pass
-        method = getattr(self.value, method_string)
-        try:
-            if hasattr(type(other), "__hydpy__get_value__"):
-                other = other.__hydpy__get_value__()
-            result = method(other)
-            if result is NotImplemented:
-                return result
-            return aggregation_func(result)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to compare variable "
-                f"{objecttools.elementphrase(self)} with object "
-                f"`{other}` of type `{type(other).__name__}`"
-            )
-
-    return comparison_function
-
-
 class FastAccess:
     """Used as a surrogate for typed Cython classes handling parameters or
     sequences when working in pure Python mode."""
@@ -903,7 +864,49 @@ operands could not be broadcast together with shapes (2,) (3,)...
     >>> var < "text"
     Traceback (most recent call last):
     ...
-    TypeError: '<' not supported between instances of 'Var' and 'str'
+    TypeError: While trying to compare variable `var` of element `?` with \
+object `text` of type `str`, the following error occurred: ufunc 'isnan' \
+not supported for the input types, and the inputs could not be safely \
+coerced to any supported types according to the casting rule ''safe''
+
+    Note that, in contrast to the usual |numpy| array comparison, we ignore
+    all single comparison results between two |numpy.nan| values:
+
+    >>> from numpy import nan
+    >>> var.shape = (3,)
+    >>> var.values = 1.0, 2.0, nan
+    >>> var < [2.0, 3.0, nan], var < [1.0, 2.0, nan], var < [2.0, nan, nan], \
+var < [2.0, 3.0, 4.0]
+    (True, False, False, False)
+    >>> var <= [1.0, 3.0, nan], var <= [1.0, 1.0, nan], var <= [1.0, nan, nan], \
+var <= [1.0, 3.0, 5.0]
+    (True, False, False, False)
+    >>> var == [1.0, 2.0, nan], var == [1.0, 1.0, nan], var == [1.0, nan, nan], \
+var == [1.0, 2.0, 3.0]
+    (True, False, False, False)
+    >>> var != [1.0, 1.0, nan], var != [1.0, 2.0, nan], var != [1.0, nan, nan], \
+var != [1.0, 2.0, 3.0]
+    (True, False, True, True)
+    >>> var >= [1.0, 1.0, nan], var >= [1.0, 3.0, nan], var <= [1.0, nan, nan], \
+var <= [1.0, 3.0, 5.0]
+    (True, False, False, False)
+    >>> var > [0.0, 1.0, nan], var > [0.0, 2.0, nan], var < [0.0, nan, nan], \
+var < [0.0, 1.0, 2.0]
+    (True, False, False, False)
+
+    Hence, when all entries of two compared objects are |numpy.nan|, we
+    consider these objects as equal:
+
+    >>> var.values = nan
+    >>> var < [nan, nan, nan], var <= [nan, nan, nan], var == [nan, nan, nan], \
+var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
+    (False, True, True, False, True, False)
+    >>> Var.NDIM = 0
+    >>> var = Var(None)
+    >>> var.shape = ()
+    >>> var.value = nan
+    >>> var < nan, var <= nan, var == nan, var != nan, var >= nan, var > nan
+    (False, True, True, False, True, False)
 
     The |len| operator always returns the total number of values handles
     by the variable according to the current shape:
@@ -1886,12 +1889,98 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         except TypeError:
             return numpy.array(result, dtype=int)
 
-    __lt__ = _compare_variables_function_generator("__lt__", numpy.all)
-    __le__ = _compare_variables_function_generator("__le__", numpy.all)
-    __eq__ = _compare_variables_function_generator("__eq__", numpy.all)
-    __ne__ = _compare_variables_function_generator("__ne__", numpy.any)
-    __ge__ = _compare_variables_function_generator("__ge__", numpy.all)
-    __gt__ = _compare_variables_function_generator("__gt__", numpy.all)
+    def _compare(
+        self,
+        other,
+        comparefunc: Callable,
+        callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
+    ) -> bool:
+        try:
+            vs1 = self.__hydpy__get_value__()
+            try:
+                vs2 = other.__hydpy__get_value__()
+            except AttributeError:
+                vs2 = numpy.asarray(other)
+            if self.NDIM == 0:
+                if numpy.isnan(vs1) and bool(numpy.isnan(vs2)):
+                    if callingfunc in ("le", "eq", "ge"):
+                        return True
+                    return False
+                return comparefunc(vs1, vs2)
+            try:
+                idxs = ~(numpy.isnan(vs1) * numpy.isnan(vs2))
+            except BaseException as exc:
+                if callingfunc == "eq":
+                    return False
+                if callingfunc == "ne":
+                    return True
+                raise exc
+            if numpy.sum(idxs) == 0:
+                if callingfunc in ("le", "eq", "ge"):
+                    return True
+                return False
+            return comparefunc(vs1, vs2)[idxs]
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to compare variable {objecttools.elementphrase(self)} "
+                f"with object `{other}` of type `{type(other).__name__}`"
+            )
+
+    def __lt__(self, other: "Variable") -> bool:
+        return numpy.all(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 < vs2,
+                callingfunc="lt",
+            ),
+        )
+
+    def __le__(self, other: "Variable") -> bool:
+        return numpy.all(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 <= vs2,
+                callingfunc="le",
+            ),
+        )
+
+    def __eq__(self, other: "Variable") -> bool:
+        if self is other:
+            return True
+        return numpy.all(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 == vs2,
+                callingfunc="eq",
+            ),
+        )
+
+    def __ne__(self, other: "Variable") -> bool:
+        return numpy.any(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 != vs2,
+                callingfunc="ne",
+            ),
+        )
+
+    def __ge__(self, other: "Variable") -> bool:
+        return numpy.all(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 >= vs2,
+                callingfunc="ge",
+            ),
+        )
+
+    def __gt__(self, other: "Variable") -> bool:
+        return numpy.all(
+            self._compare(
+                other=other,
+                comparefunc=lambda vs1, vs2: vs1 > vs2,
+                callingfunc="gt",
+            ),
+        )
 
     def _typeconversion(self, type_):
         if self.NDIM:

@@ -612,7 +612,7 @@ an `Element` object is required as the "outlet device", but the given \
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine an upstream network of \
-selection `headwaters`, the following error occurred: 'No node named \
+selection `headwaters`, the following error occurred: 'No device named \
 `lahn_3` available.'"
 
         Method |Selection.select_upstream| restricts the current selection
@@ -737,7 +737,7 @@ an `Element` object is required as the "inlet device", but the given \
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine a downstream network of \
-selection `headwaters`, the following error occurred: 'No node named \
+selection `headwaters`, the following error occurred: 'No device named \
 `lahn_3` available.'"
 
         Method |Selection.select_downstream| restricts the current selection

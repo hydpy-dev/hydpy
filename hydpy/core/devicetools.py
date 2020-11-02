@@ -1001,7 +1001,7 @@ which is in conflict with using their names as identifiers.
         try:
             return self._name2device[name]
         except KeyError:
-            raise KeyError(f"No node named `{name}` available.") from None
+            raise KeyError(f"No device named `{name}` available.") from None
 
     def __setitem__(self, name: str, value: DeviceType):
         self._name2device[name] = value

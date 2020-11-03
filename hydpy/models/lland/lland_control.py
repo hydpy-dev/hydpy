@@ -1302,30 +1302,6 @@ class EQB(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 5000.0
 
-    def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`EQI1 \\leq EQB`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqi1.value = 2.0
-        >>> eqb(1.0)
-        >>> eqb
-        eqb(2.0)
-        >>> eqb(2.0)
-        >>> eqb
-        eqb(2.0)
-        >>> eqb(3.0)
-        >>> eqb
-        eqb(3.0)
-        """
-        if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.eqi1,
-                "value",
-                None,
-            )
-        super().trim(lower, upper)
-
 
 class EQI1(parametertools.Parameter):
     """Kalibrierfaktor für die "untere" Zwischenabflusskonzentration
@@ -1336,12 +1312,10 @@ class EQI1(parametertools.Parameter):
     INIT = 2000.0
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with
-        :math:`EQI2 \\leq EQI1 \\leq EQB`.
+        """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
-        >>> eqb.value = 3.0
         >>> eqi2.value = 1.0
         >>> eqi1(0.0)
         >>> eqi1
@@ -1352,12 +1326,6 @@ class EQI1(parametertools.Parameter):
         >>> eqi1(2.0)
         >>> eqi1
         eqi1(2.0)
-        >>> eqi1(3.0)
-        >>> eqi1
-        eqi1(3.0)
-        >>> eqi1(4.0)
-        >>> eqi1
-        eqi1(3.0)
         """
         if lower is None:
             lower = exceptiontools.getattr_(
@@ -1383,19 +1351,11 @@ class EQI2(parametertools.Parameter):
     INIT = 1000.0
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with
-        :math:`EQD \\leq EQI2 \\leq EQI1`.
+        """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> eqi1.value = 3.0
-        >>> eqd1.value = 1.0
-        >>> eqi2(0.0)
-        >>> eqi2
-        eqi2(1.0)
-        >>> eqi2(1.0)
-        >>> eqi2
-        eqi2(1.0)
         >>> eqi2(2.0)
         >>> eqi2
         eqi2(2.0)
@@ -1406,12 +1366,6 @@ class EQI2(parametertools.Parameter):
         >>> eqi2
         eqi2(3.0)
         """
-        if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.eqd1,
-                "value",
-                None,
-            )
         if upper is None:
             upper = exceptiontools.getattr_(
                 self.subpars.eqi1,
@@ -1430,12 +1384,10 @@ class EQD1(parametertools.Parameter):
     INIT = 100.0
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with
-        :math:`EQD2 \\leq EQD1 \\leq EQI2`.
+        """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
-        >>> eqi2.value = 3.0
         >>> eqd2.value = 1.0
         >>> eqd1(0.0)
         >>> eqd1
@@ -1446,22 +1398,10 @@ class EQD1(parametertools.Parameter):
         >>> eqd1(2.0)
         >>> eqd1
         eqd1(2.0)
-        >>> eqd1(3.0)
-        >>> eqd1
-        eqd1(3.0)
-        >>> eqd1(4.0)
-        >>> eqd1
-        eqd1(3.0)
         """
         if lower is None:
             lower = exceptiontools.getattr_(
                 self.subpars.eqd2,
-                "value",
-                None,
-            )
-        if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.eqi2,
                 "value",
                 None,
             )
@@ -1477,8 +1417,7 @@ class EQD2(parametertools.Parameter):
     INIT = 50.0
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with
-        :math:`EQD2 \\leq EQD1`.
+        """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")

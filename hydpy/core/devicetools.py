@@ -855,7 +855,10 @@ immutable Nodes objects is not allowed.
             if keyword not in self._shadowed_keywords
         )
 
-    def search_keywords(self: DevicesTypeBound, *keywords: str) -> DevicesTypeBound:
+    def search_keywords(
+        self: DevicesTypeBound,
+        *keywords: str,
+    ) -> DevicesTypeBound:
         """Search for all devices handling at least one of the given
         keywords and return them.
 
@@ -871,6 +874,10 @@ immutable Nodes objects is not allowed.
         Nodes("nc", "nd")
         >>> nodes.search_keywords("group_a", "group_1")
         Nodes("nc", "nd", "ne")
+
+        .. testsetup::
+
+            >>> Node.clear_all()
         """
         keywords_ = set(keywords)
         return type(self)(
@@ -933,6 +940,24 @@ which is in conflict with using their names as identifiers.
         for device in self:
             _id2devices[device][id(new)] = new
         return new
+
+    def intersection(
+        self: DevicesTypeBound,
+        *other: DeviceType,
+    ) -> DevicesTypeBound:
+        """Return the intersection with the given |Devices| object.
+
+        >>> from hydpy import Node, Nodes
+        >>> nodes1 = Nodes("na", "nb", "nc")
+        >>> nodes2 = Nodes("na", "nc", "nd")
+        >>> nodes1.intersection(*nodes2)
+        Nodes("na", "nc")
+
+        .. testsetup::
+
+            >>> Node.clear_all()
+        """
+        return type(self)(*set(self).intersection(set(other)))
 
     __copy__ = copy
 
@@ -1095,19 +1120,18 @@ which is in conflict with using their names as identifiers.
                 return repr_ + ")"
 
     def __dir__(self) -> List[str]:
-        """Just a regression test:
-
+        """
         >>> from hydpy import Node, Nodes
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> nodes = Nodes(Node("name1", keywords="keyword1"),
         ...               Node("name2", keywords=("keyword2a", "keyword2a")))
         >>> print(assignrepr_values(dir(nodes), "", 70))
         add_device, assignrepr, close_files, copy, devices, forceiterable,
-        get_contentclass, keyword1, keyword2a, keywords, load_allseries,
-        load_obsseries, load_simseries, mutable, name1, name2, names,
-        open_files, prepare_allseries, prepare_obsseries, prepare_simseries,
-        remove_device, save_allseries, save_obsseries, save_simseries,
-        search_keywords, variables
+        get_contentclass, intersection, keyword1, keyword2a, keywords,
+        load_allseries, load_obsseries, load_simseries, mutable, name1, name2,
+        names, open_files, prepare_allseries, prepare_obsseries,
+        prepare_simseries, remove_device, save_allseries, save_obsseries,
+        save_simseries, search_keywords, variables
         """
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 

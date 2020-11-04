@@ -3,9 +3,12 @@
 |Element| objects of large *HydPy* projects, called "selections"."""
 # import...
 # ...from standard library
+import collections
 import copy
+import itertools
 import types
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import networkx
@@ -247,6 +250,113 @@ Selections objects, single Selection objects, or iterables containing \
             selection for selection in self if device in getattr(selection, attr)
         )
         return Selections(*selections)
+
+    @overload
+    def query_intersections(
+        self,
+        selection2element: Literal[True] = ...,
+    ) -> Dict["Selection", Dict["Selection", devicetools.Elements]]:
+        ...
+
+    @overload
+    def query_intersections(
+        self,
+        selection2element: Literal[False],
+    ) -> Dict[devicetools.Element, "Selections"]:
+        ...
+
+    def query_intersections(
+        self,
+        selection2element: bool = True,
+    ) -> Union[
+        Dict["Selection", Dict["Selection", devicetools.Elements]],
+        Dict[devicetools.Element, "Selections"],
+    ]:
+        """A dictionary covering all cases where one |Element| object is
+        a member of multiple |Selection| objects.
+
+        The form of the dictionary depends on the value of the optional
+        argument `selection2element`.  See method
+        |Selections.print_intersections| for an example.
+        """
+        if selection2element:
+            intersections: Dict[
+                "Selection",
+                Dict["Selection", devicetools.Elements],
+            ] = collections.defaultdict(dict)
+            for selection1, selection2 in itertools.combinations(self, 2):
+                intersection = selection1.elements.intersection(*selection2.elements)
+                if intersection:
+                    intersections[selection1][selection2] = intersection
+                    intersections[selection2][selection1] = intersection
+            return dict(intersections)
+        intersections_: Dict[devicetools.Element, "Selections"] = {}
+        for element in self.elements:
+            selections = self.find(element)
+            if len(selections) > 1:
+                intersections_[element] = selections
+        return intersections_
+
+    def print_intersections(
+        self,
+        selection2element: bool = True,
+    ) -> None:
+        """Print the result of method |Selections.query_intersections|.
+
+        We use method |Selections.print_intersections| to check if any
+        combination of the following selections handles the same elements.
+
+        >>> from hydpy import Selection, Selections
+        >>> selections = Selections(
+        ...     Selection("s1", nodes="n1",elements=("e1", "e2", "e3")),
+        ...     Selection("s2", nodes="n1", elements=("e2", "e3", "e4")),
+        ...     Selection("s3", nodes="n1", elements="e3"),
+        ...     Selection("s4", nodes="n1", elements=("e5", "e6")),
+        ... )
+
+        If we call method |Selections.print_intersections| with argument
+        `selection2element` being |True|, we find out which selection
+        intersects with which other and which elements are affected:
+
+        >>> selections.print_intersections()
+        selection s1 intersects with...
+           ...selection s2 due to the following elements: e2 and e3
+           ...selection s3 due to the following elements: e3
+        selection s2 intersects with...
+           ...selection s1 due to the following elements: e2 and e3
+           ...selection s3 due to the following elements: e3
+        selection s3 intersects with...
+           ...selection s1 due to the following elements: e3
+           ...selection s2 due to the following elements: e3
+
+        If we call method |Selections.print_intersections| with argument
+        `selection2element` being |False|, we find out which element
+        occurs multiple times in which selections:
+
+        >>> selections.print_intersections(selection2element=False)
+        element e2 is a member of multiple selections: s1 and s2
+        element e3 is a member of multiple selections: s1, s2, and s3
+        """
+        if selection2element:
+            intersections = self.query_intersections(True)
+            for selection1, selection2elements in intersections.items():
+                print("selection", selection1, "intersects with...")
+                for selection2, elements in selection2elements.items():
+                    print(
+                        "   ...selection",
+                        selection2,
+                        "due to the following elements:",
+                        objecttools.enumeration(elements.names),
+                    )
+        else:
+            intersections_ = self.query_intersections(False)
+            for element, selections in intersections_.items():
+                print(
+                    "element",
+                    element.name,
+                    "is a member of multiple selections:",
+                    objecttools.enumeration(selections.names),
+                )
 
     def __getattr__(self, key: str) -> "Selection":
         try:
@@ -1344,6 +1454,9 @@ hland_T, lland_Nied
         other: "Selection",
     ) -> bool:
         return (self.nodes > other.nodes) and (self.elements >= other.elements)
+
+    def __hash__(self) -> int:
+        return id(self)
 
     def __str__(self) -> str:
         return self.name

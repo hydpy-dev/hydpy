@@ -140,8 +140,8 @@ at the moment.
     >>> hp.elements.land_dill.model
     Traceback (most recent call last):
     ...
-    AttributeError: The model object of element `land_dill` has been \
-requested but not been prepared so far.
+    hydpy.core.exceptiontools.AttributeNotReady: The model object of \
+element `land_dill` has been requested but not been prepared so far.
 
     Hence, we need to call method |HydPy.prepare_models|, which
     instructs all |Element| objects to read the relevant parameter
@@ -158,10 +158,10 @@ requested but not been prepared so far.
     ...     hp.prepare_models()
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: The initialisation period has \
-not been defined via attribute `timegrids` of module `pub` yet but might \
-be required to prepare the model properly.
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to initialise \
+the model object of element `land_dill`, the following error occurred: \
+The initialisation period has not been defined via attribute `timegrids` \
+of module `pub` yet but might be required to prepare the model properly.
 
     Oops, something went wrong.  We forgot to define the simulation
     period, which might be relevant for some time-dependent

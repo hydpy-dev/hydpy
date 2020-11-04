@@ -29,7 +29,7 @@ class _PubProperty(
 
     def _fget(self, obj):
         raise exceptiontools.AttributeNotReady(
-            f"Attribute {self.name} of module `pub` " f"is not defined at the moment."
+            f"Attribute {self.name} of module `pub` is not defined at the moment.",
         )
 
 

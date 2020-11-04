@@ -1228,7 +1228,7 @@ class Elements(Devices["Element"]):
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, pub, TestIO
+        >>> from hydpy import attrready, HydPy, pub, TestIO
         >>> with TestIO():
         ...     hp = HydPy("LahnH")
         ...     pub.timegrids = "1996-01-01", "1996-02-01", "1d"
@@ -1262,7 +1262,7 @@ parameter `zonetype` of element `?` is not valid.
         FileNotFoundError: While trying to initialise the model object of \
 element `land_dill`, the following error occurred: While trying to load the \
 control file `...land_dill.py`, the following error occurred: ...
-        >>> hasattr(hp.elements.land_dill, "model")
+        >>> attrready(hp.elements.land_dill, "model")
         False
 
         When building new, still incomplete *HydPy* projects, this behaviour
@@ -1277,7 +1277,7 @@ control file `...land_dill.py`, the following error occurred: ...
         ...
         UserWarning: Due to a missing or no accessible control file, \
 no model could be initialised for element `land_dill`
-        >>> hasattr(hp.elements.land_dill, "model")
+        >>> attrready(hp.elements.land_dill, "model")
         False
         """
         try:
@@ -2587,13 +2587,13 @@ is not allowed.
         Directly after their initialisation, elements do not know
         which model they require:
 
-        >>> from hydpy import Element
+        >>> from hydpy import attrready, Element
         >>> hland = Element("hland", outlets="outlet")
         >>> hland.model
         Traceback (most recent call last):
         ...
-        AttributeError: The model object of element `hland` has been \
-requested but not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The model object \
+of element `hland` has been requested but not been prepared so far.
 
         During scripting and when working interactively in the Python
         shell, it is often convenient to assign a |model| directly.
@@ -2605,7 +2605,7 @@ requested but not been prepared so far.
         'hland_v1'
 
         >>> del hland.model
-        >>> hasattr(hland, "model")
+        >>> attrready(hland, "model")
         False
 
         For the "usual" approach to prepare models, please see the method
@@ -2650,7 +2650,7 @@ requested but not been prepared so far.
         model = vars(self).get("model")
         if model:
             return model
-        raise AttributeError(
+        raise exceptiontools.AttributeNotReady(
             f"The model object of element `{self.name}` has "
             f"been requested but not been prepared so far."
         )
@@ -2678,8 +2678,8 @@ requested but not been prepared so far.
         try:
             try:
                 hydpy.pub.timegrids
-            except RuntimeError:
-                raise RuntimeError(
+            except exceptiontools.AttributeNotReady:
+                raise exceptiontools.AttributeNotReady(
                     "The initialisation period has not been defined via "
                     "attribute `timegrids` of module `pub` yet but might "
                     "be required to prepare the model properly."

@@ -8,6 +8,7 @@ import os
 import runpy
 import shutil
 import zipfile
+import types
 from typing import *
 
 # ...from site-packages
@@ -846,7 +847,7 @@ class ControlManager(FileManager):
 
     # The following file path to content mapping is used to circumvent reading
     # the same auxiliary control parameter file from disk multiple times.
-    _registry: Dict[str, str] = {}
+    _registry: Dict[str, types.CodeType] = {}
     _workingpath: str = "."
     BASEDIR = "control"
     DEFAULTDIR = "default"
@@ -981,7 +982,11 @@ pass its name or the responsible Element object.
             try:
                 if path not in cls._registry:
                     with open(path) as file_:
-                        cls._registry[path] = file_.read()
+                        cls._registry[path] = compile(
+                            source=file_.read(),
+                            filename=filename,
+                            mode="exec",
+                        )
                 exec(cls._registry[path], {}, info)
             except BaseException:
                 objecttools.augment_excmessage(

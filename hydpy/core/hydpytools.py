@@ -2,6 +2,7 @@
 """This module implements the main features for managing *HydPy* projects."""
 # import...
 # ...from standard library
+import collections
 import itertools
 import warnings
 from typing import *
@@ -19,7 +20,6 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
-from hydpy.core import typingtools
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
@@ -1509,7 +1509,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         self.elements.conditions = conditions
 
     @property
-    def networkproperties(self) -> Dict[str, Any]:
+    def networkproperties(
+        self,
+    ) -> Dict[
+        str,
+        Union[
+            int,
+            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+        ],
+    ]:
         """Some properties of the network defined by the currently relevant
         |Node| and |Element| objects.
 
@@ -1522,6 +1530,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
             "Number of end nodes": len(self.endnodes),
             "Number of distinct networks": len(self.segregatednetworks),
             "Applied node variables": self.variables,
+            "Applied model types": self.modeltypes,
         }
 
     def print_networkproperties(self) -> None:
@@ -1536,20 +1545,25 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, TestIO
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         >>> with TestIO():
         ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
+        ...     hp.prepare_models()
         >>> hp.print_networkproperties()
         Number of nodes: 4
         Number of elements: 7
         Number of end nodes: 1
         Number of distinct networks: 1
-        Applied node variables: Q
+        Applied node variables: Q (4)
+        Applied model types: hland_v1 (4) and hstream_v1 (3)
         """
         for key, value in self.networkproperties.items():
-            if isinstance(value, typingtools.IterableNonString):
-                value = objecttools.enumeration(value)
+            if isinstance(value, dict):
+                value = objecttools.enumeration(
+                    f"{name} ({nmb})" for name, nmb in value.items()
+                )
             print(f"{key}: {value}")
 
     @property
@@ -1760,7 +1774,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return sels1
 
     @property
-    def variables(self) -> List[devicetools.NodeVariableType]:
+    def variables(self) -> Dict[devicetools.NodeVariableType, int]:
         # noinspection PyUnresolvedReferences
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
@@ -1772,17 +1786,48 @@ one value needed to be trimmed.  The old and the new value(s) are \
         ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.variables
-        ['Q']
+        {'Q': 4}
 
         >>> from hydpy import FusedVariable, hland_T, Node
         >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
         >>> hp.variables
-        ['Q', FusedVariable("T", hland_T)]
+        {'Q': 4, FusedVariable("T", hland_T): 1}
         """
-        variables = set([])
+        variables: Dict[str, int] = collections.defaultdict(lambda: 0)
         for node in self.nodes:
-            variables.add(node.variable)
-        return sorted(variables, key=str)
+            variables[node.variable] += 1
+        return dict(
+            sorted(
+                variables.items(),
+                key=lambda tuple_: f"{(tuple_[0])}{str(tuple_[1]).rjust(9)}",
+            )
+        )
+
+    @property
+    def modeltypes(self) -> Dict[str, int]:
+        """Summary of all |Model| subclasses of the currently relevant
+        |Element| objects.
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy("LahnH")
+        ...     hp.prepare_network()
+        >>> hp.modeltypes
+        {'unprepared': 7}
+
+        >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_models()
+        >>> hp.modeltypes
+        {'hland_v1': 4, 'hstream_v1': 3}
+        """
+        modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
+        for element in self.elements:
+            name = str(exceptiontools.getattr_(element, "model", "unprepared"))
+            modeltypes[name] += 1
+        return dict(sorted(modeltypes.items()))
 
     def open_files(self, idx: int = 0) -> None:
         """Open all required internal time-series files.

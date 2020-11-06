@@ -93,6 +93,7 @@ from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
+from hydpy.core import seriestools
 from hydpy.core import typingtools
 from hydpy.cythons.autogen import pointerutils
 
@@ -123,6 +124,7 @@ NodeVariableType = Union[
 ]
 
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
+StepSize = Literal["daily", "d", "monthly", "m"]
 
 
 class Keywords(set):
@@ -2055,6 +2057,7 @@ the given group name `test`.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, LineStyle]]] = None,
         linewidths: Optional[Union[int, Tuple[int, int]]] = None,
         focus: bool = False,
+        stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and
         the |Obs| sequence object.
@@ -2096,11 +2099,21 @@ the given group name `test`.
         and saving the current figure to disk:
 
         >>> from hydpy.docs import figs
-        >>> text = figure.axes[0].set_title('biased example')
+        >>> text = figure.axes[0].set_title('daily')
         >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_1.png")
         >>> figure.clear()
 
         .. image:: Node_plot_allseries_1.png
+
+        You can plot the data in an aggregated manner (see the documentation on
+        function |aggregate_series| for the supported step sizes and further details):
+
+        >>> figure = dill.plot_allseries(stepsize="monthly")
+        >>> text = figure.axes[0].set_title('monthly')
+        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
+        >>> figure.clear()
+
+        .. image:: Node_plot_allseries_2.png
 
         You can overwrite the time-series label and other defaults.  When doing
         so in one call via passing tuples to method |Node.plot_allseries|,
@@ -2114,10 +2127,10 @@ the given group name `test`.
         ...                                linewidths=2,
         ...                                linestyles=("--", ":"),
         ...                                focus=True,)
-        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
+        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_3.png")
         >>> figure.clear()
 
-        .. image:: Node_plot_allseries_2.png
+        .. image:: Node_plot_allseries_3.png
 
         """
 
@@ -2137,6 +2150,7 @@ the given group name `test`.
             linestyles=_make_tuple(linestyles),
             linewidths=_make_tuple(linewidths),
             focus=focus,
+            stepsize=stepsize,
         )
 
     def plot_simseries(
@@ -2149,6 +2163,7 @@ the given group name `test`.
         linestyle: Optional[LineStyle] = None,
         linewidth: Optional[int] = None,
         focus: bool = False,
+        stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
@@ -2163,6 +2178,7 @@ the given group name `test`.
             linestyles=(linestyle,),
             linewidths=(linewidth,),
             focus=focus,
+            stepsize=stepsize,
         )
 
     def plot_obsseries(
@@ -2175,6 +2191,7 @@ the given group name `test`.
         linestyle: Optional[LineStyle] = None,
         linewidth: Optional[int] = None,
         focus: bool = False,
+        stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
@@ -2189,6 +2206,7 @@ the given group name `test`.
             linestyles=(linestyle,),
             linewidths=(linewidth,),
             focus=focus,
+            stepsize=stepsize,
         )
 
     def _plot_series(
@@ -2201,6 +2219,7 @@ the given group name `test`.
         linestyles: Iterable[Optional[str]],
         linewidths: Iterable[Optional[int]],
         focus: bool = False,
+        stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
         if firstdate is None:
             firstdate = hydpy.pub.timegrids.init.firstdate
@@ -2208,11 +2227,19 @@ the given group name `test`.
             lastdate = hydpy.pub.timegrids.init.lastdate
         idx0 = hydpy.pub.timegrids.init[firstdate]
         idx1 = hydpy.pub.timegrids.init[lastdate]
-        index = _get_pandasindex()
         for sequence, label, color, linestyle, linewidth in zip(
             sequences, labels, colors, linestyles, linewidths
         ):
-            ps = pandas.Series(sequence.series[idx0:idx1], index=index[idx0:idx1])
+            if stepsize is None:
+                index = _get_pandasindex()
+                ps = pandas.Series(sequence.series[idx0:idx1], index=index[idx0:idx1])
+            else:
+                ps = seriestools.aggregate_series(
+                    series=sequence.series,
+                    stepsize=stepsize,
+                    aggregator=numpy.mean,
+                )
+                ps.index += ps.index[1] - ps.index[0]
             ps.plot(
                 label=label if label else " ".join((self.name, sequence.name)),
                 color=color,

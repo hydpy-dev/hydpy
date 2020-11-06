@@ -80,6 +80,7 @@ standardize writing *HydPy* code.
    pubtools
    selectiontools
    sequencetools
+   seriestools
    testtools
    timetools
    typingtools

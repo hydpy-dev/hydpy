@@ -45,12 +45,16 @@ from hydpy.core.exceptiontools import HydPyDeprecationWarning
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model
 from hydpy.core.importtools import reverse_model_wildcard_import
+from hydpy.core.itemtools import AddItem
+from hydpy.core.itemtools import GetItem
+from hydpy.core.itemtools import SetItem
 from hydpy.core.objecttools import classname
 from hydpy.core.objecttools import print_values
 from hydpy.core.objecttools import round_
 from hydpy.core.objecttools import repr_
 from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
+from hydpy.core.seriestools import aggregate_series
 from hydpy.core.timetools import Date
 from hydpy.core.timetools import Period
 from hydpy.core.timetools import Timegrid
@@ -82,13 +86,9 @@ from hydpy.auxs.calibtools import SumAdaptor
 from hydpy.auxs.calibtools import TargetFunction
 from hydpy.auxs.iuhtools import LinearStorageCascade
 from hydpy.auxs.iuhtools import TranslationDiffusionEquation
-from hydpy.core.itemtools import AddItem
-from hydpy.core.itemtools import GetItem
-from hydpy.core.itemtools import SetItem
 from hydpy.auxs.networktools import RiverBasinNumber
 from hydpy.auxs.networktools import RiverBasinNumbers
 from hydpy.auxs.networktools import RiverBasinNumbers2Selection
-from hydpy.auxs.statstools import aggregate_series
 from hydpy.auxs.statstools import bias_abs
 from hydpy.auxs.statstools import bias_rel
 from hydpy.auxs.statstools import calc_mean_time
@@ -144,7 +144,6 @@ pub.scriptfunctions["test_everything"] = test_everything
 pub.scriptfunctions["xml_replace"] = xml_replace
 
 __all__ = [
-    "aggregate_series",
     "config",
     "pub",
     "Auxfiler",
@@ -161,12 +160,16 @@ __all__ = [
     "HydPy",
     "prepare_model",
     "reverse_model_wildcard_import",
+    "AddItem",
+    "GetItem",
+    "SetItem",
     "print_values",
     "classname",
     "repr_",
     "round_",
     "Selection",
     "Selections",
+    "aggregate_series",
     "Date",
     "Period",
     "Timegrid",
@@ -198,9 +201,6 @@ __all__ = [
     "TargetFunction",
     "LinearStorageCascade",
     "TranslationDiffusionEquation",
-    "AddItem",
-    "GetItem",
-    "SetItem",
     "RiverBasinNumber",
     "RiverBasinNumbers",
     "RiverBasinNumbers2Selection",

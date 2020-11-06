@@ -122,6 +122,8 @@ NodeVariableType = Union[
     "FusedVariable",
 ]
 
+LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
+
 
 class Keywords(set):
     """Set of keyword arguments used to describe and search for |Element| and
@@ -1709,6 +1711,7 @@ immutable Elements objects is not allowed.
     """
 
     masks = masktools.NodeMasks()
+    sequences: sequencetools.NodeSequences
 
     # noinspection PyUnusedLocal
     def __init__(
@@ -2042,7 +2045,17 @@ the given group name `test`.
         else:
             seq.activate_disk()
 
-    def plot_allseries(self, **kwargs: Any) -> None:
+    def plot_allseries(
+        self,
+        *,
+        firstdate: Optional["timetools.DateConstrArg"] = None,
+        lastdate: Optional["timetools.DateConstrArg"] = None,
+        labels: Optional[Tuple[str, str]] = None,
+        colors: Optional[Union[str, Tuple[str, str]]] = None,
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, LineStyle]]] = None,
+        linewidths: Optional[Union[int, Tuple[int, int]]] = None,
+        focus: bool = False,
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and
         the |Obs| sequence object.
 
@@ -2063,75 +2076,158 @@ the given group name `test`.
         both sequences to the screen immediately (if not, you need to
         activate the interactive mode of `matplotlib` first):
 
-        >>> dill.plot_allseries()
+        >>> figure = dill.plot_allseries()
 
         Subsequent calls to |Node.plot_allseries| or the related methods
         |Node.plot_simseries| and |Node.plot_obsseries| of nodes add
         further time-series data to the existing plot:
 
         >>> lahn_1 = hp.nodes.lahn_1
-        >>> lahn_1.plot_simseries()
+        >>> figure = lahn_1.plot_simseries()
 
         You can modify the appearance of the lines by passing different
-        arguments supported by `matplotlib`:
+        arguments:
 
         >>> lahn_1.sequences.obs.series = lahn_1.sequences.sim.series + 10.0
-        >>> lahn_1.plot_obsseries(color="black", linestyle="dashed")
+        >>> figure = lahn_1.plot_obsseries(color="black", linestyle="dashed")
 
-        Use the `pyplot` API of `matplotlib` directly for further
-        plot handling, e.g. for saving figures to disk:
+        All mentioned plotting functions return a |matplotlib| |figure.Figure|
+        object.  Use it to for further plot handling, e.g. for adding a title
+        and saving the current figure to disk:
 
-        >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + "/Node_plot_allseries_1.png")
-        >>> pyplot.close()
+        >>> text = figure.axes[0].set_title('biased example')
+        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_1.png")
+        >>> figure.clear()
 
         .. image:: Node_plot_allseries_1.png
 
-        You can overwrite the time-series label, but doing so is most likely
-        useful when plotting the time-series individually, of course:
+        You can overwrite the time-series label and other defaults.  When doing
+        so in one call via passing tuples to method |Node.plot_allseries|,
+        remember the first entry corresponds to the observation and the second
+        one to the simulation results:
 
-        >>> lahn_1.plot_obsseries(color="blue", label="measured")
-        >>> lahn_1.plot_simseries(color="red", label="calculated")
-        >>> pyplot.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
-        >>> pyplot.close()
+        >>> figure = lahn_1.plot_allseries(firstdate='1996-10-01',
+        ...                                lastdate='1996-11-01',
+        ...                                labels=("measured", "calculated"),
+        ...                                colors=("blue", "red"),
+        ...                                linewidths=2,
+        ...                                linestyles=("--", ":"),
+        ...                                focus=True,)
+        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
+        >>> figure.clear()
 
         .. image:: Node_plot_allseries_2.png
 
         """
-        self.__plot_series(self.sequences, kwargs)
 
-    def plot_simseries(self, **kwargs: Any) -> None:
+        t = TypeVar("t", str, int)
+
+        def _make_tuple(
+            x: Union[Optional[t], Tuple[Optional[t], Optional[t]]],
+        ) -> Tuple[Optional[t], Optional[t]]:
+            return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
+
+        return self._plot_series(
+            sequences=(self.sequences.obs, self.sequences.sim),
+            firstdate=firstdate,
+            lastdate=lastdate,
+            labels=_make_tuple(labels),
+            colors=_make_tuple(colors),
+            linestyles=_make_tuple(linestyles),
+            linewidths=_make_tuple(linewidths),
+            focus=focus,
+        )
+
+    def plot_simseries(
+        self,
+        *,
+        firstdate: Optional["timetools.DateConstrArg"] = None,
+        lastdate: Optional["timetools.DateConstrArg"] = None,
+        label: Optional[str] = None,
+        color: Optional[str] = None,
+        linestyle: Optional[LineStyle] = None,
+        linewidth: Optional[int] = None,
+        focus: bool = False,
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
         """
-        self.__plot_series([self.sequences.sim], kwargs)
+        return self._plot_series(
+            [self.sequences.sim],
+            firstdate=firstdate,
+            lastdate=lastdate,
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            focus=focus,
+        )
 
-    def plot_obsseries(self, **kwargs: Any) -> None:
+    def plot_obsseries(
+        self,
+        *,
+        firstdate: Optional["timetools.DateConstrArg"] = None,
+        lastdate: Optional["timetools.DateConstrArg"] = None,
+        label: Optional[str] = None,
+        color: Optional[str] = None,
+        linestyle: Optional[LineStyle] = None,
+        linewidth: Optional[int] = None,
+        focus: bool = False,
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
         """
-        self.__plot_series([self.sequences.obs], kwargs)
+        return self._plot_series(
+            [self.sequences.obs],
+            firstdate=firstdate,
+            lastdate=lastdate,
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            focus=focus,
+        )
 
-    def __plot_series(
-        self, sequences: Iterable[sequencetools.IOSequence], kwargs: Dict
-    ) -> None:
+    def _plot_series(
+        self,
+        sequences: Iterable[sequencetools.IOSequence],
+        firstdate: Optional["timetools.DateConstrArg"],
+        lastdate: Optional["timetools.DateConstrArg"],
+        labels: Iterable[Optional[str]],
+        colors: Iterable[Optional[str]],
+        linestyles: Iterable[Optional[str]],
+        linewidths: Iterable[Optional[int]],
+        focus: bool = False,
+    ) -> pyplot.Figure:
+        if firstdate is None:
+            firstdate = hydpy.pub.timegrids.init.firstdate
+        if lastdate is None:
+            lastdate = hydpy.pub.timegrids.init.lastdate
+        idx0 = hydpy.pub.timegrids.init[firstdate]
+        idx1 = hydpy.pub.timegrids.init[lastdate]
         index = _get_pandasindex()
-        defaultlabel = "label" in kwargs
-        for sequence in sequences:
-            ps = pandas.Series(sequence.series, index=index)
-            if defaultlabel:
-                ps.plot(**kwargs)
-            else:
-                ps.plot(label=" ".join((self.name, sequence.name)), **kwargs)
+        for sequence, label, color, linestyle, linewidth in zip(
+            sequences, labels, colors, linestyles, linewidths
+        ):
+            ps = pandas.Series(sequence.series[idx0:idx1], index=index[idx0:idx1])
+            ps.plot(
+                label=label if label else " ".join((self.name, sequence.name)),
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+            )
         pyplot.legend()
+        if not focus:
+            pyplot.ylim((0.0, None))
         if pyplot.get_fignums():
             variable = self.variable
             if variable == "Q":
                 variable = "Q [m³/s]"
             pyplot.ylabel(variable)
+        return pyplot.gcf()
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""

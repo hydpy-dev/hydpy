@@ -860,6 +860,8 @@ def prepare_mainsubstituter():
     file of *HydPy*."""
     # pylint: disable=import-outside-toplevel
     import matplotlib
+    from matplotlib import figure
+    from matplotlib import pyplot
     import pandas
     import scipy
 
@@ -885,6 +887,8 @@ def prepare_mainsubstituter():
         mimetypes,
         pandas,
         matplotlib,
+        figure,
+        pyplot,
     ):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):

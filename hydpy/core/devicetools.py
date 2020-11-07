@@ -94,6 +94,7 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import seriestools
+from hydpy.core import timetools
 from hydpy.core import typingtools
 from hydpy.cythons.autogen import pointerutils
 
@@ -103,7 +104,6 @@ if TYPE_CHECKING:
     import pandas
     from hydpy.core import auxfiletools
     from hydpy.core import modeltools
-    from hydpy.core import timetools
 else:
     pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -2132,6 +2132,25 @@ the given group name `test`.
 
         .. image:: Node_plot_allseries_3.png
 
+        When necessary, all plotting methods raise errors like the following:
+
+        >>> figure = lahn_1.plot_allseries(stepsize="quaterly")
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to plot the time series of sequence(s) obs and sim \
+of node `lahn_1` for the period `1996-01-01 00:00:00` to `1997-01-01 00:00:00`, \
+the following error occurred: While trying to aggregate the given series, the \
+following error occurred: Argument `stepsize` received value `quaterly`, but only \
+the following ones are supported: `monthly` (default) and `daily`.
+
+        >>> from hydpy import pub
+        >>> del pub.timegrids
+        >>> figure = lahn_1.plot_allseries()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
+series of sequence(s) obs and sim of node `lahn_1` , the following error occurred: \
+Attribute timegrids of module `pub` is not defined at the moment.
         """
 
         t = TypeVar("t", str, int)
@@ -2211,7 +2230,7 @@ the given group name `test`.
 
     def _plot_series(
         self,
-        sequences: Iterable[sequencetools.IOSequence],
+        sequences: Sequence[sequencetools.IOSequence],
         firstdate: Optional["timetools.DateConstrArg"],
         lastdate: Optional["timetools.DateConstrArg"],
         labels: Iterable[Optional[str]],
@@ -2221,40 +2240,56 @@ the given group name `test`.
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
-        if firstdate is None:
-            firstdate = hydpy.pub.timegrids.init.firstdate
-        if lastdate is None:
-            lastdate = hydpy.pub.timegrids.init.lastdate
-        idx0 = hydpy.pub.timegrids.init[firstdate]
-        idx1 = hydpy.pub.timegrids.init[lastdate]
-        for sequence, label, color, linestyle, linewidth in zip(
-            sequences, labels, colors, linestyles, linewidths
-        ):
-            if stepsize is None:
-                index = _get_pandasindex()
-                ps = pandas.Series(sequence.series[idx0:idx1], index=index[idx0:idx1])
-            else:
-                ps = seriestools.aggregate_series(
-                    series=sequence.series,
-                    stepsize=stepsize,
-                    aggregator=numpy.mean,
+        try:
+            if firstdate is None:
+                firstdate = hydpy.pub.timegrids.init.firstdate
+            if lastdate is None:
+                lastdate = hydpy.pub.timegrids.init.lastdate
+            idx0 = hydpy.pub.timegrids.init[firstdate]
+            idx1 = hydpy.pub.timegrids.init[lastdate]
+            for sequence, label, color, linestyle, linewidth in zip(
+                sequences, labels, colors, linestyles, linewidths
+            ):
+                if stepsize is None:
+                    index = _get_pandasindex()
+                    ps = pandas.Series(
+                        sequence.series[idx0:idx1], index=index[idx0:idx1]
+                    )
+                else:
+                    ps = seriestools.aggregate_series(
+                        series=sequence.series,
+                        stepsize=stepsize,
+                        aggregator=numpy.mean,
+                        firstdate=firstdate,
+                        lastdate=lastdate,
+                    )
+                    period = "15d" if stepsize.startswith("m") else "12h"
+                    ps.index += timetools.Period(period).timedelta
+                ps.plot(
+                    label=label if label else " ".join((self.name, sequence.name)),
+                    color=color,
+                    linestyle=linestyle,
+                    linewidth=linewidth,
                 )
-                ps.index += ps.index[1] - ps.index[0]
-            ps.plot(
-                label=label if label else " ".join((self.name, sequence.name)),
-                color=color,
-                linestyle=linestyle,
-                linewidth=linewidth,
+            pyplot.legend()
+            if not focus:
+                pyplot.ylim((0.0, None))
+            if pyplot.get_fignums():
+                variable = self.variable
+                if variable == "Q":
+                    variable = "Q [m³/s]"
+                pyplot.ylabel(variable)
+            return pyplot.gcf()
+        except BaseException:
+            if (firstdate is None) and (lastdate is None):
+                periodstring = ""
+            else:
+                periodstring = f"for the period `{firstdate}` to `{lastdate}`"
+            objecttools.augment_excmessage(
+                f"While trying to plot the time series of sequence(s) "
+                f"{objecttools.enumeration(sequence.name for sequence in sequences)} "
+                f"of node `{objecttools.devicename(sequences[0])}` {periodstring}"
             )
-        pyplot.legend()
-        if not focus:
-            pyplot.ylim((0.0, None))
-        if pyplot.get_fignums():
-            variable = self.variable
-            if variable == "Q":
-                variable = "Q [m³/s]"
-            pyplot.ylabel(variable)
-        return pyplot.gcf()
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""

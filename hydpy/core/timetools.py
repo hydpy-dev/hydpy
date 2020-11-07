@@ -2126,6 +2126,28 @@ alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
         _set_lastdate,
     )
 
+    def _get_dates(self) -> Tuple[Date, Date]:
+        """Shortcut to get or set both property |Timegrid.firstdate| and
+        property |Timegrid.lastdate| in one step.
+
+        >>> from hydpy import Timegrid
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
+        >>> timegrid.dates
+        (Date("2000-01-01 00:00:00"), Date("2001-01-01 00:00:00"))
+        >>> timegrid.dates = "2002-01-01", "2003-01-01"
+        >>> timegrid.firstdate
+        Date("2002-01-01 00:00:00")
+        >>> timegrid.lastdate
+        Date("2003-01-01 00:00:00")
+        """
+        return self.firstdate, self.lastdate
+
+    def _set_dates(self, dates: Tuple[DateConstrArg, DateConstrArg]) -> None:
+        self.firstdate = dates[0]
+        self.lastdate = dates[1]
+
+    dates = property(_get_dates, _set_dates)
+
     def _get_stepsize(self) -> Period:
         """The time-series data and simulation step size.
 

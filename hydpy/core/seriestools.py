@@ -23,9 +23,12 @@ else:
 
 @overload
 def aggregate_series(
+    *,
     series: typingtools.VectorInput[float],
     stepsize: Literal["daily", "d"],
     aggregator: Callable,
+    firstdate: Optional[timetools.DateConstrArg] = None,
+    lastdate: Optional[timetools.DateConstrArg] = None,
     basetime: str = ...,
 ) -> pandas.DataFrame:
     """sim and obs as arguments, daily aggregation"""
@@ -33,9 +36,12 @@ def aggregate_series(
 
 @overload
 def aggregate_series(
+    *,
     series: typingtools.VectorInput[float],
     stepsize: Literal["monthly", "m"],
     aggregator: Callable,
+    firstdate: Optional[timetools.DateConstrArg] = None,
+    lastdate: Optional[timetools.DateConstrArg] = None,
 ) -> pandas.DataFrame:
     """sim and obs as arguments, monthly aggregation"""
 
@@ -45,6 +51,8 @@ def aggregate_series(
     series: typingtools.VectorInput[float],
     stepsize: Literal["daily", "d", "monthly", "m"] = "monthly",
     aggregator: Union[str, Callable] = "mean",
+    firstdate: Optional[timetools.DateConstrArg] = None,
+    lastdate: Optional[timetools.DateConstrArg] = None,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
     """Aggregate the time series on a monthly or daily basis.
@@ -83,15 +91,12 @@ def aggregate_series(
     2001-04-01    166.5
     Freq: MS, Name: series, dtype: float64
 
-    You can pass another aggregation function:
+    You can pass another aggregation function and restrict the considered period:
 
-    >>> aggregate_series(series=sim.series, aggregator=numpy.sum)
-    2000-11-01     465.0
-    2000-12-01    1426.0
+    >>> aggregate_series(series=sim.series, aggregator=numpy.sum,
+    ...                  firstdate="2001-01-01", lastdate="2001-03-01")
     2001-01-01    2387.0
     2001-02-01    2982.0
-    2001-03-01    4216.0
-    2001-04-01    4995.0
     Freq: MS, Name: series, dtype: float64
 
     Functions |aggregate_series| raises errors like the following for
@@ -109,13 +114,9 @@ but 1 was given
 
     When passing a string, |aggregate_series| queries it from |numpy|:
 
-    >>> aggregate_series(series=sim.series, aggregator="sum")
-    2000-11-01     465.0
-    2000-12-01    1426.0
+    >>> aggregate_series(series=sim.series, aggregator="sum",
+    ...                  firstdate="2001-01-01", lastdate="2001-02-01")
     2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
-    2001-04-01    4995.0
     Freq: MS, Name: series, dtype: float64
 
     |aggregate_series| raises the following error when the requested function
@@ -132,14 +133,18 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
 
     >>> pub.timegrids = "30.11.2000", "2.04.2001", "1d"
     >>> node.prepare_simseries()
-    >>> sim.series = node.sequences.sim
     >>> sim.series = numpy.arange(30, 152+1)
+    >>> sim = node.sequences.sim
     >>> aggregate_series(series=sim.series, aggregator="sum")
     2000-12-01    1426.0
     2001-01-01    2387.0
     2001-02-01    2982.0
     2001-03-01    4216.0
     Freq: MS, Name: series, dtype: float64
+
+    >>> aggregate_series(series=sim.series, aggregator="sum",
+    ...                  firstdate="2001-01-02", lastdate="2001-02-28")
+    Series([], Name: series, dtype: float64)
 
     The following example shows that even with only one missing value at
     the respective ends of the simulation period, |aggregate_series| does
@@ -148,9 +153,8 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
 
     >>> pub.timegrids = "02.11.2000", "30.04.2001", "1d"
     >>> node.prepare_simseries()
-    >>> sim = node.sequences.sim
     >>> sim.series = numpy.arange(2, 180+1)
-    >>> aggregate_series(series=sim.series, aggregator="sum")
+    >>> aggregate_series(series=node.sequences.sim.series, aggregator="sum")
     2000-12-01    1426.0
     2001-01-01    2387.0
     2001-02-01    2982.0
@@ -240,6 +244,8 @@ following ones are supported: `monthly` (default) and `daily`.
     else:
         realaggregator = aggregator
     tg = hydpy.pub.timegrids.init
+    firstdate = tg.firstdate if firstdate is None else timetools.Date(firstdate)
+    lastdate = tg.lastdate if lastdate is None else timetools.Date(lastdate)
     if tg.stepsize > "1d":
         raise ValueError(
             "Data aggregation is not supported for simulation "
@@ -250,8 +256,8 @@ following ones are supported: `monthly` (default) and `daily`.
         offset = (
             timetools.Date(f"2000-01-01 {basetime}") - timetools.Date("2000-01-01")
         ).seconds
-        firstdate_expanded = tg.firstdate - "1d"
-        lastdate_expanded = tg.lastdate + "1d"
+        firstdate_expanded = firstdate - "1d"
+        lastdate_expanded = lastdate + "1d"
     elif basetime != "00:00":
         raise ValueError(
             "Use the `basetime` argument in combination with "
@@ -260,18 +266,18 @@ following ones are supported: `monthly` (default) and `daily`.
     elif stepsize == "monthly":
         rule = "MS"
         offset = 0
-        firstdate_expanded = tg.firstdate - "31d"
-        lastdate_expanded = tg.lastdate + "31d"
+        firstdate_expanded = firstdate - "31d"
+        lastdate_expanded = lastdate + "31d"
     else:
         raise ValueError(
             f"Argument `stepsize` received value `{stepsize}`, but only the "
             f"following ones are supported: `monthly` (default) and `daily`."
         )
     dataframe_orig = pandas.DataFrame()
-    dataframe_orig["series"] = numpy.asarray(series)
+    dataframe_orig["series"] = numpy.asarray(series)[tg[firstdate] : tg[lastdate]]
     dataframe_orig.index = pandas.date_range(
-        start=tg.firstdate.datetime,
-        end=(tg.lastdate - tg.stepsize).datetime,
+        start=firstdate.datetime,
+        end=(lastdate - tg.stepsize).datetime,
         freq=tg.stepsize.timedelta,
     )
     dataframe_expanded = dataframe_orig.reindex(
@@ -296,5 +302,9 @@ following ones are supported: `monthly` (default) and `daily`.
     # noinspection PyUnboundLocalVariable
     idx0 = df_resampled_expanded.first_valid_index()
     idx1 = df_resampled_expanded.last_valid_index()
-    df_resampled_stripped = df_resampled_expanded.loc[idx0:idx1]
+    if idx0 is None:
+        df_resampled_stripped = pandas.DataFrame()
+        df_resampled_stripped["series"] = numpy.array([], dtype=float)
+    else:
+        df_resampled_stripped = df_resampled_expanded.loc[idx0:idx1]
     return df_resampled_stripped["series"]

@@ -1046,12 +1046,15 @@ class ConditionManager(FileManager):
     >>> pub.timegrids.sim.firstdate += "1d"
     >>> pub.timegrids.sim.lastdate -= "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid("1996-01-01 00:00:00",
-                       "1996-01-05 00:00:00",
-                       "1d"),
-              Timegrid("1996-01-02 00:00:00",
-                       "1996-01-04 00:00:00",
-                       "1d"))
+    Timegrids(init=Timegrid("1996-01-01 00:00:00",
+                            "1996-01-05 00:00:00",
+                            "1d"),
+              sim=Timegrid("1996-01-02 00:00:00",
+                           "1996-01-04 00:00:00",
+                           "1d"),
+              eval_=Timegrid("1996-01-01 00:00:00",
+                             "1996-01-05 00:00:00",
+                             "1d"))
 
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)

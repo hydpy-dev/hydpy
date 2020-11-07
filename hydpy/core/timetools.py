@@ -2589,48 +2589,60 @@ date (`2000-01-01 00:00:00`) is inconsistent.
 
 
 class Timegrids:
-    """Handles both the "initialisation" and the "simulation" |Timegrid|
-    object of a *HydPy* project.
+    """Handles the "initialisation", the "simulation", and the "evaluation
+    |Timegrid| object of a *HydPy* project.
 
-    The HydPy framework distinguishes two "time frames", one associated
-    with the initialisation period (`init`) and one associated with the
-    actual simulation period (`sim`).  These time frames are represented
-    by two different |Timegrid| objects, which are both handled by a
-    single |Timegrids| object.
+    The HydPy framework distinguishes three "time frames", one associated
+    with the initialisation period (|Timegrids.init|), one associated with
+    the actual simulation period (|Timegrids.sim|), and one associated with
+    the actual evaluation period (|Timegrids.eval_|).  These time frames are
+    represented by three different |Timegrid| objects, which are each handled
+    by a single |Timegrid| object.
 
     There is usually only one |Timegrids| object required within a
     *HydPy* project available as attribute `timegrids` of module |pub|.
     You have to create such an object at the beginning of your workflow.
 
-    In many cases, one wants to perform simulations covering the whole
-    initialisation period.  Then you can pass a single |Timegrid|
-    instance to the constructor of class |Timegrids|:
+    In many cases, one either wants to perform simulations and evaluations
+    covering the whole initialisation period or not to perform any simulation
+    or evaluation at all.  In these situations, you can pass a single
+    |Timegrid| instance to the constructor of class |Timegrids|:
 
     >>> from hydpy import Timegrid, Timegrids
-    >>> timegrids = Timegrids(Timegrid(
-    ...     "2000-01-01", "2001-01-01", "1d"))
+    >>> timegrids = Timegrids(Timegrid("2000-01-01", "2001-01-01", "1d"))
     >>> print(timegrids)
-    Timegrids(Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d"))
+    Timegrids("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
 
-    An even shorter approach is to pass the arguments of the
-    |Timegrid| constructor directly:
+    An even shorter approach is to pass the arguments of the |Timegrid|
+    constructor directly:
 
     >>> timegrids == Timegrids("2000-01-01", "2001-01-01", "1d")
     True
 
     To define a simulation time grid different from the initialisation
-    time grid, pass them as two individual |Timegrid| objects:
+    time grid, pass both as two individual |Timegrid| objects:
 
-    >>> timegrids = Timegrids(
-    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
-    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
+    >>> timegrids = Timegrids(Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...                       Timegrid("2000-01-01", "2000-07-01", "1d"))
+
+    The evaluation time grid then corresponds to the simulation time grid:
+
     >>> timegrids
-    Timegrids(Timegrid("2000-01-01 00:00:00",
-                       "2001-01-01 00:00:00",
-                       "1d"),
-              Timegrid("2000-01-01 00:00:00",
-                       "2000-07-01 00:00:00",
-                       "1d"))
+    Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                            "2001-01-01 00:00:00",
+                            "1d"),
+              sim=Timegrid("2000-01-01 00:00:00",
+                           "2000-07-01 00:00:00",
+                           "1d"),
+              eval_=Timegrid("2000-01-01 00:00:00",
+                             "2000-07-01 00:00:00",
+                             "1d"))
+
+    Of course, you can also define a separate evaluation period:
+
+    >>> timegrids = Timegrids(Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...                       Timegrid("2000-01-01", "2000-07-01", "1d"),
+    ...                       Timegrid("2000-06-01", "2000-07-01", "1d"))
     >>> timegrids.init
     Timegrid("2000-01-01 00:00:00",
              "2001-01-01 00:00:00",
@@ -2639,22 +2651,26 @@ class Timegrids:
     Timegrid("2000-01-01 00:00:00",
              "2000-07-01 00:00:00",
              "1d")
+    >>> timegrids.eval_
+    Timegrid("2000-06-01 00:00:00",
+             "2000-07-01 00:00:00",
+             "1d")
 
     Class |Timegrids| supports keyword arguments:
 
-    >>> Timegrid(firstdate="2000-01-01 00:00:00",
-    ...          lastdate="2001-01-01 00:00:00",
-    ...          stepsize="1d")
-    Timegrid("2000-01-01 00:00:00",
-             "2001-01-01 00:00:00",
-             "1d")
+    >>> Timegrids(firstdate="2000-01-01 00:00:00",
+    ...           lastdate="2001-01-01 00:00:00",
+    ...           stepsize="1d")
+    Timegrids("2000-01-01 00:00:00",
+              "2001-01-01 00:00:00",
+              "1d")
 
-    >>> Timegrid("2000-01-01 00:00:00",
-    ...          "2001-01-01 00:00:00",
-    ...          stepsize="1d")
-    Timegrid("2000-01-01 00:00:00",
-             "2001-01-01 00:00:00",
-             "1d")
+    >>> Timegrids("2000-01-01 00:00:00",
+    ...           "2001-01-01 00:00:00",
+    ...           stepsize="1d")
+    Timegrids("2000-01-01 00:00:00",
+              "2001-01-01 00:00:00",
+              "1d")
 
     >>> Timegrids(init=Timegrid("2000-01-01 00:00:00",
     ...                         "2001-01-01 00:00:00",
@@ -2662,12 +2678,31 @@ class Timegrids:
     ...           sim=Timegrid("2000-01-01 00:00:00",
     ...                        "2000-07-01 00:00:00",
     ...                        "1d"))
-    Timegrids(Timegrid("2000-01-01 00:00:00",
-                       "2001-01-01 00:00:00",
-                       "1d"),
-              Timegrid("2000-01-01 00:00:00",
-                       "2000-07-01 00:00:00",
-                       "1d"))
+    Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                            "2001-01-01 00:00:00",
+                            "1d"),
+              sim=Timegrid("2000-01-01 00:00:00",
+                           "2000-07-01 00:00:00",
+                           "1d"),
+              eval_=Timegrid("2000-01-01 00:00:00",
+                             "2000-07-01 00:00:00",
+                             "1d"))
+
+    >>> Timegrids(init=Timegrid("2000-01-01 00:00:00",
+    ...                         "2001-01-01 00:00:00",
+    ...                         "1d"),
+    ...           eval_=Timegrid("2000-06-01 00:00:00",
+    ...                        "2000-07-01 00:00:00",
+    ...                        "1d"))
+    Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                            "2001-01-01 00:00:00",
+                            "1d"),
+              sim=Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"),
+              eval_=Timegrid("2000-06-01 00:00:00",
+                             "2000-07-01 00:00:00",
+                             "1d"))
 
     Wrong arguments should result in understandable error messages:
 
@@ -2683,7 +2718,7 @@ arguments `1, 2, 3, and 4`, the following error occurred: Initialising \
     ...
     ValueError: While trying to define a new `Timegrids` object based on the \
 arguments `wrong`, the following error occurred: Initialising a `Timegrids` \
-object either requires one or two `Timegrid` objects or two dates objects \
+object either requires one, two, or three `Timegrid` objects or two dates objects \
 (of type `Date`, `datetime`, or `str`) and one period object (of type \
 `Period`, `timedelta`, or `str`), but objects of the types `str, None, \
 and None` are given.
@@ -2707,20 +2742,27 @@ Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, the following \
 error occurred: There is a conflict between the given positional and keyword \
 arguments.
 
-    Two |Timegrids| objects are equal if both the respective initialisation
-    and simulation periods are equal:
+    Two |Timegrids| objects are equal if all handled |Timegrid| objects are equal:
 
     >>> timegrids == Timegrids(
     ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
-    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"),
+    ...     Timegrid("2000-06-01", "2000-07-01", "1d"))
     True
     >>> timegrids == Timegrids(
     ...     Timegrid("1999-01-01", "2001-01-01", "1d"),
-    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"),
+    ...     Timegrid("2000-06-01", "2000-07-01", "1d"))
     False
     >>> timegrids == Timegrids(
     ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
-    ...     Timegrid("2000-01-01", "2001-01-01", "1d"))
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-06-01", "2000-07-01", "1d"))
+    False
+    >>> timegrids == Timegrids(
+    ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"),
+    ...     Timegrid("2000-01-01", "2000-07-01", "1d"))
     False
     >>> timegrids == Date("2000-01-01")
     False
@@ -2730,12 +2772,15 @@ arguments.
     """|Timegrid| object covering the whole initialisation period."""
     sim: Timegrid
     """|Timegrid| object covering the actual simulation period only."""
+    eval_: Timegrid
+    """|Timegrid| object covering the actual evaluation period only."""
 
     @overload
     def __init__(
         self,
         init: Timegrid,
         sim: Optional[Timegrid] = ...,
+        eval_: Optional[Timegrid] = ...,
     ):
         """from timegrids"""
 
@@ -2748,7 +2793,7 @@ arguments.
     ):
         """from timegrid constructor arguments"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         values = list(args) + list(kwargs.values())
         try:
             if not 1 <= len(values) <= 3:
@@ -2762,6 +2807,7 @@ arguments.
             for idx, name in (
                 (0, "init"),
                 (1, "sim"),
+                (2, "eval_"),
                 (0, "firstdate"),
                 (1, "lastdate"),
                 (2, "stepsize"),
@@ -2785,13 +2831,17 @@ arguments.
             if (
                 isinstance(arg1, Timegrid)
                 and ((arg2 is None) or isinstance(arg2, Timegrid))
-                and (arg3 is None)
+                and ((arg3 is None) or isinstance(arg3, Timegrid))
             ):
                 self.init = copy.deepcopy(arg1)
                 if arg2 is None:
-                    self.sim = copy.deepcopy(arg1)
+                    self.sim = copy.deepcopy(self.init)
                 else:
                     self.sim = copy.deepcopy(arg2)
+                if arg3 is None:
+                    self.eval_ = copy.deepcopy(self.sim)
+                else:
+                    self.eval_ = copy.deepcopy(arg3)
             elif (
                 isinstance(arg1, (Date, datetime_.datetime, str))
                 and isinstance(arg2, (Date, datetime_.datetime, str))
@@ -2799,13 +2849,14 @@ arguments.
             ):
                 self.init = Timegrid(arg1, arg2, arg3)
                 self.sim = Timegrid(arg1, arg2, arg3)
+                self.eval_ = Timegrid(arg1, arg2, arg3)
             else:
                 types_ = objecttools.enumeration(
                     "None" if arg is None else type(arg).__name__ for arg in arguments
                 )
                 raise ValueError(
-                    f"Initialising a `Timegrids` object either requires one "
-                    f"or two `Timegrid` objects or two dates objects (of "
+                    f"Initialising a `Timegrids` object either requires one, "
+                    f"two, or three `Timegrid` objects or two dates objects (of "
                     f"type `Date`, `datetime`, or `str`) and one period "
                     f"object (of type `Period`, `timedelta`, or `str`), "
                     f"but objects of the types `{types_}` are given."
@@ -2826,24 +2877,31 @@ arguments.
         >>> from hydpy import Timegrids
         >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
         >>> timegrids.sim.lastdate = "2000-02-01"
+        >>> timegrids.eval_.lastdate = "2000-03-01"
         >>> timegrids
-        Timegrids(Timegrid("2000-01-01 00:00:00",
-                           "2001-01-01 00:00:00",
-                           "1d"),
-                  Timegrid("2000-01-01 00:00:00",
-                           "2000-02-01 00:00:00",
-                           "1d"))
+        Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                                "2001-01-01 00:00:00",
+                                "1d"),
+                  sim=Timegrid("2000-01-01 00:00:00",
+                               "2000-02-01 00:00:00",
+                               "1d"),
+                  eval_=Timegrid("2000-01-01 00:00:00",
+                                 "2000-03-01 00:00:00",
+                                 "1d"))
 
         >>> timegrids.stepsize
         Period("1d")
         >>> timegrids.stepsize = "1h"
         >>> timegrids
-        Timegrids(Timegrid("2000-01-01 00:00:00",
-                           "2001-01-01 00:00:00",
-                           "1h"),
-                  Timegrid("2000-01-01 00:00:00",
-                           "2000-02-01 00:00:00",
-                           "1h"))
+        Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                                "2001-01-01 00:00:00",
+                                "1h"),
+                  sim=Timegrid("2000-01-01 00:00:00",
+                               "2000-02-01 00:00:00",
+                               "1h"),
+                  eval_=Timegrid("2000-01-01 00:00:00",
+                                 "2000-03-01 00:00:00",
+                                 "1h"))
         """
         return self.init.stepsize
 
@@ -2853,6 +2911,7 @@ arguments.
     ) -> None:
         self.init.stepsize = Period(stepsize)
         self.sim.stepsize = Period(stepsize)
+        self.eval_.stepsize = Period(stepsize)
 
     stepsize = property(
         _get_stepsize,
@@ -2860,16 +2919,14 @@ arguments.
     )
 
     def verify(self) -> None:
-        """Raise a |ValueError| if the different |Timegrid| objects are
-        inconsistent.
+        """Raise a |ValueError| if the different |Timegrid| objects are inconsistent.
 
         Method |Timegrids.verify| is called at the end of the initialisation
         of a new |Timegrids| object automatically:
 
         >>> from hydpy import Timegrid, Timegrids
-        >>> Timegrids(
-        ...     Timegrid("2001-01-01", "2002-01-01", "1d"),
-        ...     Timegrid("2000-01-01", "2002-01-01", "1d"))
+        >>> Timegrids(init=Timegrid("2001-01-01", "2002-01-01", "1d"),
+        ...           sim=Timegrid("2000-01-01", "2002-01-01", "1d"))
         Traceback (most recent call last):
         ...
         ValueError: While trying to define a new `Timegrids` object based on \
@@ -2879,13 +2936,12 @@ following error occurred: The first date of the initialisation period \
 (`2001-01-01 00:00:00`) must not be later than the first date of the \
 simulation period (`2000-01-01 00:00:00`).
 
-        However, the same does not hold when one changes the initialisation
-        or the simulation time grid later:
+        However, the same does not hold when one changes a single time grid later:
 
         >>> timegrids = Timegrids(
-        ...     Timegrid("2001-01-01", "2002-01-01", "1d"),
-        ...     Timegrid("2001-01-01", "2002-01-01", "1d"))
-        >>> timegrids.sim.lastdate = "2003-01-01"
+        ...     init=Timegrid("2001-01-01", "2002-01-01", "1d"),
+        ...     eval_=Timegrid("2001-01-01", "2002-01-01", "1d"))
+        >>> timegrids.eval_.lastdate = "2003-01-01"
 
         When in doubt, call method |Timegrids.verify| manually:
 
@@ -2894,10 +2950,10 @@ simulation period (`2000-01-01 00:00:00`).
         ...
         ValueError: The last date of the initialisation period \
 (`2002-01-01 00:00:00`) must not be earlier than the last date \
-of the simulation period (`2003-01-01 00:00:00`).
+of the evaluation period (`2003-01-01 00:00:00`).
 
         Besides both tests explained by the above error messages, method
-        |Timegrids.verify| checks for an equal step size of both
+        |Timegrids.verify| checks for an equal step size of all
         |Timegrid| objects and their proper alignment:
 
         >>> timegrids.sim.lastdate = "2002-01-01"
@@ -2918,17 +2974,28 @@ with the simulation stepsize (`5d`).
 time grid `Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`.
 
         Additionally, the method |Timegrids.verify| calls the
-        verification methods of both |Timegrid| objects:
+        verification methods of all |Timegrid| objects:
 
         >>> timegrids.sim.stepsize = "3d"
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
         ValueError: While trying to verify the simulation time grid \
-`Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`, \
+`Timegrid("2001-01-01 12:00:00", "2001-12-31 12:00:00", "3d")`, \
 the following error occurred: The interval between the first date \
 (`2001-01-01 12:00:00`) and the last date (`2001-12-31 12:00:00`) \
 is `364d`, which is not an integral multiple of the step size `3d`.
+
+        >>> timegrids.sim = timegrids.init
+        >>> timegrids.eval_.stepsize = "3d"
+        >>> timegrids.verify()
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to verify the evaluation time grid \
+`Timegrid("2001-01-01 00:00:00", "2003-01-01 00:00:00", "3d")`, \
+the following error occurred: The interval between the first date \
+(`2001-01-01 00:00:00`) and the last date (`2003-01-01 00:00:00`) \
+is `730d`, which is not an integral multiple of the step size `3d`.
 
         >>> timegrids.init.stepsize = "3d"
         >>> timegrids.verify()
@@ -2944,41 +3011,48 @@ is `365d`, which is not an integral multiple of the step size `3d`.
             self.init.verify()
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to verify the initialisation " f"time grid `{self.init}`"
+                f"While trying to verify the initialisation time grid `{self.init}`"
             )
         try:
             self.sim.verify()
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to verify the simulation " f"time grid `{self.init}`"
-            )
-        if self.init.firstdate > self.sim.firstdate:
-            raise ValueError(
-                f"The first date of the initialisation period "
-                f"(`{self.init.firstdate}`) must not be later "
-                f"than the first date of the simulation period "
-                f"(`{self.sim.firstdate}`)."
-            )
-        if self.init.lastdate < self.sim.lastdate:
-            raise ValueError(
-                f"The last date of the initialisation period "
-                f"(`{self.init.lastdate}`) must not be earlier "
-                f"than the last date of the simulation period "
-                f"(`{self.sim.lastdate}`)."
-            )
-        if self.init.stepsize != self.sim.stepsize:
-            raise ValueError(
-                f"The initialisation stepsize (`{self.init.stepsize}`) "
-                f"must be identical with the simulation stepsize "
-                f"(`{self.sim.stepsize}`)."
+                f"While trying to verify the simulation time grid `{self.sim}`"
             )
         try:
-            self.init[self.sim.firstdate]
-        except ValueError as exc:
-            raise ValueError(
-                f"The simulation time grid `{self.sim}` is not properly "
-                f"alligned on the initialisation time grid `{self.init}`."
-            ) from exc
+            self.eval_.verify()
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to verify the evaluation time grid `{self.eval_}`"
+            )
+        for tg, descr in (
+            (self.sim, "simulation"),
+            (self.eval_, "evaluation"),
+        ):
+            if self.init.firstdate > tg.firstdate:
+                raise ValueError(
+                    f"The first date of the initialisation period "
+                    f"(`{self.init.firstdate}`) must not be later than the "
+                    f"first date of the {descr} period (`{tg.firstdate}`)."
+                )
+            if self.init.lastdate < tg.lastdate:
+                raise ValueError(
+                    f"The last date of the initialisation period "
+                    f"(`{self.init.lastdate}`) must not be earlier than the "
+                    f"last date of the {descr} period (`{tg.lastdate}`)."
+                )
+            if self.init.stepsize != tg.stepsize:
+                raise ValueError(
+                    f"The initialisation stepsize (`{self.init.stepsize}`) must "
+                    f"be identical with the {descr} stepsize (`{tg.stepsize}`)."
+                )
+            try:
+                self.init[tg.firstdate]
+            except ValueError as exc:
+                raise ValueError(
+                    f"The {descr} time grid `{tg}` is not properly alligned "
+                    f"on the initialisation time grid `{self.init}`."
+                ) from exc
 
     @property
     def simindices(self) -> Tuple[int, int]:
@@ -2995,6 +3069,22 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         (10, 31)
         """
         return self.init[self.sim.firstdate], self.init[self.sim.lastdate]
+
+    @property
+    def evalindices(self) -> Tuple[int, int]:
+        """A tuple containing the start and end index of the evaluation period
+        regarding the initialisation period.
+
+        >>> from hydpy import Timegrids
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
+        >>> timegrids.simindices
+        (0, 366)
+        >>> timegrids.eval_.firstdate = "2000-01-11"
+        >>> timegrids.eval_.lastdate = "2000-02-01"
+        >>> timegrids.evalindices
+        (10, 31)
+        """
+        return self.init[self.eval_.firstdate], self.init[self.eval_.lastdate]
 
     def qfactor(
         self,
@@ -3038,10 +3128,13 @@ is `365d`, which is not an integral multiple of the step size `3d`.
         self,
         other: Any,
     ) -> bool:
-        try:
-            return (self.init == other.init) and (self.sim == other.sim)
-        except AttributeError:
-            return False
+        if isinstance(other, Timegrids):
+            return (
+                (self.init == other.init)
+                and (self.sim == other.sim)
+                and (self.eval_ == other.eval_)
+            )
+        return False
 
     def __repr__(self) -> str:
         return self.assignrepr("")
@@ -3052,13 +3145,19 @@ is `365d`, which is not an integral multiple of the step size `3d`.
     ) -> str:
         """Return a |repr| string with a prefixed assignment."""
         caller = "Timegrids("
+        if self.init == self.sim == self.eval_:
+            repr_tg = (
+                self.init.assignrepr(prefix)
+                .replace("Timegrid(", caller)
+                .replace("\n", "\n ")
+            )
+            return f"{prefix}{repr_tg}"
         blanks = " " * (len(prefix) + len(caller))
-        prefix = f"{prefix}{caller}"
-        lines = [f"{self.init.assignrepr(prefix)},"]
-        if self.sim != self.init:
-            lines.append(f"{self.sim.assignrepr(blanks)},")
-        lines[-1] = lines[-1][:-1] + ")"
-        return "\n".join(lines)
+        return (
+            f"{self.init.assignrepr(f'{prefix}{caller}init=')},\n"
+            f"{self.sim.assignrepr(f'{blanks}sim=')},\n"
+            f"{self.eval_.assignrepr(f'{blanks}eval_=')})"
+        )
 
     def __str__(self) -> str:
         return objecttools.flatten_repr(self)

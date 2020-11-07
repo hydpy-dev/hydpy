@@ -582,9 +582,9 @@ correctly refer to one of the available XML schema files \
         ...     hp.prepare_network()
         ...     XMLInterface("single_run.xml").update_timegrids()
         >>> pub.timegrids
-        Timegrids(Timegrid("1996-01-01T00:00:00",
-                           "1996-01-06T00:00:00",
-                           "1d"))
+        Timegrids("1996-01-01T00:00:00",
+                  "1996-01-06T00:00:00",
+                  "1d")
 
         Alternatively, one can provide the file path to a `seriesfile`,
         which must be a valid NetCDF file.  The |XMLInterface| object
@@ -604,9 +604,9 @@ correctly refer to one of the available XML schema files \
         ...         _ = file_.write("".join(lines[idx+4:]))
         ...     XMLInterface("single_run.xml").update_timegrids()
         >>> pub.timegrids
-        Timegrids(Timegrid("1996-01-01 00:00:00",
-                           "2007-01-01 00:00:00",
-                           "1d"))
+        Timegrids("1996-01-01 00:00:00",
+                  "2007-01-01 00:00:00",
+                  "1d")
         """
         timegrid_xml = self.find("timegrid", optional=False)
         try:

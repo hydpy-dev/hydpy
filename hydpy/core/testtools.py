@@ -229,9 +229,9 @@ class Tester:
                 no failures occurred
 
         >>> pub.timegrids
-        Timegrids(Timegrid("2000-01-01 00:00:00",
-                           "2001-01-01 00:00:00",
-                           "1d"))
+        Timegrids("2000-01-01 00:00:00",
+                  "2001-01-01 00:00:00",
+                  "1d")
 
         To show the reporting of possible errors, we change the
         string representation of parameter |hland_control.ZoneType|
@@ -270,9 +270,9 @@ hydpy.models.hland.hland_control.ZoneType
                 no failures occurred
 
         >>> pub.timegrids
-        Timegrids(Timegrid("2000-01-01 00:00:00",
-                           "2001-01-01 00:00:00",
-                           "1d"))
+        Timegrids("2000-01-01 00:00:00",
+                  "2001-01-01 00:00:00",
+                  "1d")
         """
         opt = hydpy.pub.options
         color = 34 if hydpy.pub.options.usecython else 36

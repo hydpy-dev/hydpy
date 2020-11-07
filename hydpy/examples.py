@@ -45,9 +45,9 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     >>> from hydpy import pub
     >>> pub.timegrids
-    Timegrids(Timegrid("2000-01-01 00:00:00",
-                       "2000-01-05 00:00:00",
-                       "1d"))
+    Timegrids("2000-01-01 00:00:00",
+              "2000-01-05 00:00:00",
+              "1d")
 
     (2) It creates a flat IO testing directory structure:
 
@@ -256,9 +256,9 @@ def prepare_full_example_2(
              "stream_dill_lahn_2", "stream_lahn_1_lahn_2",
              "stream_lahn_2_lahn_3")
     >>> pub.timegrids
-    Timegrids(Timegrid("1996-01-01 00:00:00",
-                       "1996-01-05 00:00:00",
-                       "1d"))
+    Timegrids("1996-01-01 00:00:00",
+              "1996-01-05 00:00:00",
+              "1d")
     >>> from hydpy import classname
     >>> classname(TestIO)
     'TestIO'
@@ -269,9 +269,9 @@ def prepare_full_example_2(
 
     >>> hp, pub, TestIO = prepare_full_example_2("1996-02-01")
     >>> pub.timegrids
-    Timegrids(Timegrid("1996-01-01 00:00:00",
-                       "1996-02-01 00:00:00",
-                       "1d"))
+    Timegrids("1996-01-01 00:00:00",
+              "1996-02-01 00:00:00",
+              "1d")
     """
     prepare_full_example_1()
     with testtools.TestIO():

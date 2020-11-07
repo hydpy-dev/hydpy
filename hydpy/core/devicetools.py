@@ -2050,8 +2050,6 @@ the given group name `test`.
     def plot_allseries(
         self,
         *,
-        firstdate: Optional["timetools.DateConstrArg"] = None,
-        lastdate: Optional["timetools.DateConstrArg"] = None,
         labels: Optional[Tuple[str, str]] = None,
         colors: Optional[Union[str, Tuple[str, str]]] = None,
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, LineStyle]]] = None,
@@ -2066,7 +2064,7 @@ the given group name `test`.
         based on the `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, _, _ = prepare_full_example_2(lastdate="1997-01-01")
+        >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         We perform a simulation run and calculate "observed" values for
         node `dill`:
@@ -2115,14 +2113,13 @@ the given group name `test`.
 
         .. image:: Node_plot_allseries_2.png
 
-        You can overwrite the time-series label and other defaults.  When doing
-        so in one call via passing tuples to method |Node.plot_allseries|,
-        remember the first entry corresponds to the observation and the second
-        one to the simulation results:
+        You can restrict the plotted period via the |Timegrids.eval_| |Timegrid| and
+        overwrite the time-series label and other defaults via keyword arguments.
+        For tuples passed to method |Node.plot_allseries|, the first entry corresponds
+        to the observation and the second one to the simulation results:
 
-        >>> figure = lahn_1.plot_allseries(firstdate='1996-10-01',
-        ...                                lastdate='1996-11-01',
-        ...                                labels=("measured", "calculated"),
+        >>> pub.timegrids.eval_.dates = "1996-10-01", "1996-11-01"
+        >>> figure = lahn_1.plot_allseries(labels=("measured", "calculated"),
         ...                                colors=("blue", "red"),
         ...                                linewidths=2,
         ...                                linestyles=("--", ":"),
@@ -2138,7 +2135,7 @@ the given group name `test`.
         Traceback (most recent call last):
         ...
         ValueError: While trying to plot the time series of sequence(s) obs and sim \
-of node `lahn_1` for the period `1996-01-01 00:00:00` to `1997-01-01 00:00:00`, \
+of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, \
 the following error occurred: While trying to aggregate the given series, the \
 following error occurred: Argument `stepsize` received value `quaterly`, but only \
 the following ones are supported: `monthly` (default) and `daily`.
@@ -2162,8 +2159,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
 
         return self._plot_series(
             sequences=(self.sequences.obs, self.sequences.sim),
-            firstdate=firstdate,
-            lastdate=lastdate,
             labels=_make_tuple(labels),
             colors=_make_tuple(colors),
             linestyles=_make_tuple(linestyles),
@@ -2175,8 +2170,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_simseries(
         self,
         *,
-        firstdate: Optional["timetools.DateConstrArg"] = None,
-        lastdate: Optional["timetools.DateConstrArg"] = None,
         label: Optional[str] = None,
         color: Optional[str] = None,
         linestyle: Optional[LineStyle] = None,
@@ -2190,8 +2183,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
         """
         return self._plot_series(
             [self.sequences.sim],
-            firstdate=firstdate,
-            lastdate=lastdate,
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2203,8 +2194,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_obsseries(
         self,
         *,
-        firstdate: Optional["timetools.DateConstrArg"] = None,
-        lastdate: Optional["timetools.DateConstrArg"] = None,
         label: Optional[str] = None,
         color: Optional[str] = None,
         linestyle: Optional[LineStyle] = None,
@@ -2218,8 +2207,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
         """
         return self._plot_series(
             [self.sequences.obs],
-            firstdate=firstdate,
-            lastdate=lastdate,
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2231,8 +2218,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def _plot_series(
         self,
         sequences: Sequence[sequencetools.IOSequence],
-        firstdate: Optional["timetools.DateConstrArg"],
-        lastdate: Optional["timetools.DateConstrArg"],
         labels: Iterable[Optional[str]],
         colors: Iterable[Optional[str]],
         linestyles: Iterable[Optional[str]],
@@ -2241,12 +2226,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
         try:
-            if firstdate is None:
-                firstdate = hydpy.pub.timegrids.init.firstdate
-            if lastdate is None:
-                lastdate = hydpy.pub.timegrids.init.lastdate
-            idx0 = hydpy.pub.timegrids.init[firstdate]
-            idx1 = hydpy.pub.timegrids.init[lastdate]
+            idx0, idx1 = hydpy.pub.timegrids.evalindices
             for sequence, label, color, linestyle, linewidth in zip(
                 sequences, labels, colors, linestyles, linewidths
             ):
@@ -2260,8 +2240,6 @@ Attribute timegrids of module `pub` is not defined at the moment.
                         series=sequence.series,
                         stepsize=stepsize,
                         aggregator=numpy.mean,
-                        firstdate=firstdate,
-                        lastdate=lastdate,
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
@@ -2281,10 +2259,11 @@ Attribute timegrids of module `pub` is not defined at the moment.
                 pyplot.ylabel(variable)
             return pyplot.gcf()
         except BaseException:
-            if (firstdate is None) and (lastdate is None):
-                periodstring = ""
+            if exceptiontools.attrready(hydpy.pub, "timegrids"):
+                tg = hydpy.pub.timegrids.eval_
+                periodstring = f"for the period `{tg.firstdate}` to `{tg.lastdate}`"
             else:
-                periodstring = f"for the period `{firstdate}` to `{lastdate}`"
+                periodstring = ""
             objecttools.augment_excmessage(
                 f"While trying to plot the time series of sequence(s) "
                 f"{objecttools.enumeration(sequence.name for sequence in sequences)} "

@@ -26,9 +26,7 @@ def aggregate_series(
     *,
     series: typingtools.VectorInput[float],
     stepsize: Literal["daily", "d"],
-    aggregator: Callable,
-    firstdate: Optional[timetools.DateConstrArg] = None,
-    lastdate: Optional[timetools.DateConstrArg] = None,
+    aggregator: Callable[[typingtools.VectorInput[float]], float],
     basetime: str = ...,
 ) -> pandas.DataFrame:
     """sim and obs as arguments, daily aggregation"""
@@ -39,9 +37,7 @@ def aggregate_series(
     *,
     series: typingtools.VectorInput[float],
     stepsize: Literal["monthly", "m"],
-    aggregator: Callable,
-    firstdate: Optional[timetools.DateConstrArg] = None,
-    lastdate: Optional[timetools.DateConstrArg] = None,
+    aggregator: Callable[[typingtools.VectorInput[float]], float],
 ) -> pandas.DataFrame:
     """sim and obs as arguments, monthly aggregation"""
 
@@ -50,9 +46,7 @@ def aggregate_series(
 def aggregate_series(
     series: typingtools.VectorInput[float],
     stepsize: Literal["daily", "d", "monthly", "m"] = "monthly",
-    aggregator: Union[str, Callable] = "mean",
-    firstdate: Optional[timetools.DateConstrArg] = None,
-    lastdate: Optional[timetools.DateConstrArg] = None,
+    aggregator: Union[str, Callable[[typingtools.VectorInput[float]], float]] = "mean",
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
     """Aggregate the time series on a monthly or daily basis.
@@ -91,10 +85,12 @@ def aggregate_series(
     2001-04-01    166.5
     Freq: MS, Name: series, dtype: float64
 
-    You can pass another aggregation function and restrict the considered period:
+    The following example shows how to restrict the considered period via
+    the |Timegrids.eval_| |Timegrid| of the |Timegrids| object available
+    in the |pub| module and how to pass a different aggregation function:
 
-    >>> aggregate_series(series=sim.series, aggregator=numpy.sum,
-    ...                  firstdate="2001-01-01", lastdate="2001-03-01")
+    >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-03-01"
+    >>> aggregate_series(series=sim.series, aggregator=numpy.sum)
     2001-01-01    2387.0
     2001-02-01    2982.0
     Freq: MS, Name: series, dtype: float64
@@ -114,8 +110,8 @@ but 1 was given
 
     When passing a string, |aggregate_series| queries it from |numpy|:
 
-    >>> aggregate_series(series=sim.series, aggregator="sum",
-    ...                  firstdate="2001-01-01", lastdate="2001-02-01")
+    >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-02-01"
+    >>> aggregate_series(series=sim.series, aggregator="sum")
     2001-01-01    2387.0
     Freq: MS, Name: series, dtype: float64
 
@@ -142,8 +138,8 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     2001-03-01    4216.0
     Freq: MS, Name: series, dtype: float64
 
-    >>> aggregate_series(series=sim.series, aggregator="sum",
-    ...                  firstdate="2001-01-02", lastdate="2001-02-28")
+    >>> pub.timegrids.eval_.dates = "2001-01-02", "2001-02-28"
+    >>> aggregate_series(series=sim.series)
     Series([], Name: series, dtype: float64)
 
     The following example shows that even with only one missing value at
@@ -154,11 +150,11 @@ error occurred: Module `numpy` does not provide a function named `Sum`.
     >>> pub.timegrids = "02.11.2000", "30.04.2001", "1d"
     >>> node.prepare_simseries()
     >>> sim.series = numpy.arange(2, 180+1)
-    >>> aggregate_series(series=node.sequences.sim.series, aggregator="sum")
-    2000-12-01    1426.0
-    2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
+    >>> aggregate_series(series=node.sequences.sim.series)
+    2000-12-01     46.0
+    2001-01-01     77.0
+    2001-02-01    106.5
+    2001-03-01    136.0
     Freq: MS, Name: series, dtype: float64
 
     Now we prepare a time-grid with an hourly simulation step size, to
@@ -243,9 +239,7 @@ following ones are supported: `monthly` (default) and `daily`.
             ) from None
     else:
         realaggregator = aggregator
-    tg = hydpy.pub.timegrids.init
-    firstdate = tg.firstdate if firstdate is None else timetools.Date(firstdate)
-    lastdate = tg.lastdate if lastdate is None else timetools.Date(lastdate)
+    tg = hydpy.pub.timegrids.eval_
     if tg.stepsize > "1d":
         raise ValueError(
             "Data aggregation is not supported for simulation "
@@ -256,8 +250,8 @@ following ones are supported: `monthly` (default) and `daily`.
         offset = (
             timetools.Date(f"2000-01-01 {basetime}") - timetools.Date("2000-01-01")
         ).seconds
-        firstdate_expanded = firstdate - "1d"
-        lastdate_expanded = lastdate + "1d"
+        firstdate_expanded = tg.firstdate - "1d"
+        lastdate_expanded = tg.lastdate + "1d"
     elif basetime != "00:00":
         raise ValueError(
             "Use the `basetime` argument in combination with "
@@ -266,18 +260,19 @@ following ones are supported: `monthly` (default) and `daily`.
     elif stepsize == "monthly":
         rule = "MS"
         offset = 0
-        firstdate_expanded = firstdate - "31d"
-        lastdate_expanded = lastdate + "31d"
+        firstdate_expanded = tg.firstdate - "31d"
+        lastdate_expanded = tg.lastdate + "31d"
     else:
         raise ValueError(
             f"Argument `stepsize` received value `{stepsize}`, but only the "
             f"following ones are supported: `monthly` (default) and `daily`."
         )
     dataframe_orig = pandas.DataFrame()
-    dataframe_orig["series"] = numpy.asarray(series)[tg[firstdate] : tg[lastdate]]
+    idx0, idx1 = hydpy.pub.timegrids.evalindices
+    dataframe_orig["series"] = numpy.asarray(series)[idx0:idx1]
     dataframe_orig.index = pandas.date_range(
-        start=firstdate.datetime,
-        end=(lastdate - tg.stepsize).datetime,
+        start=tg.firstdate.datetime,
+        end=(tg.lastdate - tg.stepsize).datetime,
         freq=tg.stepsize.timedelta,
     )
     dataframe_expanded = dataframe_orig.reindex(

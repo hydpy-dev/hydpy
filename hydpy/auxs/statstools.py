@@ -257,6 +257,7 @@ but both of them are given.
         obs=obs,
         node=node,
         skip_nan=False,
+        subperiod=False,
     )
     del sim, obs
     dataframe["sim"] = sim_
@@ -317,10 +318,12 @@ but both of them are given.
 
 
 def prepare_arrays(
+    *,
     sim: Optional[typingtools.VectorInput[float]] = None,
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> SimObs:
     """Prepare and return two |numpy| arrays based on the given arguments.
 
@@ -374,6 +377,43 @@ def prepare_arrays(
     1.0, 3.0
     >>> round_(arrays.obs)
     4.0, 6.0
+
+    If you are interested in analysing a sub-period, adapt the global
+    |Timegrids.eval_| |Timegrid| beforehand.  When passing a |Node|
+    object, function |prepare_arrays| then returns the data of the
+    current evaluation sub-period only:
+
+    >>> pub.timegrids.eval_.dates = "02.01.2000", "06.01.2000"
+    >>> arrays = prepare_arrays(node=node)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
+
+    Suppose one instead passes the simulation and observation time-series
+    directly (which possibly fit the evaluation period already).  In that
+    case, function |prepare_arrays| ignores the current |Timegrids.eval_|
+    |Timegrid| by default:
+
+    >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
+
+    Use the `subperiod` argument to deviate from the default behaviour:
+
+    >>> arrays = prepare_arrays(node=node, subperiod=False)
+    >>> round_(arrays.sim)
+    1.0, nan, nan, nan, 2.0, 3.0
+    >>> round_(arrays.obs)
+    4.0, 5.0, nan, nan, nan, 6.0
+
+    >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs, subperiod=True)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
 
     The final examples show the error messages returned in case of
     invalid combinations of input arguments:
@@ -438,6 +478,10 @@ no value is passed to argument `sim`.
         )
     sim_ = numpy.asarray(sim)
     obs_ = numpy.asarray(obs)
+    if subperiod or ((subperiod is None) and (node is not None)):
+        idx0, idx1 = hydpy.pub.timegrids.evalindices
+        sim_ = sim_[idx0:idx1]
+        obs_ = obs_[idx0:idx1]
     if skip_nan:
         idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
         sim_ = sim_[idxs]
@@ -453,7 +497,8 @@ def rmse(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -462,7 +507,8 @@ def rmse(
 def rmse(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -474,6 +520,7 @@ def rmse(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the root-mean-square error.
 
@@ -491,6 +538,7 @@ def rmse(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return numpy.sqrt(numpy.mean((sim_ - obs_) ** 2))
@@ -501,7 +549,8 @@ def nse(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -510,7 +559,8 @@ def nse(
 def nse(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -522,6 +572,7 @@ def nse(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe.
 
@@ -556,6 +607,7 @@ def nse(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return 1.0 - numpy.sum((sim_ - obs_) ** 2) / numpy.sum(
@@ -568,7 +620,8 @@ def nse_log(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -577,7 +630,8 @@ def nse_log(
 def nse_log(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -589,6 +643,7 @@ def nse_log(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe for
     logarithmic values.
@@ -621,6 +676,7 @@ def nse_log(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return 1.0 - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2) / numpy.sum(
@@ -633,7 +689,8 @@ def corr2(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -642,7 +699,8 @@ def corr2(
 def corr2(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -654,6 +712,7 @@ def corr2(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the coefficient of determination via the square of the
     coefficient of correlation according to Bravais-Pearson.
@@ -690,6 +749,7 @@ def corr2(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -702,7 +762,8 @@ def kge(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -711,7 +772,8 @@ def kge(
 def kge(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -723,6 +785,7 @@ def kge(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the Kling-Gupta efficiency :cite:`ref-Kling2012`.
 
@@ -742,6 +805,7 @@ def kge(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return 1 - numpy.sum(
@@ -756,7 +820,8 @@ def bias_abs(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -765,7 +830,8 @@ def bias_abs(
 def bias_abs(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -777,6 +843,7 @@ def bias_abs(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the absolute difference between the means of the simulated
     and the observed values.
@@ -797,6 +864,7 @@ def bias_abs(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     # noinspection PyTypeChecker
@@ -808,7 +876,8 @@ def bias_rel(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -817,7 +886,8 @@ def bias_rel(
 def bias_rel(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -829,6 +899,7 @@ def bias_rel(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the relative difference between the means of the simulated
     and the observed values.
@@ -849,6 +920,7 @@ def bias_rel(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return numpy.mean(sim_) / numpy.mean(obs_) - 1.0
@@ -859,7 +931,8 @@ def std_ratio(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -868,7 +941,8 @@ def std_ratio(
 def std_ratio(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -880,6 +954,7 @@ def std_ratio(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the ratio between the standard deviation of the simulated
     and the observed values.
@@ -900,6 +975,7 @@ def std_ratio(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     return numpy.std(sim_) / numpy.std(obs_) - 1.0
@@ -910,7 +986,8 @@ def corr(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -919,7 +996,8 @@ def corr(
 def corr(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -931,6 +1009,7 @@ def corr(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the product-moment correlation coefficient after Pearson.
 
@@ -956,6 +1035,7 @@ def corr(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -992,7 +1072,8 @@ def hsepd_pdf(
     beta: float,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> typingtools.Vector[float]:
     """node as argument"""
 
@@ -1005,7 +1086,8 @@ def hsepd_pdf(
     xi: float,
     beta: float,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> typingtools.Vector[float]:
     """sim and obs as arguments"""
 
@@ -1024,10 +1106,11 @@ def hsepd_pdf(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> typingtools.Vector[float]:
     # noinspection PyUnresolvedReferences
-    """Calculate the probability densities based on the
-    heteroskedastic skewed exponential power distribution.
+    """Calculate the probability densities based on the heteroskedastic
+    skewed exponential power distribution.
 
     For convenience, we store the required parameters of the probability
     density function as well as the simulated and observed values in a
@@ -1128,6 +1211,7 @@ def hsepd_pdf(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
     sigmas = _pars_h(sigma1, sigma2, sim_)
@@ -1155,6 +1239,8 @@ def _hsepd_manual(
     beta: float,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     ps = hsepd_pdf(
         sigma1=sigma1,
@@ -1163,6 +1249,8 @@ def _hsepd_manual(
         beta=beta,
         sim=sim,
         obs=obs,
+        skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     ps[ps < 1e-200] = 1e-200
     # noinspection PyTypeChecker
@@ -1178,7 +1266,8 @@ def hsepd_manual(
     beta: float,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
@@ -1191,7 +1280,8 @@ def hsepd_manual(
     xi: float,
     beta: float,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -1209,6 +1299,7 @@ def hsepd_manual(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
@@ -1217,8 +1308,7 @@ def hsepd_manual(
     |hsepd_pdf|, which is used by function |hsepd_manual|.  The first
     one deals with a heteroscedastic normal distribution:
 
-    >>> from hydpy import round_
-    >>> from hydpy import hsepd_manual
+    >>> from hydpy import hsepd_manual, round_
     >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.2,
     ...                     xi=1.0, beta=0.0,
     ...                     sim=numpy.arange(10.0, 41.0),
@@ -1243,9 +1333,19 @@ def hsepd_manual(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     del sim, obs
-    return _hsepd_manual(sigma1, sigma2, xi, beta, sim_, obs_)
+    return _hsepd_manual(
+        sigma1=sigma1,
+        sigma2=sigma2,
+        xi=xi,
+        beta=beta,
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
+    )
 
 
 @overload
@@ -1253,7 +1353,8 @@ def hsepd(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
     inits: Optional[Iterable[float]],
     return_pars: Literal[False],
     silent: bool,
@@ -1266,7 +1367,8 @@ def hsepd(
     *,
     sim: typingtools.VectorInput[float],
     obs: typingtools.VectorInput[float],
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = False,
     inits: Optional[Iterable[float]],
     return_pars: Literal[True],
     silent: bool,
@@ -1278,7 +1380,8 @@ def hsepd(
 def hsepd(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
     inits: Optional[Iterable[float]],
     return_pars: Literal[False],
     silent: bool,
@@ -1290,7 +1393,8 @@ def hsepd(
 def hsepd(
     *,
     node: devicetools.Node,
-    skip_nan: bool = ...,
+    skip_nan: bool = False,
+    subperiod: bool = True,
     inits: Optional[Iterable[float]],
     return_pars: Literal[True],
     silent: bool,
@@ -1307,6 +1411,7 @@ def hsepd(
     obs: Optional[typingtools.VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
     inits: Optional[Iterable[float]] = None,
     return_pars: bool = False,
     silent: bool = True,
@@ -1329,11 +1434,9 @@ def hsepd(
     First, as a reference, we calculate the "true" value based on
     function |hsepd_manual| and the correct distribution parameters:
 
-    >>> from hydpy import round_
-    >>> from hydpy import hsepd, hsepd_manual
-    >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.0,
-    ...                     xi=1.0, beta=0.0,
-    ...                     sim=sim, obs=obs))
+    >>> from hydpy import Period, hsepd, hsepd_manual, pub, round_
+    >>> round_(hsepd_manual(
+    ...     sigma1=0.2, sigma2=0.0, xi=1.0, beta=0.0, sim=sim, obs=obs))
     -2.100093
 
     When using function |hsepd|, the returned value is even a little
@@ -1382,7 +1485,16 @@ def hsepd(
         """Transform the actual optimisation problem into a function to
         be minimised and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
-        return -_hsepd_manual(sigma1, sigma2, xi, beta, sim_, obs_)
+        return -_hsepd_manual(
+            sigma1=sigma1,
+            sigma2=sigma2,
+            xi=xi,
+            beta=beta,
+            sim=sim_,
+            obs=obs_,
+            skip_nan=False,
+            subperiod=False,
+        )
 
     def constrain(
         sigma1: float, sigma2: float, xi: float, beta: float
@@ -1399,6 +1511,7 @@ def hsepd(
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
@@ -1406,7 +1519,13 @@ def hsepd(
         transform, inits, ftol=1e-12, xtol=1e-12, disp=not silent
     )
     constrained_values = constrain(*original_values)
-    result = _hsepd_manual(*constrained_values, sim=sim_, obs=obs_)
+    result = _hsepd_manual(
+        *constrained_values,
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
+    )
     if return_pars:
         # noinspection PyTypeChecker
         return result, constrained_values
@@ -1525,6 +1644,7 @@ def evaluationtable(
     nodenames: Optional[Sequence[str]] = None,
     critnames: Optional[Sequence[str]] = None,
     skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> "pandas.DataFrame":
     """Return a table containing the results of the given evaluation
     criteria for the given |Node| objects.
@@ -1609,6 +1729,7 @@ which does not match with number of given alternative names being 1.
         sim, obs = prepare_arrays(
             node=node,
             skip_nan=skip_nan,
+            subperiod=subperiod,
         )
         for jdx, criterion in enumerate(criteria):
             data[idx, jdx] = criterion(

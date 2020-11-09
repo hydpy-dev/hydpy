@@ -2232,9 +2232,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
             ):
                 if stepsize is None:
                     index = _get_pandasindex()
-                    ps = pandas.Series(
-                        sequence.series[idx0:idx1], index=index[idx0:idx1]
-                    )
+                    ps = pandas.Series(sequence.evalseries, index=index[idx0:idx1])
                 else:
                     ps = seriestools.aggregate_series(
                         series=sequence.series,

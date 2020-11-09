@@ -21,6 +21,7 @@ import numpy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import propertytools
+from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import sequenceutils
@@ -29,7 +30,6 @@ if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import timetools
-    from hydpy.core import typingtools
 
 
 InOutSequence = Union[
@@ -316,7 +316,7 @@ class FastAccessLinkSequence(variabletools.FastAccess):
     def set_value(
         self,
         name: str,
-        value: "typingtools.Mayberable1[float]",
+        value: typingtools.Mayberable1[float],
     ) -> None:
         """Change the actual value(s) the |LinkSequence| object with
         the given name is pointing to."""
@@ -554,7 +554,7 @@ to make any internal data available.
         cls_aides: Optional[Type["AideSequences"]] = None,
         cls_outlets: Optional[Type["OutletSequences"]] = None,
         cls_senders: Optional[Type["SenderSequences"]] = None,
-        cymodel: Optional["typingtools.CyModelProtocol"] = None,
+        cymodel: Optional[typingtools.CyModelProtocol] = None,
         cythonmodule: Optional[types.ModuleType] = None,
     ) -> None:
         self.model = model
@@ -1031,7 +1031,7 @@ class ModelSequences(
     """Base class for handling model-related subgroups of sequences."""
 
     seqs: Sequences
-    _cymodel: Optional["typingtools.CyModelProtocol"]
+    _cymodel: Optional[typingtools.CyModelProtocol]
 
     def __init__(
         self,
@@ -1487,19 +1487,20 @@ variable `evpo` can only be retrieved after it has been defined.
         """
         >>> from hydpy.core.sequencetools import FluxSequence
         >>> sequence = FluxSequence(None)
-        >>> dir(sequence)
-        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', 'activate_disk', \
-'activate_ram', 'adjust_series', 'adjust_short_series', 'aggregate_series', \
-'aggregation_ext', 'availablemasks', 'average_series', 'average_values', \
-'check_completeness', 'commentrepr', 'deactivate_disk', 'deactivate_ram', \
-'descr_device', 'descr_model', 'descr_sequence', 'dirpath_ext', 'dirpath_int', \
-'disk2ram', 'diskflag', 'fastaccess', 'filename_ext', 'filename_int', \
-'filepath_ext', 'filepath_int', 'filetype_ext', 'get_submask', 'initinfo', \
-'load_ext', 'mask', 'memoryflag', 'name', 'numericshape', 'outputflag', \
-'overwrite_ext', 'ram2disk', 'ramflag', 'rawfilename', 'refweights', \
-'save_ext', 'save_mean', 'series', 'seriesshape', 'set_pointer', 'shape', \
-'strict_valuehandling', 'subseqs', 'subvars', 'unit', 'update_fastaccess', \
-'value', 'values', 'verify']
+        >>> from hydpy import print_values
+        >>> print_values(dir(sequence))
+        INIT, NOT_DEEPCOPYABLE_MEMBERS, SPAN, TYPE, activate_disk,
+        activate_ram, adjust_series, adjust_short_series, aggregate_series,
+        aggregation_ext, availablemasks, average_series, average_values,
+        check_completeness, commentrepr, deactivate_disk, deactivate_ram,
+        descr_device, descr_model, descr_sequence, dirpath_ext, dirpath_int,
+        disk2ram, diskflag, evalseries, fastaccess, filename_ext,
+        filename_int, filepath_ext, filepath_int, filetype_ext, get_submask,
+        initinfo, load_ext, mask, memoryflag, name, numericshape, outputflag,
+        overwrite_ext, ram2disk, ramflag, rawfilename, refweights, save_ext,
+        save_mean, series, seriesshape, set_pointer, shape, simseries,
+        strict_valuehandling, subseqs, subvars, unit, update_fastaccess,
+        value, values, verify
         """
         return objecttools.dir_(self)
 
@@ -1669,7 +1670,6 @@ cannot be determined.  Either set it manually or prepare \
     and `flux` sequences:
 
     >>> from hydpy.examples import prepare_full_example_2
-
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
     >>> fluxes = hp.elements.land_lahn_1.model.sequences.fluxes
@@ -2328,9 +2328,10 @@ the model associated with element `?`, the following error occurred: \
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
-    @property
-    def series(self) -> InfoArray:
-        """Internal time-series data within an |InfoArray|."""
+    def _get_series(self) -> InfoArray:
+        """Internal time-series data within an |InfoArray| covering the whole
+        initialisation period (defined by the |Timegrids.sim| |Timegrid| of
+        the global |Timegrids| object available in module |pub|)."""
         if self.diskflag:
             array = self._load_int()
         elif self.ramflag:
@@ -2342,8 +2343,7 @@ the model associated with element `?`, the following error occurred: \
             )
         return InfoArray(array, info={"type": "unmodified"})
 
-    @series.setter
-    def series(self, values):
+    def _set_series(self, values) -> None:
         series = numpy.full(self.seriesshape, values, dtype=float)
         if self.diskflag:
             self._save_int(series)
@@ -2356,12 +2356,79 @@ the model associated with element `?`, the following error occurred: \
             )
         self.check_completeness()
 
-    @series.deleter
-    def series(self):
+    def _del_series(self) -> None:
         if self.diskflag:
             os.remove(self.filepath_int)
         elif self.ramflag:
             self._set_fastaccessattribute("array", None)
+
+    series = property(_get_series, _set_series, _del_series)
+
+    def _get_simseries(self) -> InfoArray:
+        """Read and write access to the data of property |IOSequence.series| for
+        the actual simulation period (defined by the |Timegrids.sim| |Timegrid|
+        of the global |Timegrids| object available in module |pub|).
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> pub.timegrids.sim.dates = "1996-01-02", "1996-01-04"
+        >>> from hydpy import print_values
+        >>> print_values(t.series)
+        -0.705395, -1.505553, -4.221268, -7.446349
+        >>> print_values(t.simseries)
+        -1.505553, -4.221268
+        >>> t.simseries = 1.0, 2.0
+        >>> print_values(t.series)
+        -0.705395, 1.0, 2.0, -7.446349
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node
+            >>> Element.clear_all()
+            >>> Node.clear_all()
+        """
+        idx0, idx1 = hydpy.pub.timegrids.simindices
+        return self.series[idx0:idx1]
+
+    def _set_simseries(self, values) -> None:
+        idx0, idx1 = hydpy.pub.timegrids.simindices
+        self.series[idx0:idx1] = values
+
+    simseries = property(_get_simseries, _set_simseries)
+
+    def _get_evalseries(self) -> InfoArray:
+        """Read and write access to the data of property |IOSequence.series| for
+        the actual evaluation period (defined by the |Timegrids.eval_| |Timegrid|
+        of the global |Timegrids| object available in module |pub|).
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> pub.timegrids.eval_.dates = "1996-01-02", "1996-01-04"
+        >>> from hydpy import print_values
+        >>> print_values(t.series)
+        -0.705395, -1.505553, -4.221268, -7.446349
+        >>> print_values(t.evalseries)
+        -1.505553, -4.221268
+        >>> t.evalseries = 1.0, 2.0
+        >>> print_values(t.series)
+        -0.705395, 1.0, 2.0, -7.446349
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node
+            >>> Element.clear_all()
+            >>> Node.clear_all()
+        """
+        idx0, idx1 = hydpy.pub.timegrids.evalindices
+        return self.series[idx0:idx1]
+
+    def _set_evalseries(self, values) -> None:
+        idx0, idx1 = hydpy.pub.timegrids.evalindices
+        self.series[idx0:idx1] = values
+
+    evalseries = property(_get_evalseries, _set_evalseries)
 
     def load_ext(self) -> None:
         # noinspection PyTypeChecker
@@ -2527,17 +2594,17 @@ simulation time step is `1d`.
         """Adjust a short time-series to a longer time grid.
 
         Mostly, time-series data to be read from external data files
-        should span (at least) the whole initialization period of a
+        should span (at least) the whole initialisation period of a
         *HydPy* project.  However, for some variables which are only used
         for comparison (e.g. observed runoff used for calibration),
         incomplete time-series might also be helpful.  Method
         |IOSequence.adjust_short_series| adjusts such incomplete series
-        to the public initialization time grid stored in module |pub|.
+        to the public initialisation time grid stored in module |pub|.
         It is automatically called in method |IOSequence.adjust_series|
         when necessary provided that the option |Options.checkseries|
         is disabled.
 
-        Assume the initialization period of a HydPy project spans five days:
+        Assume the initialisation period of a HydPy project spans five days:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.10", "2000.01.15", "1d"

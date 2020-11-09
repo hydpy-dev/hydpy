@@ -8,6 +8,7 @@ cf-conventions-1.7/cf-conventions.html#time-coordinate
 # ...from standard library
 import calendar
 import collections
+import contextlib
 import copy
 import datetime as datetime_
 import numbers
@@ -2047,7 +2048,33 @@ alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
     False
     >>> timegrid in Timegrid("2000-01-01", "2001-01-01", "2d")
     False
+
+    For convenience, you can temporarily modify the attributes of
+    a |Timegrid| object by calling it after the `with` statement:
+
+    >>> with timegrid("1999-01-01", "2002-01-01", "1h"):
+    ...     print(timegrid)
+    Timegrid("1999-01-01 00:00:00", "2002-01-01 00:00:00", "1h")
+    >>> print(timegrid)
+    Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
+
+    You are free to select the attributes you want to change
+    (see method |Timegrid.modify| for further information) or to
+    change specific attributes later within the `with` block:
+
+    >>> with timegrid(lastdate=None) as tg:
+    ...     print(timegrid)
+    ...     timegrid.firstdate = "1999-01-01"
+    ...     tg.lastdate = "2002-01-01"
+    ...     tg.stepsize = "1h"
+    ...     print(timegrid)
+    Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
+    Timegrid("1999-01-01 00:00:00", "2002-01-01 00:00:00", "1h")
+    >>> print(timegrid)
+    Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
     """
+
+    _copy: "Timegrid"
 
     def __init__(
         self,
@@ -2493,6 +2520,62 @@ date (`2000-01-01 00:00:00`) is inconsistent.
                 f"`{self.lastdate-self.firstdate}`, which is not an "
                 f"integral multiple of the step size `{self.stepsize}`."
             )
+
+    def modify(
+        self,
+        firstdate: Optional[DateConstrArg] = None,
+        lastdate: Optional[DateConstrArg] = None,
+        stepsize: Optional[PeriodConstrArg] = None,
+    ) -> None:
+        """Modify one or more |Timegrid| attributes in one step.
+
+        If you want to change all attributes of an existing |Timegrid| object,  it
+        is often most convenient to do so in one step via method |Timegrid.modify|:
+
+        >>> from hydpy import Timegrid
+        >>> timegrid = Timegrid("2000-01-01", "2001-01-01", "1d")
+        >>> timegrid.modify("1999-01-01", "2002-01-01", "1h")
+        >>> timegrid
+        Timegrid("1999-01-01 00:00:00",
+                 "2002-01-01 00:00:00",
+                 "1h")
+
+        Another benefit of method |Timegrid.modify| is that all changes are
+        optional.  Ignore an argument or set it to |None| explicitly to leave
+        the corresponding attribute unchanged:
+
+        >>> timegrid.modify(None, stepsize=None)
+        >>> timegrid
+        Timegrid("1999-01-01 00:00:00",
+                 "2002-01-01 00:00:00",
+                 "1h")
+        """
+        if firstdate is not None:
+            self.firstdate = firstdate
+        if lastdate is not None:
+            self.lastdate = lastdate
+        if stepsize is not None:
+            self.stepsize = stepsize
+
+    @contextlib.contextmanager
+    def __call__(
+        self,
+        firstdate: Optional[DateConstrArg] = None,
+        lastdate: Optional[DateConstrArg] = None,
+        stepsize: Optional[PeriodConstrArg] = None,
+    ) -> Iterator["Timegrid"]:
+        firstdate_copy = self.firstdate
+        lastdate_copy = self.lastdate
+        stepsize_copy = self.stepsize
+        self.modify(
+            firstdate=firstdate,
+            lastdate=lastdate,
+            stepsize=stepsize,
+        )
+        yield self
+        self.firstdate = firstdate_copy
+        self.lastdate = lastdate_copy
+        self.stepsize = stepsize_copy
 
     def __len__(self) -> int:
         return abs(int((self.lastdate - self.firstdate) / self.stepsize))

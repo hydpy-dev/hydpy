@@ -79,8 +79,8 @@ def visit_html(self, node):
     )
 
     try:
-        idx0 = code_complete.find('<span class="n">test</span><span class="p">(</span>')
-        filename = code_complete[idx0:].split("&#39;")[1]
+        idx0 = code_complete.find('class="s2"')
+        filename = code_complete[idx0:].split("quot")[1][1:-1]
         code_graph = (
             f'<a href="{filename}.html" target="_blank" ' ">Click to see the graph</a>"
         )

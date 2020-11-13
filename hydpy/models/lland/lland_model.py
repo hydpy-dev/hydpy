@@ -4462,8 +4462,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
 
 
 class Return_TempSSurface_V1(modeltools.Method):
-    """Determine and return the snow surface temperature
-    (:cite:`ref-LARSIM` based on :cite:`ref-LUBW2006b`, modified).
+    """Determine and return the snow surface temperature (:cite:`ref-LARSIM`
+    based on :cite:`ref-LUBW2006b`, modified).
 
     |Return_TempSSurface_V1| needs to determine the snow surface temperature
     via iteration.  Therefore, it uses the class |PegasusTempSSurface|
@@ -4479,13 +4479,13 @@ class Return_TempSSurface_V1(modeltools.Method):
     Example:
 
         We reuse the configuration of the documentation on method
-        |Return_EnergyGainSnowSurface_V1|, except that we prepare five
-        hydrological response units:
+        |Return_EnergyGainSnowSurface_V1|, except that we prepare six
+        hydrological response units and calculate their snow surface temperature:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> nhru(5)
+        >>> nhru(6)
         >>> lnk(ACKER)
         >>> turb0(0.1728)
         >>> turb1(0.1728)
@@ -4493,38 +4493,59 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> derived.nmblogentries.update()
         >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
-        >>> states.waes = 0.0, 1.0, 1.0, 1.0, 1.0
+        >>> states.waes = 0.0, 1.0, 1.0, 1.0, 1.0, 1.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
-        >>> fluxes.netshortwaveradiationsnow = 1.0, 1.0, 2.0, 2.0, 2.0
+        >>> fluxes.netshortwaveradiationsnow = 1.0, 1.0, 2.0, 2.0, 2.0, 20.0
         >>> fluxes.dailysunshineduration = 10.0
         >>> fluxes.dailypossiblesunshineduration = 12.0
-        >>> aides.temps = nan, -2.0, -2.0, -50.0, -200.0
+        >>> aides.temps = nan, -2.0, -2.0, -50.0, -200.0, -2.0
+        >>> for hru in range(6):
+        ...     _ = model.return_tempssurface_v1(hru)
 
         For the first, snow-free response unit, we cannot define a reasonable
-        snow surface temperature, of course.  Comparing response units
-        two and three shows that a moderate increase in short wave radiation
-        is compensated by a moderate increase in snow surface temperature.
+        snow surface temperature, of course:
+
+        >>> fluxes.tempssurface[0]
+        nan
+
+        Comparing response units two and three shows that a moderate increase
+        in short wave radiation is compensated by a moderate increase in snow
+        surface temperature:
+
+        >>> from hydpy import print_values
+        >>> print_values(fluxes.tempssurface[1:3])
+        -8.064938, -7.512933
+
         To demonstrate the robustness of the implemented approach, response
         units three to five show the extreme decrease in surface temperature
         due to an even more extrem decrease in the bulk temperature of the
         snow layer:
 
-        >>> for hru in range(5):
-        ...     _ = model.return_tempssurface_v1(hru)
-        >>> fluxes.tempssurface
-        tempssurface(nan, -8.064938, -7.512933, -19.826442, -66.202324)
+        >>> print_values(fluxes.tempssurface[2:5])
+        -7.512933, -19.826442, -66.202324
+
+        The sixths response unit comes with a very high net radiation
+        to clarify that the allowed maximum value of the snow surface temperature
+        is 0°C.  Hence, the snow temperature gradient might actually be too
+        small for conducting all available energy deeper into the snow layer.
+        In reality, only the topmost snow layer would melt in such a situation.
+        Here, we do not differentiate between melting processes in different
+        layers and thus add the potential energy excess at the snow surface to
+        |WSurf|:
+
+        >>> print_values(fluxes.tempssurface[5:])
+        0.0
 
         As to be expected, the energy fluxes of the snow surface neutralise
         each other (within the defined numerical accuracy):
 
-        >>> from hydpy import print_values
         >>> print_values(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
-        nan, 0.0, 0.0, 0.0, 0.0
+        nan, 0.0, 0.0, 0.0, 0.0, 0.0
 
         Through setting parameter |KTSchnee| to |numpy.inf|, we disable
         the iterative search for the correct surface temperature.  Instead,
@@ -4533,17 +4554,17 @@ class Return_TempSSurface_V1(modeltools.Method):
         the energy gain of the snow surface is zero:
 
         >>> ktschnee(inf)
-        >>> for hru in range(5):
+        >>> for hru in range(6):
         ...     _ = model.return_tempssurface_v1(hru)
         >>> fluxes.tempssurface
-        tempssurface(nan, -2.0, -2.0, -50.0, -200.0)
+        tempssurface(nan, -2.0, -2.0, -50.0, -200.0, -2.0)
         >>> fluxes.wsurf
-        wsurf(0.0, 11.476385, 10.476385, -43.376447, -159.135575)
+        wsurf(0.0, 11.476385, 10.476385, -43.376447, -159.135575, -7.523615)
         >>> print_values(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
-        nan, 0.0, 0.0, 0.0, 0.0
+        nan, 0.0, 0.0, 0.0, 0.0, 0.0
     """
 
     SUBMETHODS = (Return_EnergyGainSnowSurface_V1,)
@@ -4601,8 +4622,9 @@ class Return_TempSSurface_V1(modeltools.Method):
                 )
             else:
                 model.idx_hru = k
-                model.pegasustempssurface.find_x(
-                    -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10
+                model.pegasustempssurface.find_x(-50.0, 0.0, -100.0, 0.0, 0.0, 1e-8, 10)
+                flu.wsurf[k] -= model.return_energygainsnowsurface_v1(
+                    flu.tempssurface[k]
                 )
         else:
             flu.tempssurface[k] = modelutils.nan

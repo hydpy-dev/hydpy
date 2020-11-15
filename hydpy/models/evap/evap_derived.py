@@ -13,6 +13,10 @@ class DOY(parametertools.DOYParameter):
     """References the "global" day of the year index array [-]."""
 
 
+class MOY(parametertools.MOYParameter):
+    """References the "global" month of the year index array [-]."""
+
+
 class Seconds(parametertools.SecondsParameter):
     """The length of the actual simulation step size in seconds [s]."""
 

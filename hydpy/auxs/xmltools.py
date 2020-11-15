@@ -1805,7 +1805,7 @@ class XSDWriter:
         """Write the complete base schema file `HydPyConfigBase.xsd` based
         on the template file `HydPyConfigBase.xsdt`.
 
-        Method |XSDWriter.write_xsd| adds model specific information to the
+        Method |XSDWriter.write_xsd| adds model-specific information to the
         general information of template file `HydPyConfigBase.xsdt` regarding
         reading and writing of time series data and exchanging parameter
         and sequence values e.g. during calibration.
@@ -2043,7 +2043,7 @@ class XSDWriter:
 
     @classmethod
     def get_mathitemsinsertion(cls, indent: int) -> str:
-        """Return a string defining a model specific XML type extending
+        """Return a string defining a model-specific XML type extending
         `ItemType`.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2336,7 +2336,7 @@ class XSDWriter:
 
         Note that for `setitems` and `getitems` `setitemType` and
         `getitemType` are referenced, respectively, and for all others
-        the model specific `mathitemType`:
+        the model-specific `mathitemType`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")

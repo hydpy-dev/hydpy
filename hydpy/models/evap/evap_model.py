@@ -715,31 +715,45 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended
-        for Germany by `DWA-M 504`_:
+        for Germany by `DWA-M 504`_ for January and the default values
+        (a=0.25, b=0.5) for February:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> angstromconstant(0.19)
-        >>> angstromfactor(0.55)
+        >>> angstromconstant.jan = 0.19
+        >>> angstromfactor.jan = 0.55
+        >>> angstromconstant.feb = 0.25
+        >>> angstromfactor.feb = 0.5
+        >>> derived.moy.update()
         >>> fluxes.extraterrestrialradiation = 40.0
+        >>> model.idx_sim = 1
         >>> model.calc_clearskysolarradiation_v1()
         >>> fluxes.clearskysolarradiation
         clearskysolarradiation(29.6)
+        >>> model.idx_sim = 2
+        >>> model.calc_clearskysolarradiation_v1()
+        >>> fluxes.clearskysolarradiation
+        clearskysolarradiation(30.0)
     """
 
     CONTROLPARAMETERS = (
         evap_control.AngstromConstant,
         evap_control.AngstromFactor,
     )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
     REQUIREDSEQUENCES = (evap_fluxes.ExtraterrestrialRadiation,)
     RESULTSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        idx = der.moy[model.idx_sim]
         flu.clearskysolarradiation = flu.extraterrestrialradiation * (
-            con.angstromconstant + con.angstromfactor
+            con.angstromconstant[idx] + con.angstromfactor[idx]
         )
 
 
@@ -808,18 +822,29 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended
-        for Germany by `DWA-M 504`_:
+        for Germany by `DWA-M 504`_ for January and the default values
+        (a=0.25, b=0.5) for February:
 
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> angstromconstant(0.19)
-        >>> angstromfactor(0.55)
+        >>> angstromconstant.jan = 0.19
+        >>> angstromfactor.jan = 0.55
+        >>> angstromconstant.feb = 0.25
+        >>> angstromfactor.feb = 0.5
+        >>> derived.moy.update()
         >>> inputs.sunshineduration = 12.0
         >>> fluxes.possiblesunshineduration = 14.0
         >>> fluxes.extraterrestrialradiation = 40.0
+        >>> model.idx_sim = 1
         >>> model.calc_globalradiation_v1()
         >>> fluxes.globalradiation
         globalradiation(26.457143)
+        >>> model.idx_sim = 2
+        >>> model.calc_globalradiation_v1()
+        >>> fluxes.globalradiation
+        globalradiation(27.142857)
 
         For zero possible sunshine durations, |Calc_GlobalRadiation_V1|
         sets |GlobalRadiation| to zero:
@@ -834,6 +859,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         evap_control.AngstromConstant,
         evap_control.AngstromFactor,
     )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
     REQUIREDSEQUENCES = (
         evap_fluxes.ExtraterrestrialRadiation,
         evap_inputs.SunshineDuration,
@@ -844,12 +870,14 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if flu.possiblesunshineduration > 0.0:
+            idx = der.moy[model.idx_sim]
             flu.globalradiation = flu.extraterrestrialradiation * (
-                con.angstromconstant
-                + con.angstromfactor
+                con.angstromconstant[idx]
+                + con.angstromfactor[idx]
                 * inp.sunshineduration
                 / flu.possiblesunshineduration
             )

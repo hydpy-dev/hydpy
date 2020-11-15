@@ -3,8 +3,10 @@
 # pylint: enable=missing-docstring
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
-from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 
 
@@ -26,10 +28,11 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class AngstromConstant(parametertools.Parameter):
+class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 0.25
 
     def trim(self, lower=None, upper=None):
         """Trim values following :math:`AngstromConstant \\leq  1 -
@@ -46,22 +49,18 @@ class AngstromConstant(parametertools.Parameter):
         angstromconstant(0.4)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromfactor,
-                "value",
-                None,
-            )
-            if upper is None:
-                upper = 1.0
-            else:
-                upper = 1.0 - upper
+            upper = self.subpars.angstromfactor.values.copy()
+            idxs = numpy.isnan(upper)
+            upper[idxs] = 1.0
+            upper[~idxs] = 1.0 - upper[~idxs]
         super().trim(lower, upper)
 
 
-class AngstromFactor(parametertools.Parameter):
+class AngstromFactor(parametertools.MonthParameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 0.5
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`AngstromFactor \\leq  1 -
@@ -79,13 +78,8 @@ class AngstromFactor(parametertools.Parameter):
         angstromfactor(0.4)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromconstant,
-                "value",
-                None,
-            )
-            if upper is None:
-                upper = 1.0
-            else:
-                upper = 1.0 - upper
+            upper = self.subpars.angstromconstant.values.copy()
+            idxs = numpy.isnan(upper)
+            upper[idxs] = 1.0
+            upper[~idxs] = 1.0 - upper[~idxs]
         super().trim(lower, upper)

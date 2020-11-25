@@ -31,8 +31,7 @@ for idx, line in enumerate(lines):
         elif name == 'Pillow':
             version = importlib.import_module('PIL').__version__
         elif name == 'tornado':
-            version_info = importlib.import_module('tornado').version_info
-            version = '.'.join(str(v) for v in version_info[:3])
+            version = importlib.import_module('tornado').version
         else:
             try:
                 version = '.'.join(

@@ -3,6 +3,7 @@
 # import...
 # ...from standard library
 import types
+from typing import NoReturn
 from typing import *
 
 # ...from HydPy
@@ -24,10 +25,10 @@ class _PubProperty(
         propertytools.OutputType,
     ]
 ):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(self._fget)
 
-    def _fget(self, obj):
+    def _fget(self, obj: object) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
             f"Attribute {self.name} of module `pub` is not defined at the moment.",
         )
@@ -88,7 +89,7 @@ class TimegridsProperty(
     """
 
     @staticmethod
-    def _fset(_, value):
+    def _fset(_, value) -> timetools.Timegrids:
         """Try to convert the given input value(s)."""
         try:
             return timetools.Timegrids(*value)
@@ -179,7 +180,10 @@ module `pub` is not defined at the moment.
         selectiontools.Selections,
     ]()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name: str, doc: Optional[str] = None) -> None:
+        super().__init__(
+            name=name,
+            doc=doc,
+        )
         self.options: optiontools.Options = optiontools.Options()
         self.scriptfunctions: Dict[str, Callable] = {}

@@ -603,7 +603,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     'Default property y.'
     """
 
-    def __init__(self, fget):
+    def __init__(self, fget) -> None:
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel

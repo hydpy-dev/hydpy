@@ -784,8 +784,7 @@ shape (2) into shape (2,3)
                     f"keywords are used: "
                     f"{objecttools.enumeration(kwargs.keys())}."
                 )
-            values = self._get_values_from_auxiliaryfile(auxfile)
-            self.values = self.apply_timefactor(values)
+            self.values = self._get_values_from_auxiliaryfile(auxfile)
         elif args:
             if len(args) == 1:
                 args = args[0]
@@ -797,7 +796,7 @@ shape (2) into shape (2,3)
             )
         self.trim()
 
-    def _get_values_from_auxiliaryfile(self, auxfile):
+    def _get_values_from_auxiliaryfile(self, auxfile: str):
         """Try to return the parameter values from the auxiliary control file
         with the given name.
 

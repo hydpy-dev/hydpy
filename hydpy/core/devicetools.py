@@ -1054,6 +1054,7 @@ which is in conflict with using their names as identifiers.
         other: typingtools.Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         new = copy.copy(self)
+        new.mutable = True
         for device in type(self)(other):
             new.add_device(device)
         return new
@@ -1071,6 +1072,7 @@ which is in conflict with using their names as identifiers.
         other: typingtools.Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         new = copy.copy(self)
+        new.mutable = True
         for device in type(self)(other):
             try:
                 new.remove_device(device)

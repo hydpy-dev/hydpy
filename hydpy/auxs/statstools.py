@@ -5,6 +5,7 @@ hydrological modelling."""
 # ...from standard library
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
+from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -16,7 +17,7 @@ from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
 from hydpy.core import timetools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     import pandas
@@ -32,15 +33,15 @@ class SimObs(NamedTuple):
     """A named tuple containing one array of simulated and one array of
     observed values."""
 
-    sim: typingtools.Vector[float]
-    obs: typingtools.Vector[float]
+    sim: Vector[float]
+    obs: Vector[float]
 
 
 @overload
 def filter_series(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
@@ -49,8 +50,8 @@ def filter_series(
 @overload
 def filter_series(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     months: Iterable[int],
 ) -> SimObs:
     """sim and obs and month as arguments"""
@@ -77,8 +78,8 @@ def filter_series(
 @objecttools.excmessage_decorator("filter the given series")
 def filter_series(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     date_ranges: Optional[
         Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
@@ -319,8 +320,8 @@ but both of them are given.
 
 def prepare_arrays(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -492,11 +493,38 @@ no value is passed to argument `sim`.
     )
 
 
+class Criterion(Protocol):
+    """Callback protocol for efficiency criteria like |nse|."""
+
+    __name__: str
+
+    @overload
+    def __call__(
+        self,
+        *,
+        sim: VectorInput[float],
+        obs: VectorInput[float],
+        skip_nan: bool = False,
+        subperiod: bool = False,
+    ) -> float:
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        node: devicetools.Node,
+        skip_nan: bool = False,
+        subperiod: bool = True,
+    ) -> float:
+        ...
+
+
 @overload
 def rmse(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -516,8 +544,8 @@ def rmse(
 @objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -541,14 +569,14 @@ def rmse(
         subperiod=subperiod,
     )
     del sim, obs
-    return numpy.sqrt(numpy.mean((sim_ - obs_) ** 2))
+    return cast(float, numpy.sqrt(numpy.mean((sim_ - obs_) ** 2)))
 
 
 @overload
 def nse(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -568,8 +596,8 @@ def nse(
 @objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -610,16 +638,17 @@ def nse(
         subperiod=subperiod,
     )
     del sim, obs
-    return 1.0 - numpy.sum((sim_ - obs_) ** 2) / numpy.sum(
-        (obs_ - numpy.mean(obs_)) ** 2
+    return cast(
+        float,
+        1.0 - numpy.sum((sim_ - obs_) ** 2) / numpy.sum((obs_ - numpy.mean(obs_)) ** 2),
     )
 
 
 @overload
 def nse_log(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -639,8 +668,8 @@ def nse_log(
 @objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -679,16 +708,19 @@ def nse_log(
         subperiod=subperiod,
     )
     del sim, obs
-    return 1.0 - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2) / numpy.sum(
-        (numpy.log(obs_) - numpy.mean(numpy.log(obs_))) ** 2
+    return cast(
+        float,
+        1.0
+        - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2)
+        / numpy.sum((numpy.log(obs_) - numpy.mean(numpy.log(obs_))) ** 2),
     )
 
 
 @overload
 def corr2(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -708,8 +740,8 @@ def corr2(
 @objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -753,15 +785,15 @@ def corr2(
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
-        return numpy.nan
-    return numpy.corrcoef(sim_, obs_)[0, 1] ** 2
+        return cast(float, numpy.nan)
+    return cast(float, numpy.corrcoef(sim_, obs_)[0, 1] ** 2)
 
 
 @overload
 def kge(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -781,8 +813,8 @@ def kge(
 @objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -808,18 +840,22 @@ def kge(
         subperiod=subperiod,
     )
     del sim, obs
-    return 1 - numpy.sum(
-        (numpy.corrcoef(sim_, obs_)[0, 1] - 1) ** 2
-        + (numpy.std(sim_) / numpy.std(obs_) - 1) ** 2
-        + (numpy.mean(sim_) / numpy.mean(obs_) - 1) ** 2
+    return cast(
+        float,
+        1.0
+        - numpy.sum(
+            (numpy.corrcoef(sim_, obs_)[0, 1] - 1) ** 2
+            + (numpy.std(sim_) / numpy.std(obs_) - 1) ** 2
+            + (numpy.mean(sim_) / numpy.mean(obs_) - 1) ** 2
+        ),
     )
 
 
 @overload
 def bias_abs(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -839,8 +875,8 @@ def bias_abs(
 @objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -868,14 +904,14 @@ def bias_abs(
     )
     del sim, obs
     # noinspection PyTypeChecker
-    return numpy.mean(sim_ - obs_)
+    return cast(float, numpy.mean(sim_ - obs_))
 
 
 @overload
 def bias_rel(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -895,8 +931,8 @@ def bias_rel(
 @objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -923,14 +959,14 @@ def bias_rel(
         subperiod=subperiod,
     )
     del sim, obs
-    return numpy.mean(sim_) / numpy.mean(obs_) - 1.0
+    return cast(float, numpy.mean(sim_) / numpy.mean(obs_) - 1.0)
 
 
 @overload
 def std_ratio(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -950,8 +986,8 @@ def std_ratio(
 @objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -978,14 +1014,14 @@ def std_ratio(
         subperiod=subperiod,
     )
     del sim, obs
-    return numpy.std(sim_) / numpy.std(obs_) - 1.0
+    return cast(float, numpy.std(sim_) / numpy.std(obs_) - 1.0)
 
 
 @overload
 def corr(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -1005,8 +1041,8 @@ def corr(
 @objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -1039,8 +1075,8 @@ def corr(
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
-        return numpy.nan
-    return numpy.corrcoef(sim_, obs_)[0, 1]
+        return cast(float, numpy.nan)
+    return cast(float, numpy.corrcoef(sim_, obs_)[0, 1])
 
 
 def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
@@ -1058,9 +1094,11 @@ def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
 
 
 def _pars_h(
-    sigma1: float, sigma2: float, sim: typingtools.Vector[float]
-) -> typingtools.Vector[float]:
-    return sigma1 * numpy.mean(sim) + sigma2 * sim
+    sigma1: float,
+    sigma2: float,
+    sim: Vector[float],
+) -> Vector[float]:
+    return sigma1 * cast(float, numpy.mean(sim)) + sigma2 * sim
 
 
 @overload
@@ -1070,11 +1108,11 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
-) -> typingtools.Vector[float]:
+) -> Vector[float]:
     """node as argument"""
 
 
@@ -1088,7 +1126,7 @@ def hsepd_pdf(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-) -> typingtools.Vector[float]:
+) -> Vector[float]:
     """sim and obs as arguments"""
 
 
@@ -1102,12 +1140,12 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
-) -> typingtools.Vector[float]:
+) -> Vector[float]:
     # noinspection PyUnresolvedReferences
     """Calculate the probability densities based on the heteroskedastic
     skewed exponential power distribution.
@@ -1218,16 +1256,16 @@ def hsepd_pdf(
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
     x, mu = obs_, sim_
     a = (x - mu) / sigmas
-    a_xi = numpy.empty(a.shape)
+    a_xi = cast(Vector[float], numpy.empty(a.shape))
     idxs = mu_xi + sigma_xi * a < 0.0
     a_xi[idxs] = numpy.absolute(xi * (mu_xi + sigma_xi * a[idxs]))
     a_xi[~idxs] = numpy.absolute(1.0 / xi * (mu_xi + sigma_xi * a[~idxs]))
     ps = (
-        2.0
-        * sigma_xi
-        / (xi + 1.0 / xi)
-        * w_beta
-        * numpy.exp(-c_beta * a_xi ** (2.0 / (1.0 + beta)))
+        (2.0 * sigma_xi / (xi + 1.0 / xi) * w_beta)
+        * cast(
+            Vector[float],
+            numpy.exp(-c_beta * a_xi ** (2.0 / (1.0 + beta))),
+        )
     ) / sigmas
     return ps
 
@@ -1237,8 +1275,8 @@ def _hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -1254,7 +1292,7 @@ def _hsepd_manual(
     )
     ps[ps < 1e-200] = 1e-200
     # noinspection PyTypeChecker
-    return numpy.mean(numpy.log(ps))
+    return cast(float, numpy.mean(numpy.log(ps)))
 
 
 @overload
@@ -1264,8 +1302,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
 ) -> float:
@@ -1295,8 +1333,8 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -1351,8 +1389,8 @@ def hsepd_manual(
 @overload
 def hsepd(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
     inits: Optional[Iterable[float]],
@@ -1365,8 +1403,8 @@ def hsepd(
 @overload
 def hsepd(
     *,
-    sim: typingtools.VectorInput[float],
-    obs: typingtools.VectorInput[float],
+    sim: VectorInput[float],
+    obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
     inits: Optional[Iterable[float]],
@@ -1407,8 +1445,8 @@ def hsepd(
 )
 def hsepd(
     *,
-    sim: Optional[typingtools.VectorInput[float]] = None,
-    obs: Optional[typingtools.VectorInput[float]] = None,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
     node: Optional[devicetools.Node] = None,
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
@@ -1534,8 +1572,8 @@ def hsepd(
 
 @objecttools.excmessage_decorator("calculate the weighted mean time")
 def calc_mean_time(
-    timepoints: typingtools.VectorInput[float],
-    weights: typingtools.VectorInput[float],
+    timepoints: VectorInput[float],
+    weights: VectorInput[float],
 ) -> float:
     """Return the weighted mean of the given time points.
 
@@ -1573,15 +1611,18 @@ one value is negative: weights.
     weights = numpy.asarray(weights)
     validtools.test_equal_shape(timepoints=timepoints, weights=weights)
     validtools.test_non_negative(weights=weights)
-    return numpy.dot(timepoints, weights) / numpy.sum(weights)
+    return cast(
+        float,
+        numpy.dot(timepoints, weights) / numpy.sum(weights),
+    )
 
 
 @objecttools.excmessage_decorator(
     "calculate the weighted time deviation from mean time"
 )
 def calc_mean_time_deviation(
-    timepoints: typingtools.VectorInput[float],
-    weights: typingtools.VectorInput[float],
+    timepoints: VectorInput[float],
+    weights: VectorInput[float],
     mean_time: Optional[float] = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean
@@ -1630,8 +1671,11 @@ at least one value is negative: weights.
     validtools.test_non_negative(weights=weights_)
     if mean_time is None:
         mean_time = calc_mean_time(timepoints_, weights_)
-    return numpy.sqrt(
-        numpy.dot(weights_, (timepoints_ - mean_time) ** 2) / numpy.sum(weights_)
+    return cast(
+        float,
+        numpy.sqrt(
+            numpy.dot(weights_, (timepoints_ - mean_time) ** 2) / numpy.sum(weights_)
+        ),
     )
 
 
@@ -1640,7 +1684,7 @@ at least one value is negative: weights.
 )
 def evaluationtable(
     nodes: Sequence[devicetools.Node],
-    criteria: Sequence[Callable],
+    criteria: Sequence[Criterion],
     nodenames: Optional[Sequence[str]] = None,
     critnames: Optional[Sequence[str]] = None,
     skip_nan: bool = False,

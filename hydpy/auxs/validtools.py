@@ -6,7 +6,7 @@ data.
 import numpy
 
 
-def test_equal_shape(**kwargs):
+def test_equal_shape(**kwargs) -> None:
     """Raise a ValueError if the shapes of the objects given as keywords
     are not equal.
 
@@ -45,7 +45,7 @@ arr1 (2,), arr2 (1,), arr3 (2,).
         )
 
 
-def test_non_negative(**kwargs):
+def test_non_negative(**kwargs) -> None:
     """Raise a ValueError if at least one value of the objects given as
     keywords is negative.
 

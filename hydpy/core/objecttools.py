@@ -1314,7 +1314,7 @@ def assignrepr_list3(values, prefix, width=None):
     return _assignrepr_bracketed3(assignrepr_list, values, prefix, width)
 
 
-def flatten_repr(self):
+def flatten_repr(self: object) -> str:
     """Remove the newline characters from the string representation of the
     given object and return it.
 

@@ -993,7 +993,10 @@ parameter and a simulation time step size first.
         variabletools.trim(self, lower, upper)
 
     @classmethod
-    def apply_timefactor(cls, values):
+    def apply_timefactor(
+        cls,
+        values: "typingtools.ArrayFloat",
+    ) -> "typingtools.ArrayFloat":
         """Change and return the given value(s) in accordance with
         |Parameter.get_timefactor| and the type of time-dependence
         of the actual parameter subclass.
@@ -1044,7 +1047,10 @@ parameter and a simulation time step size first.
         return values
 
     @classmethod
-    def revert_timefactor(cls, values):
+    def revert_timefactor(
+        cls,
+        values: "typingtools.ArrayFloat",
+    ) -> "typingtools.ArrayFloat":
         """The inverse version of method |Parameter.apply_timefactor|.
 
         See the explanations on method Parameter.apply_timefactor| to
@@ -1072,7 +1078,7 @@ parameter and a simulation time step size first.
             return values * cls.get_timefactor()
         return values
 
-    def update(self):
+    def update(self) -> None:
         """To be overridden by all "secondary" parameters.
 
         |Parameter| subclasses to be used as "primary" parameters (control

@@ -25,6 +25,10 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
+Sequence1 = Union[T, Sequence[T]]
+Sequence2 = Union[T1, T2, Sequence[Union[T1, T2]]]
+Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
+
 VectorInputType = TypeVar("VectorInputType")
 VectorType = TypeVar("VectorType", bound="Vector")
 DataTypeCov = TypeVar("DataTypeCov", covariant=True)

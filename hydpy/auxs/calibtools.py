@@ -1338,13 +1338,43 @@ rule object named `Damp`.'
     RuntimeError: The names of the rules handled by the actual calibration \
 interface (damp and fc) do not agree with the names in the header of logfile \
 `example_calibration.log` (damp, fc, and percmax).
+
+    The last consistency check is optional.  Set argument `check` to |False|
+    to force method |CalibrationInterface.read_logfile| to query all available
+    data instead of raising an error:
+
+    >>> ci.add_rules(
+    ...     Replace(
+    ...         name="beta",
+    ...         parameter="beta",
+    ...         value=2.0,
+    ...         lower=1.0,
+    ...         upper=4.0,
+    ...         selections=["complete"],
+    ...         model="hland_v1",
+    ...     )
+    ... )
+    >>> ci.fc.value = 0.0
+    >>> ci.damp.value = 0.0
+    >>> with TestIO():
+    ...     ci.read_logfile(
+    ...         logfilepath="example_calibration.log",
+    ...         maximisation=True,
+    ...         check=False,
+    ...     )
+    >>> ci.beta.value
+    2.0
+    >>> ci.fc.value
+    200.0
+    >>> ci.damp.value
+    0.5
     """
 
     result: Optional[float]
     """The last result calculated by the target function."""
     conditions: hydpytools.ConditionsType
     """The |HydPy.conditions| of the given |HydPy| object.
-    
+
     |CalibrationInterface| queries the conditions during its initialisation 
     and uses them later to reset all relevant conditions before each new 
     simulation run.
@@ -1582,6 +1612,7 @@ a rule object named `fc`.
         self,
         logfilepath: str,
         maximisation: bool,
+        check: bool = True,
     ) -> None:
         """Read the log file with the given file path.
 
@@ -1616,16 +1647,17 @@ a rule object named `fc`.
                     )
                 idx2rule[idx] = rule
             idx2name[idx] = name
-        names_int = set(self.names)
-        names_ext = set(idx2name.values())
-        if names_int != names_ext:
-            enumeration = objecttools.enumeration
-            raise RuntimeError(
-                f"The names of the rules handled by the actual calibration "
-                f"interface ({enumeration(sorted(names_int))}) do not agree "
-                f"with the names in the header of logfile "
-                f"`{self._logfilepath}` ({enumeration(sorted(names_ext))})."
-            )
+        if check:
+            names_int = set(self.names)
+            names_ext = set(idx2name.values())
+            if names_int != names_ext:
+                enumeration = objecttools.enumeration
+                raise RuntimeError(
+                    f"The names of the rules handled by the actual calibration "
+                    f"interface ({enumeration(sorted(names_int))}) do not agree "
+                    f"with the names in the header of logfile "
+                    f"`{self._logfilepath}` ({enumeration(sorted(names_ext))})."
+                )
         jdx_best = 0
         result_best = -numpy.inf if maximisation else numpy.inf
         for jdx, line in enumerate(lines[2:]):
@@ -1637,7 +1669,8 @@ a rule object named `fc`.
                 result_best = result
 
         for idx, value in enumerate(lines[jdx_best + 2].split()[1:]):
-            idx2rule[idx].value = float(value)
+            if idx in idx2rule:
+                idx2rule[idx].value = float(value)
         self.result = result_best
 
     def _update_elements_when_adding_a_rule(

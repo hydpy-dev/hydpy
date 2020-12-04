@@ -10,6 +10,7 @@ import abc
 import types
 import warnings
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
@@ -25,7 +26,6 @@ from hydpy.core import parametertools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.auxs import iuhtools
-
 
 RuleType = TypeVar(
     "RuleType",
@@ -534,11 +534,11 @@ the following error occurred: Object `Selections("headwaters", \
 
     name: str
     """The name of the |Rule| object.
-    
+
     Often, the name of the target parameter, but this is arbitrary."""
     lower: float
     """Lower boundary value.
-    
+
     No lower boundary corresponds to minus |numpy.inf|.
     """
     upper: float
@@ -808,7 +808,7 @@ class Replace(Rule):
     adaptor: Optional[Adaptor] = None
     """An optional function object for customising individual calibration
     strategies.
-    
+
     See the documentation on the classes |Rule|, |SumAdaptor|, and 
     |FactorAdaptor| for further information.
     """
@@ -1127,11 +1127,11 @@ rule object named `Damp`.'
     percmax(1.02978)
 
     Method |CalibrationInterface.apply_values| of class |CalibrationInterface|
-    calls the method |Rule.apply_value| of all handled |Rule| objects,
-    performs some preparations (for example, it derives the values of the
-    secondary parameters (see parameter |hstream_derived.NmbSegments|),
-    executes a simulation run, calls method
-    |CalibrationInterface.calculate_likelihood|, and returns the result:
+    calls the method |Rule.apply_value| of all handled |Rule| objects, performs
+    some preparations (for example, it derives the values of the secondary
+    parameters (see parameter |hstream_derived.NmbSegments|), executes a
+    simulation run, calls method |CalibrationInterface.calculate_likelihood|,
+    and returns the result:
 
     >>> result = ci.apply_values()
     >>> stream.parameters.control
@@ -1142,7 +1142,6 @@ rule object named `Damp`.'
     c1(0.230769)
     c3(0.230769)
     c2(0.538462)
-
     >>> land.parameters.control.fc
     fc(100.0)
     >>> land.parameters.control.percmax
@@ -1178,6 +1177,25 @@ rule object named `Damp`.'
     >>> round_(ci.calculate_likelihood())
     4.0
     >>> hp.conditions = conditions
+
+    Note the `perform_simulation` argument of method |CalibrationInterface.apply_values|,
+    which allows changing the model parameter values and updating the |HydPy| object
+    only without to trigger a simulation run (and to calculate and return a new
+    likelihood value):
+
+    >>> ci.apply_values(perform_simulation=False)
+    >>> stream.parameters.control
+    lag(0.583)
+    damp(0.3)
+    >>> stream.parameters.derived
+    nmbsegments(1)
+    c1(0.230769)
+    c3(0.230769)
+    c2(0.538462)
+    >>> land.parameters.control.fc
+    fc(100.0)
+    >>> land.parameters.control.percmax
+    percmax(5.0)
 
     Optimisers, like those implemented in `NLopt`_, often provide their new
     parameter estimates via vectors.  Method
@@ -1727,14 +1745,26 @@ a rule object named `fc`.
         for rule, value in zip(self, values):
             rule.value = value
 
-    def _refresh_hp(self):
+    def _refresh_hp(self) -> None:
         for element in self._elements:
             element.model.parameters.update()
         self._hp.conditions = self.conditions
 
-    def apply_values(self) -> float:
+    @overload
+    def apply_values(self, perform_simulation: Literal[True] = ...) -> float:
+        """with simulation"""
+
+    @overload
+    def apply_values(self, perform_simulation: Literal[False]) -> None:
+        """without simulation"""
+
+    def apply_values(self, perform_simulation: bool = True) -> Optional[float]:
         """Apply all current calibration parameter values on all relevant
         parameters.
+
+        Set argument `perform_simulation` to |False| to only change the
+        actual parameter values and update the |HydPy| object without
+        performing a simulation run.
 
         See the main documentation on class |CalibrationInterface| for
         further information.
@@ -1742,8 +1772,10 @@ a rule object named `fc`.
         for rule in self:
             rule.apply_value()
         self._refresh_hp()
-        self._hp.simulate()
-        return self.calculate_likelihood()
+        if perform_simulation:
+            self._hp.simulate()
+            return self.calculate_likelihood()
+        return None
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameters to their original states.
@@ -1987,7 +2019,7 @@ agree with the complete set of relevant elements (element1 and element2).
     """Flag indicating whether method |ReplaceIUH.apply_value| should 
     calculate the |ARMA.coefs| and pass them to the relevant model parameter
     or not.
-    
+
     Set this flag to |False| for the first |ReplaceIUH| object when another
     one handles the same elements and is applied afterwards.
     """

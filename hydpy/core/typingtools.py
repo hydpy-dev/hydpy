@@ -159,9 +159,15 @@ class Vector(Protocol[DataType]):
         """Shape of the vector."""
 
 
-class IterableNonString(abc.ABC):
-    """Abstract base class for checking if an object is iterable but not a
-    string.
+ArrayFloat = TypeVar(
+    "ArrayFloat",
+    float,
+    Vector[float],
+)
+
+
+class IterableNonString(Iterable[object], abc.ABC):
+    """Abstract base class for checking if an object is iterable but not a string.
 
     >>> from hydpy.core.typingtools import IterableNonString
     >>> isinstance("asdf", IterableNonString)
@@ -172,7 +178,6 @@ class IterableNonString(abc.ABC):
     False
     >>> issubclass(list, IterableNonString)
     True
-    >>>
     """
 
     @classmethod

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements tools to help to standardize the functionality
-of the different objects defined by the HydPy framework.
-"""
+of the different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
 import builtins
@@ -10,8 +9,11 @@ import inspect
 import numbers
 import sys
 import textwrap
-from typing import NoReturn
+import types
 from typing import *
+from typing import NoReturn
+from typing import TextIO
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import wrapt
@@ -31,7 +33,9 @@ T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
 ReprArg = Union[
-    numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
+    numbers.Number,
+    Iterable[numbers.Number],
+    Iterable[Iterable[numbers.Number]],
 ]
 
 
@@ -75,7 +79,7 @@ def dir_(self: Any) -> List[str]:
     return [" "]
 
 
-def classname(self: Any) -> str:
+def classname(self: object) -> str:
     """Return the class name of the given instance object or class.
 
     >>> from hydpy import classname
@@ -86,11 +90,11 @@ def classname(self: Any) -> str:
     'Options'
     """
     if inspect.isclass(self):
-        return self.__name__
+        return self.__name__  # type: ignore [attr-defined, no-any-return]
     return type(self).__name__
 
 
-def value_of_type(value: Any) -> str:
+def value_of_type(value: object) -> str:
     """Returns a string containing both the informal string and the type
     of the given value.
 
@@ -104,7 +108,7 @@ def value_of_type(value: Any) -> str:
     return f"value `{value}` of type `{classname(value)}`"
 
 
-def modulename(self: Any) -> str:
+def modulename(self: object) -> str:
     """Return the module name of the given instance object.
 
     >>> from hydpy.core.objecttools import modulename
@@ -115,12 +119,16 @@ def modulename(self: Any) -> str:
     return self.__module__.split(".")[-1]
 
 
-def _search_device(self: Any) -> Optional["devicetools.Device"]:
+def _search_device(
+    self: object,
+) -> Optional[Union["devicetools.Node", "devicetools.Element"]]:
+    from hydpy.core import devicetools  # pylint: disable=import-outside-toplevel
+
     while True:
         if self is None:
             return None
-        device = vars(self).get("element", vars(self).get("node"))
-        if device is not None:
+        device = vars(self).get("node", vars(self).get("element"))
+        if isinstance(device, (devicetools.Node, devicetools.Element)):
             return device
         for test in ("model", "seqs", "pars", "subvars"):
             master = vars(self).get(test)
@@ -131,7 +139,7 @@ def _search_device(self: Any) -> Optional["devicetools.Device"]:
             return None
 
 
-def devicename(self: Any) -> str:
+def devicename(self: object) -> str:
     """Try to return the name of the (indirect) master |Node| or
     |Element| instance, if not possible return `?`.
 
@@ -150,10 +158,12 @@ def devicename(self: Any) -> str:
     'e1'
     """
     device = _search_device(self)
-    return getattr(device, "name", "?")
+    if device is None:
+        return "?"
+    return device.name
 
 
-def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
+def _devicephrase(self: object, objname: Optional[str] = None) -> str:
     name_ = getattr(self, "name", type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
@@ -165,7 +175,7 @@ def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
     return f"`{name_}`"
 
 
-def elementphrase(self: Any) -> str:
+def elementphrase(self: object) -> str:
     """Return the phrase used in exception messages to indicate
     which |Element| is affected.
 
@@ -188,7 +198,7 @@ def elementphrase(self: Any) -> str:
     return _devicephrase(self, "element")
 
 
-def nodephrase(self: Any) -> str:
+def nodephrase(self: object) -> str:
     """Return the phrase used in exception messages to indicate
     which |Node| is affected.
 
@@ -210,7 +220,7 @@ def nodephrase(self: Any) -> str:
     return _devicephrase(self, "node")
 
 
-def devicephrase(self: Any) -> str:
+def devicephrase(self: object) -> str:
     """Try to return the phrase used in exception messages to
     indicate which |Element| or which |Node| is affected.
     If not possible, return just the name of the given object.
@@ -272,7 +282,8 @@ Python built-ins like `for`...)
 
 
 def augment_excmessage(
-    prefix: Optional[str] = None, suffix: Optional[str] = None
+    prefix: Optional[str] = None,
+    suffix: Optional[str] = None,
 ) -> NoReturn:
     """Augment an exception message with additional information while keeping
     the original traceback.
@@ -574,14 +585,14 @@ class ResetAttrFuncs:
         "__deepcopy__",
     )
 
-    def __init__(self, obj: Any) -> None:
+    def __init__(self, obj: object) -> None:
         self.cls = type(obj)
         self.name2func = {}
         for name_ in self.funcnames:
             if hasattr(self.cls, name_):
                 self.name2func[name_] = self.cls.__dict__.get(name_)
 
-    def __enter__(self):
+    def __enter__(self) -> "ResetAttrFuncs":
         for name_ in self.name2func:
             if name_ in ("__setattr__", "__delattr__"):
                 setattr(self.cls, name_, getattr(object, name_))
@@ -591,7 +602,12 @@ class ResetAttrFuncs:
                 setattr(self.cls, name_, None)
         return self
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
         for name_, func in self.name2func.items():
             if func:
                 setattr(self.cls, name_, func)
@@ -608,13 +624,13 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: Optional[Dict]) -> T:
+def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
     """
     with ResetAttrFuncs(self):
-        return copy.deepcopy(self, memo)
+        return copy.deepcopy(self, memo)  # type: ignore [return-value]  # ???
 
 
 class _PreserveStrings:
@@ -627,10 +643,15 @@ class _PreserveStrings:
         self.newvalue = preserve_strings
         self.oldvalue = getattr(repr_, "_preserve_strings")
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         setattr(repr_, "_preserve_strings", self.newvalue)
 
-    def __exit__(self, type_, value, traceback):
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback: types.TracebackType,
+    ) -> None:
         setattr(repr_, "_preserve_strings", self.oldvalue)
 
 
@@ -641,7 +662,11 @@ class _Repr:
     def __init__(self) -> None:
         self._preserve_strings = False
 
-    def __call__(self, value: Any, decimals: Optional[int] = None) -> str:
+    def __call__(
+        self,
+        value: object,
+        decimals: Optional[int] = None,
+    ) -> str:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
@@ -759,7 +784,7 @@ applied, e.g.:
 """
 
 
-def repr_values(values: Iterable[Any]) -> str:
+def repr_values(values: Iterable[object]) -> str:
     """Return comma separated representations of the given values using
     function |repr_|.
 
@@ -804,7 +829,7 @@ def repr_numbers(values: ReprArg) -> str:
     return "; ".join(result)
 
 
-def print_values(values: Iterable[Any], width: int = 70) -> None:
+def print_values(values: Iterable[object], width: int = 70) -> None:
     """Print the given values in multiple lines with a certain maximum width.
 
     By default, each line contains at most 70 characters:
@@ -830,7 +855,7 @@ def print_values(values: Iterable[Any], width: int = 70) -> None:
         print(line)
 
 
-def repr_tuple(values: Iterable[Any]) -> str:
+def repr_tuple(values: Iterable[object]) -> str:
     """Return a tuple representation of the given values using function
     |repr|.
 
@@ -851,7 +876,7 @@ def repr_tuple(values: Iterable[Any]) -> str:
     return f"({repr_values(values)})"
 
 
-def repr_list(values: Iterable[Any]) -> str:
+def repr_list(values: Iterable[object]) -> str:
     """Return a list representation of the given values using function
     |repr|.
 
@@ -864,7 +889,7 @@ def repr_list(values: Iterable[Any]) -> str:
     return f"[{repr_values(values)}]"
 
 
-def assignrepr_value(value: Any, prefix: str) -> str:
+def assignrepr_value(value: object, prefix: str) -> str:
     """Return a prefixed string representation of the given value using
     function |repr|.
 
@@ -879,7 +904,7 @@ def assignrepr_value(value: Any, prefix: str) -> str:
 
 
 def assignrepr_values(
-    values: Sequence[Any],
+    values: Sequence[object],
     prefix: str,
     width: Optional[int] = None,
     _fakeend: int = 0,
@@ -951,30 +976,42 @@ def assignrepr_values(
     return string[: len(string) - _fakeend]
 
 
-class _AlwaysBracketed:
-    """Helper class for |_AssignReprBracketed|."""
-
-    def __init__(self, value):
-        self.new_value = value
-        self.old_value = getattr(_AssignReprBracketed, "_always_bracketed")
-
-    def __enter__(self):
-        setattr(_AssignReprBracketed, "_always_bracketed", self.new_value)
-
-    def __exit__(self, type_, value, traceback):
-        setattr(_AssignReprBracketed, "_always_bracketed", self.old_value)
-
-
 class _AssignReprBracketed:
     """ "Double Singleton class", see the documentation on
     |assignrepr_tuple| and |assignrepr_list|."""
 
-    _always_bracketed = True
+    class _AlwaysBracketed:
 
-    def __init__(self, brackets):
+        _new_value: bool
+        _old_value: bool
+
+        def __init__(self, value: bool) -> None:
+            self._new_value = value
+            self._old_value = _AssignReprBracketed._always_bracketed
+
+        def __enter__(self) -> None:
+            _AssignReprBracketed._always_bracketed = self._new_value
+
+        def __exit__(
+            self,
+            exception_type: Type[BaseException],
+            exception_value: BaseException,
+            traceback: types.TracebackType,
+        ) -> None:
+            _AssignReprBracketed._always_bracketed = self._old_value
+
+    _always_bracketed: bool = True
+    _brackets: Literal["()", "[]", "{}"]
+
+    def __init__(self, brackets: Literal["()", "[]", "{}"]) -> None:
         self._brackets = brackets
 
-    def __call__(self, values, prefix, width=None):
+    def __call__(
+        self,
+        values: Sequence[object],
+        prefix: str,
+        width: Optional[int] = None,
+    ) -> str:
         nmb_values = len(values)
         if (nmb_values == 1) and not self._always_bracketed:
             return assignrepr_value(values[0], prefix)
@@ -993,10 +1030,10 @@ class _AssignReprBracketed:
             return string
         return prefix + self._brackets
 
-    @staticmethod
-    def always_bracketed(always_bracketed):
+    @classmethod
+    def always_bracketed(cls, always_bracketed: bool) -> _AlwaysBracketed:
         """Change the `always_bracketed` option inside a with block."""
-        return _AlwaysBracketed(always_bracketed)
+        return cls._AlwaysBracketed(always_bracketed)
 
 
 assignrepr_tuple = _AssignReprBracketed("()")
@@ -1076,7 +1113,10 @@ test = [10,]
 """
 
 
-def assignrepr_values2(values, prefix):
+def assignrepr_values2(
+    values: Iterable[Iterable[object]],
+    prefix: str,
+) -> str:
     """Return a prefixed and properly aligned string representation
     of the given 2-dimensional value matrix using function |repr|.
 
@@ -1103,7 +1143,12 @@ def assignrepr_values2(values, prefix):
     return "\n".join(lines)
 
 
-def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
+def _assignrepr_bracketed2(
+    assignrepr_bracketed1: _AssignReprBracketed,
+    values: Sequence[Sequence[object]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
     |repr|."""
@@ -1123,7 +1168,11 @@ def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
     return "\n".join(lines)
 
 
-def assignrepr_tuple2(values, prefix, width=None):
+def assignrepr_tuple2(
+    values: Sequence[Sequence[object]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 2-dimensional value matrix using function
     |repr|.
@@ -1157,7 +1206,11 @@ def assignrepr_tuple2(values, prefix, width=None):
     return _assignrepr_bracketed2(assignrepr_tuple, values, prefix, width)
 
 
-def assignrepr_list2(values, prefix, width=None):
+def assignrepr_list2(
+    values: Sequence[Sequence[object]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 2-dimensional value matrix using function
     |repr|.
@@ -1190,7 +1243,12 @@ def assignrepr_list2(values, prefix, width=None):
     return _assignrepr_bracketed2(assignrepr_list, values, prefix, width)
 
 
-def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
+def _assignrepr_bracketed3(
+    assignrepr_bracketed1: _AssignReprBracketed,
+    values: Sequence[Sequence[Sequence[object]]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
     |repr|."""
@@ -1214,7 +1272,11 @@ def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
     return "\n".join(lines)
 
 
-def assignrepr_tuple3(values, prefix, width=None):
+def assignrepr_tuple3(
+    values: Sequence[Sequence[Sequence[object]]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 3-dimensional value matrix using function
     |repr|.
@@ -1264,7 +1326,11 @@ def assignrepr_tuple3(values, prefix, width=None):
     return _assignrepr_bracketed3(assignrepr_tuple, values, prefix, width)
 
 
-def assignrepr_list3(values, prefix, width=None):
+def assignrepr_list3(
+    values: Sequence[Sequence[Sequence[object]]],
+    prefix: str,
+    width: Optional[int] = None,
+) -> str:
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 3-dimensional value matrix using function
     |repr|.
@@ -1382,7 +1448,57 @@ length_orig=3.0, nmb_subsections=4, length_adj=2.0)
     return string
 
 
-def round_(values, decimals=None, width=0, lfill=None, rfill=None, **kwargs):
+@overload
+def round_(
+    values: Union[object, Iterable[object]],
+    decimals: Optional[int] = None,
+    *,
+    sep: str = " ",
+    end: str = "\n",
+    file_: Optional[TextIO] = None,
+) -> None:
+    ...
+
+
+@overload
+def round_(
+    values: Union[object, Iterable[object]],
+    decimals: Optional[int] = None,
+    *,
+    width: int = 0,
+    lfill: Optional[str] = None,
+    sep: str = " ",
+    end: str = "\n",
+    file_: Optional[TextIO] = None,
+) -> None:
+    ...
+
+
+@overload
+def round_(
+    values: Union[object, Iterable[object]],
+    decimals: Optional[int] = None,
+    *,
+    width: int = 0,
+    rfill: Optional[str] = None,
+    sep: str = " ",
+    end: str = "\n",
+    file_: Optional[TextIO] = None,
+) -> None:
+    ...
+
+
+def round_(
+    values: Union[object, Iterable[object]],
+    decimals: Optional[int] = None,
+    *,
+    width: int = 0,
+    lfill: Optional[str] = None,
+    rfill: Optional[str] = None,
+    sep: str = " ",
+    end: str = "\n",
+    file_: Optional[TextIO] = None,
+) -> None:
     """Prints values with a maximum number of digits in doctests.
 
     See the documentation on function |repr| for more details.  And
@@ -1427,47 +1543,50 @@ arguments `lfill` and `rfill`.  This is not allowed.
                 "For function `round_` values are passed for both arguments "
                 "`lfill` and `rfill`.  This is not allowed."
             )
-        if (lfill is not None) or (rfill is not None):
-            width = max(width, len(string))
-            if lfill is not None:
-                string = string.rjust(width, lfill)
-            else:
-                string = string.ljust(width, rfill)
-        print(string, **kwargs)
+        width = max(width, len(string))
+        if lfill is not None:
+            string = string.rjust(width, lfill)
+        if rfill is not None:
+            string = string.ljust(width, rfill)
+        print(string, sep=sep, end=end, file=file_)
 
 
 @overload
 def extract(
-    values: Any,
+    values: Union[Iterable[object], object],
     types_: Tuple[Type[T1]],
-    skip: bool = ...,
+    skip: bool = False,
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
 
 @overload
 def extract(
-    values: Any,
+    values: Union[Iterable[object], object],
     types_: Tuple[Type[T1], Type[T2]],
-    skip: bool = ...,
+    skip: bool = False,
 ) -> Iterator[Union[T1, T2]]:
     """Extract all objects of two defined types."""
 
 
 @overload
 def extract(
-    values: Any,
+    values: Union[Iterable[object], object],
     types_: Tuple[Type[T1], Type[T2], Type[T3]],
-    skip: bool = ...,
+    skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:
     """Extract all objects of three defined types."""
 
 
 def extract(
-    values,
-    types_,
-    skip=False,
-):
+    values: Union[Iterable[object], object],
+    types_: Union[
+        Tuple[Type[T1]],
+        Tuple[Type[T1], Type[T2]],
+        Tuple[Type[T1], Type[T2], Type[T3]],
+    ],
+    skip: bool = False,
+) -> Iterator[Union[T1, T2, T3]]:
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions
@@ -1508,13 +1627,13 @@ the following classes: str and int.
     ('str1', 'str2', 1)
     """
     if isinstance(values, types_):
-        yield values
+        yield values  # type: ignore[misc]  # see issue 4949
     elif skip and (values is None):
         return
     else:
         try:
-            if isinstance(values, str):
-                raise TypeError("asdf")
+            if isinstance(values, str) or not isinstance(values, Iterable):
+                raise TypeError("temp")
             for value in values:
                 for subvalue in extract(value, types_, skip):
                     yield subvalue
@@ -1528,7 +1647,11 @@ the following classes: str and int.
             ) from None
 
 
-def enumeration(values, converter=str, default=""):
+def enumeration(
+    values: Iterable[T],
+    converter: Callable[[T], str] = str,
+    default: str = "",
+) -> str:
     """Return an enumeration string based on the given values.
 
     The following four examples show the standard output of function
@@ -1565,20 +1688,20 @@ def enumeration(values, converter=str, default=""):
     ...     enumeration(range(10))
     '0, 1, 2, ..., 7, 8, and 9'
     """
-    values = list(converter(value) for value in values)
-    if not values:
+    values_ = list(converter(value) for value in values)
+    if not values_:
         return default
-    if len(values) == 1:
-        return values[0]
-    if len(values) == 2:
-        return " and ".join(values)
+    if len(values_) == 1:
+        return values_[0]
+    if len(values_) == 2:
+        return " and ".join(values_)
     ellipsis_ = int(hydpy.pub.options.ellipsis)
-    if (ellipsis_ > 0) and (len(values) > 2 * ellipsis_):
-        values = values[:ellipsis_] + ["..."] + values[-ellipsis_:]
-    return ", and ".join((", ".join(values[:-1]), values[-1]))
+    if (ellipsis_ > 0) and (len(values_) > 2 * ellipsis_):
+        values_ = values_[:ellipsis_] + ["..."] + values_[-ellipsis_:]
+    return ", and ".join((", ".join(values_[:-1]), values_[-1]))
 
 
-def description(self: Any) -> str:
+def description(self: object) -> str:
     """Returns the first "paragraph" of the docstring of the given object.
 
     Note that ugly things like multiple whitespaces and newline characters
@@ -1594,6 +1717,7 @@ the original traceback.'
     >>> description(type("Test", (), {}))
     'no description available'
     """
-    if self.__doc__ in (None, ""):
+    doc = self.__doc__
+    if doc is None or doc == "":
         return "no description available"
-    return " ".join(self.__doc__.split("\n\n")[0].split())
+    return " ".join(doc.split("\n\n")[0].split())

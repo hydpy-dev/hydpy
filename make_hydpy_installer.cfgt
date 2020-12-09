@@ -40,6 +40,13 @@ pypi_wheels = numpy==[auto]
 	tornado==[auto]
 	networkx==[auto]
 	decorator==[auto]
+	appdirs==[auto]
+	click==[auto]
+	dataclasses==[auto]
+	mypy_extensions==0.4.3
+	pathspec==[auto]
+	toml==[auto]
+	typed_ast==[auto]
 
 local_wheels = dist/*.whl
 
@@ -50,6 +57,10 @@ packages = wrapt
 	jinja2
 	tkinter
 	_tkinter
+	black
+	_black_version
+	blib2to3
+	regex
 
 files = lib
 	tcl86t.dll > $INSTDIR\pkgs

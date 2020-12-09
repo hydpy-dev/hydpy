@@ -205,6 +205,7 @@ setup(name='HydPy',
       include_package_data=True,
       python_requires='>=3.6',
       install_requires=[
+          'black',
           'bokeh',
           'Cython',
           'matplotlib',

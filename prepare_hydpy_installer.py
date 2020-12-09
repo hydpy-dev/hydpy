@@ -19,6 +19,8 @@ for idx, line in enumerate(lines):
     if 'version = [auto]' in line:
         lines[idx] = line.replace(
             '[auto]', ".".join(str(v) for v in sys.version_info[:3]))
+if sys.version_info[:2] > (3, 6):
+    lines = [line for line in lines if "dataclasses" not in line]
 for idx, line in enumerate(lines):
     if '==[auto]' in line:
         name = line.split()[-1].split('==')[0]

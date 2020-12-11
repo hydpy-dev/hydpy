@@ -3160,6 +3160,17 @@ is `365d`, which is not an integral multiple of the step size `3d`.
                 ) from exc
 
     @property
+    def initindices(self) -> Tuple[int, int]:
+        """A tuple containing the start and end index of the initialisation period.
+
+        >>> from hydpy import Timegrids
+        >>> timegrids = Timegrids("2000-01-01", "2001-01-01", "1d")
+        >>> timegrids.initindices
+        (0, 366)
+        """
+        return 0, len(self.init)
+
+    @property
     def simindices(self) -> Tuple[int, int]:
         """A tuple containing the start and end index of the simulation period
         regarding the initialisation period.

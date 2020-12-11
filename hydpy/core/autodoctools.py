@@ -643,7 +643,10 @@ class Substituter:
         >>> from hydpy.core import timetools
         >>> substituter.add_module(timetools)
         >>> substituter.find("Timegrids.init")
+        |Timegrids.initindices| :const:`~hydpy.core.timetools.Timegrids.initindices`
         |Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
+        |timetools.Timegrids.initindices| \
+:const:`~hydpy.core.timetools.Timegrids.initindices`
         |timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
 
         >>> from hydpy.auxs import calibtools

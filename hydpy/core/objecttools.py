@@ -4,6 +4,7 @@ of the different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
 import builtins
+import contextlib
 import copy
 import inspect
 import numbers
@@ -1721,3 +1722,50 @@ the original traceback.'
     if doc is None or doc == "":
         return "no description available"
     return " ".join(doc.split("\n\n")[0].split())
+
+
+@contextlib.contextmanager
+def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, None]:
+    """Get a suitable file object reading for writing text useable as the `file`
+    argument of the standard |print| function.
+
+    Function |get_printtarget| supports three types of arguments.  For |None|,
+    it returns |sys.stdout|:
+
+    >>> from hydpy.core.objecttools import get_printtarget
+    >>> import sys
+    >>> with get_printtarget(None) as printtarget:
+    ...     print("printtarget = stdout", file=printtarget)
+    printtarget = stdout
+
+    If passes already opened file objects, flushing but not closing them:
+
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     with open("testfile1.txt", "w") as testfile1:
+    ...         with get_printtarget(testfile1) as printtarget:
+    ...             print("printtarget = testfile1", file=printtarget, end="")
+    >>> with TestIO():
+    ...     with open("testfile1.txt", "r") as testfile1:
+    ...         print(testfile1.read())
+    printtarget = testfile1
+
+    When receiving a file name, it creates a new file and closes it after leaving
+    the `with` block:
+
+    >>> with TestIO():
+    ...     with get_printtarget("testfile2.txt") as printtarget:
+    ...         print("printtarget = testfile2", file=printtarget, end="")
+    >>> with TestIO():
+    ...     with open("testfile2.txt", "r") as testfile2:
+    ...         print(testfile2.read())
+    printtarget = testfile2
+    """
+    if file_ is None:
+        yield sys.stdout
+    elif isinstance(file_, str):
+        with open(file_, "w") as printobject:
+            yield printobject
+    else:
+        yield file_
+        file_.flush()

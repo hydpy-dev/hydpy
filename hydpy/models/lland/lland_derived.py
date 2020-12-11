@@ -5,8 +5,9 @@
 # import...
 # ...from HydPy
 import hydpy
-from hydpy.core import parametertools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -64,8 +65,7 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
-        >>> for seq in logs:
-        ...     print(seq)
+        >>> logs
         wet0([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
         loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
@@ -82,6 +82,24 @@ class NmbLogEntries(parametertools.Parameter):
         loggedwindspeed2m(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                           nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                           nan, nan)
+
+        To prevent from loosing information, updating parameter |NmbLogEntries|
+        resets the shape of the relevant log sequences only when necessary:
+
+        >>> logs.wet0 = 1.0
+        >>> logs.loggedteml = 2.0
+        >>> logs.loggedrelativehumidity.shape = (6,)
+        >>> logs.loggedrelativehumidity = 3.0
+        >>> derived.nmblogentries.update()
+        >>> logs   # doctest: +ELLIPSIS
+        wet0([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]])
+        loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                   2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                               nan, nan, nan, nan)
+        ...
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -107,9 +125,12 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
                 f"leaves a remainder."
             )
         self(nmb)
+        nmb = int(nmb)
         logs = self.subpars.pars.model.sequences.logs
         for seq in logs:
-            seq.shape = int(self)
+            shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if nmb != shape[-1]:
+                seq.shape = nmb
 
 
 class LatitudeRad(parametertools.Parameter):

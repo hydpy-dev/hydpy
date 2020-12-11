@@ -21,10 +21,10 @@ import numpy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import propertytools
-from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import sequenceutils
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -316,7 +316,7 @@ class FastAccessLinkSequence(variabletools.FastAccess):
     def set_value(
         self,
         name: str,
-        value: typingtools.Mayberable1[float],
+        value: Mayberable1[float],
     ) -> None:
         """Change the actual value(s) the |LinkSequence| object with
         the given name is pointing to."""
@@ -554,7 +554,7 @@ to make any internal data available.
         cls_aides: Optional[Type["AideSequences"]] = None,
         cls_outlets: Optional[Type["OutletSequences"]] = None,
         cls_senders: Optional[Type["SenderSequences"]] = None,
-        cymodel: Optional[typingtools.CyModelProtocol] = None,
+        cymodel: Optional[CyModelProtocol] = None,
         cythonmodule: Optional[types.ModuleType] = None,
     ) -> None:
         self.model = model
@@ -1031,13 +1031,13 @@ class ModelSequences(
     """Base class for handling model-related subgroups of sequences."""
 
     seqs: Sequences
-    _cymodel: Optional[typingtools.CyModelProtocol]
+    _cymodel: Optional[CyModelProtocol]
 
     def __init__(
         self,
         master: Sequences,
         cls_fastaccess: Optional[Type[variabletools.FastAccessType]] = None,
-        cymodel: Optional["typingtools.CyModelProtocol"] = None,
+        cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.seqs = master
         self._cymodel = cymodel
@@ -4536,14 +4536,14 @@ class NodeSequences(
     node: "devicetools.Node"
     sim: Sim
     obs: Obs
-    _cymodel: Optional["typingtools.CyModelProtocol"]
+    _cymodel: Optional[CyModelProtocol]
     _CLS_FASTACCESS_PYTHON = FastAccessNodeSequence
 
     def __init__(
         self,
         master: "devicetools.Node",
         cls_fastaccess: Optional[Type[FastAccessNodeSequence]] = None,
-        cymodel: Optional["typingtools.CyModelProtocol"] = None,
+        cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.node = master
         self._cls_fastaccess = cls_fastaccess

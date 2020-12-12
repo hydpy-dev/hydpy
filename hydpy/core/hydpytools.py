@@ -8,7 +8,6 @@ import warnings
 from typing import *
 
 # ...from site-packages
-import numpy
 import networkx
 
 # ...from HydPy
@@ -20,16 +19,18 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
 
 
-ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
+ConditionsType = Dict[
+    str, Dict[str, Dict[str, Union[float, Vector[float], Matrix[float]]]]
+]
 
 
 class HydPy:
-    # noinspection PyUnresolvedReferences
     """The main class for managing *HydPy* projects.
 
     In typical *HydPy* projects, one prepares a single instance of class
@@ -638,7 +639,7 @@ requested to make any internal data available.
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
-    deviceorder: List[devicetools.Device]
+    deviceorder: List[Union[devicetools.Node, devicetools.Element]]
 
     def __init__(self, projectname: Optional[str] = None) -> None:
         self._nodes = None
@@ -1398,9 +1399,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         self.elements.reset_conditions()
 
-    @property
-    def conditions(self) -> ConditionsType:
-        # noinspection PyUnresolvedReferences,PyTypeChecker
+    def _get_conditions(self) -> ConditionsType:
         """A nested dictionary, containing the values of all condition
         sequences of all currently handled models.
 
@@ -1504,9 +1503,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         return self.elements.conditions
 
-    @conditions.setter
-    def conditions(self, conditions: ConditionsType) -> None:
+    def _set_conditions(self, conditions: ConditionsType) -> None:
         self.elements.conditions = conditions
+
+    conditions = property(_get_conditions, _set_conditions)
 
     @property
     def networkproperties(
@@ -1559,6 +1559,11 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Applied node variables: Q (4)
         Applied model types: hland_v1 (4) and hstream_v1 (3)
         """
+        value: Union[
+            str,
+            int,
+            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+        ]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
                 value = objecttools.enumeration(
@@ -1775,7 +1780,6 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
     @property
     def variables(self) -> Dict[devicetools.NodeVariableType, int]:
-        # noinspection PyUnresolvedReferences
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
 
@@ -1861,17 +1865,17 @@ one value needed to be trimmed.  The old and the new value(s) are \
     def update_devices(
         self,
         *,
-        nodes: devicetools.NodesConstrArg = ...,
-        elements: devicetools.ElementsConstrArg = ...,
+        nodes: Optional[devicetools.NodesConstrArg] = None,
+        elements: Optional[devicetools.ElementsConstrArg] = None,
     ) -> None:
         """Devices as input"""
 
     def update_devices(
         self,
         *,
-        selection=None,
-        nodes=None,
-        elements=None,
+        selection: Optional["selectiontools.Selection"] = None,
+        nodes: Optional[devicetools.NodesConstrArg] = None,
+        elements: Optional[devicetools.ElementsConstrArg] = None,
     ) -> None:
         """Determine the order, in which method |HydPy.simulate| processes
         the currently relevant |Node| and |Element| objects.
@@ -1985,42 +1989,35 @@ argument at the same time.
 to use both the `selection` argument and the `nodes` or  the `elements` \
 argument at the same time.
         """
-        selection_given = selection is not None
-        devices_given = (nodes is not None) or (elements is not None)
-        if selection_given and devices_given:
-            raise ValueError(
-                "Method `update_devices` of class `HydPy` does not allow "
-                "to use both the `selection` argument and the `nodes` or  "
-                "the `elements` argument at the same time."
-            )
-        if selection_given:
-            self.nodes = selection.nodes
-            self.elements = selection.elements
-        if devices_given:
+        if (nodes is not None) or (elements is not None):
+            if selection is not None:
+                raise ValueError(
+                    "Method `update_devices` of class `HydPy` does not allow "
+                    "to use both the `selection` argument and the `nodes` or  "
+                    "the `elements` argument at the same time."
+                )
             del self.nodes
-            # noinspection PyUnboundLocalVariable
             if nodes is None:
                 nodes = devicetools.Nodes()
-            # noinspection PyUnboundLocalVariable
             self.nodes = nodes
             del self.elements
-            # noinspection PyUnboundLocalVariable
             if elements is None:
                 elements = devicetools.Elements()
-            # noinspection PyUnboundLocalVariable
             self.elements = elements
-        # noinspection PyTypeChecker
+        if selection is not None:
+            self.nodes = selection.nodes
+            self.elements = selection.elements
         devices = networkx.topological_sort(create_directedgraph(self))
-        nodes = self.nodes.names
-        elements = self.elements.names
+        nodenames = self.nodes.names
+        elementnames = self.elements.names
         self.deviceorder = [
             device
             for device in devices
-            if (device.name in nodes) or (device.name in elements)
+            if (device.name in nodenames) or (device.name in elementnames)
         ]
 
     @property
-    def methodorder(self) -> List[Callable]:
+    def methodorder(self) -> List[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element|
         objects to be processed by method |HydPy.simulate| during a
         simulation time step, ordered in a correct execution sequence.

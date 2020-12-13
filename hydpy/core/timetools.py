@@ -948,6 +948,33 @@ occurred: No other decimal fraction of a second than "0" allowed.
         year = self.year
         return ((year % 4) == 0) and (((year % 100) != 0) or ((year % 400) == 0))
 
+    @property
+    def beginning_next_month(self) -> "Date":
+        """The first possible date of the next month after the month of the current
+        |Date| object.
+
+        >>> from hydpy import Date
+        >>> Date("2001-01-01 00:00:00").beginning_next_month
+        Date("2001-02-01 00:00:00")
+        >>> Date("2001-01-31 12:30:30").beginning_next_month
+        Date("2001-02-01 00:00:00")
+        >>> Date("2001-12-01 00:00:00").beginning_next_month
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-12-31 12:30:30").beginning_next_month
+        Date("2002-01-01 00:00:00")
+        """
+        date = Date(self)
+        date.day = 1
+        date.hour = 0
+        date.second = 0
+        date.minute = 0
+        if date.month == 12:
+            date.month = 1
+            date.year += 1
+        else:
+            date.month += 1
+        return date
+
     def __add__(
         self,
         other: PeriodConstrArg,

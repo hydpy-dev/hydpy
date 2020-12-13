@@ -97,8 +97,8 @@ from hydpy.auxs.statstools import calc_mean_time
 from hydpy.auxs.statstools import calc_mean_time_deviation
 from hydpy.auxs.statstools import corr
 from hydpy.auxs.statstools import corr2
-from hydpy.auxs.statstools import evaluationtable
 from hydpy.auxs.statstools import filter_series
+from hydpy.auxs.statstools import print_evaluationtable
 from hydpy.auxs.statstools import hsepd
 from hydpy.auxs.statstools import hsepd_manual
 from hydpy.auxs.statstools import hsepd_pdf
@@ -216,8 +216,8 @@ __all__ = [
     "calc_mean_time_deviation",
     "corr",
     "corr2",
-    "evaluationtable",
     "filter_series",
+    "print_evaluationtable",
     "hsepd",
     "hsepd_manual",
     "hsepd_pdf",

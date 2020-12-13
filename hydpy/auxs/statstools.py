@@ -3,7 +3,9 @@
 hydrological modelling."""
 # import...
 # ...from standard library
+import warnings
 from typing import *
+from typing import TextIO
 from typing_extensions import Literal  # type: ignore[misc]
 from typing_extensions import Protocol  # type: ignore[misc]
 
@@ -16,6 +18,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
+from hydpy.core import seriestools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
@@ -1679,19 +1682,71 @@ at least one value is negative: weights.
     )
 
 
-@objecttools.excmessage_decorator(
-    "evaluate the simulation results of some node objects"
-)
-def evaluationtable(
+@overload
+def print_evaluationtable(
+    *,
     nodes: Sequence[devicetools.Node],
     criteria: Sequence[Criterion],
     nodenames: Optional[Sequence[str]] = None,
     critnames: Optional[Sequence[str]] = None,
-    skip_nan: bool = False,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
     subperiod: bool = True,
-) -> "pandas.DataFrame":
-    """Return a table containing the results of the given evaluation
-    criteria for the given |Node| objects.
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    ...
+
+
+@overload
+def print_evaluationtable(
+    *,
+    nodes: Sequence[devicetools.Node],
+    criteria: Sequence[Criterion],
+    nodenames: Optional[Sequence[str]] = None,
+    critnames: Optional[Sequence[str]] = None,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
+    subperiod: bool = True,
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    stepsize: Literal["daily", "d", "monthly", "m"] = "daily",
+    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    ...
+
+
+@objecttools.excmessage_decorator(
+    "evaluate the simulation results of some node objects"
+)
+def print_evaluationtable(
+    *,
+    nodes: Sequence[devicetools.Node],
+    criteria: Sequence[Criterion],
+    nodenames: Optional[Sequence[str]] = None,
+    critnames: Optional[Sequence[str]] = None,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
+    subperiod: bool = True,
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    stepsize: Optional[Literal["daily", "d", "monthly", "m"]] = None,
+    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    """Print a table containing the results of the given evaluation criteria
+    for the given |Node| objects.
 
     First, we define two nodes with different simulation and observation
     data (see function |prepare_arrays| for some explanations):
@@ -1711,44 +1766,128 @@ def evaluationtable(
     ...     nodes[1].sequences.obs.series = 3.0, nan, 1.0
 
     Selecting functions |corr| and |bias_abs| as evaluation criteria,
-    function |evaluationtable| returns the following table (which is
-    a |pandas| |pandas.DataFrame|):
+    function |print_evaluationtable| prints the following table:
 
-    >>> from hydpy import evaluationtable, corr, bias_abs
-    >>> evaluationtable(nodes, (corr, bias_abs))
+    >>> from hydpy import bias_abs, corr, print_evaluationtable
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs))
            corr  bias_abs
-    test1   1.0      -3.0
-    test2   NaN       NaN
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
 
-    One can pass alternative names for both the node objects and the
-    criteria functions.  Also, `nan` values can be skipped:
+    One can pass alternative names for the node objects, the criteria functions,
+    and the row containing the average values.  Also, one can use the `filter_`
+    argument to force printing statistics in case of incomplete observation data.
+    In the following example, we accept a maximum fraction of missing data of 50 %:
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=("first node", "second node"),
-    ...                 critnames=("corrcoef", "bias"),
-    ...                 skip_nan=True)
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       nodenames=("first node", "second node"),
+    ...                       critnames=("corrcoef", "bias"),
+    ...                       critdigits=1,
+    ...                       averagename="average",
+    ...                       filter_=0.5)   # doctest: +NORMALIZE_WHITESPACE
                  corrcoef  bias
     first node        1.0  -3.0
     second node      -1.0   0.0
+    average           0.0  -1.5
 
     The number of assigned node objects and criteria functions must
     match the number of given alternative names:
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=("first node",))
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       nodenames=("first node",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
 node objects, the following error occurred: 2 node objects are given \
 which does not match with number of given alternative names being 1.
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 critnames=("corrcoef",))
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       critnames=("corrcoef",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
 node objects, the following error occurred: 2 criteria functions are given \
 which does not match with number of given alternative names being 1.
+
+    Set the `average` argument to |False| to omit the row containing the
+    average values:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       average=False)
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+
+    You can use the arguments `critfactors` and `critdigits` by passing either
+    a single number or a sequence of criteria-specific numbers to modify the
+    printed values:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       critfactors=(10.0, 0.1),
+    ...                       critdigits=1)
+           corr  bias_abs
+    test1  10.0      -0.3
+    test2     -         -
+    mean   10.0      -0.3
+
+    By default, function |print_evaluationtable| prints the statics relevant
+    for the actual evaluation period only:
+
+    >>> pub.timegrids.eval_.dates = "01.01.2000", "02.01.2000"
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs))
+           corr  bias_abs
+    test1     -     -3.00
+    test2     -     -2.00
+    mean      -     -2.50
+
+    You can deviate from this default behaviour by setting the `subperiod`
+    argument to |False|:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       subperiod=False)
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
+
+    Use the `stepsize` argument (eventually in combination with argument
+    `aggregator`) to print the statistics of previously aggregated time
+    series.  See function |aggregate_series| for further information.
+
+    Here, the daily aggregation step size results in identical results as
+    the original step size is also one day:
+
+    >>> pub.timegrids.eval_ = pub.timegrids.init
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       stepsize="daily",
+    ...                       aggregator="mean")
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
+
+    For the monthly step size, the result table is empty, due to the too short
+    initialisation period covering less than a month:
+
+    >>> pub.timegrids.eval_.dates = pub.timegrids.init.dates
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       stepsize="monthly",
+    ...                       aggregator="mean")
+           corr  bias_abs
+    test1     -         -
+    test2     -         -
+    mean      -         -
     """
     if nodenames:
         if len(nodes) != len(nodenames):
@@ -1768,17 +1907,59 @@ which does not match with number of given alternative names being 1.
             )
     else:
         critnames = [crit.__name__ for crit in criteria]
+    if isinstance(critfactors, float):
+        critfactors = len(criteria) * (critfactors,)
+    if isinstance(critdigits, int):
+        critdigits = len(criteria) * (critdigits,)
+    formats = tuple(f"%.{d}f" for d in critdigits)
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
-        sim, obs = prepare_arrays(
-            node=node,
-            skip_nan=skip_nan,
-            subperiod=subperiod,
-        )
-        for jdx, criterion in enumerate(criteria):
-            data[idx, jdx] = criterion(
-                sim=sim,
-                obs=obs,
+        if stepsize is not None:
+            sim = seriestools.aggregate_series(
+                series=node.sequences.sim.series,
+                stepsize=stepsize,
+                aggregator=aggregator,
+                subperiod=subperiod,
+            ).values
+            obs = seriestools.aggregate_series(
+                series=node.sequences.obs.series,
+                stepsize=stepsize,
+                aggregator=aggregator,
+                subperiod=subperiod,
+            ).values
+        else:
+            sim, obs = prepare_arrays(
+                node=node,
+                skip_nan=False,
+                subperiod=subperiod,
             )
-    table = pandas.DataFrame(data=data, index=nodenames, columns=critnames)
-    return table
+        if len(obs) > 0:
+            availability = 1.0 - sum(numpy.isnan(obs)) / len(obs)
+        else:
+            availability = 0.0
+        if availability < filter_:
+            data[idx, :] = numpy.nan
+        else:
+            for jdx, (criterion, critfactor) in enumerate(zip(criteria, critfactors)):
+                data[idx, jdx] = critfactor * criterion(sim=sim, obs=obs, skip_nan=True)
+
+    def _write(x: str, ys: Iterable[str], printtarget_: TextIO) -> None:
+        printtarget_.write(f"{x}\t")
+        printtarget_.write("\t".join(ys).replace(".", decimalseperator))
+        printtarget_.write("\n")
+
+    def _nmbs2strs(numbers: Iterable[float]) -> Generator[str, None, None]:
+        return (
+            (f % n).replace(".", decimalseperator).replace("nan", missingvalue)
+            for n, f in zip(numbers, formats)
+        )
+
+    with objecttools.get_printtarget(file_) as printtarget:
+        _write("", critnames, printtarget)
+        for nodename, row in zip(nodenames, data):
+            _write(nodename, _nmbs2strs(row), printtarget)
+        if average:
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", "Mean of empty slice")
+                mean = _nmbs2strs(numpy.nanmean(data, axis=0))
+            _write(averagename, mean, printtarget)

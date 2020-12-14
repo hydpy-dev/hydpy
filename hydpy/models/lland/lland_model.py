@@ -555,7 +555,7 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
 
 
 class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
-    """Calculate the ref-use-specific wind speed at height of 2 meters
+    """Calculate the landuse-use-specific wind speed at height of 2 meters
     :cite:`ref-LARSIM` (based on :cite:`ref-LUBW2006a`,
     :cite:`ref-LUBWLUWG2015`).
 
@@ -568,7 +568,7 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
 
         The basic equation given above holds for forests (hydrological
         response units of type |LAUBW|, |MISCHW|, and |NADELW| only.
-        For all other ref-use types method |Calc_ReducedWindSpeed2m_V1|
+        For all other landuse-use types method |Calc_ReducedWindSpeed2m_V1|
         maintains the given wind speed for grass:
 
         >>> from hydpy import pub
@@ -2540,7 +2540,7 @@ class Calc_WGTF_V1(modeltools.Method):
 
         The results of the first four hydrological response units show
         that |WGTF| is generally zero for water areas (here, |FLUSS| and
-        |SEE|) in principally identical for all other ref-use type
+        |SEE|) in principally identical for all other landuse-use type
         (here, |ACKER| and |LAUBW|).  The results of the last three
         response units show the expectable linear relationship.  However,
         note that that |WGTF| is allowed to be negative:
@@ -5649,9 +5649,9 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
     Examples:
 
         Besides wind speed, aerodynamic resistance depends on the crop height,
-        which typically varies between different ref-use classes and, for
+        which typically varies between different landuse-use classes and, for
         vegetated surfaces, months.  In the first example, we set some
-        different crop heights for different ref-use types to cover the
+        different crop heights for different landuse-use types to cover the
         relevant range of values:
 
         >>> from hydpy import pub
@@ -5901,7 +5901,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
 
         Method |Calc_LanduseSurfaceResistance_V1| relies on multiple
         discontinuous relationships, works different for different
-        types of ref-use, and uses montly varying base parameters.
+        types of landuse-use, and uses montly varying base parameters.
         Hence, we try to start simple and introduce further complexities
         step by step.
 

@@ -20,106 +20,163 @@ import numpy
 from numpy import nan
 
 # ...from HydPy
-from hydpy.core import pubtools
+from hydpy.core import (
+    pubtools,
+)
 
 pub = pubtools.Pub("pub")
-from hydpy import config
-from hydpy import models
-from hydpy.core import dummytools
-from hydpy.core import indextools
-from hydpy.core import objecttools
-from hydpy.core import optiontools
-from hydpy.core import sequencetools
-from hydpy.cythons.autogen import configutils
-from hydpy.core.auxfiletools import Auxfiler
-from hydpy.core.devicetools import Element
-from hydpy.core.devicetools import Elements
-from hydpy.core.devicetools import FusedVariable
-from hydpy.core.devicetools import Node
-from hydpy.core.devicetools import Nodes
-from hydpy.core.exceptiontools import AttributeNotReady
-from hydpy.core.exceptiontools import attrready
-from hydpy.core.exceptiontools import getattr_
-from hydpy.core.exceptiontools import hasattr_
-from hydpy.core.exceptiontools import HydPyDeprecationWarning
-from hydpy.core.hydpytools import HydPy
-from hydpy.core.importtools import prepare_model
-from hydpy.core.importtools import reverse_model_wildcard_import
-from hydpy.core.itemtools import AddItem
-from hydpy.core.itemtools import GetItem
-from hydpy.core.itemtools import SetItem
-from hydpy.core.objecttools import classname
-from hydpy.core.objecttools import print_values
-from hydpy.core.objecttools import round_
-from hydpy.core.objecttools import repr_
-from hydpy.core.selectiontools import Selection
-from hydpy.core.selectiontools import Selections
-from hydpy.core.seriestools import aggregate_series
-from hydpy.core.timetools import Date
-from hydpy.core.timetools import Period
-from hydpy.core.timetools import Timegrid
-from hydpy.core.timetools import Timegrids
-from hydpy.core.timetools import TOY
-from hydpy.core.testtools import make_abc_testable
-from hydpy.core.testtools import NumericalDifferentiator
-from hydpy.core.testtools import IntegrationTest
-from hydpy.core.testtools import Open
-from hydpy.core.testtools import TestIO
-from hydpy.core.testtools import UnitTest
-from hydpy.core.testtools import update_integrationtests
-from hydpy.core.variabletools import INT_NAN
-from hydpy.core.variabletools import sort_variables
-from hydpy.auxs.armatools import ARMA
-from hydpy.auxs.armatools import MA
-from hydpy.auxs.anntools import ANN
-from hydpy.auxs.anntools import ann
-from hydpy.auxs.anntools import SeasonalANN
-from hydpy.auxs.calibtools import Add
-from hydpy.auxs.calibtools import Adaptor
-from hydpy.auxs.calibtools import CalibrationInterface
-from hydpy.auxs.calibtools import CalibSpec
-from hydpy.auxs.calibtools import CalibSpecs
-from hydpy.auxs.calibtools import FactorAdaptor
-from hydpy.auxs.calibtools import Multiply
-from hydpy.auxs.calibtools import Replace
-from hydpy.auxs.calibtools import ReplaceIUH
-from hydpy.auxs.calibtools import Rule
-from hydpy.auxs.calibtools import SumAdaptor
-from hydpy.auxs.calibtools import TargetFunction
-from hydpy.auxs.iuhtools import LinearStorageCascade
-from hydpy.auxs.iuhtools import TranslationDiffusionEquation
-from hydpy.auxs.networktools import RiverBasinNumber
-from hydpy.auxs.networktools import RiverBasinNumbers
-from hydpy.auxs.networktools import RiverBasinNumbers2Selection
-from hydpy.auxs.statstools import bias_abs
-from hydpy.auxs.statstools import bias_rel
-from hydpy.auxs.statstools import calc_mean_time
-from hydpy.auxs.statstools import calc_mean_time_deviation
-from hydpy.auxs.statstools import corr
-from hydpy.auxs.statstools import corr2
-from hydpy.auxs.statstools import filter_series
-from hydpy.auxs.statstools import print_evaluationtable
-from hydpy.auxs.statstools import hsepd
-from hydpy.auxs.statstools import hsepd_manual
-from hydpy.auxs.statstools import hsepd_pdf
-from hydpy.auxs.statstools import kge
-from hydpy.auxs.statstools import nse
-from hydpy.auxs.statstools import nse_log
-from hydpy.auxs.statstools import prepare_arrays
-from hydpy.auxs.statstools import rmse
-from hydpy.auxs.statstools import std_ratio
-from hydpy.auxs.xmltools import XMLInterface
-from hydpy.auxs.xmltools import run_simulation
-from hydpy.exe.commandtools import exec_commands
-from hydpy.exe.commandtools import exec_script
-from hydpy.exe.commandtools import execute_scriptfunction
-from hydpy.exe.commandtools import run_subprocess
-from hydpy.exe.commandtools import start_shell
-from hydpy.exe.commandtools import print_latest_logfile
-from hydpy.exe.commandtools import test_everything
-from hydpy.exe.replacetools import xml_replace
-from hydpy.exe.servertools import await_server
-from hydpy.exe.servertools import start_server
+
+from hydpy import (
+    config,
+)
+from hydpy import (
+    models,
+)
+from hydpy.core import (
+    dummytools,
+    indextools,
+    objecttools,
+    optiontools,
+    sequencetools,
+)
+from hydpy.cythons.autogen import (
+    configutils,
+)
+from hydpy.core.auxfiletools import (
+    Auxfiler,
+)
+from hydpy.core.devicetools import (
+    Element,
+    Elements,
+    FusedVariable,
+    Node,
+    Nodes,
+)
+from hydpy.core.exceptiontools import (
+    AttributeNotReady,
+    attrready,
+    getattr_,
+    hasattr_,
+)
+from hydpy.core.exceptiontools import (
+    HydPyDeprecationWarning,
+)
+from hydpy.core.hydpytools import (
+    HydPy,
+)
+from hydpy.core.importtools import (
+    prepare_model,
+    reverse_model_wildcard_import,
+)
+from hydpy.core.itemtools import (
+    AddItem,
+    GetItem,
+    SetItem,
+)
+from hydpy.core.objecttools import (
+    classname,
+    print_values,
+    round_,
+    repr_,
+)
+from hydpy.core.selectiontools import (
+    Selection,
+    Selections,
+)
+from hydpy.core.seriestools import (
+    aggregate_series,
+)
+from hydpy.core.timetools import (
+    Date,
+    Period,
+    Timegrid,
+    Timegrids,
+    TOY,
+)
+from hydpy.core.testtools import (
+    make_abc_testable,
+    NumericalDifferentiator,
+    IntegrationTest,
+    Open,
+    TestIO,
+    UnitTest,
+    update_integrationtests,
+)
+from hydpy.core.variabletools import (
+    INT_NAN,
+    sort_variables,
+)
+from hydpy.auxs.armatools import (
+    ARMA,
+    MA,
+)
+from hydpy.auxs.anntools import (
+    ANN,
+    ann,
+    SeasonalANN,
+)
+from hydpy.auxs.calibtools import (
+    Add,
+    Adaptor,
+    CalibrationInterface,
+    CalibSpec,
+    CalibSpecs,
+    FactorAdaptor,
+    Multiply,
+    Replace,
+    ReplaceIUH,
+    Rule,
+    SumAdaptor,
+    TargetFunction,
+)
+from hydpy.auxs.iuhtools import (
+    LinearStorageCascade,
+    TranslationDiffusionEquation,
+)
+from hydpy.auxs.networktools import (
+    RiverBasinNumber,
+    RiverBasinNumbers,
+    RiverBasinNumbers2Selection,
+)
+from hydpy.auxs.statstools import (
+    bias_abs,
+    bias_rel,
+    calc_mean_time,
+    calc_mean_time_deviation,
+    corr,
+    corr2,
+    filter_series,
+    print_evaluationtable,
+    hsepd,
+    hsepd_manual,
+    hsepd_pdf,
+    kge,
+    nse,
+    nse_log,
+    prepare_arrays,
+    rmse,
+    std_ratio,
+)
+from hydpy.auxs.xmltools import (
+    XMLInterface,
+    run_simulation,
+)
+from hydpy.exe.commandtools import (
+    exec_commands,
+    exec_script,
+    execute_scriptfunction,
+    run_subprocess,
+    start_shell,
+    print_latest_logfile,
+    test_everything,
+)
+from hydpy.exe.replacetools import (
+    xml_replace,
+)
+from hydpy.exe.servertools import (
+    await_server,
+    start_server,
+)
 
 
 pub.options = optiontools.Options()
@@ -268,7 +325,6 @@ for moduleinfo in pkgutil.walk_packages([modelpath]):
                     locals()[alias] = member
                     __all__.append(alias)
 
-# noinspection PyUnresolvedReferences
 if config.USEAUTODOC:
     with warnings.catch_warnings():
         warnings.filterwarnings(

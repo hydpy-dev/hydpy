@@ -42,7 +42,7 @@ ReprArg = Union[
 ]
 
 
-def dir_(self: Any) -> List[str]:
+def dir_(self: object) -> List[str]:
     """The prefered way for HydPy objects to respond to |dir|.
 
     Note the depencence on the `pub.options.dirverbose`.  If this option is
@@ -73,7 +73,7 @@ def dir_(self: Any) -> List[str]:
     [' ']
     """
     names = set()
-    for thing in list(inspect.getmro(type(self))) + [self]:
+    for thing in itertools.chain(inspect.getmro(type(self)), (self,)):
         for key in vars(thing).keys():
             if hydpy.pub.options.dirverbose or not key.startswith("_"):
                 names.add(key)

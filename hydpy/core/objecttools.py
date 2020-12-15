@@ -7,6 +7,7 @@ import builtins
 import contextlib
 import copy
 import inspect
+import itertools
 import numbers
 import sys
 import textwrap
@@ -17,6 +18,7 @@ from typing import TextIO
 from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
+import black
 import wrapt
 
 # ...from HydPy
@@ -1769,3 +1771,47 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     else:
         yield file_
         file_.flush()
+
+
+_black_filemode = black.FileMode()
+
+
+def apply_black(
+    name: str,
+    *args: object,
+    **kwargs: object,
+) -> str:
+    """Return a string representation of an instance of a class based on the given
+     name, positional arguments and keyword arguments.
+
+    .. _`black`: https://black.readthedocs.io/en/stable/
+    .. _`PEP 8`: https://www.python.org/dev/peps/pep-0008/
+
+    |apply_black| helps to define `__repr__` methods that agree with `PEP 8` by
+    using the code formatter `black`_:
+
+    >>> from hydpy.core.objecttools import apply_black
+    >>> print(apply_black("Tester"))
+    Tester()
+    >>> print(apply_black("Tester", 1, "test"))
+    Tester(1, "test")
+    >>> print(apply_black("Tester", number=1, string="test"))
+    Tester(number=1, string="test")
+    >>> print(apply_black("Tester", 1, "test", number=2, string=f"a {10*'very '}long test"))
+    Tester(
+        1,
+        "test",
+        number=2,
+        string="a very very very very very very very very very very long test",
+    )
+    """
+    arguments = ", ".join(
+        itertools.chain(
+            (repr(arg) for arg in args),
+            (f"{name}={repr(value)}" for name, value in kwargs.items()),
+        )
+    )
+    return black.format_str(
+        f"{name}({arguments})",
+        mode=_black_filemode,
+    )[:-1]

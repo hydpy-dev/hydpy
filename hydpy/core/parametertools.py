@@ -19,12 +19,13 @@ from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
+    from hydpy.core import devicetools
     from hydpy.core import masktools
     from hydpy.core import modeltools
-    from hydpy.core import typingtools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
@@ -468,14 +469,14 @@ class SubParameters(
     '''
 
     pars: Parameters
-    _cymodel: Optional["typingtools.CyModelProtocol"]
+    _cymodel: Optional[CyModelProtocol]
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
         self,
         master: Parameters,
         cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
-        cymodel: Optional["typingtools.CyModelProtocol"] = None,
+        cymodel: Optional[CyModelProtocol] = None,
     ):
         self.pars = master
         self._cymodel = cymodel
@@ -995,8 +996,8 @@ parameter and a simulation time step size first.
     @classmethod
     def apply_timefactor(
         cls,
-        values: "typingtools.ArrayFloat",
-    ) -> "typingtools.ArrayFloat":
+        values: ArrayFloat,
+    ) -> ArrayFloat:
         """Change and return the given value(s) in accordance with
         |Parameter.get_timefactor| and the type of time-dependence
         of the actual parameter subclass.
@@ -1049,8 +1050,8 @@ parameter and a simulation time step size first.
     @classmethod
     def revert_timefactor(
         cls,
-        values: "typingtools.ArrayFloat",
-    ) -> "typingtools.ArrayFloat":
+        values: ArrayFloat,
+    ) -> ArrayFloat:
         """The inverse version of method |Parameter.apply_timefactor|.
 
         See the explanations on method Parameter.apply_timefactor| to

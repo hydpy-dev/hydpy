@@ -23,6 +23,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -2031,12 +2032,26 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return to_repr(self, self.value)
 
 
+@overload
 def sort_variables(
-    variables: Iterable[Type[VariableType]],
+    values: Iterable[Type[VariableType]],
 ) -> Tuple[Type[VariableType], ...]:
+    ...
+
+
+@overload
+def sort_variables(
+    values: Iterable[Tuple[Type[VariableType], T]],
+) -> Tuple[Tuple[Type[VariableType], T], ...]:
+    ...
+
+
+def sort_variables(
+    values: Iterable[Union[Type[VariableType], Tuple[Type[VariableType], T]]]
+) -> Tuple[Union[Type[VariableType], Tuple[Type[VariableType], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
-    When defined in one module, the initialisation order corresponds the
+    When defined in one module, the initialisation order corresponds to the
     order within the file:
 
     >>> from hydpy import classname, sort_variables
@@ -2047,13 +2062,21 @@ def sort_variables(
     Area
     NmbZones
     ZoneType
+
+    Function |sort_variables| also supports sorting tuples.  Each first entry
+    must be a |Variable| subclass:
+
+    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), idx)
+    Area 3
+    NmbZones 1
+    ZoneType 2
     """
-    return tuple(
-        var_
-        for (idx, var_) in sorted(
-            (var_.__hydpy__subclasscounter__, var_) for var_ in variables
-        )
-    )
+    idx2value = {}
+    for value in values:
+        variable = value[0] if isinstance(value, tuple) else value
+        idx2value[variable.__hydpy__subclasscounter__] = value
+    return tuple(value for idx, value in sorted(idx2value.items()))
 
 
 class SubVariables(Generic[GroupType, VariableType, FastAccessType]):

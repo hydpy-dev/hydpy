@@ -34,6 +34,7 @@ from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import variabletools
+from hydpy.docs import bibliography
 from hydpy.docs import figs
 from hydpy.docs import sphinx
 from hydpy.docs import rst
@@ -153,7 +154,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
 
 # Copy additional files into folder `auto` and, for the rst files, add the
 # required substitution replacement commands.
-for subpackage in (figs, sphinx, rst):
+for subpackage in (bibliography, figs, sphinx, rst):
     subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
     for filename in os.listdir(subpackagepath):
         path_in = os.path.join(subpackagepath, filename)

@@ -4,6 +4,6 @@
 Bibliography
 ============
 
-.. bibliography:: ../bibliography/refs.bib
+.. bibliography:: refs.bib
     :style: unsrt
     :keyprefix: ref-

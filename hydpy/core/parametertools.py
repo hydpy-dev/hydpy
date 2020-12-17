@@ -3,6 +3,7 @@
 of the parameters of hydrological models."""
 # import...
 # ...from standard library
+import copy
 import inspect
 import textwrap
 import time
@@ -502,6 +503,446 @@ class SubParameters(
         'control'
         """
         return type(self).__name__[:-10].lower()
+
+
+class KeywordArgumentsError(RuntimeError):
+    """A specialised |RuntimeError| raised by class |KeywordArguments|."""
+
+
+class KeywordArguments(Generic[T]):
+    """A handler for the keyword arguments of the instances of specific |Parameter|
+    subclasses.
+
+    Class |KeywordArguments| is a rather elaborate feature of *HydPy* primarily
+    thought for framework developers.  One possible use-case for (advanced)
+    *HydPy* users is writing polished auxiliary control files.  When dealing with
+    such a problem, have a look on method |KeywordArguments.extend|.
+
+    The purpose of class |KeywordArguments| is to simplify handling instances of
+    |Parameter| subclasses which allow setting values by calling them with keyword
+    arguments.  When useful, instances of |Parameter| subclasses should return a
+    valid |KeywordArguments| object via property |Parameter.keywordarguments|.
+    This object should contain the keyword arguments that, when passed to the same
+    parameter instance or another parameter instance of the same type, sets it into
+    an equal state.  This is best explained by the following example based on
+    parameter |lland_control.TRefT| of application model |lland_v1| (see the
+    documentation on property |ZipParameter.keywordarguments| of class |ZipParameter|
+    for additional information):
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep()
+    >>> nhru(4)
+    >>> lnk(ACKER, LAUBW, WASSER, ACKER)
+    >>> treft(acker=2.0, laubw=1.0)
+    >>> treft.keywordarguments
+    KeywordArguments(acker=2.0, laubw=1.0)
+
+    You can initialise a |KeywordArguments| object on your own:
+
+    >>> from hydpy import KeywordArguments
+    >>> kwargs1 = KeywordArguments(acker=3.0, laubw=2.0, nadelw=1.0)
+    >>> kwargs1
+    KeywordArguments(acker=3.0, laubw=2.0, nadelw=1.0)
+
+    After preparing a |KeywordArguments| object, it is "valid" by default:
+
+    >>> kwargs1.valid
+    True
+
+    Pass |False| as a positional argument to the constructor if you want your
+    |KeywordArguments| object to be invalid at first:
+
+    >>> kwargs2 = KeywordArguments(False)
+    >>> kwargs2
+    KeywordArguments()
+    >>> kwargs2.valid
+    False
+
+    Flag |KeywordArguments.valid| for example helps to distinguish between empty
+    objects that are okay to be empty and those that are not.  When we, for example,
+    set all hydrological response units to land-use type |lland_constants.WASSER|
+    (water), parameter |lland_control.TRefT| returns the following valid
+    |KeywordArguments| object, as its values do not need to be defined for water areas:
+
+    >>> lnk(WASSER)
+    >>> treft
+    treft(nan)
+    >>> treft.keywordarguments
+    KeywordArguments()
+    >>> treft.keywordarguments.valid
+    True
+
+    Class |KeywordArguments| supports features like iteration but raises the
+    exception |KeywordArgumentsError| when trying to iterate an invalid object:
+
+    >>> for keyword, argument in kwargs1:
+    ...     print(keyword, argument)
+    acker 3.0
+    laubw 2.0
+    nadelw 1.0
+
+    >>> for keyword, argument in kwargs2:
+    ...     print(keyword, argument)
+    Traceback (most recent call last):
+    ...
+    hydpy.core.parametertools.KeywordArgumentsError: Cannot iterate an invalid \
+`KeywordArguments` object.
+
+    The same holds when trying to check if a specific keyword-value item is available:
+
+    >>> ("acker", 3.0) in kwargs1
+    True
+    >>> ("laubw", 3.0) in kwargs1
+    False
+    >>> ("?", "???") in kwargs1
+    False
+    >>> ("laubw", 3.0) in kwargs2
+    Traceback (most recent call last):
+    ...
+    hydpy.core.parametertools.KeywordArgumentsError: Cannot check if an item is \
+defined by an invalid `KeywordArguments` object.
+
+    However, keyword access is always possible:
+
+    >>> kwargs2["laubw"] = 3.0
+
+    >>> kwargs2["laubw"]
+    3.0
+
+    >>> del kwargs2["laubw"]
+
+    >>> kwargs2["laubw"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'The current `KeywordArguments` object does not handle an argument \
+under the keyword `laubw`.'
+
+    >>> del kwargs2["laubw"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'The current `KeywordArguments` object does not handle an argument \
+under the keyword `laubw`.'
+
+    Two |KeywordArguments| objects are considered equal if they have the same
+    validity state, the same length, and if all items are equal:
+
+    >>> KeywordArguments(True) == KeywordArguments(False)
+    False
+    >>> KeywordArguments(x=1) == KeywordArguments(x=1, y=2)
+    False
+    >>> KeywordArguments(x=1, y=2) == KeywordArguments(x=1, y=3)
+    False
+    >>> KeywordArguments(x=1, y=2) == KeywordArguments(x=1, y=2)
+    True
+
+    You can also compare with other objects (always |False|) and use the
+    "!=" operator:
+
+    >>> KeywordArguments() == "test"
+    False
+    >>> KeywordArguments(x=1, y=2) != KeywordArguments(x=1, y=2)
+    False
+    """
+
+    valid: bool
+    """Flag indicating whether the actual |KeywordArguments| object is valid or not."""
+    _name2value: Dict[str, T]
+
+    def __init__(
+        self,
+        __valid: bool = True,
+        **keywordarguments: T,
+    ) -> None:
+        self.valid = __valid
+        self._name2value = copy.deepcopy(keywordarguments)
+
+    def add(self, name: str, value: T) -> None:
+        """Add a keyword argument.
+
+        Method |KeywordArguments.add| works both for valid and invalid
+        |KeywordArguments| objects without changing their validity status:
+
+        >>> from hydpy import KeywordArguments
+        >>> kwargs = KeywordArguments()
+        >>> kwargs.add("one", 1)
+        >>> kwargs.valid = False
+        >>> kwargs.add("two", 2)
+        >>> kwargs
+        KeywordArguments(one=1, two=2)
+
+        It raises the following error when (possibly accidentally) trying to
+        overwrite an existing keyword argument:
+
+        >>> kwargs.add("one", 3)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.parametertools.KeywordArgumentsError: Cannot add argument value \
+`3` of type `int` to the current `KeywordArguments` object as it already handles \
+the unequal argument `1` under the keyword `one`.
+
+        On the other hand, redefining the save value causes no harm and thus
+        does not trigger an exception:
+
+        >>> kwargs.add("one", 1)
+        >>> kwargs
+        KeywordArguments(one=1, two=2)
+        """
+        if name in self._name2value:
+            if self._name2value[name] != value:
+                raise KeywordArgumentsError(
+                    f"Cannot add argument {objecttools.value_of_type(value)} to the "
+                    f"current `{type(self).__name__}` object as it already handles "
+                    f"the unequal argument `{self._name2value[name]}` under the "
+                    f"keyword `{name}`."
+                )
+        else:
+            self._name2value[name] = value
+
+    def subset_of(
+        self,
+        other: "KeywordArguments[T]",
+    ) -> bool:
+        """Check if the actual |KeywordArguments| object is a subset of the given one.
+
+        First, we define the following (valid) |KeywordArguments| objects:
+
+        >>> from hydpy import KeywordArguments
+        >>> kwargs1 = KeywordArguments(a=1, b=2)
+        >>> kwargs2 = KeywordArguments(a= 1, b=2, c=3)
+        >>> kwargs3 = KeywordArguments(a= 1, b=3)
+
+        Method |KeywordArguments.subset_of| requires that the keywords handled by
+        the left |KeywordArguments| object form a subset of the keywords of the
+        right |KeywordArguments| object:
+
+        >>> kwargs1.subset_of(kwargs2)
+        True
+        >>> kwargs2.subset_of(kwargs1)
+        False
+
+        Additionally, all values corresponding to the union of the relevant keywords
+        must be equal:
+
+        >>> kwargs1.subset_of(kwargs3)
+        False
+
+        If at least one of both |KeywordArguments| is invalid,  method
+        |KeywordArguments.subset_of| generally returns |False|:
+
+        >>> kwargs2.valid = False
+        >>> kwargs1.subset_of(kwargs2)
+        False
+        >>> kwargs2.subset_of(kwargs1)
+        False
+        >>> kwargs2.subset_of(kwargs2)
+        False
+        """
+        if self.valid and other.valid:
+            for item in self._name2value.items():
+                if item not in other:
+                    return False
+            return True
+        return False
+
+    def extend(
+        self,
+        parametertype: Type["Parameter"],
+        elements: Iterable["devicetools.Element"],
+        raise_exception: bool = True,
+    ) -> None:
+        """Extend the currently available keyword arguments based on the parameters
+        of the given type handled by the given elements.
+        
+        Sometimes (for example, when writing auxiliary control files) one is 
+        interested in a superset of all keyword arguments related to a specific
+        |Parameter| type relevant for certain |Element| objects.  To show how
+        method |KeywordArguments.extend| can help in such cases, we make use of
+        the `LahnH` example project:
+        
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+
+        First, we prepare an empty |KeywordArguments| object:
+
+        >>> from hydpy import KeywordArguments
+        >>> kwargs = KeywordArguments()
+        >>> kwargs
+        KeywordArguments()
+
+        When passing a |Parameter| subclass (in our example
+        |hland_control.IcMax|) and some |Element| objects (at first the headwater
+        elements, which handle instances of application model |hland_v1|), method
+        |KeywordArguments.extend| collects their relevant keyword arguments:
+
+        >>> from hydpy.models.hland.hland_control import IcMax
+        >>> kwargs.extend(IcMax, pub.selections.headwaters.elements)
+        >>> kwargs
+        KeywordArguments(field=1.0, forest=1.5)
+
+        Applying method |KeywordArguments.extend| also on the non-headwaters does
+        not change anything, as the values of parameter |hland_control.IcMax| are
+        consistent for the whole Lahn river basin:
+
+        >>> kwargs.extend(IcMax, pub.selections.nonheadwaters.elements)
+        >>> kwargs
+        KeywordArguments(field=1.0, forest=1.5)
+
+        Next, we change the interception capacity of forests in one subcatchment:
+
+        >>> icmax = hp.elements.land_lahn_2.model.parameters.control.icmax
+        >>> icmax(field=1.0, forest=2.0)
+
+        Re-applying method |KeywordArguments.extend| now raises the following error:
+
+        >>> kwargs.extend(IcMax, pub.selections.nonheadwaters.elements)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
+keyword arguments based on the available `IcMax` parameter objects, the following \
+error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
+the following error occurred: Cannot add argument value `2.0` of type `float64` to \
+the current `KeywordArguments` object as it already handles the unequal argument \
+`1.5` under the keyword `forest`.
+
+        The old keywords arguments and the validity status remain unchanged:
+
+        >>> kwargs
+        KeywordArguments(field=1.0, forest=1.5)
+        >>> kwargs.valid
+        True
+
+        When we modify the same |hland_control.IcMax| parameter object in a way
+        that it cannot return a valid |KeywordArguments| object anymore, we get
+        the following error message:
+
+        >>> icmax(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+        >>> kwargs.extend(IcMax, pub.selections.nonheadwaters.elements)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
+keyword arguments based on the available `IcMax` parameter objects, the following \
+error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
+the following error occurred: Cannot iterate an invalid `KeywordArguments` object.
+
+        When setting the `raise_exception` argument to |False|, method
+        |KeywordArguments.extend| handles such errors internally and, instead of
+        raising an error invalidates the actual |KeywordArguments| object:
+
+        >>> kwargs.extend(
+        ...     IcMax, pub.selections.nonheadwaters.elements, raise_exception=False)
+        >>> kwargs
+        KeywordArguments()
+        >>> kwargs.valid
+        False
+
+        Trying to extend an invalid |KeywordArguments| object by default also
+        raises an exception of type |KeywordArgumentsError|:
+
+        >>> kwargs.extend(IcMax, pub.selections.headwaters.elements)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
+keyword arguments based on the available `IcMax` parameter objects, the following \
+error occurred: The `KeywordArguments` object is invalid.
+
+        When setting `raise_exception` to |False| instead, nothing happens:
+
+        >>> kwargs.extend(IcMax, pub.selections.headwaters.elements, \
+raise_exception=False)
+        >>> kwargs
+        KeywordArguments()
+        >>> kwargs.valid
+        False
+        """
+        name_parameter = parametertype.name
+        try:
+            if not self.valid:
+                if raise_exception:
+                    raise KeywordArgumentsError(
+                        f"The `{type(self).__name__}` object is invalid."
+                    )
+                return
+            for element in elements:
+                try:
+                    control = element.model.parameters.control
+                    other = control[name_parameter].keywordarguments
+                    for name_keyword, value in other:
+                        self.add(name_keyword, value)
+                except KeywordArgumentsError:
+                    if raise_exception:
+                        objecttools.augment_excmessage(
+                            f"While trying to add the keyword arguments for "
+                            f"element `{objecttools.devicename(element)}`"
+                        )
+                    self.valid = False
+                    self._name2value.clear()
+                    return
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to extend the keyword arguments based on the "
+                f"available `{parametertype.__name__}` parameter objects"
+            )
+        return
+
+    def __getitem__(self, key: str) -> T:
+        try:
+            return self._name2value[key]
+        except KeyError:
+            raise KeyError(
+                f"The current `{type(self).__name__}` object does "
+                f"not handle an argument under the keyword `{key}`."
+            ) from None
+
+    def __setitem__(self, key: str, value: T) -> None:
+        self._name2value[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        try:
+            del self._name2value[key]
+        except KeyError:
+            raise KeyError(
+                f"The current `{type(self).__name__}` object does "
+                f"not handle an argument under the keyword `{key}`."
+            ) from None
+
+    def __contains__(self, item: Tuple[str, T]) -> bool:
+        if not self.valid:
+            raise KeywordArgumentsError(
+                f"Cannot check if an item is defined by an invalid "
+                f"`{type(self).__name__}` object."
+            )
+        if item[0] in self._name2value:
+            return self._name2value[item[0]] == item[1]
+        return False
+
+    def __len__(self) -> int:
+        return len(self._name2value)
+
+    def __iter__(self) -> Iterator[Tuple[str, T]]:
+        if not self.valid:
+            raise KeywordArgumentsError(
+                f"Cannot iterate an invalid `{type(self).__name__}` object."
+            )
+        for item in self._name2value.items():
+            yield item
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, KeywordArguments):
+            if self.valid != other.valid:
+                return False
+            if len(self) != len(other):
+                return False
+            for item in self:
+                if item not in other:
+                    return False
+            return True
+        return False
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __repr__(self) -> str:
+        return objecttools.apply_black(type(self).__name__, **self._name2value)
 
 
 class Parameter(
@@ -1101,6 +1542,25 @@ implement method `update`.
             f"implement method `update`."
         )
 
+    @property
+    def keywordarguments(self) -> KeywordArguments:
+        """An invalid |KeywordArguments| object.
+
+        By default, instances of |Parameter| subclasses return empty,
+        invalid |KeywordArguments| objects:
+
+        >>> from hydpy.core.parametertools import Parameter
+        >>> kwa = Parameter(None).keywordarguments
+        >>> kwa
+        KeywordArguments()
+        >>> kwa.valid
+        False
+
+        See the documentation on class |ZipParameter| for the implementation
+        of a |Parameter| subclass overriding this behaviour.
+        """
+        return KeywordArguments(False)
+
     def compress_repr(self) -> Optional[str]:
         """Try to find a compressed parameter value representation and
         return it.
@@ -1262,10 +1722,10 @@ implement method `update`.
         ...     pass
         >>> dir(Par(None))
         ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'apply_timefactor', \
-'availablemasks', 'average_values', 'commentrepr', 'compress_repr', \
-'fastaccess', 'get_submask', 'get_timefactor', 'initinfo', 'mask', 'name', \
-'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', \
-'subpars', 'subvars', 'trim', 'unit', 'update', 'value', 'values', 'verify']
+'availablemasks', 'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
+'get_submask', 'get_timefactor', 'initinfo', 'keywordarguments', 'mask', 'name', \
+'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', 'subpars', \
+'subvars', 'trim', 'unit', 'update', 'value', 'values', 'verify']
         """
         return objecttools.dir_(self)
 

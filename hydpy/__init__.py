@@ -79,6 +79,9 @@ from hydpy.core.objecttools import (
     round_,
     repr_,
 )
+from hydpy.core.parametertools import (
+    KeywordArguments,
+)
 from hydpy.core.selectiontools import (
     Selection,
     Selections,
@@ -226,6 +229,7 @@ __all__ = [
     "classname",
     "repr_",
     "round_",
+    "KeywordArguments",
     "Selection",
     "Selections",
     "aggregate_series",

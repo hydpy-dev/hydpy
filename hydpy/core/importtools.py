@@ -23,6 +23,9 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
+
 
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
@@ -212,7 +215,7 @@ def reverse_model_wildcard_import() -> None:
 def prepare_model(
     module: Union[types.ModuleType, str],
     timestep: Optional[timetools.PeriodConstrArg] = None,
-):
+) -> "modeltools.Model":
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file prepares an individual

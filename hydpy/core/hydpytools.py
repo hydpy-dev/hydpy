@@ -1048,10 +1048,11 @@ Use method `prepare_models` instead.
         above:
 
         >>> from hydpy import Auxfiler
-        >>> aux = Auxfiler()
-        >>> aux += "hstream_v1"
-        >>> aux.hstream_v1.stream = model.parameters.control.damp
-        >>> aux.hstream_v1.stream = model.parameters.control.lag
+        >>> auxfiler = Auxfiler("hstream_v1")
+        >>> auxfiler.hstream_v1.add_parameter(
+        ...     model.parameters.control.damp, filename="stream")
+        >>> auxfiler.hstream_v1.add_parameter(
+        ...     model.parameters.control.lag, filename="stream")
 
         When passing the |Auxfiler| object to the method |HydPy.save_controls|,
         the control file of element `stream_lahn_1_lahn_2` does not
@@ -1060,7 +1061,7 @@ Use method `prepare_models` instead.
 
         >>> with TestIO():
         ...     pub.controlmanager.currentdir = "newdir"
-        ...     hp.save_controls(auxfiler=aux)
+        ...     hp.save_controls(auxfiler=auxfiler)
         ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
@@ -1086,8 +1087,8 @@ Use method `prepare_models` instead.
         simulationstep("1d")
         parameterstep("1d")
         <BLANKLINE>
-        damp(0.0)
         lag(0.583)
+        damp(0.0)
         <BLANKLINE>
 
         The |hstream_v1| model of element `stream_lahn_2_lahn_3` defines
@@ -1120,7 +1121,7 @@ Use method `prepare_models` instead.
         >>> with TestIO():
         ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls(
-        ...         auxfiler=aux, parameterstep="2d", simulationstep="1h")
+        ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
         ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
@@ -1144,8 +1145,8 @@ Use method `prepare_models` instead.
         simulationstep("1h")
         parameterstep("2d")
         <BLANKLINE>
-        damp(0.0)
         lag(0.2915)
+        damp(0.0)
         <BLANKLINE>
 
         >>> with TestIO():

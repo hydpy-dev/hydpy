@@ -1350,7 +1350,10 @@ Use method `prepare_models` instead.
         each |Element| object and eventually the ones handled by the
         given |Auxfiler| object."""
         if auxfiler:
-            auxfiler.save(parameterstep, simulationstep)
+            auxfiler.write(
+                parameterstep=parameterstep,
+                simulationstep=simulationstep,
+            )
         for element in printtools.progressbar(self):
             element.model.parameters.save_controls(
                 parameterstep=parameterstep,

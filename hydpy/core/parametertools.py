@@ -241,7 +241,7 @@ variable `lag`, no value has been defined so far.
         filepath: Optional[str] = None,
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: "auxfiletools.Auxfiler" = None,
+        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
     ):
         """Write the control parameters to file.
 
@@ -294,12 +294,15 @@ function `save_controls` directly.  But in complete HydPy applications, \
 it is usally assumed to be consistent with the name of the element \
 handling the model.
         """
-        variable2auxfile = getattr(auxfiler, str(self.model), None)
+        if auxfiler is None:
+            parameter2auxfile = None
+        else:
+            parameter2auxfile = auxfiler.get(self.model)
         lines = [get_controlfileheader(self.model, parameterstep, simulationstep)]
         with hydpy.pub.options.parameterstep(parameterstep):
             for par in self.control:
-                if variable2auxfile:
-                    auxfilename = variable2auxfile.get_filename(par)
+                if parameter2auxfile is not None:
+                    auxfilename = parameter2auxfile.get_filename(par)
                     if auxfilename:
                         lines.append(f'{par.name}(auxfile="{auxfilename}")\n')
                         continue

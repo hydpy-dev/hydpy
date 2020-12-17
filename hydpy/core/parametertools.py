@@ -5,6 +5,7 @@ of the parameters of hydrological models."""
 # ...from standard library
 import copy
 import inspect
+import itertools
 import textwrap
 import time
 from typing import *
@@ -2001,17 +2002,6 @@ soil, water, and glacier.
     ValueError: While trying the set the value(s) of parameter `par` \
 of element `?` related to the special attribute `soil`, the following \
 error occurred: could not convert string to float: 'test'
-
-    .. testsetup::
-
-        >>> dir(par)
-        ['INIT', 'MODEL_CONSTANTS', 'NDIM', 'NOT_DEEPCOPYABLE_MEMBERS', \
-'SPAN', 'TIME', 'TYPE', 'apply_timefactor', 'availablemasks', \
-'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
-'get_submask', 'get_timefactor', 'glacier', 'initinfo', 'landtype', \
-'mask', 'name', 'refweights', 'revert_timefactor', 'shape', 'soil', \
-'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', \
-'value', 'values', 'verify', 'water']
     """
 
     NDIM = 1
@@ -2063,6 +2053,69 @@ error occurred: could not convert string to float: 'test'
         values[:] = self.apply_timefactor(values)
         self.trim()
 
+    @property
+    def keywordarguments(self) -> KeywordArguments[float]:
+        """A |KeywordArguments| object providing the currently valid keyword arguments.
+
+        We take parameter |lland_control.TRefT| of application model |lland_v1|
+        as an example and set its shape (the number of hydrological response units
+        defined by parameter |lland_control.NHRU|) to four and prepare the
+        land-use types |lland_constants.ACKER| (acre), |lland_constants.LAUBW|
+        (deciduous forest), and |lland_constants.WASSER| (water) via parameter
+        |lland_control.Lnk|:
+
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> lnk(ACKER, LAUBW, WASSER, ACKER)
+
+        After defining all required values via keyword arguments (note that parameter
+        |lland_control.TRefT| does not need any values for response units of type
+        |lland_constants.WASSER|), property |ZipParameter.keywordarguments| makes
+        exactly these keywords arguments available:
+
+        >>> treft(acker=2.0, laubw=1.0)
+        >>> treft.keywordarguments
+        KeywordArguments(acker=2.0, laubw=1.0)
+        >>> treft.keywordarguments.valid
+        True
+
+        In the following example, both the first and the fourth response unit are
+        of type |lland_constants.ACKER| but have different |lland_control.TRefT|
+        values, which cannot be the result of defining values via keyword arguments.
+        Hence, the returned |KeywordArguments| object is invalid:
+
+        >>> treft(1.0, 2.0, 3.0, 4.0)
+        >>> treft.keywordarguments
+        KeywordArguments()
+        >>> treft.keywordarguments.valid
+        False
+
+        This is different from the situation where all response units are of type
+        |lland_constants.WASSER|, where one does not need to define any values for
+        parameter |lland_control.TRefT|.  Thus, the returned |KeywordArguments|
+        object is also empty but valid:
+
+        >>> lnk(WASSER)
+        >>> treft.keywordarguments
+        KeywordArguments()
+        >>> treft.keywordarguments.valid
+        True
+        """
+        mask = self.mask
+        refindices = mask.refindices.values
+        name2unique = KeywordArguments()
+        for (key, value) in self.MODEL_CONSTANTS.items():
+            if value in mask.RELEVANT_VALUES:
+                unique = numpy.unique(self.values[refindices == value])
+                unique = self.revert_timefactor(unique)
+                length = len(unique)
+                if length == 1:
+                    name2unique[key.lower()] = unique[0]
+                elif length > 1:
+                    return KeywordArguments(False)
+        return name2unique
+
     def __getattr__(self, name: str):
         name_ = name.upper()
         if (not name.islower()) or (name_ not in self.MODEL_CONSTANTS):
@@ -2098,18 +2151,12 @@ error occurred: could not convert string to float: 'test'
         string = self.compress_repr()
         if string is not None:
             return f"{self.name}({string})"
-        results = []
-        mask = self.mask
-        refindices = mask.refindices.values
-        for (key, value) in self.MODEL_CONSTANTS.items():
-            if value in mask.RELEVANT_VALUES:
-                unique = numpy.unique(self.values[refindices == value])
-                unique = self.revert_timefactor(unique)
-                length = len(unique)
-                if length == 1:
-                    results.append(f"{key.lower()}={objecttools.repr_(unique[0])}")
-                elif length > 1:
-                    return super().__repr__()
+        keywordarguments = self.keywordarguments
+        if not keywordarguments.valid:
+            return super().__repr__()
+        results = [
+            f"{name}={objecttools.repr_(value)}" for name, value in keywordarguments
+        ]
         string = objecttools.assignrepr_values(
             values=sorted(results),
             prefix=f"{self.name}(",
@@ -2118,7 +2165,25 @@ error occurred: could not convert string to float: 'test'
         return f"{string})"
 
     def __dir__(self):
-        return super().__dir__() + [key.lower() for key in self.MODEL_CONSTANTS.keys()]
+        """
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> dir(treft)
+        ['INIT', 'MODEL_CONSTANTS', 'NDIM', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', \
+'TIME', 'TYPE', 'acker', 'apply_timefactor', 'availablemasks', 'average_values', \
+'baumb', 'boden', 'commentrepr', 'compress_repr', 'fastaccess', 'feucht', 'fluss', \
+'get_submask', 'get_timefactor', 'glets', 'grue_e', 'grue_i', 'initinfo', \
+'keywordarguments', 'laubw', 'mask', 'mischw', 'nadelw', 'name', 'obstb', \
+'refweights', 'revert_timefactor', 'see', 'shape', 'sied_d', 'sied_l', \
+'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', 'value', \
+'values', 'verify', 'vers', 'wasser', 'weinb']
+        """
+        return list(
+            itertools.chain(
+                super().__dir__(),
+                (key.lower() for key in self.MODEL_CONSTANTS.keys()),
+            )
+        )
 
 
 class SeasonalParameter(Parameter):

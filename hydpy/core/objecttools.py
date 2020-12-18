@@ -1797,7 +1797,8 @@ def apply_black(
     Tester(1, "test")
     >>> print(apply_black("Tester", number=1, string="test"))
     Tester(number=1, string="test")
-    >>> print(apply_black("Tester", 1, "test", number=2, string=f"a {10*'very '}long test"))
+    >>> print(apply_black("Tester", 1, "test", number=2, \
+string=f"a {10*'very '}long test"))
     Tester(
         1,
         "test",

@@ -33,7 +33,6 @@ from hydpy import (
     models,
 )
 from hydpy.core import (
-    dummytools,
     indextools,
     objecttools,
     optiontools,
@@ -185,7 +184,6 @@ from hydpy.exe.servertools import (
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
-dummies = dummytools.Dummies()
 
 warnings.filterwarnings("ignore", r"tostring")
 # Numpy introduced new string representations in version 1.14 affecting

@@ -341,7 +341,6 @@ hydpy.models.hland.hland_control.ZoneType
                         if timegrids is not None:
                             hydpy.pub.timegrids = timegrids
                         IntegrationTest.plotting_options = plotting_options
-                        hydpy.dummies.clear()
 
 
 class Array:

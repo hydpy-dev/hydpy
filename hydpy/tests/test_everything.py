@@ -173,7 +173,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                 doctests[name].nmbproblems = len(testresult.errors) + len(
                     testresult.failures
                 )
-                hydpy.dummies.clear()
                 problems = testresult.errors + testresult.failures
                 if problems:
                     print(f"\nDetailed error information on module {name}:")

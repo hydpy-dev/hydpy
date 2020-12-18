@@ -267,7 +267,6 @@ __all__ = [
     "RiverBasinNumber",
     "RiverBasinNumbers",
     "RiverBasinNumbers2Selection",
-    "dummies",
     "nan",
     "bias_abs",
     "bias_rel",

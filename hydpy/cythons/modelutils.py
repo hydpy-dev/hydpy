@@ -341,7 +341,10 @@ TYPE2STR = {
     float: "double",
     str: "str",
     None: "void",
-    typingtools.Vector: "double[:]",
+    typingtools.Vector: "double[:]",  # to be removed as soon as possible
+    typingtools.Vector[float]: "double[:]",  # This works because the `__getitem__`
+    # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
+    # is documented behaviour, so this might cause (little) trouble in the future.
 }
 """Maps Python types to Cython compatible type declarations.
 

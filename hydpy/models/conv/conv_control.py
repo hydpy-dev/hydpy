@@ -15,7 +15,7 @@ from hydpy.core import parametertools
 
 
 class Coordinates(parametertools.Parameter):
-    """Base class for |InputCoordinates| and |OutputCoordinates|.
+    """Base class for |InputCoordinates| and |OutputCoordinates| [?].
 
     We use the derived class |InputCoordinates| as an example:
 
@@ -67,7 +67,7 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
                      in0=(9.0, 5.0),
                      in3=(4.0, 6.0))
 
-    The attribute `nodes` stores the correctly ordered nodes:
+    The attribute |Coordinates.nodes| stores the correctly ordered nodes:
 
     >>> inputcoordinates.nodes
     (Node("in2", variable="Q"), Node("in0", variable="Q"), \
@@ -76,9 +76,12 @@ Node("in3", variable="Q"))
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
+    nodes: Tuple[devicetools.Node, ...]
+    """The relevant input or output nodes."""
+
     def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)
-        self.nodes: Tuple[devicetools.Node, ...] = ()
+        self.nodes = ()
 
     def __call__(self, *args, **kwargs) -> None:
         nodes = []
@@ -110,11 +113,114 @@ Node("in3", variable="Q"))
 
 
 class InputCoordinates(Coordinates):
-    """Coordinates of the inlet nodes."""
+    """Coordinates of the inlet nodes [?]."""
 
 
 class OutputCoordinates(Coordinates):
-    """Coordinates of the outlet nodes."""
+    """Coordinates of the outlet nodes [?]."""
+
+
+class Heights(parametertools.Parameter):
+    """Base class for |InputHeights| and |OutputHeights| [?].
+
+    We use the derived class |InputHeights| as an example:
+
+    >>> from hydpy.models.conv import *
+    >>> parameterstep()
+
+    |Heights| subclasses define 1-dimensional sequences.  Hence, we must define
+    their shape first:
+
+    >>> inputheights
+    inputheights(?)
+    >>> inputheights.values
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
+variable `inputheights` can only be retrieved after it has been defined.
+
+    However, you usually do this automatically when assigning new values.
+    Use keyword arguments to define the names of the relevant input nodes
+    as well as their heights:
+
+    >>> inputheights(in1=1.0)
+    >>> inputheights
+    inputheights(in1=1.0)
+    >>> inputheights.values
+    array([ 1.])
+
+    Defining new heights removes the old ones:
+
+    >>> inputheights(in2=2.0,
+    ...              in0=3.0,
+    ...              in3=4.0)
+    >>> inputheights
+    inputheights(in2=2.0,
+                 in0=3.0,
+                 in3=4.0)
+    >>> inputheights.values
+    array([ 2.,  3.,  4.])
+
+    You are free to change individual height values (the row order corresponds
+    to the definition order when "calling" the parameter):
+
+    >>> inputheights.values[1] = 9.0
+    >>> inputheights
+    inputheights(in2=2.0,
+                 in0=9.0,
+                 in3=4.0)
+
+    The attribute |Heights.nodes| stores the correctly ordered nodes:
+
+    >>> inputheights.nodes
+    (Node("in2", variable="Q"), Node("in0", variable="Q"), \
+Node("in3", variable="Q"))
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+    nodes: Tuple[devicetools.Node, ...]
+    """The relevant input or output nodes."""
+
+    def __init__(self, subvars: parametertools.SubParameters):
+        super().__init__(subvars)
+        self.nodes = ()
+
+    def __call__(self, *args, **kwargs) -> None:
+        nodes = []
+        heights = numpy.empty(len(kwargs), dtype=float)
+        for idx, (name, value) in enumerate(kwargs.items()):
+            nodes.append(devicetools.Node(name))
+            heights[idx] = value
+        self.nodes = tuple(nodes)
+        self.__hydpy__set_shape__(len(nodes))
+        self.__hydpy__set_value__(heights)
+
+    def __repr__(self) -> str:
+        prefix = f"{self.name}("
+        blanks = " " * len(prefix)
+        lines = []
+        if self.nodes:
+            for idx, node in enumerate(self.nodes):
+                entry = f"{node.name}={self.values[idx]}"
+                if not idx:
+                    lines.append(f"{prefix}{entry}")
+                else:
+                    lines.append(f"{blanks}{entry}")
+                if idx < len(self.nodes) - 1:
+                    lines[-1] += ","
+                else:
+                    lines[-1] += ")"
+            return "\n".join(lines)
+        return f"{prefix}?)"
+
+
+class InputHeights(Heights):
+    """The height (above sea level or anything else) of the input nodes [?]."""
+
+
+class OutputHeights(Heights):
+    """The height (above sea level or anything else) of the output nodes [?]."""
 
 
 class MaxNmbInputs(parametertools.Parameter):
@@ -171,6 +277,24 @@ element `?` is not valid.
         if upper is None:
             upper = self.subpars.inputcoordinates.shape[0]
         super().trim(lower, upper)
+
+
+class MinNmbInputs(parametertools.Parameter):
+    """The minimum number of inputs for performing a statistical analysis [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+
+
+class DefaultConstant(parametertools.Parameter):
+    """Default or fallback value for the constant of the linear regression model [?]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class DefaultFactor(parametertools.Parameter):
+    """Default or fallback value for the factor of the linear regression model [?]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.0, 1.0)
 
 
 class Power(parametertools.Parameter):

@@ -189,6 +189,7 @@ class IndexMask(DefaultMask):
     def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
+
         Entries are only |True|, if the integer values of the
         respective entries of the referenced parameter are contained
         in the |IndexMask| class attribute tuple `RELEVANT_VALUES`.
@@ -208,9 +209,18 @@ determined as long as parameter `zonetype` is not prepared properly.
         >>> zonetype(FIELD, FOREST, ILAKE, GLACIER)
         >>> states.sm.mask
         Soil([ True,  True, False, False])
+
+        If the shape of the |IndexMask.refindices| parameter is zero (which
+        is actually not allowed for |hland|), the returned mask is empty:
+
+        >>> zonetype.shape = 0
+        >>> states.shape = 0
+        >>> states.sm.mask
+        Soil([])
         """
         indices = cls.get_refindices(variable)
-        if numpy.min(exceptiontools.getattr_(indices, "values", 0)) < 1:
+        values = exceptiontools.getattr_(indices, "values", None)
+        if (values is None) or ((len(values) > 0) and (numpy.min(values) < 1)):
             raise RuntimeError(
                 f"The mask of parameter {objecttools.elementphrase(variable)} "
                 f"cannot be determined as long as parameter `{indices.name}` "

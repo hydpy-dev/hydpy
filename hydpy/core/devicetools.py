@@ -2235,6 +2235,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
             for sequence, label, color, linestyle, linewidth in zip(
                 sequences, labels, colors, linestyles, linewidths
             ):
+                label_ = label if label else " ".join((self.name, sequence.name))
                 if stepsize is None:
                     index = _get_pandasindex()
                     ps = pandas.Series(sequence.evalseries, index=index[idx0:idx1])
@@ -2246,11 +2247,13 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
+                    ps = ps.rename(columns=dict(series=label_))
                 ps.plot(
-                    label=label if label else " ".join((self.name, sequence.name)),
+                    label=label_,
                     color=color,
                     linestyle=linestyle,
                     linewidth=linewidth,
+                    ax=pyplot.gca(),
                 )
             pyplot.legend()
             if not focus:

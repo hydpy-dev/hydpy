@@ -241,7 +241,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import types
-from typing import Any, Dict, List
+from typing import *
 
 # ...from HydPy
 import hydpy
@@ -278,7 +278,7 @@ class ServerState:
     True
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.hp: hydpytools.HydPy = None
         self.parameteritems: List[itemtools.ChangeItem] = None
         self.conditionitems: List[itemtools.ChangeItem] = None
@@ -1185,15 +1185,18 @@ but have not been calculated so far.
             item.update_variables()
 
 
-def start_server(socket, projectname, xmlfilename: str) -> None:
+def start_server(
+    socket: Union[int, str],
+    projectname: str,
+    xmlfilename: str,
+) -> None:
     """Start the *HydPy* server using the given socket.
 
     The folder with the given `projectname` must be available within the
     current working directory.  The XML configuration file must be placed
     within the project folder unless `xmlfilename` is an absolute file path.
     The XML configuration file must be valid concerning the schema file
-    `HydPyConfigMultipleRuns.xsd` (see method |ServerState.initialise|
-    for further information).
+    `HydPyConfigMultipleRuns.xsd` (see class |ServerState| for further information).
 
     Note that function |start_server| tries to read the "mime types" from
     a dictionary stored in the file `mimetypes.txt` available in subpackage
@@ -1229,7 +1232,10 @@ def start_server(socket, projectname, xmlfilename: str) -> None:
     server.serve_forever()
 
 
-def await_server(port, seconds):
+def await_server(
+    port: Union[int, str],
+    seconds: Union[float, str],
+) -> None:
     """Block the current process until either the *HydPy* server is responding
     on the given `port` or the given number of `seconds` elapsed.
 

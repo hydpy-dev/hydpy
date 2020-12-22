@@ -114,6 +114,7 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     # pylint: disable=ungrouped-imports
@@ -126,6 +127,9 @@ else:
         "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
     )
     xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
+
+_SetOrAddItem = TypeVar("_SetOrAddItem", itemtools.SetItem, itemtools.AddItem)
+_GetOrChangeItem = TypeVar("_GetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem)
 
 namespace = (
     "{https://github.com/hydpy-dev/hydpy/releases/download/"
@@ -140,19 +144,27 @@ _ITEMGROUP2ITEMCLASS = {
 
 @overload
 def find(
-    root: ElementTree.Element, name: str, optional: Literal[True] = True
+    root: ElementTree.Element,
+    name: str,
+    optional: Literal[True] = True,
 ) -> Optional[ElementTree.Element]:
     """Optional version of function |find|."""
 
 
 @overload
 def find(
-    root: ElementTree.Element, name: str, optional: Literal[False]
+    root: ElementTree.Element,
+    name: str,
+    optional: Literal[False],
 ) -> ElementTree.Element:
     """Non-optional version of function |find|."""
 
 
-def find(root, name, optional=True):
+def find(
+    root: ElementTree.Element,
+    name: str,
+    optional: Literal[True, False] = True,
+) -> Optional[ElementTree.Element]:
     """Return the first XML element with the given name found in the given
     XML root.
 
@@ -317,15 +329,25 @@ class XMLBase:
 
     @overload
     def find(
-        self, name: str, optional: Literal[True] = True
+        self,
+        name: str,
+        optional: Literal[True] = True,
     ) -> Optional[ElementTree.Element]:
         """Optional version of method |XMLBase.find|."""
 
     @overload
-    def find(self, name: str, optional: Literal[False]) -> ElementTree.Element:
+    def find(
+        self,
+        name: str,
+        optional: Literal[False],
+    ) -> ElementTree.Element:
         """Non-optional version of function |XMLBase.find|."""
 
-    def find(self, name, optional=True):
+    def find(
+        self,
+        name: str,
+        optional: Literal[True, False] = True,
+    ) -> Optional[ElementTree.Element]:
         """Apply function |find| to the root of the object of the |XMLBase|
         subclass.
 
@@ -1043,18 +1065,27 @@ Please make sure your XML file follows the relevant XML schema.
         return _query_devices(devices)
 
     @overload
-    def _get_devices(self, attr: Literal["nodes"]) -> Iterator[devicetools.Node]:
+    def _get_devices(
+        self,
+        attr: Literal["nodes"],
+    ) -> Iterator[devicetools.Node]:
         """Extract all nodes."""
 
     @overload
-    def _get_devices(self, attr: Literal["elements"]) -> Iterator[devicetools.Element]:
+    def _get_devices(
+        self,
+        attr: Literal["elements"],
+    ) -> Iterator[devicetools.Element]:
         """Extract all elements."""
 
-    def _get_devices(self, attr):
+    def _get_devices(
+        self,
+        attr: Literal["nodes", "elements"],
+    ) -> Union[Iterator[devicetools.Node], Iterator[devicetools.Element]]:
         """Extract all nodes or elements."""
         selections = copy.copy(self.selections)
         selections += self.devices
-        devices: Set[devicetools.Device] = set()
+        devices = set()
         for selection in selections:
             for device in getattr(selection, attr):
                 if device not in devices:
@@ -1163,12 +1194,7 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.inputdirpath
         'LahnH/series/input'
         """
-        for config, convert in (
-            ("filetype", lambda x: x),
-            ("aggregation", lambda x: x),
-            ("overwrite", lambda x: x.lower() == "true"),
-            ("dirpath", lambda x: x),
-        ):
+        for config in ("filetype", "aggregation", "overwrite", "dirpath"):
             xml_special = self.find(config)
             xml_general = self.master.find(config)
             for name_manager, name_xml in zip(
@@ -1185,9 +1211,8 @@ class XMLSubseries(XMLSelector):
                         if element is not None:
                             value = element.text
                             break
-                setattr(
-                    hydpy.pub.sequencemanager, f"{name_manager}{config}", convert(value)
-                )
+                attr = value.lower() == "true" if config == "overwrite" else value
+                setattr(hydpy.pub.sequencemanager, f"{name_manager}{config}", attr)
 
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
@@ -1386,30 +1411,36 @@ class XMLExchange(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
-    @overload
     def _get_items_of_certain_item_types(
-        self, itemgroups: Iterable[str], getitems: Literal[True]
-    ) -> List[itemtools.GetItem]:
-        """Return |GetItem| objects only."""
-
-    @overload
-    def _get_items_of_certain_item_types(
-        self, itemgroups: Iterable[str], getitems: Literal[False]
-    ) -> List[itemtools.ChangeItem]:
-        """Return |ChangeItem| objects only."""
-
-    def _get_items_of_certain_item_types(self, itemgroups, getitems):
+        self,
+        itemgroups: Iterable[str],
+        itemtype: Type[_GetOrChangeItem],
+    ) -> List[_GetOrChangeItem]:
         """Return either all |GetItem| or all |ChangeItem| objects."""
-        items: List[itemtools.ExchangeItem] = []
+        items: List[_GetOrChangeItem] = []
         for itemgroup in self.itemgroups:
-            if getitems == (itemgroup.name == "getitems"):
-                for model in itemgroup.models:
-                    for subvars in model.subvars:
-                        if subvars.name in itemgroups:
-                            items.extend(var.item for var in subvars.vars)
+            if (
+                issubclass(itemtype, itemtools.GetItem)
+                and (itemgroup.name == "getitems")
+            ) or (
+                issubclass(itemtype, itemtools.ChangeItem)
+                and (itemgroup.name != "getitems")
+            ):
+                for var in (
+                    var
+                    for model in itemgroup.models
+                    for subvars in model.subvars
+                    if subvars.name in itemgroups
+                    for var in subvars.vars
+                ):
+                    item = var.item
+                    assert isinstance(item, itemtype)
+                    items.append(item)
                 if "nodes" in itemgroups:
-                    for node in itemgroup.nodes:
-                        items.extend(var.item for var in node.vars)
+                    for var in (var for node in itemgroup.nodes for var in node.vars):
+                        item = var.item
+                        assert isinstance(item, itemtype)
+                        items.append(item)
         return items
 
     @property
@@ -1435,7 +1466,10 @@ class XMLExchange(XMLBase):
         sfcf_2
         sfcf_3
         """
-        return self._get_items_of_certain_item_types(["control"], False)
+        return self._get_items_of_certain_item_types(
+            itemgroups=("control",),
+            itemtype=itemtools.ChangeItem,
+        )
 
     @property
     def conditionitems(self) -> List[itemtools.ChangeItem]:
@@ -1456,7 +1490,10 @@ class XMLExchange(XMLBase):
         sm_lahn_1
         quh
         """
-        return self._get_items_of_certain_item_types(["states", "logs"], False)
+        return self._get_items_of_certain_item_types(
+            itemgroups=("states", "logs"),
+            itemtype=itemtools.ChangeItem,
+        )
 
     @property
     def getitems(self) -> List[itemtools.GetItem]:
@@ -1481,7 +1518,8 @@ class XMLExchange(XMLBase):
         nodes_sim_series
         """
         return self._get_items_of_certain_item_types(
-            ["control", "inputs", "fluxes", "states", "logs", "nodes"], True
+            itemgroups=("control", "inputs", "fluxes", "states", "logs", "nodes"),
+            itemtype=itemtools.GetItem,
         )
 
     def prepare_series(self) -> None:
@@ -1734,49 +1772,46 @@ class XMLVar(XMLSelector):
         else:
             master = self.master.master.name
             itemgroup = self.master.master.master.name
-        itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
+        itemtype = _ITEMGROUP2ITEMCLASS[itemgroup]
         if itemgroup == "getitems":
-            return self._get_getitem(target, master, itemclass)
+            return self._get_getitem(target, master, itemtype)
         if itemgroup == "setitems":
-            return self._get_changeitem(target, master, itemclass, True)
-        return self._get_changeitem(target, master, itemclass, False)
+            return self._get_changeitem(target, master, itemtype)
+        return self._get_changeitem(target, master, itemtype)
 
     def _get_getitem(
-        self, target: str, master: str, itemclass: Type[itemtools.GetItem]
+        self, target: str, master: str, itemtype: Type[itemtools.GetItem]
     ) -> itemtools.GetItem:
-        item = itemclass(master, target)
+        item = itemtype(master, target)
         self._collect_variables(item)
         return item
 
-    @overload
     def _get_changeitem(
         self,
         target: str,
         master: str,
-        itemclass: Type[itemtools.ChangeItem],
-        setitems: Literal[True],
-    ) -> itemtools.SetItem:
-        """Get a |SetItem| object."""
-
-    @overload
-    def _get_changeitem(
-        self,
-        target: str,
-        master: str,
-        itemclass: Type[itemtools.ChangeItem],
-        setitems: Literal[False],
-    ) -> itemtools.MathItem:
-        """Get a |MathItem| object."""
-
-    def _get_changeitem(self, target, master, itemclass, setitems):
+        itemtype: Type[_SetOrAddItem],
+    ) -> _SetOrAddItem:
         dim = self.find("dim", optional=False).text
         init = ",".join(self.find("init", optional=False).text.split())
         alias = self.find("alias", optional=False).text
-        if setitems:
-            item = itemclass(alias, master, target, ndim=dim)
+        item: _SetOrAddItem
+        if issubclass(itemtype, itemtools.AddItem):
+            assert not issubclass(itemtype, itemtools.SetItem)
+            item = itemtype(
+                name=alias,
+                master=master,
+                target=target,
+                base=strip(list(self)[-1].tag),
+                ndim=dim,
+            )
         else:
-            base = strip(list(self)[-1].tag)
-            item = itemclass(alias, master, target, base, ndim=dim)
+            item = itemtype(
+                name=alias,
+                master=master,
+                target=target,
+                ndim=dim,
+            )
         self._collect_variables(item)
         item.value = eval(init)
         return item

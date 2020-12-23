@@ -242,6 +242,7 @@ import urllib.parse
 import urllib.request
 import types
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from HydPy
 import hydpy
@@ -267,102 +268,93 @@ class ServerState:
     """Singleton class handling states like the current |HydPy| instance
     and the current exchange items.
 
-    The instance of class |ServerState| is available the member `state` of
-    module |servertools|. You could create other instances, but most
-    likely, you shouldn't.  The primary purpose of this instance is to store
-    information between successive initialisations of class
-    |HydPyServer|.
+    The instance of class |ServerState| is available as the member `state` of
+    class |HydPyServer| after calling function |start_server|. You could create
+    other instances (like we do in the following examples), but most likely,
+    you shouldn't.  The primary purpose of this instance is to store information
+    between successive initialisations of class |HydPyServer|.
 
-    >>> from hydpy.exe import servertools
-    >>> isinstance(servertools.state, servertools.ServerState)
-    True
+    We use the `LahnH` project and its (complicated) XML configuration
+    file `multiple_runs.xml` as an example (module |xmltools| provides
+    information on interpreting this file):
+
+    >>> from hydpy.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> from hydpy import print_values, TestIO
+    >>> from hydpy.exe.servertools import ServerState
+    >>> with TestIO():    # doctest: +ELLIPSIS
+    ...     state = ServerState("LahnH", "multiple_runs.xml")
+    Start HydPy project `LahnH` (...).
+    Read configuration file `multiple_runs.xml` (...).
+    Interpret the defined options (...).
+    Interpret the defined period (...).
+    Read all network files (...).
+    Activate the selected network (...).
+    Read the required control files (...).
+    Read the required condition files (...).
+    Read the required time series files (...).
+
+    After initialisation, all defined exchange items are available:
+
+    >>> for item in state.parameteritems:
+    ...     print(item)
+    SetItem("alpha", "hland_v1", "control.alpha", 0)
+    SetItem("beta", "hland_v1", "control.beta", 0)
+    SetItem("lag", "hstream_v1", "control.lag", 0)
+    SetItem("damp", "hstream_v1", "control.damp", 0)
+    AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", 0)
+    AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", 0)
+    AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", 1)
+    >>> for item in state.conditionitems:
+    ...     print(item)
+    SetItem("sm_lahn_2", "hland_v1", "states.sm", 0)
+    SetItem("sm_lahn_1", "hland_v1", "states.sm", 1)
+    SetItem("quh", "hland_v1", "logs.quh", 0)
+    >>> for item in state.getitems:
+    ...     print(item)
+    GetItem("hland_v1", "fluxes.qt")
+    GetItem("hland_v1", "fluxes.qt.series")
+    GetItem("hland_v1", "states.sm")
+    GetItem("hland_v1", "states.sm.series")
+    GetItem("nodes", "nodes.sim.series")
+
+    The initialisation also memorises the initial conditions of
+    all elements:
+
+    >>> for element in state.init_conditions:
+    ...     print(element)
+    land_dill
+    land_lahn_1
+    land_lahn_2
+    land_lahn_3
+    stream_dill_lahn_2
+    stream_lahn_1_lahn_2
+    stream_lahn_2_lahn_3
+
+    The initialisation also prepares all selected series arrays and
+    reads the required input data:
+
+    >>> print_values(
+    ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
+    >>> state.hp.nodes.dill.sequences.sim.series
+    InfoArray([ nan,  nan,  nan,  nan,  nan])
     """
 
-    def __init__(self) -> None:
-        self.hp: hydpytools.HydPy = None
-        self.parameteritems: List[itemtools.ChangeItem] = None
-        self.conditionitems: List[itemtools.ChangeItem] = None
-        self.getitems: List[itemtools.GetItem] = None
-        self.conditions: Dict[str, Dict[int, hydpytools.ConditionsType]] = None
-        self.parameteritemvalues: Dict[str, Dict[str, Any]] = None
-        self.modifiedconditionitemvalues: Dict[str, Dict[str, Any]] = None
-        self.getitemvalues: Dict[str, Dict[str, str]] = None
-        self.timegrids: Dict[str, timetools.Timegrid] = None
-        self.init_conditions: hydpytools.ConditionsType = None
-        self.idx1: int = None
-        self.idx2: int = None
+    hp: hydpytools.HydPy
+    parameteritems: List[itemtools.ChangeItem]
+    conditionitems: List[itemtools.ChangeItem]
+    getitems: List[itemtools.GetItem]
+    conditions: Dict[str, Dict[int, hydpytools.ConditionsType]]
+    parameteritemvalues: Dict[str, Dict[str, Any]]
+    modifiedconditionitemvalues: Dict[str, Dict[str, Any]]
+    getitemvalues: Dict[str, Dict[str, str]]
+    timegrids: Dict[str, timetools.Timegrid]
+    init_conditions: hydpytools.ConditionsType
+    idx1: int
+    idx2: int
 
-    def initialise(self, projectname: str, xmlfile: str) -> None:
-        """Initialise a *HydPy* project based on the given XML configuration
-        file agreeing with `HydPyConfigMultipleRuns.xsd`.
-
-        We use the `LahnH` project and its (complicated) XML configuration
-        file `multiple_runs.xml` as an example (module |xmltools| provides
-        information on interpreting this file):
-
-        >>> from hydpy.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-        >>> from hydpy import print_values, TestIO
-        >>> from hydpy.exe.servertools import ServerState
-        >>> state = ServerState()
-        >>> with TestIO():    # doctest: +ELLIPSIS
-        ...     state.initialise("LahnH", "multiple_runs.xml")
-        Start HydPy project `LahnH` (...).
-        Read configuration file `multiple_runs.xml` (...).
-        Interpret the defined options (...).
-        Interpret the defined period (...).
-        Read all network files (...).
-        Activate the selected network (...).
-        Read the required control files (...).
-        Read the required condition files (...).
-        Read the required time series files (...).
-
-        After initialisation, all defined exchange items are available:
-
-        >>> for item in state.parameteritems:
-        ...     print(item)
-        SetItem("alpha", "hland_v1", "control.alpha", 0)
-        SetItem("beta", "hland_v1", "control.beta", 0)
-        SetItem("lag", "hstream_v1", "control.lag", 0)
-        SetItem("damp", "hstream_v1", "control.damp", 0)
-        AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", 0)
-        AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", 0)
-        AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", 1)
-        >>> for item in state.conditionitems:
-        ...     print(item)
-        SetItem("sm_lahn_2", "hland_v1", "states.sm", 0)
-        SetItem("sm_lahn_1", "hland_v1", "states.sm", 1)
-        SetItem("quh", "hland_v1", "logs.quh", 0)
-        >>> for item in state.getitems:
-        ...     print(item)
-        GetItem("hland_v1", "fluxes.qt")
-        GetItem("hland_v1", "fluxes.qt.series")
-        GetItem("hland_v1", "states.sm")
-        GetItem("hland_v1", "states.sm.series")
-        GetItem("nodes", "nodes.sim.series")
-
-        The initialisation also memorises the initial conditions of
-        all elements:
-
-        >>> for element in state.init_conditions:
-        ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        land_lahn_3
-        stream_dill_lahn_2
-        stream_lahn_1_lahn_2
-        stream_lahn_2_lahn_3
-
-        The initialisation also prepares all selected series arrays and
-        reads the required input data:
-
-        >>> print_values(
-        ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
-        -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
-        >>> state.hp.nodes.dill.sequences.sim.series
-        InfoArray([ nan,  nan,  nan,  nan,  nan])
-        """
+    def __init__(self, projectname: str, xmlfile: str) -> None:
         write = commandtools.print_textandtime
         write(f"Start HydPy project `{projectname}`")
         hp = hydpytools.HydPy(projectname)
@@ -396,9 +388,6 @@ class ServerState:
         self.getitemvalues = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
         self.timegrids = {}
-
-
-state = ServerState()
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -508,8 +497,8 @@ has been extracted but cannot be further processed: `x == y`.
     to which one is the outlet node of |Element| object `land_dill`:
 
     >>> test("evaluate",
-    ...      data=("nodes = state.hp.nodes\\n"
-    ...            "elements = state.hp.elements.land_dill"))
+    ...      data=("nodes = HydPyServer.state.hp.nodes\\n"
+    ...            "elements = HydPyServer.state.hp.elements.land_dill"))
     nodes = Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
     elements = Element("land_dill", outlets="dill", keywords="catchment")
 
@@ -582,7 +571,7 @@ has been extracted but cannot be further processed: `x == y`.
     Posting values of parameter items (|HydPyServer.POST_parameteritemvalues|)
     does directly update the values of the corresponding |Parameter| objects:
 
-    >>> control = "state.hp.elements.land_dill.model.parameters.control"
+    >>> control = "HydPyServer.state.hp.elements.land_dill.model.parameters.control"
     >>> test("evaluate",
     ...      data=(f"alpha = {control}.alpha\\n"
     ...            f"sfcf = {control}.sfcf"))
@@ -634,7 +623,7 @@ A value for parameter item `lag` is missing.
     value for |hland_states.SM| is trimmed to its highest possible value
     |hland_control.FC|):
 
-    >>> sequences = "state.hp.elements.land_lahn_2.model.sequences"
+    >>> sequences = "HydPyServer.state.hp.elements.land_lahn_2.model.sequences"
     >>> test("evaluate",
     ...      data=(f"sm = {sequences}.states.sm \\n"
     ...            f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
@@ -840,10 +829,12 @@ but have not been calculated so far.
     # due to "GET" and "POST" method names in accordance
     # with BaseHTTPRequestHandler
 
-    _requesttype: str  # either "GET" or "POST"
-    _statuscode: int  # either 200, 400, or 500
+    state: ClassVar[ServerState]
+    extensions_map: ClassVar[Dict[str, str]]
+    _requesttype: Literal["GET", "POST"]
+    _statuscode: Literal[200, 400, 500]
     _inputs: Dict[str, str]
-    _outputs: Dict[str, Any]
+    _outputs: Dict[str, object]
 
     def do_GET(self) -> None:
         """Select and apply the currently requested GET method."""
@@ -891,7 +882,7 @@ but have not been calculated so far.
     def _id(self) -> str:
         return self._get_queryparameter("id")
 
-    def _get_queryparameter(self, name) -> str:
+    def _get_queryparameter(self, name: str) -> str:
         query = urllib.parse.urlparse(self.path).query
         try:
             return urllib.parse.parse_qs(query)[name][0]
@@ -910,14 +901,16 @@ but have not been calculated so far.
     def _methodname(self) -> str:
         return f"{self._requesttype}_{self._externalname}"
 
-    def _get_method(self, name) -> types.MethodType:
+    def _get_method(self, name: str) -> types.MethodType:
         try:
-            return getattr(self, name)
+            method = getattr(self, name)
+            assert isinstance(method, types.MethodType)
+            return method
         except AttributeError:
             self._statuscode = 400
             raise RuntimeError(f"No method `{name}` available.") from None
 
-    def _apply_method(self, method) -> None:
+    def _apply_method(self, method: types.MethodType) -> None:
         try:
             method()
         except BaseException:
@@ -972,12 +965,11 @@ but have not been calculated so far.
     def GET_close_server(self) -> None:
         """Stop and close the *HydPy* server."""
 
-        def _close_server():
+        def _close_server() -> None:
             self.server.shutdown()
             self.server.server_close()
 
         shutter = threading.Thread(target=_close_server)
-        shutter.deamon = True
         shutter.start()
 
     def GET_itemtypes(self) -> None:
@@ -994,20 +986,20 @@ but have not been calculated so far.
     def GET_parameteritemtypes(self) -> None:
         """Get the types of all current exchange items supposed to change
         the values of |Parameter| objects."""
-        for item in state.parameteritems:
+        for item in self.state.parameteritems:
             self._outputs[item.name] = self._get_itemtype(item)
 
     def GET_conditionitemtypes(self) -> None:
         """Get the types of all current exchange items supposed to change
         the values of |StateSequence| or |LogSequence| objects."""
-        for item in state.conditionitems:
+        for item in self.state.conditionitems:
             self._outputs[item.name] = self._get_itemtype(item)
 
     def GET_getitemtypes(self) -> None:
         """Get the types of all current exchange items supposed to return
         the values of |Parameter| or |Sequence_| objects or the time series
         of |IOSequence| objects."""
-        for item in state.getitems:
+        for item in self.state.getitems:
             type_ = self._get_itemtype(item)
             for name, _ in item.yield_name2value():
                 self._outputs[name] = type_
@@ -1022,13 +1014,13 @@ but have not been calculated so far.
         sim = hydpy.pub.timegrids.sim
         sim.firstdate = self._inputs["firstdate"]
         sim.lastdate = self._inputs["lastdate"]
-        state.idx1 = init[sim.firstdate]
-        state.idx2 = init[sim.lastdate]
+        self.state.idx1 = init[sim.firstdate]
+        self.state.idx2 = init[sim.lastdate]
 
-    @staticmethod
-    def GET_simulate() -> None:
+    @classmethod
+    def GET_simulate(cls) -> None:
         """Perform a simulation run."""
-        state.hp.simulate()
+        cls.state.hp.simulate()
 
     def GET_changeitemvalues(self) -> None:
         """Get the values of all |ChangeItem| objects."""
@@ -1044,24 +1036,24 @@ but have not been calculated so far.
     def GET_parameteritemvalues(self) -> None:
         """Get the values of all |ChangeItem| objects handling |Parameter|
         objects."""
-        for item in state.parameteritems:
+        for item in self.state.parameteritems:
             self._outputs[item.name] = item.value
 
     def POST_parameteritemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
         them to their respective |Parameter| objects."""
-        self._post_itemvalues("parameter", state.parameteritems)
+        self._post_itemvalues("parameter", self.state.parameteritems)
 
     def GET_conditionitemvalues(self) -> None:
         """Get the values of all |ChangeItem| objects handling |StateSequence|
         or |LogSequence| objects."""
-        for item in state.conditionitems:
+        for item in self.state.conditionitems:
             self._outputs[item.name] = item.value
 
     def POST_conditionitemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
         them to their respective |StateSequence| or |LogSequence| objects."""
-        self._post_itemvalues("condition", state.conditionitems)
+        self._post_itemvalues("condition", self.state.conditionitems)
 
     def GET_getitemvalues(self) -> None:
         """Get the values of all |Variable| objects observed by the
@@ -1071,8 +1063,8 @@ but have not been calculated so far.
         |HydPyServer.GET_getitemvalues| returns only the values within
         the current simulation period.
         """
-        for item in state.getitems:
-            for name, value in item.yield_name2value(state.idx1, state.idx2):
+        for item in self.state.getitems:
+            for name, value in item.yield_name2value(self.state.idx1, self.state.idx2):
                 self._outputs[name] = value
 
     def GET_load_conditionvalues(self) -> None:
@@ -1085,33 +1077,33 @@ but have not been calculated so far.
         conditions files of the respective *HydPy*  project).
         """
         try:
-            state.hp.conditions = state.conditions[self._id][state.idx1]
+            self.state.hp.conditions = self.state.conditions[self._id][self.state.idx1]
         except KeyError:
-            if state.idx1:
+            if self.state.idx1:
                 self._statuscode = 500
                 raise RuntimeError(
                     f"Conditions for ID `{self._id}` and time point "
                     f"`{hydpy.pub.timegrids.sim.firstdate}` are required, "
                     f"but have not been calculated so far."
                 ) from None
-            state.hp.conditions = state.init_conditions
+            self.state.hp.conditions = self.state.init_conditions
 
     def GET_save_conditionvalues(self) -> None:
         """Save the |StateSequence| and |LogSequence| object values of the
         current |HydPy| instance for the current simulation endpoint."""
-        state.conditions[self._id] = state.conditions.get(self._id, {})
-        state.conditions[self._id][state.idx2] = state.hp.conditions
+        self.state.conditions[self._id] = self.state.conditions.get(self._id, {})
+        self.state.conditions[self._id][self.state.idx2] = self.state.hp.conditions
 
     def GET_save_parameteritemvalues(self) -> None:
         """Save the values of those |ChangeItem| objects which are
         handling |Parameter| objects."""
-        for item in state.parameteritems:
-            state.parameteritemvalues[self._id][item.name] = item.value.copy()
+        for item in self.state.parameteritems:
+            self.state.parameteritemvalues[self._id][item.name] = item.value.copy()
 
     def GET_savedparameteritemvalues(self) -> None:
         """Get the previously saved values of those |ChangeItem| objects
         which are handling |Parameter| objects."""
-        dict_ = state.parameteritemvalues.get(self._id)
+        dict_ = self.state.parameteritemvalues.get(self._id)
         if dict_ is None:
             self.GET_parameteritemvalues()
         else:
@@ -1120,14 +1112,14 @@ but have not been calculated so far.
 
     def GET_save_modifiedconditionitemvalues(self) -> None:
         """ToDo: extend functionality"""
-        for item in state.conditionitems:
-            state.modifiedconditionitemvalues[self._id][item.name] = copy.deepcopy(
+        for item in self.state.conditionitems:
+            self.state.modifiedconditionitemvalues[self._id][item.name] = copy.deepcopy(
                 list(item.device2target.values())[0].value
             )
 
     def GET_savedmodifiedconditionitemvalues(self) -> None:
         """ToDo: extend functionality"""
-        dict_ = state.modifiedconditionitemvalues.get(self._id)
+        dict_ = self.state.modifiedconditionitemvalues.get(self._id)
         if dict_ is None:
             self.GET_conditionitemvalues()
         else:
@@ -1136,13 +1128,13 @@ but have not been calculated so far.
 
     def GET_save_getitemvalues(self) -> None:
         """Save the values of all current |GetItem| objects."""
-        for item in state.getitems:
-            for name, value in item.yield_name2value(state.idx1, state.idx2):
-                state.getitemvalues[self._id][name] = value
+        for item in self.state.getitems:
+            for name, value in item.yield_name2value(self.state.idx1, self.state.idx2):
+                self.state.getitemvalues[self._id][name] = value
 
     def GET_savedgetitemvalues(self) -> None:
         """Get the previously saved values of all |GetItem| objects."""
-        dict_ = state.getitemvalues.get(self._id)
+        dict_ = self.state.getitemvalues.get(self._id)
         if dict_ is None:
             self.GET_getitemvalues()
         else:
@@ -1151,28 +1143,32 @@ but have not been calculated so far.
 
     def GET_save_timegrid(self) -> None:
         """Save the current simulation period."""
-        state.timegrids[self._id] = copy.deepcopy(hydpy.pub.timegrids.sim)
+        self.state.timegrids[self._id] = copy.deepcopy(hydpy.pub.timegrids.sim)
 
     def GET_savedtimegrid(self) -> None:
         """Get the previously saved simulation period."""
         try:
-            self._write_timegrid(state.timegrids[self._id])
+            self._write_timegrid(self.state.timegrids[self._id])
         except KeyError:
             self._write_timegrid(hydpy.pub.timegrids.init)
 
     @staticmethod
-    def _get_itemtype(item) -> str:
+    def _get_itemtype(item: itemtools.ExchangeItem) -> str:
         if item.targetspecs.series:
             return f"TimeSeries{item.ndim-1}D"
         return f"Double{item.ndim}D"
 
-    def _write_timegrid(self, timegrid):
+    def _write_timegrid(self, timegrid: timetools.Timegrid) -> None:
         utcoffset = hydpy.pub.options.utcoffset
         self._outputs["firstdate"] = timegrid.firstdate.to_string("iso1", utcoffset)
         self._outputs["lastdate"] = timegrid.lastdate.to_string("iso1", utcoffset)
         self._outputs["stepsize"] = timegrid.stepsize
 
-    def _post_itemvalues(self, typename, items) -> None:
+    def _post_itemvalues(
+        self,
+        typename: str,
+        items: Iterable[itemtools.ChangeItem],
+    ) -> None:
         for item in items:
             try:
                 value = self._inputs[item.name]
@@ -1212,11 +1208,11 @@ def start_server(
     filepath = os.path.join(confpath, "mimetypes.txt")
     try:
         with open(filepath) as file_:
-            dict_ = eval(open(file_.read()))
+            types_map: Dict[str, str] = eval(str(open(file_.read())))
     except BaseException:
         mimetypes.init()
-        dict_ = mimetypes.types_map.copy()
-        dict_.update(
+        types_map = mimetypes.types_map.copy()
+        types_map.update(
             {
                 "": "application/octet-stream",
                 ".py": "text/plain",
@@ -1225,9 +1221,12 @@ def start_server(
             }
         )
         with open(filepath, "w") as file_:
-            file_.write(str(dict_))
-    HydPyServer.extensions_map = dict_
-    state.initialise(projectname, xmlfilename)
+            file_.write(str(types_map))
+    HydPyServer.extensions_map = types_map
+    HydPyServer.state = ServerState(
+        projectname=projectname,
+        xmlfile=xmlfilename,
+    )
     server = http.server.HTTPServer(("", int(socket)), HydPyServer)
     server.serve_forever()
 

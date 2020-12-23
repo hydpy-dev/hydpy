@@ -93,6 +93,7 @@ class ExchangeItem:
     master: str
     targetspecs: ExchangeSpecification
     device2target: Dict[devicetools.Device, variabletools.Variable]
+    ndim: int
 
     def _iter_relevantelements(self, selections) -> Iterator[devicetools.Element]:
         for element in selections.elements:
@@ -243,7 +244,6 @@ class ChangeItem(ExchangeItem):
     |Sequence_| objects of a specific type."""
 
     name: str
-    ndim: int
     shape: Tuple[int, ...]
     _value: numpy.ndarray
     device2target: Dict[devicetools.Device, variabletools.Variable]

@@ -8,112 +8,195 @@ import abc
 import inspect
 import types
 from typing import *
+from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
 InputType = TypeVar("InputType")
+InputType_contra = TypeVar("InputType_contra", contravariant=True)
 OutputType = TypeVar("OutputType")
+OutputType_co = TypeVar("OutputType_co", covariant=True)
 
 
-def fgetdummy(*args):
-    """The "unready" default `fget` function of class |BaseProperty| objects.
+class FGet(Protocol[OutputType_co]):
+    """Callback protocol for getter functions."""
 
-    If any, only framework developers should ever encounter the following
-    error when implementing new costum properties:
-
-    >>> from hydpy.core.propertytools import fgetdummy
-    >>> fgetdummy("arg1")
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The "unready" default `fget` function `fgetdummy` \
-should never been called, but has been called with argument(s): arg1.
-    """
-    raise NotImplementedError(
-        f'The "unready" default `fget` function `fgetdummy` should '
-        f"never been called, but has been called with argument(s): "
-        f"{objecttools.enumeration(args)}."
-    )
+    def __call__(self, __obj: Any) -> OutputType_co:
+        ...
 
 
-def fsetdummy(*args):
-    """The "unready" default `fget` function of class |BaseProperty| objects.
+class FSet(Protocol[InputType_contra]):
+    """Callback protocol for setter functions."""
 
-    If any, only framework developers should ever encounter the following
-    error when implementing new costum properties:
-
-    >>> from hydpy.core.propertytools import fsetdummy
-    >>> fsetdummy("arg1", "arg2")
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The "unready" default `fset` function `fsetdummy` \
-should never been called, but has been called with argument(s): arg1 and arg2.
-    """
-    raise NotImplementedError(
-        f'The "unready" default `fset` function `fsetdummy` should '
-        f"never been called, but has been called with argument(s): "
-        f"{objecttools.enumeration(args)}."
-    )
+    def __call__(self, __obj: Any, __value: InputType_contra) -> None:
+        ...
 
 
-def fdeldummy(*args):
-    """The "unready" default `fget` function of class |BaseProperty| objects.
+class FDel(Protocol):
+    """Callback protocol for deleter functions."""
 
-    If any, only framework developers should ever encounter the following
-    error when implementing new costum properties:
-
-    >>> from hydpy.core.propertytools import fdeldummy
-    >>> fdeldummy("arg1")
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The "unready" default `fdel` function `fdeldummy` \
-should never been called, but has been called with argument(s): arg1.
-    """
-    raise NotImplementedError(
-        f'The "unready" default `fdel` function `fdeldummy` should '
-        f"never been called, but has been called with argument(s): "
-        f"{objecttools.enumeration(args)}."
-    )
+    def __call__(self, __obj: Any) -> None:
+        ...
 
 
 class BaseProperty(Generic[InputType, OutputType]):
-    # noinspection PyUnresolvedReferences
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
-    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which allow
-    to add custom functionalities (e.g. caching) besides the standard
-    functionalities of properties.  The following concrete class mimics
-    the behaviour of class |property|:
+    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which are the
+    appropriate places to add custom functionalities (e.g. caching).  See
+    subclass |Property| for an example, which mimics the behaviour of the
+    built-in |property| function.
 
-    >>> from hydpy.core.propertytools import fgetdummy, fsetdummy, fdeldummy
-    >>> class ConcreteProperty(BaseProperty):
-    ...
-    ...     def __init__(self, fget=fgetdummy):
-    ...         self.fget = fget
-    ...         self.__doc__ = fget.__doc__
-    ...         self.fset = fsetdummy
-    ...         self.fdel = fdeldummy
-    ...
-    ...     def call_fget(self, obj):
-    ...         return self.fget(obj)
-    ...     def call_fset(self, obj, value):
-    ...         self.fset(obj, value)
-    ...     def call_fdel(self, obj):
-    ...         self.fdel(obj)
+    |BaseProperty| property uses dummy getter, setter and deleter functions
+    to indicate than at an actual getter, setter or deleter function is missing.
+    In case they are called due to the wrong implementation of a |BaseProperty|
+    subclass, they raise a |RuntimeError|:
 
-    The following owner class implements its attribute `x` by defining
+    >>> from hydpy.core.propertytools import BaseProperty
+    >>> BaseProperty._fgetdummy(None)
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+
+    >>> BaseProperty._fsetdummy(None, None)
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+
+    >>> BaseProperty._fdeldummy(None)
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    """
+
+    fget: FGet[OutputType]
+    fset: FSet[InputType]
+    fdel: FDel
+    objtype: Type[Any]
+    module: Optional[types.ModuleType]
+    name: str
+    __doc__: Optional[str]
+
+    @staticmethod
+    def _fgetdummy(__obj: Any) -> OutputType:
+        raise RuntimeError
+
+    @staticmethod
+    def _fsetdummy(
+        __obj: Any,
+        __value: InputType,
+    ) -> None:
+        raise RuntimeError
+
+    @staticmethod
+    def _fdeldummy(__obj: Any) -> None:
+        raise RuntimeError
+
+    def __set_name__(
+        self,
+        objtype: Type[Any],
+        name: str,
+    ) -> None:
+        self.objtype = objtype
+        self.module = inspect.getmodule(objtype)
+        if self.module is not None:
+            if not hasattr(self.module, "__test__"):
+                self.module.__dict__["__test__"] = dict()
+        self.name = name
+        doc = getattr(self, "__doc__")
+        if doc:
+            self.set_doc(doc)
+
+    @overload
+    def __get__(
+        self,
+        obj: None,
+        objtype: Type[Any],
+    ) -> "BaseProperty[InputType, OutputType]":
+        ...
+
+    @overload
+    def __get__(
+        self,
+        obj: Any,
+        objtype: Type[Any],
+    ) -> OutputType:
+        ...
+
+    def __get__(
+        self,
+        obj: Optional[Any],
+        objtype: Type[Any],
+    ) -> Union["BaseProperty[InputType, OutputType]", OutputType]:
+        if obj is None:
+            return self
+        if self.fget is self._fgetdummy:
+            raise AttributeError(
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not gettable."
+            )
+        return self.call_fget(obj)
+
+    def __set__(self, obj: Any, value: InputType) -> None:
+        if self.fset is self._fsetdummy:
+            raise AttributeError(
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not settable."
+            )
+        self.call_fset(obj, value)
+
+    def __delete__(self, obj: Any) -> None:
+        if self.fdel is self._fdeldummy:
+            raise AttributeError(
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not deletable."
+            )
+        self.call_fdel(obj)
+
+    def set_doc(self, doc: Optional[str]) -> None:
+        """Assign the given docstring to the property instance and, if possible,
+        to the `__test__` dictionary of the module of its owner class."""
+        if doc is not None:
+            self.__doc__ = doc
+            if hasattr(self, "module"):
+                ref = f"{self.objtype.__name__}.{self.name}"
+                self.module.__dict__["__test__"][ref] = doc
+
+    @abc.abstractmethod
+    def call_fget(self, obj: Any) -> OutputType:
+        """Method for implementing unique getter functionalities."""
+
+    @abc.abstractmethod
+    def call_fset(self, obj: Any, value: InputType) -> None:
+        """Method for implementing unique setter functionalities."""
+
+    @abc.abstractmethod
+    def call_fdel(self, obj: Any) -> None:
+        """Method for implementing unique deleter functionalities."""
+
+
+class Property(BaseProperty[InputType, OutputType]):
+    """Class |Property| mimics the behaviour of the built-in function |property|.
+
+    The only advantage of |Property| over |property| is that it allows defining
+    different input and output types statically.  If the input and output types
+    are identical, prefer |property|, which is probably faster.
+
+    The following test class implements its attribute `x` by defining
     all three "property methods" (`getter`/`fget`, `setter`/`fset`,
     `deleter`/`fdel`), but its attribute `y` by defining none of them:
 
-    >>> class Owner:
+    >>> from hydpy.core.propertytools import Property
+    >>> class Test:
     ...
     ...     def __init__(self):
     ...         self._x = None
     ...         self._y = None
     ...
-    ...     @ConcreteProperty
+    ...     @Property
     ...     def x(self):
     ...         return self._x
     ...     @x.setter
@@ -123,143 +206,89 @@ class BaseProperty(Generic[InputType, OutputType]):
     ...     def x(self):
     ...         self._x = None
     ...
-    ...     y = ConcreteProperty()
+    ...     y = Property()
 
-    After initialising an owner object, you can use its attribute `x`
-    as expected:
+    After initialising a test object, you can use its attribute `x` as expected:
 
-    >>> owner = Owner()
-    >>> owner.x
-    >>> owner.x = 2
-    >>> owner.x
+    >>> test = Test()
+    >>> test.x
+    >>> test.x = 2
+    >>> test.x
     2
-    >>> del owner.x
-    >>> owner.x
+    >>> del test.x
+    >>> test.x
 
-    Invoking attribute `y` results in the following error messages:
+    When trying to invoke attribute `y`, you get the following error messages:
 
-    >>> owner.y
+    >>> test.y
     Traceback (most recent call last):
     ...
-    AttributeError: Attribute `y` of object `owner` is not gettable.
-    >>> owner.y = 1
+    AttributeError: Attribute `y` of object `test` is not gettable.
+
+    >>> test.y = 1
     Traceback (most recent call last):
     ...
-    AttributeError: Attribute `y` of object `owner` is not settable.
-    >>> del owner.y
+    AttributeError: Attribute `y` of object `test` is not settable.
+
+    >>> del test.y
     Traceback (most recent call last):
     ...
-    AttributeError: Attribute `y` of object `owner` is not deletable.
+    AttributeError: Attribute `y` of object `test` is not deletable.
     """
 
-    fget: Callable
-    fset: Callable
-    fdel: Callable
-    objtype: Any
-    module: Optional[types.ModuleType]
-    name: str
-    __doc__: str
+    def __init__(
+        self,
+        fget: FGet[OutputType] = BaseProperty._fgetdummy,
+        fset: FSet[InputType] = BaseProperty._fsetdummy,
+        fdel: FDel = BaseProperty._fdeldummy,
+    ) -> None:
+        self.fget = fget
+        self.set_doc(fget.__doc__)
+        self.fset = fset
+        self.fdel = fdel
 
-    def __set_name__(self, objtype, name) -> None:
-        self.objtype: Any = objtype
-        self.module = inspect.getmodule(objtype)
-        if self.module is not None:
-            if not hasattr(self.module, "__test__"):
-                self.module.__dict__["__test__"] = dict()
-        self.name: str = name
-        doc = getattr(self, "__doc__")
-        if doc:
-            self.set_doc(doc)
+    def call_fget(self, obj: Any) -> OutputType:
+        """Call `fget` without additional functionalities."""
+        return self.fget(obj)
 
-    @overload
-    def __get__(self, obj: None, objtype) -> "BaseProperty":
-        """get the property"""
+    def call_fset(self, obj: Any, value: InputType) -> None:
+        """Call `fset` without additional functionalities."""
+        self.fset(obj, value)
 
-    @overload
-    def __get__(self, obj, objtype) -> OutputType:
-        """get the value"""
+    def call_fdel(self, obj: Any) -> None:
+        """Call `fdel` without additional functionalities."""
+        self.fdel(obj)
 
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self
-        if self.fget is fgetdummy:
-            raise AttributeError(
-                f"Attribute `{self.name}` of object "
-                f"{objecttools.devicephrase(obj)} is not gettable."
-            )
-        return self.call_fget(obj)
-
-    def __set__(self, obj, value: InputType) -> None:
-        if self.fset is fsetdummy:
-            raise AttributeError(
-                f"Attribute `{self.name}` of object "
-                f"{objecttools.devicephrase(obj)} is not settable."
-            )
-        self.call_fset(obj, value)
-
-    def __delete__(self, obj) -> None:
-        if self.fdel is fdeldummy:
-            raise AttributeError(
-                f"Attribute `{self.name}` of object "
-                f"{objecttools.devicephrase(obj)} is not deletable."
-            )
-        self.call_fdel(obj)
-
-    def set_doc(self, doc: str):
-        """Assign the given docstring to the property instance and, if
-        possible, to the `__test__` dictionary of the module of its
-        owner class."""
-        self.__doc__ = doc
-        if hasattr(self, "module"):
-            ref = f"{self.objtype.__name__}.{self.name}"
-            self.module.__dict__["__test__"][ref] = doc
-
-    @abc.abstractmethod
-    def call_fget(self, obj) -> OutputType:
-        """Method for implementing special getter functionalities."""
-
-    @abc.abstractmethod
-    def call_fset(self, obj, value: InputType) -> None:
-        """Method for implementing special setter functionalities."""
-
-    @abc.abstractmethod
-    def call_fdel(self, obj) -> None:
-        """Method for implementing special deleter functionalities."""
-
-    def getter(self, fget: Callable) -> "BaseProperty":
-        """Add the given getter function and its docstring to the
-        property and return it."""
-        setattr(self, "fget", fget)
-        self.set_doc(getattr(fget, "__doc__"))
+    def getter(self, fget: FGet[OutputType]) -> "Property[InputType, OutputType]":
+        """Add the given getter function and its docstring to the property and
+        return it."""
+        self.fget = fget
+        self.set_doc(fget.__doc__)
         return self
 
-    def setter(self, fset: Callable) -> "BaseProperty":
+    def setter(self, fset: FSet[InputType]) -> "Property[InputType, OutputType]":
         """Add the given setter function to the property and return it."""
-        setattr(self, "fset", fset)
+        self.fset = fset
         return self
 
-    def deleter(self, fdel: Callable) -> "BaseProperty":
+    def deleter(self, fdel: FDel) -> "Property[InputType, OutputType]":
         """Add the given deleter function to the property and return it."""
         setattr(self, "fdel", fdel)
         return self
 
 
 class ProtectedProperty(BaseProperty[InputType, OutputType]):
-    # noinspection PyUnresolvedReferences
-    """|property| like class which prevents getting an attribute
-    before setting it.
+    """A |property|-like class which prevents getting an attribute before setting it.
 
-    Under some circumstances, an attribute value needs to be prepared
-    before one should be allowed to query it.  Consider the case where
-    a property of a Python class (beeing part of the API) links to an
-    attribute of a Cython extension class (not part of the API).  If
-    the Cython attribute is e.g. some type of vector requiring memory
-    allocation, trying to query this vector befor it has actually been
-    prepared results in a programm crash.  Using |ProtectedProperty|
-    is a means to prevent from such problems to occur.
+    Some attributes need preparations before being accessible.  Consider the case
+    where a property of a Python class (being part of the API) links to an attribute
+    of a Cython extension class (not part of the API).  If the Cython attribute is,
+    for example, a vector requiring memory allocation, trying to query this vector
+    before it has been initialised results in a program crash.  Using
+    |ProtectedProperty| is a means to prevent such problems.
 
-    Consider the following class `Test`, which defines most simple
-    `set`, `get`, and `del` methods for its only property `x`:
+    The following class `Test` defines most simple getter, setter, and deleter
+    functions for its only property `x`:
 
     >>> from hydpy.core.propertytools import ProtectedProperty
     >>> class Test:
@@ -267,7 +296,8 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
     ...     def __init__(self):
     ...         self._x = None
     ...
-    ...     @ProtectedProperty
+    ...     x = ProtectedProperty()
+    ...     @x.getter
     ...     def x(self):
     ...         "Test"
     ...         return self._x
@@ -278,92 +308,101 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
     ...     def x(self):
     ...         self._x = None
 
-    Due to using |ProtectedProperty| instead of |property|, trying
-    to query `x` after initializing a `Test` object results in an
+    Trying to query `x` directly after initialising a `Test` object results in an
     |AttributeNotReady| error:
 
     >>> test = Test()
     >>> test.x
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object \
-`test` has not been prepared so far.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object `test` \
+has not been prepared so far.
 
-    After setting a value for property `x`, this value can be queried
-    as expected:
+    After setting a value, you can query this value as expected:
 
     >>> test.x = 1
     >>> test.x
     1
 
-    After deleting `x`, its value is not accessible, again:
+    After deleting the value, the protection mechanism applies again:
 
     >>> del test.x
     >>> test.x
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object \
-`test` has not been prepared so far.
-
-    If the considered object defines a name (different from the class
-    name in lower letters) and/or references a |Node| or |Element|
-    object (directly or indirectly), the exception message includes this
-    additional information:
-
-    >>> from hydpy import Element
-    >>> test.name = "name_object"
-    >>> test.element = Element("name_element")
-
-    >>> test.x
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object \
-`name_object` of element `name_element` has not been prepared so far.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object `test` \
+has not been prepared so far.
     """
 
-    def __init__(self, fget=fsetdummy):
+    def __init__(
+        self,
+        fget: FGet[OutputType] = BaseProperty._fgetdummy,
+        fset: FSet[InputType] = BaseProperty._fsetdummy,
+        fdel: FDel = BaseProperty._fdeldummy,
+    ) -> None:
         self.fget = fget
         self.set_doc(fget.__doc__)
-        self.fset = fsetdummy
-        self.fdel = fdeldummy
+        self.fset = fset
+        self.fdel = fdel
 
-    def call_fget(self, obj) -> OutputType:
-        """Call `fget` when ready, otherwise raise an exception."""
+    def call_fget(self, obj: Any) -> OutputType:
+        """When ready, call `fget`; otherwise, raise an |AttributeNotReady|
+        exception."""
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
-            f"Attribute `{self.name}` of object "
-            f"{objecttools.devicephrase(obj)} has not been prepared so far."
+            f"Attribute `{self.name}` of object {objecttools.devicephrase(obj)} "
+            f"has not been prepared so far."
         )
 
-    def call_fset(self, obj, value: InputType) -> None:
+    def call_fset(self, obj: Any, value: InputType) -> None:
         """Call `fset` and mark the attribute as ready."""
         self.fset(obj, value)
         vars(obj)[self.name] = True
 
-    def call_fdel(self, obj) -> None:
+    def call_fdel(self, obj: Any) -> None:
         """Call `fdel` and mark the attribute as not ready."""
         vars(obj)[self.name] = False
         self.fdel(obj)
 
-    def isready(self, obj) -> bool:
+    def isready(self, obj: Any) -> bool:
         """Return |True| or |False| to indicate if the protected
         property is ready for the given object.  If the object is
-        unknow, |ProtectedProperty| returns |False|."""
+        unknown, |ProtectedProperty.isready| returns |False|."""
         return vars(obj).get(self.name, False)
 
+    def getter(
+        self, fget: FGet[OutputType]
+    ) -> "ProtectedProperty[InputType, OutputType]":
+        """Add the given getter function and its docstring to the property
+        and return it."""
+        self.fget = fget
+        self.set_doc(fget.__doc__)
+        return self
 
-class ProtectedPropertyStr(ProtectedProperty[str, str]):
-    """|ProtectedProperty| for handling |str| objects."""
+    def setter(
+        self, fset: FSet[InputType]
+    ) -> "ProtectedProperty[InputType, OutputType]":
+        """Add the given setter function to the property and return it."""
+        self.fset = fset
+        return self
+
+    def deleter(self, fdel: FDel) -> "ProtectedProperty[InputType, OutputType]":
+        """Add the given deleter function to the property and return it."""
+        self.fdel = fdel
+        return self
+
+
+ProtectedPropertyStr = ProtectedProperty[str, str]
+"""|ProtectedProperty| for handling |str| objects."""
 
 
 class ProtectedProperties:
-    # noinspection PyUnresolvedReferences
     """Iterable for |ProtectedProperty| objects.
 
-    You can combine an arbitrary number of |ProtectedProperty| objects
-    with a |ProtectedProperties| objects.  Its |ProtectedProperties.allready|
-    allows to check if the status of all properties at ones:
+    You can collect an arbitrary number of |ProtectedProperty| objects within a
+    |ProtectedProperties| object.  Its |ProtectedProperties.allready| method
+    allows checking the status of all properties at ones:
 
     >>> from hydpy.core import propertytools as pt
     >>> class Test:
@@ -395,10 +434,12 @@ class ProtectedProperties:
     True
     """
 
-    def __init__(self, *properties: ProtectedProperty):
+    __properties: Tuple[ProtectedProperty[Any, Any], ...]
+
+    def __init__(self, *properties: ProtectedProperty[Any, Any]) -> None:
         self.__properties = properties
 
-    def allready(self, obj) -> bool:
+    def allready(self, obj: Any) -> bool:
         """Return |True| or |False| to indicate whether all protected
         properties are ready or not."""
         for prop in self.__properties:
@@ -406,19 +447,17 @@ class ProtectedProperties:
                 return False
         return True
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ProtectedProperty[Any, Any]]:
         return self.__properties.__iter__()
 
 
 class DependentProperty(BaseProperty[InputType, OutputType]):
-    # noinspection PyUnresolvedReferences
-    """|property| like class which prevents accessing a dependent
-    attribute before other attributes have been prepared.
+    """|property|-like class which prevents accessing a dependent attribute
+    before preparing certain other attributes.
 
-    The following explanations suppose first reading the documentation
-    on function |ProtectedProperty|.  The following example builds on
-    the one on class |ProtectedProperty|, but adds the dependent property,
-    which requires the protected property `x` to be properly prepared:
+    Please read the documentation on class |ProtectedProperty|, from which we
+    take the following example.  `x` is a simple |ProtectedProperty| again,
+    but time we add the |DependentProperty| `y`:
 
     >>> from hydpy.core import propertytools as pt
     >>> class Test:
@@ -449,31 +488,27 @@ class DependentProperty(BaseProperty[InputType, OutputType]):
     ...     def y(self):
     ...         self._y = None
 
-    Initially, due to `x` beeing not prepared, there is no way to get,
-    set, or delete attribute `y`:
+    Initially, due to `x` not being prepared, there is no way to get, set, or
+    delete attribute `y`:
 
     >>> test = Test()
     >>> test.y
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of \
-object `test` is not usable so far.  At least, you have to prepare \
-attribute `x` first.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \
+is not usable so far.  At least, you have to prepare attribute `x` first.
     >>> test.y = 1
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of \
-object `test` is not usable so far.  At least, you have to prepare \
-attribute `x` first.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \
+is not usable so far.  At least, you have to prepare attribute `x` first.
     >>> del test.y
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of \
-object `test` is not usable so far.  At least, you have to prepare \
-attribute `x` first.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \
+is not usable so far.  At least, you have to prepare attribute `x` first.
 
-    However, after assigning a value to `x`, `y` behaves like a
-    "normal" property:
+    After assigning a value to `x`, `y` behaves like a common property:
 
     >>> test.x = "anything"
     >>> test.y = 1
@@ -483,13 +518,22 @@ attribute `x` first.
     >>> test.y
     """
 
-    def __init__(self, protected):
-        self.protected = protected
-        self.fget = fgetdummy
-        self.fset = fsetdummy
-        self.fdel = fdeldummy
+    protected: Tuple[ProtectedProperty[Any, Any], ...]
 
-    def __check(self, obj) -> None:
+    def __init__(
+        self,
+        protected: Tuple[ProtectedProperty[Any, Any], ...],
+        fget: FGet[OutputType] = BaseProperty._fgetdummy,
+        fset: FSet[InputType] = BaseProperty._fsetdummy,
+        fdel: FDel = BaseProperty._fdeldummy,
+    ) -> None:
+        self.protected = protected
+        self.fget = fget
+        self.set_doc(fget.__doc__)
+        self.fset = fset
+        self.fdel = fdel
+
+    def __check(self, obj: Any) -> None:
         for req in self.protected:
             if not req.isready(obj):
                 raise exceptiontools.AttributeNotReady(
@@ -499,34 +543,51 @@ attribute `x` first.
                     f"`{req.name}` first."
                 )
 
-    def call_fget(self, obj) -> OutputType:
-        """Call `fget` when all required attributes are ready,
-        otherwise raise an |AttributeNotReady| error."""
+    def call_fget(self, obj: Any) -> OutputType:
+        """Call `fget` when all required attributes are ready; otherwise, raise
+        an |AttributeNotReady| error."""
         self.__check(obj)
         return self.fget(obj)
 
-    def call_fset(self, obj, value: InputType) -> None:
-        """Call `fset` when all required attributes are ready,
-        otherwise raise an |AttributeNotReady| error."""
+    def call_fset(self, obj: Any, value: InputType) -> None:
+        """Call `fset` when all required attributes are ready; otherwise, raise
+        an |AttributeNotReady| error."""
         self.__check(obj)
         self.fset(obj, value)
 
-    def call_fdel(self, obj) -> None:
-        """Call `fdel` when all required attributes are ready,
-        otherwise raise an |AttributeNotReady| error."""
+    def call_fdel(self, obj: Any) -> None:
+        """Call `fdel` when all required attributes are ready; otherwise, raise
+        an |AttributeNotReady| error."""
         self.__check(obj)
         self.fdel(obj)
 
+    def getter(
+        self, fget: FGet[OutputType]
+    ) -> "DependentProperty[InputType, OutputType]":
+        """Add the given getter function and its docstring to the property and
+        return it."""
+        self.fget = fget
+        self.set_doc(fget.__doc__)
+        return self
+
+    def setter(
+        self, fset: FSet[InputType]
+    ) -> "DependentProperty[InputType, OutputType]":
+        """Add the given setter function to the property and return it."""
+        self.fset = fset
+        return self
+
+    def deleter(self, fdel: FDel) -> "DependentProperty[InputType, OutputType]":
+        """Add the given deleter function to the property and return it."""
+        self.fdel = fdel
+        return self
+
 
 class DefaultProperty(BaseProperty[InputType, OutputType]):
-    # noinspection PyUnresolvedReferences
-    """|property| like class which uses the getter function to return
-    a default value unless a custom value is available.
+    """|property|-like class which uses the getter function to return a default
+    value unless a custom value is available.
 
-    The following example includes two default properties.  Default
-    property `x` implements only the required default getter
-    function, default property `y` additionally implements a setter
-    and a delete function with value checks:
+    In the following example, the default value of property `x` is one:
 
     >>> from hydpy.core.propertytools import DefaultProperty
     >>> class Test:
@@ -535,108 +596,70 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     ...     def x(self):
     ...         "Default property x."
     ...         return 1
-    ...
-    ...     @DefaultProperty
-    ...     def y(self):
-    ...         "Default property y."
-    ...         return 2.0
-    ...     @y.setter
-    ...     def y(self, value):
-    ...         return float(value)
-    ...     @y.deleter
-    ...     def y(self):
-    ...         if self.y == 4.0:
-    ...             raise RuntimeError
 
-    Initially, both properties return the default values defined by
-    their getter functions:
+    Initially, property `x` returns the default value defined by its getter function:
 
     >>> test = Test()
     >>> test.x
     1
-    >>> test.y
-    2.0
 
-    After setting custom values successfully, default properties return them:
+    Assigned custom values override such default values:
 
     >>> test.x = 3
-    >>> test.y = "five"
-    Traceback (most recent call last):
-    ...
-    ValueError: could not convert string to float: 'five'
     >>> test.x
     3
-    >>> test.y
-    2.0
-    >>> test.y = "4"
-    >>> test.y
-    4.0
 
-    After deleting these custom values successfully, the getter functions
-    are again used to return default values:
+    After removing the custom value, it is again up to the getter function to return
+    the default value:
 
     >>> del test.x
-    >>> del test.y
-    Traceback (most recent call last):
-    ...
-    RuntimeError
     >>> test.x
     1
-    >>> test.y
-    4.0
-    >>> test.y = 5.0
-    >>> del test.y
-    >>> test.y
-    2.0
 
     Trying to delete a not existing custom value does not harm:
 
     >>> del test.x
-    >>> del test.y
 
-    The documentation strings of the getter functions serve as documentation
-    strings of the respective default properties:
+    The documentation string of the getter functions serves as the documentation
+    string of the default property:
 
     >>> Test.x.__doc__
     'Default property x.'
-    >>> Test.y.__doc__
-    'Default property y.'
     """
 
-    def __init__(self, fget) -> None:
+    def __init__(self, fget: FGet[OutputType] = BaseProperty._fgetdummy) -> None:
         self.fget = fget
-        self.fset = self._fset
-        self.fdel = self._fdel
         self.set_doc(fget.__doc__)
+        self.fset = self._fsetowndummy
+        self.fdel = self._fdelowndummy
 
-    def call_fget(self, obj) -> OutputType:
-        """Return the predefined custom value when available, otherwise,
+    def call_fget(self, obj: Any) -> OutputType:
+        """If available, return the predefined custom value; otherwise, return
         the value defined by the getter function."""
-        custom = vars(obj).get(self.name)
-        if custom is None:
+        value = cast(Optional[OutputType], vars(obj).get(self.name))
+        if value is None:
             return self.fget(obj)
-        return custom
+        return value
 
-    def call_fset(self, obj, value: InputType) -> None:
-        """Store the given custom value and call the setter function."""
-        vars(obj)[self.name] = self.fset(obj, value)
+    def call_fset(self, obj: Any, value: InputType) -> None:
+        """Store the given custom value."""
+        vars(obj)[self.name] = value
 
-    def call_fdel(self, obj) -> None:
-        """Remove the predefined custom value and call the delete function."""
-        self.fdel(obj)
+    def call_fdel(self, obj: Any) -> None:
+        """Remove the predefined custom value."""
         try:
             del vars(obj)[self.name]
         except KeyError:
             pass
 
     @staticmethod
-    def _fset(_, value) -> Any:
-        """Just return the given value."""
-        return value
+    def _fsetowndummy(__obj: Any, __value: InputType) -> None:
+        """Do nothing."""
 
-    def _fdel(self, obj) -> None:
+    @staticmethod
+    def _fdelowndummy(__obj: Any) -> None:
         """Do nothing."""
 
 
-class DefaultPropertyStr(DefaultProperty[str, str]):
-    """|DefaultProperty| for handling |str| objects."""
+DefaultPropertyStr = DefaultProperty[str, str]
+"""|DefaultProperty| for handling |str| objects."""

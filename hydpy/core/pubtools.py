@@ -3,8 +3,8 @@
 # import...
 # ...from standard library
 import types
-from typing import NoReturn
 from typing import *
+from typing import NoReturn
 
 # ...from HydPy
 from hydpy.core import exceptiontools
@@ -29,7 +29,7 @@ class _PubProperty(
     def __init__(self) -> None:
         super().__init__(self._fget)
 
-    def _fget(self, obj: object) -> NoReturn:
+    def _fget(self, obj: Any) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
             f"Attribute {self.name} of module `pub` is not defined at the moment.",
         )
@@ -89,9 +89,9 @@ class TimegridsProperty(
                              "1d"))
     """
 
-    @staticmethod
-    def _fset(
-        _: object,
+    def call_fset(
+        self,
+        obj: Any,
         value: Union[
             timetools.Timegrids,
             Tuple[
@@ -100,14 +100,15 @@ class TimegridsProperty(
                 timetools.PeriodConstrArg,
             ],
         ],
-    ) -> timetools.Timegrids:
+    ) -> None:
         """Try to convert the given input value(s)."""
         try:
-            return timetools.Timegrids(*value)
+            timegrids = timetools.Timegrids(*value)
         except TypeError:
-            return timetools.Timegrids(value)  # type: ignore
+            timegrids = timetools.Timegrids(value)  # type: ignore
             # this will most likely fail, we just want to reuse
             # the standard error message
+        super().call_fset(obj, timegrids)
 
 
 class Pub(types.ModuleType):

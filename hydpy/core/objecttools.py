@@ -355,7 +355,16 @@ only inside except clauses.)
     raise exc_new from exc_old
 
 
-def excmessage_decorator(description_: str) -> Callable:
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
+    """Function |decorator| adds type hints to function `decorator` of the
+    site-package `wrapt` without changing its functionality."""
+    return cast(Callable[[F], F], wrapt.decorator(wrapper))
+
+
+def excmessage_decorator(description_: str) -> Callable[[F], F]:
     """Wrap a function with |augment_excmessage|.
 
     Function |excmessage_decorator| is a means to apply function
@@ -460,7 +469,7 @@ type(s) for +=: 'int' and 'str'
     """
 
     @wrapt.decorator
-    def wrapper(wrapped, instance, args, kwargs):
+    def wrapper(wrapped, instance, args, kwargs):  # type: ignore[no-untyped-def]
         """Apply |augment_excmessage| when the wrapped function fails."""
         # pylint: disable=unused-argument
         try:
@@ -479,7 +488,7 @@ type(s) for +=: 'int' and 'str'
             message = eval(f"f'While trying to {description_}'", globals(), info)
             augment_excmessage(message)
 
-    return wrapper
+    return cast(Callable[[F], F], wrapper)
 
 
 class ResetAttrFuncs:

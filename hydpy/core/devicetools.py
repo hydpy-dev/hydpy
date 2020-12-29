@@ -2248,13 +2248,17 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
                     ps = ps.rename(columns=dict(series=label_))
-                ps.plot(
+                kwargs = dict(
                     label=label_,
-                    color=color,
-                    linestyle=linestyle,
-                    linewidth=linewidth,
                     ax=pyplot.gca(),
                 )
+                if color is not None:
+                    kwargs["color"] = color
+                if linestyle is not None:
+                    kwargs["linestyle"] = linestyle
+                if linewidth is not None:
+                    kwargs["linewidth"] = linewidth
+                ps.plot(**kwargs)
             pyplot.legend()
             if not focus:
                 pyplot.ylim((0.0, None))

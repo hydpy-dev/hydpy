@@ -11,7 +11,14 @@ import numpy
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
+from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import variabletools
+
+Device2Target = Dict[
+    Union[devicetools.Node, devicetools.Element],
+    variabletools.Variable[Any, Any],
+]
 
 
 class ExchangeSpecification:
@@ -47,7 +54,16 @@ class ExchangeSpecification:
     False
     """
 
-    def __init__(self, master, variable):
+    master: str
+    entries: List[str]
+    series: bool
+    subgroup: Optional[str]
+
+    def __init__(
+        self,
+        master: str,
+        variable: str,
+    ) -> None:
         self.master = master
         entries = variable.split(".")
         self.series = entries[-1] == "series"
@@ -59,7 +75,7 @@ class ExchangeSpecification:
             self.subgroup, self.variable = None, entries[0]
 
     @property
-    def specstring(self):
+    def specstring(self) -> str:
         """The string corresponding to the current values of `subgroup`,
         `state`, and `variable`.
 
@@ -82,7 +98,7 @@ class ExchangeSpecification:
             variable = f"{variable}.series"
         return variable
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'ExchangeSpecification("{self.master}", "{self.specstring}")'
 
 
@@ -92,10 +108,13 @@ class ExchangeItem:
 
     master: str
     targetspecs: ExchangeSpecification
-    device2target: Dict[devicetools.Device, variabletools.Variable]
+    device2target: Device2Target
     ndim: int
 
-    def _iter_relevantelements(self, selections) -> Iterator[devicetools.Element]:
+    def _iter_relevantelements(
+        self,
+        selections: selectiontools.Selections,
+    ) -> Iterator[devicetools.Element]:
         for element in selections.elements:
             name1 = element.model.name
             name2 = name1.rpartition("_")[0]
@@ -104,13 +123,17 @@ class ExchangeItem:
 
     @staticmethod
     def _query_elementvariable(
-        element: devicetools.Element, properties
-    ) -> variabletools.Variable:
+        element: devicetools.Element,
+        properties: ExchangeSpecification,
+    ) -> variabletools.Variable[Any, Any]:
         model = element.model
         for group in (model.parameters, model.sequences):
-            subgroup = getattr(group, properties.subgroup, None)
-            if subgroup is not None:
-                return getattr(subgroup, properties.variable)
+            if properties.subgroup is not None:
+                subgroup = getattr(group, properties.subgroup, None)
+                if subgroup is not None:
+                    variable_ = subgroup[properties.variable]
+                    assert isinstance(variable_, variabletools.Variable)
+                    return variable_
         raise RuntimeError(
             f"Model {objecttools.elementphrase(model)} does neither handle "
             f"a parameter of sequence subgroup named `{properties.subgroup}."
@@ -118,11 +141,17 @@ class ExchangeItem:
 
     @staticmethod
     def _query_nodevariable(
-        node: devicetools.Node, properties
-    ) -> variabletools.Variable:
-        return getattr(node.sequences, properties.variable)
+        node: devicetools.Node,
+        properties: ExchangeSpecification,
+    ) -> sequencetools.NodeSequence:
+        sequence = getattr(node.sequences, properties.variable)
+        assert isinstance(sequence, sequencetools.NodeSequence)
+        return sequence
 
-    def collect_variables(self, selections) -> None:
+    def collect_variables(
+        self,
+        selections: selectiontools.Selections,
+    ) -> None:
         """Apply method |ExchangeItem.insert_variables| to collect the
         relevant target variables handled by the devices of the given
         |Selections| object.
@@ -224,11 +253,17 @@ handle a parameter of sequence subgroup named `wrong_group.
         """
         self.insert_variables(self.device2target, self.targetspecs, selections)
 
-    def insert_variables(self, device2variable, exchangespec, selections) -> None:
+    def insert_variables(
+        self,
+        device2variable: Device2Target,
+        exchangespec: ExchangeSpecification,
+        selections: selectiontools.Selections,
+    ) -> None:
         """Determine the relevant target or base variables (as defined by
         the given |ExchangeSpecification| object) handled by the given
         |Selections| object and insert them into the given `device2variable`
         dictionary."""
+        variable: variabletools.Variable[Any, Any]
         if self.targetspecs.master in ("node", "nodes"):
             for node in selections.nodes:
                 variable = self._query_nodevariable(node, exchangespec)
@@ -244,9 +279,32 @@ class ChangeItem(ExchangeItem):
     |Sequence_| objects of a specific type."""
 
     name: str
-    shape: Tuple[int, ...]
+    ndim: int
+    _shape: Optional[Tuple[int, ...]]
     _value: numpy.ndarray
-    device2target: Dict[devicetools.Device, variabletools.Variable]
+    device2target: Device2Target
+
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        """The shape of the target variables.
+
+        Trying to access property |ChangeItem.shape| before calling method
+        |ChangeItem.collect_variables| results in the following error:
+
+        >>> from hydpy import SetItem
+        >>> SetItem("name", "master", "target", 0).shape
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The shape of SetItem `name` has not been determined so far.
+
+        See method |ChangeItem.collect_variables| for further information.
+        """
+        if self._shape is not None:
+            return self._shape
+        raise RuntimeError(
+            f"The shape of {type(self).__name__} `{self.name}` "
+            f"has not been determined so far."
+        )
 
     @property
     def value(self) -> numpy.ndarray:
@@ -272,7 +330,7 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         return self._value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: numpy.ndarray) -> None:
         try:
             self._value = numpy.full(self.shape, value, dtype=float)
         except BaseException:
@@ -294,9 +352,12 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         """
         raise NotImplementedError
 
-    def collect_variables(self, selections) -> None:
+    def collect_variables(
+        self,
+        selections: selectiontools.Selections,
+    ) -> None:
         """Apply method |ExchangeItem.collect_variables| of the base class
-        |ExchangeItem| and determine the `shape` attribute of the current
+        |ExchangeItem| and determine the |ChangeItem.shape| of the current
         |ChangeItem| object afterwards, depending on its dimensionality
         and eventually on the shape of its target variables.
 
@@ -348,7 +409,7 @@ target variables.
 
     def _determine_shape(self) -> None:
         if self.ndim == 0:
-            self.shape = ()
+            self._shape = ()
         else:
             shape = None
             for variable in self.device2target.values():
@@ -357,9 +418,8 @@ target variables.
                 else:
                     if shape != variable.shape:
                         raise RuntimeError(
-                            f"{type(self).__name__} `{self.name}` "
-                            f"cannot handle target variables of "
-                            f"different shapes."
+                            f"{type(self).__name__} `{self.name}` cannot handle "
+                            f"target variables of different shapes."
                         )
             if shape is None:
                 raise RuntimeError(
@@ -368,9 +428,13 @@ target variables.
                     f"`Selections` object does not handle any "
                     f"relevant target variables."
                 )
-            self.shape = shape
+            self._shape = shape
 
-    def update_variable(self, variable, value) -> None:
+    def update_variable(
+        self,
+        variable: variabletools.Variable[Any, Any],
+        value: numpy.ndarray,
+    ) -> None:
         """Assign the given value(s) to the given target or base variable.
 
         If the assignment fails, |ChangeItem.update_variable| raises an
@@ -392,9 +456,8 @@ occurred: The given value `None` cannot be converted to type `float`.
             variable(value)
         except BaseException:
             objecttools.augment_excmessage(
-                f"When trying to update a target variable of "
-                f"{type(self).__name__} `{self.name}` "
-                f"with the value(s) `{value}`"
+                f"When trying to update a target variable of {type(self).__name__} "
+                f"`{self.name}` with the value(s) `{value}`"
             )
 
 
@@ -402,13 +465,19 @@ class SetItem(ChangeItem):
     """Item for assigning |ChangeItem.value| to multiple |Parameter| or
     |Sequence_| objects of a specific type."""
 
-    def __init__(self, name, master, target, ndim) -> None:
+    def __init__(
+        self,
+        name: str,
+        master: str,
+        target: str,
+        ndim: int,
+    ) -> None:
         self.name = str(name)
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = int(ndim)
-        self._value: numpy.ndarray = None
-        self.shape: Tuple[int] = None
-        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
+        self._value = None
+        self._shape = None
+        self.device2target = {}
 
     def update_variables(self) -> None:
         """Assign the current objects |ChangeItem.value| to the values
@@ -477,7 +546,7 @@ class SetItem(ChangeItem):
         for variable in self.device2target.values():
             self.update_variable(variable, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f'{type(self).__name__}("{self.name}", '
             f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
@@ -510,19 +579,29 @@ class MathItem(ChangeItem):
     """
 
     basespecs: ExchangeSpecification
-    device2base: Dict
+    device2base: Device2Target
 
-    def __init__(self, name, master, target, base, ndim) -> None:
+    def __init__(
+        self,
+        name: str,
+        master: str,
+        target: str,
+        base: str,
+        ndim: int,
+    ) -> None:
         self.name = str(name)
         self.targetspecs = ExchangeSpecification(master, target)
         self.basespecs = ExchangeSpecification(master, base)
         self.ndim = int(ndim)
         self._value = None
-        self.shape = None
-        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
+        self._shape = None
+        self.device2target = {}
         self.device2base = {}
 
-    def collect_variables(self, selections) -> None:
+    def collect_variables(
+        self,
+        selections: selectiontools.Selections,
+    ) -> None:
         """Apply method |ChangeItem.collect_variables| of the base class
         |ChangeItem| and also apply method |ExchangeItem.insert_variables|
         of class |ExchangeItem| to collect the relevant base variables
@@ -549,7 +628,7 @@ class MathItem(ChangeItem):
         super().collect_variables(selections)
         self.insert_variables(self.device2base, self.basespecs, selections)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f'{type(self).__name__}("{self.name}", '
             f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
@@ -612,14 +691,19 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or
     |Sequence_| objects of a specific type."""
 
-    def __init__(self, master: str, target: str):
+    _device2name: Dict[Union[devicetools.Node, devicetools.Element], str]
+
+    def __init__(self, master: str, target: str) -> None:
         self.target = target.replace(".", "_")
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = 0
-        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
-        self._device2name: Dict[devicetools.Device, str] = {}
+        self.device2target = {}
+        self._device2name = {}
 
-    def collect_variables(self, selections) -> None:
+    def collect_variables(
+        self,
+        selections: selectiontools.Selections,
+    ) -> None:
         """Apply method |ExchangeItem.collect_variables| of the base class
         |ExchangeItem| and determine the `ndim` attribute of the current
         |ChangeItem| object afterwards.
@@ -649,7 +733,11 @@ class GetItem(ExchangeItem):
                 self.ndim += 1
             break
 
-    def yield_name2value(self, idx1=None, idx2=None) -> Iterator[Tuple[str, str]]:
+    def yield_name2value(
+        self,
+        idx1: Optional[int] = None,
+        idx2: Optional[int] = None,
+    ) -> Iterator[Tuple[str, str]]:
         """Sequentially return name-value-pairs describing the current state
         of the target variables.
 
@@ -699,6 +787,7 @@ class GetItem(ExchangeItem):
         for device, name in self._device2name.items():
             target = self.device2target[device]
             if self.targetspecs.series:
+                assert isinstance(target, sequencetools.IOSequence)
                 values = target.series[idx1:idx2]
             else:
                 values = target.values
@@ -708,7 +797,7 @@ class GetItem(ExchangeItem):
                 values = objecttools.repr_list(values.tolist())
             yield name, values
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
             f'"{self.targetspecs.master}", "{self.targetspecs.specstring}")'

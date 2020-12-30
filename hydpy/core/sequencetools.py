@@ -1413,13 +1413,6 @@ variable `evpo` can only be retrieved after it has been defined.
         if not self.NDIM:
             self.shape = ()
 
-    def __call__(self, *args) -> None:
-        """The prefered way to pass values to |Sequence_| instances
-        within initial condition files."""
-        if len(args) == 1:
-            args = args[0]
-        self.values = args
-
     @property
     def initinfo(self) -> Tuple[Union[float, "pointerutils.Double"], bool]:
         # noinspection PyUnresolvedReferences

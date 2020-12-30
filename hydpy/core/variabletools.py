@@ -1056,6 +1056,11 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     ) -> Tuple[Union[float, int, bool, "pointerutils.Double",], bool,]:
         """To be overridden."""
 
+    def __call__(self, *args) -> None:
+        if len(args) == 1:
+            args = args[0]
+        self.values = args
+
     def __hydpy__get_value__(self):
         """The actual parameter or sequence value(s).
 

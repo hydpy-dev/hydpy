@@ -525,11 +525,11 @@ is not usable so far.  At least, you have to prepare attribute `x` first.
     >>> test.y
     """
 
-    protected: Tuple[ProtectedProperty[Any, Any], ...]
+    protected: ProtectedProperties
 
     def __init__(
         self,
-        protected: Tuple[ProtectedProperty[Any, Any], ...],
+        protected: ProtectedProperties,
         fget: FGet[OutputType] = BaseProperty._fgetdummy,
         fset: FSet[InputType] = BaseProperty._fsetdummy,
         fdel: FDel = BaseProperty._fdeldummy,

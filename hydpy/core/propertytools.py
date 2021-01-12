@@ -8,6 +8,8 @@ import abc
 import inspect
 import types
 from typing import *
+from typing import Optional, Type, Any
+
 from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from HydPy
@@ -18,6 +20,39 @@ InputType = TypeVar("InputType")
 InputType_contra = TypeVar("InputType_contra", contravariant=True)
 OutputType = TypeVar("OutputType")
 OutputType_co = TypeVar("OutputType_co", covariant=True)
+
+
+class BaseDescriptor:
+    """Base class for defining descriptors."""
+
+    objtype: Type[Any]
+    module: Optional[types.ModuleType]
+    name: str
+    __doc__: Optional[str]
+
+    def set_doc(self, doc: Optional[str]) -> None:
+        """Assign the given docstring to the property instance and, if possible,
+        to the `__test__` dictionary of the module of its owner class."""
+        if doc is not None:
+            self.__doc__ = doc
+            if hasattr(self, "module"):
+                ref = f"{self.objtype.__name__}.{self.name}"
+                self.module.__dict__["__test__"][ref] = doc
+
+    def __set_name__(
+        self,
+        objtype: Type[Any],
+        name: str,
+    ) -> None:
+        self.objtype = objtype
+        self.module = inspect.getmodule(objtype)
+        if self.module is not None:
+            if not hasattr(self.module, "__test__"):
+                self.module.__dict__["__test__"] = dict()
+        self.name = name
+        doc = getattr(self, "__doc__")
+        if doc:
+            self.set_doc(doc)
 
 
 class FGet(Protocol[OutputType_co]):
@@ -41,7 +76,7 @@ class FDel(Protocol):
         ...
 
 
-class BaseProperty(Generic[InputType, OutputType]):
+class BaseProperty(Generic[InputType, OutputType], BaseDescriptor):
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
@@ -75,10 +110,6 @@ class BaseProperty(Generic[InputType, OutputType]):
     fget: FGet[OutputType]
     fset: FSet[InputType]
     fdel: FDel
-    objtype: Type[Any]
-    module: Optional[types.ModuleType]
-    name: str
-    __doc__: Optional[str]
 
     @staticmethod
     def _fgetdummy(__obj: Any) -> OutputType:
@@ -94,21 +125,6 @@ class BaseProperty(Generic[InputType, OutputType]):
     @staticmethod
     def _fdeldummy(__obj: Any) -> None:
         raise RuntimeError
-
-    def __set_name__(
-        self,
-        objtype: Type[Any],
-        name: str,
-    ) -> None:
-        self.objtype = objtype
-        self.module = inspect.getmodule(objtype)
-        if self.module is not None:
-            if not hasattr(self.module, "__test__"):
-                self.module.__dict__["__test__"] = dict()
-        self.name = name
-        doc = getattr(self, "__doc__")
-        if doc:
-            self.set_doc(doc)
 
     @overload
     def __get__(
@@ -155,15 +171,6 @@ class BaseProperty(Generic[InputType, OutputType]):
                 f"{objecttools.devicephrase(obj)} is not deletable."
             )
         self.call_fdel(obj)
-
-    def set_doc(self, doc: Optional[str]) -> None:
-        """Assign the given docstring to the property instance and, if possible,
-        to the `__test__` dictionary of the module of its owner class."""
-        if doc is not None:
-            self.__doc__ = doc
-            if hasattr(self, "module"):
-                ref = f"{self.objtype.__name__}.{self.name}"
-                self.module.__dict__["__test__"][ref] = doc
 
     @abc.abstractmethod
     def call_fget(self, obj: Any) -> OutputType:

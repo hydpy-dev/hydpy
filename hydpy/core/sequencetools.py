@@ -378,14 +378,12 @@ class FastAccessNodeSequence(FastAccessIOSequence):
         """Alias for method |sequencetools.FastAccessNodeSequence.save_simdata|."""
         self.save_simdata(idx)
 
-    # noinspection PyUnusedLocal
     def reset(self, idx: int = 0) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with the other reset methods.
         """Reset the actual value of the simulation sequence to zero."""
         self.sim[0] = 0.0
 
-    # noinspection PyUnusedLocal
     def fill_obsdata(self, idx: int = 0) -> None:
         """Use the current sim value for the current obs value if obs is
         |numpy.nan|."""
@@ -1008,7 +1006,6 @@ class SubSequences(
 
     @property
     def name(self) -> str:
-        # noinspection PyTypeChecker
         """The class name in lower case letters omitting the last
         eight characters ("equences").
 
@@ -1322,7 +1319,6 @@ class Sequence_(
         variabletools.FastAccessType,
     ],
 ):
-    # noinspection PyProtectedMember
     """Base class for defining different kinds of sequences.
 
     Note that model developers should not derive their model-specific
@@ -1383,6 +1379,7 @@ variable `evpo` can only be retrieved after it has been defined.
     >>> evpo.fastaccess._evpo_length
     256
     """
+
     TYPE: Type[float] = float
     INIT: float = 0.0
     NUMERIC: bool
@@ -1417,8 +1414,6 @@ variable `evpo` can only be retrieved after it has been defined.
 
     @property
     def initinfo(self) -> Tuple[Union[float, "pointerutils.Double"], bool]:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyTypeChecker
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Sequence_| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1478,7 +1473,6 @@ variable `evpo` can only be retrieved after it has been defined.
         return variabletools.to_repr(self, self.value, islong)
 
     def __dir__(self) -> List[str]:
-        # noinspection PyTypeChecker
         """
         >>> from hydpy.core.sequencetools import FluxSequence
         >>> sequence = FluxSequence(None)
@@ -1591,8 +1585,6 @@ class IOSequence(
         FastAccessIOSequenceType,
     ],
 ):
-    # noinspection PyTypeChecker
-    # noinspection PyProtectedMember
     """Base class for sequences with input/output functionalities.
 
     The |IOSequence| subclasses |InputSequence|, |FluxSequence|,
@@ -1921,10 +1913,10 @@ requested to make any internal data available.
         >>> Element.clear_all()
     """
 
-    filetype_ext: ClassVar[_FileType]
-    dirpath_ext: ClassVar[_DirPathProperty]
-    aggregation_ext: ClassVar[_AggregationProperty]
-    overwrite_ext: ClassVar[_OverwriteProperty]
+    filetype_ext: _FileType
+    dirpath_ext: _DirPathProperty
+    aggregation_ext: _AggregationProperty
+    overwrite_ext: _OverwriteProperty
 
     def _finalise_connections(self) -> None:
         self._set_fastaccessattribute("ramflag", False)
@@ -1937,7 +1929,6 @@ requested to make any internal data available.
 
     @propertytools.DefaultPropertyStr
     def rawfilename(self) -> str:
-        # noinspection PyTypeChecker
         """|DefaultProperty| handling the filename without ending for
         external and internal data files.
 
@@ -1950,9 +1941,8 @@ requested to make any internal data available.
         """
         return f"{self.descr_device}_{self.descr_sequence}"
 
-    @propertytools.DefaultProperty
+    @propertytools.DefaultPropertyStr
     def filename_ext(self) -> str:
-        # noinspection PyTypeChecker
         """The full filename of the external data file.
 
         The "external" filename consists of |IOSequence.rawfilename| and
@@ -1971,7 +1961,6 @@ requested to make any internal data available.
 
     @property
     def filename_int(self) -> str:
-        # noinspection PyTypeChecker
         """The full filename of the internal data file.
 
         The "internal" filename consists of |IOSequence.rawfilename|
@@ -1987,9 +1976,8 @@ requested to make any internal data available.
         """
         return self.rawfilename + ".bin"
 
-    @propertytools.DefaultProperty
+    @propertytools.DefaultPropertyStr
     def dirpath_int(self) -> str:
-        # noinspection PyTypeChecker
         """The absolute path of the directory of the internal data file.
 
         Usually, each sequence queries its current "internal" directory
@@ -2054,9 +2042,8 @@ or prepare `pub.sequencemanager` correctly.
                 f"`pub.sequencemanager` correctly."
             ) from None
 
-    @propertytools.DefaultProperty
+    @propertytools.DefaultPropertyStr
     def filepath_ext(self) -> str:
-        # noinspection PyTypeChecker
         """The absolute path to the external data file.
 
         The path pointing to the "external" file consists of
@@ -2073,9 +2060,8 @@ or prepare `pub.sequencemanager` correctly.
         """
         return os.path.join(self.dirpath_ext, self.filename_ext)
 
-    @propertytools.DefaultProperty
+    @propertytools.DefaultPropertyStr
     def filepath_int(self) -> str:
-        # noinspection PyTypeChecker
         """The absolute path to the internal data file.
 
         The path pointing to the "internal" file consists of
@@ -2094,7 +2080,6 @@ or prepare `pub.sequencemanager` correctly.
         return os.path.join(self.dirpath_int, self.filename_int)
 
     def update_fastaccess(self) -> None:
-        # noinspection PyProtectedMember
         """Update the |FastAccessIOSequence| object handled by the actual
         |IOSequence| object.
 
@@ -2253,7 +2238,6 @@ or prepare `pub.sequencemanager` correctly.
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        # noinspection PyArgumentList
         super().__hydpy__set_shape__(shape)
         if self.memoryflag:
             self._activate()
@@ -2319,7 +2303,6 @@ the model associated with element `?`, the following error occurred: \
                 f"`nmb_stages` of the model associated with element "
                 f"`{objecttools.devicename(self)}`"
             )
-        # noinspection PyUnboundLocalVariable
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
@@ -2426,7 +2409,6 @@ the model associated with element `?`, the following error occurred: \
     evalseries = property(_get_evalseries, _set_evalseries)
 
     def load_ext(self) -> None:
-        # noinspection PyTypeChecker
         """Read the internal data from an external data file.
 
         Method |IOSequence.load_ext| only calls method
@@ -2457,7 +2439,6 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
                 f"While trying to load the external time-series "
                 f"data of {objecttools.devicephrase(self)}"
             )
-        # noinspection PyUnboundLocalVariable
         sequencemanager.load_file(self)
 
     def adjust_series(
@@ -2585,7 +2566,6 @@ simulation time step is `1d`.
         timegrid: "timetools.Timegrid",
         values: numpy.ndarray,
     ) -> numpy.ndarray:
-        # noinspection PyTypeChecker
         """Adjust a short time-series to a longer time grid.
 
         Mostly, time-series data to be read from external data files
@@ -2672,8 +2652,6 @@ simulation time step is `1d`.
         return values
 
     def check_completeness(self) -> None:
-        # noinspection PyTypeChecker
-        # noinspection PyRedeclaration
         """Raise a |RuntimeError| if the |IOSequence.series| contains at
         least one |numpy.nan| value and if the option |Options.checkseries|
         is enabled.
@@ -2718,7 +2696,6 @@ simulation time step is `1d`.
                 )
 
     def save_ext(self) -> None:
-        # noinspection PyTypeChecker
         """Write the internal data into an external data file.
 
         Method |IOSequence.save_ext| only calls method
@@ -2749,7 +2726,6 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
                 f"While trying to save the external time-series "
                 f"data of {objecttools.devicephrase(self)}"
             )
-        # noinspection PyUnboundLocalVariable
         sequencemanager.save_file(self)
 
     def save_mean(self, *args, **kwargs) -> None:
@@ -2777,9 +2753,6 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         values.tofile(self.filepath_int)
 
     def average_series(self, *args, **kwargs) -> InfoArray:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyTypeChecker
-        # noinspection PyRedeclaration
         """Average the actual time-series of the |Variable| object for all
         time points.
 
@@ -2962,7 +2935,6 @@ class ModelSequence(
 
     @property
     def descr_sequence(self) -> str:
-        # noinspection PyTypeChecker
         """Description of the |ModelSequence| object itself and the
         |SubSequences| group it belongs to.
 
@@ -2976,7 +2948,6 @@ class ModelSequence(
 
     @property
     def descr_model(self) -> str:
-        # noinspection PyTypeChecker
         """Description of the |Model| the |ModelSequence| object belongs to.
 
         >>> from hydpy import prepare_model
@@ -2992,7 +2963,6 @@ class ModelSequence(
 
     @property
     def descr_device(self) -> str:
-        # noinspection PyTypeChecker
         """Description of the |Element| object the |ModelSequence| object
         belongs to.
 
@@ -3032,7 +3002,6 @@ class InputSequence(
         FastAccessInputSequence,
     ],
 ):
-    # noinspection PyUnresolvedReferences
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data,
@@ -3153,7 +3122,6 @@ class OutputSequence(
         FastAccessOutputSequence,
     ],
 ):
-    # noinspection PyUnresolvedReferences
     """Base class for |FluxSequence| and |StateSequence|.
 
     |OutputSequence| subclasses implement an optional output mechanism.
@@ -3312,7 +3280,6 @@ class FluxSequence(
             self._set_fastaccessattribute("sum", value)
 
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
-        # noinspection PyProtectedMember
         """A tuple containing the actual lengths of all dimensions.
 
         |FluxSequence| objects come with some additional `fastaccess`
@@ -3360,7 +3327,6 @@ class FluxSequence(
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
-        # noinspection PyArgumentList
         super().__hydpy__set_shape__(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
@@ -3592,7 +3558,6 @@ shape (3,) into shape (2,)
             setattr(self.fastaccess_old, self.name, 0.0)
 
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
-        # noinspection PyProtectedMember
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess`
@@ -3640,7 +3605,6 @@ shape (3,) into shape (2,)
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        # noinspection PyArgumentList
         super().__hydpy__set_shape__(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
@@ -3665,7 +3629,6 @@ shape (3,) into shape (2,)
 
     @new.setter
     def new(self, value):
-        # noinspection PyArgumentList
         super().__hydpy__set_value__(value)
 
     @property
@@ -3759,7 +3722,6 @@ class LinkSequence(
         FastAccessLinkSequence,
     ],
 ):
-    # noinspection PyTypeChecker
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects do not handle values themselves.
@@ -4141,7 +4103,6 @@ class NodeSequence(
 
     @property
     def descr_sequence(self) -> str:
-        # noinspection PyUnresolvedReferences
         """Description of the |NodeSequence| object including the
         |Node.variable| to be represented.
 

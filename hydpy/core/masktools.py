@@ -12,10 +12,8 @@ import numpy
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
-
-if TYPE_CHECKING:
-    from hydpy.core import parametertools
-    from hydpy.core import typingtools
+from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class _MaskDescriptor:
@@ -107,10 +105,16 @@ class CustomMask(BaseMask):
     False
     """
 
-    def __call__(self, bools):
+    def __call__(
+        self: T,
+        bools: Union[VectorInput[bool], MatrixInput[bool]],
+    ) -> T:
         return type(self)(bools)
 
-    def __contains__(self, other):
+    def __contains__(
+        self,
+        other: Union[VectorInput[bool], MatrixInput[bool]],
+    ) -> bool:
         return numpy.all(self[other])
 
 
@@ -146,10 +150,12 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    variable: "typingtools.VariableProtocol"
+    variable: VariableProtocol
 
     def __new__(
-        cls, variable: Optional["typingtools.VariableProtocol"] = None, **kwargs
+        cls,
+        variable: Optional[VariableProtocol] = None,
+        **kwargs,
     ):
         if variable is None:
             return _MaskDescriptor(cls)
@@ -164,7 +170,7 @@ class DefaultMask(BaseMask):
         return numpy.all(self()[other])
 
     @classmethod
-    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
+    def new(cls, variable: VariableProtocol, **kwargs):
         """Return a new |DefaultMask| object associated with the
         given |Variable| object."""
         return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
@@ -183,10 +189,10 @@ class IndexMask(DefaultMask):
     """
 
     RELEVANT_VALUES: Tuple[int, ...]
-    variable: "typingtools.VariableProtocol"
+    variable: VariableProtocol
 
     @classmethod
-    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
+    def new(cls, variable: VariableProtocol, **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
 
@@ -229,7 +235,7 @@ determined as long as parameter `zonetype` is not prepared properly.
         return cls.array2mask(numpy.in1d(indices.values, cls.RELEVANT_VALUES), **kwargs)
 
     @classmethod
-    def get_refindices(cls, variable) -> "parametertools.Parameter":
+    def get_refindices(cls, variable) -> parametertools.Parameter:
         """Return the |Parameter| object for determining which
         entries of |IndexMask| are |True| and which are |False|.
 

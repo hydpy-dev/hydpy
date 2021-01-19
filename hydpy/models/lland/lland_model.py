@@ -7862,7 +7862,8 @@ class Calc_QBGA_V1(modeltools.Method):
         A normal test case:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> derived.kb(0.1)
         >>> states.qbgz.old = 2.0
         >>> states.qbgz.new = 4.0
@@ -7926,7 +7927,8 @@ class Calc_QIGA1_V1(modeltools.Method):
         A normal test case:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> derived.ki1(0.1)
         >>> states.qigz1.old = 2.0
         >>> states.qigz1.new = 4.0
@@ -7990,7 +7992,8 @@ class Calc_QIGA2_V1(modeltools.Method):
         A normal test case:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> derived.ki2(0.1)
         >>> states.qigz2.old = 2.0
         >>> states.qigz2.new = 4.0
@@ -8053,7 +8056,8 @@ class Calc_QDGA1_V1(modeltools.Method):
         A normal test case:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> derived.kd1(0.1)
         >>> states.qdgz1.old = 2.0
         >>> states.qdgz1.new = 4.0
@@ -8116,7 +8120,8 @@ class Calc_QDGA2_V1(modeltools.Method):
         A normal test case:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> derived.kd2(0.1)
         >>> states.qdgz2.old = 2.0
         >>> states.qdgz2.new = 4.0

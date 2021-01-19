@@ -374,11 +374,38 @@ class Fr(lland_parameters.LanduseMonthParameter):
                 values[idx, :] = 1.0
 
 
+class NFk(lland_parameters.ParameterSoil):
+    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.PWP,
+        lland_control.FK,
+    )
+
+    def update(self):
+        """Update |NFk| based on |PWP| and |FK|.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep("1d")
+        >>> nhru(1)
+        >>> lnk(ACKER)
+        >>> fk(100.0)
+        >>> pwp(20.0)
+        >>> derived.nfk.update()
+        >>> derived.nfk
+        nfk(80.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.fk - con.pwp
+
+
 class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
-    [-]."""
+    [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.EQB,
@@ -389,9 +416,10 @@ class KB(parametertools.Parameter):
         """Update |KB| based on |EQB| and |TInd|.
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> eqb(10.0)
-        >>> tind.value = 10.0
+        >>> tind(10.0)
         >>> derived.kb.update()
         >>> derived.kb
         kb(100.0)
@@ -402,9 +430,9 @@ class KB(parametertools.Parameter):
 
 class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
-    of the first interflow component) [-]."""
+    of the first interflow component) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.EQI1,
@@ -415,9 +443,10 @@ class KI1(parametertools.Parameter):
         """Update |KI1| based on |EQI1| and |TInd|.
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> eqi1(5.0)
-        >>> tind.value = 10.0
+        >>> tind(10.0)
         >>> derived.ki1.update()
         >>> derived.ki1
         ki1(50.0)
@@ -428,9 +457,9 @@ class KI1(parametertools.Parameter):
 
 class KI2(parametertools.Parameter):
     """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time
-    of the second interflow component) [-]."""
+    of the second interflow component) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.EQI2,
@@ -441,9 +470,10 @@ class KI2(parametertools.Parameter):
         """Update |KI2| based on |EQI2| and |TInd|.
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> eqi2(1.0)
-        >>> tind.value = 10.0
+        >>> tind(10.0)
         >>> derived.ki2.update()
         >>> derived.ki2
         ki2(10.0)
@@ -454,9 +484,9 @@ class KI2(parametertools.Parameter):
 
 class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
-    of the slower component of direct runoff) [-]."""
+    of the slower component of direct runoff) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.EQD1,
@@ -467,9 +497,10 @@ class KD1(parametertools.Parameter):
         """Update |KD1| based on |EQD1| and |TInd|.
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> eqd1(0.5)
-        >>> tind.value = 10.0
+        >>> tind(10.0)
         >>> derived.kd1.update()
         >>> derived.kd1
         kd1(5.0)
@@ -480,9 +511,9 @@ class KD1(parametertools.Parameter):
 
 class KD2(parametertools.Parameter):
     """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
-    of the faster component of direct runoff) [-]."""
+    of the faster component of direct runoff) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.EQD2,
@@ -493,9 +524,10 @@ class KD2(parametertools.Parameter):
         """Update |KD2| based on |EQD2| and |TInd|.
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> eqd2(0.1)
-        >>> tind.value = 10.0
+        >>> tind(10.0)
         >>> derived.kd2.update()
         >>> derived.kd2
         kd2(1.0)
@@ -524,30 +556,3 @@ class QFactor(parametertools.Parameter):
         """
         con = self.subpars.pars.control
         self.value = con.ft * 1000.0 / hydpy.pub.options.simulationstep.seconds
-
-
-class NFk(lland_parameters.ParameterSoil):
-    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.PWP,
-        lland_control.FK,
-    )
-
-    def update(self):
-        """Update |NFk| based on |PWP| and |FK|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(1)
-        >>> lnk(ACKER)
-        >>> fk(100.0)
-        >>> pwp(20.0)
-        >>> derived.nfk.update()
-        >>> derived.nfk
-        nfk(80.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.fk - con.pwp

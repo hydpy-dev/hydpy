@@ -43,6 +43,7 @@ The following list summarises the main components of |lland_v3|:
  * Frost-sealing of the upper soil-layer
  * One base flow, two interflow and two direct flow components
  * A freely configurable capillary rise routine
+ * Options to limit the capacity of the base flow storage
  * Separate linear storages for modelling runoff concentration
  * Additional evaporation from water areas within the subcatchment
  * Optional evaporation from inflowing runoff
@@ -143,6 +144,10 @@ model |lland_v1| (see integration test :ref:`lland_v1_acker_summer`):
 >>> dmax(r_dmax=0.55)
 >>> dmin(r_dmin=10.0)
 >>> bsf(0.3)
+>>> volbmax(inf)
+>>> gsbmax(1.0)
+>>> gsbgrad1(inf)
+>>> gsbgrad2(inf)
 >>> a1(0.0)
 >>> a2(0.5)
 >>> tind(0.191056)
@@ -1969,10 +1974,12 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_QIGZ1_V1,
         lland_model.Calc_QIGZ2_V1,
         lland_model.Calc_QDGZ_V1,
-        lland_model.Calc_QDGZ1_QDGZ2_V1,
         lland_model.Calc_QBGA_V1,
+        lland_model.Update_QDGZ_QBGZ_QBGA_V1,
+        lland_model.Update_QDGZ_QBGZ_QBGA_V2,
         lland_model.Calc_QIGA1_V1,
         lland_model.Calc_QIGA2_V1,
+        lland_model.Calc_QDGZ1_QDGZ2_V1,
         lland_model.Calc_QDGA1_V1,
         lland_model.Calc_QDGA2_V1,
         lland_model.Calc_QAH_V1,

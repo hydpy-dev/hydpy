@@ -1148,6 +1148,89 @@ class RBeta(parametertools.Parameter):
     INIT = False
 
 
+class VolBMax(parametertools.Parameter):
+    """Maximaler Inhalt des Gebietsspeichers für Basisabfluss (maximum value of
+    the storage compartment for base flow) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = numpy.inf
+
+
+class GSBMax(parametertools.Parameter):
+    """Faktor zur Anpassung von |VolBMax| (factor for adjusting |VolBMax|) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.0
+
+
+class GSBGrad1(parametertools.Parameter):
+    """Höchste Volumenzunahme des Gebietsspeichers für Basisabfluss ohne Begrenzung
+    des Zuflusses (highest possible storage increase of the compartment for base
+    flow without inflow reductions) [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    INIT = numpy.inf
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> gsbgrad2(1.0)
+        >>> gsbgrad1(0.0)
+        >>> gsbgrad1
+        gsbgrad1(0.0)
+        >>> gsbgrad1(1.0)
+        >>> gsbgrad1
+        gsbgrad1(1.0)
+        >>> gsbgrad1(2.0)
+        >>> gsbgrad1
+        gsbgrad1(1.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(
+                self.subpars.gsbgrad2,
+                "value",
+                None,
+            )
+        super().trim(lower, upper)
+
+
+class GSBGrad2(parametertools.Parameter):
+    """Volumenzunahme des Gebietsspeichers für Basisabfluss, oberhalb der jeglicher
+    Zufluss ausgeschlossen ist (highest possible storage increase of the compartment
+    for base flow) [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    INIT = numpy.inf
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> gsbgrad1(1.0)
+        >>> gsbgrad2(2.0)
+        >>> gsbgrad2
+        gsbgrad2(2.0)
+        >>> gsbgrad2(1.0)
+        >>> gsbgrad2
+        gsbgrad2(1.0)
+        >>> gsbgrad2(0.0)
+        >>> gsbgrad2
+        gsbgrad2(1.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(
+                self.subpars.gsbgrad1,
+                "value",
+                None,
+            )
+        super().trim(lower, upper)
+
+
 # runoff concentration
 
 

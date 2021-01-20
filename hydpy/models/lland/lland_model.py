@@ -6870,7 +6870,7 @@ class Calc_EvB_V2(modeltools.Method):
 
 
 class Calc_QKap_V1(modeltools.Method):
-    """ "Calculate the capillary rise.
+    """Calculate the capillary rise.
 
     Basic equation:
       :math:`QKap = KapMax \\cdot min\\left(max\\left(1 -
@@ -7909,6 +7909,252 @@ class Calc_QBGA_V1(modeltools.Method):
             )
 
 
+class Update_QDGZ_QBGZ_QBGA_V1(modeltools.Method):
+    r"""Redirect the inflow into the storage compartment for base flow into
+    the storage compartments for direct flow upon exceedance of the groundwater
+    aquifer's limited volume :cite:`ref-LARSIM`.
+
+    We gained the following equation for updating |QBGZ| by converting the
+    equation used by method |Calc_QBGA_V1|.
+
+    Note that applying method |Update_QDGZ_QBGZ_QBGA_V1| can result in some
+    oscillation both of |QBGZ| and |QDGZ|.  Due to the dampening effect
+    of the runoff concentration storages for direct runoff, this oscillation
+    should seldom be traced through to the resulting outflow values (|QDGA1|
+    and |QDGA2|).  However, for long simulation time steps and short runoff
+    concentration times, it is possible.  Fixing this issue would probably
+    require to solve the differential equation of the linear storage with
+    a different approach. See the results of the integration test
+    :ref:`lland_v1_acker_gw_vol` for an example.
+
+    Basic equations:
+       :math:`QBGA_{neu}^{final} = min \left ( QBGAMax, QBGA_{neu}^{orig} \right )`
+
+       :math:`QBGZ_{neu}^{final} = QBGZ_{alt} +
+       \frac{QBGA_{neu}^{final} - QBGA_{alt} -
+       (QBGZ_{alt}-QBGA_{alt}) \cdot (1-exp(-KB^{-1})}
+       {1-KB \cdot (1-exp(-KB^{-1})}`
+
+       :math:`QDGZ^{final} = QDGZ^{orig} + QBGZ_{neu}^{orig} - QBGZ_{neu}^{final}`
+
+    Examples:
+
+        We modify the first example of the documentation on method |Calc_QBGA_V1| to
+        show that both equations are consistent.  The following setting is nearly
+        identical, except for a higher recent inflow (6 mm/d instead of 4 mm/d).
+        As a consequence, the recent outflow is also increased (5.6 mm/d instead of
+        3.8 mm/d):
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> derived.kb(0.1)
+        >>> fluxes.qdgz = 1.0
+        >>> states.qbgz.old = 2.0
+        >>> states.qbgz.new = 6.0
+        >>> states.qbga.old = 3.0
+        >>> states.qbga.new = 5.6000636
+
+        Now we set the highest allowed outflow (which is proportional to the maximum
+        storage capacity, see the documentation on parameter |QBGAMax|) to 3.8 mm/d
+        and apply method |Update_QDGZ_QBGZ_QBGA_V1|:
+
+        >>> derived.qbgamax(3.8000545)
+        >>> model.update_qdgz_qbgz_qbga_v1()
+
+        First, |Update_QDGZ_QBGZ_QBGA_V1| resets the recent outflow to the highest
+        value allowed:
+
+        >>> states.qbga
+        qbga(3.800054)
+
+        Second, it determines the recent inflow that results in the highest allowed
+        outflow:
+
+        >>> states.qbgz
+        qbgz(4.0)
+
+        Third, it adds the excess of groundwater recharge (2 mm/d) to the
+        to the already generated  direct discharge:
+
+        >>> fluxes.qdgz
+        qdgz(3.0)
+
+        The final example deals with the edge case of zero storage capacity.
+        Without any storage capacity, the aquifer can neither receive nor release
+        any water.  Here, method |Update_QDGZ_QBGZ_QBGA_V1| needs to reset the
+        recent inflow to a negative value to accomplish zero outflow, as the old
+        inflow and outflow values are not consistent with our modification of
+        parameter |QBGAMax|:
+
+        >>> derived.qbgamax(0.0)
+        >>> model.update_qdgz_qbgz_qbga_v1()
+        >>> states.qbga
+        qbga(0.0)
+        >>> states.qbgz
+        qbgz(-0.222261)
+        >>> fluxes.qdgz
+        qdgz(7.222261)
+    """
+
+    DERIVEDPARAMETERS = (
+        lland_derived.KB,
+        lland_derived.QBGAMax,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.QDGZ,
+        lland_states.QBGA,
+        lland_states.QBGZ,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if new.qbga > der.qbgamax:
+            d_temp = 1.0 - modelutils.exp(-1.0 / der.kb)
+            d_qbgz_adj = old.qbgz + (
+                (der.qbgamax - old.qbga - (old.qbgz - old.qbga) * d_temp)
+                / (1.0 - der.kb * d_temp)
+            )
+            new.qbga = der.qbgamax
+            flu.qdgz += new.qbgz - d_qbgz_adj
+            new.qbgz = d_qbgz_adj
+
+
+class Update_QDGZ_QBGZ_QBGA_V2(modeltools.Method):
+    r"""Redirect (a portion of) the inflow into the storage compartment for base
+    flow into the storage compartments for direct flow due to the groundwater
+    table's too fast rise :cite:`ref-LARSIM`.
+
+    In contrast to restricting an aquifer's volume (implemented by the method
+    |Update_QDGZ_QBGZ_QBGA_V1|), limiting the water table's increase seems a
+    litter counterintuitive.  However, we provide both kinds of restrictions
+    to fully capture the option "GS BASIS LIMITIERT" of the original LARSIM model.
+
+    The problem of oscillating time series for |QBGZ| and |QDGZ| discussed for method
+    |Update_QDGZ_QBGZ_QBGA_V1| also holds for method |Update_QDGZ_QBGZ_QBGA_V2|.
+    The smaller the "transition area" (the difference between |GSBGrad2| and
+    |GSBGrad1|, the larger the oscillations. See the results of the integration
+    test :ref:`lland_v1_acker_gw_rise` for an example.
+
+    Basic equations:
+
+       :math:`Grad = KB \cdot (QBGA_{neu}^{orig} - QBGA_{alt})`
+
+       :math:`QBGZ_{neu}^{final} = QBGZ_{neu}^{orig} \cdot min \left( max \left(
+       \frac{Grad-GSBGrad1}{GSBGrad2 - GSBGrad1}, 0 \right), 1 \right)`
+
+       :math:`QBGA_{neu}^{final} = QBGA_{alt} +
+       (QBGZ_{alt}-QBGA_{alt}) \cdot (1-exp(-KB^{-1})) +
+       (QBGZ_{neu}^{final}-QBGZ_{alt}) \cdot (1-KB\cdot(1-exp(-KB^{-1})))`
+
+       :math:`QDGZ^{final} = QDGZ^{orig} + QBGZ_{neu}^{orig} - QBGZ_{neu}^{final}`
+
+    Examples:
+
+        We build our explanations on the first example of the documentation on
+        method |Calc_QBGA_V1|:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> derived.kb(0.1)
+        >>> fluxes.qdgz = 1.0
+        >>> states.qbgz.old = 2.0
+        >>> states.qbgz.new = 4.0
+        >>> states.qbga.old = 3.0
+        >>> model.calc_qbga_v1()
+        >>> states.qbga
+        qbga(3.800054)
+
+        In this example, the old and the new outflow value of the groundwater
+        storage is 3.0 mm/d and 3.8 mm/d, respectively, which corresponds to a
+        storage increase of 0.08 mm/d:
+
+        >>> from hydpy import round_
+        >>> round_((states.qbga.new - states.qbga.old) * derived.kb)
+        0.080005
+
+        If we assign larger values to the threshold parameters |GSBGrad1| (0.1 mm/d)
+        and |GSBGrad2| (0.2 mm/d), method |Update_QDGZ_QBGZ_QBGA_V2| does not need
+        to change anything:
+
+        >>> gsbgrad1(0.1)
+        >>> gsbgrad2(0.2)
+        >>> model.update_qdgz_qbgz_qbga_v2()
+        >>> states.qbga
+        qbga(3.800054)
+        >>> states.qbgz
+        qbgz(4.0)
+        >>> fluxes.qdgz
+        qdgz(1.0)
+
+        If we assign smaller values to both threshold parameters, method
+        |Update_QDGZ_QBGZ_QBGA_V2| redirects all groundwater inflow to direct
+        runoff and recalculates groundwater outflow accordingly:
+
+        >>> gsbgrad1(0.01)
+        >>> gsbgrad2(0.05)
+        >>> model.update_qdgz_qbgz_qbga_v2()
+        >>> states.qbga
+        qbga(0.200036)
+        >>> states.qbgz
+        qbgz(0.0)
+        >>> fluxes.qdgz
+        qdgz(5.0)
+
+        For an actual rise (we first reset it to 0.08 mm/d) between both threshold
+        values, method |Update_QDGZ_QBGZ_QBGA_V2| interpolates the fraction of
+        redirected groundwater inflow linearly:
+
+        >>> fluxes.qdgz = 1.0
+        >>> states.qbgz.new = 4.0
+        >>> model.calc_qbga_v1()
+        >>> gsbgrad1(0.01)
+        >>> gsbgrad2(0.1)
+        >>> model.update_qdgz_qbgz_qbga_v2()
+        >>> states.qbga
+        qbga(0.999822)
+        >>> states.qbgz
+        qbgz(0.888647)
+        >>> fluxes.qdgz
+        qdgz(4.111353)
+    """
+    CONTROLPARAMETERS = (
+        lland_control.GSBGrad1,
+        lland_control.GSBGrad2,
+    )
+    DERIVEDPARAMETERS = (lland_derived.KB,)
+    UPDATEDSEQUENCES = (
+        lland_fluxes.QDGZ,
+        lland_states.QBGA,
+        lland_states.QBGZ,
+    )
+    SUBMETHODS = (Calc_QBGA_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        d_grad = der.kb * (new.qbga - old.qbga)
+        if d_grad > con.gsbgrad1:
+            if d_grad < con.gsbgrad2:
+                d_qbgz_exc = new.qbgz * (
+                    (d_grad - con.gsbgrad1) / (con.gsbgrad2 - con.gsbgrad1)
+                )
+            else:
+                d_qbgz_exc = new.qbgz
+            flu.qdgz += d_qbgz_exc
+            new.qbgz -= d_qbgz_exc
+            model.calc_qbga_v1()
+
+
 class Calc_QIGA1_V1(modeltools.Method):
     """Perform the runoff concentration calculation for the first
     interflow component.
@@ -8507,10 +8753,12 @@ class Model(modeltools.AdHocModel):
         Calc_QIGZ1_V1,
         Calc_QIGZ2_V1,
         Calc_QDGZ_V1,
-        Calc_QDGZ1_QDGZ2_V1,
         Calc_QBGA_V1,
+        Update_QDGZ_QBGZ_QBGA_V1,
+        Update_QDGZ_QBGZ_QBGA_V2,
         Calc_QIGA1_V1,
         Calc_QIGA2_V1,
+        Calc_QDGZ1_QDGZ2_V1,
         Calc_QDGA1_V1,
         Calc_QDGA2_V1,
         Calc_QAH_V1,

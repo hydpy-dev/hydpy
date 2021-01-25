@@ -5,9 +5,11 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import parametertools
+
 # ...from whmod
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_control
@@ -19,7 +21,8 @@ class MOY(parametertools.MOYParameter):
 
 class RelArea(parametertools.Parameter):
     """[-]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
     CONTROLPARAMETERS = (
         whmod_control.F_AREA,
@@ -45,12 +48,13 @@ class RelArea(parametertools.Parameter):
         relarea(0.2, 0.3, 0.5)
         """
         control = self.subpars.pars.control
-        self(control.f_area/control.area)
+        self(control.f_area / control.area)
 
 
 class Wurzeltiefe(parametertools.Parameter):
     """[m]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.MaxWurzeltiefe,
@@ -75,14 +79,11 @@ class Wurzeltiefe(parametertools.Parameter):
 
 class nFKwe(parametertools.Parameter):
     """[mm]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    CONTROLPARAMETERS = (
-        whmod_control.NFK100_Mittel,
-    )
-    DERIVEDPARAMETERS = (
-        Wurzeltiefe,
-    )
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (whmod_control.NFK100_Mittel,)
+    DERIVEDPARAMETERS = (Wurzeltiefe,)
 
     def update(self):
         """
@@ -102,7 +103,7 @@ class nFKwe(parametertools.Parameter):
 
 
 class Beta_old(parametertools.Parameter):
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     def update(self):
         """
@@ -154,29 +155,27 @@ class Beta_old(parametertools.Parameter):
         nfkwe = self.subpars.nfkwe
         self(0.0)
         idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
-        idxs2 = idxs1 * (nfkwe.values > 200.)
-        self.values[idxs2] = 7.
-        idxs3 = idxs1 * (nfkwe.values <= 200.)
-        self.values[idxs3] = 1.0 + 6.0*(nfkwe[idxs3]/118.25)**6.5
-        idxs4 = idxs3 * (nfkwe.values >= 90.)
+        idxs2 = idxs1 * (nfkwe.values > 200.0)
+        self.values[idxs2] = 7.0
+        idxs3 = idxs1 * (nfkwe.values <= 200.0)
+        self.values[idxs3] = 1.0 + 6.0 * (nfkwe[idxs3] / 118.25) ** 6.5
+        idxs4 = idxs3 * (nfkwe.values >= 90.0)
         sel = nfkwe[idxs4]
-        self.values[idxs4] -= (((((5.14499665e-9 * sel
-                                   - 2.54885486e-6) * sel
-                                  + 5.90669258e-4) * sel
-                                 - 7.26381809e-2) * sel
-                                + 4.47631543) * sel
-                               - 108.1457328)
+        self.values[idxs4] -= (
+            (
+                ((5.14499665e-9 * sel - 2.54885486e-6) * sel + 5.90669258e-4) * sel
+                - 7.26381809e-2
+            )
+            * sel
+            + 4.47631543
+        ) * sel - 108.1457328
 
 
 class Beta(parametertools.Parameter):
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nutz_Nr,
-    )
-    DERIVEDPARAMETERS = (
-        nFKwe,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nutz_Nr,)
+    DERIVEDPARAMETERS = (nFKwe,)
 
     def update(self):
         """
@@ -228,8 +227,8 @@ class Beta(parametertools.Parameter):
         nfkwe = self.subpars.nfkwe
         self(0.0)
         idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
-        idxs2 = nfkwe.values <= 0.
+        idxs2 = nfkwe.values <= 0.0
         idxs3 = idxs1 * idxs2
         self.values[idxs3] = 1.0
         idxs4 = idxs1 * ~idxs2
-        self.values[idxs4] = 1.0 + 6.0/(1+(nfkwe[idxs4]/118.25)**-6.5)
+        self.values[idxs4] = 1.0 + 6.0 / (1 + (nfkwe[idxs4] / 118.25) ** -6.5)

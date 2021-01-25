@@ -32,4 +32,4 @@ TORF = parametertools.IntConstant(15)
 CONSTANTS = parametertools.Constants()
 
 # Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys()) + ['CONSTANTS']
+__all__ = list(CONSTANTS.keys()) + ["CONSTANTS"]

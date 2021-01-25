@@ -7,13 +7,16 @@
 import abc
 from typing import *
 from typing import TextIO
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import logtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
+
 # ...from hland
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_control
@@ -21,6 +24,7 @@ from hydpy.models.whmod import whmod_derived
 from hydpy.models.whmod import whmod_inputs
 from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
+
 if TYPE_CHECKING:
     from hydpy.core import timetools
 
@@ -35,12 +39,9 @@ class Calc_NiederschlagRichter_V1(modeltools.Method):
     >>> fluxes.niederschlagrichter
     niederschlagrichter(5.0)
     """
-    REQUIREDSEQUENCES = (
-        whmod_inputs.Niederschlag,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-    )
+
+    REQUIREDSEQUENCES = (whmod_inputs.Niederschlag,)
+    RESULTSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -148,20 +149,15 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     >>> fluxes.niednachinterz
     niednachinterz(100.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.FactorC,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.MOY,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.NiedNachInterz,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY,)
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
+    RESULTSEQUENCES = (whmod_fluxes.NiedNachInterz,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -172,27 +168,29 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
         summer = 4 <= month <= 8
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                flu.niednachinterz[k] = 0.
+                flu.niednachinterz[k] = 0.0
                 continue
             if con.nutz_nr[k] == LAUBWALD:
                 if summer:
                     d_loss = con.factorc[0, month] * (
-                        1.0034 * modelutils.log(flu.niederschlagrichter + 1.0) -
-                        0.01481 * flu.niederschlagrichter)
+                        1.0034 * modelutils.log(flu.niederschlagrichter + 1.0)
+                        - 0.01481 * flu.niederschlagrichter
+                    )
                 else:
                     d_loss = con.factorc[0, month] * flu.niederschlagrichter
                 flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
             elif con.nutz_nr[k] == NADELWALD:
                 if summer:
                     d_loss = con.factorc[1, month] * (
-                        1.187 * modelutils.log(flu.niederschlagrichter + 1.0) +
-                        0.0691 * flu.niederschlagrichter)
+                        1.187 * modelutils.log(flu.niederschlagrichter + 1.0)
+                        + 0.0691 * flu.niederschlagrichter
+                    )
                 else:
                     d_loss = con.factorc[1, month] * flu.niederschlagrichter
                 flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
             else:
                 flu.niednachinterz[k] = flu.niederschlagrichter
-    
+
 
 class Calc_NiedNachInterz_V2(modeltools.Method):
     """Berechnung Bestandsniederschlag.
@@ -223,15 +221,10 @@ class Calc_NiedNachInterz_V2(modeltools.Method):
     |  10 |                 9.0 |  9.0             9.0 |
     |  11 |                10.0 | 10.0            10.0 |
     """
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.NiedNachInterz,
-    )
+
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells,)
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
+    RESULTSEQUENCES = (whmod_fluxes.NiedNachInterz,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -253,16 +246,13 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
     >>> fluxes.seeniederschlag
     seeniederschlag(0.0, 0.0, 2.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Seeniederschlag,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
+    RESULTSEQUENCES = (whmod_fluxes.Seeniederschlag,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -272,7 +262,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
             if con.nutz_nr[k] == WASSER:
                 flu.seeniederschlag[k] = flu.niederschlagrichter
             else:
-                flu.seeniederschlag[k] = 0.
+                flu.seeniederschlag[k] = 0.0
 
 
 class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
@@ -288,6 +278,7 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
     >>> fluxes.interzeptionsverdunstung
     interzeptionsverdunstung(2.0, 1.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -296,9 +287,7 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
         whmod_fluxes.NiederschlagRichter,
         whmod_fluxes.NiedNachInterz,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.InterzeptionsVerdunstung,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.InterzeptionsVerdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -306,10 +295,11 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                flu.interzeptionsverdunstung[k] = 0.
+                flu.interzeptionsverdunstung[k] = 0.0
             else:
                 flu.interzeptionsverdunstung[k] = (
-                        flu.niederschlagrichter - flu.niednachinterz[k])
+                    flu.niederschlagrichter - flu.niednachinterz[k]
+                )
 
 
 class Calc_Interzeptionsspeicher_V1(modeltools.Method):
@@ -364,21 +354,18 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     >>> fluxes.interzeptionsverdunstung
     interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 2.4)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.MaxInterz,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.MOY,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.NiederschlagRichter,
         whmod_fluxes.MaxVerdunstung,
     )
-    UPDATEDSEQUENCES = (
-        whmod_states.Interzeptionsspeicher,
-    )
+    UPDATEDSEQUENCES = (whmod_states.Interzeptionsspeicher,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
         whmod_fluxes.InterzeptionsVerdunstung,
@@ -393,17 +380,19 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
         month = der.moy[model.idx_sim]
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
-                sta.interzeptionsspeicher[k] = 0.
+                sta.interzeptionsspeicher[k] = 0.0
                 flu.niednachinterz[k] = flu.niederschlagrichter
-                flu.interzeptionsverdunstung[k] = 0.
+                flu.interzeptionsverdunstung[k] = 0.0
             else:
-                d_maxinterz = con.maxinterz[con.nutz_nr[k]-1, month]
+                d_maxinterz = con.maxinterz[con.nutz_nr[k] - 1, month]
                 sta.interzeptionsspeicher[k] += flu.niederschlagrichter
                 flu.niednachinterz[k] = max(
-                    sta.interzeptionsspeicher[k]-d_maxinterz, 0.)
+                    sta.interzeptionsspeicher[k] - d_maxinterz, 0.0
+                )
                 sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
                 flu.interzeptionsverdunstung[k] = min(
-                    sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
+                    sta.interzeptionsspeicher[k], flu.maxverdunstung[k]
+                )
                 sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
 
 
@@ -459,21 +448,18 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
     >>> fluxes.interzeptionsverdunstung
     interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.MaxInterz,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.MOY,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.NiederschlagRichter,
         whmod_fluxes.MaxVerdunstung,
     )
-    UPDATEDSEQUENCES = (
-        whmod_states.Interzeptionsspeicher,
-    )
+    UPDATEDSEQUENCES = (whmod_states.Interzeptionsspeicher,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
         whmod_fluxes.InterzeptionsVerdunstung,
@@ -488,17 +474,19 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
         month = der.moy[model.idx_sim]
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
-                sta.interzeptionsspeicher[k] = 0.
+                sta.interzeptionsspeicher[k] = 0.0
                 flu.niednachinterz[k] = flu.niederschlagrichter
-                flu.interzeptionsverdunstung[k] = 0.
+                flu.interzeptionsverdunstung[k] = 0.0
             else:
                 d_maxinterz = con.maxinterz[con.nutz_nr[k] - 1, month]
                 sta.interzeptionsspeicher[k] += flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = min(
-                    sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
+                    sta.interzeptionsspeicher[k], flu.maxverdunstung[k]
+                )
                 sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
                 flu.niednachinterz[k] = max(
-                    sta.interzeptionsspeicher[k]-d_maxinterz, 0.)
+                    sta.interzeptionsspeicher[k] - d_maxinterz, 0.0
+                )
                 sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
 
 
@@ -514,16 +502,13 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
     >>> fluxes.oberflaechenabfluss
     oberflaechenabfluss(3.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiedNachInterz,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Oberflaechenabfluss,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.NiedNachInterz,)
+    RESULTSEQUENCES = (whmod_fluxes.Oberflaechenabfluss,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -533,7 +518,7 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
             if con.nutz_nr[k] == VERSIEGELT:
                 flu.oberflaechenabfluss[k] = flu.niednachinterz[k]
             else:
-                flu.oberflaechenabfluss[k] = 0.
+                flu.oberflaechenabfluss[k] = 0.0
 
 
 class Calc_ZuflussBoden_V1(modeltools.Method):
@@ -575,6 +560,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     >>> fluxes.zuflussboden
     zuflussboden(0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -584,12 +570,8 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         whmod_inputs.Temp_TM,
         whmod_fluxes.NiedNachInterz,
     )
-    UPDATEDSEQUENCES = (
-        whmod_states.Schneespeicher,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.ZuflussBoden,
-    )
+    UPDATEDSEQUENCES = (whmod_states.Schneespeicher,)
+    RESULTSEQUENCES = (whmod_fluxes.ZuflussBoden,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -601,14 +583,14 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
                 sta.schneespeicher[k] = 0.0
                 flu.zuflussboden[k] = 0.0
-            elif inp.temp_tm > 0.:
+            elif inp.temp_tm > 0.0:
                 d_maxschneeschmelze = con.gradfaktor[k] * inp.temp_tm
                 d_schneeschmelze = min(sta.schneespeicher[k], d_maxschneeschmelze)
                 sta.schneespeicher[k] -= d_schneeschmelze
                 flu.zuflussboden[k] = flu.niednachinterz[k] + d_schneeschmelze
             else:
                 sta.schneespeicher[k] += flu.niednachinterz[k]
-                flu.zuflussboden[k] = 0.
+                flu.zuflussboden[k] = 0.0
 
 
 class Calc_RelBodenfeuchte_V1(modeltools.Method):
@@ -625,19 +607,14 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     >>> fluxes.relbodenfeuchte
     relbodenfeuchte(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.nFKwe,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_states.AktBodenwassergehalt,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.RelBodenfeuchte,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
+    REQUIREDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
+    RESULTSEQUENCES = (whmod_fluxes.RelBodenfeuchte,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -646,11 +623,10 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmb_cells):
-            if ((con.nutz_nr[k] in (WASSER, VERSIEGELT)) or
-                    (der.nfkwe[k] <= 0.)):
-                flu.relbodenfeuchte[k] = 0.
+            if (con.nutz_nr[k] in (WASSER, VERSIEGELT)) or (der.nfkwe[k] <= 0.0):
+                flu.relbodenfeuchte[k] = 0.0
             else:
-                flu.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k]/der.nfkwe[k]
+                flu.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.nfkwe[k]
 
 
 class Calc_Sickerwasser_V1(modeltools.Method):
@@ -668,20 +644,17 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     >>> fluxes.sickerwasser
     sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.Beta,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.Beta,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
         whmod_fluxes.RelBodenfeuchte,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Sickerwasser,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.Sickerwasser,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -690,10 +663,11 @@ class Calc_Sickerwasser_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                flu.sickerwasser[k] = 0.
+                flu.sickerwasser[k] = 0.0
             else:
-                flu.sickerwasser[k] = \
-                    flu.zuflussboden[k] * flu.relbodenfeuchte[k]**der.beta[k]
+                flu.sickerwasser[k] = (
+                    flu.zuflussboden[k] * flu.relbodenfeuchte[k] ** der.beta[k]
+                )
 
 
 class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
@@ -720,21 +694,20 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
     |   5 |   20.0 |            0.0 |                    23.292884 |
     |   6 |   30.0 |            0.0 |                     42.20658 |
     """
+
     REQUIREDSEQUENCES = (
         whmod_inputs.RelLuftfeuchte,
         whmod_inputs.Temp14,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Saettigungsdampfdruckdefizit,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.Saettigungsdampfdruckdefizit,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.saettigungsdampfdruckdefizit = (
-            (1.-inp.relluftfeuchte) *
-            (6.107*10.0**((7.5*inp.temp14)/(238.+inp.temp14))))
+        flu.saettigungsdampfdruckdefizit = (1.0 - inp.relluftfeuchte) * (
+            6.107 * 10.0 ** ((7.5 * inp.temp14) / (238.0 + inp.temp14))
+        )
 
 
 class Calc_MaxVerdunstung_V1(modeltools.Method):
@@ -804,22 +777,19 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     |   4 |   30.0 |                         20.0 |  6.4   6.2   5.2   7.0             0.0 |
     |   5 |   30.0 |                         20.0 |  6.4   6.2   5.2   7.0             0.0 |
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.FaktorWald,
         whmod_control.Faktor,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.MOY,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY,)
     REQUIREDSEQUENCES = (
         whmod_inputs.Temp14,
         whmod_fluxes.Saettigungsdampfdruckdefizit,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.MaxVerdunstung,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -827,9 +797,9 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if inp.temp14 <= 0.:
+        if inp.temp14 <= 0.0:
             for k in range(con.nmb_cells):
-                flu.maxverdunstung[k] = 0.
+                flu.maxverdunstung[k] = 0.0
         else:
             month = der.moy[model.idx_sim]
             for k in range(con.nmb_cells):
@@ -839,7 +809,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
                 elif nutz == NADELWALD:
                     d_factor = con.faktorwald[1, month]
                 else:
-                    d_factor = con.faktor[nutz-1, month]
+                    d_factor = con.faktor[nutz - 1, month]
                 flu.maxverdunstung[k] = d_factor * flu.saettigungsdampfdruckdefizit
 
 
@@ -887,20 +857,15 @@ class Calc_MaxVerdunstung_V2(modeltools.Method):
     >>> fluxes.maxverdunstung
     maxverdunstung(6.205, 6.675, 5.19, 6.415, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.FLN,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.MOY,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_inputs.ET0,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.MaxVerdunstung,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY,)
+    REQUIREDSEQUENCES = (whmod_inputs.ET0,)
+    RESULTSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -910,7 +875,7 @@ class Calc_MaxVerdunstung_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         month = der.moy[model.idx_sim]
         for k in range(con.nmb_cells):
-            flu.maxverdunstung[k] = con.fln[con.nutz_nr[k]-1, month] * inp.et0
+            flu.maxverdunstung[k] = con.fln[con.nutz_nr[k] - 1, month] * inp.et0
 
 
 class Calc_Bodenverdunstung_V1(modeltools.Method):
@@ -932,6 +897,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     >>> fluxes.bodenverdunstung
     bodenverdunstung(0.0, 1.275468, 1.818886, 1.96569, 2.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -941,9 +907,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         whmod_fluxes.RelBodenfeuchte,
         whmod_fluxes.MaxVerdunstung,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Bodenverdunstung,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -951,12 +915,14 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                flu.bodenverdunstung[k] = 0.
+                flu.bodenverdunstung[k] = 0.0
             else:
-                d_temp = modelutils.exp(-con.minhasr[k]*flu.relbodenfeuchte[k])
+                d_temp = modelutils.exp(-con.minhasr[k] * flu.relbodenfeuchte[k])
                 flu.bodenverdunstung[k] = (
-                    flu.maxverdunstung[k] *
-                    (1.0-d_temp)/(1.-2.*modelutils.exp(-con.minhasr[k])+d_temp))
+                    flu.maxverdunstung[k]
+                    * (1.0 - d_temp)
+                    / (1.0 - 2.0 * modelutils.exp(-con.minhasr[k]) + d_temp)
+                )
 
 
 class Corr_Bodenverdunstung_V1(modeltools.Method):
@@ -983,6 +949,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5]
     array([ 1.  ,  1.25,  1.5 ,  1.75,  2.  ])
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -991,9 +958,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
         whmod_fluxes.MaxVerdunstung,
         whmod_fluxes.InterzeptionsVerdunstung,
     )
-    UPDATEDSEQUENCES = (
-        whmod_fluxes.Bodenverdunstung,
-    )
+    UPDATEDSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1001,13 +966,13 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                flu.bodenverdunstung[k] = 0.
+                flu.bodenverdunstung[k] = 0.0
             elif flu.maxverdunstung[k] <= flu.interzeptionsverdunstung[k]:
-                flu.bodenverdunstung[k] = 0.
+                flu.bodenverdunstung[k] = 0.0
             else:
                 flu.bodenverdunstung[k] *= (
-                    (flu.maxverdunstung[k]-flu.interzeptionsverdunstung[k]) /
-                    flu.maxverdunstung[k])
+                    flu.maxverdunstung[k] - flu.interzeptionsverdunstung[k]
+                ) / flu.maxverdunstung[k]
 
 
 class Calc_Seeverdunstung_V1(modeltools.Method):
@@ -1022,16 +987,13 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
     >>> fluxes.seeverdunstung
     seeverdunstung(0.0, 0.0, 2.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.MaxVerdunstung,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.Seeverdunstung,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
+    RESULTSEQUENCES = (whmod_fluxes.Seeverdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1041,7 +1003,7 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
             if con.nutz_nr[k] == WASSER:
                 flu.seeverdunstung[k] = flu.maxverdunstung[k]
             else:
-                flu.seeverdunstung[k] = 0.
+                flu.seeverdunstung[k] = 0.0
 
 
 class Calc_AktVerdunstung_V1(modeltools.Method):
@@ -1057,26 +1019,25 @@ class Calc_AktVerdunstung_V1(modeltools.Method):
     >>> fluxes.aktverdunstung
     aktverdunstung(3.0, 4.0)
     """
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-    )
+
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.InterzeptionsVerdunstung,
         whmod_fluxes.Bodenverdunstung,
         whmod_fluxes.Seeverdunstung,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.AktVerdunstung,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.AktVerdunstung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            flu.aktverdunstung[k] = (flu.interzeptionsverdunstung[k] +
-                                     flu.bodenverdunstung[k] +
-                                     flu.seeverdunstung[k])
+            flu.aktverdunstung[k] = (
+                flu.interzeptionsverdunstung[k]
+                + flu.bodenverdunstung[k]
+                + flu.seeverdunstung[k]
+            )
 
 
 class Calc_PotKapilAufstieg_V1(modeltools.Method):
@@ -1193,6 +1154,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     -------------------------------------------------------------------------------------
     |   1 | 0.0  0.0  0.0  0.0  0.0     0.0 | 0.0  0.0  0.0  0.0  0.0               0.0 |
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -1201,12 +1163,8 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         whmod_control.KapilGrenzwert,
         whmod_control.Flurab,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.Wurzeltiefe,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.PotKapilAufstieg,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.Wurzeltiefe,)
+    RESULTSEQUENCES = (whmod_fluxes.PotKapilAufstieg,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1214,20 +1172,23 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            if ((con.nutz_nr[k] in (VERSIEGELT, WASSER)) or
-                    (not con.mitfunktion_kapillareraufstieg[k])):
-                flu.potkapilaufstieg[k] = 0.
+            if (con.nutz_nr[k] in (VERSIEGELT, WASSER)) or (
+                not con.mitfunktion_kapillareraufstieg[k]
+            ):
+                flu.potkapilaufstieg[k] = 0.0
             else:
                 d_schwell = con.kapilschwellwert[k]
                 d_grenz = con.kapilgrenzwert[k]
                 if con.flurab > (der.wurzeltiefe[k] + d_schwell):
-                    flu.potkapilaufstieg[k] = 0.
+                    flu.potkapilaufstieg[k] = 0.0
                 elif con.flurab < (der.wurzeltiefe[k] + d_grenz):
-                    flu.potkapilaufstieg[k] = 5.
+                    flu.potkapilaufstieg[k] = 5.0
                 else:
                     flu.potkapilaufstieg[k] = (
-                        5.*(der.wurzeltiefe[k]+d_schwell-con.flurab) /
-                        (d_schwell-d_grenz))
+                        5.0
+                        * (der.wurzeltiefe[k] + d_schwell - con.flurab)
+                        / (d_schwell - d_grenz)
+                    )
 
 
 class Calc_KapilAufstieg_V1(modeltools.Method):
@@ -1249,6 +1210,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     >>> fluxes.kapilaufstieg
     kapilaufstieg(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -1258,21 +1220,21 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         whmod_fluxes.PotKapilAufstieg,
         whmod_fluxes.RelBodenfeuchte,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.KapilAufstieg,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.KapilAufstieg,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            if ((con.nutz_nr[k] in (VERSIEGELT, WASSER)) or
-                    (not con.mitfunktion_kapillareraufstieg[k])):
-                flu.kapilaufstieg[k] = 0.
+            if (con.nutz_nr[k] in (VERSIEGELT, WASSER)) or (
+                not con.mitfunktion_kapillareraufstieg[k]
+            ):
+                flu.kapilaufstieg[k] = 0.0
             else:
-                flu.kapilaufstieg[k] = \
-                    flu.potkapilaufstieg[k]*(1.-flu.relbodenfeuchte[k])**3
+                flu.kapilaufstieg[k] = (
+                    flu.potkapilaufstieg[k] * (1.0 - flu.relbodenfeuchte[k]) ** 3
+                )
 
 
 class Calc_AktBodenwassergehalt_V1(modeltools.Method):
@@ -1306,22 +1268,19 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     >>> fluxes.kapilaufstieg
     kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
     )
-    DERIVEDPARAMETERS = (
-        whmod_derived.nFKwe,
-    )
+    DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
         whmod_fluxes.Bodenverdunstung,
         whmod_fluxes.Sickerwasser,
         whmod_fluxes.KapilAufstieg,
     )
-    UPDATEDSEQUENCES = (
-        whmod_states.AktBodenwassergehalt,
-    )
+    UPDATEDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1331,17 +1290,19 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
-                sta.aktbodenwassergehalt[k] = 0.
+                sta.aktbodenwassergehalt[k] = 0.0
             else:
                 sta.aktbodenwassergehalt[k] += (
-                    flu.zuflussboden[k] - flu.bodenverdunstung[k] -
-                    flu.sickerwasser[k] + flu.kapilaufstieg[k])
-                if sta.aktbodenwassergehalt[k] < 0.:
+                    flu.zuflussboden[k]
+                    - flu.bodenverdunstung[k]
+                    - flu.sickerwasser[k]
+                    + flu.kapilaufstieg[k]
+                )
+                if sta.aktbodenwassergehalt[k] < 0.0:
                     flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
-                    sta.aktbodenwassergehalt[k] = 0.
+                    sta.aktbodenwassergehalt[k] = 0.0
                 elif sta.aktbodenwassergehalt[k] > der.nfkwe[k]:
-                    flu.kapilaufstieg[k] += \
-                        der.nfkwe[k] - sta.aktbodenwassergehalt[k]
+                    flu.kapilaufstieg[k] += der.nfkwe[k] - sta.aktbodenwassergehalt[k]
                     sta.aktbodenwassergehalt[k] = der.nfkwe[k]
 
 
@@ -1360,6 +1321,7 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     >>> fluxes.potgrundwasserneubildung
     potgrundwasserneubildung(1.0, 0.0, 3.0)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
@@ -1370,9 +1332,7 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
         whmod_fluxes.Sickerwasser,
         whmod_fluxes.KapilAufstieg,
     )
-    RESULTSEQUENCES = (
-        whmod_fluxes.PotGrundwasserneubildung,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1381,12 +1341,14 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
                 flu.potgrundwasserneubildung[k] = (
-                    flu.seeniederschlag[k] - flu.seeverdunstung[k])
+                    flu.seeniederschlag[k] - flu.seeverdunstung[k]
+                )
             elif con.nutz_nr[k] == VERSIEGELT:
-                flu.potgrundwasserneubildung[k] = 0.
+                flu.potgrundwasserneubildung[k] = 0.0
             else:
                 flu.potgrundwasserneubildung[k] = (
-                    flu.sickerwasser[k] - flu.kapilaufstieg[k])
+                    flu.sickerwasser[k] - flu.kapilaufstieg[k]
+                )
 
 
 class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
@@ -1403,31 +1365,30 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     >>> fluxes.aktgrundwasserneubildung
     aktgrundwasserneubildung(0.5)
     """
+
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Area,
         whmod_control.F_AREA,
         whmod_control.BFI,
     )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.PotGrundwasserneubildung,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.AktGrundwasserneubildung,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
+    RESULTSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.aktgrundwasserneubildung = 0.
+        flu.aktgrundwasserneubildung = 0.0
         for k in range(con.nmb_cells):
-            if flu.potgrundwasserneubildung[k] > 0.:
-                flu.aktgrundwasserneubildung += \
-                    con.f_area[k]*con.bfi[k]*flu.potgrundwasserneubildung[k]
+            if flu.potgrundwasserneubildung[k] > 0.0:
+                flu.aktgrundwasserneubildung += (
+                    con.f_area[k] * con.bfi[k] * flu.potgrundwasserneubildung[k]
+                )
             else:
-                flu.aktgrundwasserneubildung += \
-                    con.f_area[k]*flu.potgrundwasserneubildung[k]
+                flu.aktgrundwasserneubildung += (
+                    con.f_area[k] * flu.potgrundwasserneubildung[k]
+                )
         flu.aktgrundwasserneubildung /= con.area
 
 
@@ -1462,18 +1423,11 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     4.5, 0.597788, 2.402212
     5.0, 0.543808, 2.456192
     """
-    CONTROLPARAMETERS = (
-        whmod_control.Schwerpunktlaufzeit,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.AktGrundwasserneubildung,
-    )
-    UPDATEDSEQUENCES = (
-        whmod_states.Zwischenspeicher,
-    )
-    RESULTSEQUENCES = (
-        whmod_fluxes.VerzGrundwasserneubildung,
-    )
+
+    CONTROLPARAMETERS = (whmod_control.Schwerpunktlaufzeit,)
+    REQUIREDSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
+    UPDATEDSEQUENCES = (whmod_states.Zwischenspeicher,)
+    RESULTSEQUENCES = (whmod_fluxes.VerzGrundwasserneubildung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1482,16 +1436,15 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         if con.schwerpunktlaufzeit > 0:
             d_sp = (
-                (sta.zwischenspeicher+flu.aktgrundwasserneubildung) *
-                modelutils.exp(-1./con.schwerpunktlaufzeit))
+                sta.zwischenspeicher + flu.aktgrundwasserneubildung
+            ) * modelutils.exp(-1.0 / con.schwerpunktlaufzeit)
             flu.verzgrundwasserneubildung = (
-                flu.aktgrundwasserneubildung +
-                sta.zwischenspeicher-d_sp
+                flu.aktgrundwasserneubildung + sta.zwischenspeicher - d_sp
             )
             sta.zwischenspeicher = d_sp
         else:
             flu.verzgrundwasserneubildung = sta.zwischenspeicher
-            sta.zwischenspeicher = 0.
+            sta.zwischenspeicher = 0.0
 
 
 class Model(modeltools.AdHocModel):
@@ -1533,28 +1486,29 @@ class Position(NamedTuple):
 
     Counting starts with 1.
     """
+
     row: int
     col: int
 
     @classmethod
-    def from_sequence(cls, sequence: 'Sequence') -> 'Position':
+    def from_sequence(cls, sequence: "Sequence") -> "Position":
         """Extract the grid cell position from the name of the |Element|
         object handling the given sequence."""
-        _, row, col = sequence.subseqs.seqs.model.element.name.split('_')
+        _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
         return cls(row=int(row), col=int(col))
 
 
 class Positionbounds(NamedTuple):
     """The smallest and heighest row and column values of multiple `WHMod`
     grid cells."""
+
     rowmin: int
     rowmax: int
     colmin: int
     colmax: int
 
     @classmethod
-    def from_sequences(cls, sequences: Iterable['Sequence']) -> \
-            'Positionbounds':
+    def from_sequences(cls, sequences: Iterable["Sequence"]) -> "Positionbounds":
         """Extract the grid cell position from the names of the |Element|
         objects handling the given sequences."""
         rowmin = numpy.inf
@@ -1576,11 +1530,10 @@ class Positionbounds(NamedTuple):
 
 
 class WHModLoggerMixin:
-
     def __init__(
-            self,
-            firstdate: Optional['timetools.DateConstrArg'] = None,
-            lastdate: Optional['timetools.DateConstrArg'] = None,
+        self,
+        firstdate: Optional["timetools.DateConstrArg"] = None,
+        lastdate: Optional["timetools.DateConstrArg"] = None,
     ) -> None:
         super().__init__(firstdate=firstdate, lastdate=lastdate)
         self._positionbounds = None
@@ -1605,46 +1558,45 @@ class WHModLoggerMixin:
         self._positionbounds = None
 
     def _dict2grid(
-            self,
-            sequence2value: Dict['Sequence', float],
-            defaultvalue: float = 0.,
-    ) -> \
-            numpy.ndarray:
+        self,
+        sequence2value: Dict["Sequence", float],
+        defaultvalue: float = 0.0,
+    ) -> numpy.ndarray:
         pb = self.positionbounds
-        shape = (pb.rowmax-pb.rowmin+1, pb.colmax-pb.colmin+1)
+        shape = (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1)
         grid = numpy.full(shape, defaultvalue, dtype=float)
         for sequence, value in sequence2value.items():
             position = Position.from_sequence(sequence)
-            grid[position.row-pb.rowmin, position.col-pb.colmin] = value
+            grid[position.row - pb.rowmin, position.col - pb.colmin] = value
         return grid
 
     @property
     def factor(self) -> float:
         """Factor for converting mm/stepsize to m/s (or m³/m²/s)."""
-        return 1./(1000.*hydpy.pub.timegrids.stepsize.seconds)
+        return 1.0 / (1000.0 * hydpy.pub.timegrids.stepsize.seconds)
 
     def _write_rchfile(
-            self,
-            rchfile: TextIO,
-            layer: int,
-            balancefile: int,
-            values_per_line: int,
-            precision: int,
-            exp_digits: int,
-            sequence2values: Iterable[Dict['Sequence', float]],
+        self,
+        rchfile: TextIO,
+        layer: int,
+        balancefile: int,
+        values_per_line: int,
+        precision: int,
+        exp_digits: int,
+        sequence2values: Iterable[Dict["Sequence", float]],
     ) -> None:
         rchfile.write(
-            f'{str(layer).rjust(10)}'
-            f'{str(balancefile).rjust(10)}'
-            f'         1         1\n'
+            f"{str(layer).rjust(10)}"
+            f"{str(balancefile).rjust(10)}"
+            f"         1         1\n"
         )
         positionbounds = self.positionbounds
         for sequence2value in sequence2values:
             nchars = precision + exp_digits + 5
-            formatstring = f'({values_per_line}e{nchars}.{precision})'.ljust(20)
+            formatstring = f"({values_per_line}e{nchars}.{precision})".ljust(20)
             rchfile.write(
-                f'         1         1         0         0\n'
-                f'        18     1.000{formatstring}        -1     RECHARGE\n'
+                f"         1         1         0         0\n"
+                f"        18     1.000{formatstring}        -1     RECHARGE\n"
             )
             ncols = positionbounds.colmax - positionbounds.colmin + 1
             sections = numpy.arange(values_per_line, ncols, values_per_line)
@@ -1652,15 +1604,18 @@ class WHModLoggerMixin:
             grid = self.factor * self._dict2grid(sequence2value)
             for row in grid:
                 for subarray in numpy.array_split(row, sections):
-                    rchfile.write(''.join(
-                        numpy.format_float_scientific(
-                            value,
-                            unique=False,
-                            precision=precision,
-                            exp_digits=exp_digits,
-                        ).rjust(nchars) for value in subarray
-                    ))
-                    rchfile.write('\n')
+                    rchfile.write(
+                        "".join(
+                            numpy.format_float_scientific(
+                                value,
+                                unique=False,
+                                precision=precision,
+                                exp_digits=exp_digits,
+                            ).rjust(nchars)
+                            for value in subarray
+                        )
+                    )
+                    rchfile.write("\n")
 
 
 class WHModLogger(WHModLoggerMixin, logtools.Logger):
@@ -1670,13 +1625,13 @@ class WHModLogger(WHModLoggerMixin, logtools.Logger):
         return Positionbounds.from_sequences(self.sequence2sum.keys())
 
     def write_rchfile(
-            self,
-            rchfile: TextIO,
-            layer: int = 1,
-            balancefile: int = 51,
-            values_per_line: int = 20,
-            precision: int = 4,
-            exp_digits: int = 3,
+        self,
+        rchfile: TextIO,
+        layer: int = 1,
+        balancefile: int = 51,
+        values_per_line: int = 20,
+        precision: int = 4,
+        exp_digits: int = 3,
     ) -> None:
         """Write a recharge file (`.rch`)  for exporting groundwater recharge
         to ModFlow.
@@ -1703,13 +1658,13 @@ class WHModMonthLogger(WHModLoggerMixin, logtools.MonthLogger):
         return Positionbounds.from_sequences(sequence2value.keys())
 
     def write_rchfile(
-            self,
-            rchfile: TextIO,
-            layer: int = 1,
-            balancefile: int = 51,
-            values_per_line: int = 20,
-            precision: int = 4,
-            exp_digits: int = 3,
+        self,
+        rchfile: TextIO,
+        layer: int = 1,
+        balancefile: int = 51,
+        values_per_line: int = 20,
+        precision: int = 4,
+        exp_digits: int = 3,
     ) -> None:
         """Write a recharge file (`.rch`)  for exporting groundwater recharge
         to ModFlow.
@@ -1735,9 +1690,7 @@ class WHModMonthLogger(WHModLoggerMixin, logtools.MonthLogger):
         4 Nachkommastellen; es muss nur in der Kopfzeile definiert sein.
         Vorschlag: 4 Nachkommastellen
         """
-        sequence2values = [
-            s2m for (_, s2m) in sorted(self.month2sequence2mean.items())
-        ]
+        sequence2values = [s2m for (_, s2m) in sorted(self.month2sequence2mean.items())]
         self._write_rchfile(
             rchfile=rchfile,
             layer=layer,

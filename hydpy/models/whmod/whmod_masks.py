@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import masktools
+
 # ...from hland
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
@@ -12,8 +13,16 @@ from hydpy.models.whmod.whmod_constants import *
 
 class NutzNrMask(masktools.IndexMask):
     RELEVANT_VALUES = (
-        GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN,
-        WINTERWEIZEN, ZUCKERRUEBEN, VERSIEGELT, WASSER)
+        GRAS,
+        LAUBWALD,
+        MAIS,
+        NADELWALD,
+        SOMMERWEIZEN,
+        WINTERWEIZEN,
+        ZUCKERRUEBEN,
+        VERSIEGELT,
+        WASSER,
+    )
 
     @staticmethod
     def get_refindices(variable):
@@ -22,14 +31,27 @@ class NutzNrMask(masktools.IndexMask):
 
 class NutzLand(NutzNrMask):
     RELEVANT_VALUES = (
-        GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN,
-        WINTERWEIZEN, ZUCKERRUEBEN, VERSIEGELT)
+        GRAS,
+        LAUBWALD,
+        MAIS,
+        NADELWALD,
+        SOMMERWEIZEN,
+        WINTERWEIZEN,
+        ZUCKERRUEBEN,
+        VERSIEGELT,
+    )
 
 
 class NutzBoden(NutzNrMask):
     RELEVANT_VALUES = (
-        GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN,
-        WINTERWEIZEN, ZUCKERRUEBEN)
+        GRAS,
+        LAUBWALD,
+        MAIS,
+        NADELWALD,
+        SOMMERWEIZEN,
+        WINTERWEIZEN,
+        ZUCKERRUEBEN,
+    )
 
 
 class NutzGras(NutzNrMask):
@@ -77,16 +99,18 @@ class BodenTypMask(masktools.IndexMask):
 
 
 class Masks(masktools.Masks):
-    CLASSES = (NutzNrMask,
-               NutzLand,
-               NutzBoden,
-               NutzGras,
-               NutzLaubwald,
-               NutzMais,
-               NutzNadelwald,
-               NutzSommerweizen,
-               NutzWinterweizen,
-               NutzZuckerrueben,
-               NutzVersiegelt,
-               NutzWasser,
-               BodenTypMask)
+    CLASSES = (
+        NutzNrMask,
+        NutzLand,
+        NutzBoden,
+        NutzGras,
+        NutzLaubwald,
+        NutzMais,
+        NutzNadelwald,
+        NutzSommerweizen,
+        NutzWinterweizen,
+        NutzZuckerrueben,
+        NutzVersiegelt,
+        NutzWasser,
+        BodenTypMask,
+    )

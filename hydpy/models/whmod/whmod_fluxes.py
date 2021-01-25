@@ -17,6 +17,7 @@ class Sequence1D(sequencetools.FluxSequence):
 
 class NiederschlagRichter(sequencetools.FluxSequence):
     """[mm]"""
+
     NDIM, NUMERIC = 0, False
 
 
@@ -50,6 +51,7 @@ class Sickerwasser(Sequence1D):
 
 class Saettigungsdampfdruckdefizit(sequencetools.FluxSequence):
     """[mbar]"""
+
     NDIM, NUMERIC = 0, False
 
 
@@ -83,9 +85,11 @@ class PotGrundwasserneubildung(Sequence1D):
 
 class AktGrundwasserneubildung(sequencetools.FluxSequence):
     """[mm]"""
+
     NDIM, NUMERIC = 0, False
 
 
 class VerzGrundwasserneubildung(sequencetools.FluxSequence):
     """[mm]"""
+
     NDIM, NUMERIC = 0, False

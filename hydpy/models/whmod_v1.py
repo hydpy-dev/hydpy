@@ -61,7 +61,8 @@ class Masks(masktools.Masks):
         whmod_masks.NutzZuckerrueben,
         whmod_masks.NutzVersiegelt,
         whmod_masks.NutzWasser,
-        whmod_masks.BodenTypMask)
+        whmod_masks.BodenTypMask,
+    )
 
 
 tester = Tester()

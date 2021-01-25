@@ -5,8 +5,10 @@
 
 # import...
 import itertools
+
 # from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import parametertools
@@ -17,11 +19,13 @@ from hydpy.models.whmod import whmod_masks
 
 class Area(parametertools.Parameter):
     """[m²]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
 
 
 class Nmb_Cells(parametertools.Parameter):
     """[-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
@@ -35,38 +39,53 @@ class Nmb_Cells(parametertools.Parameter):
 
 class KorrNiedNachRichter(parametertools.Parameter):
     """[-]"""
+
     NDIM, TYPE, TIME = 0, bool, None
 
     def __call__(self, *args, **kwargs):
         if args[0]:
-            raise NotImplementedError(
-                'Richterkorrektur fehlt noch')
+            raise NotImplementedError("Richterkorrektur fehlt noch")
         super().__call__(*args, **kwargs)
 
 
 class InterzeptionNach_Dommermuth_Trampf(parametertools.Parameter):
     """[-]"""
+
     NDIM, TYPE, TIME = 0, bool, None
 
     def __call__(self, *args, **kwargs):
         if not args[0]:
-            raise NotImplementedError(
-                'Bislang nur Dommermuth-Trampf möglich')
+            raise NotImplementedError("Bislang nur Dommermuth-Trampf möglich")
         super().__call__(*args, **kwargs)
 
 
 class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     """[-]"""
+
     NDIM, TYPE, TIME = 1, bool, None
 
 
-TEMP = {key: value for key, value in whmod_constants.CONSTANTS.items()
-        if value in (GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN,
-                     WINTERWEIZEN, ZUCKERRUEBEN, VERSIEGELT, WASSER)}
+TEMP = {
+    key: value
+    for key, value in whmod_constants.CONSTANTS.items()
+    if value
+    in (
+        GRAS,
+        LAUBWALD,
+        MAIS,
+        NADELWALD,
+        SOMMERWEIZEN,
+        WINTERWEIZEN,
+        ZUCKERRUEBEN,
+        VERSIEGELT,
+        WASSER,
+    )
+}
 
 
 class Nutz_Nr(parametertools.NameParameter):
     """[-]"""
+
     NDIM, TYPE, TIME = 1, int, None
     CONSTANTS = TEMP
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
@@ -93,12 +112,16 @@ class NutzNrComplete(parametertools.ZipParameter):
 
 del TEMP
 
-TEMP = {key: value for key, value in whmod_constants.CONSTANTS.items()
-        if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)}
+TEMP = {
+    key: value
+    for key, value in whmod_constants.CONSTANTS.items()
+    if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
+}
 
 
 class BodenTyp(parametertools.NameParameter):
     """[-]"""
+
     NDIM, TYPE, TIME = 1, int, None
     CONSTANTS = TEMP
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
@@ -128,15 +151,37 @@ del TEMP
 
 class F_AREA(NutzNrComplete):
     """[m²]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0., None)
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = ('gras', 'laubwald', 'mais', 'nadelwald', 'sommerweizen',
-                'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
+    ROWNAMES = (
+        "gras",
+        "laubwald",
+        "mais",
+        "nadelwald",
+        "sommerweizen",
+        "winterweizen",
+        "zuckerrueben",
+        "versiegelt",
+        "wasser",
+    )
 
 
 class MaxInterz(LanduseMonthParameter):
@@ -144,25 +189,70 @@ class MaxInterz(LanduseMonthParameter):
 
 
 class Faktor(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0., None)
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = ('gras', 'laubwald', 'mais', 'nadelwald', 'sommerweizen',
-                'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
+    ROWNAMES = (
+        "gras",
+        "laubwald",
+        "mais",
+        "nadelwald",
+        "sommerweizen",
+        "winterweizen",
+        "zuckerrueben",
+        "versiegelt",
+        "wasser",
+    )
 
 
 class FactorC(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0., None)
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = ('laubwald', 'nadelwald')
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
+    ROWNAMES = ("laubwald", "nadelwald")
 
 
 class FaktorWald(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0., None)
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = ('laubwald', 'nadelwald')
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
+    ROWNAMES = ("laubwald", "nadelwald")
 
 
 class FLN(LanduseMonthParameter):
@@ -171,47 +261,56 @@ class FLN(LanduseMonthParameter):
 
 class Gradfaktor(NutzNrComplete):
     """[mm/T/K]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
 
 
 class NFK100_Mittel(NutzNrComplete):
     """[mm/m]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class Flurab(NutzNrComplete):
     """[m]"""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 class MaxWurzeltiefe(NutzNrComplete):
     """[m]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class MinhasR(NutzNrComplete):
     """[-]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (.1, None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.1, None)
 
 
 class KapilSchwellwert(BodenTypComplete):
     """[-]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class KapilGrenzwert(BodenTypComplete):
     """[-]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class BFI(BodenTypComplete):
     """Base Flow Index [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class Schwerpunktlaufzeit(parametertools.Parameter):
     """Schwerpunktlaufzeit [T]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     def __call__(self, *args, **kwargs):
         """
@@ -255,11 +354,11 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            if (len(kwargs) == 1) and ('flurab_probst' in kwargs):
-                x = kwargs['flurab_probst']
-                k_d = .6*(((5.8039*x-21.899)*x+41.933)*x+.0001)
+            if (len(kwargs) == 1) and ("flurab_probst" in kwargs):
+                x = kwargs["flurab_probst"]
+                k_d = 0.6 * (((5.8039 * x - 21.899) * x + 41.933) * x + 0.0001)
                 self.value = max(
-                    60*60*24*k_d/pub.timegrids.init.stepsize.seconds, 0.)
+                    60 * 60 * 24 * k_d / pub.timegrids.init.stepsize.seconds, 0.0
+                )
             else:
-                raise NotImplementedError(
-                    '"flurab_probst" oder Zahl.')
+                raise NotImplementedError('"flurab_probst" oder Zahl.')

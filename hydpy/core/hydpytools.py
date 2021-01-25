@@ -2414,6 +2414,6 @@ def create_directedgraph(
     for element in devices.elements:
         for node in itertools.chain(element.inlets, element.inputs):
             digraph.add_edge(node, element)
-        for node in element.outlets:
+        for node in itertools.chain(element.outlets, element.outputs):
             digraph.add_edge(element, node)
     return digraph

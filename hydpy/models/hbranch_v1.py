@@ -17,7 +17,7 @@ Integration tests
     We perform the following examples over a simulation period of 10 hours:
 
     >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '01.01.2000 00:00', '01.01.2000 10:00', '1h'
+    >>> pub.timegrids = "01.01.2000 00:00", "01.01.2000 10:00", "1h"
 
     |hbranch_v1| has no parameter with values depending on the simulation
     step size, which is why we can pass anything (or nothing) to function
@@ -32,10 +32,10 @@ Integration tests
     parameter values before connecting the model to its |Element| object,
     called `branch`:
 
-    >>> nodes = Nodes('input1', 'input2', 'output1', 'output2', 'output3')
-    >>> branch = Element('branch',
-    ...                  inlets=['input1', 'input2'],
-    ...                  outlets=['output1', 'output2', 'output3'])
+    >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
+    >>> branch = Element("branch",
+    ...                  inlets=["input1", "input2"],
+    ...                  outlets=["output1", "output2", "output3"])
     >>> xpoints(0.0, 2.0, 4.0, 6.0)
     >>> ypoints(output1=[0.0, 1.0, 2.0, 3.0],
     ...         output2=[0.0, 1.0, 0.0, 0.0],
@@ -47,7 +47,7 @@ Integration tests
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> test = IntegrationTest(branch)
-    >>> test.dateformat = '%H:%M'
+    >>> test.dateformat = "%H:%M"
 
     The (identical) values of the inlet nodes `input1` and `input2`
     define no realistic inflow series.  Instead, they are just
@@ -65,7 +65,7 @@ Integration tests
     raise to fast for high input values, showing that |hbranch_v1| does
     not care for equality between the total sum of input and output values:
 
-    >>> test('hbranch_v1_ex1')
+    >>> test("hbranch_v1_ex1")
     |  date | input |             outputs | input1 | input2 | output1 | output2 | output3 |
     ---------------------------------------------------------------------------------------
     | 00:00 |  -1.0 | -0.5  -0.5      0.0 |   -0.5 |   -0.5 |    -0.5 |    -0.5 |     0.0 |
@@ -89,23 +89,19 @@ Integration tests
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from hbranch
 from hydpy.models.hbranch import hbranch_model
 
 
 class Model(hbranch_model.Model):
     """The HBV96 version of HydPy-H-Stream (hbranch_v1)."""
-    INLET_METHODS = (
-        hbranch_model.Pick_Input_V1,
-    )
+
+    INLET_METHODS = (hbranch_model.Pick_Input_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        hbranch_model.Calc_Outputs_V1,
-    )
+    RUN_METHODS = (hbranch_model.Calc_Outputs_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        hbranch_model.Pass_Outputs_V1,
-    )
+    OUTLET_METHODS = (hbranch_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

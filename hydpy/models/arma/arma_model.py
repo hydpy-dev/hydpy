@@ -77,36 +77,33 @@ class Calc_QPIn_V1(modeltools.Method):
         |   9 |  0.0 |  0.0 |
         |  10 | 12.0 | 12.0 |
     """
+
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
         arma_derived.MaxQ,
         arma_derived.DiffQ,
     )
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QIn,
-    )
-    RESULTSEQUENCES = (
-        arma_fluxes.QPIn,
-    )
+    REQUIREDSEQUENCES = (arma_fluxes.QIn,)
+    RESULTSEQUENCES = (arma_fluxes.QPIn,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        for idx in range(der.nmb-1):
+        for idx in range(der.nmb - 1):
             if flu.qin < der.maxq[idx]:
                 if idx == 0:
                     flu.qpin[idx] = flu.qin
                 else:
-                    flu.qpin[idx] = 0.
-            elif flu.qin < der.maxq[idx+1]:
-                flu.qpin[idx] = flu.qin-der.maxq[idx]
+                    flu.qpin[idx] = 0.0
+            elif flu.qin < der.maxq[idx + 1]:
+                flu.qpin[idx] = flu.qin - der.maxq[idx]
             else:
                 flu.qpin[idx] = der.diffq[idx]
         if der.nmb == 1:
             flu.qpin[0] = flu.qin
         else:
-            flu.qpin[der.nmb-1] = max(flu.qin-der.maxq[der.nmb-1], 0.)
+            flu.qpin[der.nmb - 1] = max(flu.qin - der.maxq[der.nmb - 1], 0.0)
 
 
 class Update_LogIn_V1(modeltools.Method):
@@ -149,16 +146,13 @@ class Update_LogIn_V1(modeltools.Method):
                [8.0, 2.0, nan],
                [9.0, 4.0, 5.0]])
     """
+
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
         arma_derived.MA_Order,
     )
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QPIn,
-    )
-    UPDATEDSEQUENCES = (
-        arma_logs.LogIn,
-    )
+    REQUIREDSEQUENCES = (arma_fluxes.QPIn,)
+    UPDATEDSEQUENCES = (arma_logs.LogIn,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -166,8 +160,8 @@ class Update_LogIn_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmb):
-            for jdx in range(der.ma_order[idx]-2, -1, -1):
-                log.login[idx, jdx+1] = log.login[idx, jdx]
+            for jdx in range(der.ma_order[idx] - 2, -1, -1):
+                log.login[idx, jdx + 1] = log.login[idx, jdx]
         for idx in range(der.nmb):
             log.login[idx, 0] = flu.qpin[idx]
 
@@ -213,17 +207,14 @@ class Calc_QMA_V1(modeltools.Method):
         qma(1.0, 2.2, 4.7)
 
     """
+
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
         arma_derived.MA_Order,
         arma_derived.MA_Coefs,
     )
-    REQUIREDSEQUENCES = (
-        arma_logs.LogIn,
-    )
-    RESULTSEQUENCES = (
-        arma_fluxes.QMA,
-    )
+    REQUIREDSEQUENCES = (arma_logs.LogIn,)
+    RESULTSEQUENCES = (arma_fluxes.QMA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -231,7 +222,7 @@ class Calc_QMA_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmb):
-            flu.qma[idx] = 0.
+            flu.qma[idx] = 0.0
             for jdx in range(der.ma_order[idx]):
                 flu.qma[idx] += der.ma_coefs[idx, jdx] * log.login[idx, jdx]
 
@@ -281,17 +272,14 @@ class Calc_QAR_V1(modeltools.Method):
         qar(0.0, 1.0, 2.2, 4.7)
 
     """
+
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
         arma_derived.AR_Order,
         arma_derived.AR_Coefs,
     )
-    REQUIREDSEQUENCES = (
-        arma_logs.LogOut,
-    )
-    RESULTSEQUENCES = (
-        arma_fluxes.QAR,
-    )
+    REQUIREDSEQUENCES = (arma_logs.LogOut,)
+    RESULTSEQUENCES = (arma_fluxes.QAR,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -299,7 +287,7 @@ class Calc_QAR_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmb):
-            flu.qar[idx] = 0.
+            flu.qar[idx] = 0.0
             for jdx in range(der.ar_order[idx]):
                 flu.qar[idx] += der.ar_coefs[idx, jdx] * log.logout[idx, jdx]
 
@@ -328,23 +316,20 @@ class Calc_QPOut_V1(modeltools.Method):
         >>> fluxes.qpout
         qpout(5.0, 7.0, 9.0)
     """
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-    )
+
+    DERIVEDPARAMETERS = (arma_derived.Nmb,)
     REQUIREDSEQUENCES = (
         arma_fluxes.QMA,
         arma_fluxes.QAR,
     )
-    RESULTSEQUENCES = (
-        arma_fluxes.QPOut,
-    )
+    RESULTSEQUENCES = (arma_fluxes.QPOut,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmb):
-            flu.qpout[idx] = flu.qma[idx]+flu.qar[idx]
+            flu.qpout[idx] = flu.qma[idx] + flu.qar[idx]
 
 
 class Update_LogOut_V1(modeltools.Method):
@@ -392,16 +377,13 @@ class Update_LogOut_V1(modeltools.Method):
                 [9.0, 3.0, 4.0]])
 
     """
+
     DERIVEDPARAMETERS = (
         arma_derived.Nmb,
         arma_derived.AR_Order,
     )
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QPOut,
-    )
-    UPDATEDSEQUENCES = (
-        arma_logs.LogOut,
-    )
+    REQUIREDSEQUENCES = (arma_fluxes.QPOut,)
+    UPDATEDSEQUENCES = (arma_logs.LogOut,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -409,8 +391,8 @@ class Update_LogOut_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmb):
-            for jdx in range(der.ar_order[idx]-2, -1, -1):
-                log.logout[idx, jdx+1] = log.logout[idx, jdx]
+            for jdx in range(der.ar_order[idx] - 2, -1, -1):
+                log.logout[idx, jdx + 1] = log.logout[idx, jdx]
         for idx in range(der.nmb):
             if der.ar_order[idx] > 0:
                 log.logout[idx, 0] = flu.qpout[idx]
@@ -436,51 +418,40 @@ class Calc_QOut_V1(modeltools.Method):
         >>> fluxes.qout
         qout(6.0)
     """
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-    )
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QPOut,
-    )
-    RESULTSEQUENCES = (
-        arma_fluxes.QOut,
-    )
+
+    DERIVEDPARAMETERS = (arma_derived.Nmb,)
+    REQUIREDSEQUENCES = (arma_fluxes.QPOut,)
+    RESULTSEQUENCES = (arma_fluxes.QOut,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qout = 0.
+        flu.qout = 0.0
         for idx in range(der.nmb):
             flu.qout += flu.qpout[idx]
 
 
 class Pick_Q_V1(modeltools.Method):
     """Update inflow."""
-    REQUIREDSEQUENCES = (
-        arma_inlets.Q,
-    )
-    RESULTSEQUENCES = (
-        arma_fluxes.QIn,
-    )
+
+    REQUIREDSEQUENCES = (arma_inlets.Q,)
+    RESULTSEQUENCES = (arma_fluxes.QIn,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.qin = 0.
+        flu.qin = 0.0
         for idx in range(inl.len_q):
             flu.qin += inl.q[idx][0]
 
 
 class Pass_Q_V1(modeltools.Method):
     """Update outflow."""
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QOut,
-    )
-    RESULTSEQUENCES = (
-        arma_outlets.Q,
-    )
+
+    REQUIREDSEQUENCES = (arma_fluxes.QOut,)
+    RESULTSEQUENCES = (arma_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -491,9 +462,8 @@ class Pass_Q_V1(modeltools.Method):
 
 class Model(modeltools.AdHocModel):
     """Base model ARMA."""
-    INLET_METHODS = (
-        Pick_Q_V1,
-    )
+
+    INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_QPIn_V1,
@@ -502,10 +472,9 @@ class Model(modeltools.AdHocModel):
         Calc_QAR_V1,
         Calc_QPOut_V1,
         Update_LogOut_V1,
-        Calc_QOut_V1)
-    ADD_METHODS = ()
-    OUTLET_METHODS = (
-        Pass_Q_V1,
+        Calc_QOut_V1,
     )
+    ADD_METHODS = ()
+    OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

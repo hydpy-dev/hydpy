@@ -29,16 +29,24 @@ them computationally efficient by using Cython (see the extension module
 # import...
 # ...from standard-library
 import os
+from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import exceptiontools
 from hydpy.cythons.autogen import smoothutils
-interpolate = exceptiontools.OptionalImport(
-    'interpolate', ['scipy.interpolate'], locals())
-optimize = exceptiontools.OptionalImport(
-    'optimize', ['scipy.optimize'], locals())
+
+if TYPE_CHECKING:
+    from scipy import interpolate
+    from scipy import optimize
+else:
+    interpolate = exceptiontools.OptionalImport(
+        "interpolate", ["scipy.interpolate"], locals()
+    )
+    optimize = exceptiontools.OptionalImport("optimize", ["scipy.optimize"], locals())
 
 
 def calc_smoothpar_logistic1(metapar):
@@ -71,11 +79,11 @@ def calc_smoothpar_logistic1(metapar):
     >>> round_(calc_smoothpar_logistic1(-1.0))
     0.0
     """
-    return numpy.clip(metapar/numpy.log(99.), 0., numpy.inf)
+    return numpy.clip(metapar / numpy.log(99.0), 0.0, numpy.inf)
 
 
 def _error_smoothpar_logistic2(par, metapar):
-    return smoothutils.smooth_logistic2(-metapar, par) - .01
+    return smoothutils.smooth_logistic2(-metapar, par) - 0.01
 
 
 def _smooth_logistic2_derivative1(par, metapar):
@@ -154,14 +162,17 @@ def calc_smoothpar_logistic2(metapar, iterate: bool = False):
     also be extended).
     """
     if iterate:
-        if metapar <= 0.:
-            return 0.
-        return optimize.newton(_error_smoothpar_logistic2,
-                               .3 * metapar**.84,
-                               _smooth_logistic2_derivative1,
-                               args=(metapar,))
+        if metapar <= 0.0:
+            return 0.0
+        return optimize.newton(
+            _error_smoothpar_logistic2,
+            0.3 * metapar ** 0.84,
+            _smooth_logistic2_derivative1,
+            args=(metapar,),
+        )
     return numpy.clip(
-        _cubic_interpolator_for_smoothpar_logistic2(metapar), 0.0, numpy.inf)
+        _cubic_interpolator_for_smoothpar_logistic2(metapar), 0.0, numpy.inf
+    )
 
 
 def calc_smoothpar_logistic3(metapar):
@@ -252,12 +263,13 @@ def calc_smoothpar_min1(metapar):
 # xys[0, :] = numpy.linspace(0., 1000.**(1./3.), 10000)**3.
 # xys[1, :] = [calc_smoothpar_logistic2(x, iterate=True) for x in xys[0]]
 # numpy.save(os.path.join(
-#     conf.__path__[0], 'support_points_for_smoothpar_logistic2.npy'), xys)
+#     conf.__path__[0], "support_points_for_smoothpar_logistic2.npy"), xys)
 
 
 # Load the supporting points required for method `calc_smoothpar_logistic2`:
-xys = numpy.load(os.path.join(
-    conf.__path__[0], 'support_points_for_smoothpar_logistic2.npy'))
+confpath = conf.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+xys = numpy.load(os.path.join(confpath, "support_points_for_smoothpar_logistic2.npy"))
 _cubic_interpolator_for_smoothpar_logistic2 = interpolate.interp1d(
-    xys[0], xys[1], kind='cubic', fill_value="extrapolate")
+    xys[0], xys[1], kind="cubic", fill_value="extrapolate"
+)
 del xys

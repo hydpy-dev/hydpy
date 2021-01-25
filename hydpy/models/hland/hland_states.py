@@ -5,6 +5,7 @@
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.models.hland import hland_control
@@ -15,18 +16,17 @@ from hydpy.models.hland.hland_constants import ILAKE
 
 class Ic(hland_sequences.State1DSequence):
     """Interception storage [mm]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = hland_masks.Soil()
 
-    CONTROLPARAMETERS = (
-        hland_control.IcMax,
-    )
+    CONTROLPARAMETERS = (hland_control.IcMax,)
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`IC \\leq ICMAX`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> icmax(2.0)
         >>> states.ic(-1.0, 0.0, 1.0, 2.0, 3.0)
@@ -41,18 +41,17 @@ class Ic(hland_sequences.State1DSequence):
 
 class SP(hland_sequences.State1DSequence):
     """Frozen water stored in the snow layer [mm]."""
+
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = hland_masks.Land()
 
-    CONTROLPARAMETERS = (
-        hland_control.WHC,
-    )
+    CONTROLPARAMETERS = (hland_control.WHC,)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> whc(0.1)
         >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
@@ -67,26 +66,25 @@ class SP(hland_sequences.State1DSequence):
         wc = self.subseqs.wc
         if lower is None:
             wc_values = wc.values.copy()
-            wc_values[numpy.isnan(wc_values)] = 0.
-            with numpy.errstate(divide='ignore', invalid='ignore'):
-                lower = numpy.clip(wc_values / whc.values, 0., numpy.inf)
+            wc_values[numpy.isnan(wc_values)] = 0.0
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                lower = numpy.clip(wc_values / whc.values, 0.0, numpy.inf)
         hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
 class WC(hland_sequences.State1DSequence):
     """Liquid water content of the snow layer [mm]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = hland_masks.Land()
 
-    CONTROLPARAMETERS = (
-        hland_control.WHC,
-    )
+    CONTROLPARAMETERS = (hland_control.WHC,)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> whc(0.1)
         >>> states.sp = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
@@ -97,24 +95,23 @@ class WC(hland_sequences.State1DSequence):
         whc = self.subseqs.seqs.model.parameters.control.whc
         sp = self.subseqs.sp
         if upper is None:
-            upper = whc*sp
+            upper = whc * sp
         hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
 class SM(hland_sequences.State1DSequence):
     """Soil moisture [mm]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = hland_masks.Soil()
 
-    CONTROLPARAMETERS = (
-        hland_control.FC,
-    )
+    CONTROLPARAMETERS = (hland_control.FC,)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`SM \\leq FC`.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> fc(200.0)
         >>> states.sm(-100.0, 0.0, 100.0, 200.0, 300.0)
@@ -128,23 +125,23 @@ class SM(hland_sequences.State1DSequence):
 
 class UZ(sequencetools.StateSequence):
     """Storage in the upper zone layer [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
+    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
 class LZ(sequencetools.StateSequence):
     """Storage in the lower zone layer [mm]."""
+
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.ZoneType,)
 
     def trim(self, lower=None, upper=None):
         """Trim negative value whenever there is no internal lake within
         the respective subbasin.
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> nmbzones(2)
         >>> zonetype(FIELD, ILAKE)
         >>> states.lz(-1.0)
@@ -161,5 +158,5 @@ class LZ(sequencetools.StateSequence):
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
             if not any(control.zonetype.values == ILAKE):
-                lower = 0.
+                lower = 0.0
         sequencetools.StateSequence.trim(self, lower, upper)

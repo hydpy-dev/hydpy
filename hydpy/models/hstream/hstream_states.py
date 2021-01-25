@@ -5,8 +5,10 @@
 # import...
 # ...from standard library
 import warnings
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -19,8 +21,8 @@ class QJoints(sequencetools.StateSequence):
     average and emits the following warning:
 
     >>> from hydpy.models.hstream import *
-    >>> parameterstep('1h')
-    >>> simulationstep('1h')
+    >>> parameterstep("1h")
+    >>> simulationstep("1h")
     >>> lag(2.0)
     >>> derived.nmbsegments.update()
     >>> states.qjoints(1.0, 2.0)
@@ -40,7 +42,8 @@ occurred: could not broadcast input array from shape (2) into shape (3)
     >>> states.qjoints
     qjoints(1.0, 2.0, 3.0)
     """
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
     def __call__(self, *args):
         try:
@@ -48,10 +51,11 @@ occurred: could not broadcast input array from shape (2) into shape (3)
         except BaseException as exc:
             super().__call__(numpy.mean(args))
             warnings.warn(
-                f'Due to the following problem, state sequence '
-                f'{objecttools.elementphrase(self)} handling model '
-                f'`{self.subseqs.seqs.model}` could be  initialised '
-                f'with an averaged value only: {exc}')
+                f"Due to the following problem, state sequence "
+                f"{objecttools.elementphrase(self)} handling model "
+                f"`{self.subseqs.seqs.model}` could be  initialised "
+                f"with an averaged value only: {exc}"
+            )
 
     @property
     def refweights(self):
@@ -59,11 +63,11 @@ occurred: could not broadcast input array from shape (2) into shape (3)
         junctions..
 
         >>> from hydpy.models.hstream import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> states.qjoints.shape = 5
         >>> states.qjoints.refweights
         array([ 0.2,  0.2,  0.2,  0.2,  0.2])
         """
         # pylint: disable=unsubscriptable-object
         # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
-        return numpy.full(self.shape, 1./self.shape[0], dtype=float)
+        return numpy.full(self.shape, 1.0 / self.shape[0], dtype=float)

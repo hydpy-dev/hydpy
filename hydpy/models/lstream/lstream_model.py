@@ -5,8 +5,10 @@
 # import...
 # ...from standard library
 import typing
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.auxs import roottools
 from hydpy.core import exceptiontools
@@ -22,8 +24,11 @@ from hydpy.models.lstream import lstream_states
 from hydpy.models.lstream import lstream_aides
 from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
-pyplot = exceptiontools.OptionalImport(
-    'pyplot', ['matplotlib.pyplot'], locals())
+
+if typing.TYPE_CHECKING:
+    from matplotlib import pyplot
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 
 
 class Pick_Q_V1(modeltools.Method):
@@ -32,17 +37,15 @@ class Pick_Q_V1(modeltools.Method):
     Basic equation:
       :math:`QZ = \\sum Q`
     """
-    REQUIREDSEQUENCES = (
-        lstream_inlets.Q,
-    )
-    RESULTSEQUENCES = (
-        lstream_fluxes.QZ,
-    )
+
+    REQUIREDSEQUENCES = (lstream_inlets.Q,)
+    RESULTSEQUENCES = (lstream_fluxes.QZ,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.qz = 0.
+        flu.qz = 0.0
         for idx in range(inl.len_q):
             flu.qz += inl.q[idx][0]
 
@@ -53,12 +56,10 @@ class Calc_QZA_V1(modeltools.Method):
     Basic equation:
       :math:`QZA = QZ`
     """
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QZ,
-    )
-    RESULTSEQUENCES = (
-        lstream_fluxes.QZA,
-    )
+
+    REQUIREDSEQUENCES = (lstream_fluxes.QZ,)
+    RESULTSEQUENCES = (lstream_fluxes.QZA,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -93,18 +94,12 @@ class Calc_RHM_V1(modeltools.Method):
         >>> aides.rhm
         rhm(0.0, 0.01, 0.040983, 0.11, 1.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HRP,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
-    RESULTSEQUENCES = (
-        lstream_aides.RHM,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.HRP,)
+    REQUIREDSEQUENCES = (lstream_states.H,)
+    RESULTSEQUENCES = (lstream_aides.RHM,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -158,18 +153,12 @@ class Calc_RHMDH_V1(modeltools.Method):
         >>> numdiff()
         d_rhm/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HRP,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
-    RESULTSEQUENCES = (
-        lstream_aides.RHMDH,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.HRP,)
+    REQUIREDSEQUENCES = (lstream_states.H,)
+    RESULTSEQUENCES = (lstream_aides.RHMDH,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -177,8 +166,7 @@ class Calc_RHMDH_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.rhmdh[i] = smoothutils.smooth_logistic2_derivative2(
-                sta.h[i], der.hrp)
+            aid.rhmdh[i] = smoothutils.smooth_logistic2_derivative2(sta.h[i], der.hrp)
 
 
 class Calc_RHV_V1(modeltools.Method):
@@ -204,19 +192,15 @@ class Calc_RHV_V1(modeltools.Method):
         >>> aides.rhv
         rhv(0.0, 0.01, 0.040983, 0.11, 1.0)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HRP,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
-    RESULTSEQUENCES = (
-        lstream_aides.RHV,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.HRP,)
+    REQUIREDSEQUENCES = (lstream_states.H,)
+    RESULTSEQUENCES = (lstream_aides.RHV,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -224,7 +208,7 @@ class Calc_RHV_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.rhv[i] = smoothutils.smooth_logistic2(sta.h[i]-con.hm, der.hrp)
+            aid.rhv[i] = smoothutils.smooth_logistic2(sta.h[i] - con.hm, der.hrp)
 
 
 class Calc_RHVDH_V1(modeltools.Method):
@@ -271,19 +255,15 @@ class Calc_RHVDH_V1(modeltools.Method):
         >>> numdiff()
         d_rhv/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HRP,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
-    RESULTSEQUENCES = (
-        lstream_aides.RHVDH,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.HRP,)
+    REQUIREDSEQUENCES = (lstream_states.H,)
+    RESULTSEQUENCES = (lstream_aides.RHVDH,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -292,7 +272,8 @@ class Calc_RHVDH_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             aid.rhvdh[i] = smoothutils.smooth_logistic2_derivative2(
-                sta.h[i]-con.hm, der.hrp)
+                sta.h[i] - con.hm, der.hrp
+            )
 
 
 class Calc_RHLVR_RHRVR_V1(modeltools.Method):
@@ -321,6 +302,7 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
         >>> aides.rhrvr
         rhrvr(0.0, 0.001974, 0.01, 0.040983, 0.11, 0.9)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
@@ -329,13 +311,12 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
         lstream_derived.HV,
         lstream_derived.HRP,
     )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
+    REQUIREDSEQUENCES = (lstream_states.H,)
     RESULTSEQUENCES = (
         lstream_aides.RHLVR,
         lstream_aides.RHRVR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -344,9 +325,11 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             aid.rhlvr[i] = smoothutils.smooth_logistic2(
-                sta.h[i]-con.hm-der.hv[0], der.hrp)
+                sta.h[i] - con.hm - der.hv[0], der.hrp
+            )
             aid.rhrvr[i] = smoothutils.smooth_logistic2(
-                sta.h[i]-con.hm-der.hv[1], der.hrp)
+                sta.h[i] - con.hm - der.hv[1], der.hrp
+            )
 
 
 class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
@@ -400,6 +383,7 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         d_rhlvr/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0, 1.0, 1.0, 1.0
         d_rhrvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
@@ -408,13 +392,12 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         lstream_derived.HRP,
         lstream_derived.HV,
     )
-    REQUIREDSEQUENCES = (
-        lstream_states.H,
-    )
+    REQUIREDSEQUENCES = (lstream_states.H,)
     RESULTSEQUENCES = (
         lstream_aides.RHLVRDH,
         lstream_aides.RHRVRDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -423,9 +406,11 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             aid.rhlvrdh[i] = smoothutils.smooth_logistic2_derivative2(
-                sta.h[i]-con.hm-der.hv[0], der.hrp)
+                sta.h[i] - con.hm - der.hv[0], der.hrp
+            )
             aid.rhrvrdh[i] = smoothutils.smooth_logistic2_derivative2(
-                sta.h[i]-con.hm-der.hv[1], der.hrp)
+                sta.h[i] - con.hm - der.hv[1], der.hrp
+            )
 
 
 class Calc_AM_UM_V1(modeltools.Method):
@@ -512,14 +497,13 @@ class Calc_AM_UM_V1(modeltools.Method):
         >>> aides.um
         um(2.081965, 2.22, 3.000025, 3.8, 4.0, 4.2, 5.0, 6.0)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BM,
         lstream_control.BNM,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNMF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNMF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
         lstream_aides.RHV,
@@ -528,18 +512,18 @@ class Calc_AM_UM_V1(modeltools.Method):
         lstream_aides.AM,
         lstream_aides.UM,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp = aid.rhm[i]-aid.rhv[i]
-            aid.am[i] = (
-                d_temp*(con.bm+d_temp*con.bnm) +
-                aid.rhv[i]*(con.bm+2.*d_temp*con.bnm)
+            d_temp = aid.rhm[i] - aid.rhv[i]
+            aid.am[i] = d_temp * (con.bm + d_temp * con.bnm) + aid.rhv[i] * (
+                con.bm + 2.0 * d_temp * con.bnm
             )
-            aid.um[i] = con.bm+2.*d_temp*der.bnmf+2.*aid.rhv[i]
+            aid.um[i] = con.bm + 2.0 * d_temp * der.bnmf + 2.0 * aid.rhv[i]
 
 
 class Calc_AMDH_UMDH_V1(modeltools.Method):
@@ -620,14 +604,13 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         d_um/d_h: 4.123105, 6.963079, 8.243132, 7.274283, 5.123105, 2.971926, \
 2.001327, 2.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BM,
         lstream_control.BNM,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNMF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNMF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
         lstream_aides.RHMDH,
@@ -638,21 +621,22 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         lstream_aides.AMDH,
         lstream_aides.UMDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhm[i]-aid.rhv[i]
-            d_temp2 = aid.rhmdh[i]-aid.rhvdh[i]
+            d_temp1 = aid.rhm[i] - aid.rhv[i]
+            d_temp2 = aid.rhmdh[i] - aid.rhvdh[i]
             aid.amdh[i] = (
-                con.bnm*d_temp1*d_temp2 +
-                2.*con.bnm*d_temp2*aid.rhv[i] +
-                (con.bm+con.bnm*d_temp1)*d_temp2 +
-                (con.bm+2.*con.bnm*d_temp1)*aid.rhvdh[i]
+                con.bnm * d_temp1 * d_temp2
+                + 2.0 * con.bnm * d_temp2 * aid.rhv[i]
+                + (con.bm + con.bnm * d_temp1) * d_temp2
+                + (con.bm + 2.0 * con.bnm * d_temp1) * aid.rhvdh[i]
             )
-            aid.umdh[i] = 2.*d_temp2*der.bnmf + 2.*aid.rhvdh[i]
+            aid.umdh[i] = 2.0 * d_temp2 * der.bnmf + 2.0 * aid.rhvdh[i]
 
 
 class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
@@ -784,14 +768,13 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         urv(2.0, 2.000013, 2.01, 2.040983, 2.11, 2.500013, 2.9, 3.0, 3.1, 3.5,
             3.9, 4.0, 4.1, 5.0)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BV,
         lstream_control.BNV,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNVF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNVF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHV,
         lstream_aides.RHLVR,
@@ -803,6 +786,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         lstream_aides.ULV,
         lstream_aides.URV,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -810,15 +794,15 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             d_temp = aid.rhv[i] - aid.rhlvr[i]
-            aid.alv[i] = (
-                d_temp*(con.bv[0]+(d_temp*con.bnv[0]/2.)) +
-                aid.rhlvr[i]*(con.bv[0]+d_temp*con.bnv[0]))
-            aid.ulv[i] = con.bv[0]+d_temp*der.bnvf[0]+aid.rhlvr[i]
+            aid.alv[i] = d_temp * (con.bv[0] + (d_temp * con.bnv[0] / 2.0)) + aid.rhlvr[
+                i
+            ] * (con.bv[0] + d_temp * con.bnv[0])
+            aid.ulv[i] = con.bv[0] + d_temp * der.bnvf[0] + aid.rhlvr[i]
             d_temp = aid.rhv[i] - aid.rhrvr[i]
-            aid.arv[i] = (
-                d_temp*(con.bv[1]+(d_temp*con.bnv[1]/2.)) +
-                aid.rhrvr[i]*(con.bv[1]+d_temp*con.bnv[1]))
-            aid.urv[i] = con.bv[1]+d_temp*der.bnvf[1]+aid.rhrvr[i]
+            aid.arv[i] = d_temp * (con.bv[1] + (d_temp * con.bnv[1] / 2.0)) + aid.rhrvr[
+                i
+            ] * (con.bv[1] + d_temp * con.bnv[1])
+            aid.urv[i] = con.bv[1] + d_temp * der.bnvf[1] + aid.rhrvr[i]
 
 
 class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
@@ -942,14 +926,13 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
         d_urv/d_h: 2.54951, 5.097936, 5.099018, 5.099019, 5.099018, 5.098149, \
 3.04951, 1.000871, 1.000001, 1.0, 1.0, 1.0, 1.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BV,
         lstream_control.BNV,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNVF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNVF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHV,
         lstream_aides.RHVDH,
@@ -964,6 +947,7 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
         lstream_aides.ULVDH,
         lstream_aides.URVDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -973,19 +957,21 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
             d_temp1 = aid.rhv[i] - aid.rhlvr[i]
             d_temp2 = aid.rhvdh[i] - aid.rhlvrdh[i]
             aid.alvdh[i] = (
-                con.bnv[0]*d_temp1*d_temp2/2. +
-                con.bnv[0]*d_temp2*aid.rhlvr[i] +
-                (con.bnv[0]*d_temp1/2+con.bv[0])*d_temp2 +
-                (con.bnv[0]*d_temp1+con.bv[0])*aid.rhlvrdh[i])
-            aid.ulvdh[i] = d_temp2*der.bnvf[0]+aid.rhlvrdh[i]
+                con.bnv[0] * d_temp1 * d_temp2 / 2.0
+                + con.bnv[0] * d_temp2 * aid.rhlvr[i]
+                + (con.bnv[0] * d_temp1 / 2 + con.bv[0]) * d_temp2
+                + (con.bnv[0] * d_temp1 + con.bv[0]) * aid.rhlvrdh[i]
+            )
+            aid.ulvdh[i] = d_temp2 * der.bnvf[0] + aid.rhlvrdh[i]
             d_temp1 = aid.rhv[i] - aid.rhrvr[i]
             d_temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
             aid.arvdh[i] = (
-                con.bnv[1]*d_temp1*d_temp2/2. +
-                con.bnv[1]*d_temp2*aid.rhrvr[i] +
-                (con.bnv[1]*d_temp1/2+con.bv[1])*d_temp2 +
-                (con.bnv[1]*d_temp1+con.bv[1])*aid.rhrvrdh[i])
-            aid.urvdh[i] = d_temp2*der.bnvf[1]+aid.rhrvrdh[i]
+                con.bnv[1] * d_temp1 * d_temp2 / 2.0
+                + con.bnv[1] * d_temp2 * aid.rhrvr[i]
+                + (con.bnv[1] * d_temp1 / 2 + con.bv[1]) * d_temp2
+                + (con.bnv[1] * d_temp1 + con.bv[1]) * aid.rhrvrdh[i]
+            )
+            aid.urvdh[i] = d_temp2 * der.bnvf[1] + aid.rhrvrdh[i]
 
 
 class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
@@ -1095,13 +1081,12 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         urvr(0.208971, 2.549574, 4.589118, 5.09902, 5.608921, 7.648529,
              9.688137, 10.198039, 10.707941, 12.747549, 15.297059)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BNVR,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNVRF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHLVR,
         lstream_aides.RHRVR,
@@ -1112,16 +1097,17 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         lstream_aides.ULVR,
         lstream_aides.URVR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.alvr[i] = aid.rhlvr[i]**2*con.bnvr[0]/2.
-            aid.ulvr[i] = aid.rhlvr[i]*der.bnvrf[0]
-            aid.arvr[i] = aid.rhrvr[i]**2*con.bnvr[1]/2.
-            aid.urvr[i] = aid.rhrvr[i]*der.bnvrf[1]
+            aid.alvr[i] = aid.rhlvr[i] ** 2 * con.bnvr[0] / 2.0
+            aid.ulvr[i] = aid.rhlvr[i] * der.bnvrf[0]
+            aid.arvr[i] = aid.rhrvr[i] ** 2 * con.bnvr[1] / 2.0
+            aid.urvr[i] = aid.rhrvr[i] * der.bnvrf[1]
 
 
 class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
@@ -1227,13 +1213,12 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
         d_urvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.000001, 0.001083, 0.79342, \
 2.54951, 4.305599, 5.097936, 5.099019
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BNVR,
     )
-    DERIVEDPARAMETERS = (
-        lstream_derived.BNVRF,
-    )
+    DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHLVR,
         lstream_aides.RHLVRDH,
@@ -1246,16 +1231,17 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
         lstream_aides.ULVRDH,
         lstream_aides.URVRDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.alvrdh[i] = con.bnvr[0]*aid.rhlvr[i]*aid.rhlvrdh[i]
-            aid.ulvrdh[i] = aid.rhlvrdh[i]*der.bnvrf[0]
-            aid.arvrdh[i] = con.bnvr[1]*aid.rhrvr[i]*aid.rhrvrdh[i]
-            aid.urvrdh[i] = aid.rhrvrdh[i]*der.bnvrf[1]
+            aid.alvrdh[i] = con.bnvr[0] * aid.rhlvr[i] * aid.rhlvrdh[i]
+            aid.ulvrdh[i] = aid.rhlvrdh[i] * der.bnvrf[0]
+            aid.arvrdh[i] = con.bnvr[1] * aid.rhrvr[i] * aid.rhrvrdh[i]
+            aid.urvrdh[i] = aid.rhrvrdh[i] * der.bnvrf[1]
 
 
 class Calc_QM_V1(modeltools.Method):
@@ -1278,29 +1264,27 @@ class Calc_QM_V1(modeltools.Method):
         >>> aides.qm
         qm(17.053102, 0.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFM,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFM,)
     REQUIREDSEQUENCES = (
         lstream_aides.AM,
         lstream_aides.UM,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QM,
-    )
+    RESULTSEQUENCES = (lstream_aides.QM,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.um[i] > 0.:
-                aid.qm[i] = der.mfm*aid.am[i]**(5./3.)/aid.um[i]**(2./3.)
+            if aid.um[i] > 0.0:
+                aid.qm[i] = (
+                    der.mfm * aid.am[i] ** (5.0 / 3.0) / aid.um[i] ** (2.0 / 3.0)
+                )
             else:
-                aid.qm[i] = 0.
+                aid.qm[i] = 0.0
 
 
 class Calc_QM_V2(modeltools.Method):
@@ -1324,26 +1308,24 @@ class Calc_QM_V2(modeltools.Method):
         >>> aides.qm
         qm(6.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.AM,
         lstream_aides.QMDH,
         lstream_aides.AMDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QM,
-    )
+    RESULTSEQUENCES = (lstream_aides.QM,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.amdh[i] > 0.:
-                aid.qm[i] = aid.qmdh[i]/aid.amdh[i]*aid.am[i]
+            if aid.amdh[i] > 0.0:
+                aid.qm[i] = aid.qmdh[i] / aid.amdh[i] * aid.am[i]
             else:
-                aid.qm[i] = 0.
+                aid.qm[i] = 0.0
 
 
 class Calc_QMDH_V1(modeltools.Method):
@@ -1402,33 +1384,36 @@ class Calc_QMDH_V1(modeltools.Method):
         >>> aides.qmdh
         qmdh(0.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFM,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFM,)
     REQUIREDSEQUENCES = (
         lstream_aides.AM,
         lstream_aides.AMDH,
         lstream_aides.UM,
         lstream_aides.UMDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QMDH,
-    )
+    RESULTSEQUENCES = (lstream_aides.QMDH,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if (aid.am[i] > 0.) and (aid.um[i] > 0.):
+            if (aid.am[i] > 0.0) and (aid.um[i] > 0.0):
                 aid.qmdh[i] = der.mfm * (
-                    5.*aid.am[i]**(2./3.)*aid.amdh[i]/(3.*aid.um[i]**(2./3.)) -
-                    2.*aid.am[i]**(5./3.)*aid.umdh[i]/(3.*aid.um[i]**(5./3.)))
+                    5.0
+                    * aid.am[i] ** (2.0 / 3.0)
+                    * aid.amdh[i]
+                    / (3.0 * aid.um[i] ** (2.0 / 3.0))
+                    - 2.0
+                    * aid.am[i] ** (5.0 / 3.0)
+                    * aid.umdh[i]
+                    / (3.0 * aid.um[i] ** (5.0 / 3.0))
+                )
             else:
-                aid.qmdh[i] = 0.
+                aid.qmdh[i] = 0.0
 
 
 class Calc_QLV_QRV_V1(modeltools.Method):
@@ -1456,12 +1441,9 @@ class Calc_QLV_QRV_V1(modeltools.Method):
         >>> aides.qrv
         qrv(45.357158, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFV,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFV,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALV,
         lstream_aides.ARV,
@@ -1472,20 +1454,25 @@ class Calc_QLV_QRV_V1(modeltools.Method):
         lstream_aides.QLV,
         lstream_aides.QRV,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.ulv[i] > 0.:
-                aid.qlv[i] = der.mfv[0]*aid.alv[i]**(5./3.)/aid.ulv[i]**(2./3.)
+            if aid.ulv[i] > 0.0:
+                aid.qlv[i] = (
+                    der.mfv[0] * aid.alv[i] ** (5.0 / 3.0) / aid.ulv[i] ** (2.0 / 3.0)
+                )
             else:
-                aid.qlv[i] = 0.
+                aid.qlv[i] = 0.0
             if aid.urv[i] > 0:
-                aid.qrv[i] = der.mfv[1]*aid.arv[i]**(5./3.)/aid.urv[i]**(2./3.)
+                aid.qrv[i] = (
+                    der.mfv[1] * aid.arv[i] ** (5.0 / 3.0) / aid.urv[i] ** (2.0 / 3.0)
+                )
             else:
-                aid.qrv[i] = 0.
+                aid.qrv[i] = 0.0
 
 
 class Calc_QLV_QRV_V2(modeltools.Method):
@@ -1515,9 +1502,8 @@ class Calc_QLV_QRV_V2(modeltools.Method):
         >>> aides.qrv
         qrv(7.5, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALV,
         lstream_aides.ARV,
@@ -1530,19 +1516,20 @@ class Calc_QLV_QRV_V2(modeltools.Method):
         lstream_aides.QLV,
         lstream_aides.QRV,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.alvdh[i] > 0.:
-                aid.qlv[i] = aid.qlvdh[i]/aid.alvdh[i]*aid.alv[i]
+            if aid.alvdh[i] > 0.0:
+                aid.qlv[i] = aid.qlvdh[i] / aid.alvdh[i] * aid.alv[i]
             else:
-                aid.qlv[i] = 0.
-            if aid.arvdh[i] > 0.:
-                aid.qrv[i] = aid.qrvdh[i]/aid.arvdh[i]*aid.arv[i]
+                aid.qlv[i] = 0.0
+            if aid.arvdh[i] > 0.0:
+                aid.qrv[i] = aid.qrvdh[i] / aid.arvdh[i] * aid.arv[i]
             else:
-                aid.qrv[i] = 0.
+                aid.qrv[i] = 0.0
 
 
 class Calc_QLVDH_QRVDH_V1(modeltools.Method):
@@ -1607,12 +1594,9 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
         >>> aides.qrvdh
         qrvdh(0.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFV,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFV,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALV,
         lstream_aides.ALVDH,
@@ -1627,29 +1611,39 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
         lstream_aides.QLVDH,
         lstream_aides.QRVDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if (aid.alv[i] > 0.) and (aid.ulv[i] > 0.):
+            if (aid.alv[i] > 0.0) and (aid.ulv[i] > 0.0):
                 aid.qlvdh[i] = der.mfv[0] * (
-                    5.*aid.alv[i]**(2./3.)*aid.alvdh[i]/(
-                        3.*aid.ulv[i]**(2./3.)) -
-                    2.*aid.alv[i]**(5./3.)*aid.ulvdh[i]/(
-                        3.*aid.ulv[i]**(5./3.)))
-            else:
-                aid.qlvdh[i] = 0.
-            if (aid.arv[i] > 0.) and (aid.urv[i] > 0.):
-                aid.qrvdh[i] = der.mfv[1] * (
-                    5.*aid.arv[i]**(2./3.)*aid.arvdh[i]/(
-                        3.*aid.urv[i]**(2./3.)) -
-                    2.*aid.arv[i]**(5./3.)*aid.urvdh[i]/(
-                        3.*aid.urv[i]**(5./3.))
+                    5.0
+                    * aid.alv[i] ** (2.0 / 3.0)
+                    * aid.alvdh[i]
+                    / (3.0 * aid.ulv[i] ** (2.0 / 3.0))
+                    - 2.0
+                    * aid.alv[i] ** (5.0 / 3.0)
+                    * aid.ulvdh[i]
+                    / (3.0 * aid.ulv[i] ** (5.0 / 3.0))
                 )
             else:
-                aid.qrvdh[i] = 0.
+                aid.qlvdh[i] = 0.0
+            if (aid.arv[i] > 0.0) and (aid.urv[i] > 0.0):
+                aid.qrvdh[i] = der.mfv[1] * (
+                    5.0
+                    * aid.arv[i] ** (2.0 / 3.0)
+                    * aid.arvdh[i]
+                    / (3.0 * aid.urv[i] ** (2.0 / 3.0))
+                    - 2.0
+                    * aid.arv[i] ** (5.0 / 3.0)
+                    * aid.urvdh[i]
+                    / (3.0 * aid.urv[i] ** (5.0 / 3.0))
+                )
+            else:
+                aid.qrvdh[i] = 0.0
 
 
 class Calc_QLVR_QRVR_V1(modeltools.Method):
@@ -1678,12 +1672,9 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
         >>> aides.qrvr
         qrvr(3.023811, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFV,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFV,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALVR,
         lstream_aides.ARVR,
@@ -1694,22 +1685,25 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
         lstream_aides.QLVR,
         lstream_aides.QRVR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.ulvr[i] > 0.:
-                aid.qlvr[i] = \
-                    der.mfv[0]*aid.alvr[i]**(5./3.)/aid.ulvr[i]**(2./3.)
+            if aid.ulvr[i] > 0.0:
+                aid.qlvr[i] = (
+                    der.mfv[0] * aid.alvr[i] ** (5.0 / 3.0) / aid.ulvr[i] ** (2.0 / 3.0)
+                )
             else:
-                aid.qlvr[i] = 0.
-            if aid.urvr[i] > 0.:
-                aid.qrvr[i] = \
-                    der.mfv[1]*aid.arvr[i]**(5./3.)/aid.urvr[i]**(2./3.)
+                aid.qlvr[i] = 0.0
+            if aid.urvr[i] > 0.0:
+                aid.qrvr[i] = (
+                    der.mfv[1] * aid.arvr[i] ** (5.0 / 3.0) / aid.urvr[i] ** (2.0 / 3.0)
+                )
             else:
-                aid.qrvr[i] = 0.
+                aid.qrvr[i] = 0.0
 
 
 class Calc_QLVR_QRVR_V2(modeltools.Method):
@@ -1739,9 +1733,8 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
         >>> aides.qrvr
         qrvr(7.5, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALVR,
         lstream_aides.ARVR,
@@ -1754,19 +1747,20 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
         lstream_aides.QLVR,
         lstream_aides.QRVR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if aid.alvrdh[i] > 0.:
-                aid.qlvr[i] = aid.qlvrdh[i]/aid.alvrdh[i]*aid.alvr[i]
+            if aid.alvrdh[i] > 0.0:
+                aid.qlvr[i] = aid.qlvrdh[i] / aid.alvrdh[i] * aid.alvr[i]
             else:
-                aid.qlvr[i] = 0.
-            if aid.arvrdh[i] > 0.:
-                aid.qrvr[i] = aid.qrvrdh[i]/aid.arvrdh[i]*aid.arvr[i]
+                aid.qlvr[i] = 0.0
+            if aid.arvrdh[i] > 0.0:
+                aid.qrvr[i] = aid.qrvrdh[i] / aid.arvrdh[i] * aid.arvr[i]
             else:
-                aid.qrvr[i] = 0.
+                aid.qrvr[i] = 0.0
 
 
 class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
@@ -1827,12 +1821,9 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
         >>> aides.qrvrdh
         qrvrdh(0.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.MFV,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.MFV,)
     REQUIREDSEQUENCES = (
         lstream_aides.ALVR,
         lstream_aides.ALVRDH,
@@ -1847,28 +1838,39 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
         lstream_aides.QLVRDH,
         lstream_aides.QRVRDH,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            if (aid.alvr[i] > 0.) and (aid.ulvr[i] > 0.):
+            if (aid.alvr[i] > 0.0) and (aid.ulvr[i] > 0.0):
                 aid.qlvrdh[i] = der.mfv[0] * (
-                    5.*aid.alvr[i]**(2./3.)*aid.alvrdh[i]/(
-                        3.*aid.ulvr[i]**(2./3.)) -
-                    2.*aid.alvr[i]**(5./3.)*aid.ulvrdh[i]/(
-                        3.*aid.ulvr[i]**(5./3.)))
+                    5.0
+                    * aid.alvr[i] ** (2.0 / 3.0)
+                    * aid.alvrdh[i]
+                    / (3.0 * aid.ulvr[i] ** (2.0 / 3.0))
+                    - 2.0
+                    * aid.alvr[i] ** (5.0 / 3.0)
+                    * aid.ulvrdh[i]
+                    / (3.0 * aid.ulvr[i] ** (5.0 / 3.0))
+                )
             else:
-                aid.qlvrdh[i] = 0.
-            if (aid.arvr[i] > 0.) and (aid.urvr[i] > 0.):
+                aid.qlvrdh[i] = 0.0
+            if (aid.arvr[i] > 0.0) and (aid.urvr[i] > 0.0):
                 aid.qrvrdh[i] = der.mfv[1] * (
-                    5.*aid.arvr[i]**(2./3.)*aid.arvrdh[i]/(
-                        3.*aid.urvr[i]**(2./3.)) -
-                    2.*aid.arvr[i]**(5./3.)*aid.urvrdh[i]/(
-                        3.*aid.urvr[i]**(5./3.)))
+                    5.0
+                    * aid.arvr[i] ** (2.0 / 3.0)
+                    * aid.arvrdh[i]
+                    / (3.0 * aid.urvr[i] ** (2.0 / 3.0))
+                    - 2.0
+                    * aid.arvr[i] ** (5.0 / 3.0)
+                    * aid.urvrdh[i]
+                    / (3.0 * aid.urvr[i] ** (5.0 / 3.0))
+                )
             else:
-                aid.qrvrdh[i] = 0.
+                aid.qrvrdh[i] = 0.0
 
 
 class Calc_AG_V1(modeltools.Method):
@@ -1891,9 +1893,8 @@ class Calc_AG_V1(modeltools.Method):
         >>> aides.ag
         ag(18.0, 27.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.AM,
         lstream_aides.ALV,
@@ -1901,15 +1902,14 @@ class Calc_AG_V1(modeltools.Method):
         lstream_aides.ALVR,
         lstream_aides.ARVR,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.AG,
-    )
+    RESULTSEQUENCES = (lstream_aides.AG,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.ag[i] = aid.am[i]+aid.alv[i]+aid.arv[i]+aid.alvr[i]+aid.arvr[i]
+            aid.ag[i] = aid.am[i] + aid.alv[i] + aid.arv[i] + aid.alvr[i] + aid.arvr[i]
 
 
 class Calc_QG_V1(modeltools.Method):
@@ -1932,9 +1932,8 @@ class Calc_QG_V1(modeltools.Method):
         >>> fluxes.qg
         qg(18.0, 27.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.QM,
         lstream_aides.QLV,
@@ -1942,16 +1941,15 @@ class Calc_QG_V1(modeltools.Method):
         lstream_aides.QLVR,
         lstream_aides.QRVR,
     )
-    RESULTSEQUENCES = (
-        lstream_fluxes.QG,
-    )
+    RESULTSEQUENCES = (lstream_fluxes.QG,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            flu.qg[i] = aid.qm[i]+aid.qlv[i]+aid.qrv[i]+aid.qlvr[i]+aid.qrvr[i]
+            flu.qg[i] = aid.qm[i] + aid.qlv[i] + aid.qrv[i] + aid.qlvr[i] + aid.qrvr[i]
 
 
 class Calc_QG_V2(modeltools.Method):
@@ -1997,16 +1995,14 @@ class Calc_QG_V2(modeltools.Method):
         For more realistic approximations of measured relationships between
         storage and discharge, we require larger neural networks.
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.VG2QG,
     )
-    REQUIREDSEQUENCES = (
-        lstream_states.VG,
-    )
-    RESULTSEQUENCES = (
-        lstream_fluxes.QG,
-    )
+    REQUIREDSEQUENCES = (lstream_states.VG,)
+    RESULTSEQUENCES = (lstream_fluxes.QG,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2067,6 +2063,7 @@ class Calc_WBM_V1(modeltools.Method):
         >>> numdiff()
         d_am/d_h: 2.081965, 7.593774, 7.918034, 8.028465, 8.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BM,
@@ -2082,24 +2079,23 @@ class Calc_WBM_V1(modeltools.Method):
         lstream_aides.RHV,
         lstream_aides.RHVDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.WBM,
-    )
+    RESULTSEQUENCES = (lstream_aides.WBM,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhm[i]-aid.rhv[i]
-            d_temp2 = aid.rhmdh[i]-aid.rhvdh[i]
+            d_temp1 = aid.rhm[i] - aid.rhv[i]
+            d_temp2 = aid.rhmdh[i] - aid.rhvdh[i]
             aid.wbm[i] = (
-                con.bnm*d_temp1*d_temp2 +
-                con.bnm*2.*d_temp2*aid.rhv[i] +
-                (con.bm+con.bnm*d_temp1)*d_temp2 +
-                (con.bm+con.bnm*2.*d_temp1)*aid.rhvdh[i])
-            aid.wbm[i] = smoothutils.smooth_max1(
-                fix.wbmin, aid.wbm[i], fix.wbreg)
+                con.bnm * d_temp1 * d_temp2
+                + con.bnm * 2.0 * d_temp2 * aid.rhv[i]
+                + (con.bm + con.bnm * d_temp1) * d_temp2
+                + (con.bm + con.bnm * 2.0 * d_temp1) * aid.rhvdh[i]
+            )
+            aid.wbm[i] = smoothutils.smooth_max1(fix.wbmin, aid.wbm[i], fix.wbreg)
 
 
 class Calc_WBLV_WBRV_V1(modeltools.Method):
@@ -2170,6 +2166,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
         d_arv/d_h: 1.909826, 12.997489, 20.999995, 22.999999, 25.0, 33.0, \
 40.96888, 42.590174, 43.142325, 43.001873, 43.000001
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BV,
@@ -2187,6 +2184,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
         lstream_aides.WBLV,
         lstream_aides.WBRV,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2195,17 +2193,19 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
             d_temp1 = aid.rhv[i] - aid.rhlvr[i]
             d_temp2 = aid.rhvdh[i] - aid.rhlvrdh[i]
             aid.wblv[i] = (
-                con.bnv[0]*d_temp1*d_temp2/2. +
-                con.bnv[0]*d_temp2*aid.rhlvr[i] +
-                (con.bnv[0]*d_temp1/2.+con.bv[0])*d_temp2 +
-                (con.bnv[0]*d_temp1+con.bv[0])*aid.rhlvrdh[i])
+                con.bnv[0] * d_temp1 * d_temp2 / 2.0
+                + con.bnv[0] * d_temp2 * aid.rhlvr[i]
+                + (con.bnv[0] * d_temp1 / 2.0 + con.bv[0]) * d_temp2
+                + (con.bnv[0] * d_temp1 + con.bv[0]) * aid.rhlvrdh[i]
+            )
             d_temp1 = aid.rhv[i] - aid.rhrvr[i]
             d_temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
             aid.wbrv[i] = (
-                con.bnv[1]*d_temp1*d_temp2/2. +
-                con.bnv[1]*d_temp2*aid.rhrvr[i] +
-                (con.bnv[1]*d_temp1/2.+con.bv[1])*d_temp2 +
-                (con.bnv[1]*d_temp1+con.bv[1])*aid.rhrvrdh[i])
+                con.bnv[1] * d_temp1 * d_temp2 / 2.0
+                + con.bnv[1] * d_temp2 * aid.rhrvr[i]
+                + (con.bnv[1] * d_temp1 / 2.0 + con.bv[1]) * d_temp2
+                + (con.bnv[1] * d_temp1 + con.bv[1]) * aid.rhrvrdh[i]
+            )
 
 
 class Calc_WBLVR_WBRVR_V1(modeltools.Method):
@@ -2263,6 +2263,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
         d_arvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00778, 0.102457, \
 0.464419, 2.499532, 5.0
     """
+
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.BNVR,
@@ -2277,13 +2278,14 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
         lstream_aides.WBLVR,
         lstream_aides.WBRVR,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.wblvr[i] = con.bnvr[0]*aid.rhlvr[i]*aid.rhlvrdh[i]
-            aid.wbrvr[i] = con.bnvr[1]*aid.rhrvr[i]*aid.rhrvrdh[i]
+            aid.wblvr[i] = con.bnvr[0] * aid.rhlvr[i] * aid.rhlvrdh[i]
+            aid.wbrvr[i] = con.bnvr[1] * aid.rhrvr[i] * aid.rhrvrdh[i]
 
 
 class Calc_WBG_V1(modeltools.Method):
@@ -2306,9 +2308,8 @@ class Calc_WBG_V1(modeltools.Method):
         >>> aides.wbg
         wbg(18.0, 27.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
     REQUIREDSEQUENCES = (
         lstream_aides.WBM,
         lstream_aides.WBLV,
@@ -2316,16 +2317,16 @@ class Calc_WBG_V1(modeltools.Method):
         lstream_aides.WBLVR,
         lstream_aides.WBRVR,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.WBG,
-    )
+    RESULTSEQUENCES = (lstream_aides.WBG,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            aid.wbg[i] = \
-                aid.wbm[i]+aid.wblv[i]+aid.wbrv[i]+aid.wblvr[i]+aid.wbrvr[i]
+            aid.wbg[i] = (
+                aid.wbm[i] + aid.wblv[i] + aid.wbrv[i] + aid.wblvr[i] + aid.wbrvr[i]
+            )
 
 
 class Calc_DH_V1(modeltools.Method):
@@ -2347,6 +2348,7 @@ class Calc_DH_V1(modeltools.Method):
         >>> fluxes.dh
         dh(-0.000167, -0.000143, -0.000125, 0.000143, 0.000167)
     """
+
     CONTROLPARAMETERS = (
         lstream_control.Laen,
         lstream_control.GTS,
@@ -2356,9 +2358,7 @@ class Calc_DH_V1(modeltools.Method):
         lstream_fluxes.QG,
         lstream_aides.WBG,
     )
-    RESULTSEQUENCES = (
-        lstream_fluxes.DH,
-    )
+    RESULTSEQUENCES = (lstream_fluxes.DH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2367,10 +2367,10 @@ class Calc_DH_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             if i:
-                d_qz = flu.qg[i-1]
+                d_qz = flu.qg[i - 1]
             else:
                 d_qz = flu.qz
-            flu.dh[i] = (d_qz-flu.qg[i])/(1000.*con.laen/con.gts*aid.wbg[i])
+            flu.dh[i] = (d_qz - flu.qg[i]) / (1000.0 * con.laen / con.gts * aid.wbg[i])
 
 
 class Update_H_V1(modeltools.Method):
@@ -2392,18 +2392,12 @@ class Update_H_V1(modeltools.Method):
         >>> states.h
         h(0.88, 1.1, 1.21, 1.3, 1.12)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.Sek,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.DH,
-    )
-    UPDATEDSEQUENCES = (
-        lstream_states.H,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.Sek,)
+    REQUIREDSEQUENCES = (lstream_fluxes.DH,)
+    UPDATEDSEQUENCES = (lstream_states.H,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2412,7 +2406,7 @@ class Update_H_V1(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         for i in range(con.gts):
-            new.h[i] = old.h[i] + der.sek*flu.dh[i]
+            new.h[i] = old.h[i] + der.sek * flu.dh[i]
 
 
 class Update_VG_V1(modeltools.Method):
@@ -2434,19 +2428,15 @@ class Update_VG_V1(modeltools.Method):
         >>> states.vg
         vg(0.9928, 1.2036, 1.2928, 1.2036, 0.9928)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.Sek,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    DERIVEDPARAMETERS = (lstream_derived.Sek,)
     REQUIREDSEQUENCES = (
         lstream_fluxes.QZA,
         lstream_fluxes.QG,
     )
-    UPDATEDSEQUENCES = (
-        lstream_states.VG,
-    )
+    UPDATEDSEQUENCES = (lstream_states.VG,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2456,9 +2446,9 @@ class Update_VG_V1(modeltools.Method):
         new = model.sequences.states.fastaccess_new
         for i in range(con.gts):
             if i:
-                new.vg[i] = old.vg[i] + der.sek*(flu.qg[i-1]-flu.qg[i])/1e6
+                new.vg[i] = old.vg[i] + der.sek * (flu.qg[i - 1] - flu.qg[i]) / 1e6
             else:
-                new.vg[i] = old.vg[i] + der.sek*(flu.qza-flu.qg[i])/1e6
+                new.vg[i] = old.vg[i] + der.sek * (flu.qza - flu.qg[i]) / 1e6
 
 
 class Calc_QA_V1(modeltools.Method):
@@ -2474,30 +2464,24 @@ class Calc_QA_V1(modeltools.Method):
         >>> fluxes.qa
         qa(4.0)
     """
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QG,
-    )
-    RESULTSEQUENCES = (
-        lstream_fluxes.QA,
-    )
+
+    CONTROLPARAMETERS = (lstream_control.GTS,)
+    REQUIREDSEQUENCES = (lstream_fluxes.QG,)
+    RESULTSEQUENCES = (lstream_fluxes.QA,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qa = flu.qg[con.gts-1]
+        flu.qa = flu.qg[con.gts - 1]
 
 
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node."""
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QA,
-    )
-    RESULTSEQUENCES = (
-        lstream_outlets.Q,
-    )
+
+    REQUIREDSEQUENCES = (lstream_fluxes.QA,)
+    RESULTSEQUENCES = (lstream_outlets.Q,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2531,8 +2515,8 @@ class Return_QF_V1(modeltools.Method):
         |lstream_v001|:
 
         >>> from hydpy.models.lstream import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
 
         >>> gts(1)
         >>> laen(100.0)
@@ -2615,6 +2599,7 @@ class Return_QF_V1(modeltools.Method):
         Possibly missing (RESULTSEQUENCES):
             Calc_QG_V1: QG
     """
+
     SUBMETHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -2676,6 +2661,7 @@ class Return_QF_V1(modeltools.Method):
         lstream_aides.QRVR,
         lstream_aides.AG,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model, h: float) -> float:
         flu = model.sequences.fluxes.fastaccess
@@ -2696,7 +2682,7 @@ class Return_QF_V1(modeltools.Method):
         model.calc_qlvr_qrvr_v1()
         model.calc_ag_v1()
         model.calc_qg_v1()
-        d_error = flu.qg[0]-d_qg
+        d_error = flu.qg[0] - d_qg
         flu.qg[0] = d_qg
         return d_error
 
@@ -2720,7 +2706,7 @@ class Return_H_V1(modeltools.Method):
         documentation on method |Return_QF_V1|:
 
         >>> from hydpy.models.lstream import *
-        >>> simulationstep('30m')
+        >>> simulationstep("30m")
         >>> parameterstep()
 
         >>> gts(1)
@@ -2836,9 +2822,8 @@ class Return_H_V1(modeltools.Method):
         100000.0, 37.330632, 0.0
         1000000.0, 81.363979, 0.0
     """
-    SUBMETHODS = (
-        Return_QF_V1,
-    )
+
+    SUBMETHODS = (Return_QF_V1,)
     CONTROLPARAMETERS = (
         lstream_control.GTS,
         lstream_control.HM,
@@ -2884,22 +2869,22 @@ class Return_H_V1(modeltools.Method):
         lstream_aides.QRVR,
         lstream_aides.AG,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> float:
         con = model.parameters.control.fastaccess
-        return model.pegasush.find_x(
-            0., 2.*con.hm, -10., 1000., 0., 1e-10, 1000)
+        return model.pegasush.find_x(0.0, 2.0 * con.hm, -10.0, 1000.0, 0.0, 1e-10, 1000)
 
 
 class PegasusH(roottools.Pegasus):
     """Pegasus iterator for finding the correct water stage."""
-    METHODS = (
-        Return_QF_V1,
-    )
+
+    METHODS = (Return_QF_V1,)
 
 
 class Model(modeltools.ELSModel):
     """The HydPy-L-Stream model."""
+
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,
         lstream_solver.RelErrorMax,
@@ -2907,9 +2892,7 @@ class Model(modeltools.ELSModel):
         lstream_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (
-        Pick_Q_V1,
-    )
+    INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         Return_QF_V1,
@@ -2951,20 +2934,16 @@ class Model(modeltools.ELSModel):
         Update_H_V1,
         Update_VG_V1,
     )
-    OUTLET_METHODS = (
-        Pass_Q_V1,
-    )
+    OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELS = (
-        PegasusH,
-    )
+    SUBMODELS = (PegasusH,)
 
 
 class ProfileMixin:
     """Mixin class for L-Stream models performing discharge calculations
     based on a triple trapezoid profile."""
 
-    def plot_profile(self, labelformat: str = '%.1f'):
+    def plot_profile(self, labelformat: str = "%.1f"):
         """Plot the triple trapezoid profile and insert the discharge values
         at some characteristic stages.
 
@@ -2972,8 +2951,8 @@ class ProfileMixin:
         |lstream_v001|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
         >>> laen(100.0)
         >>> gef(0.00025)
         >>> bm(15.0)
@@ -3003,17 +2982,16 @@ class ProfileMixin:
 
         >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + '/lstream_plot_profile.png')
+        >>> pyplot.savefig(figs.__path__[0] + "/lstream_plot_profile.png")
         >>> pyplot.close()
 
         .. image:: lstream_plot_profile.png
         """
 
         class _XYs:
-
             def __init__(self):
-                self._xs = [0.]
-                self._ys = [0.]
+                self._xs = [0.0]
+                self._ys = [0.0]
 
             def __iadd__(self, dxdy):
                 self._xs.append(self._xs[-1] + float(dxdy[0]))
@@ -3027,39 +3005,42 @@ class ProfileMixin:
 
             def __call__(self):
                 return self._xs, self._ys
+
         con = self.parameters.control
         der = self.parameters.derived
-        hmax = 1.3*(con.hm+max(der.hv))
+        hmax = 1.3 * (con.hm + max(der.hv))
 
         xys = _XYs()
-        xys += con.bm/2., 0.
-        xys -= con.bm/2., 0.
-        xys += con.hm*con.bnm, con.hm
-        xys -= con.hm*con.bnm, con.hm
-        xys += con.bv[1], 0.
-        xys -= con.bv[0], 0.
-        xys += der.hv[1]*con.bnv[1], der.hv[1]
-        xys -= der.hv[0]*con.bnv[0], der.hv[0]
-        dh = (hmax-der.hv[1]-con.hm)
-        xys += dh*con.bnvr[1], dh
-        dh = (hmax-der.hv[0]-con.hm)
-        xys -= dh*con.bnvr[0], dh
+        xys += con.bm / 2.0, 0.0
+        xys -= con.bm / 2.0, 0.0
+        xys += con.hm * con.bnm, con.hm
+        xys -= con.hm * con.bnm, con.hm
+        xys += con.bv[1], 0.0
+        xys -= con.bv[0], 0.0
+        xys += der.hv[1] * con.bnv[1], der.hv[1]
+        xys -= der.hv[0] * con.bnv[0], der.hv[0]
+        dh = hmax - der.hv[1] - con.hm
+        xys += dh * con.bnvr[1], dh
+        dh = hmax - der.hv[0] - con.hm
+        xys -= dh * con.bnvr[0], dh
         xs, ys = xys()
-        pyplot.plot(xs, ys, color='r')
+        pyplot.plot(xs, ys, color="r")
 
         x0, x1 = min(xs), max(xs)
         y0, y1 = min(ys), max(ys)
-        dy = (y1-y0)/80.
-        hs = [0.,
-              con.hm/2.,
-              con.hm,
-              con.hm+der.hv[0]/2.,
-              con.hm+der.hv[0],
-              con.hm+der.hv[1]/2.,
-              con.hm+der.hv[1],
-              (con.hm+der.hv[0]+hmax)/2.,
-              (con.hm+der.hv[1]+hmax)/2.,
-              hmax]
+        dy = (y1 - y0) / 80.0
+        hs = [
+            0.0,
+            con.hm / 2.0,
+            con.hm,
+            con.hm + der.hv[0] / 2.0,
+            con.hm + der.hv[0],
+            con.hm + der.hv[1] / 2.0,
+            con.hm + der.hv[1],
+            (con.hm + der.hv[0] + hmax) / 2.0,
+            (con.hm + der.hv[1] + hmax) / 2.0,
+            hmax,
+        ]
         temp = []
         for h in hs:
             if h not in temp:
@@ -3067,22 +3048,22 @@ class ProfileMixin:
         hs = sorted(temp)
         qs = self.calculate_qgvector(hs)
         for idx, (h, q) in enumerate(zip(hs, qs)):
-            pyplot.plot([x0, x1], [h, h], 'b:')
-            text = f'{labelformat % q} m³/s'
+            pyplot.plot([x0, x1], [h, h], "b:")
+            text = f"{labelformat % q} m³/s"
             if idx % 2:
-                pyplot.text(x0, h+dy, text, horizontalalignment='left')
+                pyplot.text(x0, h + dy, text, horizontalalignment="left")
             else:
-                pyplot.text(x1, h+dy, text, horizontalalignment='right')
+                pyplot.text(x1, h + dy, text, horizontalalignment="right")
 
-        pyplot.title(f'Profile of model {objecttools.elementphrase(self)}')
-        pyplot.ylabel('height above the channel bottom [m]')
+        pyplot.title(f"Profile of model {objecttools.elementphrase(self)}")
+        pyplot.ylabel("height above the channel bottom [m]")
 
     def prepare_hvector(
-            self,
-            nmb: int = 1000,
-            exp: float = 2.0,
-            hmin: typing.Optional[float] = None,
-            hmax: typing.Optional[float] = None
+        self,
+        nmb: int = 1000,
+        exp: float = 2.0,
+        hmin: typing.Optional[float] = None,
+        hmax: typing.Optional[float] = None,
     ) -> typing.Tuple[float, ...]:
         """Prepare a vector of the stage values.
 
@@ -3109,17 +3090,18 @@ class ProfileMixin:
         10.651852, 14.096296, 18.0
         """
         if hmax is None:
-            hmin = -0.1*self.parameters.control.hm
+            hmin = -0.1 * self.parameters.control.hm
         if hmax is None:
-            hmax = 3.0*self.parameters.control.hm
-        hs = numpy.linspace(0., 1., nmb) ** exp
+            hmax = 3.0 * self.parameters.control.hm
+        hs = numpy.linspace(0.0, 1.0, nmb) ** exp
         hs /= hs[-1]
-        hs *= hmax-hmin
+        hs *= hmax - hmin
         hs += hmin
         return tuple(hs)
 
-    def calculate_qgvector(self, hvector: typing.Iterable[float]) \
-            -> typing.Tuple[float, ...]:
+    def calculate_qgvector(
+        self, hvector: typing.Iterable[float]
+    ) -> typing.Tuple[float, ...]:
         """Calculate the discharge values (in m³/s) corresponding to the
         given stage vector.
 
@@ -3129,8 +3111,8 @@ class ProfileMixin:
         |lstream_model.ProfileMixin.calculate_vgvector|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
         >>> laen(100.0)
         >>> gef(0.00025)
         >>> bm(15.0)
@@ -3167,8 +3149,9 @@ class ProfileMixin:
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_agvector(self, hvector: typing.Iterable[float]) \
-            -> typing.Tuple[float, ...]:
+    def calculate_agvector(
+        self, hvector: typing.Iterable[float]
+    ) -> typing.Tuple[float, ...]:
         """Calculate the wetted cross-section areas (in m²) corresponding
         to the given vector of stage values.
 
@@ -3183,13 +3166,15 @@ class ProfileMixin:
                 self.sequences.states.h = h
                 self.calculate_single_terms()
                 ag.append(
-                    aid.am[0]+aid.alv[0]+aid.arv[0]+aid.alvr[0]+aid.arvr[0])
+                    aid.am[0] + aid.alv[0] + aid.arv[0] + aid.alvr[0] + aid.arvr[0]
+                )
             return tuple(ag)
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_vgvector(self, hvector: typing.Iterable[float]) \
-            -> typing.Tuple[float, ...]:
+    def calculate_vgvector(
+        self, hvector: typing.Iterable[float]
+    ) -> typing.Tuple[float, ...]:
         """Calculate the water volume stored within a channel subsection (in
         Mio m³) corresponding to the given vector of stage values.
 
@@ -3198,4 +3183,4 @@ class ProfileMixin:
         """
         con = self.parameters.control
         ags = numpy.array(self.calculate_agvector(hvector))
-        return tuple(con.laen/con.gts*1000.*ags/1e6)
+        return tuple(con.laen / con.gts * 1000.0 * ags / 1e6)

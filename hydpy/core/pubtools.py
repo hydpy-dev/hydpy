@@ -3,7 +3,9 @@
 # import...
 # ...from standard library
 import types
+from typing import NoReturn
 from typing import *
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
@@ -12,6 +14,7 @@ from hydpy.core import optiontools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+
 if TYPE_CHECKING:
     from hydpy.cythons.autogen import configutils
 
@@ -22,14 +25,13 @@ class _PubProperty(
         propertytools.OutputType,
     ]
 ):
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(self._fget)
 
-    def _fget(self, obj):
+    def _fget(self, obj: object) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
-            f'Attribute {self.name} of module `pub` '
-            f'is not defined at the moment.')
+            f"Attribute {self.name} of module `pub` is not defined at the moment.",
+        )
 
 
 class TimegridsProperty(
@@ -52,36 +54,42 @@ class TimegridsProperty(
     |Date|) and a step size (of type |str| or |Period|):
 
     >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = '2000-01-01', '2010-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2010-01-01", "1d"
 
-    The given date and period information applies both for the
-    |Timegrids.init| and the |Timegrids.sim| attribute:
+    The given date and period information applies for the |Timegrids.init|,
+    the |Timegrids.sim|, and the |Timegrids.eval_| attribute, as well:
 
     >>> pub.timegrids.init
-    Timegrid('2000-01-01 00:00:00',
-             '2010-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
     >>> pub.timegrids.sim
-    Timegrid('2000-01-01 00:00:00',
-             '2010-01-01 00:00:00',
-             '1d')
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
+    >>> pub.timegrids.eval_
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
 
     Alternatively, you can assign a ready |Timegrids| object directly:
 
-    >>> pub.timegrids = Timegrids(
-    ...     Timegrid('2000-01-01', '2010-01-01', '1d'),
-    ...     Timegrid('2000-01-01', '2001-01-01', '1d'))
+    >>> pub.timegrids = Timegrids(Timegrid("2000-01-01", "2010-01-01", "1d"),
+    ...                           Timegrid("2000-01-01", "2001-01-01", "1d"))
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2010-01-01 00:00:00',
-                       '1d'),
-              Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'))
+    Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                            "2010-01-01 00:00:00",
+                            "1d"),
+              sim=Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"),
+              eval_=Timegrid("2000-01-01 00:00:00",
+                             "2001-01-01 00:00:00",
+                             "1d"))
     """
 
     @staticmethod
-    def _fset(_, value):
+    def _fset(_, value) -> timetools.Timegrids:
         """Try to convert the given input value(s)."""
         try:
             return timetools.Timegrids(*value)
@@ -118,16 +126,16 @@ module `pub` is not defined at the moment.
     ...
     ValueError: While trying to define a new `Timegrids` object based on the \
 arguments `None`, the following error occurred: Initialising a `Timegrids` \
-object either requires one or two `Timegrid` objects or two dates objects \
+object either requires one, two, or three `Timegrid` objects or two dates objects \
 (of type `Date`, `datetime`, or `str`) and one period object (of type \
 `Period`, `timedelta`, or `str`), but objects of the types `None, None, and \
 None` are given.
 
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'))
+    Timegrids("2000-01-01 00:00:00",
+              "2001-01-01 00:00:00",
+              "1d")
 
     After deleting, the attribute is not accessible anymore:
 
@@ -140,7 +148,7 @@ module `pub` is not defined at the moment.
     """
 
     options: optiontools.Options
-    config: 'configutils.Config'
+    config: "configutils.Config"
 
     projectname = _PubProperty[
         str,
@@ -172,7 +180,10 @@ module `pub` is not defined at the moment.
         selectiontools.Selections,
     ]()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name: str, doc: Optional[str] = None) -> None:
+        super().__init__(
+            name=name,
+            doc=doc,
+        )
         self.options: optiontools.Options = optiontools.Options()
         self.scriptfunctions: Dict[str, Callable] = {}

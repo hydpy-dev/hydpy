@@ -3,437 +3,91 @@
 hydrological modelling."""
 # import...
 # ...from standard library
+import warnings
 from typing import *
-from typing_extensions import Literal
+from typing import TextIO
+from typing_extensions import Literal  # type: ignore[misc]
+from typing_extensions import Protocol  # type: ignore[misc]
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
-from hydpy.core import timetools
 from hydpy.auxs import validtools
-pandas: 'pandas' = exceptiontools.OptionalImport(
-    'pandas', ['pandas'], locals())
-optimize: 'optimize' = exceptiontools.OptionalImport(
-    'optimize', ['scipy.optimize'], locals())
-special: 'special' = exceptiontools.OptionalImport(
-    'special', ['scipy.special'], locals())
+from hydpy.core import seriestools
+from hydpy.core import timetools
+from hydpy.core.typingtools import *
+
 if TYPE_CHECKING:
     import pandas
     from scipy import optimize
     from scipy import special
+else:
+    pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
+    optimize = exceptiontools.OptionalImport("optimize", ["scipy.optimize"], locals())
+    special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
 
 
 class SimObs(NamedTuple):
     """A named tuple containing one array of simulated and one array of
     observed values."""
-    sim: numpy.ndarray
-    obs: numpy.ndarray
 
-
-@overload
-def aggregate_series(
-        sim: Sequence[float],
-        obs: Sequence[float],
-        stepsize: Literal['daily', 'd'],
-        aggregator: Callable,
-        basetime: str = ...,
-) -> SimObs:
-    """sim and obs as arguments, daily aggregation"""
-
-
-@overload
-def aggregate_series(
-        sim: Sequence[float],
-        obs: Sequence[float],
-        stepsize: Literal['monthly', 'm'],
-        aggregator: Callable,
-) -> SimObs:
-    """sim and obs as arguments, monthly aggregation"""
-
-
-@overload
-def aggregate_series(
-        node: devicetools.Node,
-        stepsize: Literal['daily', 'd'],
-        aggregator: Callable,
-        basetime: str = ...,
-) -> SimObs:
-    """node as an argument, daily aggregation"""
-
-
-@overload
-def aggregate_series(
-        node: devicetools.Node,
-        stepsize: Literal['monthly', 'm'],
-        aggregator: Callable,
-) -> SimObs:
-    """node as an argument, monthly aggregation"""
-
-
-@objecttools.excmessage_decorator(
-    'aggregate the given series')
-def aggregate_series(
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        stepsize: Literal['daily', 'd', 'monthly', 'm'] = 'monthly',
-        function: Union[str, Callable] = 'mean',
-        basetime: str = '00:00',
-) -> SimObs:
-    """Aggregate the time series on a monthly or daily basis.
-
-    Often, we need some kind of aggregation before analysing deviations
-    between simulation results and observations.  Function |aggregate_series|
-    performs such aggregation on a monthly or daily basis.  You are
-    free to specify arbitrary aggregation functions.
-
-    We first show the default behaviour of function |aggregate_series|,
-    which is to calculate monthly averages.  Therefore, we first say the
-    hydrological summer half-year 2001 to be our simulation period and
-    define a daily simulation step size:
-
-    >>> from hydpy import aggregate_series, pub, Node
-    >>> pub.timegrids = '01.11.2000', '01.05.2001', '1d'
-
-    Next, we prepare a |Node| object and assign some constantly increasing
-    and decreasing values to its `simulation` and the `observation` series,
-    respectively:
-
-    >>> import numpy
-    >>> node = Node('test')
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(1, 181+1)
-    >>> node.sequences.obs.series = numpy.arange(181, 0, -1)
-
-    |aggregate_series| returns the data within index-sorted |pandas.Series|
-    objects (note that the index addresses the left boundary of each time step:
-
-    >>> sim, obs = aggregate_series(node=node)
-    >>> sim
-    2000-11-01     15.5
-    2000-12-01     46.0
-    2001-01-01     77.0
-    2001-02-01    106.5
-    2001-03-01    136.0
-    2001-04-01    166.5
-    Freq: MS, Name: sim, dtype: float64
-    >>> obs
-    2000-11-01    166.5
-    2000-12-01    136.0
-    2001-01-01    105.0
-    2001-02-01     75.5
-    2001-03-01     46.0
-    2001-04-01     15.5
-    Freq: MS, Name: obs, dtype: float64
-
-    You can pass another aggregation function:
-
-    >>> aggregate_series(node=node, function=numpy.sum).sim
-    2000-11-01     465.0
-    2000-12-01    1426.0
-    2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
-    2001-04-01    4995.0
-    Freq: MS, Name: sim, dtype: float64
-
-    Functions |aggregate_series| raises errors like the following for
-    unsuitable functions:
-
-    >>> def wrong():
-    ...     return None
-    >>> aggregate_series(node=node, function=wrong)
-    Traceback (most recent call last):
-    ...
-    TypeError: While trying to aggregate the given series, the following \
-error occurred: While trying to perform the aggregation based on method \
-`wrong`, the following error occurred: wrong() takes 0 positional arguments \
-but 1 was given
-
-    When passing a string, |aggregate_series| queries it from |numpy|:
-
-    >>> aggregate_series(node=node, function='sum').sim
-    2000-11-01     465.0
-    2000-12-01    1426.0
-    2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
-    2001-04-01    4995.0
-    Freq: MS, Name: sim, dtype: float64
-
-    |aggregate_series| raises the following error when the requested function
-    does not exist:
-
-    >>> aggregate_series(node=node, function='Sum')
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to aggregate the given series, the following \
-error occurred: Module `numpy` does not provide a function named `Sum`.
-
-    To prevent from conclusions, |aggregate_series| generally ignores all
-    data of incomplete intervals:
-
-    >>> pub.timegrids = '30.11.2000', '2.04.2001', '1d'
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(30, 152+1)
-    >>> node.sequences.obs.series = numpy.arange(152, 29, -1)
-    >>> aggregate_series(node=node, function='sum').sim
-    2000-12-01    1426.0
-    2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
-    Freq: MS, Name: sim, dtype: float64
-
-    The following example shows that even with only one missing value at
-    the respective ends of the simulation period, |aggregate_series| does
-    not return any result for the first (November 2000) and the last
-    aggregation interval (April 2001):
-
-    >>> pub.timegrids = '02.11.2000', '30.04.2001', '1d'
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(2, 180+1)
-    >>> node.sequences.obs.series = numpy.arange(180, 1, -1)
-    >>> aggregate_series(node=node, function='sum').sim
-    2000-12-01    1426.0
-    2001-01-01    2387.0
-    2001-02-01    2982.0
-    2001-03-01    4216.0
-    Freq: MS, Name: sim, dtype: float64
-
-    Now we prepare a time-grid with an hourly simulation step size, to
-    show some examples on daily aggregation:
-
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1h'
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(1, 1+4*24)
-    >>> node.sequences.obs.series = numpy.arange(4*24, 0, -1)
-
-    By default, function |aggregate_series| aggregates daily from 0 o'clock
-    to 0 o'clock, which here results in a loss of the first two and the last
-    22 values of the entire period:
-
-    >>> sim, obs = aggregate_series(node=node, stepsize='daily')
-    >>> sim
-    2000-01-02    14.5
-    2000-01-03    38.5
-    2000-01-04    62.5
-    Freq: 86400S, Name: sim, dtype: float64
-    >>> obs
-    2000-01-02    82.5
-    2000-01-03    58.5
-    2000-01-04    34.5
-    Freq: 86400S, Name: obs, dtype: float64
-
-    If you want the aggregation to start at a different time of the day,
-    use the `basetime` argument.  In our example, starting at 22 o'clock
-    fits the defined initialisation time grid and ensures the usage of
-    all available data:
-
-    >>> aggregate_series(node=node, stepsize='daily', basetime='22:00').sim
-    2000-01-01 22:00:00    12.5
-    2000-01-02 22:00:00    36.5
-    2000-01-03 22:00:00    60.5
-    2000-01-04 22:00:00    84.5
-    Freq: 86400S, Name: sim, dtype: float64
-
-    So far, the `basetime` argument works for daily aggregation only:
-
-    >>> aggregate_series(node=node, stepsize='monthly', basetime='22:00')
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to aggregate the given series, the following \
-error occurred: Use the `basetime` argument in combination with a `daily` \
-aggregation step size only.
-
-    Note that you are also free to either pass the `sim` and `obs` series
-    directly instead of a `node` (see function |prepare_arrays| for further
-    information):
-
-    >>> xs = sim=node.sequences.sim.series
-    >>> ys = obs=node.sequences.obs.series
-    >>> aggregate_series(sim=xs, obs=ys, stepsize='daily').sim
-    2000-01-02    14.5
-    2000-01-03    38.5
-    2000-01-04    62.5
-    Freq: 86400S, Name: sim, dtype: float64
-
-    |aggregate_series| does not support aggregation for simulation step
-    sizes larger one day:
-
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1d'
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(1, 1+4)
-    >>> node.sequences.obs.series = numpy.arange(4, 0, -1)
-    >>> aggregate_series(node=node, stepsize='daily').sim
-    2000-01-01    1.0
-    2000-01-02    2.0
-    2000-01-03    3.0
-    2000-01-04    4.0
-    Freq: 86400S, Name: sim, dtype: float64
-
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '2d'
-    >>> node.prepare_allseries()
-    >>> node.sequences.sim.series = numpy.arange(1, 1+2)
-    >>> node.sequences.obs.series = numpy.arange(2, 0, -1)
-    >>> aggregate_series(node=node, stepsize='daily')
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to aggregate the given series, the following \
-error occurred: Data aggregation is not supported for simulation step sizes \
-greater one day.
-
-    We are looking forward supporting other useful aggregation step sizes later:
-
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to aggregate the given series, the following \
-error occurred: Argument `stepsize` received value `yearly`, but only the \
-following ones are supported: `monthly` (default) and `daily`.
-
-    >>> pub.timegrids = '01.01.2000 22:00', '05.01.2000 22:00', '1d'
-    >>> aggregate_series(node=node, stepsize='yearly')
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to aggregate the given series, the following \
-error occurred: Argument `stepsize` received value `yearly`, but only the \
-following ones are supported: `monthly` (default) and `daily`.
-    """
-    if isinstance(function, str):
-        try:
-            function = getattr(numpy, function)
-        except AttributeError:
-            raise ValueError(
-                f'Module `numpy` does not provide a function named '
-                f'`{function}`.'
-            ) from None
-    tg = hydpy.pub.timegrids.init
-    if tg.stepsize > '1d':
-        raise ValueError(
-            'Data aggregation is not supported for simulation '
-            'step sizes greater one day.'
-        )
-    if stepsize == 'daily':
-        rule = '86400s'
-        offset = (
-            timetools.Date(f'2000-01-01 {basetime}') -
-            timetools.Date('2000-01-01')
-        ).seconds
-        firstdate_expanded = tg.firstdate-'1d'
-        lastdate_expanded = tg.lastdate+'1d'
-    elif basetime != '00:00':
-        raise ValueError(
-            'Use the `basetime` argument in combination with '
-            'a `daily` aggregation step size only.'
-        )
-    elif stepsize == 'monthly':
-        rule = 'MS'
-        offset = 0
-        firstdate_expanded = tg.firstdate-'31d'
-        lastdate_expanded = tg.lastdate+'31d'
-    else:
-        raise ValueError(
-            f'Argument `stepsize` received value `{stepsize}`, but only the '
-            f'following ones are supported: `monthly` (default) and `daily`.'
-        )
-    sim, obs = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=False,
-    )
-    dataframe_orig = pandas.DataFrame()
-    dataframe_orig['sim'] = sim
-    dataframe_orig['obs'] = obs
-    dataframe_orig.index = pandas.date_range(
-        start=tg.firstdate.datetime,
-        end=(tg.lastdate-tg.stepsize).datetime,
-        freq=tg.stepsize.timedelta,
-    )
-    dataframe_expanded = dataframe_orig.reindex(
-        pandas.date_range(
-            start=firstdate_expanded.datetime,
-            end=lastdate_expanded.datetime,
-            freq=tg.stepsize.timedelta,
-        ),
-        fill_value=numpy.nan,
-    )
-    resampler = dataframe_expanded.resample(
-        rule=rule,
-        offset=f'{offset}s',
-    )
-    try:
-        df_resampled_expanded = resampler.apply(lambda x: function(x.values))
-    except BaseException:
-        objecttools.augment_excmessage(
-            f'While trying to perform the aggregation based '
-            f'on method `{function.__name__}`'
-        )
-    # noinspection PyUnboundLocalVariable
-    idx0 = df_resampled_expanded.first_valid_index()
-    idx1 = df_resampled_expanded.last_valid_index()
-    df_resampled_stripped = df_resampled_expanded.loc[idx0:idx1]
-    return SimObs(
-        sim=df_resampled_stripped['sim'],
-        obs=df_resampled_stripped['obs'],
-    )
+    sim: Vector[float]
+    obs: Vector[float]
 
 
 @overload
 def filter_series(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        date_ranges: Optional[
-            Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-        ],
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
 
 
 @overload
 def filter_series(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        months: Optional[Iterable[int]],
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    months: Iterable[int],
 ) -> SimObs:
     """sim and obs and month as arguments"""
 
 
 @overload
 def filter_series(
-        *,
-        node: devicetools.Node,
-        date_ranges: Optional[
-            Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-        ],
+    *,
+    node: devicetools.Node,
+    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """node and date_ranges as arguments"""
 
 
 @overload
 def filter_series(
-        *,
-        node: devicetools.Node,
-        months: Optional[Iterable[int]],
+    *,
+    node: devicetools.Node,
+    months: Iterable[int],
 ) -> SimObs:
     """node and month as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'filter the given series')
+@objecttools.excmessage_decorator("filter the given series")
 def filter_series(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        date_ranges: Optional[
-            Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-        ] = None,
-        months: Optional[Iterable[int]] = None,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    date_ranges: Optional[
+        Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
+    ] = None,
+    months: Optional[Iterable[int]] = None,
 ) -> SimObs:
     """Filter time series for the given date ranges or months.
 
@@ -449,14 +103,14 @@ def filter_series(
     time grid spanning two hydrological years:
 
     >>> from hydpy import filter_series, pub, Node
-    >>> pub.timegrids = '2001-11-01', '2003-11-01', '1d'
+    >>> pub.timegrids = "2001-11-01", "2003-11-01", "1d"
 
     Next, we prepare a |Node| object and assign some constantly increasing
     and decreasing values to its `simulation` and the `observation` series,
     respectively:
 
     >>> import numpy
-    >>> node = Node('test')
+    >>> node = Node("test")
     >>> node.prepare_allseries()
     >>> node.sequences.sim.series = numpy.arange(1, 2*365+1)
     >>> node.sequences.obs.series = numpy.arange(2*365, 0, -1)
@@ -466,9 +120,9 @@ def filter_series(
     of a sub-period. Here, we choose all values that belong to 31 October
     or 1 November (note that unsorted data ranges are acceptable):
 
-    >>> date_ranges = [('2001-11-01', '2001-11-02'),
-    ...                ('2002-10-31', '2002-11-02'),
-    ...                ('2003-10-31', '2003-11-01')]
+    >>> date_ranges = [("2001-11-01", "2001-11-02"),
+    ...                ("2002-10-31", "2002-11-02"),
+    ...                ("2003-10-31", "2003-11-01")]
     >>> results = filter_series(node=node, date_ranges=date_ranges)
 
     |filter_series| returns the data within index-sorted |pandas.Series|
@@ -491,7 +145,7 @@ def filter_series(
     To help avoiding possible hard-to-find errors, |filter_series| performs
     the following checks:
 
-    >>> date_ranges = [('2001-10-31', '2003-11-01')]
+    >>> date_ranges = [("2001-10-31", "2003-11-01")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -499,7 +153,7 @@ def filter_series(
 occurred: The given date (2001-10-31 00:00:00) is before the first date of \
 the initialisation period (2001-11-01 00:00:00).
 
-    >>> date_ranges = [('2001-11-01', '2003-11-02')]
+    >>> date_ranges = [("2001-11-01", "2003-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -507,7 +161,7 @@ the initialisation period (2001-11-01 00:00:00).
 occurred: The given date (2003-11-02 00:00:00) is behind the last date of \
 the initialisation period (2003-11-01 00:00:00).
 
-    >>> date_ranges = [('2001-11-02', '2001-11-02')]
+    >>> date_ranges = [("2001-11-02", "2001-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
@@ -517,9 +171,9 @@ given last date `2001-11-02 00:00:00`.
 
     Note that function |filter_series| does not remove any duplicates:
 
-    >>> date_ranges = [('2001-11-01', '2001-11-05'),
-    ...                ('2001-11-01', '2001-11-02'),
-    ...                ('2001-11-04', '2001-11-06')]
+    >>> date_ranges = [("2001-11-01", "2001-11-05"),
+    ...                ("2001-11-01", "2001-11-02"),
+    ...                ("2001-11-04", "2001-11-06")]
     >>> sim = filter_series(node=node, date_ranges=date_ranges).sim
     >>> sim   # doctest: +ELLIPSIS
     2001-11-01    1.0
@@ -602,74 +256,78 @@ occurred: You need to define either the `date_ranges` or `months` argument, \
 but both of them are given.
     """
     dataframe = pandas.DataFrame()
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=False,
+        subperiod=False,
     )
-    dataframe['sim'] = sim
-    dataframe['obs'] = obs
+    del sim, obs
+    dataframe["sim"] = sim_
+    dataframe["obs"] = obs_
     tg = hydpy.pub.timegrids.init
     dataframe.index = pandas.date_range(
         start=tg.firstdate.datetime,
-        end=tg.lastdate.datetime-tg.stepsize.timedelta,
+        end=tg.lastdate.datetime - tg.stepsize.timedelta,
         freq=tg.stepsize.timedelta,
     )
     dataframe_selected = pandas.DataFrame()
-    if (date_ranges is None) and (months is None):
-        raise ValueError(
-            'You need to define either the `date_ranges` or `months` '
-            'argument, but none of them is given.'
-        )
-    if (date_ranges is not None) and (months is not None):
-        raise ValueError(
-            'You need to define either the `date_ranges` or `months` '
-            'argument, but both of them are given.'
-        )
-    if date_ranges is not None:
+    if (date_ranges is not None) and (months is None):
         for date_range in date_ranges:
             date0 = tg[tg[date_range[0]]]
             date1 = tg[tg[date_range[1]]]
             if date0 < tg.firstdate:
                 raise ValueError(
-                    f'The given date ({date0}) is before the first date '
-                    f'of the initialisation period ({tg.firstdate}).'
+                    f"The given date ({date0}) is before the first date "
+                    f"of the initialisation period ({tg.firstdate})."
                 )
             if date1 > tg.lastdate:
                 raise ValueError(
-                    f'The given date ({date1}) is behind the last date '
-                    f'of the initialisation period ({tg.lastdate}).'
+                    f"The given date ({date1}) is behind the last date "
+                    f"of the initialisation period ({tg.lastdate})."
                 )
             if date0 >= date1:
                 raise ValueError(
-                    f'The given first date `{date0}` is not before than '
-                    f'the given last date `{date1}`.'
+                    f"The given first date `{date0}` is not before than "
+                    f"the given last date `{date1}`."
                 )
-            idx0 = date0.to_string(style='iso1')
-            idx1 = (date1-tg.stepsize).to_string(style='iso1')
-            selected_dates = dataframe.loc[idx0:idx1]
+            idx0 = date0.to_string(style="iso1")
+            idx1 = (date1 - tg.stepsize).to_string(style="iso1")
+            selected_dates = dataframe.loc[idx0:idx1]  # type: ignore[misc]
             dataframe_selected = pandas.concat(
                 [selected_dates, dataframe_selected],
             )
-    else:
+    elif (date_ranges is None) and (months is not None):
         for month in months:
             selected_dates = dataframe.loc[dataframe.index.month == int(month)]
             dataframe_selected = pandas.concat(
                 [selected_dates, dataframe_selected],
             )
+    elif (date_ranges is None) and (months is None):
+        raise ValueError(
+            "You need to define either the `date_ranges` or `months` "
+            "argument, but none of them is given."
+        )
+    else:
+        raise ValueError(
+            "You need to define either the `date_ranges` or `months` "
+            "argument, but both of them are given."
+        )
     dataframe_selected = dataframe_selected.sort_index()
     return SimObs(
-        sim=dataframe_selected['sim'],
-        obs=dataframe_selected['obs'],
+        sim=dataframe_selected["sim"],
+        obs=dataframe_selected["obs"],
     )
 
 
 def prepare_arrays(
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> SimObs:
     """Prepare and return two |numpy| arrays based on the given arguments.
 
@@ -682,8 +340,8 @@ def prepare_arrays(
     period and prepare a |Node| object:
 
     >>> from hydpy import pub, Node, round_, nan
-    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
-    >>> node = Node('test')
+    >>> pub.timegrids = "01.01.2000", "07.01.2000", "1d"
+    >>> node = Node("test")
 
     Next, we assign some values to the `simulation` and the `observation`
     sequences of the node:
@@ -724,6 +382,43 @@ def prepare_arrays(
     >>> round_(arrays.obs)
     4.0, 6.0
 
+    If you are interested in analysing a sub-period, adapt the global
+    |Timegrids.eval_| |Timegrid| beforehand.  When passing a |Node|
+    object, function |prepare_arrays| then returns the data of the
+    current evaluation sub-period only:
+
+    >>> pub.timegrids.eval_.dates = "02.01.2000", "06.01.2000"
+    >>> arrays = prepare_arrays(node=node)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
+
+    Suppose one instead passes the simulation and observation time-series
+    directly (which possibly fit the evaluation period already).  In that
+    case, function |prepare_arrays| ignores the current |Timegrids.eval_|
+    |Timegrid| by default:
+
+    >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
+
+    Use the `subperiod` argument to deviate from the default behaviour:
+
+    >>> arrays = prepare_arrays(node=node, subperiod=False)
+    >>> round_(arrays.sim)
+    1.0, nan, nan, nan, 2.0, 3.0
+    >>> round_(arrays.obs)
+    4.0, 5.0, nan, nan, nan, 6.0
+
+    >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs, subperiod=True)
+    >>> round_(arrays.sim)
+    nan, nan, nan, 2.0
+    >>> round_(arrays.obs)
+    5.0, nan, nan, nan
+
     The final examples show the error messages returned in case of
     invalid combinations of input arguments:
 
@@ -757,70 +452,108 @@ no value is passed to argument `obs`.
     ValueError: A value is passed to argument `obs` but \
 no value is passed to argument `sim`.
     """
-    if node:
+    if node is not None:
         if sim is not None:
             raise ValueError(
-                'Values are passed to both arguments `sim` and `node`, '
-                'which is not allowed.')
+                "Values are passed to both arguments `sim` and `node`, "
+                "which is not allowed."
+            )
         if obs is not None:
             raise ValueError(
-                'Values are passed to both arguments `obs` and `node`, '
-                'which is not allowed.')
+                "Values are passed to both arguments `obs` and `node`, "
+                "which is not allowed."
+            )
         sim = node.sequences.sim.series
         obs = node.sequences.obs.series
     elif (sim is not None) and (obs is None):
         raise ValueError(
-            'A value is passed to argument `sim` '
-            'but no value is passed to argument `obs`.')
+            "A value is passed to argument `sim` "
+            "but no value is passed to argument `obs`."
+        )
     elif (obs is not None) and (sim is None):
         raise ValueError(
-            'A value is passed to argument `obs` '
-            'but no value is passed to argument `sim`.')
+            "A value is passed to argument `obs` "
+            "but no value is passed to argument `sim`."
+        )
     elif (sim is None) and (obs is None):
         raise ValueError(
-            'Neither a `Node` object is passed to argument `node` nor '
-            'are arrays passed to arguments `sim` and `obs`.')
-    sim = numpy.asarray(sim)
-    obs = numpy.asarray(obs)
+            "Neither a `Node` object is passed to argument `node` nor "
+            "are arrays passed to arguments `sim` and `obs`."
+        )
+    sim_ = numpy.asarray(sim)
+    obs_ = numpy.asarray(obs)
+    if subperiod or ((subperiod is None) and (node is not None)):
+        idx0, idx1 = hydpy.pub.timegrids.evalindices
+        sim_ = sim_[idx0:idx1]
+        obs_ = obs_[idx0:idx1]
     if skip_nan:
-        idxs = ~numpy.isnan(sim) * ~numpy.isnan(obs)
-        sim = sim[idxs]
-        obs = obs[idxs]
+        idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
+        sim_ = sim_[idxs]
+        obs_ = obs_[idxs]
     return SimObs(
-        sim=sim,
-        obs=obs,
+        sim=sim_,
+        obs=obs_,
     )
+
+
+class Criterion(Protocol):
+    """Callback protocol for efficiency criteria like |nse|."""
+
+    __name__: str
+
+    @overload
+    def __call__(
+        self,
+        *,
+        sim: VectorInput[float],
+        obs: VectorInput[float],
+        skip_nan: bool = False,
+        subperiod: bool = False,
+    ) -> float:
+        ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        node: devicetools.Node,
+        skip_nan: bool = False,
+        subperiod: bool = True,
+    ) -> float:
+        ...
 
 
 @overload
 def rmse(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
-) -> numpy.ndarray:
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> float:
     """node as argument"""
 
 
 @overload
 def rmse(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the root-mean-square error')
+@objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
-    """ Calculate the root-mean-square error.
+    """Calculate the root-mean-square error.
 
     >>> from hydpy import rmse, round_
     >>> rmse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
@@ -831,44 +564,48 @@ def rmse(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |rmse|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return numpy.sqrt(numpy.mean((sim-obs)**2))
+    del sim, obs
+    return cast(float, numpy.sqrt(numpy.mean((sim_ - obs_) ** 2)))
 
 
 @overload
 def nse(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
-) -> numpy.ndarray:
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> float:
     """node as argument"""
 
 
 @overload
 def nse(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the Nash-Sutcliffe efficiency')
+@objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
-    """ Calculate the efficiency criteria after Nash & Sutcliffe.
+    """Calculate the efficiency criteria after Nash & Sutcliffe.
 
     If the simulated values predict the observed values as well as the
     average observed value (regarding the mean square error), the NSE
@@ -896,42 +633,49 @@ def nse(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |nse|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return 1.-numpy.sum((sim-obs)**2)/numpy.sum((obs-numpy.mean(obs))**2)
+    del sim, obs
+    return cast(
+        float,
+        1.0 - numpy.sum((sim_ - obs_) ** 2) / numpy.sum((obs_ - numpy.mean(obs_)) ** 2),
+    )
 
 
 @overload
 def nse_log(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def nse_log(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the log-Nash-Sutcliffe efficiency')
+@objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe for
     logarithmic values.
@@ -959,43 +703,51 @@ def nse_log(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |nse_log|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return (1.-numpy.sum((numpy.log(sim)-numpy.log(obs))**2) /
-            numpy.sum((numpy.log(obs)-numpy.mean(numpy.log(obs)))**2))
+    del sim, obs
+    return cast(
+        float,
+        1.0
+        - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2)
+        / numpy.sum((numpy.log(obs_) - numpy.mean(numpy.log(obs_))) ** 2),
+    )
 
 
 @overload
 def corr2(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def corr2(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the R²-Error')
+@objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the coefficient of determination via the square of the
     coefficient of correlation according to Bravais-Pearson.
@@ -1027,44 +779,48 @@ def corr2(
     See the documentation on function |prepare_arrays| for some additional
     instructions for using |corr2|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    if (numpy.std(sim) == 0.) or (numpy.std(obs) == 0.):
-        return numpy.nan
-    return numpy.corrcoef(sim, obs)[0, 1]**2
+    del sim, obs
+    if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
+        return cast(float, numpy.nan)
+    return cast(float, numpy.corrcoef(sim_, obs_)[0, 1] ** 2)
 
 
 @overload
 def kge(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def kge(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the Kling-Gupta-Efficiency')
+@objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the Kling-Gupta efficiency :cite:`ref-Kling2012`.
 
@@ -1079,46 +835,54 @@ def kge(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |kge|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return 1 - numpy.sum(
-        (numpy.corrcoef(sim, obs)[0, 1] - 1)**2 +
-        (numpy.std(sim)/numpy.std(obs) - 1)**2 +
-        (numpy.mean(sim)/numpy.mean(obs) - 1)**2
+    del sim, obs
+    return cast(
+        float,
+        1.0
+        - numpy.sum(
+            (numpy.corrcoef(sim_, obs_)[0, 1] - 1) ** 2
+            + (numpy.std(sim_) / numpy.std(obs_) - 1) ** 2
+            + (numpy.mean(sim_) / numpy.mean(obs_) - 1) ** 2
+        ),
     )
 
 
 @overload
 def bias_abs(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def bias_abs(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the absolute bias')
+@objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the absolute difference between the means of the simulated
     and the observed values.
@@ -1134,43 +898,47 @@ def bias_abs(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |bias_abs|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
+    del sim, obs
     # noinspection PyTypeChecker
-    return numpy.mean(sim-obs)
+    return cast(float, numpy.mean(sim_ - obs_))
 
 
 @overload
 def bias_rel(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def bias_rel(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the relative bias')
+@objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the relative difference between the means of the simulated
     and the observed values.
@@ -1186,42 +954,46 @@ def bias_rel(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |bias_rel|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return numpy.mean(sim)/numpy.mean(obs)-1.
+    del sim, obs
+    return cast(float, numpy.mean(sim_) / numpy.mean(obs_) - 1.0)
 
 
 @overload
 def std_ratio(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def std_ratio(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the standard deviation ratio')
+@objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the ratio between the standard deviation of the simulated
     and the observed values.
@@ -1237,42 +1009,46 @@ def std_ratio(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |std_ratio|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return numpy.std(sim)/numpy.std(obs)-1.
+    del sim, obs
+    return cast(float, numpy.std(sim_) / numpy.std(obs_) - 1.0)
 
 
 @overload
 def corr(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def corr(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
-@objecttools.excmessage_decorator(
-    'calculate the Pearson correlation coefficient')
+@objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the product-moment correlation coefficient after Pearson.
 
@@ -1293,77 +1069,89 @@ def corr(
     See the documentation on function |prepare_arrays| for some
     additional instructions for use of function |corr|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    if (numpy.std(sim) == 0.) or (numpy.std(obs) == 0.):
-        return numpy.nan
-    return numpy.corrcoef(sim, obs)[0, 1]
+    del sim, obs
+    if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
+        return cast(float, numpy.nan)
+    return cast(float, numpy.corrcoef(sim_, obs_)[0, 1])
 
 
-def _pars_sepd(xi, beta):
-    gamma1 = special.gamma(3.*(1.+beta)/2.)
-    gamma2 = special.gamma((1.+beta)/2.)
-    w_beta = gamma1**.5 / (1.+beta) / gamma2**1.5
-    c_beta = (gamma1/gamma2)**(1./(1.+beta))
-    m_1 = special.gamma(1.+beta) / gamma1**.5 / gamma2**.5
-    m_2 = 1.
-    mu_xi = m_1*(xi-1./xi)
-    sigma_xi = numpy.sqrt((m_2-m_1**2)*(xi**2+1./xi**2)+2*m_1**2-m_2)
+def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
+    gamma1 = special.gamma(3.0 * (1.0 + beta) / 2.0)
+    gamma2 = special.gamma((1.0 + beta) / 2.0)
+    w_beta = gamma1 ** 0.5 / (1.0 + beta) / gamma2 ** 1.5
+    c_beta = (gamma1 / gamma2) ** (1.0 / (1.0 + beta))
+    m_1 = special.gamma(1.0 + beta) / gamma1 ** 0.5 / gamma2 ** 0.5
+    m_2 = 1.0
+    mu_xi = m_1 * (xi - 1.0 / xi)
+    sigma_xi = numpy.sqrt(
+        (m_2 - m_1 ** 2) * (xi ** 2 + 1.0 / xi ** 2) + 2 * m_1 ** 2 - m_2
+    )
     return mu_xi, sigma_xi, w_beta, c_beta
 
 
-def _pars_h(sigma1, sigma2, sim):
-    return sigma1*numpy.mean(sim) + sigma2*sim
+def _pars_h(
+    sigma1: float,
+    sigma2: float,
+    sim: Vector[float],
+) -> Vector[float]:
+    return sigma1 * cast(float, numpy.mean(sim)) + sigma2 * sim
 
 
 @overload
 def hsepd_pdf(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
-) -> numpy.ndarray:
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> Vector[float]:
     """node as argument"""
 
 
 @overload
 def hsepd_pdf(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
-) -> numpy.ndarray:
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
+) -> Vector[float]:
     """sim and obs as arguments"""
 
 
 @objecttools.excmessage_decorator(
-    'calculate the probability densities with the '
-    'heteroskedastic skewed exponential power distribution')
+    "calculate the probability densities with the "
+    "heteroskedastic skewed exponential power distribution"
+)
 def hsepd_pdf(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
-) -> numpy.ndarray:
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
+) -> Vector[float]:
     # noinspection PyUnresolvedReferences
-    """Calculate the probability densities based on the
-    heteroskedastic skewed exponential power distribution.
+    """Calculate the probability densities based on the heteroskedastic
+    skewed exponential power distribution.
 
     For convenience, we store the required parameters of the probability
     density function as well as the simulated and observed values in a
@@ -1371,12 +1159,12 @@ def hsepd_pdf(
 
     >>> import numpy
     >>> from hydpy import hsepd_pdf, round_
-    >>> general = {'sigma1': 0.2,
-    ...            'sigma2': 0.0,
-    ...            'xi': 1.0,
-    ...            'beta': 0.0,
-    ...            'sim': numpy.arange(10.0, 41.0),
-    ...            'obs': numpy.full(31, 25.0)}
+    >>> general = {"sigma1": 0.2,
+    ...            "sigma2": 0.0,
+    ...            "xi": 1.0,
+    ...            "beta": 0.0,
+    ...            "sim": numpy.arange(10.0, 41.0),
+    ...            "obs": numpy.full(31, 25.0)}
 
     The following test function allows for varying one parameter and prints
     some and plots all the probability density values corresponding to
@@ -1386,13 +1174,13 @@ def hsepd_pdf(
     ...     from matplotlib import pyplot
     ...     special = general.copy()
     ...     name, values = list(kwargs.items())[0]
-    ...     results = numpy.zeros((len(general['sim']), len(values)+1))
-    ...     results[:, 0] = general['sim']
+    ...     results = numpy.zeros((len(general["sim"]), len(values)+1))
+    ...     results[:, 0] = general["sim"]
     ...     for jdx, value in enumerate(values):
     ...         special[name] = value
     ...         results[:, jdx+1] = hsepd_pdf(**special)
     ...         pyplot.plot(results[:, 0], results[:, jdx+1],
-    ...                     label='%s=%.1f' % (name, value))
+    ...                     label="%s=%.1f" % (name, value))
     ...     pyplot.legend()
     ...     for idx, result in enumerate(results):
     ...         if not (idx % 5):
@@ -1459,26 +1247,42 @@ def hsepd_pdf(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |hsepd_pdf|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    sigmas = _pars_h(sigma1, sigma2, sim)
+    del sim, obs
+    sigmas = _pars_h(sigma1, sigma2, sim_)
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
-    x, mu = obs, sim
-    a = (x-mu)/sigmas
-    a_xi = numpy.empty(a.shape)
-    idxs = mu_xi+sigma_xi*a < 0.
-    a_xi[idxs] = numpy.absolute(xi*(mu_xi+sigma_xi*a[idxs]))
-    a_xi[~idxs] = numpy.absolute(1./xi*(mu_xi+sigma_xi*a[~idxs]))
-    ps = (2.*sigma_xi/(xi+1./xi)*w_beta *
-          numpy.exp(-c_beta*a_xi**(2./(1.+beta))))/sigmas
+    x, mu = obs_, sim_
+    a = (x - mu) / sigmas
+    a_xi = cast(Vector[float], numpy.empty(a.shape))
+    idxs = mu_xi + sigma_xi * a < 0.0
+    a_xi[idxs] = numpy.absolute(xi * (mu_xi + sigma_xi * a[idxs]))
+    a_xi[~idxs] = numpy.absolute(1.0 / xi * (mu_xi + sigma_xi * a[~idxs]))
+    ps = (
+        (2.0 * sigma_xi / (xi + 1.0 / xi) * w_beta)
+        * cast(
+            Vector[float],
+            numpy.exp(-c_beta * a_xi ** (2.0 / (1.0 + beta))),
+        )
+    ) / sigmas
     return ps
 
 
-def _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs) -> float:
+def _hsepd_manual(
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> float:
     ps = hsepd_pdf(
         sigma1=sigma1,
         sigma2=sigma2,
@@ -1486,51 +1290,57 @@ def _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs) -> float:
         beta=beta,
         sim=sim,
         obs=obs,
+        skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     ps[ps < 1e-200] = 1e-200
     # noinspection PyTypeChecker
-    return numpy.mean(numpy.log(ps))
+    return cast(float, numpy.mean(numpy.log(ps)))
 
 
 @overload
 def hsepd_manual(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
 ) -> float:
     """node as argument"""
 
 
 @overload
 def hsepd_manual(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
 
 @objecttools.excmessage_decorator(
-    'calculate an objective value based on method `hsepd_manual`')
+    "calculate an objective value based on method `hsepd_manual`"
+)
 def hsepd_manual(
-        *,
-        sigma1: float,
-        sigma2: float,
-        xi: float,
-        beta: float,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
+    *,
+    sigma1: float,
+    sigma2: float,
+    xi: float,
+    beta: float,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
 ) -> float:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
@@ -1539,8 +1349,7 @@ def hsepd_manual(
     |hsepd_pdf|, which is used by function |hsepd_manual|.  The first
     one deals with a heteroscedastic normal distribution:
 
-    >>> from hydpy import round_
-    >>> from hydpy import hsepd_manual
+    >>> from hydpy import hsepd_manual, round_
     >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.2,
     ...                     xi=1.0, beta=0.0,
     ...                     sim=numpy.arange(10.0, 41.0),
@@ -1560,77 +1369,94 @@ def hsepd_manual(
     See the documentation on function |prepare_arrays| for some
     additional instructions for using |hsepd_manual|.
     """
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
-    return _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
+    del sim, obs
+    return _hsepd_manual(
+        sigma1=sigma1,
+        sigma2=sigma2,
+        xi=xi,
+        beta=beta,
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
+    )
 
 
 @overload
 def hsepd(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
-        inits: Optional[Iterable[float]],
-        return_pars: Literal[False],
-        silent: bool,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+    inits: Optional[Iterable[float]],
+    return_pars: Literal[False],
+    silent: bool,
 ) -> float:
     """sim and obs as argument, do not return parameters"""
 
 
 @overload
 def hsepd(
-        *,
-        sim: Sequence[float],
-        obs: Sequence[float],
-        skip_nan: bool = ...,
-        inits: Optional[Iterable[float]],
-        return_pars: Literal[True],
-        silent: bool,
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+    inits: Optional[Iterable[float]],
+    return_pars: Literal[True],
+    silent: bool,
 ) -> Tuple[float, Tuple[float, float, float, float]]:
     """sim and obs as arguments, do return parameters"""
 
 
 @overload
 def hsepd(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
-        inits: Optional[Iterable[float]],
-        return_pars: Literal[False],
-        silent: bool,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
+    inits: Optional[Iterable[float]],
+    return_pars: Literal[False],
+    silent: bool,
 ) -> float:
     """node as an arguments, do not return parameters"""
 
 
 @overload
 def hsepd(
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = ...,
-        inits: Optional[Iterable[float]],
-        return_pars: Literal[True],
-        silent: bool,
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
+    inits: Optional[Iterable[float]],
+    return_pars: Literal[True],
+    silent: bool,
 ) -> Tuple[float, Tuple[float, float, float, float]]:
     """node as an argument, do return parameters"""
 
 
 @objecttools.excmessage_decorator(
-    'calculate an objective value based on method `hsepd`')
+    "calculate an objective value based on method `hsepd`"
+)
 def hsepd(
-        *,
-        sim: Optional[Sequence[float]] = None,
-        obs: Optional[Sequence[float]] = None,
-        node: Optional[devicetools.Node] = None,
-        skip_nan: bool = False,
-        inits: Optional[Iterable[float]] = None,
-        return_pars: bool = False,
-        silent: bool = True,
-) -> float:
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
+    inits: Optional[Iterable[float]] = None,
+    return_pars: bool = False,
+    silent: bool = True,
+) -> Union[float, Tuple[float, Tuple[float, float, float, float]]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1649,11 +1475,9 @@ def hsepd(
     First, as a reference, we calculate the "true" value based on
     function |hsepd_manual| and the correct distribution parameters:
 
-    >>> from hydpy import round_
-    >>> from hydpy import hsepd, hsepd_manual
-    >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.0,
-    ...                     xi=1.0, beta=0.0,
-    ...                     sim=sim, obs=obs))
+    >>> from hydpy import Period, hsepd, hsepd_manual, pub, round_
+    >>> round_(hsepd_manual(
+    ...     sigma1=0.2, sigma2=0.0, xi=1.0, beta=0.0, sim=sim, obs=obs))
     -2.100093
 
     When using function |hsepd|, the returned value is even a little
@@ -1698,13 +1522,24 @@ def hsepd(
     additional instructions for using |hsepd|.
     """
 
-    def transform(pars):
+    def transform(pars: Tuple[float, float, float, float]) -> float:
         """Transform the actual optimisation problem into a function to
         be minimised and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
-        return -_hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
+        return -_hsepd_manual(
+            sigma1=sigma1,
+            sigma2=sigma2,
+            xi=xi,
+            beta=beta,
+            sim=sim_,
+            obs=obs_,
+            skip_nan=False,
+            subperiod=False,
+        )
 
-    def constrain(sigma1, sigma2, xi, beta):
+    def constrain(
+        sigma1: float, sigma2: float, xi: float, beta: float
+    ) -> Tuple[float, float, float, float]:
         """Apply constraints on the given parameter values."""
         sigma1 = numpy.clip(sigma1, 0.0, None)
         sigma2 = numpy.clip(sigma2, 0.0, None)
@@ -1712,30 +1547,36 @@ def hsepd(
         beta = numpy.clip(beta, -0.99, 5.0)
         return sigma1, sigma2, xi, beta
 
-    sim, obs = prepare_arrays(
+    sim_, obs_ = prepare_arrays(
         sim=sim,
         obs=obs,
         node=node,
         skip_nan=skip_nan,
+        subperiod=subperiod,
     )
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
-    values = optimize.fmin(transform, inits,
-                           ftol=1e-12, xtol=1e-12,
-                           disp=not silent)
-    values = constrain(*values)
-    result = _hsepd_manual(*values, sim=sim, obs=obs)
+    original_values = optimize.fmin(
+        transform, inits, ftol=1e-12, xtol=1e-12, disp=not silent
+    )
+    constrained_values = constrain(*original_values)
+    result = _hsepd_manual(
+        *constrained_values,
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
+    )
     if return_pars:
         # noinspection PyTypeChecker
-        return result, values
+        return result, constrained_values
     return result
 
 
-@objecttools.excmessage_decorator(
-    'calculate the weighted mean time')
+@objecttools.excmessage_decorator("calculate the weighted mean time")
 def calc_mean_time(
-        timepoints: Sequence[float],
-        weights: Sequence[float],
+    timepoints: VectorInput[float],
+    weights: VectorInput[float],
 ) -> float:
     """Return the weighted mean of the given time points.
 
@@ -1769,19 +1610,23 @@ def calc_mean_time(
 the following error occurred: For the following objects, at least \
 one value is negative: weights.
     """
-    timepoints = numpy.array(timepoints)
-    weights = numpy.array(weights)
+    timepoints = numpy.asarray(timepoints)
+    weights = numpy.asarray(weights)
     validtools.test_equal_shape(timepoints=timepoints, weights=weights)
     validtools.test_non_negative(weights=weights)
-    return numpy.dot(timepoints, weights)/numpy.sum(weights)
+    return cast(
+        float,
+        numpy.dot(timepoints, weights) / numpy.sum(weights),
+    )
 
 
 @objecttools.excmessage_decorator(
-    'calculate the weighted time deviation from mean time')
+    "calculate the weighted time deviation from mean time"
+)
 def calc_mean_time_deviation(
-        timepoints: Sequence[float],
-        weights: Sequence[float],
-        mean_time: Optional[float] = None,
+    timepoints: VectorInput[float],
+    weights: VectorInput[float],
+    mean_time: Optional[float] = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean
     time.
@@ -1822,34 +1667,93 @@ def calc_mean_time_deviation(
 from mean time, the following error occurred: For the following objects, \
 at least one value is negative: weights.
     """
-    timepoints = numpy.array(timepoints)
-    weights = numpy.array(weights)
-    validtools.test_equal_shape(timepoints=timepoints, weights=weights)
-    validtools.test_non_negative(weights=weights)
+    timepoints_ = numpy.asarray(timepoints)
+    weights_ = numpy.asarray(weights)
+    del timepoints, weights
+    validtools.test_equal_shape(timepoints=timepoints_, weights=weights_)
+    validtools.test_non_negative(weights=weights_)
     if mean_time is None:
-        mean_time = calc_mean_time(timepoints, weights)
-    return (numpy.sqrt(numpy.dot(weights, (timepoints-mean_time)**2) /
-                       numpy.sum(weights)))
+        mean_time = calc_mean_time(timepoints_, weights_)
+    return cast(
+        float,
+        numpy.sqrt(
+            numpy.dot(weights_, (timepoints_ - mean_time) ** 2) / numpy.sum(weights_)
+        ),
+    )
+
+
+@overload
+def print_evaluationtable(
+    *,
+    nodes: Sequence[devicetools.Node],
+    criteria: Sequence[Criterion],
+    nodenames: Optional[Sequence[str]] = None,
+    critnames: Optional[Sequence[str]] = None,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
+    subperiod: bool = True,
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    ...
+
+
+@overload
+def print_evaluationtable(
+    *,
+    nodes: Sequence[devicetools.Node],
+    criteria: Sequence[Criterion],
+    nodenames: Optional[Sequence[str]] = None,
+    critnames: Optional[Sequence[str]] = None,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
+    subperiod: bool = True,
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    stepsize: Literal["daily", "d", "monthly", "m"] = "daily",
+    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    ...
 
 
 @objecttools.excmessage_decorator(
-    'evaluate the simulation results of some node objects')
-def evaluationtable(
-        nodes: Sequence[devicetools.Node],
-        criteria: Sequence[Callable],
-        nodenames: Optional[Sequence[str]] = None,
-        critnames: Optional[Sequence[str]] = None,
-        skip_nan: bool = False,
-):
-    """Return a table containing the results of the given evaluation
-    criteria for the given |Node| objects.
+    "evaluate the simulation results of some node objects"
+)
+def print_evaluationtable(
+    *,
+    nodes: Sequence[devicetools.Node],
+    criteria: Sequence[Criterion],
+    nodenames: Optional[Sequence[str]] = None,
+    critnames: Optional[Sequence[str]] = None,
+    critfactors: Sequence1[float] = 1.0,
+    critdigits: Sequence1[int] = 2,
+    subperiod: bool = True,
+    average: bool = True,
+    averagename: str = "mean",
+    filter_: float = 1.0,
+    stepsize: Optional[Literal["daily", "d", "monthly", "m"]] = None,
+    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    missingvalue: str = "-",
+    decimalseperator: str = ".",
+    file_: Optional[Union[str, TextIO]] = None,
+) -> None:
+    """Print a table containing the results of the given evaluation criteria
+    for the given |Node| objects.
 
     First, we define two nodes with different simulation and observation
     data (see function |prepare_arrays| for some explanations):
 
     >>> from hydpy import pub, Node, nan
-    >>> pub.timegrids = '01.01.2000', '04.01.2000', '1d'
-    >>> nodes = Node('test1'), Node('test2')
+    >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
+    >>> nodes = Node("test1"), Node("test2")
     >>> for node in nodes:
     ...     node.prepare_simseries()
     ...     node.sequences.sim.series = 1.0, 2.0, 3.0
@@ -1862,76 +1766,200 @@ def evaluationtable(
     ...     nodes[1].sequences.obs.series = 3.0, nan, 1.0
 
     Selecting functions |corr| and |bias_abs| as evaluation criteria,
-    function |evaluationtable| returns the following table (which is
-    a |pandas| |pandas.DataFrame|):
+    function |print_evaluationtable| prints the following table:
 
-    >>> from hydpy import evaluationtable, corr, bias_abs
-    >>> evaluationtable(nodes, (corr, bias_abs))
+    >>> from hydpy import bias_abs, corr, print_evaluationtable
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs))
            corr  bias_abs
-    test1   1.0      -3.0
-    test2   NaN       NaN
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
 
-    One can pass alternative names for both the node objects and the
-    criteria functions.  Also, `nan` values can be skipped:
+    One can pass alternative names for the node objects, the criteria functions,
+    and the row containing the average values.  Also, one can use the `filter_`
+    argument to force printing statistics in case of incomplete observation data.
+    In the following example, we accept a maximum fraction of missing data of 50 %:
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=('first node', 'second node'),
-    ...                 critnames=('corrcoef', 'bias'),
-    ...                 skip_nan=True)
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       nodenames=("first node", "second node"),
+    ...                       critnames=("corrcoef", "bias"),
+    ...                       critdigits=1,
+    ...                       averagename="average",
+    ...                       filter_=0.5)   # doctest: +NORMALIZE_WHITESPACE
                  corrcoef  bias
     first node        1.0  -3.0
     second node      -1.0   0.0
+    average           0.0  -1.5
 
     The number of assigned node objects and criteria functions must
     match the number of given alternative names:
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 nodenames=('first node',))
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       nodenames=("first node",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
 node objects, the following error occurred: 2 node objects are given \
 which does not match with number of given alternative names being 1.
 
-    >>> evaluationtable(nodes, (corr, bias_abs),
-    ...                 critnames=('corrcoef',))
+    >>> print_evaluationtable(nodes=nodes,
+    ...                       criteria=(corr, bias_abs),
+    ...                       critnames=("corrcoef",))
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
 node objects, the following error occurred: 2 criteria functions are given \
 which does not match with number of given alternative names being 1.
+
+    Set the `average` argument to |False| to omit the row containing the
+    average values:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       average=False)
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+
+    You can use the arguments `critfactors` and `critdigits` by passing either
+    a single number or a sequence of criteria-specific numbers to modify the
+    printed values:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       critfactors=(10.0, 0.1),
+    ...                       critdigits=1)
+           corr  bias_abs
+    test1  10.0      -0.3
+    test2     -         -
+    mean   10.0      -0.3
+
+    By default, function |print_evaluationtable| prints the statics relevant
+    for the actual evaluation period only:
+
+    >>> pub.timegrids.eval_.dates = "01.01.2000", "02.01.2000"
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs))
+           corr  bias_abs
+    test1     -     -3.00
+    test2     -     -2.00
+    mean      -     -2.50
+
+    You can deviate from this default behaviour by setting the `subperiod`
+    argument to |False|:
+
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       subperiod=False)
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
+
+    Use the `stepsize` argument (eventually in combination with argument
+    `aggregator`) to print the statistics of previously aggregated time
+    series.  See function |aggregate_series| for further information.
+
+    Here, the daily aggregation step size results in identical results as
+    the original step size is also one day:
+
+    >>> pub.timegrids.eval_ = pub.timegrids.init
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       stepsize="daily",
+    ...                       aggregator="mean")
+           corr  bias_abs
+    test1  1.00     -3.00
+    test2     -         -
+    mean   1.00     -3.00
+
+    For the monthly step size, the result table is empty, due to the too short
+    initialisation period covering less than a month:
+
+    >>> pub.timegrids.eval_.dates = pub.timegrids.init.dates
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       stepsize="monthly",
+    ...                       aggregator="mean")
+           corr  bias_abs
+    test1     -         -
+    test2     -         -
+    mean      -         -
     """
     if nodenames:
         if len(nodes) != len(nodenames):
             raise ValueError(
-                f'{len(nodes)} node objects are given which does not '
-                f'match with number of given alternative names being '
-                f'{len(nodenames)}.'
+                f"{len(nodes)} node objects are given which does not "
+                f"match with number of given alternative names being "
+                f"{len(nodenames)}."
             )
     else:
         nodenames = [node.name for node in nodes]
     if critnames:
         if len(criteria) != len(critnames):
             raise ValueError(
-                f'{len(criteria)} criteria functions are given which does '
-                f'not match with number of given alternative names being '
-                f'{len(critnames)}.'
+                f"{len(criteria)} criteria functions are given which does "
+                f"not match with number of given alternative names being "
+                f"{len(critnames)}."
             )
     else:
         critnames = [crit.__name__ for crit in criteria]
+    if isinstance(critfactors, float):
+        critfactors = len(criteria) * (critfactors,)
+    if isinstance(critdigits, int):
+        critdigits = len(criteria) * (critdigits,)
+    formats = tuple(f"%.{d}f" for d in critdigits)
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
-        sim, obs = prepare_arrays(
-            sim=None,
-            obs=None,
-            node=node,
-            skip_nan=skip_nan,
-        )
-        for jdx, criterion in enumerate(criteria):
-            data[idx, jdx] = criterion(
-                sim=sim,
-                obs=obs,
+        if stepsize is not None:
+            sim = seriestools.aggregate_series(
+                series=node.sequences.sim.series,
+                stepsize=stepsize,
+                aggregator=aggregator,
+                subperiod=subperiod,
+            ).values
+            obs = seriestools.aggregate_series(
+                series=node.sequences.obs.series,
+                stepsize=stepsize,
+                aggregator=aggregator,
+                subperiod=subperiod,
+            ).values
+        else:
+            sim, obs = prepare_arrays(
+                node=node,
+                skip_nan=False,
+                subperiod=subperiod,
             )
-    table = pandas.DataFrame(
-        data=data, index=nodenames, columns=critnames)
-    return table
+        if len(obs) > 0:
+            availability = 1.0 - sum(numpy.isnan(obs)) / len(obs)
+        else:
+            availability = 0.0
+        if availability < filter_:
+            data[idx, :] = numpy.nan
+        else:
+            for jdx, (criterion, critfactor) in enumerate(zip(criteria, critfactors)):
+                data[idx, jdx] = critfactor * criterion(sim=sim, obs=obs, skip_nan=True)
+
+    def _write(x: str, ys: Iterable[str], printtarget_: TextIO) -> None:
+        printtarget_.write(f"{x}\t")
+        printtarget_.write("\t".join(ys).replace(".", decimalseperator))
+        printtarget_.write("\n")
+
+    def _nmbs2strs(numbers: Iterable[float]) -> Generator[str, None, None]:
+        return (
+            (f % n).replace(".", decimalseperator).replace("nan", missingvalue)
+            for n, f in zip(numbers, formats)
+        )
+
+    with objecttools.get_printtarget(file_) as printtarget:
+        _write("", critnames, printtarget)
+        for nodename, row in zip(nodenames, data):
+            _write(nodename, _nmbs2strs(row), printtarget)
+        if average:
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", "Mean of empty slice")
+                mean = _nmbs2strs(numpy.nanmean(data, axis=0))
+            _write(averagename, mean, printtarget)

@@ -16,8 +16,10 @@ import itertools
 import os
 import types
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import devicetools
@@ -27,13 +29,15 @@ from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.cythons import modelutils
+
 if TYPE_CHECKING:
     from hydpy.core import masktools
 
 
 class Method:
     """Base class for defining (hydrological) calculation methods."""
-    SUBMETHODS: Tuple[Type['Method'], ...] = ()
+
+    SUBMETHODS: Tuple[Type["Method"], ...] = ()
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -50,17 +54,17 @@ class Method:
 class IndexProperty:
     """Base class for index descriptors like |Idx_Sim|."""
 
-    def __set_name__(self, owner: 'Model', name: str) -> None:
+    def __set_name__(self, owner: "Model", name: str) -> None:
         self.name = name.lower()
 
-    def __get__(self, obj: 'Model', objtype=None):
+    def __get__(self, obj: "Model", objtype=None):
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: 'Model', value: int) -> None:
+    def __set__(self, obj: "Model", value: int) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
@@ -78,7 +82,7 @@ class Idx_Sim(IndexProperty):
     often beneficial during testing:
 
     >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> model.idx_sim
     0
     >>> model.idx_sim = 1
@@ -117,7 +121,7 @@ class Model:
     and the input sequence |hland_inputs.P|:
 
     >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> model.parameters.control.nmbzones
     nmbzones(?)
     >>> model.sequences.inputs.p
@@ -181,19 +185,19 @@ element `?` is not available at the moment.
     `sequences`, optional, which we indicate by a different error message:
 
     >>> from hydpy import prepare_model
-    >>> prepare_model('test_v1').masks
+    >>> prepare_model("test_v1").masks
     Traceback (most recent call last):
     ...
     AttributeError: Model ``test_v1` of element `?`` does not handle \
 a group of masks (at the moment).
     """
 
-    element: Optional['devicetools.Element']
+    element: Optional["devicetools.Element"]
     cymodel: Optional[typingtools.CyModelProtocol]
     _name: ClassVar[Optional[str]] = None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
-    masks: 'masktools.Masks'
+    masks: "masktools.Masks"
     idx_sim = Idx_Sim()
 
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -202,7 +206,7 @@ a group of masks (at the moment).
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS: ClassVar[Tuple[Type[Method], ...]]
-    SUBMODELS: ClassVar[Tuple[Type['Submodel'], ...]]
+    SUBMODELS: ClassVar[Tuple[Type["Submodel"], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
@@ -222,7 +226,7 @@ a group of masks (at the moment).
                 method = types.MethodType(func.__call__, self)
                 name_func = func.__name__.lower()
                 setattr(self, name_func, method)
-                shortname = '_'.join(name_func.split('_')[:-1])
+                shortname = "_".join(name_func.split("_")[:-1])
                 if shortname not in shortnames:
                     shortname2method[shortname] = method
                     shortnames.add(shortname)
@@ -243,7 +247,7 @@ a group of masks (at the moment).
         objects:
 
         >>> from hydpy import prepare_model
-        >>> prepare_model('hstream_v1').connect()
+        >>> prepare_model("hstream_v1").connect()
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the node connection of the \
@@ -256,13 +260,12 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         class |Element| calls method |Model.connect| automatically):
 
         >>> from hydpy import Element, Node
-        >>> in1 = Node('in1', variable='Q')
-        >>> in2 = Node('in2', variable='Q')
-        >>> out1 = Node('out1', variable='Q')
+        >>> in1 = Node("in1", variable="Q")
+        >>> in2 = Node("in2", variable="Q")
+        >>> out1 = Node("out1", variable="Q")
 
-        >>> element1 = Element(
-        ...     'element1', inlets=(in1, in2), outlets=out1)
-        >>> element1.model = prepare_model('hstream_v1')
+        >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
+        >>> element1.model = prepare_model("hstream_v1")
 
         Now all connections work as expected:
 
@@ -286,15 +289,14 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         define three additional nodes, two handling variables different
         from discharge (`Q`):
 
-        >>> in3 = Node('in3', variable='X')
-        >>> out2 = Node('out2', variable='Q')
-        >>> out3 = Node('out3', variable='X')
+        >>> in3 = Node("in3", variable="X")
+        >>> out2 = Node("out2", variable="Q")
+        >>> out3 = Node("out3", variable="X")
 
         Link sequence names must match the `variable` a node is handling:
 
-        >>> element2 = Element(
-        ...     'element2', inlets=(in1, in2), outlets=out3)
-        >>> element2.model = prepare_model('hstream_v1')
+        >>> element2 = Element("element2", inlets=(in1, in2), outlets=out3)
+        >>> element2.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -305,9 +307,8 @@ connected due to no available node handling variable `Q`.
         One can connect a 0-dimensional link sequence to a single node
         sequence only:
 
-        >>> element3 = Element(
-        ...     'element3', inlets=(in1, in2), outlets=(out1, out2))
-        >>> element3.model = prepare_model('hstream_v1')
+        >>> element3 = Element("element3", inlets=(in1, in2), outlets=(out1, out2))
+        >>> element3.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -318,9 +319,8 @@ but multiple nodes are available which are handling variable `Q`.
         Method |Model.connect| generally reports about unusable node
         sequences:
 
-        >>> element4 = Element(
-        ...     'element4', inlets=(in1, in2), outlets=(out1, out3))
-        >>> element4.model = prepare_model('hstream_v1')
+        >>> element4 = Element("element4", inlets=(in1, in2), outlets=(out1, out3))
+        >>> element4.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -328,9 +328,8 @@ but multiple nodes are available which are handling variable `Q`.
 following error occurred: The following nodes have not been connected \
 to any sequences: out3.
 
-        >>> element5 = Element(
-        ...     'element5', inlets=(in1, in2, in3), outlets=out1)
-        >>> element5.model = prepare_model('hstream_v1')
+        >>> element5 = Element("element5", inlets=(in1, in2, in3), outlets=out1)
+        >>> element5.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -338,9 +337,8 @@ to any sequences: out3.
 following error occurred: The following nodes have not been connected \
 to any sequences: in3.
 
-        >>> element6 = Element(
-        ...     'element6', inlets=in1, outlets=out1, receivers=in2)
-        >>> element6.model = prepare_model('hstream_v1')
+        >>> element6 = Element("element6", inlets=in1, outlets=out1, receivers=in2)
+        >>> element6.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -348,9 +346,8 @@ to any sequences: in3.
 following error occurred: The following nodes have not been connected \
 to any sequences: in2.
 
-        >>> element7 = Element(
-        ...     'element7', inlets=in1, outlets=out1, senders=in2)
-        >>> element7.model = prepare_model('hstream_v1')
+        >>> element7 = Element("element7", inlets=in1, outlets=out1, senders=in2)
+        >>> element7.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the \
@@ -383,16 +380,16 @@ to any sequences: in2.
         of different node objects:
 
         >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
-        >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
+        >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
-        >>> inp1 = Node('inp1', variable=hland_P)
-        >>> outp1 = Node('outp1', variable=hland_Q0)
-        >>> outp2 = Node('outp2', variable=hland_UZ)
-        >>> element8 = Element('element8',
+        >>> inp1 = Node("inp1", variable=hland_P)
+        >>> outp1 = Node("outp1", variable=hland_Q0)
+        >>> outp2 = Node("outp2", variable=hland_UZ)
+        >>> element8 = Element("element8",
         ...                    outlets=out1,
         ...                    inputs=inp1,
         ...                    outputs=[outp1, outp2])
-        >>> element8.model = prepare_model('hland_v1')
+        >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
         >>> element8.model.idx_sim = 2
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
@@ -416,15 +413,15 @@ to any sequences: in2.
         for more information and a more realistic example):
 
         >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
-        >>> Precip = FusedVariable('Precip', hland_P, lland_Nied)
-        >>> inp2 = Node('inp2', variable=Precip)
-        >>> FastRunoff = FusedVariable('FastRunoff', hland_Q0, lland_QDGZ)
-        >>> outp3 = Node('outp3', variable=FastRunoff)
-        >>> element9 = Element('element9',
+        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> inp2 = Node("inp2", variable=Precip)
+        >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
+        >>> outp3 = Node("outp3", variable=FastRunoff)
+        >>> element9 = Element("element9",
         ...                    outlets=out1,
         ...                    inputs=inp2,
         ...                    outputs=outp3)
-        >>> element9.model = prepare_model('hland_v1')
+        >>> element9.model = prepare_model("hland_v1")
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data()
         >>> element9.model.sequences.inputs.p
@@ -438,12 +435,12 @@ to any sequences: in2.
         does not find a fitting sequence:
 
         >>> from hydpy import lland_TemL
-        >>> Wrong = FusedVariable('Wrong', lland_Nied, lland_TemL)
-        >>> inp3 = Node('inp3', variable=Wrong)
-        >>> element10 = Element('element10',
+        >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
+        >>> inp3 = Node("inp3", variable=Wrong)
+        >>> element10 = Element("element10",
         ...                     outlets=out1,
         ...                     inputs=inp3)
-        >>> element10.model = prepare_model('hland_v1')
+        >>> element10.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the \
@@ -451,11 +448,11 @@ to any sequences: in2.
 error occurred: None of the input sequences of model `hland_v1` is among \
 the sequences of the fused variable `Wrong` of node `inp3`.
 
-        >>> outp4 = Node('outp4', variable=Wrong)
-        >>> element11 = Element('element11',
+        >>> outp4 = Node("outp4", variable=Wrong)
+        >>> element11 = Element("element11",
         ...                     outlets=out1,
         ...                     outputs=outp4)
-        >>> element11.model = prepare_model('hland_v1')
+        >>> element11.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the \
@@ -465,22 +462,22 @@ is among the sequences of the fused variable `Wrong` of node `outp4`.
 
         Selecting wrong sequences results in the following errors messages:
 
-        >>> outp5 = Node('outp5', variable=hland_Q0)
-        >>> element12 = Element('element12',
+        >>> outp5 = Node("outp5", variable=hland_Q0)
+        >>> element12 = Element("element12",
         ...                     outlets=out1,
         ...                     inputs=outp5)
-        >>> element12.model = prepare_model('hland_v1')
+        >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `element12`, the following error \
 occurred: No input sequence of model hland_v1` is named `q0`.
 
-        >>> inp5 = Node('inp5', variable=hland_P)
-        >>> element13 = Element('element13',
+        >>> inp5 = Node("inp5", variable=hland_P)
+        >>> element13 = Element("element13",
         ...                     outlets=out1,
         ...                     outputs=inp5)
-        >>> element13.model = prepare_model('hland_v1')
+        >>> element13.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
@@ -491,11 +488,11 @@ occurred: No flux or state sequence of model `hland_v1` is named `p`.
         only:
 
         >>> from hydpy.models.hland.hland_fluxes import PC
-        >>> outp6 = Node('outp6', variable=PC)
-        >>> element14 = Element('element14',
+        >>> outp6 = Node("outp6", variable=PC)
+        >>> element14 = Element("element14",
         ...                     outlets=out1,
         ...                     outputs=outp6)
-        >>> element14.model = prepare_model('hland_v1')
+        >>> element14.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
@@ -509,7 +506,7 @@ but sequence `pc` is 1-dimensional.
             >>> Element.clear_all()
             >>> FusedVariable.clear_registry()
         """
-        group = 'inputs'
+        group = "inputs"
         try:
             for node in self.element.inputs:
                 if isinstance(node.variable, devicetools.FusedVariable):
@@ -518,9 +515,9 @@ but sequence `pc` is 1-dimensional.
                             break
                     else:
                         raise TypeError(
-                            f'None of the input sequences of model `{self}` '
-                            f'is among the sequences of the fused variable '
-                            f'`{node.variable}` of node `{node.name}`.'
+                            f"None of the input sequences of model `{self}` "
+                            f"is among the sequences of the fused variable "
+                            f"`{node.variable}` of node `{node.name}`."
                         )
                 else:
                     name = node.variable.__name__.lower()
@@ -528,24 +525,23 @@ but sequence `pc` is 1-dimensional.
                         sequence = getattr(self.sequences.inputs, name)
                     except AttributeError:
                         raise TypeError(
-                            f'No input sequence of model '
-                            f'{self}` is named `{name}`.'
+                            f"No input sequence of model " f"{self}` is named `{name}`."
                         ) from None
                 sequence.set_pointer(node.get_double(group))
-            group = 'outputs'
+            group = "outputs"
             for node in self.element.outputs:
                 if isinstance(node.variable, devicetools.FusedVariable):
                     for sequence in itertools.chain(
-                            self.sequences.fluxes,
-                            self.sequences.states,
+                        self.sequences.fluxes,
+                        self.sequences.states,
                     ):
                         if sequence in node.variable:
                             break
                     else:
                         raise TypeError(
-                            f'None of the output sequences of model `{self}` '
-                            f'is among the sequences of the fused variable '
-                            f'`{node.variable}` of node `{node.name}`.'
+                            f"None of the output sequences of model `{self}` "
+                            f"is among the sequences of the fused variable "
+                            f"`{node.variable}` of node `{node.name}`."
                         )
                 else:
                     name = node.variable.__name__.lower()
@@ -554,23 +550,23 @@ but sequence `pc` is 1-dimensional.
                         sequence = getattr(self.sequences.states, name, None)
                     if sequence is None:
                         raise TypeError(
-                            f'No flux or state sequence of model '
-                            f'`{self}` is named `{name}`.'
+                            f"No flux or state sequence of model "
+                            f"`{self}` is named `{name}`."
                         )
                 if sequence.NDIM > 0:
                     raise TypeError(
-                        f'Only connections with 0-dimensional output '
-                        f'sequences are supported, but sequence '
-                        f'`{sequence.name}` is {sequence.NDIM}-dimensional.'
+                        f"Only connections with 0-dimensional output "
+                        f"sequences are supported, but sequence "
+                        f"`{sequence.name}` is {sequence.NDIM}-dimensional."
                     )
                 sequence.set_pointer(node.get_double(group))
-            for group in ('inlets', 'receivers', 'outlets', 'senders'):
+            for group in ("inlets", "receivers", "outlets", "senders"):
                 self._connect_subgroup(group)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to build the node connection of '
-                f'the `{group[:-1]}` sequences of the model handled '
-                f'by element `{objecttools.devicename(self)}`'
+                f"While trying to build the node connection of "
+                f"the `{group[:-1]}` sequences of the model handled "
+                f"by element `{objecttools.devicename(self)}`"
             )
 
     def _connect_subgroup(self, group: str) -> None:
@@ -578,20 +574,25 @@ but sequence `pc` is 1-dimensional.
         links = getattr(self.sequences, group, ())
         applied_nodes = []
         for seq in links:
-            selected_nodes = tuple(node for node in available_nodes
-                                   if str(node.variable).lower() == seq.name)
+            selected_nodes = tuple(
+                node
+                for node in available_nodes
+                if str(node.variable).lower() == seq.name
+            )
             if seq.NDIM == 0:
                 if not selected_nodes:
                     raise RuntimeError(
-                        f'Sequence {objecttools.elementphrase(seq)} '
-                        f'cannot be connected due to no available node '
-                        f'handling variable `{seq.name.upper()}`.')
+                        f"Sequence {objecttools.elementphrase(seq)} "
+                        f"cannot be connected due to no available node "
+                        f"handling variable `{seq.name.upper()}`."
+                    )
                 if len(selected_nodes) > 1:
                     raise RuntimeError(
-                        f'Sequence `{seq.name}` cannot be connected as '
-                        f'it is 0-dimensional but multiple nodes are '
-                        f'available which are handling variable '
-                        f'`{seq.name.upper()}`.')
+                        f"Sequence `{seq.name}` cannot be connected as "
+                        f"it is 0-dimensional but multiple nodes are "
+                        f"available which are handling variable "
+                        f"`{seq.name.upper()}`."
+                    )
                 applied_nodes.append(selected_nodes[0])
                 seq.set_pointer(selected_nodes[0].get_double(group))
             elif seq.NDIM == 1:
@@ -600,11 +601,13 @@ but sequence `pc` is 1-dimensional.
                     applied_nodes.append(node)
                     seq.set_pointer(node.get_double(group), idx)
         if len(applied_nodes) < len(available_nodes):
-            remaining_nodes = [node.name for node in available_nodes
-                               if node not in applied_nodes]
+            remaining_nodes = [
+                node.name for node in available_nodes if node not in applied_nodes
+            ]
             raise RuntimeError(
-                f'The following nodes have not been connected to any '
-                f'sequences: {objecttools.enumeration(remaining_nodes)}.')
+                f"The following nodes have not been connected to any "
+                f"sequences: {objecttools.enumeration(remaining_nodes)}."
+            )
 
     @property
     def name(self) -> str:
@@ -613,13 +616,13 @@ but sequence `pc` is 1-dimensional.
         For base models, |Model.name| corresponds to the package name:
 
         >>> from hydpy import prepare_model
-        >>> hland = prepare_model('hland')
+        >>> hland = prepare_model("hland")
         >>> hland.name
         'hland'
 
         For application models, |Model.name| corresponds the module name:
 
-        >>> hland_v1 = prepare_model('hland_v1')
+        >>> hland_v1 = prepare_model("hland_v1")
         >>> hland_v1.name
         'hland_v1'
 
@@ -630,7 +633,7 @@ but sequence `pc` is 1-dimensional.
         """
         name = self._name
         if name is None:
-            substrings = self.__module__.split('.')
+            substrings = self.__module__.split(".")
             name = substrings[1] if len(substrings) == 2 else substrings[2]
             type(self)._name = name
         return name
@@ -796,7 +799,7 @@ but sequence `pc` is 1-dimensional.
         objects instead of the modified Python or Cython functions used
         for performing calculations.
         """
-        for name_group in getattr(cls, 'METHOD_GROUPS', ()):
+        for name_group in getattr(cls, "METHOD_GROUPS", ()):
             for method in getattr(cls, name_group, ()):
                 yield method
 
@@ -806,10 +809,10 @@ but sequence `pc` is 1-dimensional.
     def __init_subclass__(cls):
 
         modulename = cls.__module__
-        if modulename.count('.') > 2:
-            modulename = modulename.rpartition('.')[0]
+        if modulename.count(".") > 2:
+            modulename = modulename.rpartition(".")[0]
         module = importlib.import_module(modulename)
-        modelname = modulename.split('.')[-1]
+        modelname = modulename.split(".")[-1]
 
         allsequences = set()
         st = sequencetools
@@ -826,9 +829,10 @@ but sequence `pc` is 1-dimensional.
         )
         for method in cls.get_methods():
             for sequence in itertools.chain(
-                    method.REQUIREDSEQUENCES,
-                    method.UPDATEDSEQUENCES,
-                    method.RESULTSEQUENCES):
+                method.REQUIREDSEQUENCES,
+                method.UPDATEDSEQUENCES,
+                method.RESULTSEQUENCES,
+            ):
                 for _, typesequence, sequences in infos:
                     if issubclass(sequence, typesequence):
                         sequences.add(sequence)
@@ -837,10 +841,9 @@ but sequence `pc` is 1-dimensional.
             classname = typesequences.__name__
             if not hasattr(module, classname):
                 members = {
-                    'CLASSES': variabletools.sort_variables(sequences),
-                    '__doc__': f'{classname[:-9]} sequences '
-                               f'of model {modelname}.',
-                    '__module__': modulename,
+                    "CLASSES": variabletools.sort_variables(sequences),
+                    "__doc__": f"{classname[:-9]} sequences " f"of model {modelname}.",
+                    "__module__": modulename,
                 }
                 typesequence = type(classname, (typesequences,), members)
                 setattr(module, classname, typesequence)
@@ -849,49 +852,54 @@ but sequence `pc` is 1-dimensional.
         controlparameters = set()
         derivedparameters = set()
         for host in itertools.chain(cls.get_methods(), allsequences):
-            fixedparameters.update(
-                getattr(host, 'FIXEDPARAMETERS', ()))
-            controlparameters.update(
-                getattr(host, 'CONTROLPARAMETERS', ()))
-            derivedparameters.update(
-                getattr(host, 'DERIVEDPARAMETERS', ()))
-        for par in itertools.chain(controlparameters.copy(),
-                                   derivedparameters.copy(),
-                                   cls.SOLVERPARAMETERS):
-            fixedparameters.update(getattr(par, 'FIXEDPARAMETERS', ()))
-            controlparameters.update(getattr(par, 'CONTROLPARAMETERS', ()))
-            derivedparameters.update(getattr(par, 'DERIVEDPARAMETERS', ()))
-        if controlparameters and not hasattr(module, 'ControlParameters'):
+            fixedparameters.update(getattr(host, "FIXEDPARAMETERS", ()))
+            controlparameters.update(getattr(host, "CONTROLPARAMETERS", ()))
+            derivedparameters.update(getattr(host, "DERIVEDPARAMETERS", ()))
+        for par in itertools.chain(
+            controlparameters.copy(), derivedparameters.copy(), cls.SOLVERPARAMETERS
+        ):
+            fixedparameters.update(getattr(par, "FIXEDPARAMETERS", ()))
+            controlparameters.update(getattr(par, "CONTROLPARAMETERS", ()))
+            derivedparameters.update(getattr(par, "DERIVEDPARAMETERS", ()))
+        if controlparameters and not hasattr(module, "ControlParameters"):
             module.ControlParameters = type(
-                'ControlParameters',
+                "ControlParameters",
                 (parametertools.SubParameters,),
-                {'CLASSES': variabletools.sort_variables(controlparameters),
-                 '__doc__': f'Control parameters of model {modelname}.',
-                 '__module__': modulename},
+                {
+                    "CLASSES": variabletools.sort_variables(controlparameters),
+                    "__doc__": f"Control parameters of model {modelname}.",
+                    "__module__": modulename,
+                },
             )
-        if derivedparameters and not hasattr(module, 'DerivedParameters'):
+        if derivedparameters and not hasattr(module, "DerivedParameters"):
             module.DerivedParameters = type(
-                'DerivedParameters',
+                "DerivedParameters",
                 (parametertools.SubParameters,),
-                {'CLASSES': variabletools.sort_variables(derivedparameters),
-                 '__doc__': f'Derived parameters of model {modelname}.',
-                 '__module__': modulename},
+                {
+                    "CLASSES": variabletools.sort_variables(derivedparameters),
+                    "__doc__": f"Derived parameters of model {modelname}.",
+                    "__module__": modulename,
+                },
             )
-        if fixedparameters and not hasattr(module, 'FixedParameters'):
+        if fixedparameters and not hasattr(module, "FixedParameters"):
             module.FixedParameters = type(
-                'FixedParameters',
+                "FixedParameters",
                 (parametertools.SubParameters,),
-                {'CLASSES': variabletools.sort_variables(fixedparameters),
-                 '__doc__': f'Fixed parameters of model {modelname}.',
-                 '__module__': modulename},
+                {
+                    "CLASSES": variabletools.sort_variables(fixedparameters),
+                    "__doc__": f"Fixed parameters of model {modelname}.",
+                    "__module__": modulename,
+                },
             )
-        if cls.SOLVERPARAMETERS and not hasattr(module, 'SolverParameters'):
+        if cls.SOLVERPARAMETERS and not hasattr(module, "SolverParameters"):
             module.SolverParameters = type(
-                'SolverParameters',
+                "SolverParameters",
                 (parametertools.SubParameters,),
-                {'CLASSES': variabletools.sort_variables(cls.SOLVERPARAMETERS),
-                 '__doc__': f'Solver parameters of model {modelname}.',
-                 '__module__': modulename},
+                {
+                    "CLASSES": variabletools.sort_variables(cls.SOLVERPARAMETERS),
+                    "__doc__": f"Solver parameters of model {modelname}.",
+                    "__module__": modulename,
+                },
             )
 
     # sorting with dependencies, or is the definition order always okay?
@@ -905,25 +913,25 @@ but sequence `pc` is 1-dimensional.
     #     for newpar in parameters:
     #         for idx, oldpar in enumerate(dps):
     #             print(newpar, oldpar, idx)
-    #             if newpar in getattr(oldpar, 'DERIVEDPARAMETERS', ()):
+    #             if newpar in getattr(oldpar, "DERIVEDPARAMETERS", ()):
     #                 dps.insert(idx, newpar)
-    #                 print('done')
+    #                 print("done")
     #                 break
     #         else:
     #             dps.append(newpar)
     #     return tuple(dps)
 
     def __getattr__(self, item):
-        if item in ('parameters', 'sequences'):
+        if item in ("parameters", "sequences"):
             raise AttributeError(
-                f'The dynamic attribute `{item}` of '
-                f'{objecttools.elementphrase(self)} is not available '
-                f'at the moment.'
+                f"The dynamic attribute `{item}` of "
+                f"{objecttools.elementphrase(self)} is not available "
+                f"at the moment."
             )
-        if item == 'masks':
+        if item == "masks":
             raise AttributeError(
-                f'Model `{objecttools.elementphrase(self)}` does not '
-                f'handle a group of masks (at the moment).'
+                f"Model `{objecttools.elementphrase(self)}` does not "
+                f"handle a group of masks (at the moment)."
             )
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{item}'"
@@ -941,12 +949,12 @@ class AdHocModel(Model):
 
     RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
-        'RECEIVER_METHODS',
-        'INLET_METHODS',
-        'RUN_METHODS',
-        'ADD_METHODS',
-        'OUTLET_METHODS',
-        'SENDER_METHODS',
+        "RECEIVER_METHODS",
+        "INLET_METHODS",
+        "RUN_METHODS",
+        "ADD_METHODS",
+        "OUTLET_METHODS",
+        "SENDER_METHODS",
     )
 
     def simulate(self, idx: int) -> None:
@@ -1089,10 +1097,11 @@ class NumConstsELS:
     def __init__(self):
         self.nmb_methods = 10
         self.nmb_stages = 11
-        self.dt_increase = 2.
-        self.dt_decrease = 10.
+        self.dt_increase = 2.0
+        self.dt_decrease = 10.0
         path = os.path.join(
-            conf.__path__[0], 'a_coefficients_explicit_lobatto_sequence.npy')
+            conf.__path__[0], "a_coefficients_explicit_lobatto_sequence.npy"
+        )
         self.a_coefs = numpy.load(path)
 
 
@@ -1125,18 +1134,18 @@ class NumVarsELS:
     def __init__(self):
         self.use_relerror = False
         self.nmb_calls = 0
-        self.t0 = 0.
-        self.t1 = 0.
-        self.dt_est = 1.
-        self.dt = 1.
+        self.t0 = 0.0
+        self.t1 = 0.0
+        self.dt_est = 1.0
+        self.dt = 1.0
         self.idx_method = 0
         self.idx_stage = 0
-        self.abserror = 0.
-        self.relerror = 0.
-        self.last_abserror = 0.
-        self.last_relerror = 0.
-        self.extrapolated_abserror = 0.
-        self.extrapolated_relerror = 0.
+        self.abserror = 0.0
+        self.relerror = 0.0
+        self.last_abserror = 0.0
+        self.last_relerror = 0.0
+        self.extrapolated_abserror = 0.0
+        self.extrapolated_relerror = 0.0
         self.f0_ready = False
 
 
@@ -1169,13 +1178,13 @@ class ELSModel(SolverModel):
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS = (
-        'RECEIVER_METHODS',
-        'INLET_METHODS',
-        'PART_ODE_METHODS',
-        'FULL_ODE_METHODS',
-        'ADD_METHODS',
-        'OUTLET_METHODS',
-        'SENDER_METHODS',
+        "RECEIVER_METHODS",
+        "INLET_METHODS",
+        "PART_ODE_METHODS",
+        "FULL_ODE_METHODS",
+        "ADD_METHODS",
+        "OUTLET_METHODS",
+        "SENDER_METHODS",
     )
     numconsts: NumConstsELS
     numvars: NumVarsELS
@@ -1567,18 +1576,20 @@ class ELSModel(SolverModel):
         this generic Python version with a model-specific Cython version.
         """
         self.numvars.use_relerror = not modelutils.isnan(
-            self.parameters.solver.relerrormax)
-        self.numvars.t0, self.numvars.t1 = 0., 1.
-        self.numvars.dt_est = 1.*self.parameters.solver.reldtmax
+            self.parameters.solver.relerrormax
+        )
+        self.numvars.t0, self.numvars.t1 = 0.0, 1.0
+        self.numvars.dt_est = 1.0 * self.parameters.solver.reldtmax
         self.numvars.f0_ready = False
         self.reset_sum_fluxes()
-        while self.numvars.t0 < self.numvars.t1-1e-14:
+        while self.numvars.t0 < self.numvars.t1 - 1e-14:
             self.numvars.last_abserror = modelutils.inf
             self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
-                self.numvars.t1-self.numvars.t0,
-                1.*self.parameters.solver.reldtmax,
-                max(self.numvars.dt_est, self.parameters.solver.reldtmin))
+                self.numvars.t1 - self.numvars.t0,
+                1.0 * self.parameters.solver.reldtmax,
+                max(self.numvars.dt_est, self.parameters.solver.reldtmin),
+            )
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
                 self.numvars.idx_method = 0
@@ -1586,15 +1597,12 @@ class ELSModel(SolverModel):
                 self.set_point_fluxes()
                 self.set_point_states()
                 self.set_result_states()
-            for self.numvars.idx_method in range(
-                    1, self.numconsts.nmb_methods+1):
-                for self.numvars.idx_stage in range(
-                        1, self.numvars.idx_method):
+            for self.numvars.idx_method in range(1, self.numconsts.nmb_methods + 1):
+                for self.numvars.idx_stage in range(1, self.numvars.idx_method):
                     self.get_point_states()
                     self.calculate_single_terms()
                     self.set_point_fluxes()
-                for self.numvars.idx_stage in range(
-                        1, self.numvars.idx_method+1):
+                for self.numvars.idx_stage in range(1, self.numvars.idx_method + 1):
                     self.integrate_fluxes()
                     self.calculate_full_terms()
                     self.set_point_states()
@@ -1604,29 +1612,28 @@ class ELSModel(SolverModel):
                 self.extrapolate_error()
                 if self.numvars.idx_method == 1:
                     continue
-                if ((self.numvars.abserror <=
-                     self.parameters.solver.abserrormax) or
-                        (self.numvars.relerror <=
-                         self.parameters.solver.relerrormax)):
-                    self.numvars.dt_est = \
-                        self.numconsts.dt_increase*self.numvars.dt
+                if (self.numvars.abserror <= self.parameters.solver.abserrormax) or (
+                    self.numvars.relerror <= self.parameters.solver.relerrormax
+                ):
+                    self.numvars.dt_est = self.numconsts.dt_increase * self.numvars.dt
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
-                    self.numvars.t0 = self.numvars.t0+self.numvars.dt
+                    self.numvars.t0 = self.numvars.t0 + self.numvars.dt
                     self.new2old()
                     break
                 decrease_dt = self.numvars.dt > self.parameters.solver.reldtmin
                 decrease_dt = decrease_dt and (
-                    self.numvars.extrapolated_abserror >
-                    self.parameters.solver.abserrormax)
+                    self.numvars.extrapolated_abserror
+                    > self.parameters.solver.abserrormax
+                )
                 if self.numvars.use_relerror:
                     decrease_dt = decrease_dt and (
-                        self.numvars.extrapolated_relerror >
-                        self.parameters.solver.relerrormax)
+                        self.numvars.extrapolated_relerror
+                        > self.parameters.solver.relerrormax
+                    )
                 if decrease_dt:
                     self.numvars.f0_ready = True
-                    self.numvars.dt_est = (self.numvars.dt /
-                                           self.numconsts.dt_decrease)
+                    self.numvars.dt_est = self.numvars.dt / self.numconsts.dt_decrease
                     break
                 self.numvars.last_abserror = self.numvars.abserror
                 self.numvars.last_relerror = self.numvars.relerror
@@ -1635,12 +1642,11 @@ class ELSModel(SolverModel):
                 if self.numvars.dt <= self.parameters.solver.reldtmin:
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
-                    self.numvars.t0 = self.numvars.t0+self.numvars.dt
+                    self.numvars.t0 = self.numvars.t0 + self.numvars.dt
                     self.new2old()
                 else:
                     self.numvars.f0_ready = True
-                    self.numvars.dt_est = (self.numvars.dt /
-                                           self.numconsts.dt_decrease)
+                    self.numvars.dt_est = self.numvars.dt / self.numconsts.dt_decrease
         self.get_sum_fluxes()
 
     def calculate_single_terms(self) -> None:
@@ -1655,7 +1661,7 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.25)
         """
-        self.numvars.nmb_calls = self.numvars.nmb_calls+1
+        self.numvars.nmb_calls = self.numvars.nmb_calls + 1
         for method in self.PART_ODE_METHODS:
             method.__call__(self)
 
@@ -1713,12 +1719,12 @@ class ELSModel(SolverModel):
         >>> print_values(states.sv.new)
         1.0, 2.0
         """
-        self._get_states(self.numvars.idx_stage, 'points')
+        self._get_states(self.numvars.idx_stage, "points")
 
     def _get_states(self, idx: int, type_: str) -> None:
         states = self.sequences.states
         for state in states:
-            temp = getattr(states.fastaccess, f'_{state.name}_{type_}')
+            temp = getattr(states.fastaccess, f"_{state.name}_{type_}")
             state.new = temp[idx]
 
     def set_point_states(self) -> None:
@@ -1754,7 +1760,7 @@ class ELSModel(SolverModel):
         >>> print_values(points[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
-        self._set_states(self.numvars.idx_stage, 'points')
+        self._set_states(self.numvars.idx_stage, "points")
 
     def set_result_states(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -1789,12 +1795,12 @@ class ELSModel(SolverModel):
         >>> print_values(results[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
-        self._set_states(self.numvars.idx_method, 'results')
+        self._set_states(self.numvars.idx_method, "results")
 
     def _set_states(self, idx: int, type_: str) -> None:
         states = self.sequences.states
         for state in states:
-            temp = getattr(states.fastaccess, f'_{state.name}_{type_}')
+            temp = getattr(states.fastaccess, f"_{state.name}_{type_}")
             temp[idx] = state.new
 
     def get_sum_fluxes(self) -> None:
@@ -1823,7 +1829,7 @@ class ELSModel(SolverModel):
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            flux(getattr(fluxes.fastaccess, f'_{flux.name}_sum'))
+            flux(getattr(fluxes.fastaccess, f"_{flux.name}_sum"))
 
     def set_point_fluxes(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -1856,7 +1862,7 @@ class ELSModel(SolverModel):
         >>> print_values(points[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
-        self._set_fluxes(self.numvars.idx_stage, 'points')
+        self._set_fluxes(self.numvars.idx_stage, "points")
 
     def set_result_fluxes(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -1890,12 +1896,12 @@ class ELSModel(SolverModel):
         >>> print_values(results[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
-        self._set_fluxes(self.numvars.idx_method, 'results')
+        self._set_fluxes(self.numvars.idx_method, "results")
 
     def _set_fluxes(self, idx: int, type_: str) -> None:
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            temp = getattr(fluxes.fastaccess, f'_{flux.name}_{type_}')
+            temp = getattr(fluxes.fastaccess, f"_{flux.name}_{type_}")
             temp[idx] = flux
 
     def integrate_fluxes(self) -> None:
@@ -1940,12 +1946,13 @@ class ELSModel(SolverModel):
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            points = getattr(fluxes.fastaccess, f'_{flux.name}_points')
-            coefs = self.numconsts.a_coefs[self.numvars.idx_method-1,
-                                           self.numvars.idx_stage,
-                                           :self.numvars.idx_method]
-            flux(self.numvars.dt *
-                 numpy.dot(coefs, points[:self.numvars.idx_method]))
+            points = getattr(fluxes.fastaccess, f"_{flux.name}_points")
+            coefs = self.numconsts.a_coefs[
+                self.numvars.idx_method - 1,
+                self.numvars.idx_stage,
+                : self.numvars.idx_method,
+            ]
+            flux(self.numvars.dt * numpy.dot(coefs, points[: self.numvars.idx_method]))
 
     def reset_sum_fluxes(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -1974,9 +1981,9 @@ class ELSModel(SolverModel):
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
             if flux.NDIM:
-                getattr(fluxes.fastaccess, f'_{flux.name}_sum')[:] = 0.
+                getattr(fluxes.fastaccess, f"_{flux.name}_sum")[:] = 0.0
             else:
-                setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
+                setattr(fluxes.fastaccess, f"_{flux.name}_sum", 0.0)
 
     def addup_fluxes(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -2005,9 +2012,9 @@ class ELSModel(SolverModel):
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            sum_ = getattr(fluxes.fastaccess, f'_{flux.name}_sum')
+            sum_ = getattr(fluxes.fastaccess, f"_{flux.name}_sum")
             sum_ += flux
-            setattr(fluxes.fastaccess, f'_{flux.name}_sum', sum_)
+            setattr(fluxes.fastaccess, f"_{flux.name}_sum", sum_)
 
     def calculate_error(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -2084,9 +2091,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.relerror
         inf
         """
-        self.numvars.abserror = 0.
+        self.numvars.abserror = 0.0
         if self.numvars.use_relerror:
-            self.numvars.relerror = 0.
+            self.numvars.relerror = 0.0
         else:
             self.numvars.relerror = numpy.inf
         fluxes = self.sequences.fluxes
@@ -2094,81 +2101,88 @@ class ELSModel(SolverModel):
         for flux in fluxes.numericsequences:
             if solversequences and not isinstance(flux, solversequences):
                 continue
-            results = getattr(fluxes.fastaccess, f'_{flux.name}_results')
-            absdiff = (results[self.numvars.idx_method] -
-                       results[self.numvars.idx_method-1])
+            results = getattr(fluxes.fastaccess, f"_{flux.name}_results")
+            absdiff = (
+                results[self.numvars.idx_method] - results[self.numvars.idx_method - 1]
+            )
             self.numvars.abserror = max(
-                self.numvars.abserror, numpy.max(numpy.abs(absdiff)))
+                self.numvars.abserror, numpy.max(numpy.abs(absdiff))
+            )
             if self.numvars.use_relerror:
-                idxs = results[self.numvars.idx_method] != 0.
+                idxs = results[self.numvars.idx_method] != 0.0
                 if numpy.any(idxs):
                     reldiff = numpy.abs(
-                        absdiff[idxs]/results[self.numvars.idx_method][idxs])
+                        absdiff[idxs] / results[self.numvars.idx_method][idxs]
+                    )
                 else:
                     reldiff = numpy.inf
                 self.numvars.relerror = max(
-                    self.numvars.relerror, numpy.max(numpy.abs(reldiff)))
+                    self.numvars.relerror, numpy.max(numpy.abs(reldiff))
+                )
 
     def extrapolate_error(self) -> None:
         # noinspection PyUnresolvedReferences
         """Estimate the numerical error expected when applying all methods
-        available based on the results of the current and the last method.
+         available based on the results of the current and the last method.
 
-       Note that you cannot apply this extrapolation strategy on the first
-       method.   If the current method is the first one, method
-       |ELSModel.extrapolate_error| returns `-999.9`:
+        Note that you cannot apply this extrapolation strategy on the first
+        method.   If the current method is the first one, method
+        |ELSModel.extrapolate_error| returns `-999.9`:
 
-        >>> from hydpy.models.test_v1 import *
-        >>> parameterstep()
-        >>> model.numvars.use_relerror = False
-        >>> model.numvars.abserror = 0.01
-        >>> model.numvars.last_abserror = 0.1
-        >>> model.numvars.idx_method = 10
-        >>> model.extrapolate_error()
-        >>> from hydpy import round_
-        >>> round_(model.numvars.extrapolated_abserror)
-        0.01
-        >>> model.numvars.extrapolated_relerror
-        inf
+         >>> from hydpy.models.test_v1 import *
+         >>> parameterstep()
+         >>> model.numvars.use_relerror = False
+         >>> model.numvars.abserror = 0.01
+         >>> model.numvars.last_abserror = 0.1
+         >>> model.numvars.idx_method = 10
+         >>> model.extrapolate_error()
+         >>> from hydpy import round_
+         >>> round_(model.numvars.extrapolated_abserror)
+         0.01
+         >>> model.numvars.extrapolated_relerror
+         inf
 
-        >>> model.numvars.use_relerror = True
-        >>> model.numvars.relerror = 0.001
-        >>> model.numvars.last_relerror = 0.01
-        >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_abserror)
-        0.01
-        >>> round_(model.numvars.extrapolated_relerror)
-        0.001
+         >>> model.numvars.use_relerror = True
+         >>> model.numvars.relerror = 0.001
+         >>> model.numvars.last_relerror = 0.01
+         >>> model.extrapolate_error()
+         >>> round_(model.numvars.extrapolated_abserror)
+         0.01
+         >>> round_(model.numvars.extrapolated_relerror)
+         0.001
 
-        >>> model.numvars.idx_method = 9
-        >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_abserror)
-        0.001
-        >>> round_(model.numvars.extrapolated_relerror)
-        0.0001
+         >>> model.numvars.idx_method = 9
+         >>> model.extrapolate_error()
+         >>> round_(model.numvars.extrapolated_abserror)
+         0.001
+         >>> round_(model.numvars.extrapolated_relerror)
+         0.0001
 
-        >>> model.numvars.relerror = inf
-        >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_relerror)
-        inf
+         >>> model.numvars.relerror = inf
+         >>> model.extrapolate_error()
+         >>> round_(model.numvars.extrapolated_relerror)
+         inf
 
-        >>> model.numvars.abserror = 0.0
-        >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_abserror)
-        0.0
-        >>> round_(model.numvars.extrapolated_relerror)
-        0.0
+         >>> model.numvars.abserror = 0.0
+         >>> model.extrapolate_error()
+         >>> round_(model.numvars.extrapolated_abserror)
+         0.0
+         >>> round_(model.numvars.extrapolated_relerror)
+         0.0
         """
-        if self.numvars.abserror <= 0.:
-            self.numvars.extrapolated_abserror = 0.
-            self.numvars.extrapolated_relerror = 0.
+        if self.numvars.abserror <= 0.0:
+            self.numvars.extrapolated_abserror = 0.0
+            self.numvars.extrapolated_relerror = 0.0
         else:
             if self.numvars.idx_method > 2:
                 self.numvars.extrapolated_abserror = modelutils.exp(
-                    modelutils.log(self.numvars.abserror) +
-                    (modelutils.log(self.numvars.abserror) -
-                     modelutils.log(self.numvars.last_abserror)) *
-                    (self.numconsts.nmb_methods-self.numvars.idx_method))
+                    modelutils.log(self.numvars.abserror)
+                    + (
+                        modelutils.log(self.numvars.abserror)
+                        - modelutils.log(self.numvars.last_abserror)
+                    )
+                    * (self.numconsts.nmb_methods - self.numvars.idx_method)
+                )
             else:
                 self.numvars.extrapolated_abserror = -999.9
             if self.numvars.use_relerror:
@@ -2177,10 +2191,12 @@ class ELSModel(SolverModel):
                         self.numvars.extrapolated_relerror = modelutils.inf
                     else:
                         self.numvars.extrapolated_relerror = modelutils.exp(
-                            modelutils.log(self.numvars.relerror) +
-                            (modelutils.log(self.numvars.relerror) -
-                             modelutils.log(self.numvars.last_relerror)) *
-                            (self.numconsts.nmb_methods-self.numvars.idx_method)
+                            modelutils.log(self.numvars.relerror)
+                            + (
+                                modelutils.log(self.numvars.relerror)
+                                - modelutils.log(self.numvars.last_relerror)
+                            )
+                            * (self.numconsts.nmb_methods - self.numvars.idx_method)
                         )
                 else:
                     self.numvars.extrapolated_relerror = -999.9
@@ -2215,5 +2231,8 @@ class Submodel:
         else:
             self._cysubmodel = self.PYTHONCLASS()
             for idx, methodtype in enumerate(self.METHODS):
-                setattr(self._cysubmodel, f'method{idx}',
-                        getattr(model, methodtype.__name__.lower()))
+                setattr(
+                    self._cysubmodel,
+                    f"method{idx}",
+                    getattr(model, methodtype.__name__.lower()),
+                )

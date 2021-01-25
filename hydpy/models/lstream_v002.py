@@ -28,13 +28,13 @@ example of the documentation on application model |lstream_v001|.  The spatial
 end temporal settings are identical:
 
 >>> from hydpy import pub, Nodes, Element
->>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
+>>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 >>> from hydpy.models.lstream_v002 import *
->>> parameterstep('1d')
->>> nodes = Nodes('input1', 'input2', 'output')
->>> stream = Element('stream',
-...                  inlets=['input1', 'input2'],
-...                  outlets='output')
+>>> parameterstep("1d")
+>>> nodes = Nodes("input1", "input2", "output")
+>>> stream = Element("stream",
+...                  inlets=["input1", "input2"],
+...                  outlets="output")
 >>> stream.model = model
 
 We again divide the channel into eight subsections:
@@ -86,7 +86,7 @@ flow is 660 m³/s instead of 659 m³/s):
 
 .. integration-test::
 
-    >>> test('lstream_v002_main_channel_flow')
+    >>> test("lstream_v002_main_channel_flow")
     |                date |         qz |        qza |                                                                                             qg |         qa |                                                                             vg | input1 |     input2 |     output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 | 1.570929  1.570929  1.570929  1.570929  1.570929  1.570929  1.570929  1.570929 |  100.0 |        0.0 |      100.0 |
@@ -285,6 +285,7 @@ flow is 660 m³/s instead of 659 m³/s):
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from lstream
 from hydpy.models.lstream import lstream_fluxes
 from hydpy.models.lstream import lstream_model
@@ -293,18 +294,15 @@ from hydpy.models.lstream import lstream_solver
 
 class Model(lstream_model.Model):
     """Version 3 of HydPy-L-Stream."""
+
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,
         lstream_solver.RelErrorMax,
         lstream_solver.RelDTMin,
         lstream_solver.RelDTMax,
     )
-    SOLVERSEQUENCES = (
-        lstream_fluxes.QG,
-    )
-    INLET_METHODS = (
-        lstream_model.Pick_Q_V1,
-    )
+    SOLVERSEQUENCES = (lstream_fluxes.QG,)
+    INLET_METHODS = (lstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
@@ -312,12 +310,8 @@ class Model(lstream_model.Model):
         lstream_model.Calc_QG_V2,
         lstream_model.Calc_QA_V1,
     )
-    FULL_ODE_METHODS = (
-        lstream_model.Update_VG_V1,
-    )
-    OUTLET_METHODS = (
-        lstream_model.Pass_Q_V1,
-    )
+    FULL_ODE_METHODS = (lstream_model.Update_VG_V1,)
+    OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

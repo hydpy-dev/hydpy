@@ -14,7 +14,7 @@ Integration tests
 We perform the following examples over a simulation period of 3 days:
 
 >>> from hydpy import pub, Nodes, Element
->>> pub.timegrids = '2000-01-01', '2000-01-04', '1d'
+>>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
 |conv_v001| implements no parameter with values depending on the simulation
 step size, which is why we can pass anything (or nothing) to function
@@ -28,10 +28,10 @@ inlet nodes `in1` and `in2` and passes the interpolation results to the
 outlet nodes `out1`, `out2`, `out3`, and `out4`:
 
 >>> from hydpy import *
->>> in1, in2 = Node('in1'), Node('in2')
->>> element = Element('conv',
+>>> in1, in2 = Node("in1"), Node("in2")
+>>> element = Element("conv",
 ...                   inlets=(in1, in2),
-...                   outlets=['out1', 'out2', 'out3', 'out4'])
+...                   outlets=["out1", "out2", "out3", "out4"])
 
 The following coordinate definitions contain the particular case of outlet
 node `out4`, being in the middle of inlet nodes `in1` and `in2` exactly:
@@ -60,7 +60,7 @@ missing values:
 >>> element.model = model
 >>> from hydpy.core.testtools import IntegrationTest
 >>> test = IntegrationTest(element)
->>> test.dateformat = '%Y-%m-%d'
+>>> test.dateformat = "%Y-%m-%d"
 >>> with pub.options.checkseries(False):
 ...     in1.sequences.sim.series = 1.0, 2.0, nan
 ...     in2.sequences.sim.series = 4.0, nan, nan
@@ -97,17 +97,12 @@ from hydpy.models.conv import conv_model
 
 class Model(conv_model.Model):
     """Version 1 of the Conv model."""
-    INLET_METHODS = (
-        conv_model.Pick_Inputs_V1,
-    )
+
+    INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        conv_model.Calc_Outputs_V1,
-    )
+    RUN_METHODS = (conv_model.Calc_Outputs_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        conv_model.Pass_Outputs_V1,
-    )
+    OUTLET_METHODS = (conv_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

@@ -16,18 +16,20 @@ class WBMin(parametertools.FixedParameter):
     a value slightly lower than zero for reasons of numerical stability
     when the simulated river section is dry.
     """
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
     INIT = 1e-9
 
 
 class WBReg(parametertools.FixedParameter):
     """Auf |WBMin| bezogener effektiver Glättungsparameter (effectiv smoothing
     parameter related to |WBMin|) [m]."""
+
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0., None)
+    SPAN = (0.0, None)
     INIT = 1e-5

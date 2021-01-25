@@ -8,6 +8,9 @@ omit =
 parallel=True
 
 [report]
+show_missing = True
 exclude_lines =
     pragma: no cover
     if TYPE_CHECKING
+    if typing.TYPE_CHECKING
+    \.\.\.

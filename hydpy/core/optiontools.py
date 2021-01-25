@@ -6,16 +6,17 @@
 import inspect
 import itertools
 from typing import *
+
 # ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import timetools
 
 
-TIn = TypeVar('TIn')
-TOut = TypeVar('TOut')
-TOrig = TypeVar('TOrig')
-TOption = TypeVar('TOption', bound='_Option')
+TIn = TypeVar("TIn")
+TOut = TypeVar("TOut")
+TOrig = TypeVar("TOrig")
+TOption = TypeVar("TOption", bound="_Option")
 
 
 class _Context(Generic[TOrig, TOption]):
@@ -26,17 +27,17 @@ class _Context(Generic[TOrig, TOption]):
     _old_value: TOrig
 
     def __new__(
-            cls,
-            *args,
-            option: TOption,
-            **kwargs,
+        cls,
+        *args,
+        option: TOption,
+        **kwargs,
     ):
         args_ = [cls, option._get_value()] + list(args)
         return cls._TYPE.__new__(*args_, **kwargs)
 
     def __init__(
-            self,
-            option: TOption,
+        self,
+        option: TOption,
     ):
         self._option = option
         self._old_value = option._value
@@ -45,15 +46,12 @@ class _Context(Generic[TOrig, TOption]):
         return self
 
     def __call__(
-            self,
-            value,
-            optional=False,
+        self,
+        value,
+        optional=False,
     ):
         option = self._option
-        if (
-                (value is not None) and
-                ((option._get_value() is None) or not optional)
-        ):
+        if (value is not None) and ((option._get_value() is None) or not optional):
             option._value = option.ORIGTYPE(value)
         return self
 
@@ -64,7 +62,7 @@ class _Context(Generic[TOrig, TOption]):
 class _IntContext(
     _Context[
         int,
-        '_IntOption',
+        "_IntOption",
     ],
     int,
 ):
@@ -75,7 +73,7 @@ class _IntContext(
 class _PeriodContext(
     _Context[
         timetools.Period,
-        '_PeriodOption',
+        "_PeriodOption",
     ],
     timetools.Period,
 ):
@@ -94,16 +92,16 @@ class _Option(Generic[TIn, TOut, TOrig]):
         self._default = default
         self._value = default
 
-    def __get__(self: TOption, options: 'Options', type_=None) -> TOut:
+    def __get__(self: TOption, options: "Options", type_=None) -> TOut:
         context = self.CONTEXTTYPE(option=self)
         context.__doc__ = self.__doc__
         context._default = self._default
         return context
 
-    def __set__(self: TOption, options: 'Options', value: TIn) -> None:
+    def __set__(self: TOption, options: "Options", value: TIn) -> None:
         self._value = self.ORIGTYPE(value)
 
-    def __delete__(self, options: 'Options') -> None:
+    def __delete__(self, options: "Options") -> None:
         self._value = self._default
 
     def _get_value(self) -> TOrig:
@@ -146,7 +144,6 @@ class _PeriodOption(
 
 
 class _Simulationstep(_PeriodOption):
-
     def _get_value(self):
         try:
             return hydpy.pub.timegrids.stepsize
@@ -246,14 +243,14 @@ class Options:
     in individual NetCDF files (see the documentation on module 
     |netcdftools| for further information)."""
 
-    parameterstep = _PeriodOption(timetools.Period('1d'))
+    parameterstep = _PeriodOption(timetools.Period("1d"))
     """The actual parameter time step size.  Change it by passing a |Period| 
     object or any valid |Period| constructor argument.  The default parameter 
     step is one day.
     
     >>> from hydpy import pub
     >>> pub.options.parameterstep
-    Period('1d')
+    Period("1d")
     """
 
     printprogress = _BoolOption(True)
@@ -287,21 +284,21 @@ class Options:
     >>> pub.options.simulationstep
     Period()
     
-    >>> pub.options.simulationstep = '1h'
+    >>> pub.options.simulationstep = "1h"
     >>> pub.options.simulationstep
-    Period('1h')
+    Period("1h")
     
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.options.simulationstep
-    Period('1d')
+    Period("1d")
  
-    >>> pub.options.simulationstep = '1s'
+    >>> pub.options.simulationstep = "1s"
     >>> pub.options.simulationstep
-    Period('1d')
+    Period("1d")
     
     >>> del pub.timegrids
     >>> pub.options.simulationstep
-    Period('1s')
+    Period("1s")
     
     >>> del pub.options.simulationstep
     >>> pub.options.simulationstep
@@ -363,34 +360,35 @@ class Options:
 
     def __repr__(self):
         type_ = type(self)
-        lines = ['Options(']
+        lines = ["Options("]
         for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
-            if not option.startswith('_'):
+            if not option.startswith("_"):
                 value = getattr(self, option)
-                lines.append(f'    {option} -> {repr(value)}')
-        lines.append(')')
-        return '\n'.join(lines)
+                lines.append(f"    {option} -> {repr(value)}")
+        lines.append(")")
+        return "\n".join(lines)
 
 
 def _prepare_docstrings():
     """Assign docstrings to the corresponding attributes of class `Options`
-     to make them available in the interactive mode of Python."""
+    to make them available in the interactive mode of Python."""
     if config.USEAUTODOC:
         __test__ = {}
         source = inspect.getsource(Options)
         docstrings = source.split('"""')[3::2]
         attributes = [
-            line.strip().split()[0] for line in source.split('\n')
+            line.strip().split()[0]
+            for line in source.split("\n")
             if (
-                ('_IntOption(' in line) or
-                ('_BoolOption(' in line) or
-                ('_PeriodOption(' in line)
+                ("_IntOption(" in line)
+                or ("_BoolOption(" in line)
+                or ("_PeriodOption(" in line)
             )
         ]
         for attribute, docstring in zip(attributes, docstrings):
             Options.__dict__[attribute].__doc__ = docstring
             __test__[attribute] = docstring
-        globals()['__test__'] = __test__
+        globals()["__test__"] = __test__
 
 
 _prepare_docstrings()

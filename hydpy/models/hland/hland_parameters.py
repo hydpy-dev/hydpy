@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+
 # ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_masks
@@ -25,7 +26,7 @@ class ParameterComplete(parametertools.ZipParameter):
     values using the relevant land use types as keywords:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -47,9 +48,9 @@ class ParameterComplete(parametertools.ZipParameter):
 
     >>> round_(pcorr.average_values(model.masks.field))
     2.0
-    >>> round_(pcorr.average_values('soil'))
+    >>> round_(pcorr.average_values("soil"))
     1.8
-    >>> round_(pcorr.average_values(model.masks.field, 'forest'))
+    >>> round_(pcorr.average_values(model.masks.field, "forest"))
     1.8
 
     All other masks (e.g. |hland_masks.Soil| used by |ParameterSoil|
@@ -61,6 +62,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr.mask in icmax.mask
     False
     """
+
     MODEL_CONSTANTS = hland_constants.CONSTANTS
     mask = hland_masks.Complete()
 
@@ -79,7 +81,7 @@ class ParameterSoil(ParameterComplete):
     based on parameter |IcMax|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> icmax(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -93,6 +95,7 @@ class ParameterSoil(ParameterComplete):
     >>> round_(icmax.average_values())
     3.75
     """
+
     mask = hland_masks.Soil()
 
 
@@ -104,7 +107,7 @@ class ParameterLand(ParameterComplete):
     based on parameter |WHC|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -118,6 +121,7 @@ class ParameterLand(ParameterComplete):
     >>> round_(whc.average_values())
     5.5
     """
+
     mask = hland_masks.Land()
 
 
@@ -128,7 +132,7 @@ class ParameterLake(ParameterComplete):
     based on parameter |TTIce|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(ILAKE, FOREST, GLACIER, ILAKE, FIELD)
     >>> ttice(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -142,6 +146,7 @@ class ParameterLake(ParameterComplete):
     >>> round_(ttice.average_values())
     9.0
     """
+
     mask = hland_masks.ILake()
 
 
@@ -152,8 +157,8 @@ class ParameterGlacier(ParameterComplete):
     based on parameter |GMelt|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
-    >>> simulationstep('1d')
+    >>> parameterstep("1d")
+    >>> simulationstep("1d")
     >>> nmbzones(5)
     >>> zonetype(GLACIER, FOREST, ILAKE, GLACIER, FIELD)
     >>> gmelt(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -167,6 +172,7 @@ class ParameterGlacier(ParameterComplete):
     >>> round_(gmelt.average_values())
     8.0
     """
+
     mask = hland_masks.Glacier()
 
 
@@ -178,7 +184,7 @@ class ParameterNoGlacier(ParameterComplete):
     based on parameter |ECorr|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> ecorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
@@ -192,4 +198,5 @@ class ParameterNoGlacier(ParameterComplete):
     >>> round_(ecorr.average_values())
     5.5
     """
+
     mask = hland_masks.NoGlacier()

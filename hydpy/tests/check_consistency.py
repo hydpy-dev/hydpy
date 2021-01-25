@@ -4,15 +4,17 @@
 import os
 import sys
 from typing import *
+
 # ...from HydPy
 from hydpy import models
 from hydpy.core.testtools import perform_consistencychecks
 
-print('Perform all available consistency checks:\n')
-dirpath = models.__path__[0]
+print("Perform all available consistency checks:\n")
+dirpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
 applicationmodels = [
-    fn.split('.')[0] for fn in os.listdir(dirpath)
-    if (fn != '__init__.py') and os.path.isfile(os.path.join(dirpath, fn))
+    fn.split(".")[0]
+    for fn in os.listdir(dirpath)
+    if (fn != "__init__.py") and os.path.isfile(os.path.join(dirpath, fn))
 ]
 results: List[str] = []
 for applicationmodel in applicationmodels:
@@ -22,12 +24,12 @@ for applicationmodel in applicationmodels:
     )
     if subresult:
         results.append(
-            f'Potential consistency problems for '
-            f'application model {applicationmodel}'
+            f"Potential consistency problems for "
+            f"application model {applicationmodel}"
         )
-        results.append(f'{subresult}\n')
+        results.append(f"{subresult}\n")
 if results:
-    print('\n'.join(results))
+    print("\n".join(results))
     sys.exit(1)
-print('   nothing to report\n')
+print("   nothing to report\n")
 sys.exit(0)

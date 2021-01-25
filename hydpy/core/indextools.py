@@ -3,8 +3,10 @@
 # import...
 # ...from standard library
 import copy
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -14,16 +16,17 @@ from hydpy.core import timetools
 
 
 def _get_timegrids(func):
-    timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
+    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
     if timegrids is None:
         name = func.__name__[1:]
         raise exceptiontools.AttributeNotReady(
-            f'An Indexer object has been asked for an `{name}` array.  '
-            f'Such an array has neither been determined yet nor can it '
-            f'be determined automatically at the moment.   Either define '
-            f'an `{name}` array manually and pass it to the Indexer '
-            f'object, or make a proper Timegrids object available within '
-            f'the pub module.')
+            f"An Indexer object has been asked for an `{name}` array.  "
+            f"Such an array has neither been determined yet nor can it "
+            f"be determined automatically at the moment.   Either define "
+            f"an `{name}` array manually and pass it to the Indexer "
+            f"object, or make a proper Timegrids object available within "
+            f"the pub module."
+        )
     return timegrids
 
 
@@ -55,7 +58,7 @@ object, or make a proper Timegrids object available within the pub module.
     For efficiency, repeated querying of |Indexer.monthofyear| returns
     the same |numpy| |numpy.array| object:
 
-    >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+    >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
     >>> monthofyear = pub.indexer.monthofyear
     >>> monthofyear
     array([1, 1, 1, 2, 2])
@@ -67,7 +70,7 @@ object, or make a proper Timegrids object available within the pub module.
     When the |Timegrids| object handled by module |pub| changes,
     |IndexerProperty| calculates and returns a new index array:
 
-    >>> pub.timegrids.init.firstdate += '1d'
+    >>> pub.timegrids.init.firstdate += "1d"
     >>> pub.indexer.monthofyear
     array([1, 1, 2, 2])
     >>> pub.indexer.monthofyear is monthofyear
@@ -91,13 +94,13 @@ object, or make a proper Timegrids object available within the pub module.
     >>> pub.indexer.monthofyear = 0, 1, 2, 3
     >>> pub.indexer.monthofyear
     array([0, 1, 2, 3])
-    >>> pub.timegrids.init.firstdate -= '1d'
+    >>> pub.timegrids.init.firstdate -= "1d"
     >>> pub.indexer.monthofyear
     array([1, 1, 1, 2, 2])
 
     When assigning inadequate data, you get errors like the following:
 
-    >>> pub.indexer.monthofyear = 'wrong'
+    >>> pub.indexer.monthofyear = "wrong"
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign a new `monthofyear` index array \
@@ -131,7 +134,7 @@ period is `5`.
         self.timegrids = None
 
     def call_fget(self, obj) -> numpy.ndarray:
-        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids', None)
+        timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
             self.timegrids = copy.deepcopy(timegrids)
@@ -142,9 +145,7 @@ period is `5`.
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
-        self.timegrids = copy.deepcopy(
-            exceptiontools.getattr_(hydpy.pub, 'timegrids')
-        )
+        self.timegrids = copy.deepcopy(exceptiontools.getattr_(hydpy.pub, "timegrids"))
 
     def call_fdel(self, obj):
         self.fdel()
@@ -160,23 +161,26 @@ period is `5`.
             array = numpy.array(values, dtype=type_)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to assign a new `{name}` '
-                f'index array to an Indexer object')
+                f"While trying to assign a new `{name}` "
+                f"index array to an Indexer object"
+            )
         if array.ndim != 1:
             raise ValueError(
-                f'The `{name}` index array of an Indexer object must be '
-                f'1-dimensional.  However, the given value has interpreted '
-                f'as a {array.ndim}-dimensional object.')
-        timegrids = exceptiontools.getattr_(hydpy.pub, 'timegrids')
+                f"The `{name}` index array of an Indexer object must be "
+                f"1-dimensional.  However, the given value has interpreted "
+                f"as a {array.ndim}-dimensional object."
+            )
+        timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids")
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(
-                    f'The `{name}` index array of an Indexer object must have '
-                    f'a number of entries fitting to the initialization time '
-                    f'period precisely.  However, the given value has been '
-                    f'interpreted to be of length `{len(array)}` and the '
-                    f'length of the Timegrid object representing the actual '
-                    f'initialisation period is `{len(timegrids.init)}`.')
+                    f"The `{name}` index array of an Indexer object must have "
+                    f"a number of entries fitting to the initialization time "
+                    f"period precisely.  However, the given value has been "
+                    f"interpreted to be of length `{len(array)}` and the "
+                    f"length of the Timegrid object representing the actual "
+                    f"initialisation period is `{len(timegrids.init)}`."
+                )
         return array
 
     @staticmethod
@@ -197,6 +201,7 @@ class Indexer:
     determined automatically based on the |Timegrids| object made
     available through module |pub|.
     """
+
     def __init__(self):
         self._monthofyear = None
         self._monthofyear_timegrids = hash(None)
@@ -213,7 +218,7 @@ class Indexer:
         February and the first days of March for a leap year:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> monthofyear = pub.indexer.monthofyear
         >>> monthofyear
         array([1, 1, 1, 2, 2])
@@ -222,6 +227,7 @@ class Indexer:
         # pylint does not understand descriptors well enough, so far
         def _monthofyear(date):
             return date.month - 1
+
         return _monthofyear
 
     @IndexerProperty
@@ -234,18 +240,18 @@ class Indexer:
 
         >>> from hydpy import pub
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> Indexer().dayofyear
         array([57, 58, 59, 60, 61])
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
         # pylint: disable=no-self-use
         # pylint does not understand descriptors well enough, so far
         def _dayofyear(date):
-            return (date.dayofyear-1 +
-                    ((date.month > 2) and (not date.leapyear)))
+            return date.dayofyear - 1 + ((date.month > 2) and (not date.leapyear))
+
         return _dayofyear
 
     @IndexerProperty
@@ -258,7 +264,7 @@ class Indexer:
         >>> from hydpy import pub
         >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
 
         Due to the simulation step size of one day, the index arrays
         calculated by properties |Indexer.dayofyear| and |Indexer.timeofyear|
@@ -271,7 +277,7 @@ class Indexer:
 
         In the next example, we halve the step size:
 
-        >>> pub.timegrids = '27.02.2005', '3.03.2005', '12h'
+        >>> pub.timegrids = "27.02.2005", "3.03.2005", "12h"
 
         Now two subsequent simulation steps associated are with the same day:
 
@@ -295,9 +301,10 @@ class Indexer:
             return refgrid[date]
 
         refgrid = timetools.Timegrid(
-            timetools.Date('2000.01.01'),
-            timetools.Date('2001.01.01'),
-            _get_timegrids(_timeofyear).stepsize)
+            timetools.Date("2000.01.01"),
+            timetools.Date("2001.01.01"),
+            _get_timegrids(_timeofyear).stepsize,
+        )
         return _timeofyear
 
     @IndexerProperty
@@ -314,25 +321,26 @@ class Indexer:
         and one second, respectively:
 
         >>> from hydpy import pub, print_values
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> print_values(pub.indexer.standardclocktime)
         12.0, 12.0, 12.0, 12.0, 12.0
 
-        >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
+        >>> pub.timegrids = "27.02.2004 21:00", "28.02.2004 03:00", "1h"
         >>> print_values(pub.indexer.standardclocktime)
         21.5, 22.5, 23.5, 0.5, 1.5, 2.5
 
-        >>> pub.timegrids = '27.02.2004 23:57:0', '28.02.2004 00:03:00', '1m'
+        >>> pub.timegrids = "27.02.2004 23:57:0", "28.02.2004 00:03:00", "1m"
         >>> print_values(pub.indexer.standardclocktime)
         23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667
 
-        >>> pub.timegrids = '27.02.2004 23:59:57', '28.02.2004 00:00:03', '1s'
+        >>> pub.timegrids = "27.02.2004 23:59:57", "28.02.2004 00:00:03", "1s"
         >>> print_values(pub.indexer.standardclocktime)
         23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694
         """
         # pylint: disable=no-self-use
         # pylint does not understand descriptors well enough, so far
         def _standardclocktime(date):
-            t0 = date.hour+(date.minute+date.second/60.)/60.
-            return t0 + hydpy.pub.timegrids.stepsize.hours/2.
+            t0 = date.hour + (date.minute + date.second / 60.0) / 60.0
+            return t0 + hydpy.pub.timegrids.stepsize.hours / 2.0
+
         return _standardclocktime

@@ -4,7 +4,9 @@
 # import...
 # ...from standard-library
 import importlib
+import types
 from typing import *
+
 # ...from HydPy
 from hydpy.core import objecttools
 
@@ -18,8 +20,8 @@ class AttributeNotReady(RuntimeError):
 
 
 def attrready(
-        obj: Any,
-        name: str,
+    obj: Any,
+    name: str,
 ) -> bool:
     """Return |False| when trying the access the attribute of the given object
     results in an |AttributeNotReady| error and otherwise return |True|.
@@ -34,16 +36,16 @@ def attrready(
     >>> class Par(Parameter):
     ...     NDIM, TYPE = 1, float
     >>> par = Par(None)
-    >>> attrready(par, 'NDIM')
+    >>> attrready(par, "NDIM")
     True
-    >>> attrready(par, 'ndim')
+    >>> attrready(par, "ndim")
     Traceback (most recent call last):
     ...
     AttributeError: 'Par' object has no attribute 'ndim'
-    >>> attrready(par, 'shape')
+    >>> attrready(par, "shape")
     False
     >>> par.shape = 2
-    >>> attrready(par, 'shape')
+    >>> attrready(par, "shape")
     True
     """
     try:
@@ -54,8 +56,8 @@ def attrready(
 
 
 def hasattr_(
-        obj: Any,
-        name: str,
+    obj: Any,
+    name: str,
 ) -> bool:
     """Return |True| or |False| whether the object has an attribute with the
     given name or not.
@@ -71,14 +73,14 @@ def hasattr_(
     >>> class Par(Parameter):
     ...     NDIM, TYPE = 1, float
     >>> par = Par(None)
-    >>> hasattr_(par, 'NDIM')
+    >>> hasattr_(par, "NDIM")
     True
-    >>> hasattr_(par, 'ndim')
+    >>> hasattr_(par, "ndim")
     False
-    >>> hasattr_(par, 'shape')
+    >>> hasattr_(par, "shape")
     True
     >>> par.shape = 2
-    >>> attrready(par, 'shape')
+    >>> attrready(par, "shape")
     True
     """
     try:
@@ -87,13 +89,13 @@ def hasattr_(
         return True
 
 
-_GETATTR_NO_DEFAULT = type('_GETATTR_NO_DEFAULT', (), {})
+_GETATTR_NO_DEFAULT = type("_GETATTR_NO_DEFAULT", (), {})
 
 
 def getattr_(
-        obj: Any,
-        name: str,
-        default: Any = _GETATTR_NO_DEFAULT,
+    obj: Any,
+    name: str,
+    default: Any = _GETATTR_NO_DEFAULT,
 ) -> bool:
     """Return the attribute with the given name or, if it does not exist,
     the default value, if available.
@@ -109,28 +111,28 @@ def getattr_(
     >>> class Par(Parameter):
     ...     NDIM, TYPE = 1, float
     >>> par = Par(None)
-    >>> getattr_(par, 'NDIM')
+    >>> getattr_(par, "NDIM")
     1
-    >>> getattr_(par, 'NDIM', 2)
+    >>> getattr_(par, "NDIM", 2)
     1
-    >>> getattr_(par, 'ndim')
+    >>> getattr_(par, "ndim")
     Traceback (most recent call last):
     ...
     AttributeError: 'Par' object has no attribute 'ndim'
-    >>> getattr_(par, 'ndim', 2)
+    >>> getattr_(par, "ndim", 2)
     2
 
-    >>> getattr_(par, 'shape')
+    >>> getattr_(par, "shape")
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
 variable `par` can only be retrieved after it has been defined.
-    >>> getattr_(par, 'shape', (4,))
+    >>> getattr_(par, "shape", (4,))
     (4,)
     >>> par.shape = 2
-    >>> getattr_(par, 'shape')
+    >>> getattr_(par, "shape")
     (2,)
-    >>> getattr_(par, 'shape', (4,))
+    >>> getattr_(par, "shape", (4,))
     (2,)
     """
     if default == _GETATTR_NO_DEFAULT:
@@ -146,12 +148,12 @@ class OptionalModuleNotAvailable(ImportError):
     module is not available."""
 
 
-class OptionalImport:
+class OptionalImport(types.ModuleType):
     """Imports the first found module "lazily".
 
     >>> from hydpy.core.exceptiontools import OptionalImport
     >>> numpy = OptionalImport(
-    ...     'numpy', ['numpie', 'numpy', 'os'], locals())
+    ...     "numpy", ["numpie", "numpy", "os"], locals())
     >>> numpy.nan
     nan
 
@@ -159,7 +161,7 @@ class OptionalImport:
     dummy object which raises a |OptionalModuleNotAvailable| each time
     a one tries to access a member of the original module.
 
-    >>> numpie = OptionalImport('numpie', ['numpie'], locals())
+    >>> numpie = OptionalImport("numpie", ["numpie"], locals())
     >>> numpie.nan
     Traceback (most recent call last):
     ...
@@ -179,17 +181,17 @@ specific functionalities.
     """
 
     def __init__(
-            self,
-            name: str,
-            modules: List[str],
-            namespace: Dict[str, Any],
+        self,
+        name: str,
+        modules: List[str],
+        namespace: Dict[str, Any],
     ) -> None:
         self._name = name
         self._modules = modules
         self._namespace = namespace
 
     def __getattr__(self, name: str) -> Any:
-        if name == '__wrapped__':
+        if name == "__wrapped__":
             raise AttributeError
         module = None
         for modulename in self._modules:
@@ -202,7 +204,8 @@ specific functionalities.
         if module:
             return getattr(module, name)
         raise OptionalModuleNotAvailable(
-            f'HydPy could not load one of the following modules: '
-            f'`{objecttools.enumeration(self._modules)}`.  These modules are '
-            f'no general requirement but installing at least one of them '
-            f'is necessary for some specific functionalities.')
+            f"HydPy could not load one of the following modules: "
+            f"`{objecttools.enumeration(self._modules)}`.  These modules are "
+            f"no general requirement but installing at least one of them "
+            f"is necessary for some specific functionalities."
+        )

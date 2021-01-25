@@ -5,8 +5,10 @@
 # import...
 # ...from standard-library
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -54,7 +56,7 @@ class Responses(parametertools.Parameter):
     All ARMA models are available via attribute access and their attribute
     names are made available to function |dir|:
 
-    >>> 'th_1_0' in dir(responses)
+    >>> "th_1_0" in dir(responses)
     True
 
     Note that all iterables containing the AR and MA coefficients are
@@ -208,6 +210,7 @@ Most probably, you defined the same threshold value(s) twice.
     representations.  But this would possibly require to define a specialized
     `arrays in list` type in Cython.
     """
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -224,43 +227,46 @@ Most probably, you defined the same threshold value(s) twice.
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(
-                f'For parameter `{self.name}` of element '
-                f'`{objecttools.devicename(self.subpars)}` at most '
-                f'one positional argument is allowed, but '
-                f'`{len(args)}` are given.')
+                f"For parameter `{self.name}` of element "
+                f"`{objecttools.devicename(self.subpars)}` at most "
+                f"one positional argument is allowed, but "
+                f"`{len(args)}` are given."
+            )
         for (key, value) in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
-            setattr(self, 'th_0_0', args[0])
-        if len(args)+len(kwargs) != len(self):
+            setattr(self, "th_0_0", args[0])
+        if len(args) + len(kwargs) != len(self):
             raise ValueError(
-                f'For parameter `{self.name}` of element '
-                f'`{objecttools.devicename(self.subpars)}` '
-                f'`{len(args)+len(kwargs)}` arguments have been given '
-                f'but only `{len(self)}` response functions could be '
-                f'prepared.  Most probably, you defined the same '
-                f'threshold value(s) twice.')
+                f"For parameter `{self.name}` of element "
+                f"`{objecttools.devicename(self.subpars)}` "
+                f"`{len(args)+len(kwargs)}` arguments have been given "
+                f"but only `{len(self)}` response functions could be "
+                f"prepared.  Most probably, you defined the same "
+                f"threshold value(s) twice."
+            )
 
     def __getattr__(self, key):
         try:
             std_key = self._standardize_key(key)
         except AttributeError as exc:
             raise AttributeError(
-                f'Parameter `{self.name}` of element '
-                f'`{objecttools.devicename(self.subpars)}` does not '
-                f'have an attribute named `{key}` and the name `{key}` '
-                f'is also not a valid threshold value identifier.'
+                f"Parameter `{self.name}` of element "
+                f"`{objecttools.devicename(self.subpars)}` does not "
+                f"have an attribute named `{key}` and the name `{key}` "
+                f"is also not a valid threshold value identifier."
             ) from exc
         if std_key in self._coefs:
             return self._coefs[std_key]
         raise AttributeError(
-            f'Parameter `{self.name}` of element '
-            f'`{objecttools.devicename(self.subpars)}` does not have '
-            f'an attribute attribute named `{key}` nor an arma model '
-            f'corresponding to a threshold value named `{std_key}`.')
+            f"Parameter `{self.name}` of element "
+            f"`{objecttools.devicename(self.subpars)}` does not have "
+            f"an attribute attribute named `{key}` nor an arma model "
+            f"corresponding to a threshold value named `{std_key}`."
+        )
 
     def __setattr__(self, key, value):
-        if hasattr(self, key) and not key.startswith('th_'):
+        if hasattr(self, key) and not key.startswith("th_"):
             object.__setattr__(self, key, value)
         else:
             std_key = self._standardize_key(key)
@@ -274,9 +280,9 @@ Most probably, you defined the same threshold value(s) twice.
                     )
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to set a new threshold ({key}) '
-                    f'coefficient pair for parameter `{self.name}` '
-                    f'of element `{objecttools.devicename(self.subpars)}`'
+                    f"While trying to set a new threshold ({key}) "
+                    f"coefficient pair for parameter `{self.name}` "
+                    f"of element `{objecttools.devicename(self.subpars)}`"
                 )
 
     def __delattr__(self, key):
@@ -286,35 +292,36 @@ Most probably, you defined the same threshold value(s) twice.
 
     def _standardize_key(self, key):
         try:
-            tuple_ = str(key).split('_')
+            tuple_ = str(key).split("_")
             if (len(tuple_) > 1) and tuple_[-2].isdigit():
                 integer = int(tuple_[-2])
                 decimal = int(tuple_[-1])
             else:
                 integer = int(tuple_[-1])
                 decimal = 0
-            return '_'.join(('th', str(integer), str(decimal)))
+            return "_".join(("th", str(integer), str(decimal)))
         except BaseException as exc:
             raise AttributeError(
-                f'To define different response functions for '
-                f'parameter `{self.name}` of element '
-                f'`{objecttools.devicename(self.subpars)}`, one has '
-                f'to pass them as keyword arguments or set them as '
-                f'additional attributes.  The used name must meet a '
-                f'specific format (see the documentation for further '
-                f'information).  The given name `{key}` does not '
-                f'meet this format.'
+                f"To define different response functions for "
+                f"parameter `{self.name}` of element "
+                f"`{objecttools.devicename(self.subpars)}`, one has "
+                f"to pass them as keyword arguments or set them as "
+                f"additional attributes.  The used name must meet a "
+                f"specific format (see the documentation for further "
+                f"information).  The given name `{key}` does not "
+                f"meet this format."
             ) from exc
 
     @property
     def thresholds(self):
         """Threshold values of the response functions."""
         return numpy.array(
-            sorted(self._key2float(key) for key in self._coefs), dtype=float)
+            sorted(self._key2float(key) for key in self._coefs), dtype=float
+        )
 
     @staticmethod
     def _key2float(key):
-        return float(key[3:].replace('_', '.'))
+        return float(key[3:].replace("_", "."))
 
     def _get_orders(self, index) -> Tuple[int, ...]:
         orders = []
@@ -372,18 +379,20 @@ Most probably, you defined the same threshold value(s) twice.
 
     def __repr__(self):
         strings = self.commentrepr
-        prefix = '%s(' % self.name
-        blanks = ' '*len(prefix)
+        prefix = "%s(" % self.name
+        blanks = " " * len(prefix)
         if self:
             for idx, (th, coefs) in enumerate(self):
-                subprefix = ('%s%s=' % (prefix, th) if idx == 0 else
-                             '%s%s=' % (blanks, th))
-                strings.append(objecttools.assignrepr_tuple2(coefs, subprefix,
-                                                             75) + ',')
-            strings[-1] = strings[-1][:-1] + ')'
+                subprefix = (
+                    "%s%s=" % (prefix, th) if idx == 0 else "%s%s=" % (blanks, th)
+                )
+                strings.append(
+                    objecttools.assignrepr_tuple2(coefs, subprefix, 75) + ","
+                )
+            strings[-1] = strings[-1][:-1] + ")"
         else:
-            strings.append(prefix + ')')
-        return '\n'.join(strings)
+            strings.append(prefix + ")")
+        return "\n".join(strings)
 
     def __dir__(self):
         attrs = objecttools.dir_(self)

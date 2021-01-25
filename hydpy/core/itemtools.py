@@ -5,8 +5,10 @@ modification of the values of |Parameter| and |Sequence_| objects."""
 # ...from standard library
 import abc
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -22,20 +24,20 @@ class ExchangeSpecification:
     The following tests list the expected cases:
 
     >>> from hydpy.core.itemtools import ExchangeSpecification
-    >>> ExchangeSpecification('hland_v1', 'fluxes.qt')
-    ExchangeSpecification('hland_v1', 'fluxes.qt')
-    >>> ExchangeSpecification('hland_v1', 'fluxes.qt.series')
-    ExchangeSpecification('hland_v1', 'fluxes.qt.series')
-    >>> ExchangeSpecification('node', 'sim')
-    ExchangeSpecification('node', 'sim')
-    >>> ExchangeSpecification('node', 'sim.series')
-    ExchangeSpecification('node', 'sim.series')
+    >>> ExchangeSpecification("hland_v1", "fluxes.qt")
+    ExchangeSpecification("hland_v1", "fluxes.qt")
+    >>> ExchangeSpecification("hland_v1", "fluxes.qt.series")
+    ExchangeSpecification("hland_v1", "fluxes.qt.series")
+    >>> ExchangeSpecification("node", "sim")
+    ExchangeSpecification("node", "sim")
+    >>> ExchangeSpecification("node", "sim.series")
+    ExchangeSpecification("node", "sim.series")
 
     The following attributes are accessible:
 
-    >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt')
+    >>> spec = ExchangeSpecification("hland_v1", "fluxes.qt")
     >>> spec
-    ExchangeSpecification('hland_v1', 'fluxes.qt')
+    ExchangeSpecification("hland_v1", "fluxes.qt")
     >>> spec.master
     'hland_v1'
     >>> spec.subgroup
@@ -45,10 +47,11 @@ class ExchangeSpecification:
     >>> spec.series
     False
     """
+
     def __init__(self, master, variable):
         self.master = master
-        entries = variable.split('.')
-        self.series = entries[-1] == 'series'
+        entries = variable.split(".")
+        self.series = entries[-1] == "series"
         if self.series:
             del entries[-1]
         try:
@@ -62,7 +65,7 @@ class ExchangeSpecification:
         `state`, and `variable`.
 
         >>> from hydpy.core.itemtools import ExchangeSpecification
-        >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt')
+        >>> spec = ExchangeSpecification("hland_v1", "fluxes.qt")
         >>> spec.specstring
         'fluxes.qt'
         >>> spec.series = True
@@ -75,13 +78,13 @@ class ExchangeSpecification:
         if self.subgroup is None:
             variable = self.variable
         else:
-            variable = f'{self.subgroup}.{self.variable}'
+            variable = f"{self.subgroup}.{self.variable}"
         if self.series:
-            variable = f'{variable}.series'
+            variable = f"{variable}.series"
         return variable
 
     def __repr__(self):
-        return f"ExchangeSpecification('{self.master}', '{self.specstring}')"
+        return f'ExchangeSpecification("{self.master}", "{self.specstring}")'
 
 
 class ExchangeItem:
@@ -92,29 +95,31 @@ class ExchangeItem:
     targetspecs: ExchangeSpecification
     device2target: Dict[devicetools.Device, variabletools.Variable]
 
-    def _iter_relevantelements(self, selections) -> \
-            Iterator[devicetools.Element]:
+    def _iter_relevantelements(self, selections) -> Iterator[devicetools.Element]:
         for element in selections.elements:
             name1 = element.model.name
-            name2 = name1.rpartition('_')[0]
+            name2 = name1.rpartition("_")[0]
             if self.targetspecs.master in (name1, name2):
                 yield element
 
     @staticmethod
-    def _query_elementvariable(element: devicetools.Element, properties) -> \
-            variabletools.Variable:
+    def _query_elementvariable(
+        element: devicetools.Element, properties
+    ) -> variabletools.Variable:
         model = element.model
         for group in (model.parameters, model.sequences):
             subgroup = getattr(group, properties.subgroup, None)
             if subgroup is not None:
                 return getattr(subgroup, properties.variable)
         raise RuntimeError(
-            f'Model {objecttools.elementphrase(model)} does neither handle '
-            f'a parameter of sequence subgroup named `{properties.subgroup}.')
+            f"Model {objecttools.elementphrase(model)} does neither handle "
+            f"a parameter of sequence subgroup named `{properties.subgroup}."
+        )
 
     @staticmethod
-    def _query_nodevariable(node: devicetools.Node, properties) -> \
-            variabletools.Variable:
+    def _query_nodevariable(
+        node: devicetools.Node, properties
+    ) -> variabletools.Variable:
         return getattr(node.sequences, properties.variable)
 
     def collect_variables(self, selections) -> None:
@@ -138,9 +143,9 @@ class ExchangeItem:
         sequences corresponding to any application models derived from |hland|:
 
         >>> from hydpy import SetItem
-        >>> item = SetItem('ic', 'hland', 'states.ic', 0)
+        >>> item = SetItem("ic", "hland", "states.ic", 0)
         >>> item.targetspecs
-        ExchangeSpecification('hland', 'states.ic')
+        ExchangeSpecification("hland", "states.ic")
 
         Applying method |ExchangeItem.collect_variables| connects the |SetItem|
         object with all four relevant |hland_states.Ic| objects:
@@ -161,7 +166,7 @@ class ExchangeItem:
         model |hland_v1| only, results in skipping the |Element| `land_lahn_3`
         (handling the |hland| base model due to the hack above):
 
-        >>> item = SetItem('ic', 'hland_v1', 'states.ic', 0)
+        >>> item = SetItem("ic", "hland_v1", "states.ic", 0)
         >>> item.collect_variables(pub.selections)
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
@@ -172,10 +177,10 @@ class ExchangeItem:
         Selecting a series of a variable instead of the variable itself
         only affects the `targetspec` attribute:
 
-        >>> item = SetItem('t', 'hland_v1', 'inputs.t.series', 0)
+        >>> item = SetItem("t", "hland_v1", "inputs.t.series", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.targetspecs
-        ExchangeSpecification('hland_v1', 'inputs.t.series')
+        ExchangeSpecification("hland_v1", "inputs.t.series")
         >>> sequence = land_dill.model.sequences.inputs.t
         >>> item.device2target[land_dill] is sequence
         True
@@ -183,7 +188,7 @@ class ExchangeItem:
         To pass an ill-defined subgroup name results in the following error:
 
         >>> from hydpy import SetItem
-        >>> item = SetItem('ic', 'hland', 'wrong_group.wrong_variable', 0)
+        >>> item = SetItem("ic", "hland", "wrong_group.wrong_variable", 0)
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
@@ -193,11 +198,11 @@ handle a parameter of sequence subgroup named `wrong_group.
         It is both possible to address sequences of |Node| objects, as well
         as their time series, by arguments "node" and "nodes":
 
-        >>> item = SetItem('sim', 'node', 'sim', 0)
+        >>> item = SetItem("sim", "node", "sim", 0)
         >>> item.collect_variables(pub.selections)
         >>> dill = hp.nodes.dill
         >>> item.targetspecs
-        ExchangeSpecification('node', 'sim')
+        ExchangeSpecification("node", "sim")
         >>> item.device2target[dill] is dill.sequences.sim
         True
         >>> for node in sorted(item.device2target, key=lambda x: x.name):
@@ -206,10 +211,10 @@ handle a parameter of sequence subgroup named `wrong_group.
         lahn_1
         lahn_2
         lahn_3
-        >>> item = SetItem('sim', 'nodes', 'sim.series', 0)
+        >>> item = SetItem("sim", "nodes", "sim.series", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.targetspecs
-        ExchangeSpecification('nodes', 'sim.series')
+        ExchangeSpecification("nodes", "sim.series")
         >>> for node in sorted(item.device2target, key=lambda x: x.name):
         ...  print(node)
         dill
@@ -219,13 +224,12 @@ handle a parameter of sequence subgroup named `wrong_group.
         """
         self.insert_variables(self.device2target, self.targetspecs, selections)
 
-    def insert_variables(
-            self, device2variable, exchangespec, selections) -> None:
+    def insert_variables(self, device2variable, exchangespec, selections) -> None:
         """Determine the relevant target or base variables (as defined by
         the given |ExchangeSpecification| object) handled by the given
         |Selections| object and insert them into the given `device2variable`
         dictionary."""
-        if self.targetspecs.master in ('node', 'nodes'):
+        if self.targetspecs.master in ("node", "nodes"):
             for node in selections.nodes:
                 variable = self._query_nodevariable(node, exchangespec)
                 device2variable[node] = variable
@@ -254,7 +258,7 @@ class ChangeItem(ExchangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = SetItem('ic', 'hland', 'states.ic', 0)
+        >>> item = SetItem("ic", "hland", "states.ic", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.value = 1
         >>> item.value
@@ -275,9 +279,10 @@ into shape ()
             self._value = numpy.full(self.shape, value, dtype=float)
         except BaseException:
             objecttools.augment_excmessage(
-                f'When trying to convert the value(s) `{value}` assigned '
-                f'to {type(self).__name__} `{self.name}` to a '
-                f'numpy array of shape `{self.shape}` and type `float`')
+                f"When trying to convert the value(s) `{value}` assigned "
+                f"to {type(self).__name__} `{self.name}` to a "
+                f"numpy array of shape `{self.shape}` and type `float`"
+            )
 
     @abc.abstractmethod
     def update_variables(self) -> None:
@@ -299,7 +304,7 @@ into shape ()
         indicated by an empty tuple:
 
         >>> from hydpy import SetItem
-        >>> item = SetItem('ic', 'hland', 'states.ic', 0)
+        >>> item = SetItem("ic", "hland", "states.ic", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         ()
@@ -307,7 +312,7 @@ into shape ()
         1-dimensional change-items take the shape of their target variables,
         which must be equal for all instances:
 
-        >>> item = SetItem('ic', 'hland', 'states.ic', 1)
+        >>> item = SetItem("ic", "hland", "states.ic", 1)
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
@@ -316,7 +321,7 @@ different shapes.
 
         >>> for element in hp.elements.catchment:
         ...     element.model.parameters.control.nmbzones(3)
-        >>> item = SetItem('ic', 'hland', 'states.ic', 1)
+        >>> item = SetItem("ic", "hland", "states.ic", 1)
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (3,)
@@ -324,7 +329,7 @@ different shapes.
         Passing a |Selections| object not containing any relevant target
         variables results in the following error:
 
-        >>> item = SetItem('ic', 'hland', 'states.ic', 1)
+        >>> item = SetItem("ic", "hland", "states.ic", 1)
         >>> from hydpy import Selections
         >>> item.collect_variables(Selections())
         Traceback (most recent call last):
@@ -347,15 +352,17 @@ target variables.
                 else:
                     if shape != variable.shape:
                         raise RuntimeError(
-                            f'{type(self).__name__} `{self.name}` '
-                            f'cannot handle target variables of '
-                            f'different shapes.')
+                            f"{type(self).__name__} `{self.name}` "
+                            f"cannot handle target variables of "
+                            f"different shapes."
+                        )
             if shape is None:
                 raise RuntimeError(
-                    f'Cannot determine the shape of the actual '
-                    f'`{type(self).__name__}` object, as the given '
-                    f'`Selections` object does not handle any '
-                    f'relevant target variables.')
+                    f"Cannot determine the shape of the actual "
+                    f"`{type(self).__name__}` object, as the given "
+                    f"`Selections` object does not handle any "
+                    f"relevant target variables."
+                )
             self.shape = shape
 
     def update_variable(self, variable, value) -> None:
@@ -366,7 +373,7 @@ target variables.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
+        >>> item = SetItem("alpha", "hland_v1", "control.alpha", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.update_variables()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -380,9 +387,10 @@ occurred: The given value `None` cannot be converted to type `float`.
             variable(value)
         except BaseException:
             objecttools.augment_excmessage(
-                f'When trying to update a target variable of '
-                f'{type(self).__name__} `{self.name}` '
-                f'with the value(s) `{value}`')
+                f"When trying to update a target variable of "
+                f"{type(self).__name__} `{self.name}` "
+                f"with the value(s) `{value}`"
+            )
 
 
 class SetItem(ChangeItem):
@@ -395,8 +403,7 @@ class SetItem(ChangeItem):
         self.ndim = int(ndim)
         self._value: numpy.ndarray = None
         self.shape: Tuple[int] = None
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
 
     def update_variables(self) -> None:
         """Assign the current objects |ChangeItem.value| to the values
@@ -411,9 +418,9 @@ class SetItem(ChangeItem):
         of the 0-dimensional parameter |hland_control.Alpha|:
 
         >>> from hydpy.core.itemtools import SetItem
-        >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
+        >>> item = SetItem("alpha", "hland_v1", "control.alpha", 0)
         >>> item
-        SetItem('alpha', 'hland_v1', 'control.alpha', 0)
+        SetItem("alpha", "hland_v1", "control.alpha", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.value is None
         True
@@ -433,7 +440,7 @@ class SetItem(ChangeItem):
         of the 1-dimensional parameter |hland_control.FC|:
 
 
-        >>> item = SetItem('fc', 'hland_v1', 'control.fc', 0)
+        >>> item = SetItem("fc", "hland_v1", "control.fc", 0)
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
         >>> land_dill.model.parameters.control.fc
@@ -448,7 +455,7 @@ class SetItem(ChangeItem):
         >>> for element in hp.elements.catchment:
         ...     element.model.parameters.control.nmbzones(5)
         ...     element.model.parameters.control.icmax(4.0)
-        >>> item = SetItem('ic', 'hland_v1', 'states.ic', 1)
+        >>> item = SetItem("ic", "hland_v1", "states.ic", 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill.model.sequences.states.ic
         ic(nan, nan, nan, nan, nan)
@@ -467,9 +474,10 @@ class SetItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{type(self).__name__}('{self.name}', "
-            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
-            f"{self.ndim})")
+            f'{type(self).__name__}("{self.name}", '
+            f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
+            f"{self.ndim})"
+        )
 
 
 class MathItem(ChangeItem):
@@ -483,13 +491,13 @@ class MathItem(ChangeItem):
 
     >>> from hydpy import AddItem
     >>> item = AddItem(
-    ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
+    ...     "sfcf", "hland_v1", "control.sfcf", "control.rfcf", 0)
     >>> item
-    AddItem('sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
+    AddItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", 0)
     >>> item.targetspecs
-    ExchangeSpecification('hland_v1', 'control.sfcf')
+    ExchangeSpecification("hland_v1", "control.sfcf")
     >>> item.basespecs
-    ExchangeSpecification('hland_v1', 'control.rfcf')
+    ExchangeSpecification("hland_v1", "control.rfcf")
 
     Generally, a |MathItem| calculates the target variable of a specific
     |Device| object by using its current |ChangeItem.value| and the value(s)
@@ -506,8 +514,7 @@ class MathItem(ChangeItem):
         self.ndim = int(ndim)
         self._value = None
         self.shape = None
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
         self.device2base = {}
 
     def collect_variables(self, selections) -> None:
@@ -519,8 +526,7 @@ class MathItem(ChangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import AddItem
-        >>> item = AddItem(
-        ...     'alpha', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
+        >>> item = AddItem("alpha", "hland_v1", "control.sfcf", "control.rfcf", 0)
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
         >>> control = land_dill.model.parameters.control
@@ -540,9 +546,10 @@ class MathItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{type(self).__name__}('{self.name}', "
-            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
-            f"'{self.basespecs.specstring}', {self.ndim})")
+            f'{type(self).__name__}("{self.name}", '
+            f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
+            f'"{self.basespecs.specstring}", {self.ndim})'
+        )
 
 
 class AddItem(MathItem):
@@ -562,7 +569,7 @@ class AddItem(MathItem):
         ...     control.rfcf(1.1)
         >>> from hydpy.core.itemtools import AddItem
         >>> item = AddItem(
-        ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 1)
+        ...     "sfcf", "hland_v1", "control.sfcf", "control.rfcf", 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
         >>> land_dill.model.parameters.control.sfcf
@@ -589,9 +596,9 @@ together with shapes (2,) (3,)...
                 result = base.value + value
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'When trying to add the value(s) `{value}` of '
-                    f'AddItem `{self.name}` and the value(s) `{base.value}` '
-                    f'of variable {objecttools.devicephrase(base)}'
+                    f"When trying to add the value(s) `{value}` of "
+                    f"AddItem `{self.name}` and the value(s) `{base.value}` "
+                    f"of variable {objecttools.devicephrase(base)}"
                 )
             self.update_variable(target, result)
 
@@ -601,11 +608,10 @@ class GetItem(ExchangeItem):
     |Sequence_| objects of a specific type."""
 
     def __init__(self, master: str, target: str):
-        self.target = target.replace('.', '_')
+        self.target = target.replace(".", "_")
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = 0
-        self.device2target: \
-            Dict[devicetools.Device, variabletools.Variable] = {}
+        self.device2target: Dict[devicetools.Device, variabletools.Variable] = {}
         self._device2name: Dict[devicetools.Device, str] = {}
 
     def collect_variables(self, selections) -> None:
@@ -619,27 +625,26 @@ class GetItem(ExchangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import SetItem
-        >>> for target in ('states.lz', 'states.lz.series',
-        ...                'states.sm', 'states.sm.series'):
-        ...     item = GetItem('hland_v1', target)
+        >>> for target in ("states.lz", "states.lz.series",
+        ...                "states.sm", "states.sm.series"):
+        ...     item = GetItem("hland_v1", target)
         ...     item.collect_variables(pub.selections)
         ...     print(item, item.ndim)
-        GetItem('hland_v1', 'states.lz') 0
-        GetItem('hland_v1', 'states.lz.series') 1
-        GetItem('hland_v1', 'states.sm') 1
-        GetItem('hland_v1', 'states.sm.series') 2
+        GetItem("hland_v1", "states.lz") 0
+        GetItem("hland_v1", "states.lz.series") 1
+        GetItem("hland_v1", "states.sm") 1
+        GetItem("hland_v1", "states.sm.series") 2
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
-            self._device2name[device] = f'{device.name}_{self.target}'
+            self._device2name[device] = f"{device.name}_{self.target}"
         for target in self.device2target.values():
             self.ndim = target.NDIM
             if self.targetspecs.series:
                 self.ndim += 1
             break
 
-    def yield_name2value(self, idx1=None, idx2=None) \
-            -> Iterator[Tuple[str, str]]:
+    def yield_name2value(self, idx1=None, idx2=None) -> Iterator[Tuple[str, str]]:
         """Sequentially return name-value-pairs describing the current state
         of the target variables.
 
@@ -650,7 +655,7 @@ class GetItem(ExchangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import SetItem
-        >>> item = GetItem('hland_v1', 'states.lz')
+        >>> item = GetItem("hland_v1", "states.lz")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
         >>> for name, value in item.yield_name2value():
@@ -659,7 +664,7 @@ class GetItem(ExchangeItem):
         land_lahn_1_states_lz 8.18711
         land_lahn_2_states_lz 10.14007
         land_lahn_3_states_lz 7.52648
-        >>> item = GetItem('hland_v1', 'states.sm')
+        >>> item = GetItem("hland_v1", "states.sm")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():
@@ -672,7 +677,7 @@ class GetItem(ExchangeItem):
         When querying time series, one can restrict the span of interest
         by passing index values:
 
-        >>> item = GetItem('nodes', 'sim.series')
+        >>> item = GetItem("nodes", "sim.series")
         >>> item.collect_variables(pub.selections)
         >>> hp.nodes.dill.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
         >>> for name, value in item.yield_name2value():
@@ -701,4 +706,5 @@ class GetItem(ExchangeItem):
     def __repr__(self):
         return (
             f"{type(self).__name__}("
-            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")
+            f'"{self.targetspecs.master}", "{self.targetspecs.specstring}")'
+        )

@@ -40,33 +40,33 @@ Integration tests
     The time settings are identical:
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '01.01.2000', '21.01.2000',  '1d'
+    >>> pub.timegrids = "01.01.2000", "21.01.2000",  "1d"
 
     Due to the high complexity of |dam_v005| and due to the test setting
     of |dam_v001| involving another type of model (|arma_v1|), lots of
     nodes are required (a picture would be helpful):
 
     >>> from hydpy import Node
-    >>> dam_inflow = Node('actual_inflow', variable='Q')
-    >>> dam_outflow = Node('dam_outflow', variable='Q')
-    >>> tributary_inflow = Node('tributary_inflow', variable='Q')
-    >>> tributary_mouth = Node('tributary_mouth', variable='Q')
-    >>> actual_supply = Node('actual_supply', variable='S')
-    >>> required_supply = Node('required_supply', variable='S')
-    >>> allowed_relieve = Node('allowed_relieve', variable='R')
-    >>> actual_relieve = Node('actual_relieve', variable='R')
-    >>> remote_failure = Node('remote_failure', variable='D')
+    >>> dam_inflow = Node("actual_inflow", variable="Q")
+    >>> dam_outflow = Node("dam_outflow", variable="Q")
+    >>> tributary_inflow = Node("tributary_inflow", variable="Q")
+    >>> tributary_mouth = Node("tributary_mouth", variable="Q")
+    >>> actual_supply = Node("actual_supply", variable="S")
+    >>> required_supply = Node("required_supply", variable="S")
+    >>> allowed_relieve = Node("allowed_relieve", variable="R")
+    >>> actual_relieve = Node("actual_relieve", variable="R")
+    >>> remote_failure = Node("remote_failure", variable="D")
     >>> from hydpy import Element
     >>> dam = Element(
-    ...     'dam',
+    ...     "dam",
     ...     inlets=(dam_inflow, actual_supply, actual_relieve),
     ...     outlets=dam_outflow,
     ...     receivers=tributary_mouth,
     ...     senders=(remote_failure, required_supply, allowed_relieve))
-    >>> stream1 = Element('stream1',
+    >>> stream1 = Element("stream1",
     ...                    inlets=dam_outflow,
     ...                    outlets=tributary_mouth)
-    >>> stream2 = Element('stream2',
+    >>> stream2 = Element("stream2",
     ...                   inlets=tributary_inflow,
     ...                   outlets=tributary_mouth)
 
@@ -108,7 +108,7 @@ Integration tests
     >>> arma_model.parameters.update()
     >>> arma_model.sequences.logs.login = 0.0
     >>> from hydpy.models.dam_v005 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> dam.model = model
     >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.activated = (
@@ -119,7 +119,7 @@ Integration tests
     ...            (logs.loggedtotalremotedischarge, 1.9),
     ...            (logs.loggedoutflow, 0.0),
     ...            (stream1.model.sequences.logs.login, 0.0)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
     >>> watervolume2waterlevel(
     ...     weights_input=1.0, weights_output=0.25,
     ...     intercepts_hidden=0.0, intercepts_output=0.0,
@@ -175,7 +175,7 @@ Integration tests
     to a |WaterVolume| of 0.8 million m³), due to the smoothing parameter
     |WaterLevelSupplyTolerance| being set to a relatively large value:
 
-    >>> test('dam_v005_ex7')
+    >>> test("dam_v005_ex7")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | allowedremoterelieve | requiredremotesupply | requiredrelease | targetedrelease | actualrelease | missingremoterelease | flooddischarge |  outflow | watervolume | actual_inflow | actual_relieve | actual_supply | allowed_relieve | dam_outflow | remote_failure | required_supply | tributary_inflow | tributary_mouth |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.840351 |                    1.9 |          0.0 |          -0.5 |                 0.005 |                  5.0 |                  1.0 |        0.210526 |        0.210526 |      0.201754 |                  0.0 |            0.0 | 0.201754 |    0.068968 |      0.333333 |       0.333333 |      0.333333 |             5.0 |    0.201754 |            0.0 |             1.0 |              1.8 |        1.840351 |
@@ -219,7 +219,7 @@ Integration tests
     >>> actual_supply.sequences.sim.series = 0.0
     >>> actual_relieve.sequences.sim.series = 0.0
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v005_ex8')
+    >>> test("dam_v005_ex8")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | allowedremoterelieve | requiredremotesupply | requiredrelease | targetedrelease | actualrelease | missingremoterelease | flooddischarge |  outflow | watervolume | actual_inflow | actual_relieve | actual_supply | allowed_relieve | dam_outflow | remote_failure | required_supply | tributary_inflow | tributary_mouth |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |                  5.0 |                  1.0 |             0.2 |             0.2 |      0.191667 |                  0.0 |            0.0 | 0.191667 |     0.06984 |           1.0 |            0.0 |           0.0 |             5.0 |    0.191667 |            0.0 |             1.0 |              1.8 |        1.838333 |
@@ -260,7 +260,7 @@ Integration tests
     >>> waterlevelminimumtolerance(0.01)
     >>> waterlevelminimumthreshold(0.005)
     >>> dam_inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
-    >>> test('dam_v005_ex10')
+    >>> test("dam_v005_ex10")
     |   date |   inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | allowedremoterelieve | requiredremotesupply | requiredrelease | targetedrelease | actualrelease | missingremoterelease | flooddischarge |  outflow | watervolume | actual_inflow | actual_relieve | actual_supply | allowed_relieve | dam_outflow | remote_failure | required_supply | tributary_inflow | tributary_mouth |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |             1.807702 |                    1.9 |          0.0 |          -0.5 |                 0.005 |                  5.0 |                  1.0 |             0.2 |             0.2 |      0.038512 |                  0.0 |            0.0 | 0.038512 |    0.013953 |           0.2 |            0.0 |           0.0 |             5.0 |    0.038512 |            0.0 |             1.0 |              1.8 |        1.807702 |
@@ -316,7 +316,7 @@ Integration tests
     >>> test.inits.loggedtotalremotedischarge = 1.0
     >>> tributary_inflow.sequences.sim.series = 1.0
 
-    >>> test('dam_v005_ex13')
+    >>> test("dam_v005_ex13")
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | allowedremoterelieve | requiredremotesupply | requiredrelease | targetedrelease | actualrelease | missingremoterelease | flooddischarge |  outflow | watervolume | actual_inflow | actual_relieve | actual_supply | allowed_relieve | dam_outflow | remote_failure | required_supply | tributary_inflow | tributary_mouth |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |                  5.0 |                  1.0 |             0.0 |             0.0 |           0.0 |                  0.0 |            0.0 |      0.0 |         0.0 |           0.0 |            0.0 |           0.0 |             5.0 |         0.0 |            0.0 |             1.0 |              1.0 |             1.0 |
@@ -350,9 +350,11 @@ Integration tests
 # import...
 # ...from standard library
 from hydpy.core import modeltools
+
 # ...from HydPy
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -360,6 +362,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 5 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -388,9 +391,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V1,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (
         dam_model.Pass_Outflow_V1,
         dam_model.Update_LoggedOutflow_V1,

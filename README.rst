@@ -18,20 +18,35 @@
 
 .. image:: https://img.shields.io/pypi/v/HydPy
    :alt: PyPI
-   :target: https://pypi.org/project/HydPy/
+   :target: https://pypi.org/project/HydPy
 .. image:: https://img.shields.io/pypi/v/HydPy?label=download
    :alt: Releases
    :target: https://github.com/hydpy-dev/hydpy/releases
 .. image:: https://img.shields.io/badge/docs-latest-informational
    :alt: Documentation
    :target: https://hydpy-dev.github.io/hydpy/index.html
+.. image:: https://img.shields.io/github/license/hydpy-dev/hydpy?color=blue
+   :alt: GitHub
+   :target: https://github.com/hydpy-dev/hydpy/blob/master/LICENSE
+
+\
+
+.. image:: https://img.shields.io/badge/Coverage-100%20%25-green
+   :alt: Coverage
+   :target: https://coverage.readthedocs.io
+.. image:: https://img.shields.io/badge/Black-All%20done%21-green
+   :alt: Black
+   :target: https://github.com/psf/black
+.. image:: https://img.shields.io/badge/Pylint-10.00/10-green
+   :alt: Pylint
+   :target: https://www.pylint.org/
+.. image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
+   :alt: Mypy
+   :target: https://mypy.readthedocs.io/en/stable
 
 \
 
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
-   :alt: Travis (.org) branch
-   :target: https://travis-ci.org/hydpy-dev/hydpy/branches
-.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/develop?label=develop
    :alt: Travis (.org) branch
    :target: https://travis-ci.org/hydpy-dev/hydpy/branches
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
@@ -41,9 +56,6 @@
 \
 
 .. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
-   :alt: AppVeyor branch
-   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
-.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/develop?label=develop
    :alt: AppVeyor branch
    :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
 .. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest

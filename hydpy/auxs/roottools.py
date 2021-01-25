@@ -34,14 +34,14 @@ class Pegasus(modeltools.Submodel):
     _cysubmodel: rootutils.PegasusBase
 
     def find_x(
-            self,
-            x0: float,
-            x1: float,
-            xmin: float,
-            xmax: float,
-            xtol: float,
-            ytol: float,
-            itermax: int,
+        self,
+        x0: float,
+        x1: float,
+        xmin: float,
+        xmax: float,
+        xtol: float,
+        ytol: float,
+        itermax: int,
     ) -> float:
         """Find the relevant root within the interval
         :math:`x0 \\leq x \\leq x1` with an accuracy meeting at least
@@ -77,8 +77,8 @@ class Pegasus(modeltools.Submodel):
         >>> from hydpy import pub
         >>> with pub.options.usecython(False):
         ...     from hydpy.models.lland import *
-        ...     simulationstep('1d')
-        ...     parameterstep('1d')
+        ...     simulationstep("1d")
+        ...     parameterstep("1d")
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> turb0(0.1728)

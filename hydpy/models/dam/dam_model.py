@@ -26,12 +26,9 @@ class Pic_Inflow_V1(modeltools.Method):
     Basic equation:
       :math:`Inflow = Q`
     """
-    REQUIREDSEQUENCES = (
-        dam_inlets.Q,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.Inflow,
-    )
+
+    REQUIREDSEQUENCES = (dam_inlets.Q,)
+    RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -46,20 +43,19 @@ class Pic_Inflow_V2(modeltools.Method):
     Basic equation:
       :math:`Inflow = Q + S + R`
     """
+
     REQUIREDSEQUENCES = (
         dam_inlets.Q,
         dam_inlets.S,
         dam_inlets.R,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.Inflow,
-    )
+    RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.inflow = inl.q[0]+inl.s[0]+inl.r[0]
+        flu.inflow = inl.q[0] + inl.s[0] + inl.r[0]
 
 
 class Pic_TotalRemoteDischarge_V1(modeltools.Method):
@@ -68,12 +64,9 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
     Basic equation:
       :math:`TotalRemoteDischarge = Q`
     """
-    REQUIREDSEQUENCES = (
-        dam_receivers.Q,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.TotalRemoteDischarge,
-    )
+
+    REQUIREDSEQUENCES = (dam_receivers.Q,)
+    RESULTSEQUENCES = (dam_fluxes.TotalRemoteDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -88,12 +81,9 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     Basic equation:
       :math:`LoggedRequiredRemoteRelease = D`
     """
-    REQUIREDSEQUENCES = (
-        dam_receivers.D,
-    )
-    RESULTSEQUENCES = (
-        dam_logs.LoggedRequiredRemoteRelease,
-    )
+
+    REQUIREDSEQUENCES = (dam_receivers.D,)
+    RESULTSEQUENCES = (dam_logs.LoggedRequiredRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -108,12 +98,9 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
     Basic equation:
       :math:`LoggedRequiredRemoteRelease = S`
     """
-    REQUIREDSEQUENCES = (
-        dam_receivers.S,
-    )
-    RESULTSEQUENCES = (
-        dam_logs.LoggedRequiredRemoteRelease,
-    )
+
+    REQUIREDSEQUENCES = (dam_receivers.S,)
+    RESULTSEQUENCES = (dam_logs.LoggedRequiredRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -128,12 +115,9 @@ class Pic_LoggedAllowedRemoteRelieve_V1(modeltools.Method):
     Basic equation:
       :math:`LoggedAllowedRemoteRelieve = R`
     """
-    REQUIREDSEQUENCES = (
-        dam_receivers.R,
-    )
-    RESULTSEQUENCES = (
-        dam_logs.LoggedAllowedRemoteRelieve,
-    )
+
+    REQUIREDSEQUENCES = (dam_receivers.R,)
+    RESULTSEQUENCES = (dam_logs.LoggedAllowedRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -170,24 +154,20 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
         |   3 |                  2.0 | 2.0  3.0                         1.0 |
         |   4 |                  4.0 | 4.0  2.0                         3.0 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.NmbLogEntries,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.TotalRemoteDischarge,
-    )
-    UPDATEDSEQUENCES = (
-        dam_logs.LoggedTotalRemoteDischarge,
-    )
+
+    CONTROLPARAMETERS = (dam_control.NmbLogEntries,)
+    REQUIREDSEQUENCES = (dam_fluxes.TotalRemoteDischarge,)
+    UPDATEDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        for idx in range(con.nmblogentries-1, 0, -1):
-            log.loggedtotalremotedischarge[idx] = \
-                                    log.loggedtotalremotedischarge[idx-1]
+        for idx in range(con.nmblogentries - 1, 0, -1):
+            log.loggedtotalremotedischarge[idx] = log.loggedtotalremotedischarge[
+                idx - 1
+            ]
         log.loggedtotalremotedischarge[0] = flu.totalremotedischarge
 
 
@@ -235,15 +215,10 @@ class Calc_WaterLevel_V1(modeltools.Method):
         For more realistic approximations of measured relationships between
         water level and volume, larger neural networks are required.
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterVolume2WaterLevel,
-    )
-    REQUIREDSEQUENCES = (
-        dam_states.WaterVolume,
-    )
-    RESULTSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterVolume2WaterLevel,)
+    REQUIREDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_aides.WaterLevel,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -314,15 +289,10 @@ class Calc_SurfaceArea_V1(modeltools.Method):
         >>> round_(1.0/0.005433115, decimals=5)
         184.05648
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterVolume2WaterLevel,
-    )
-    REQUIREDSEQUENCES = (
-        dam_states.WaterVolume,
-    )
-    RESULTSEQUENCES = (
-        dam_aides.SurfaceArea,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterVolume2WaterLevel,)
+    REQUIREDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_aides.SurfaceArea,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -332,7 +302,7 @@ class Calc_SurfaceArea_V1(modeltools.Method):
         con.watervolume2waterlevel.inputs[0] = new.watervolume
         con.watervolume2waterlevel.calculate_values()
         con.watervolume2waterlevel.calculate_derivatives(0)
-        aid.surfacearea = 1./con.watervolume2waterlevel.output_derivatives[0]
+        aid.surfacearea = 1.0 / con.watervolume2waterlevel.output_derivatives[0]
 
 
 class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
@@ -356,7 +326,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         time period of only two days:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Now we prepare the dam model and define two different control
         schemes for the hydrological summer (April to October) and
@@ -392,7 +362,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         0 m³/s, as soon as |WaterLevel| reaches 3 m (the value
         of |WaterLevelRelieveThreshold|):
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.30"]
         >>> test(first_example=2, last_example=6)
         | ex. | waterlevel | allowedremoterelieve |
         -------------------------------------------
@@ -410,7 +380,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         2 m³/s around the original threshold value of 4 m³/s defined by
         |WaterLevelRelieveThreshold|:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | waterlevel | allowedremoterelieve |
         -------------------------------------------
@@ -424,6 +394,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.HighestRemoteRelieve,
         dam_control.WaterLevelRelieveThreshold,
@@ -432,12 +403,8 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelRelieveSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.AllowedRemoteRelieve,
-    )
+    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -446,11 +413,12 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         toy = der.toy[model.idx_sim]
-        flu.allowedremoterelieve = (
-            con.highestremoterelieve[toy] *
-            smoothutils.smooth_logistic1(
-                con.waterlevelrelievethreshold[toy]-aid.waterlevel,
-                der.waterlevelrelievesmoothpar[toy]))
+        flu.allowedremoterelieve = con.highestremoterelieve[
+            toy
+        ] * smoothutils.smooth_logistic1(
+            con.waterlevelrelievethreshold[toy] - aid.waterlevel,
+            der.waterlevelrelievesmoothpar[toy],
+        )
 
 
 class Calc_RequiredRemoteSupply_V1(modeltools.Method):
@@ -474,7 +442,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         information):
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
@@ -492,7 +460,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         ...                 parseqs=(aides.waterlevel,
         ...                          fluxes.requiredremotesupply))
         >>> test.nexts.waterlevel = range(9)
-        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.30"]
         >>> test(first_example=2, last_example=6)
         | ex. | waterlevel | requiredremotesupply |
         -------------------------------------------
@@ -500,7 +468,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         |   4 |        2.0 |                  1.0 |
         |   5 |        3.0 |                  0.0 |
         |   6 |        4.0 |                  0.0 |
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | waterlevel | requiredremotesupply |
         -------------------------------------------
@@ -514,6 +482,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.HighestRemoteSupply,
         dam_control.WaterLevelSupplyThreshold,
@@ -522,12 +491,8 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelSupplySmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RequiredRemoteSupply,
-    )
+    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -536,11 +501,12 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         toy = der.toy[model.idx_sim]
-        flu.requiredremotesupply = (
-            con.highestremotesupply[toy] *
-            smoothutils.smooth_logistic1(
-                con.waterlevelsupplythreshold[toy]-aid.waterlevel,
-                der.waterlevelsupplysmoothpar[toy]))
+        flu.requiredremotesupply = con.highestremotesupply[
+            toy
+        ] * smoothutils.smooth_logistic1(
+            con.waterlevelsupplythreshold[toy] - aid.waterlevel,
+            der.waterlevelsupplysmoothpar[toy],
+        )
 
 
 class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
@@ -577,30 +543,28 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
         >>> fluxes.naturalremotedischarge
         naturalremotedischarge(0.0)
     """
-    CONTROLPARAMETERS = (
-        dam_control.NmbLogEntries,
-    )
+
+    CONTROLPARAMETERS = (dam_control.NmbLogEntries,)
     REQUIREDSEQUENCES = (
         dam_logs.LoggedTotalRemoteDischarge,
         dam_logs.LoggedOutflow,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.NaturalRemoteDischarge,
-    )
+    RESULTSEQUENCES = (dam_fluxes.NaturalRemoteDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        flu.naturalremotedischarge = 0.
+        flu.naturalremotedischarge = 0.0
         for idx in range(con.nmblogentries):
             flu.naturalremotedischarge += (
-                log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
-        if flu.naturalremotedischarge > 0.:
+                log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx]
+            )
+        if flu.naturalremotedischarge > 0.0:
             flu.naturalremotedischarge /= con.nmblogentries
         else:
-            flu.naturalremotedischarge = 0.
+            flu.naturalremotedischarge = 0.0
 
 
 class Calc_RemoteDemand_V1(modeltools.Method):
@@ -622,7 +586,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -649,7 +613,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
         On April 1, the required discharge is 2 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | naturalremotedischarge | remotedemand |
         -----------------------------------------------
@@ -660,7 +624,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
         On May 31, the required discharge is 0 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | naturalremotedischarge | remotedemand |
         -----------------------------------------------
@@ -669,18 +633,11 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         |   3 |                    2.0 |          0.0 |
         |   4 |                    3.0 |          0.0 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.RemoteDischargeMinimum,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.NaturalRemoteDischarge,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RemoteDemand,
-    )
+
+    CONTROLPARAMETERS = (dam_control.RemoteDischargeMinimum,)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_fluxes.NaturalRemoteDischarge,)
+    RESULTSEQUENCES = (dam_fluxes.RemoteDemand,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -688,8 +645,10 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.remotedemand = max(
-            con.remotedischargeminimum[der.toy[model.idx_sim]] -
-            flu.naturalremotedischarge, 0.)
+            con.remotedischargeminimum[der.toy[model.idx_sim]]
+            - flu.naturalremotedischarge,
+            0.0,
+        )
 
 
 class Calc_RemoteFailure_V1(modeltools.Method):
@@ -707,7 +666,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Now we prepare a dam model with log sequences memorizing three values:
 
@@ -729,7 +688,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         This means that for the April 1 there would have been an averaged
         shortfall of 1 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(1.0)
@@ -737,24 +696,19 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         Instead for May 31 there would have been an excess of 1 m³/s, which
         is interpreted to be a "negative failure":
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(-1.0)
     """
+
     CONTROLPARAMETERS = (
         dam_control.NmbLogEntries,
         dam_control.RemoteDischargeMinimum,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-    )
-    REQUIREDSEQUENCES = (
-        dam_logs.LoggedTotalRemoteDischarge,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RemoteFailure,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge,)
+    RESULTSEQUENCES = (dam_fluxes.RemoteFailure,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -785,7 +739,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -819,7 +773,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         On May 31, the safety factor is 0 m³/s.  Hence no discharge is
         added to the estimated remote demand of 2 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | remotefailure | requiredremoterelease |
         -----------------------------------------------
@@ -840,7 +794,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         up to 1 m³/s is added. If the the actual discharge exceeded the
         threshold value by 2 or 3 m³/s, virtually nothing is added:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | remotefailure | requiredremoterelease |
         -----------------------------------------------
@@ -855,9 +809,8 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         |   9 |           4.0 |                   3.0 |
 
     """
-    CONTROLPARAMETERS = (
-        dam_control.RemoteDischargeSafety,
-    )
+
+    CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
         dam_derived.RemoteDischargeSmoothPar,
@@ -866,20 +819,18 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         dam_fluxes.RemoteDemand,
         dam_fluxes.RemoteFailure,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.RequiredRemoteRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.requiredremoterelease = (
-            flu.remotedemand+con.remotedischargesafety[der.toy[model.idx_sim]] *
-            smoothutils.smooth_logistic1(
-                flu.remotefailure,
-                der.remotedischargesmoothpar[der.toy[model.idx_sim]]))
+        flu.requiredremoterelease = flu.remotedemand + con.remotedischargesafety[
+            der.toy[model.idx_sim]
+        ] * smoothutils.smooth_logistic1(
+            flu.remotefailure, der.remotedischargesmoothpar[der.toy[model.idx_sim]]
+        )
 
 
 class Calc_RequiredRemoteRelease_V2(modeltools.Method):
@@ -897,12 +848,9 @@ class Calc_RequiredRemoteRelease_V2(modeltools.Method):
         >>> fluxes.requiredremoterelease
         requiredremoterelease(3.0)
     """
-    REQUIREDSEQUENCES = (
-        dam_logs.LoggedRequiredRemoteRelease,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RequiredRemoteRelease,
-    )
+
+    REQUIREDSEQUENCES = (dam_logs.LoggedRequiredRemoteRelease,)
+    RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -926,12 +874,9 @@ class Calc_AllowedRemoteRelieve_V1(modeltools.Method):
         >>> fluxes.allowedremoterelieve
         allowedremoterelieve(2.0)
     """
-    REQUIREDSEQUENCES = (
-        dam_logs.LoggedAllowedRemoteRelieve,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.AllowedRemoteRelieve,
-    )
+
+    REQUIREDSEQUENCES = (dam_logs.LoggedAllowedRemoteRelieve,)
+    RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -958,7 +903,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -994,7 +939,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         On May 31, both the threshold and the tolerance value are 0 m³/s.
         Hence the required total and the required remote release are equal:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | requiredremoterelease | requiredrelease |
         -------------------------------------------------
@@ -1016,7 +961,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         required total release is a little larger than both the treshold
         value and the required remote release value:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | requiredremoterelease | requiredrelease |
         -------------------------------------------------
@@ -1031,33 +976,25 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         |   9 |                   8.0 |             8.0 |
 
     """
-    CONTROLPARAMETERS = (
-        dam_control.NearDischargeMinimumThreshold,
-    )
+
+    CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
         dam_derived.NearDischargeMinimumSmoothPar2,
     )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RequiredRemoteRelease,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RequiredRelease,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
+    RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.requiredrelease = con.neardischargeminimumthreshold[
-            der.toy[model.idx_sim]]
-        flu.requiredrelease = (
-            flu.requiredrelease +
-            smoothutils.smooth_logistic2(
-                flu.requiredremoterelease-flu.requiredrelease,
-                der.neardischargeminimumsmoothpar2[
-                    der.toy[model.idx_sim]]))
+        flu.requiredrelease = con.neardischargeminimumthreshold[der.toy[model.idx_sim]]
+        flu.requiredrelease = flu.requiredrelease + smoothutils.smooth_logistic2(
+            flu.requiredremoterelease - flu.requiredrelease,
+            der.neardischargeminimumsmoothpar2[der.toy[model.idx_sim]],
+        )
 
 
 class Calc_RequiredRelease_V2(modeltools.Method):
@@ -1072,7 +1009,7 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -1091,32 +1028,26 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         As to be expected, the calculated required release is 0.0 m³/s
         on May 31 and 4.0 m³/s on April 1:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> model.calc_requiredrelease_v2()
         >>> fluxes.requiredrelease
         requiredrelease(0.0)
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> model.calc_requiredrelease_v2()
         >>> fluxes.requiredrelease
         requiredrelease(4.0)
     """
-    CONTROLPARAMETERS = (
-        dam_control.NearDischargeMinimumThreshold,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.RequiredRelease,
-    )
+
+    CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.requiredrelease = con.neardischargeminimumthreshold[
-            der.toy[model.idx_sim]]
+        flu.requiredrelease = con.neardischargeminimumthreshold[der.toy[model.idx_sim]]
 
 
 class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
@@ -1171,15 +1102,10 @@ class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
         |  20 |      260.8 |              3.719725 |
         |  21 |      261.0 |              5.576088 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevel2PossibleRemoteRelieve,
-    )
-    REQUIREDSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.PossibleRemoteRelieve,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterLevel2PossibleRemoteRelieve,)
+    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_fluxes.PossibleRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1188,8 +1114,7 @@ class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         con.waterlevel2possibleremoterelieve.inputs[0] = aid.waterlevel
         con.waterlevel2possibleremoterelieve.calculate_values()
-        flu.possibleremoterelieve = \
-            con.waterlevel2possibleremoterelieve.outputs[0]
+        flu.possibleremoterelieve = con.waterlevel2possibleremoterelieve.outputs[0]
 
 
 class Fix_Min1_V1(modeltools.Method):
@@ -1218,21 +1143,25 @@ class Fix_Min1_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(model: modeltools.Model, input_: float, threshold: float,
-                 smoothpar: float, relative: bool) -> float:
+    def __call__(
+        model: modeltools.Model,
+        input_: float,
+        threshold: float,
+        smoothpar: float,
+        relative: bool,
+    ) -> float:
         if relative:
             smoothpar *= threshold
         d_result = smoothutils.smooth_min1(input_, threshold, smoothpar)
         for _ in range(5):
-            smoothpar /= 5.
-            d_result = smoothutils.smooth_max1(d_result, 0., smoothpar)
-            smoothpar /= 5.
+            smoothpar /= 5.0
+            d_result = smoothutils.smooth_max1(d_result, 0.0, smoothpar)
+            smoothpar /= 5.0
             if relative:
                 d_result = smoothutils.smooth_min1(d_result, input_, smoothpar)
             else:
-                d_result = smoothutils.smooth_min1(
-                    d_result, threshold, smoothpar)
-        return max(min(d_result, input_, threshold), 0.)
+                d_result = smoothutils.smooth_min1(d_result, threshold, smoothpar)
+        return max(min(d_result, input_, threshold), 0.0)
 
 
 class Calc_ActualRemoteRelieve_V1(modeltools.Method):
@@ -1364,24 +1293,24 @@ class Calc_ActualRemoteRelieve_V1(modeltools.Method):
         approach would possibly be favourable regarding the smoothness in
         some edge cases and computational efficiency.
     """
-    CONTROLPARAMETERS = (
-        dam_control.RemoteRelieveTolerance,
-    )
+
+    CONTROLPARAMETERS = (dam_control.RemoteRelieveTolerance,)
     REQUIREDSEQUENCES = (
         dam_fluxes.AllowedRemoteRelieve,
         dam_fluxes.PossibleRemoteRelieve,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.ActualRemoteRelieve,
-    )
+    RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.actualremoterelieve = model.fix_min1_v1(
-            flu.possibleremoterelieve, flu.allowedremoterelieve,
-            con.remoterelievetolerance, True)
+            flu.possibleremoterelieve,
+            flu.allowedremoterelieve,
+            con.remoterelievetolerance,
+            True,
+        )
 
 
 class Calc_TargetedRelease_V1(modeltools.Method):
@@ -1413,7 +1342,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         Prepare the dam model:
 
@@ -1459,7 +1388,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         release jumps from the inflow value to the required release
         when exceeding the threshold value of 6 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1489,7 +1418,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         is 2 m³/s.  Hence there is a smooth transition for inflows ranging
         between 2 m³/s and 6 m³/s:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1526,7 +1455,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         On May 31, the relationship between targeted release and inflow
         is again highly discontinous:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1554,7 +1483,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
 
         And on April 1, it is again absolutely smooth:
 
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1585,7 +1514,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         remains a discontinuity in the first derivative:
 
         >>> fluxes.requiredrelease = 6.
-        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1615,7 +1544,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         the help of a little hump around the threshold:
 
         >>> fluxes.requiredrelease = 4.
-        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
         | ex. | inflow | targetedrelease |
         ----------------------------------
@@ -1671,6 +1600,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         |  20 |    9.5 |             4.0 |
         |  21 |   10.0 |             4.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.RestrictTargetedRelease,
         dam_control.NearDischargeMinimumThreshold,
@@ -1683,9 +1613,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         dam_fluxes.Inflow,
         dam_fluxes.RequiredRelease,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.TargetedRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.TargetedRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1694,11 +1622,13 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         if con.restricttargetedrelease:
             flu.targetedrelease = smoothutils.smooth_logistic1(
-                flu.inflow-con.neardischargeminimumthreshold[
-                    der.toy[model.idx_sim]],
-                der.neardischargeminimumsmoothpar1[der.toy[model.idx_sim]])
-            flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
-                                   (1.-flu.targetedrelease) * flu.inflow)
+                flu.inflow - con.neardischargeminimumthreshold[der.toy[model.idx_sim]],
+                der.neardischargeminimumsmoothpar1[der.toy[model.idx_sim]],
+            )
+            flu.targetedrelease = (
+                flu.targetedrelease * flu.requiredrelease
+                + (1.0 - flu.targetedrelease) * flu.inflow
+            )
         else:
             flu.targetedrelease = flu.requiredrelease
 
@@ -1825,19 +1755,14 @@ class Calc_ActualRelease_V1(modeltools.Method):
         |   7 |        5.0 |      1.999796 |
 
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelMinimumThreshold,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.WaterLevelMinimumSmoothPar,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelMinimumThreshold,)
+    DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.TargetedRelease,
         dam_aides.WaterLevel,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.ActualRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1845,10 +1770,10 @@ class Calc_ActualRelease_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        flu.actualrelease = (flu.targetedrelease *
-                             smoothutils.smooth_logistic1(
-                                 aid.waterlevel-con.waterlevelminimumthreshold,
-                                 der.waterlevelminimumsmoothpar))
+        flu.actualrelease = flu.targetedrelease * smoothutils.smooth_logistic1(
+            aid.waterlevel - con.waterlevelminimumthreshold,
+            der.waterlevelminimumsmoothpar,
+        )
 
 
 class Calc_ActualRelease_V2(modeltools.Method):
@@ -1868,7 +1793,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         two days of March and April, respectively:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
 
         We prepare the dam model and set the allowed release to 2 m³/s and
         to 4 m³/s for March and February, respectively, and set the water
@@ -1895,7 +1820,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         resulting in a sharp transition from 0 to 2 m³/s around the a
         water level threshold of 0.5 m, shown for the 31st March:
 
-        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
         >>> waterlevelminimumtolerance(0.0)
         >>> derived.waterlevelminimumsmoothpar.update()
         >>> test()
@@ -1916,7 +1841,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         to occur between water levels of 0.4 m and 0.6 m, shown for
         the 1th April:
 
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
         >>> waterlevelminimumtolerance(0.1)
         >>> derived.waterlevelminimumsmoothpar.update()
         >>> test()
@@ -1932,6 +1857,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         |   8 |        0.8 |      3.999996 |
         |   9 |        0.9 |           4.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.AllowedRelease,
         dam_control.WaterLevelMinimumThreshold,
@@ -1940,12 +1866,8 @@ class Calc_ActualRelease_V2(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelMinimumSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.ActualRelease,
-    )
+    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1953,11 +1875,12 @@ class Calc_ActualRelease_V2(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        flu.actualrelease = (
-            con.allowedrelease[der.toy[model.idx_sim]] *
-            smoothutils.smooth_logistic1(
-                aid.waterlevel-con.waterlevelminimumthreshold,
-                der.waterlevelminimumsmoothpar))
+        flu.actualrelease = con.allowedrelease[
+            der.toy[model.idx_sim]
+        ] * smoothutils.smooth_logistic1(
+            aid.waterlevel - con.waterlevelminimumthreshold,
+            der.waterlevelminimumsmoothpar,
+        )
 
 
 class Calc_ActualRelease_V3(modeltools.Method):
@@ -1980,7 +1903,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         cover all of the mentioned corner cases.
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -1999,7 +1922,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         >>> import numpy
         >>> test.nexts.watervolume = numpy.arange(3.5, 6.6, 0.1)
 
-        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
         >>> aides.alloweddischarge = 6.0
 
         >>> def set_tolerances(value):
@@ -2595,7 +2518,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...                 parseqs=(states.watervolume,
         ...                          fluxes.actualrelease))
         >>> test.nexts.watervolume = numpy.arange(-0.5, 1.6, 0.1)
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
         >>> fluxes.inflow = 0.0
 
         Zero values, without smoothing, with interpolation:
@@ -2656,6 +2579,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  20 |         1.4 |           1.0 |
         |  21 |         1.5 |           1.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.TargetVolume,
         dam_control.TargetRangeAbsolute,
@@ -2674,9 +2598,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         dam_states.WaterVolume,
         dam_aides.AllowedDischarge,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.ActualRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2689,84 +2611,63 @@ class Calc_ActualRelease_V3(modeltools.Method):
         idx_toy = der.toy[model.idx_sim]
         d_target = con.targetvolume[idx_toy]
         d_range = max(
-            max(
-                con.targetrangeabsolute,
-                con.targetrangerelative*d_target),
+            max(con.targetrangeabsolute, con.targetrangerelative * d_target),
             1e-6,
         )
         d_qmin = con.neardischargeminimumthreshold[idx_toy]
         d_qmax = smoothutils.smooth_max1(
-            d_qmin,
-            aid.alloweddischarge,
-            der.dischargesmoothpar
+            d_qmin, aid.alloweddischarge, der.dischargesmoothpar
         )
         # calculate the release for too-high water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (new.watervolume-d_target+d_range)/d_range,
+            (new.watervolume - d_target + d_range) / d_range,
             der.volumesmoothparlog2,
         )
         d_upperbound = smoothutils.smooth_min1(
-            d_qmax,
-            flu.inflow,
-            der.dischargesmoothpar
+            d_qmax, flu.inflow, der.dischargesmoothpar
         )
-        d_release1 = (
-            (1.-d_factor)*d_qmin +
-            d_factor*smoothutils.smooth_max1(
-                d_qmin,
-                d_upperbound,
-                der.dischargesmoothpar,
-            )
+        d_release1 = (1.0 - d_factor) * d_qmin + d_factor * smoothutils.smooth_max1(
+            d_qmin,
+            d_upperbound,
+            der.dischargesmoothpar,
         )
         # calculate the release for too-low water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (d_target+d_range-new.watervolume)/d_range,
+            (d_target + d_range - new.watervolume) / d_range,
             der.volumesmoothparlog2,
         )
-        d_neutral = smoothutils.smooth_max1(
-            d_qmin,
-            flu.inflow,
-            der.dischargesmoothpar
-        )
-        d_release2 = (
-            (1.-d_factor)*d_qmax +
-            d_factor*smoothutils.smooth_min1(
-                d_qmax,
-                d_neutral,
-                der.dischargesmoothpar,
-            )
+        d_neutral = smoothutils.smooth_max1(d_qmin, flu.inflow, der.dischargesmoothpar)
+        d_release2 = (1.0 - d_factor) * d_qmax + d_factor * smoothutils.smooth_min1(
+            d_qmax,
+            d_neutral,
+            der.dischargesmoothpar,
         )
         # combine both releases smoothly:
         d_weight = smoothutils.smooth_logistic1(
-            d_target-new.watervolume,
-            der.volumesmoothparlog1
+            d_target - new.watervolume, der.volumesmoothparlog1
         )
-        flu.actualrelease = d_weight*d_release1+(1.-d_weight)*d_release2
+        flu.actualrelease = d_weight * d_release1 + (1.0 - d_weight) * d_release2
         # the realease calculated so far may depend on the smoothing-degree,
         # even when the actual volume meets the target volume; the following
         # equations are supposed to correct this:
-        if der.volumesmoothparlog1 > 0.:
+        if der.volumesmoothparlog1 > 0.0:
             d_weight = modelutils.exp(
-                -((new.watervolume-d_target)/der.volumesmoothparlog1)**2
+                -(((new.watervolume - d_target) / der.volumesmoothparlog1) ** 2)
             )
         else:
-            d_weight = 0.
+            d_weight = 0.0
         d_neutral = smoothutils.smooth_max1(
-            d_upperbound,
-            d_qmin,
-            der.dischargesmoothpar
+            d_upperbound, d_qmin, der.dischargesmoothpar
         )
-        flu.actualrelease = d_weight*d_neutral+(1.-d_weight)*flu.actualrelease
+        flu.actualrelease = d_weight * d_neutral + (1.0 - d_weight) * flu.actualrelease
         # for good measure, prevent negative release and storage overdrying
         # explictly:
         flu.actualrelease = smoothutils.smooth_max1(
-            flu.actualrelease,
-            0.,
-            der.dischargesmoothpar
+            flu.actualrelease, 0.0, der.dischargesmoothpar
         )
         flu.actualrelease *= smoothutils.smooth_logistic1(
-            new.watervolume-con.watervolumeminimumthreshold[idx_toy],
-            der.volumesmoothparlog1
+            new.watervolume - con.watervolumeminimumthreshold[idx_toy],
+            der.volumesmoothparlog1,
         )
 
 
@@ -2792,19 +2693,19 @@ class Calc_MissingRemoteRelease_V1(modeltools.Method):
         >>> fluxes.missingremoterelease
         missingremoterelease(0.0)
     """
+
     REQUIREDSEQUENCES = (
         dam_fluxes.ActualRelease,
         dam_fluxes.RequiredRemoteRelease,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.MissingRemoteRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.missingremoterelease = max(
-            flu.requiredremoterelease-flu.actualrelease, 0.)
+            flu.requiredremoterelease - flu.actualrelease, 0.0
+        )
 
 
 class Calc_ActualRemoteRelease_V1(modeltools.Method):
@@ -2887,19 +2788,14 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
         |   6 |        4.0 |            1.997972 |
         |   7 |        5.0 |            1.999796 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevelMinimumRemoteThreshold,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.WaterLevelMinimumRemoteSmoothPar,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteThreshold,)
+    DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumRemoteSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.RequiredRemoteRelease,
         dam_aides.WaterLevel,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.ActualRemoteRelease,
-    )
+    RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2908,10 +2804,12 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.actualremoterelease = (
-            flu.requiredremoterelease *
-            smoothutils.smooth_logistic1(
-                aid.waterlevel-con.waterlevelminimumremotethreshold,
-                der.waterlevelminimumremotesmoothpar))
+            flu.requiredremoterelease
+            * smoothutils.smooth_logistic1(
+                aid.waterlevel - con.waterlevelminimumremotethreshold,
+                der.waterlevelminimumremotesmoothpar,
+            )
+        )
 
 
 class Update_ActualRemoteRelieve_V1(modeltools.Method):
@@ -2983,15 +2881,10 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
         |   7 |            3.993418 |
         |   8 |            3.993442 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.HighestRemoteDischarge,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.HighestRemoteSmoothPar,
-    )
-    UPDATEDSEQUENCES = (
-        dam_fluxes.ActualRemoteRelieve,
-    )
+
+    CONTROLPARAMETERS = (dam_control.HighestRemoteDischarge,)
+    DERIVEDPARAMETERS = (dam_derived.HighestRemoteSmoothPar,)
+    UPDATEDSEQUENCES = (dam_fluxes.ActualRemoteRelieve,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2999,8 +2892,11 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.actualremoterelieve = model.fix_min1_v1(
-            flu.actualremoterelieve, con.highestremotedischarge,
-            der.highestremotesmoothpar, False)
+            flu.actualremoterelieve,
+            con.highestremotedischarge,
+            der.highestremotesmoothpar,
+            False,
+        )
 
 
 class Update_ActualRemoteRelease_V1(modeltools.Method):
@@ -3084,18 +2980,11 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
         |   7 |                 6.0 |                 0.0 |
         |   8 |                 7.0 |                 0.0 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.HighestRemoteDischarge,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.HighestRemoteSmoothPar,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRemoteRelieve,
-    )
-    UPDATEDSEQUENCES = (
-        dam_fluxes.ActualRemoteRelease,
-    )
+
+    CONTROLPARAMETERS = (dam_control.HighestRemoteDischarge,)
+    DERIVEDPARAMETERS = (dam_derived.HighestRemoteSmoothPar,)
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRemoteRelieve,)
+    UPDATEDSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3104,8 +2993,10 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.actualremoterelease = model.fix_min1_v1(
             flu.actualremoterelease,
-            con.highestremotedischarge-flu.actualremoterelieve,
-            der.highestremotesmoothpar, False)
+            con.highestremotedischarge - flu.actualremoterelieve,
+            der.highestremotesmoothpar,
+            False,
+        )
 
 
 class Calc_FloodDischarge_V1(modeltools.Method):
@@ -3122,7 +3013,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         three days:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.01.01', '2001.01.04', '1d'
+        >>> pub.timegrids = "2001.01.01", "2001.01.04", "1d"
 
         Now we prepare a dam model and define two different relationships
         between water level and flood discharge.  The first relatively
@@ -3146,7 +3037,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         ...                     nmb_neurons=(2,),
         ...                     nmb_outputs=1))
         >>> derived.toy.update()
-        >>> model.idx_sim = pub.timegrids.sim['2001.01.02']
+        >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
 
         The following example shows two distinct effects of both neurons
         in the first network.  One neuron describes a relatively sharp
@@ -3188,18 +3079,11 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         |  20 |      260.8 |       3.719725 |
         |  21 |      261.0 |       5.576088 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.WaterLevel2FloodDischarge,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-    )
-    REQUIREDSEQUENCES = (
-        dam_aides.WaterLevel,
-    )
-    RESULTSEQUENCES = (
-        dam_fluxes.FloodDischarge,
-    )
+
+    CONTROLPARAMETERS = (dam_control.WaterLevel2FloodDischarge,)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_fluxes.FloodDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3236,18 +3120,17 @@ class Calc_Outflow_V1(modeltools.Method):
         >>> fluxes.outflow
         outflow(0.0)
     """
+
     REQUIREDSEQUENCES = (
         dam_fluxes.ActualRelease,
         dam_fluxes.FloodDischarge,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.Outflow,
-    )
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.)
+        flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
 
 
 class Calc_AllowedDischarge_V1(modeltools.Method):
@@ -3260,8 +3143,8 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
     Example:
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep('1d')
-        >>> simulationstep('1h')
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
 
         >>> allowedwaterleveldrop(0.1)
         >>> derived.seconds.update()
@@ -3273,19 +3156,14 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         >>> aides.alloweddischarge
         alloweddischarge(3.0)
     """
-    CONTROLPARAMETERS = (
-        dam_control.AllowedWaterLevelDrop,
-    )
-    DERIVEDPARAMETERS = (
-        dam_derived.Seconds,
-    )
+
+    CONTROLPARAMETERS = (dam_control.AllowedWaterLevelDrop,)
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_aides.SurfaceArea,
     )
-    RESULTSEQUENCES = (
-        dam_aides.AllowedDischarge,
-    )
+    RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3293,8 +3171,9 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        aid.alloweddischarge = \
-            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6+flu.inflow
+        aid.alloweddischarge = (
+            con.allowedwaterleveldrop / der.seconds * aid.surfacearea * 1e6 + flu.inflow
+        )
 
 
 class Calc_AllowedDischarge_V2(modeltools.Method):
@@ -3311,10 +3190,10 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
     Example:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1h'
+        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1h"
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
 
         >>> allowedwaterleveldrop(0.1)
         >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
@@ -3334,7 +3213,7 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         >>> import numpy
         >>> test.nexts.inflow = 1.0, 1.5, 1.9, 2.0, 2.1, 2.5, 3.0
 
-        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
 
         >>> dischargetolerance(0.0)
         >>> derived.dischargesmoothpar.update()
@@ -3362,6 +3241,7 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         |   6 |    2.5 |         2.999987 |
         |   7 |    3.0 |              3.0 |
     """
+
     CONTROLPARAMETERS = (
         dam_control.AllowedRelease,
         dam_control.AllowedWaterLevelDrop,
@@ -3369,15 +3249,13 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
         dam_derived.Seconds,
-        dam_derived.DischargeSmoothPar
+        dam_derived.DischargeSmoothPar,
     )
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_aides.SurfaceArea,
     )
-    RESULTSEQUENCES = (
-        dam_aides.AllowedDischarge,
-    )
+    RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3386,8 +3264,8 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         aid.alloweddischarge = smoothutils.smooth_min1(
-            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6 +
-            flu.inflow,
+            con.allowedwaterleveldrop / der.seconds * aid.surfacearea * 1e6
+            + flu.inflow,
             con.allowedrelease[der.toy[model.idx_sim]],
             der.dischargesmoothpar,
         )
@@ -3459,16 +3337,13 @@ class Calc_Outflow_V2(modeltools.Method):
         |   7 |            6.0 |     0.0 |
         |   8 |            7.0 |     0.0 |
     """
-    DERIVEDPARAMETERS = (
-        dam_derived.DischargeSmoothPar,
-    )
+
+    DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.FloodDischarge,
         dam_aides.AllowedDischarge,
     )
-    RESULTSEQUENCES = (
-        dam_fluxes.Outflow,
-    )
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3476,8 +3351,8 @@ class Calc_Outflow_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.outflow = model.fix_min1_v1(
-            flu.flooddischarge, aid.alloweddischarge,
-            der.dischargesmoothpar, False)
+            flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
+        )
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -3498,16 +3373,13 @@ class Update_WaterVolume_V1(modeltools.Method):
         >>> states.watervolume
         watervolume(3.0)
     """
-    DERIVEDPARAMETERS = (
-        dam_derived.Seconds,
-    )
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_fluxes.Outflow,
     )
-    UPDATEDSEQUENCES = (
-        dam_states.WaterVolume,
-    )
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3515,8 +3387,9 @@ class Update_WaterVolume_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        new.watervolume = (old.watervolume +
-                           der.seconds*(flu.inflow-flu.outflow)/1e6)
+        new.watervolume = (
+            old.watervolume + der.seconds * (flu.inflow - flu.outflow) / 1e6
+        )
 
 
 class Update_WaterVolume_V2(modeltools.Method):
@@ -3539,17 +3412,14 @@ class Update_WaterVolume_V2(modeltools.Method):
         >>> states.watervolume
         watervolume(1.0)
     """
-    DERIVEDPARAMETERS = (
-        dam_derived.Seconds,
-    )
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_fluxes.Outflow,
         dam_fluxes.ActualRemoteRelease,
     )
-    UPDATEDSEQUENCES = (
-        dam_states.WaterVolume,
-    )
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3558,8 +3428,9 @@ class Update_WaterVolume_V2(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         new.watervolume = (
-            old.watervolume +
-            der.seconds*(flu.inflow-flu.outflow-flu.actualremoterelease)/1e6)
+            old.watervolume
+            + der.seconds * (flu.inflow - flu.outflow - flu.actualremoterelease) / 1e6
+        )
 
 
 class Update_WaterVolume_V3(modeltools.Method):
@@ -3583,18 +3454,15 @@ class Update_WaterVolume_V3(modeltools.Method):
         >>> states.watervolume
         watervolume(0.0)
     """
-    DERIVEDPARAMETERS = (
-        dam_derived.Seconds,
-    )
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_fluxes.Outflow,
         dam_fluxes.ActualRemoteRelease,
         dam_fluxes.ActualRemoteRelieve,
     )
-    UPDATEDSEQUENCES = (
-        dam_states.WaterVolume,
-    )
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3603,11 +3471,16 @@ class Update_WaterVolume_V3(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         new.watervolume = (
-            old.watervolume +
-            der.seconds*(flu.inflow -
-                         flu.outflow -
-                         flu.actualremoterelease -
-                         flu.actualremoterelieve)/1e6)
+            old.watervolume
+            + der.seconds
+            * (
+                flu.inflow
+                - flu.outflow
+                - flu.actualremoterelease
+                - flu.actualremoterelieve
+            )
+            / 1e6
+        )
 
 
 class Pass_Outflow_V1(modeltools.Method):
@@ -3616,12 +3489,9 @@ class Pass_Outflow_V1(modeltools.Method):
     Basic equation:
       :math:`Q = Outflow`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Outflow,
-    )
-    RESULTSEQUENCES = (
-        dam_outlets.Q,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.Outflow,)
+    RESULTSEQUENCES = (dam_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3636,12 +3506,9 @@ class Pass_ActualRemoteRelease_V1(modeltools.Method):
     Basic equation:
       :math:`S = ActualRemoteRelease`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRemoteRelease,
-    )
-    RESULTSEQUENCES = (
-        dam_outlets.S,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
+    RESULTSEQUENCES = (dam_outlets.S,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3656,12 +3523,9 @@ class Pass_ActualRemoteRelieve_V1(modeltools.Method):
     Basic equation:
       :math:`R = ActualRemoteRelieve`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRemoteRelieve,
-    )
-    RESULTSEQUENCES = (
-        dam_outlets.R,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRemoteRelieve,)
+    RESULTSEQUENCES = (dam_outlets.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3676,12 +3540,9 @@ class Pass_MissingRemoteRelease_V1(modeltools.Method):
     Basic equation:
       :math:`D = MissingRemoteRelease`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.MissingRemoteRelease,
-    )
-    RESULTSEQUENCES = (
-        dam_senders.D,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
+    RESULTSEQUENCES = (dam_senders.D,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3696,12 +3557,9 @@ class Pass_AllowedRemoteRelieve_V1(modeltools.Method):
     Basic equation:
       :math:`R = AllowedRemoteRelieve`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.AllowedRemoteRelieve,
-    )
-    RESULTSEQUENCES = (
-        dam_senders.R,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.AllowedRemoteRelieve,)
+    RESULTSEQUENCES = (dam_senders.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3716,12 +3574,9 @@ class Pass_RequiredRemoteSupply_V1(modeltools.Method):
     Basic equation:
       :math:`S = RequiredRemoteSupply`
     """
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RequiredRemoteSupply,
-    )
-    RESULTSEQUENCES = (
-        dam_senders.S,
-    )
+
+    REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
+    RESULTSEQUENCES = (dam_senders.S,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3759,28 +3614,24 @@ class Update_LoggedOutflow_V1(modeltools.Method):
         |   3 |     2.0 | 2.0  3.0            1.0 |
         |   4 |     4.0 | 4.0  2.0            3.0 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.NmbLogEntries,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Outflow,
-    )
-    UPDATEDSEQUENCES = (
-        dam_logs.LoggedOutflow,
-    )
+
+    CONTROLPARAMETERS = (dam_control.NmbLogEntries,)
+    REQUIREDSEQUENCES = (dam_fluxes.Outflow,)
+    UPDATEDSEQUENCES = (dam_logs.LoggedOutflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        for idx in range(con.nmblogentries-1, 0, -1):
-            log.loggedoutflow[idx] = log.loggedoutflow[idx-1]
+        for idx in range(con.nmblogentries - 1, 0, -1):
+            log.loggedoutflow[idx] = log.loggedoutflow[idx - 1]
         log.loggedoutflow[0] = flu.outflow
 
 
 class Model(modeltools.ELSModel):
     """Dam base model."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -3808,9 +3659,7 @@ class Model(modeltools.ELSModel):
         Pic_LoggedAllowedRemoteRelieve_V1,
         Calc_AllowedRemoteRelieve_V1,
     )
-    ADD_METHODS = (
-        Fix_Min1_V1,
-    )
+    ADD_METHODS = (Fix_Min1_V1,)
     PART_ODE_METHODS = (
         Pic_Inflow_V1,
         Calc_WaterLevel_V1,

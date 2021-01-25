@@ -15,6 +15,7 @@ install:
   - pip install numpy --upgrade
   - pip install --only-binary=scipy scipy
   - pip install matplotlib
+  - pip install black
   - pip install bokeh
   - pip install coverage
   - pip install networkx
@@ -30,15 +31,16 @@ install:
   - pip install travis-sphinx
   - pip install sphinxcontrib-fulltoc
   - pip install sphinxprettysearchresults
-  - pip install sphinxcontrib.bibtex
+  - pip install "sphinxcontrib.bibtex<2"
 
 script:
+  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pylint hydpy; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then black hydpy --exclude=hydpy/data/ --check; fi
   - python setup.py install
-  - python hydpy/tests/check_consistency.py
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pylint hydpy; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/tests/check_consistency.py; fi
 
 env:
   global:

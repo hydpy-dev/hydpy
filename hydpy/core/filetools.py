@@ -8,9 +8,12 @@ import os
 import runpy
 import shutil
 import zipfile
+import types
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -19,6 +22,7 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+
 if TYPE_CHECKING:
     from hydpy.core import sequencetools
 
@@ -37,7 +41,7 @@ class Folder2Path:
     >>> Folder2Path()
     Folder2Path()
     >>> f2p = Folder2Path(
-    ...     'folder1', 'folder2', folder3='folder3', folder4='path4')
+    ...     "folder1", "folder2", folder3="folder3", folder4="path4")
     >>> f2p
     Folder2Path(folder1,
                 folder2,
@@ -48,8 +52,8 @@ class Folder2Path:
 
     To add folders after initialisation is supported:
 
-    >>> f2p.add('folder5')
-    >>> f2p.add('folder6', 'path6')
+    >>> f2p.add("folder5")
+    >>> f2p.add("folder6", "path6")
     >>> f2p
     Folder2Path(folder1,
                 folder2,
@@ -60,7 +64,7 @@ class Folder2Path:
 
     Folder names are required to be valid Python identifiers:
 
-    >>> f2p.add('folder 7')
+    >>> f2p.add("folder 7")
     Traceback (most recent call last):
     ...
     ValueError: The given name string `folder 7` does not define a valid \
@@ -77,7 +81,7 @@ built-ins like `for`...)
 
     Attribute access and iteration are also supported:
 
-    >>> 'folder1' in dir(f2p)
+    >>> "folder1" in dir(f2p)
     True
     >>> f2p.folder1
     'folder1'
@@ -132,7 +136,7 @@ built-ins like `for`...)
         return len(vars(self))
 
     def __str__(self) -> str:
-        return ' '.join(repr(self).split())
+        return " ".join(repr(self).split())
 
     def __repr__(self) -> str:
         if self:
@@ -141,12 +145,12 @@ built-ins like `for`...)
                 if key == value:
                     args.append(key)
                 else:
-                    kwargs.append(f'{key}={objecttools.repr_(value)}')
-            lines = [f'            {arg},' for arg in args+kwargs]
-            lines[0] = 'Folder2Path(' + lines[0][12:]
-            lines[-1] = lines[-1][:-1] + ')'
-            return '\n'.join(lines)
-        return 'Folder2Path()'
+                    kwargs.append(f"{key}={objecttools.repr_(value)}")
+            lines = [f"            {arg}," for arg in args + kwargs]
+            lines[0] = "Folder2Path(" + lines[0][12:]
+            lines[-1] = lines[-1][:-1] + ")"
+            return "\n".join(lines)
+        return "Folder2Path()"
 
 
 class FileManager:
@@ -168,7 +172,7 @@ class FileManager:
         self._currentdir = None
 
     @propertytools.ProtectedPropertyStr
-    def projectdir(self) -> str:    # pylint: disable=method-hidden
+    def projectdir(self) -> str:  # pylint: disable=method-hidden
         """The name of the main folder of a project.
 
         For the `LahnH` example project, |FileManager.projectdir| is
@@ -179,7 +183,7 @@ class FileManager:
 
         >>> from hydpy.core.filetools import FileManager
         >>> from hydpy import pub
-        >>> pub.projectname = 'project_A'
+        >>> pub.projectname = "project_A"
         >>> filemanager = FileManager()
         >>> filemanager.projectdir
         'project_A'
@@ -190,7 +194,7 @@ class FileManager:
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` \
 of object `filemanager` has not been prepared so far.
-        >>> filemanager.projectdir = 'project_B'
+        >>> filemanager.projectdir = "project_B"
         >>> filemanager.projectdir
         'project_B'
 
@@ -217,15 +221,14 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
         ...     repr_(filemanager.basepath)   # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename'
         """
-        return os.path.abspath(
-            os.path.join(self.projectdir, self.BASEDIR))
+        return os.path.abspath(os.path.join(self.projectdir, self.BASEDIR))
 
     @property
     def availabledirs(self) -> Folder2Path:
@@ -240,17 +243,17 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
-        ...     os.makedirs('projectname/basename/folder1')
-        ...     os.makedirs('projectname/basename/folder2')
-        ...     open('projectname/basename/folder3.zip', 'w').close()
-        ...     os.makedirs('projectname/basename/_folder4')
-        ...     open('projectname/basename/folder5.tar', 'w').close()
+        ...     os.makedirs("projectname/basename/folder1")
+        ...     os.makedirs("projectname/basename/folder2")
+        ...     open("projectname/basename/folder3.zip", "w").close()
+        ...     os.makedirs("projectname/basename/_folder4")
+        ...     open("projectname/basename/folder5.tar", "w").close()
         ...     filemanager.availabledirs   # doctest: +ELLIPSIS
         Folder2Path(folder1=.../projectname/basename/folder1,
                     folder2=.../projectname/basename/folder2,
@@ -258,11 +261,11 @@ of object `filemanager` has not been prepared so far.
         """
         directories = Folder2Path()
         for directory in os.listdir(self.basepath):
-            if not directory.startswith('_'):
+            if not directory.startswith("_"):
                 path = os.path.join(self.basepath, directory)
                 if os.path.isdir(path):
                     directories.add(directory, path)
-                elif directory.endswith('.zip'):
+                elif directory.endswith(".zip"):
                     directories.add(directory[:-4], path)
         return directories
 
@@ -279,14 +282,14 @@ of object `filemanager` has not been prepared so far.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = "basename"
         >>> filemanager.DEFAULTDIR = None
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
-        ...     os.makedirs('projectname/basename')
+        ...     os.makedirs("projectname/basename")
         ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename'
 
@@ -305,7 +308,7 @@ has not been defined manually and cannot be determined automatically: \
         working directory automatically:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir1')
+        ...     os.mkdir("projectname/basename/dir1")
         ...     filemanager.currentdir
         'dir1'
 
@@ -314,7 +317,7 @@ has not been defined manually and cannot be determined automatically: \
         later to the base path:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir2')
+        ...     os.mkdir("projectname/basename/dir2")
         ...     filemanager.currentdir
         'dir1'
 
@@ -336,7 +339,7 @@ has not been defined manually and cannot be determined automatically: \
         Setting |FileManager.currentdir| manually solves the problem:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'dir1'
+        ...     filemanager.currentdir = "dir1"
         ...     filemanager.currentdir
         'dir1'
 
@@ -344,7 +347,7 @@ has not been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     del filemanager.currentdir
-        ...     os.path.exists('projectname/basename/dir1')
+        ...     os.path.exists("projectname/basename/dir1")
         False
 
         |FileManager| subclasses can define a default directory name.
@@ -354,8 +357,8 @@ has not been defined manually and cannot be determined automatically: \
         without any having the default name:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir1')
-        ...     filemanager.DEFAULTDIR = 'dir3'
+        ...     os.mkdir("projectname/basename/dir1")
+        ...     filemanager.DEFAULTDIR = "dir3"
         ...     del filemanager.currentdir
         ...     filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -367,7 +370,7 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         We can fix this by adding the required default directory manually:
 
         >>> with TestIO():
-        ...     os.mkdir('projectname/basename/dir3')
+        ...     os.mkdir("projectname/basename/dir3")
         ...     filemanager.currentdir
         'dir3'
 
@@ -375,11 +378,11 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         the default name but also creates the required folder:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'dir4'
+        ...     filemanager.currentdir = "dir4"
         ...     filemanager.currentdir
         'dir4'
         >>> with TestIO():
-        ...     sorted(os.listdir('projectname/basename'))
+        ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
 
         Failed attempts in removing directories result in error messages
@@ -387,7 +390,7 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
 
         >>> import shutil
         >>> from unittest.mock import patch
-        >>> with patch.object(shutil, 'rmtree', side_effect=AttributeError):
+        >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
         ...     with TestIO():
         ...         del filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -403,7 +406,7 @@ error occurred: ...
         ...     filemanager.currentdir
         'dir4'
         >>> with TestIO():
-        ...     sorted(os.listdir('projectname/basename'))
+        ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
         """
         currentdir = self._currentdir
@@ -414,23 +417,28 @@ error occurred: ...
             elif self.DEFAULTDIR in directories:
                 currentdir = self.DEFAULTDIR
             else:
-                prefix = (f'The current working directory of the '
-                          f'{type(self).__name__} object has not '
-                          f'been defined manually and cannot be '
-                          f'determined automatically:')
+                prefix = (
+                    f"The current working directory of the "
+                    f"{type(self).__name__} object has not "
+                    f"been defined manually and cannot be "
+                    f"determined automatically:"
+                )
                 if not directories:
                     raise RuntimeError(
-                        f'{prefix} `{objecttools.repr_(self.basepath)}` '
-                        f'does not contain any available directories.')
+                        f"{prefix} `{objecttools.repr_(self.basepath)}` "
+                        f"does not contain any available directories."
+                    )
                 if self.DEFAULTDIR is None:
                     raise RuntimeError(
-                        f'{prefix} `{objecttools.repr_(self.basepath)}` '
-                        f'does contain multiple available directories '
-                        f'({objecttools.enumeration(directories)}).')
+                        f"{prefix} `{objecttools.repr_(self.basepath)}` "
+                        f"does contain multiple available directories "
+                        f"({objecttools.enumeration(directories)})."
+                    )
                 raise RuntimeError(
-                    f'{prefix} The default directory ({self.DEFAULTDIR}) '
-                    f'is not among the available directories '
-                    f'({objecttools.enumeration(directories)}).')
+                    f"{prefix} The default directory ({self.DEFAULTDIR}) "
+                    f"is not among the available directories "
+                    f"({objecttools.enumeration(directories)})."
+                )
             self.currentdir = currentdir
         return currentdir
 
@@ -440,12 +448,12 @@ error occurred: ...
             self._currentdir = None
         else:
             dirpath = os.path.join(self.basepath, directory)
-            zippath = f'{dirpath}.zip'
+            zippath = f"{dirpath}.zip"
             if os.path.exists(zippath):
                 shutil.unpack_archive(
                     filename=zippath,
                     extract_dir=os.path.join(self.basepath, directory),
-                    format='zip',
+                    format="zip",
                 )
                 os.remove(zippath)
             elif not os.path.exists(dirpath):
@@ -460,9 +468,10 @@ error occurred: ...
                 shutil.rmtree(path)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to delete the current working '
-                    f'directory `{objecttools.repr_(path)}` of the '
-                    f'{type(self).__name__} object')
+                    f"While trying to delete the current working "
+                    f"directory `{objecttools.repr_(path)}` of the "
+                    f"{type(self).__name__} object"
+                )
         self._currentdir = None
 
     @property
@@ -471,11 +480,11 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
+        ...     filemanager.currentdir = "testdir"
         ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir'
         """
@@ -488,20 +497,20 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
-        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
-        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
-        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     filemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     filemanager.filenames
         ['file1.txt', 'file2.npy']
         """
         return sorted(
-            fn for fn in os.listdir(self.currentpath)
-            if not fn.startswith('_'))
+            fn for fn in os.listdir(self.currentpath) if not fn.startswith("_")
+        )
 
     @property
     def filepaths(self) -> List[str]:
@@ -510,14 +519,14 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.BASEDIR = "basename"
+        >>> filemanager.projectdir = "projectname"
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
-        ...     filemanager.currentdir = 'testdir'
-        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
-        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
-        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     filemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     for filepath in filemanager.filepaths:
         ...         repr_(filepath)    # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
@@ -540,18 +549,18 @@ error occurred: ...
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = "basename"
         >>> filemanager.DEFAULTDIR = None
-        >>> filemanager.projectdir = 'projectname'
+        >>> filemanager.projectdir = "projectname"
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
-        >>> basepath = 'projectname/basename'
+        >>> basepath = "projectname/basename"
         >>> with TestIO():
         ...     os.makedirs(basepath)
-        ...     filemanager.currentdir = 'folder'
-        ...     open(f'{basepath}/folder/file1.txt', 'w').close()
-        ...     open(f'{basepath}/folder/file2.txt', 'w').close()
+        ...     filemanager.currentdir = "folder"
+        ...     open(f"{basepath}/folder/file1.txt", "w").close()
+        ...     open(f"{basepath}/folder/file2.txt", "w").close()
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
@@ -579,7 +588,7 @@ error occurred: ...
 
         >>> from zipfile import ZipFile
         >>> with TestIO():
-        ...     with ZipFile('projectname/basename/folder.zip', 'r') as zp:
+        ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
         ...         sorted(zp.namelist())
         ['file1.txt', 'file2.txt']
 
@@ -587,7 +596,7 @@ error occurred: ...
         the current working directory:
 
         >>> with TestIO():
-        ...     filemanager.currentdir = 'folder'
+        ...     filemanager.currentdir = "folder"
         ...     sorted(os.listdir(basepath))
         ...     filemanager.availabledirs
         ...     filemanager.filenames    # doctest: +ELLIPSIS
@@ -595,7 +604,7 @@ error occurred: ...
         Folder2Path(folder=.../projectname/basename/folder)
         ['file1.txt', 'file2.txt']
         """
-        with zipfile.ZipFile(f'{self.currentpath}.zip', 'w') as zipfile_:
+        with zipfile.ZipFile(f"{self.currentpath}.zip", "w") as zipfile_:
             for filepath, filename in zip(self.filepaths, self.filenames):
                 zipfile_.write(filename=filepath, arcname=filename)
         del self.currentdir
@@ -635,7 +644,7 @@ class NetworkManager(FileManager):
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     networkmanager.projectdir = 'LahnH'
+    ...     networkmanager.projectdir = "LahnH"
     ...     selections = networkmanager.load_files()
 
     Method |NetworkManager.load_files| takes file names as selection
@@ -662,9 +671,9 @@ class NetworkManager(FileManager):
 
     >>> import os
     >>> with TestIO():
-    ...     networkmanager.currentdir = 'testdir'
+    ...     networkmanager.currentdir = "testdir"
     ...     networkmanager.save_files(selections)
-    ...     sorted(os.listdir('LahnH/network/testdir'))
+    ...     sorted(os.listdir("LahnH/network/testdir"))
     ['headwaters.py', 'nonheadwaters.py', 'streams.py']
 
     Reloading and comparing with the still available |Selection| objects
@@ -681,7 +690,7 @@ class NetworkManager(FileManager):
     >>> selections -= selections.streams
     >>> with TestIO():
     ...     networkmanager.delete_files(selections)
-    ...     sorted(os.listdir('LahnH/network/testdir'))
+    ...     sorted(os.listdir("LahnH/network/testdir"))
     ['streams.py']
 
     When defining network files, many things can go wrong.  In the
@@ -689,15 +698,15 @@ class NetworkManager(FileManager):
     to be concrete enough to aid in finding the relevant problems:
 
     >>> with TestIO():
-    ...     networkmanager.delete_files(['headwaters'])   # doctest: +ELLIPSIS
+    ...     networkmanager.delete_files(["headwaters"])   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to remove the network files of selections \
 `['headwaters']`, the following error occurred: ...
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('x = y')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("x = y")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -705,8 +714,8 @@ class NetworkManager(FileManager):
 following error occurred: name 'y' is not defined
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('from hydpy import Node')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("from hydpy import Node")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -714,8 +723,8 @@ following error occurred: name 'y' is not defined
 `...streams.py`.
 
     >>> with TestIO():
-    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
-    ...         _ = wrongfile.write('from hydpy import Element')
+    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...         _ = wrongfile.write("from hydpy import Element")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -724,7 +733,7 @@ following error occurred: name 'y' is not defined
 
     >>> import shutil
     >>> with TestIO():
-    ...     shutil.rmtree('LahnH/network/testdir')
+    ...     shutil.rmtree("LahnH/network/testdir")
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -733,8 +742,8 @@ following error occurred: name 'y' is not defined
 the following error occurred: ...
     """
 
-    BASEDIR = 'network'
-    DEFAULTDIR = 'default'
+    BASEDIR = "network"
+    DEFAULTDIR = "default"
 
     def load_files(self) -> selectiontools.Selections:
         """Read all network files of the current working directory, structure
@@ -754,29 +763,26 @@ the following error occurred: ...
                 info = runpy.run_path(path)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to load the network file `{path}`'
+                    f"While trying to load the network file `{path}`"
                 )
             try:
-                node: devicetools.Node = info['Node']
-                element: devicetools.Element = info['Element']
+                node: devicetools.Node = info["Node"]
+                element: devicetools.Element = info["Element"]
                 selections += selectiontools.Selection(
-                    filename.split('.')[0],
-                    node.extract_new(),
-                    element.extract_new())
+                    filename.split(".")[0], node.extract_new(), element.extract_new()
+                )
             except KeyError as exc:
                 raise RuntimeError(
-                    f'The class {exc.args[0]} cannot be loaded from the '
-                    f'network file `{path}`.'
+                    f"The class {exc.args[0]} cannot be loaded from the "
+                    f"network file `{path}`."
                 ) from None
 
         selections += selectiontools.Selection(
-            'complete',
-            info['Node'].query_all(),
-            info['Element'].query_all())
+            "complete", info["Node"].query_all(), info["Element"].query_all()
+        )
         return selections
 
-    def save_files(self, selections: Iterable[selectiontools.Selection]) \
-            -> None:
+    def save_files(self, selections: Iterable[selectiontools.Selection]) -> None:
         """Save the |Selection| objects contained in the given |Selections|
         instance to separate network files.
 
@@ -786,17 +792,17 @@ the following error occurred: ...
         try:
             currentpath = self.currentpath
             for selection in selections:
-                if selection.name == 'complete':
+                if selection.name == "complete":
                     continue
-                path = os.path.join(currentpath, selection.name+'.py')
+                path = os.path.join(currentpath, selection.name + ".py")
                 selection.save_networkfile(filepath=path)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to save the selections `{selections}` '
-                f'into network files')
+                f"While trying to save the selections `{selections}` "
+                f"into network files"
+            )
 
-    def delete_files(self, selections: Iterable[selectiontools.Selection]) \
-            -> None:
+    def delete_files(self, selections: Iterable[selectiontools.Selection]) -> None:
         """Delete the network files corresponding to the given selections
         (e.g. a |list| of |str| objects or a |Selections| object).
 
@@ -807,16 +813,17 @@ the following error occurred: ...
             currentpath = self.currentpath
             for selection in selections:
                 name = str(selection)
-                if name == 'complete':
+                if name == "complete":
                     continue
-                if not name.endswith('.py'):
-                    name += '.py'
+                if not name.endswith(".py"):
+                    name += ".py"
                 path = os.path.join(currentpath, name)
                 os.remove(path)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to remove the network files of '
-                f'selections `{selections}`')
+                f"While trying to remove the network files of "
+                f"selections `{selections}`"
+            )
 
 
 class ControlManager(FileManager):
@@ -840,16 +847,17 @@ class ControlManager(FileManager):
 
     # The following file path to content mapping is used to circumvent reading
     # the same auxiliary control parameter file from disk multiple times.
-    _registry: Dict[str, str] = {}
-    _workingpath: str = '.'
-    BASEDIR = 'control'
-    DEFAULTDIR = 'default'
+    _registry: Dict[str, types.CodeType] = {}
+    _workingpath: str = "."
+    BASEDIR = "control"
+    DEFAULTDIR = "default"
 
     def load_file(
-            self,
-            element: Optional[devicetools.Element] = None,
-            filename: Optional[str] = None,
-            clear_registry: bool = True) -> Dict[str, Any]:
+        self,
+        element: Optional[devicetools.Element] = None,
+        filename: Optional[str] = None,
+        clear_registry: bool = True,
+    ) -> Dict[str, Any]:
         """Return the namespace of the given file (and eventually of its
         corresponding auxiliary subfiles).
 
@@ -873,13 +881,13 @@ class ControlManager(FileManager):
         >>> from hydpy.core.filetools import ControlManager
         >>> controlmanager = ControlManager()
         >>> from hydpy import pub, round_, TestIO
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> with TestIO():
-        ...     controlmanager.projectdir = 'LahnH'
-        ...     results = controlmanager.load_file(filename='land_dill')
+        ...     controlmanager.projectdir = "LahnH"
+        ...     results = controlmanager.load_file(filename="land_dill")
 
 
-        >>> results['control']
+        >>> results["control"]
         area(692.3)
         nmbzones(12)
         zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
@@ -923,7 +931,7 @@ class ControlManager(FileManager):
         maxbaz(0.36728)
         abstr(0.0)
 
-        >>> results['percmax'].values
+        >>> results["percmax"].values
         0.69818
 
         Passing neither a filename nor an |Element| object raises the
@@ -940,17 +948,17 @@ pass its name or the responsible Element object.
                 filename = element.name
             else:
                 raise RuntimeError(
-                    'When trying to load a control file you must either '
-                    'pass its name or the responsible Element object.'
+                    "When trying to load a control file you must either "
+                    "pass its name or the responsible Element object."
                 )
         type(self)._workingpath = self.currentpath
         info = {}
         if element:
-            info['element'] = element
+            info["element"] = element
         try:
             self.read2dict(filename, info)
         finally:
-            type(self)._workingpath = '.'
+            type(self)._workingpath = "."
             if clear_registry:
                 self._registry.clear()
         return info
@@ -967,24 +975,28 @@ pass its name or the responsible Element object.
         you should most probably prefer to use the method
         |ControlManager.load_file|.
         """
-        if not filename.endswith('.py'):
-            filename += '.py'
+        if not filename.endswith(".py"):
+            filename += ".py"
         path = os.path.join(cls._workingpath, filename)
         with hydpy.pub.options.parameterstep(None):
             try:
                 if path not in cls._registry:
                     with open(path) as file_:
-                        cls._registry[path] = file_.read()
+                        cls._registry[path] = compile(
+                            source=file_.read(),
+                            filename=filename,
+                            mode="exec",
+                        )
                 exec(cls._registry[path], {}, info)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f'While trying to load the control file `{path}`'
+                    f"While trying to load the control file `{path}`"
                 )
-        if 'model' not in info:
+        if "model" not in info:
             raise RuntimeError(
-                f'Model parameters cannot be loaded from control file '
-                f'`{path}`.  Please refer to the HydPy documentation '
-                f'on how to prepare control files properly.'
+                f"Model parameters cannot be loaded from control file "
+                f"`{path}`.  Please refer to the HydPy documentation "
+                f"on how to prepare control files properly."
             )
 
     @classmethod
@@ -995,10 +1007,10 @@ pass its name or the responsible Element object.
     def save_file(self, filename: str, text: str) -> None:
         """Save the given text under the given control filename and the
         current path."""
-        if not filename.endswith('.py'):
-            filename += '.py'
+        if not filename.endswith(".py"):
+            filename += ".py"
         path = os.path.join(self.currentpath, filename)
-        with open(path, 'w', encoding="utf-8") as file_:
+        with open(path, "w", encoding="utf-8") as file_:
             file_.write(text)
 
 
@@ -1031,15 +1043,18 @@ class ConditionManager(FileManager):
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00'
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00'
 
-    >>> pub.timegrids.sim.firstdate += '1d'
-    >>> pub.timegrids.sim.lastdate -= '1d'
+    >>> pub.timegrids.sim.firstdate += "1d"
+    >>> pub.timegrids.sim.lastdate -= "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid('1996-01-01 00:00:00',
-                       '1996-01-05 00:00:00',
-                       '1d'),
-              Timegrid('1996-01-02 00:00:00',
-                       '1996-01-04 00:00:00',
-                       '1d'))
+    Timegrids(init=Timegrid("1996-01-01 00:00:00",
+                            "1996-01-05 00:00:00",
+                            "1d"),
+              sim=Timegrid("1996-01-02 00:00:00",
+                           "1996-01-04 00:00:00",
+                           "1d"),
+              eval_=Timegrid("1996-01-01 00:00:00",
+                             "1996-01-05 00:00:00",
+                             "1d"))
 
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
@@ -1051,7 +1066,7 @@ class ConditionManager(FileManager):
     both properties:
 
     >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     pub.conditionmanager.currentdir = 'test'
+    ...     pub.conditionmanager.currentdir = "test"
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/LahnH/conditions/test'
@@ -1090,7 +1105,7 @@ currently relevant output path for saving conditions file, the following error \
 occurred: Attribute timegrids of module `pub` is not defined at the moment.
     """
 
-    BASEDIR = 'conditions'
+    BASEDIR = "conditions"
     DEFAULTDIR = None
 
     @property
@@ -1103,13 +1118,14 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = (
-                    'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
+                self.currentdir = "init_" + hydpy.pub.timegrids.sim.firstdate.to_string(
+                    "os"
+                )
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to determine the currently relevant '
-                'input path for loading conditions file'
+                "While trying to determine the currently relevant "
+                "input path for loading conditions file"
             )
         finally:
             self._currentdir = currentdir
@@ -1124,120 +1140,113 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = (
-                    'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
+                self.currentdir = "init_" + hydpy.pub.timegrids.sim.lastdate.to_string(
+                    "os"
+                )
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to determine the currently relevant '
-                'output path for saving conditions file'
+                "While trying to determine the currently relevant "
+                "output path for saving conditions file"
             )
         finally:
             self._currentdir = currentdir
 
 
-_DescrAttrType = TypeVar('_DescrAttrType')
+_DescrAttrType = TypeVar("_DescrAttrType")
 
 
 class _Descriptor(Generic[_DescrAttrType]):
 
     default: _DescrAttrType
-    sequencetype: 'str'
-    obj2value: Dict['SequenceManager', _DescrAttrType]
+    sequencetype: "str"
+    obj2value: Dict["SequenceManager", _DescrAttrType]
 
     def __init__(self, default: _DescrAttrType, sequencetype: str) -> None:
         self.default = default
         self.sequencetype = sequencetype
         self.obj2value = {}
 
-    def get_value(self, obj: 'SequenceManager') -> _DescrAttrType:
+    def get_value(self, obj: "SequenceManager") -> _DescrAttrType:
         """Get the value from the given object and return it."""
         return self.obj2value.get(obj, self.default)
 
-    def set_value(self, obj: 'SequenceManager', value: _DescrAttrType):
+    def set_value(self, obj: "SequenceManager", value: _DescrAttrType):
         """Assign the given value to the given object."""
         self.obj2value[obj] = value
 
-    def del_value(self, obj: 'SequenceManager') -> None:
+    def del_value(self, obj: "SequenceManager") -> None:
         """Delete the value from the given object."""
         if obj in self.obj2value:
             del self.obj2value[obj]
 
     @abc.abstractmethod
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']] = None) -> _DescrAttrType:
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+    ) -> _DescrAttrType:
         """To be overridden."""
 
     @abc.abstractmethod
-    def __set__(self, obj: 'SequenceManager', directory: _DescrAttrType) \
-            -> None:
+    def __set__(self, obj: "SequenceManager", directory: _DescrAttrType) -> None:
         """To be overridden."""
 
-    def __delete__(self, obj: 'SequenceManager') -> None:
+    def __delete__(self, obj: "SequenceManager") -> None:
         self.del_value(obj)
 
 
 class _DescriptorType(_Descriptor[str]):
-
     def __init__(self, default: str, sequencetype: str) -> None:
         super().__init__(default, sequencetype)
-        self.__doc__ = (
-            f'Currently selected type of the {sequencetype} sequence files.')
+        self.__doc__ = f"Currently selected type of the {sequencetype} sequence files."
 
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']] = None) -> str:
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+    ) -> str:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: 'SequenceManager', value: str) -> None:
+    def __set__(self, obj: "SequenceManager", value: str) -> None:
         value = str(value)
         if value in obj.SUPPORTED_MODES:
             self.set_value(obj, value)
         else:
             raise ValueError(
-                f'The given sequence file type `{value}` is not implemented.  '
-                f'Please choose one of the following file types: '
-                f'{objecttools.enumeration(obj.SUPPORTED_MODES)}.')
+                f"The given sequence file type `{value}` is not implemented.  "
+                f"Please choose one of the following file types: "
+                f"{objecttools.enumeration(obj.SUPPORTED_MODES)}."
+            )
 
 
 class _DescriptorOverwrite(_Descriptor[bool]):
-
     def __init__(self, default: bool, sequencetype: str) -> None:
         super().__init__(default, sequencetype)
         self.__doc__ = (
-            f'Currently selected overwrite flag of '
-            f'the {sequencetype} sequence files.')
+            f"Currently selected overwrite flag of "
+            f"the {sequencetype} sequence files."
+        )
 
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']] = None) -> bool:
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+    ) -> bool:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: 'SequenceManager', value: bool) -> None:
+    def __set__(self, obj: "SequenceManager", value: bool) -> None:
         self.set_value(obj, value)
 
 
 class _DescriptorPath(_Descriptor[Optional[str]]):
-
     def __init__(self, default: str, sequencetype: str) -> None:
         super().__init__(None, sequencetype)
         self.sequencedir = default
         self.sequencetype = sequencetype
-        self.__doc__ = (
-            f'Path of the {sequencetype} sequence directory.')
+        self.__doc__ = f"Path of the {sequencetype} sequence directory."
 
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']] = None) -> str:
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+    ) -> str:
         if obj is None:
             return self
         value = self.get_value(obj)
@@ -1245,7 +1254,7 @@ class _DescriptorPath(_Descriptor[Optional[str]]):
             return os.path.join(obj.basepath, self.sequencedir)
         return value
 
-    def __set__(self, obj: 'SequenceManager', value: Optional[str]) -> None:
+    def __set__(self, obj: "SequenceManager", value: Optional[str]) -> None:
         if value is not None:
             abspath = os.path.abspath(value)
             if not os.path.exists(abspath):
@@ -1255,31 +1264,32 @@ class _DescriptorPath(_Descriptor[Optional[str]]):
 
 class _DescriptorAggregate(_Descriptor[str]):
 
-    AVAILABLE_MODES = ('none', 'mean')
+    AVAILABLE_MODES = ("none", "mean")
 
     def __init__(self, default: str, sequencetype: str) -> None:
         super().__init__(default, sequencetype)
         self.aggregationmode = default
         self.__doc__ = (
-            f'Mode of aggregation for writing {sequencetype} '
-            f'time series data to files.')
+            f"Mode of aggregation for writing {sequencetype} "
+            f"time series data to files."
+        )
 
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']] = None) -> str:
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+    ) -> str:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: 'SequenceManager', value: str) -> None:
+    def __set__(self, obj: "SequenceManager", value: str) -> None:
         if value in self.AVAILABLE_MODES:
             self.set_value(obj, value)
         else:
             raise ValueError(
-                f'The given mode `{value}` for aggregating time series is not '
-                f'available.  Select one of the following modes: '
-                f'{objecttools.enumeration(self.AVAILABLE_MODES)}.')
+                f"The given mode `{value}` for aggregating time series is not "
+                f"available.  Select one of the following modes: "
+                f"{objecttools.enumeration(self.AVAILABLE_MODES)}."
+            )
 
 
 class _GeneralDescriptor(Generic[_DescrAttrType]):
@@ -1288,13 +1298,12 @@ class _GeneralDescriptor(Generic[_DescrAttrType]):
     >>> isinstance(SequenceManager.generaloverwrite, _GeneralDescriptor)
     True
     """
+
     def __init__(self, *specific_descriptors: _Descriptor) -> None:
         self.specific_descriptors = specific_descriptors
 
     def __get__(
-            self,
-            obj: 'SequenceManager',
-            type_: Optional[Type['SequenceManager']]
+        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]]
     ) -> Union[_DescrAttrType, Tuple[_DescrAttrType, ...]]:
         if obj is None:
             return self
@@ -1303,11 +1312,11 @@ class _GeneralDescriptor(Generic[_DescrAttrType]):
             return list(values)[0]
         return tuple(sorted(values))
 
-    def __set__(self, obj: 'SequenceManager', value: _DescrAttrType) -> None:
+    def __set__(self, obj: "SequenceManager", value: _DescrAttrType) -> None:
         for descr in self.specific_descriptors:
             descr.__set__(obj, value)
 
-    def __delete__(self, obj: 'SequenceManager') -> None:
+    def __delete__(self, obj: "SequenceManager") -> None:
         for descr in self.specific_descriptors:
             descr.__delete__(obj)
 
@@ -1342,7 +1351,7 @@ class SequenceManager(FileManager):
     for the first one):
 
     >>> from hydpy import pub
-    >>> pub.sequencemanager.generalfiletype = 'asc'
+    >>> pub.sequencemanager.generalfiletype = "asc"
     >>> from hydpy import TestIO
     >>> with TestIO():
     ...     pub.sequencemanager.save_file(sim)
@@ -1358,21 +1367,21 @@ class SequenceManager(FileManager):
     ...     with TestIO():
     ...         with open(path) as file_:
     ...             lines = file_.readlines()
-    ...     print(''.join(lines[:3]), end='')
+    ...     print("".join(lines[:3]), end="")
     ...     for line in lines[3:]:
     ...         round_([float(x) for x in line.split()])
-    >>> print_file('nodepath', 'node2_sim_t.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("nodepath", "node2_sim_t.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     64.0
     65.0
     66.0
     67.0
-    >>> print_file('outputpath', 'element2_flux_nkor.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("outputpath", "element2_flux_nkor.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.0, 17.0
     18.0, 19.0
     20.0, 21.0
@@ -1405,12 +1414,12 @@ class SequenceManager(FileManager):
     Wrongly formatted ASCII files and incomplete data should result in
     understandable error messages:
 
-    >>> path = os.path.join('nodepath', 'node2_sim_t.asc')
+    >>> path = os.path.join("nodepath", "node2_sim_t.asc")
     >>> with TestIO():
     ...     with open(path) as file_:
     ...         right = file_.read()
-    ...     wrong = right.replace('Timegrid', 'timegrid')
-    ...     with open(path, 'w') as file_:
+    ...     wrong = right.replace("Timegrid", "timegrid")
+    ...     with open(path, "w") as file_:
     ...         _ = file_.write(wrong)
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
@@ -1421,10 +1430,10 @@ node `node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
     >>> with TestIO():
-    ...     lines = right.split('\\n')
-    ...     lines[5] = 'nan'
-    ...     wrong = '\\n'.join(lines)
-    ...     with open(path, 'w') as file_:
+    ...     lines = right.split("\\n")
+    ...     lines[5] = "nan"
+    ...     wrong = "\\n".join(lines)
+    ...     with open(path, "w") as file_:
     ...         _ = file_.write(wrong)
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
@@ -1454,10 +1463,10 @@ is not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.5
     18.5
     20.5
@@ -1473,11 +1482,11 @@ is not allowed to overwrite the existing file `...`.
     >>> from hydpy.models.lland_v1 import ACKER, WASSER
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
-    ...     nkor.save_mean('acker')
-    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
+    ...     nkor.save_mean("acker")
+    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
     16.0
     18.0
     20.0
@@ -1487,7 +1496,7 @@ is not allowed to overwrite the existing file `...`.
     is a good option for saving computation times, but possibly a
     problematic option for sharing data with colleagues:
 
-    >>> pub.sequencemanager.generalfiletype = 'npy'
+    >>> pub.sequencemanager.generalfiletype = "npy"
     >>> with TestIO():
     ...     sim.save_ext()
     ...     nkor.save_ext()
@@ -1495,7 +1504,7 @@ is not allowed to overwrite the existing file `...`.
     The time information (without time zone information) is available
     within the first thirteen entries:
 
-    >>> path = os.path.join('nodepath', 'node2_sim_t.npy')
+    >>> path = os.path.join("nodepath", "node2_sim_t.npy")
     >>> from hydpy import numpy, print_values
     >>> with TestIO():
     ...     print_values(numpy.load(path))
@@ -1521,9 +1530,9 @@ is not allowed to overwrite the existing file `...`.
 
     >>> import numpy
     >>> with TestIO():
-    ...     nkor.save_mean('wasser')
-    ...     numpy.load(os.path.join('outputpath',
-    ...                             'element2_flux_nkor_mean.npy'))[-4:]
+    ...     nkor.save_mean("wasser")
+    ...     numpy.load(os.path.join("outputpath",
+    ...                             "element2_flux_nkor_mean.npy"))[-4:]
     array([ 17.,  19.,  21.,  23.])
 
     Generally, trying to load data for "deactivated" sequences
@@ -1594,121 +1603,125 @@ to make any internal data available.
 
     >>> pub.sequencemanager.generalaggregation
     'none'
-    >>> pub.sequencemanager.fluxaggregation = 'mean'
+    >>> pub.sequencemanager.fluxaggregation = "mean"
     >>> pub.sequencemanager.generalaggregation
     ('mean', 'none')
 
-    >>> pub.sequencemanager.fluxaggregation = 'wrong'
+    >>> pub.sequencemanager.fluxaggregation = "wrong"
     Traceback (most recent call last):
     ...
     ValueError: The given mode `wrong` for aggregating time series \
 is not available.  Select one of the following modes: none and mean.
     """
 
-    SUPPORTED_MODES = ('npy', 'asc', 'nc')
-    BASEDIR = 'series'
+    SUPPORTED_MODES = ("npy", "asc", "nc")
+    BASEDIR = "series"
     DEFAULTDIR = None
 
-    inputfiletype = _DescriptorType('asc', 'input')
-    fluxfiletype = _DescriptorType('asc', 'flux')
-    statefiletype = _DescriptorType('asc', 'state')
-    nodefiletype = _DescriptorType('asc', 'node')
-    tempfiletype = _DescriptorType('asc', 'temporary')
+    inputfiletype = _DescriptorType("asc", "input")
+    fluxfiletype = _DescriptorType("asc", "flux")
+    statefiletype = _DescriptorType("asc", "state")
+    nodefiletype = _DescriptorType("asc", "node")
+    tempfiletype = _DescriptorType("asc", "temporary")
     generalfiletype = _GeneralDescriptor[str](
-        inputfiletype, fluxfiletype, statefiletype, nodefiletype, tempfiletype)
+        inputfiletype, fluxfiletype, statefiletype, nodefiletype, tempfiletype
+    )
 
-    inputoverwrite = _DescriptorOverwrite(False, 'input')
-    fluxoverwrite = _DescriptorOverwrite(False, 'flux')
-    stateoverwrite = _DescriptorOverwrite(False, 'state')
-    nodeoverwrite = _DescriptorOverwrite(False, 'node')
-    tempoverwrite = _DescriptorOverwrite(False, 'temporary')
+    inputoverwrite = _DescriptorOverwrite(False, "input")
+    fluxoverwrite = _DescriptorOverwrite(False, "flux")
+    stateoverwrite = _DescriptorOverwrite(False, "state")
+    nodeoverwrite = _DescriptorOverwrite(False, "node")
+    tempoverwrite = _DescriptorOverwrite(False, "temporary")
     generaloverwrite = _GeneralDescriptor[bool](
-        inputoverwrite, fluxoverwrite, stateoverwrite,
-        nodeoverwrite, tempoverwrite)
+        inputoverwrite, fluxoverwrite, stateoverwrite, nodeoverwrite, tempoverwrite
+    )
 
-    inputdirpath = _DescriptorPath('input', 'input')
-    fluxdirpath = _DescriptorPath('output', 'flux')
-    statedirpath = _DescriptorPath('output', 'state')
-    nodedirpath = _DescriptorPath('node', 'node')
-    tempdirpath = _DescriptorPath('temp', 'temporary')
+    inputdirpath = _DescriptorPath("input", "input")
+    fluxdirpath = _DescriptorPath("output", "flux")
+    statedirpath = _DescriptorPath("output", "state")
+    nodedirpath = _DescriptorPath("node", "node")
+    tempdirpath = _DescriptorPath("temp", "temporary")
     generaldirpath = _GeneralDescriptor[str](
-        inputdirpath, fluxdirpath, statedirpath, nodedirpath, tempdirpath)
+        inputdirpath, fluxdirpath, statedirpath, nodedirpath, tempdirpath
+    )
 
-    inputaggregation = _DescriptorAggregate('none', 'input')
-    fluxaggregation = _DescriptorAggregate('none', 'flux')
-    stateaggregation = _DescriptorAggregate('none', 'state')
-    nodeaggregation = _DescriptorAggregate('none', 'node')
+    inputaggregation = _DescriptorAggregate("none", "input")
+    fluxaggregation = _DescriptorAggregate("none", "flux")
+    stateaggregation = _DescriptorAggregate("none", "state")
+    nodeaggregation = _DescriptorAggregate("none", "node")
     generalaggregation = _GeneralDescriptor[str](
-        inputaggregation, fluxaggregation, stateaggregation, nodeaggregation)
+        inputaggregation, fluxaggregation, stateaggregation, nodeaggregation
+    )
 
-    def load_file(self, sequence: 'sequencetools.IOSequence') -> None:
+    def load_file(self, sequence: "sequencetools.IOSequence") -> None:
         """Load data from an "external" data file and pass it to
         the given |IOSequence|."""
         try:
-            if sequence.filetype_ext == 'npy':
-                sequence.series = sequence.adjust_series(
-                    *self._load_npy(sequence))
-            elif sequence.filetype_ext == 'asc':
-                sequence.series = sequence.adjust_series(
-                    *self._load_asc(sequence))
-            elif sequence.filetype_ext == 'nc':
+            if sequence.filetype_ext == "npy":
+                sequence.series = sequence.adjust_series(*self._load_npy(sequence))
+            elif sequence.filetype_ext == "asc":
+                sequence.series = sequence.adjust_series(*self._load_asc(sequence))
+            elif sequence.filetype_ext == "nc":
                 self._load_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to load the external data of sequence '
-                f'{objecttools.devicephrase(sequence)}')
+                f"While trying to load the external data of sequence "
+                f"{objecttools.devicephrase(sequence)}"
+            )
 
     @staticmethod
-    def _load_npy(sequence: 'sequencetools.IOSequence') \
-            -> Tuple[timetools.Timegrid, numpy.array]:
+    def _load_npy(
+        sequence: "sequencetools.IOSequence",
+    ) -> Tuple[timetools.Timegrid, numpy.array]:
         data = numpy.load(sequence.filepath_ext)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
 
     @staticmethod
-    def _load_asc(sequence: 'sequencetools.IOSequence') \
-            -> Tuple[timetools.Timegrid, numpy.array]:
+    def _load_asc(
+        sequence: "sequencetools.IOSequence",
+    ) -> Tuple[timetools.Timegrid, numpy.array]:
         filepath_ext = sequence.filepath_ext
         with open(filepath_ext) as file_:
-            header = '\n'.join([file_.readline() for _ in range(3)])
-        timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
-        values = numpy.loadtxt(
-            filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
+            header = "\n".join([file_.readline() for _ in range(3)])
+        timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
+        values = numpy.loadtxt(filepath_ext, skiprows=3, ndmin=sequence.NDIM + 1)
         return timegrid_data, values
 
-    def _load_nc(self, sequence: 'sequencetools.IOSequence') -> None:
+    def _load_nc(self, sequence: "sequencetools.IOSequence") -> None:
         self.netcdfreader.log(sequence, None)
 
     def save_file(
-            self,
-            sequence: 'sequencetools.IOSequence',
-            array: Optional[numpy.ndarray] = None) -> None:
+        self,
+        sequence: "sequencetools.IOSequence",
+        array: Optional[numpy.ndarray] = None,
+    ) -> None:
         """Write the data stored in the |IOSequence.series| property of
-        the given |IOSequence| into an "external" data file. """
+        the given |IOSequence| into an "external" data file."""
         if array is None:
             array = sequence.aggregate_series()
         try:
-            if sequence.filetype_ext == 'nc':
+            if sequence.filetype_ext == "nc":
                 self._save_nc(sequence, array)
             else:
                 filepath = sequence.filepath_ext
-                if ((array is not None) and
-                        (array.info['type'] != 'unmodified')):
-                    filepath = (f'{filepath[:-4]}_{array.info["type"]}'
-                                f'{filepath[-4:]}')
+                if (array is not None) and (array.info["type"] != "unmodified"):
+                    filepath = f"{filepath[:-4]}_{array.info['type']}{filepath[-4:]}"
                 if not sequence.overwrite_ext and os.path.exists(filepath):
                     raise OSError(
-                        f'Sequence {objecttools.devicephrase(sequence)} '
-                        f'is not allowed to overwrite the existing file '
-                        f'`{sequence.filepath_ext}`.')
-                if sequence.filetype_ext == 'npy':
+                        f"Sequence {objecttools.devicephrase(sequence)} "
+                        f"is not allowed to overwrite the existing file "
+                        f"`{sequence.filepath_ext}`."
+                    )
+                if sequence.filetype_ext == "npy":
                     self._save_npy(array, filepath)
-                elif sequence.filetype_ext == 'asc':
+                elif sequence.filetype_ext == "asc":
                     self._save_asc(array, filepath)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to save the external data of sequence '
-                f'{objecttools.devicephrase(sequence)}')
+                f"While trying to save the external data of sequence "
+                f"{objecttools.devicephrase(sequence)}"
+            )
 
     @staticmethod
     def _save_npy(array: numpy.ndarray, filepath: str) -> None:
@@ -1716,19 +1729,19 @@ is not available.  Select one of the following modes: none and mean.
 
     @staticmethod
     def _save_asc(array: numpy.ndarray, filepath: str) -> None:
-        with open(filepath, 'w') as file_:
+        with open(filepath, "w") as file_:
             file_.write(
                 hydpy.pub.timegrids.init.assignrepr(
-                    prefix='',
-                    style='iso2',
-                    utcoffset=hydpy.pub.options.utcoffset) + '\n')
-        with open(filepath, 'a') as file_:
-            numpy.savetxt(file_, array, delimiter='\t')
+                    prefix="", style="iso2", utcoffset=hydpy.pub.options.utcoffset
+                )
+                + "\n"
+            )
+        with open(filepath, "a") as file_:
+            numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(
-            self,
-            sequence: 'sequencetools.IOSequence',
-            array: numpy.ndarray) -> None:
+        self, sequence: "sequencetools.IOSequence", array: numpy.ndarray
+    ) -> None:
         self.netcdfwriter.log(sequence, array)
 
     @property
@@ -1757,33 +1770,33 @@ no NetCDF reader object.
         RuntimeError: The sequence file manager does currently handle \
 no NetCDF reader object.
         """
-        netcdfreader = vars(self).get('netcdfreader')
+        netcdfreader = vars(self).get("netcdfreader")
         if netcdfreader is None:
             raise RuntimeError(
-                'The sequence file manager does currently handle '
-                'no NetCDF reader object.')
+                "The sequence file manager does currently handle "
+                "no NetCDF reader object."
+            )
         return netcdfreader
 
     def open_netcdfreader(
-            self,
-            flatten: Optional[bool] = None,
-            isolate: Optional[bool] = None,
-            timeaxis: Optional[int] = None) -> None:
+        self,
+        flatten: Optional[bool] = None,
+        isolate: Optional[bool] = None,
+        timeaxis: Optional[int] = None,
+    ) -> None:
         """Prepare a new |NetCDFInterface| object for reading data."""
         options = hydpy.pub.options
-        vars(self)['netcdfreader'] = netcdftools.NetCDFInterface(
-            flatten=bool(
-                options.flattennetcdf if flatten is None else flatten),
-            isolate=bool(
-                options.isolatenetcdf if isolate is None else isolate),
-            timeaxis=int(
-                options.timeaxisnetcdf if timeaxis is None else timeaxis))
+        vars(self)["netcdfreader"] = netcdftools.NetCDFInterface(
+            flatten=bool(options.flattennetcdf if flatten is None else flatten),
+            isolate=bool(options.isolatenetcdf if isolate is None else isolate),
+            timeaxis=int(options.timeaxisnetcdf if timeaxis is None else timeaxis),
+        )
 
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterface| object and delete it
         afterwards."""
         self.netcdfreader.read()
-        del vars(self)['netcdfreader']
+        del vars(self)["netcdfreader"]
 
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterface:
@@ -1811,30 +1824,30 @@ no NetCDF writer object.
         RuntimeError: The sequence file manager does currently handle \
 no NetCDF writer object.
         """
-        netcdfwriter = vars(self).get('netcdfwriter')
+        netcdfwriter = vars(self).get("netcdfwriter")
         if netcdfwriter is None:
             raise RuntimeError(
-                'The sequence file manager does currently handle '
-                'no NetCDF writer object.')
+                "The sequence file manager does currently handle "
+                "no NetCDF writer object."
+            )
         return netcdfwriter
 
     def open_netcdfwriter(
-            self,
-            flatten: Optional[bool] = None,
-            isolate: Optional[bool] = None,
-            timeaxis: Optional[int] = None) -> None:
+        self,
+        flatten: Optional[bool] = None,
+        isolate: Optional[bool] = None,
+        timeaxis: Optional[int] = None,
+    ) -> None:
         """Prepare a new |NetCDFInterface| object for writing data."""
         options = hydpy.pub.options
-        vars(self)['netcdfwriter'] = netcdftools.NetCDFInterface(
-            flatten=bool(
-                options.flattennetcdf if flatten is None else flatten),
-            isolate=bool(
-                options.isolatenetcdf if isolate is None else isolate),
-            timeaxis=int(
-                options.timeaxisnetcdf if timeaxis is None else timeaxis))
+        vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface(
+            flatten=bool(options.flattennetcdf if flatten is None else flatten),
+            isolate=bool(options.isolatenetcdf if isolate is None else isolate),
+            timeaxis=int(options.timeaxisnetcdf if timeaxis is None else timeaxis),
+        )
 
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterface| object and delete
         it afterwards."""
         self.netcdfwriter.write()
-        del vars(self)['netcdfwriter']
+        del vars(self)["netcdfwriter"]

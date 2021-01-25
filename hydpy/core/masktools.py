@@ -5,18 +5,20 @@
 # ...from standard library
 import inspect
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+
 if TYPE_CHECKING:
     from hydpy.core import parametertools
     from hydpy.core import typingtools
 
 
 class _MaskDescriptor:
-
     def __init__(self, cls_mask):
         self.cls_mask = cls_mask
 
@@ -41,13 +43,13 @@ class BaseMask(numpy.ndarray):
     def array2mask(cls, array=None, **kwargs):
         """Create a new mask object based on the given |numpy.ndarray|
         and return it."""
-        kwargs['dtype'] = bool
+        kwargs["dtype"] = bool
         if array is None:
             return numpy.ndarray.__new__(cls, 0, **kwargs)
         return numpy.asarray(array, **kwargs).view(cls)
 
     def __repr__(self):
-        return numpy.ndarray.__repr__(self).replace(', dtype=bool', '')
+        return numpy.ndarray.__repr__(self).replace(", dtype=bool", "")
 
 
 class CustomMask(BaseMask):
@@ -144,10 +146,11 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    variable: 'typingtools.VariableProtocol'
+    variable: "typingtools.VariableProtocol"
 
-    def __new__(cls, variable: Optional['typingtools.VariableProtocol'] = None,
-                **kwargs):
+    def __new__(
+        cls, variable: Optional["typingtools.VariableProtocol"] = None, **kwargs
+    ):
         if variable is None:
             return _MaskDescriptor(cls)
         self = cls.new(variable, **kwargs)
@@ -161,7 +164,7 @@ class DefaultMask(BaseMask):
         return numpy.all(self()[other])
 
     @classmethod
-    def new(cls, variable: 'typingtools.VariableProtocol', **kwargs):
+    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
         """Return a new |DefaultMask| object associated with the
         given |Variable| object."""
         return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
@@ -178,11 +181,12 @@ class IndexMask(DefaultMask):
     examples.  Further, see the documentation on class |CustomMask| for the
     basic usage of class |DefaultMask|.
     """
+
     RELEVANT_VALUES: Tuple[int, ...]
-    variable: 'typingtools.VariableProtocol'
+    variable: "typingtools.VariableProtocol"
 
     @classmethod
-    def new(cls, variable: 'typingtools.VariableProtocol', **kwargs):
+    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
         Entries are only |True|, if the integer values of the
@@ -206,16 +210,16 @@ determined as long as parameter `zonetype` is not prepared properly.
         Soil([ True,  True, False, False])
         """
         indices = cls.get_refindices(variable)
-        if numpy.min(exceptiontools.getattr_(indices, 'values', 0)) < 1:
+        if numpy.min(exceptiontools.getattr_(indices, "values", 0)) < 1:
             raise RuntimeError(
-                f'The mask of parameter {objecttools.elementphrase(variable)} '
-                f'cannot be determined as long as parameter `{indices.name}` '
-                f'is not prepared properly.')
-        return cls.array2mask(
-            numpy.in1d(indices.values, cls.RELEVANT_VALUES), **kwargs)
+                f"The mask of parameter {objecttools.elementphrase(variable)} "
+                f"cannot be determined as long as parameter `{indices.name}` "
+                f"is not prepared properly."
+            )
+        return cls.array2mask(numpy.in1d(indices.values, cls.RELEVANT_VALUES), **kwargs)
 
     @classmethod
-    def get_refindices(cls, variable) -> 'parametertools.Parameter':
+    def get_refindices(cls, variable) -> "parametertools.Parameter":
         """Return the |Parameter| object for determining which
         entries of |IndexMask| are |True| and which are |False|.
 
@@ -235,8 +239,9 @@ determined as long as parameter `zonetype` is not prepared properly.
 must be overridden, which is not the case for class `IndexMask`.
         """
         raise NotImplementedError(
-            f'Function `get_refindices` of class `IndexMask` must be '
-            f'overridden, which is not the case for class `{cls.__name__}`.')
+            f"Function `get_refindices` of class `IndexMask` must be "
+            f"overridden, which is not the case for class `{cls.__name__}`."
+        )
 
     @property
     def refindices(self):
@@ -273,7 +278,7 @@ class Masks:
     defaultmask of module hydpy.core.masktools
     >>> masks.indexmask is IndexMask
     True
-    >>> 'indexmask' in dir(masks)
+    >>> "indexmask" in dir(masks)
     True
 
     The `in` operator is supported:
@@ -282,7 +287,7 @@ class Masks:
     True
     >>> CustomMask in masks
     False
-    >>> 'mask' in masks
+    >>> "mask" in masks
     Traceback (most recent call last):
     ...
     TypeError: The given value `mask` of type `str` is neither a Mask \
@@ -291,9 +296,9 @@ class nor a Mask instance.
     Using item access, strings (in whatever case), mask classes, and
     mask objects are accepted:
 
-    >>> masks['IndexMask'] is IndexMask
+    >>> masks["IndexMask"] is IndexMask
     True
-    >>> masks['indexmask'] is IndexMask
+    >>> masks["indexmask"] is IndexMask
     True
     >>> masks[IndexMask] is IndexMask
     True
@@ -303,7 +308,7 @@ class nor a Mask instance.
     RuntimeError: While trying to retrieve a mask based on key \
 `CustomMask([])`, the following error occurred: The key does not \
 define an available mask.
-    >>> masks['test']
+    >>> masks["test"]
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to retrieve a mask based on key `'test'`, \
@@ -314,6 +319,7 @@ the following error occurred: The key does not define an available mask.
     TypeError: While trying to retrieve a mask based on key `1`, the \
 following error occurred: The given key is neither a `string` a `mask` type.
     """
+
     CLASSES: Tuple[Type[BaseMask], ...]
 
     def __init__(self):
@@ -330,7 +336,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
         'masks'
         >>> del Masks.CLASSES
         """
-        return 'masks'
+        return "masks"
 
     def __iter__(self):
         for cls in self.CLASSES:
@@ -347,8 +353,8 @@ following error occurred: The given key is neither a `string` a `mask` type.
         except TypeError:
             pass
         raise TypeError(
-            f'The given {objecttools.value_of_type(mask)} is '
-            f'neither a Mask class nor a Mask instance.'
+            f"The given {objecttools.value_of_type(mask)} is "
+            f"neither a Mask class nor a Mask instance."
         )
 
     def __getitem__(self, key):
@@ -360,31 +366,25 @@ following error occurred: The given key is neither a `string` a `mask` type.
             elif isinstance(key, BaseMask):
                 if key in self:
                     return key
-                raise RuntimeError(
-                    'The key does not define an available mask.'
-                )
+                raise RuntimeError("The key does not define an available mask.")
             if isinstance(key, str):
                 try:
                     return getattr(self, key.lower())
                 except AttributeError:
                     raise RuntimeError(
-                        'The key does not define an available mask.'
+                        "The key does not define an available mask."
                     ) from None
-            raise TypeError(
-                'The given key is neither a `string` a `mask` type.'
-            )
+            raise TypeError("The given key is neither a `string` a `mask` type.")
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to retrieve a mask based on key `{repr(_key)}`'
+                f"While trying to retrieve a mask based on key `{repr(_key)}`"
             )
 
     def __repr__(self):
         lines = []
         for mask in self:
-            lines.append(
-                f'{mask.__name__.lower()} of module {mask.__module__}'
-            )
-        return '\n'.join(lines)
+            lines.append(f"{mask.__name__.lower()} of module {mask.__module__}")
+        return "\n".join(lines)
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -398,6 +398,5 @@ class NodeMasks(Masks):
     It will become relevant for applications as soon as we support
     1-dimensional node sequences.
     """
-    CLASSES = (
-        DefaultMask,
-    )
+
+    CLASSES = (DefaultMask,)

@@ -24,15 +24,15 @@ for four different smoothing parameters:
 >>> from hydpy import round_
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value, par=10.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value, par=10.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([10.0, 1.0, 0.1, 0.0]):
 ...         round_(smoothutils.smooth_logistic1(value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value, par=10.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.377541, 0.006693, 0.000000, 0.000000
    -4, 0.401312, 0.017986, 0.000000, 0.000000
@@ -71,18 +71,18 @@ parameters:
 >>> import numpy
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         result = smoothutils.smooth_logistic1_derivative2(value, parameter)
 ...         if numpy.isinf(result):
-...             print(result, end='')
+...             print(result, end="")
 ...         else:
-...             round_(result, width=8, rfill='0', end='')
+...             round_(result, width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.044543, 0.006648, 0.000000, 0.000000
    -4, 0.055030, 0.017663, 0.000000, 0.000000
@@ -103,16 +103,16 @@ accurate numerical approximations:
 >>> dx = 1e-7
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         est = (smoothutils.smooth_logistic1(value+dx, parameter) -
 ...                smoothutils.smooth_logistic1(value, parameter))/dx
-...         round_(est, width=8, rfill='0', end='')
+...         round_(est, width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.044543, 0.006648, 0.000000, 0.000000
    -4, 0.055030, 0.017663, 0.000000, 0.000000
@@ -148,15 +148,15 @@ logistic function for four different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value, par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value, par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         round_(smoothutils.smooth_logistic2(value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value, par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.519024, 0.006715, 0.000000, 0.000000
    -4, 0.701888, 0.018150, 0.000000, 0.000000
@@ -195,15 +195,15 @@ parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         round_(smoothutils.smooth_logistic2_derivative1(value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.437790, 0.040180, 0.000000, 0.000000
    -4, 0.512107, 0.090095, 0.000000, 0.000000
@@ -223,16 +223,16 @@ accurate numerical approximations.
 >>> dc = 1e-6
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         est = (smoothutils.smooth_logistic2(value, parameter+dc) -
 ...                smoothutils.smooth_logistic2(value, parameter))/dc
-...         round_(est, width=8, rfill='0', end='')
+...         round_(est, width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.437790, 0.040180, 0.000000, 0.000000
    -4, 0.512107, 0.090095, 0.000000, 0.000000
@@ -267,15 +267,15 @@ parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         round_(smoothutils.smooth_logistic2_derivative2(value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.158869, 0.006693, 0.000000, 0.000000
    -4, 0.208609, 0.017986, 0.000000, 0.000000
@@ -296,16 +296,16 @@ accurate numerical approximations.
 >>> dx = 1e-7
 >>> for value in range(-5, 6):
 ...     if value == -5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         est = (smoothutils.smooth_logistic2(value+dx, parameter) -
 ...                smoothutils.smooth_logistic2(value, parameter))/dx
-...         round_(est, width=8, rfill='0', end='')
+...         round_(est, width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
    -5, 0.158869, 0.006693, 0.000000, 0.000000
    -4, 0.208609, 0.017986, 0.000000, 0.000000
@@ -347,15 +347,15 @@ function for four different smoothing parameters:
 >>> from numpy import arange
 >>> for value in arange(-5.5, 6):
 ...     if value == -5.5:
-...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
-...     round_(value, width=5, lfill=' ', end=', ')
+...         round_("value,  par=3.0,  par=1.0,  par=0.1,  par=0.0")
+...     round_(value, width=5, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
 ...         round_(smoothutils.smooth_logistic3(value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
  -5.5, 0.167513, 0.003996, 0.000000, 0.000000
  -4.5, 0.206271, 0.010618, 0.000000, 0.000000
@@ -388,15 +388,15 @@ the maximum function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
-...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')
-...     round_(value, width=7, lfill=' ', end=', ')
+...         round_("y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0")
+...     round_(value, width=7, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.3, 0.0]):
 ...         round_(smoothutils.smooth_max1(5., value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       0, 5.519024, 5.006715, 5.000000, 5.000000
       1, 5.701888, 5.018150, 5.000000, 5.000000
@@ -419,8 +419,8 @@ overflow.  In the following example, extreme values are added to both
 the `x` and the `y` value of 5 and 6, respectively.  The degree of
 smoothing is always identical:
 
->>> for test in ['-1e8', '0.0', '1e8']:
-...     round_(test, end=', ')
+>>> for test in ["-1e8", "0.0", "1e8"]:
+...     round_(test, end=", ")
 ...     test = float(test)
 ...     round_(smoothutils.smooth_max1(test+5.0, test+6.0, 1.0)-test)
 -1e8, 6.313262
@@ -440,15 +440,15 @@ the minimum function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
-...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')
-...     round_(value, width=7, lfill=' ', end=', ')
+...         round_("y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0")
+...     round_(value, width=7, lfill=" ", end=", ")
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.3, 0.0]):
 ...         round_(smoothutils.smooth_min1(5., value, parameter),
-...                width=8, rfill='0', end='')
+...                width=8, rfill="0", end="")
 ...         if idx < 3:
-...             round_('', end=', ')
+...             round_("", end=", ")
 ...         else:
-...             round_('')
+...             round_("")
 y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       0, -0.519024, -0.006715, 0.000000, 0.000000
       1, 0.298112, 0.981850, 1.000000, 1.000000
@@ -471,8 +471,8 @@ overflow.  In the following example, extreme values are added to both
 the `x` and the `y` value of 5 and 6, respectively.  The degree of
 smoothing is always identical:
 
->>> for test in ['-1e8', ' 0.0', ' 1e8']:
-...     round_(test, end=', ')
+>>> for test in ["-1e8", " 0.0", " 1e8"]:
+...     round_(test, end=", ")
 ...     test = float(test)
 ...     round_(smoothutils.smooth_min1(test+5.0, test+6.0, 1.0)-test)
 -1e8, 4.686738

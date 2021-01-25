@@ -15,4 +15,4 @@ def make_filepath(*names: str) -> str:
     >>> repr_(make_filepath('subfolder', 'file.txt'))   # doctest: +ELLIPSIS
     '.../hydpy/data/subfolder/file.txt'
     """
-    return os.path.join(__path__[0], *names)
+    return os.path.join(__path__[0], *names)  # type: ignore[attr-defined, name-defined]

@@ -8,12 +8,13 @@ import abc
 import inspect
 import types
 from typing import *
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
-InputType = TypeVar('InputType')
-OutputType = TypeVar('OutputType')
+InputType = TypeVar("InputType")
+OutputType = TypeVar("OutputType")
 
 
 def fgetdummy(*args):
@@ -23,7 +24,7 @@ def fgetdummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fgetdummy
-    >>> fgetdummy('arg1')
+    >>> fgetdummy("arg1")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fget` function `fgetdummy` \
@@ -31,8 +32,9 @@ should never been called, but has been called with argument(s): arg1.
     """
     raise NotImplementedError(
         f'The "unready" default `fget` function `fgetdummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 def fsetdummy(*args):
@@ -42,7 +44,7 @@ def fsetdummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fsetdummy
-    >>> fsetdummy('arg1', 'arg2')
+    >>> fsetdummy("arg1", "arg2")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fset` function `fsetdummy` \
@@ -50,8 +52,9 @@ should never been called, but has been called with argument(s): arg1 and arg2.
     """
     raise NotImplementedError(
         f'The "unready" default `fset` function `fsetdummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 def fdeldummy(*args):
@@ -61,7 +64,7 @@ def fdeldummy(*args):
     error when implementing new costum properties:
 
     >>> from hydpy.core.propertytools import fdeldummy
-    >>> fdeldummy('arg1')
+    >>> fdeldummy("arg1")
     Traceback (most recent call last):
     ...
     NotImplementedError: The "unready" default `fdel` function `fdeldummy` \
@@ -69,8 +72,9 @@ should never been called, but has been called with argument(s): arg1.
     """
     raise NotImplementedError(
         f'The "unready" default `fdel` function `fdeldummy` should '
-        f'never been called, but has been called with argument(s): '
-        f'{objecttools.enumeration(args)}.')
+        f"never been called, but has been called with argument(s): "
+        f"{objecttools.enumeration(args)}."
+    )
 
 
 class BaseProperty(Generic[InputType, OutputType]):
@@ -160,15 +164,15 @@ class BaseProperty(Generic[InputType, OutputType]):
         self.objtype: Any = objtype
         self.module = inspect.getmodule(objtype)
         if self.module is not None:
-            if not hasattr(self.module, '__test__'):
-                self.module.__dict__['__test__'] = dict()
+            if not hasattr(self.module, "__test__"):
+                self.module.__dict__["__test__"] = dict()
         self.name: str = name
-        doc = getattr(self, '__doc__')
+        doc = getattr(self, "__doc__")
         if doc:
             self.set_doc(doc)
 
     @overload
-    def __get__(self, obj: None, objtype) -> 'BaseProperty':
+    def __get__(self, obj: None, objtype) -> "BaseProperty":
         """get the property"""
 
     @overload
@@ -180,22 +184,25 @@ class BaseProperty(Generic[InputType, OutputType]):
             return self
         if self.fget is fgetdummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not gettable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not gettable."
+            )
         return self.call_fget(obj)
 
     def __set__(self, obj, value: InputType) -> None:
         if self.fset is fsetdummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not settable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not settable."
+            )
         self.call_fset(obj, value)
 
     def __delete__(self, obj) -> None:
         if self.fdel is fdeldummy:
             raise AttributeError(
-                f'Attribute `{self.name}` of object '
-                f'{objecttools.devicephrase(obj)} is not deletable.')
+                f"Attribute `{self.name}` of object "
+                f"{objecttools.devicephrase(obj)} is not deletable."
+            )
         self.call_fdel(obj)
 
     def set_doc(self, doc: str):
@@ -203,9 +210,9 @@ class BaseProperty(Generic[InputType, OutputType]):
         possible, to the `__test__` dictionary of the module of its
         owner class."""
         self.__doc__ = doc
-        if hasattr(self, 'module'):
-            ref = f'{self.objtype.__name__}.{self.name}'
-            self.module.__dict__['__test__'][ref] = doc
+        if hasattr(self, "module"):
+            ref = f"{self.objtype.__name__}.{self.name}"
+            self.module.__dict__["__test__"][ref] = doc
 
     @abc.abstractmethod
     def call_fget(self, obj) -> OutputType:
@@ -219,21 +226,21 @@ class BaseProperty(Generic[InputType, OutputType]):
     def call_fdel(self, obj) -> None:
         """Method for implementing special deleter functionalities."""
 
-    def getter(self, fget: Callable) -> 'BaseProperty':
+    def getter(self, fget: Callable) -> "BaseProperty":
         """Add the given getter function and its docstring to the
-         property and return it."""
-        setattr(self, 'fget', fget)
-        self.set_doc(getattr(fget, '__doc__'))
+        property and return it."""
+        setattr(self, "fget", fget)
+        self.set_doc(getattr(fget, "__doc__"))
         return self
 
-    def setter(self, fset: Callable) -> 'BaseProperty':
+    def setter(self, fset: Callable) -> "BaseProperty":
         """Add the given setter function to the property and return it."""
-        setattr(self, 'fset', fset)
+        setattr(self, "fset", fset)
         return self
 
-    def deleter(self, fdel: Callable) -> 'BaseProperty':
+    def deleter(self, fdel: Callable) -> "BaseProperty":
         """Add the given deleter function to the property and return it."""
-        setattr(self, 'fdel', fdel)
+        setattr(self, "fdel", fdel)
         return self
 
 
@@ -304,8 +311,8 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
     additional information:
 
     >>> from hydpy import Element
-    >>> test.name = 'name_object'
-    >>> test.element = Element('name_element')
+    >>> test.name = "name_object"
+    >>> test.element = Element("name_element")
 
     >>> test.x
     Traceback (most recent call last):
@@ -325,8 +332,9 @@ class ProtectedProperty(BaseProperty[InputType, OutputType]):
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
-            f'Attribute `{self.name}` of object '
-            f'{objecttools.devicephrase(obj)} has not been prepared so far.')
+            f"Attribute `{self.name}` of object "
+            f"{objecttools.devicephrase(obj)} has not been prepared so far."
+        )
 
     def call_fset(self, obj, value: InputType) -> None:
         """Call `fset` and mark the attribute as ready."""
@@ -362,14 +370,14 @@ class ProtectedProperties:
     ...
     ...     @pt.ProtectedProperty
     ...     def x(self):
-    ...         return 'this is x'
+    ...         return "this is x"
     ...     @x.setter
     ...     def x(self, value):
     ...         pass
     ...
     ...     @pt.ProtectedProperty
     ...     def z(self):
-    ...         return 'this is z'
+    ...         return "this is z"
     ...     @z.setter
     ...     def z(self, value):
     ...         pass
@@ -467,7 +475,7 @@ attribute `x` first.
     However, after assigning a value to `x`, `y` behaves like a
     "normal" property:
 
-    >>> test.x = 'anything'
+    >>> test.x = "anything"
     >>> test.y = 1
     >>> test.y
     1
@@ -485,10 +493,11 @@ attribute `x` first.
         for req in self.protected:
             if not req.isready(obj):
                 raise exceptiontools.AttributeNotReady(
-                    f'Attribute `{self.name}` of object '
-                    f'{objecttools.devicephrase(obj)} is not usable '
-                    f'so far.  At least, you have to prepare attribute '
-                    f'`{req.name}` first.')
+                    f"Attribute `{self.name}` of object "
+                    f"{objecttools.devicephrase(obj)} is not usable "
+                    f"so far.  At least, you have to prepare attribute "
+                    f"`{req.name}` first."
+                )
 
     def call_fget(self, obj) -> OutputType:
         """Call `fget` when all required attributes are ready,
@@ -551,7 +560,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     After setting custom values successfully, default properties return them:
 
     >>> test.x = 3
-    >>> test.y = 'five'
+    >>> test.y = "five"
     Traceback (most recent call last):
     ...
     ValueError: could not convert string to float: 'five'
@@ -559,7 +568,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     3
     >>> test.y
     2.0
-    >>> test.y = '4'
+    >>> test.y = "4"
     >>> test.y
     4.0
 
@@ -594,7 +603,7 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
     'Default property y.'
     """
 
-    def __init__(self, fget):
+    def __init__(self, fget) -> None:
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel

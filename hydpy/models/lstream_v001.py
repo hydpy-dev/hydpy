@@ -88,25 +88,25 @@ through a 100 km long channel exhibiting the trapezoidal cross-section
 shown in figure 5.
 
 >>> from hydpy.models.lstream_v001 import *
->>> parameterstep('1d')
+>>> parameterstep("1d")
 
 The simulation period spans 96 hours; the simulation step is 30 minutes:
 
 >>> from hydpy import pub, Nodes, Element
->>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
+>>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 
 For testing purposes, the model retrieves its input data from two nodes
 (`input1` and `input2`) and passes its output to node `output`.  First,
 we define these nodes:
 
->>> nodes = Nodes('input1', 'input2', 'output')
+>>> nodes = Nodes("input1", "input2", "output")
 
 Second, we define the element `stream` and build the connections between
 the prepared nodes and the |lstream_v001| model instance:
 
->>> stream = Element('stream',
-...                  inlets=['input1', 'input2'],
-...                  outlets='output')
+>>> stream = Element("stream",
+...                  inlets=["input1", "input2"],
+...                  outlets="output")
 >>> stream.model = model
 
 Next, we prepare a test function object which sets the intial stage
@@ -185,7 +185,7 @@ agree very well with the results of `Todini (2007)`_ (see figure 13):
 
 .. integration-test::
 
-    >>> test('lstream_v001_main_channel_flow')
+    >>> test("lstream_v001_main_channel_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -400,7 +400,7 @@ additional storage capacities come into play:
 
 .. integration-test::
 
-    >>> test('lstream_v001_overbank_flow')
+    >>> test("lstream_v001_overbank_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -620,7 +620,7 @@ to 0.1 m):
 .. integration-test::
 
     >>> with pub.options.reprdigits(2):
-    ...     test('lstream_v001_negative_water_stage')
+    ...     test("lstream_v001_negative_water_stage")
     |                date |     qz |                                                             qg |     qa |                                     dh |                                                      h | input1 | input2 | output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |    0.0 |    0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 |    0.0 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0 |    0.0 |    0.0 |    0.0 |
@@ -828,9 +828,11 @@ suggestions on solving this issue are welcome.
 # import...
 # ...from standard library
 from typing import *
+
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.exe.modelimports import *
+
 # ...from lstream
 from hydpy.models.lstream import lstream_fluxes
 from hydpy.models.lstream import lstream_model
@@ -840,6 +842,7 @@ from hydpy.models.lstream import lstream_solver
 class Characteristics(NamedTuple):
     """Data class for holding the results of method
     |Model.calculate_characteristiclength|."""
+
     waterstage: float
     discharge: float
     derivative: float
@@ -849,14 +852,14 @@ class Characteristics(NamedTuple):
 
     def __repr__(self) -> str:
         return (
-            f'Characteristics(\n'
-            f'    waterstage={objecttools.repr_(self.waterstage)},\n'
-            f'    discharge={objecttools.repr_(self.discharge)},\n'
-            f'    derivative={objecttools.repr_(self.derivative)},\n'
-            f'    length_orig={objecttools.repr_(self.length_orig)},\n'
-            f'    nmb_subsections={self.nmb_subsections},\n'
-            f'    length_adj={objecttools.repr_(self.length_adj)},\n'
-            f')'
+            f"Characteristics(\n"
+            f"    waterstage={objecttools.repr_(self.waterstage)},\n"
+            f"    discharge={objecttools.repr_(self.discharge)},\n"
+            f"    derivative={objecttools.repr_(self.derivative)},\n"
+            f"    length_orig={objecttools.repr_(self.length_orig)},\n"
+            f"    nmb_subsections={self.nmb_subsections},\n"
+            f"    length_adj={objecttools.repr_(self.length_adj)},\n"
+            f")"
         )
 
     def __str__(self):
@@ -865,6 +868,7 @@ class Characteristics(NamedTuple):
 
 class Model(lstream_model.Model, lstream_model.ProfileMixin):
     """Version 1 of HydPy-L-Stream."""
+
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,
         lstream_solver.RelErrorMax,
@@ -875,9 +879,7 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         lstream_fluxes.QG,
         lstream_fluxes.DH,
     )
-    INLET_METHODS = (
-        lstream_model.Pick_Q_V1,
-    )
+    INLET_METHODS = (lstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         lstream_model.Return_QF_V1,
@@ -905,25 +907,19 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         lstream_model.Calc_WBG_V1,
         lstream_model.Calc_DH_V1,
     )
-    FULL_ODE_METHODS = (
-        lstream_model.Update_H_V1,
-    )
-    OUTLET_METHODS = (
-        lstream_model.Pass_Q_V1,
-    )
+    FULL_ODE_METHODS = (lstream_model.Update_H_V1,)
+    OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELS = (
-        lstream_model.PegasusH,
-    )
+    SUBMODELS = (lstream_model.PegasusH,)
 
     def calculate_characteristiclength(
-            self,
-            *,
-            h: Optional[float] = None,
-            q: Optional[float] = None,
-            dx: float = 1e-6,
-            lenmin: float = 0.1,
-            nmbmax: int = 50,
+        self,
+        *,
+        h: Optional[float] = None,
+        q: Optional[float] = None,
+        dx: float = 1e-6,
+        lenmin: float = 0.1,
+        nmbmax: int = 50,
     ) -> Characteristics:
         """Approximate the characteristic length after the Kalinin-Milyukov
         method.
@@ -945,8 +941,8 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         |lstream_v001|:
 
         >>> from hydpy.models.lstream_v001 import *
-        >>> parameterstep('1d')
-        >>> simulationstep('30m')
+        >>> parameterstep("1d")
+        >>> simulationstep("30m")
 
         >>> gts(1)
         >>> laen(100.0)
@@ -1075,44 +1071,47 @@ stage or a discharge value, but both are given.
             if h is None:
                 if q is None:
                     raise ValueError(
-                        'Calculating the characteristic length requires either '
-                        'a reference stage or a discharge value, but neither is '
-                        'given.')
+                        "Calculating the characteristic length requires either "
+                        "a reference stage or a discharge value, but neither is "
+                        "given."
+                    )
                 self.sequences.fluxes.qg = q
                 h = self.return_h_v1()
             elif q is not None:
                 raise ValueError(
-                    'Calculating the characteristic length requires either '
-                    'a reference stage or a discharge value, but both are given.')
+                    "Calculating the characteristic length requires either "
+                    "a reference stage or a discharge value, but both are given."
+                )
             qs = []
-            for h_ in (h-dx/2.0, h+dx/2.0):
+            for h_ in (h - dx / 2.0, h + dx / 2.0):
                 self.sequences.states.h(h_)
                 self.calculate_single_terms()
                 qs.append(self.sequences.fluxes.qg[0])
             qmean = float(numpy.mean(qs))
-            dq = qs[1]-qs[0]
-            if (qmean == 0.) or (dq == 0.):
+            dq = qs[1] - qs[0]
+            if (qmean == 0.0) or (dq == 0.0):
                 raise ValueError(
-                    f'The given values result in a mean discharge of '
-                    f'{objecttools.repr_(qmean)} m³/s and a discharge '
-                    f'gradient of {objecttools.repr_(dq)} m³/s/m.'
+                    f"The given values result in a mean discharge of "
+                    f"{objecttools.repr_(qmean)} m³/s and a discharge "
+                    f"gradient of {objecttools.repr_(dq)} m³/s/m."
                 )
-            length_orig = (qmean*dx)/(self.parameters.control.gef*dq)/1000.0
+            length_orig = (qmean * dx) / (self.parameters.control.gef * dq) / 1000.0
             length_adj = max(length_orig, lenmin)
-            number = int(min(max(round(
-                self.parameters.control.laen/length_adj), 1), nmbmax))
+            number = int(
+                min(max(round(self.parameters.control.laen / length_adj), 1), nmbmax)
+            )
             return Characteristics(
                 waterstage=h,
                 discharge=qmean,
-                derivative=dx/dq,
+                derivative=dx / dq,
                 length_orig=length_orig,
                 nmb_subsections=number,
-                length_adj=self.parameters.control.laen/number
+                length_adj=self.parameters.control.laen / number,
             )
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to calculate the characteristic length for '
-                f'the river channel of {objecttools.elementphrase(self)}'
+                f"While trying to calculate the characteristic length for "
+                f"the river channel of {objecttools.elementphrase(self)}"
             )
 
 

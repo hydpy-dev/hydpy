@@ -49,11 +49,11 @@ The other modules serve more special purposes.  If you are thinking
 about adding new code to *HydPy* or changing existing one, you
 should read the documentation of some other modules as well.
 |autodoctools| provides features for automatically generating this
-online documentation.  Modules |testtools| and |dummytools| provide
-features for testing new code (or old code, that has not been covered
-by the existing tests so far).  Module |objecttools| (need to be
-refactored) provides very different kinds of features to simplify and
-standardize writing *HydPy* code.
+online documentation.  Modules |testtools| provides features for
+testing new code (or old code, that has not been covered by the
+existing tests so far).  Module |objecttools| (need to be refactored)
+provides very different kinds of features to simplify and standardize
+writing *HydPy* code.
 
 
 .. toctree::
@@ -62,7 +62,6 @@ standardize writing *HydPy* code.
    autodoctools
    auxfiletools
    devicetools
-   dummytools
    exceptiontools
    filetools
    hydpytools
@@ -81,6 +80,7 @@ standardize writing *HydPy* code.
    pubtools
    selectiontools
    sequencetools
+   seriestools
    testtools
    timetools
    typingtools

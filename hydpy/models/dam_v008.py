@@ -40,16 +40,16 @@ We create the same test set as for application models |dam_v006| and
 relationship between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
->>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+>>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 >>> from hydpy.models.dam_v008 import *
->>> parameterstep('1d')
->>> element = Element('element', inlets='input_', outlets='output')
+>>> parameterstep("1d")
+>>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model
 >>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
 >>> IntegrationTest.plotting_options.axis2 = states.watervolume
 >>> test = IntegrationTest(element)
 >>> test.inits = [(states.watervolume, 0.0)]
->>> test.dateformat = '%d.%m.'
+>>> test.dateformat = "%d.%m."
 >>> watervolume2waterlevel(
 ...     weights_input=1.0, weights_output=1.0,
 ...     intercepts_hidden=0.0, intercepts_output=0.0,
@@ -94,7 +94,7 @@ the :ref:`dam_v007_base_scenario` example of |dam_v007|:
 
 .. integration-test::
 
-    >>> test('dam_v008_base_scenario')
+    >>> test("dam_v008_base_scenario")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -132,7 +132,7 @@ get the same flood discharge time series:
     >>> waterlevel2flooddischarge(ann(
     ...     weights_input=10.0, weights_output=50.0,
     ...     intercepts_hidden=-20.0, intercepts_output=0.0))
-    >>> test('dam_v008_spillway')
+    >>> test("dam_v008_spillway")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -190,7 +190,7 @@ of inflow while there is still the necessity to release at least 0.1 m³/s:
 
 .. integration-test::
 
-    >>> test('dam_v008_target_volume')
+    >>> test("dam_v008_target_volume")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.052009 |            0.0 |  0.05201 |   -0.004494 |    0.0 |  0.05201 |
@@ -231,7 +231,7 @@ disable any smoothing), we should get more similar results:
     >>> targetrangerelative(0.0)
     >>> volumetolerance(0.0)
     >>> dischargetolerance(0.0)
-    >>> test('dam_v008_sharp_transitions')
+    >>> test("dam_v008_sharp_transitions")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.004167 |            0.0 | 0.004167 |    -0.00036 |    0.0 | 0.004167 |
@@ -270,7 +270,7 @@ smoothing values):
 .. integration-test::
 
     >>> solver.abserrormax(1e-6)
-    >>> test('dam_v008_higher_accuracy')
+    >>> test("dam_v008_higher_accuracy")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -317,7 +317,7 @@ to 0.2 corresponds to the original "TALSPERRE SOLLRANGE"-configuration:
 .. integration-test::
 
     >>> targetrangerelative(0.2)
-    >>> test('dam_v008_target_range')
+    >>> test("dam_v008_target_range")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -354,7 +354,7 @@ below which no release occurs:
 .. integration-test::
 
     >>> watervolumeminimumthreshold(0.45)
-    >>> test('dam_v008_minimum_volume')
+    >>> test("dam_v008_minimum_volume")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -380,9 +380,10 @@ below which no release occurs:
 """
 # import...
 # ...from HydPy
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -390,6 +391,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 8 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -397,9 +399,7 @@ class Model(modeltools.ELSModel):
         dam_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (
-        dam_model.Pic_Inflow_V1,
-    )
+    INLET_METHODS = (dam_model.Pic_Inflow_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
@@ -411,12 +411,8 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V1,
-    )
-    OUTLET_METHODS = (
-        dam_model.Pass_Outflow_V1,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
+    OUTLET_METHODS = (dam_model.Pass_Outflow_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

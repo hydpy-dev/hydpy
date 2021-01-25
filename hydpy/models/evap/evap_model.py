@@ -40,26 +40,21 @@ class Calc_AdjustedWindSpeed_V1(modeltools.Method):
         >>> fluxes.adjustedwindspeed
         adjustedwindspeed(3.738763)
     """
-    CONTROLPARAMETERS = (
-        evap_control.MeasuringHeightWindSpeed,
-    )
-    REQUIREDSEQUENCES = (
-        evap_inputs.WindSpeed,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.AdjustedWindSpeed,
-    )
+
+    CONTROLPARAMETERS = (evap_control.MeasuringHeightWindSpeed,)
+    REQUIREDSEQUENCES = (evap_inputs.WindSpeed,)
+    RESULTSEQUENCES = (evap_fluxes.AdjustedWindSpeed,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_d = 2./3.*.12
-        d_z0 = .123*.12
+        d_d = 2.0 / 3.0 * 0.12
+        d_z0 = 0.123 * 0.12
         flu.adjustedwindspeed = inp.windspeed * (
-            modelutils.log((2.-d_d)/d_z0) /
-            modelutils.log((con.measuringheightwindspeed-d_d)/d_z0)
+            modelutils.log((2.0 - d_d) / d_z0)
+            / modelutils.log((con.measuringheightwindspeed - d_d) / d_z0)
         )
 
 
@@ -79,19 +74,16 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
         >>> fluxes.saturationvapourpressure
         saturationvapourpressure(1.227963)
     """
-    REQUIREDSEQUENCES = (
-        evap_inputs.AirTemperature,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.SaturationVapourPressure,
-    )
+
+    REQUIREDSEQUENCES = (evap_inputs.AirTemperature,)
+    RESULTSEQUENCES = (evap_fluxes.SaturationVapourPressure,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.saturationvapourpressure = .6108*modelutils.exp(
-            17.27*inp.airtemperature/(inp.airtemperature+237.3)
+        flu.saturationvapourpressure = 0.6108 * modelutils.exp(
+            17.27 * inp.airtemperature / (inp.airtemperature + 237.3)
         )
 
 
@@ -112,20 +104,20 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
         >>> fluxes.saturationvapourpressureslope
         saturationvapourpressureslope(0.082283)
     """
+
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_fluxes.SaturationVapourPressure,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.SaturationVapourPressureSlope,
-    )
+    RESULTSEQUENCES = (evap_fluxes.SaturationVapourPressureSlope,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.saturationvapourpressureslope = \
-            4098.*flu.saturationvapourpressure/(inp.airtemperature+237.3)**2
+        flu.saturationvapourpressureslope = (
+            4098.0 * flu.saturationvapourpressure / (inp.airtemperature + 237.3) ** 2
+        )
 
 
 class Calc_ActualVapourPressure_V1(modeltools.Method):
@@ -145,20 +137,20 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
         >>> fluxes.actualvapourpressure
         actualvapourpressure(1.8)
     """
+
     REQUIREDSEQUENCES = (
         evap_inputs.RelativeHumidity,
         evap_fluxes.SaturationVapourPressure,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.ActualVapourPressure,
-    )
+    RESULTSEQUENCES = (evap_fluxes.ActualVapourPressure,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.actualvapourpressure = \
-            flu.saturationvapourpressure*inp.relativehumidity/100.
+        flu.actualvapourpressure = (
+            flu.saturationvapourpressure * inp.relativehumidity / 100.0
+        )
 
 
 class Calc_EarthSunDistance_V1(modeltools.Method):
@@ -182,7 +174,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -192,13 +184,13 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_earthsundistance_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.earthsundistance.value)
 
         The results are identical for both years:
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-07-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-07-01", "2000-12-31")
         2000-01-01: 1.032995
         2000-02-28: 1.017471
         2000-02-29: 1.016988
@@ -206,8 +198,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         2000-07-01: 0.967
         2000-12-31: 1.033
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-07-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-07-01", "2001-12-31")
         2001-01-01: 1.032995
         2001-02-28: 1.017471
         2001-03-01: 1.0165
@@ -222,19 +214,16 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         >>> fluxes.earthsundistance
         earthsundistance(0.984993)
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.DOY,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.EarthSunDistance,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.DOY,)
+    RESULTSEQUENCES = (evap_fluxes.EarthSunDistance,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.earthsundistance = 1.+0.033*modelutils.cos(
-            2*3.141592653589793/366.*(der.doy[model.idx_sim]+1)
+        flu.earthsundistance = 1.0 + 0.033 * modelutils.cos(
+            2 * 3.141592653589793 / 366.0 * (der.doy[model.idx_sim] + 1)
         )
 
 
@@ -257,7 +246,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-01-01', '2002-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
         >>> derived.doy.update()
 
         The following convenience function applies method
@@ -267,21 +256,21 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         ...     for date in dates:
         ...         model.idx_sim = pub.timegrids.init[date]
         ...         model.calc_solardeclination_v1()
-        ...         print(date, end=': ')
+        ...         print(date, end=": ")
         ...         round_(fluxes.solardeclination.value)
 
         The results are identical for both years:
 
-        >>> test('2000-01-01', '2000-02-28', '2000-02-29',
-        ...      '2000-03-01', '2000-12-31')
+        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
+        ...      "2000-03-01", "2000-12-31")
         2000-01-01: -0.401012
         2000-02-28: -0.150618
         2000-02-29: -0.144069
         2000-03-01: -0.137476
         2000-12-31: -0.402334
 
-        >>> test('2001-01-01', '2001-02-28',
-        ...      '2001-03-01', '2001-12-31')
+        >>> test("2001-01-01", "2001-02-28",
+        ...      "2001-03-01", "2001-12-31")
         2001-01-01: -0.401012
         2001-02-28: -0.150618
         2001-03-01: -0.137476
@@ -295,19 +284,16 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         >>> fluxes.solardeclination
         solardeclination(0.117464)
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.DOY,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.SolarDeclination,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.DOY,)
+    RESULTSEQUENCES = (evap_fluxes.SolarDeclination,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.solardeclination = .409*modelutils.sin(
-            2*3.141592653589793/366*(der.doy[model.idx_sim]+1)-1.39
+        flu.solardeclination = 0.409 * modelutils.sin(
+            2 * 3.141592653589793 / 366 * (der.doy[model.idx_sim] + 1) - 1.39
         )
 
 
@@ -332,23 +318,17 @@ class Calc_SunsetHourAngle_V1(modeltools.Method):
         >>> fluxes.sunsethourangle
         sunsethourangle(1.526767)
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.LatitudeRad,
-    )
-    REQUIREDSEQUENCES = (
-        evap_fluxes.SolarDeclination,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.SunsetHourAngle,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.LatitudeRad,)
+    REQUIREDSEQUENCES = (evap_fluxes.SolarDeclination,)
+    RESULTSEQUENCES = (evap_fluxes.SunsetHourAngle,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.sunsethourangle = modelutils.acos(
-            -modelutils.tan(der.latituderad) *
-            modelutils.tan(flu.solardeclination)
+            -modelutils.tan(der.latituderad) * modelutils.tan(flu.solardeclination)
         )
 
 
@@ -374,7 +354,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy import pub, round_
-        >>> pub.timegrids = '2000-09-03', '2000-09-04', '1h'
+        >>> pub.timegrids = "2000-09-03", "2000-09-04", "1h"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> longitude(15)
@@ -384,7 +364,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
         >>> for hour in range(24):
         ...     model.idx_sim = hour
         ...     model.calc_solartimeangle_v1()
-        ...     print(hour, end=': ')
+        ...     print(hour, end=": ")
         ...     round_(fluxes.solartimeangle.value)   # doctest: +ELLIPSIS
         0: -3.004157
         1: -2.742358
@@ -395,17 +375,14 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
         22: 2.755429
         23: 3.017229
     """
-    CONTROLPARAMETERS = (
-        evap_control.Longitude,
-    )
+
+    CONTROLPARAMETERS = (evap_control.Longitude,)
     DERIVEDPARAMETERS = (
         evap_derived.DOY,
         evap_derived.SCT,
         evap_derived.UTCLongitude,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.SolarTimeAngle,
-    )
+    RESULTSEQUENCES = (evap_fluxes.SolarTimeAngle,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -413,15 +390,23 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_pi = 3.141592653589793
-        d_b = 2.*d_pi*(der.doy[model.idx_sim]-80.)/365.
+        d_b = 2.0 * d_pi * (der.doy[model.idx_sim] - 80.0) / 365.0
         d_sc = (
-            .1645*modelutils.sin(2.*d_b) -
-            .1255*modelutils.cos(d_b) -
-            .025*modelutils.sin(d_b)
+            0.1645 * modelutils.sin(2.0 * d_b)
+            - 0.1255 * modelutils.cos(d_b)
+            - 0.025 * modelutils.sin(d_b)
         )
-        flu.solartimeangle = d_pi/12. * (
-            (der.sct[model.idx_sim] +
-             (con.longitude-der.utclongitude)/15.+d_sc) - 12.
+        flu.solartimeangle = (
+            d_pi
+            / 12.0
+            * (
+                (
+                    der.sct[model.idx_sim]
+                    + (con.longitude - der.utclongitude) / 15.0
+                    + d_sc
+                )
+                - 12.0
+            )
         )
 
 
@@ -484,7 +469,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...     model.idx_sim = hour
         ...     model.calc_solartimeangle_v1()
         ...     model.calc_extraterrestrialradiation_v1()
-        ...     print(hour, end=': ')
+        ...     print(hour, end=": ")
         ...     round_(fluxes.extraterrestrialradiation.value)
         ...     sum_ += fluxes.extraterrestrialradiation
         0: 0.0
@@ -515,7 +500,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         Note that, even with identical values of the local longitude
         (|Longitude|) and the one of the time zone (|UTCLongitude|), the
         calculated radiation values are not symmetrically shaped during the
-        day due to the eccentricity of the Earth's orbit (see `solar time`_).
+        day due to the eccentricity of the Earth"s orbit (see `solar time`_).
 
         There is a small deviation between the directly calculated daily
         value and the sum of the hourly values:
@@ -547,7 +532,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...         model.calc_solartimeangle_v1()
         ...         model.calc_extraterrestrialradiation_v1()
         ...         sum_ += fluxes.extraterrestrialradiation
-        ...     print(minutes, end=': ')
+        ...     print(minutes, end=": ")
         ...     round_(sum_-32.173851)
         1: -0.000054
         5: -0.000739
@@ -566,6 +551,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         720: -32.173851
         1440: 0.0
     """
+
     DERIVEDPARAMETERS = (
         evap_derived.Seconds,
         evap_derived.LatitudeRad,
@@ -576,44 +562,56 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         evap_fluxes.SolarDeclination,
         evap_fluxes.SunsetHourAngle,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.ExtraterrestrialRadiation,
-    )
+    RESULTSEQUENCES = (evap_fluxes.ExtraterrestrialRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_pi = 3.141592653589793
-        if der.seconds < 60.*60.*24.:
-            d_delta = d_pi*der.seconds/60./60./24.
-            d_omega1 = flu.solartimeangle-d_delta
-            d_omega2 = flu.solartimeangle+d_delta
+        if der.seconds < 60.0 * 60.0 * 24.0:
+            d_delta = d_pi * der.seconds / 60.0 / 60.0 / 24.0
+            d_omega1 = flu.solartimeangle - d_delta
+            d_omega2 = flu.solartimeangle + d_delta
             flu.extraterrestrialradiation = max(
-                12.*4.92/d_pi*flu.earthsundistance*(
-                    ((d_omega2-d_omega1) *
-                     modelutils.sin(der.latituderad) *
-                     modelutils.sin(flu.solardeclination)
-                     ) +
-                    (modelutils.cos(der.latituderad) *
-                     modelutils.cos(flu.solardeclination) *
-                     (modelutils.sin(d_omega2)-modelutils.sin(d_omega1))
-                     )
+                12.0
+                * 4.92
+                / d_pi
+                * flu.earthsundistance
+                * (
+                    (
+                        (d_omega2 - d_omega1)
+                        * modelutils.sin(der.latituderad)
+                        * modelutils.sin(flu.solardeclination)
+                    )
+                    + (
+                        modelutils.cos(der.latituderad)
+                        * modelutils.cos(flu.solardeclination)
+                        * (modelutils.sin(d_omega2) - modelutils.sin(d_omega1))
+                    )
                 ),
-                0.
+                0.0,
             )
         else:
-            flu.extraterrestrialradiation = \
-                der.seconds*.0820/60./d_pi*flu.earthsundistance*(
-                    (flu.sunsethourangle *
-                     modelutils.sin(der.latituderad) *
-                     modelutils.sin(flu.solardeclination)
-                     ) +
-                    (modelutils.cos(der.latituderad) *
-                     modelutils.cos(flu.solardeclination) *
-                     modelutils.sin(flu.sunsethourangle)
-                     )
+            flu.extraterrestrialradiation = (
+                der.seconds
+                * 0.0820
+                / 60.0
+                / d_pi
+                * flu.earthsundistance
+                * (
+                    (
+                        flu.sunsethourangle
+                        * modelutils.sin(der.latituderad)
+                        * modelutils.sin(flu.solardeclination)
+                    )
+                    + (
+                        modelutils.cos(der.latituderad)
+                        * modelutils.cos(flu.solardeclination)
+                        * modelutils.sin(flu.sunsethourangle)
+                    )
                 )
+            )
 
 
 class Calc_PossibleSunshineDuration_V1(modeltools.Method):
@@ -659,7 +657,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         >>> for hour, solartimeangle in enumerate(solartimeangles):
         ...     fluxes.solartimeangle = solartimeangle
         ...     model.calc_possiblesunshineduration_v1()
-        ...     print(hour, end=': ')   # doctest: +ELLIPSIS
+        ...     print(hour, end=": ")   # doctest: +ELLIPSIS
         ...     round_(fluxes.possiblesunshineduration.value)
         ...     sum_ += fluxes.possiblesunshineduration.value
         0: 0.0
@@ -680,33 +678,31 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         >>> round_(sum_)
         11.665421
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.Seconds,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.Seconds,)
     REQUIREDSEQUENCES = (
         evap_fluxes.SolarTimeAngle,
         evap_fluxes.SunsetHourAngle,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.PossibleSunshineDuration,
-    )
+    RESULTSEQUENCES = (evap_fluxes.PossibleSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_pi = 3.141592653589793
-        d_hours = der.seconds/60./60.
-        d_days = d_hours/24.
-        if d_hours < 24.:
-            if flu.solartimeangle <= 0.:
-                d_thresh = -flu.solartimeangle-d_pi*d_days
+        d_hours = der.seconds / 60.0 / 60.0
+        d_days = d_hours / 24.0
+        if d_hours < 24.0:
+            if flu.solartimeangle <= 0.0:
+                d_thresh = -flu.solartimeangle - d_pi * d_days
             else:
-                d_thresh = flu.solartimeangle-d_pi*d_days
-            flu.possiblesunshineduration = \
-                min(max(12./d_pi*(flu.sunsethourangle-d_thresh), 0.), d_hours)
+                d_thresh = flu.solartimeangle - d_pi * d_days
+            flu.possiblesunshineduration = min(
+                max(12.0 / d_pi * (flu.sunsethourangle - d_thresh), 0.0), d_hours
+            )
         else:
-            flu.possiblesunshineduration = 24./d_pi*flu.sunsethourangle
+            flu.possiblesunshineduration = 24.0 / d_pi * flu.sunsethourangle
 
 
 class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
@@ -719,34 +715,46 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended
-        for Germany by `DWA-M 504`_:
+        for Germany by `DWA-M 504`_ for January and the default values
+        (a=0.25, b=0.5) for February:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> angstromconstant(0.19)
-        >>> angstromfactor(0.55)
+        >>> angstromconstant.jan = 0.19
+        >>> angstromfactor.jan = 0.55
+        >>> angstromconstant.feb = 0.25
+        >>> angstromfactor.feb = 0.5
+        >>> derived.moy.update()
         >>> fluxes.extraterrestrialradiation = 40.0
+        >>> model.idx_sim = 1
         >>> model.calc_clearskysolarradiation_v1()
         >>> fluxes.clearskysolarradiation
         clearskysolarradiation(29.6)
+        >>> model.idx_sim = 2
+        >>> model.calc_clearskysolarradiation_v1()
+        >>> fluxes.clearskysolarradiation
+        clearskysolarradiation(30.0)
     """
+
     CONTROLPARAMETERS = (
         evap_control.AngstromConstant,
         evap_control.AngstromFactor,
     )
-    REQUIREDSEQUENCES = (
-        evap_fluxes.ExtraterrestrialRadiation,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.ClearSkySolarRadiation,
-    )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
+    REQUIREDSEQUENCES = (evap_fluxes.ExtraterrestrialRadiation,)
+    RESULTSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        idx = der.moy[model.idx_sim]
         flu.clearskysolarradiation = flu.extraterrestrialradiation * (
-            con.angstromconstant+con.angstromfactor)
+            con.angstromconstant[idx] + con.angstromfactor[idx]
+        )
 
 
 class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
@@ -785,24 +793,20 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
         |   4 |                    4.0 | 4.0  2.0                           3.0\
  |
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.NmbLogEntries,
-    )
-    REQUIREDSEQUENCES = (
-        evap_fluxes.ClearSkySolarRadiation,
-    )
-    UPDATEDSEQUENCES = (
-        evap_logs.LoggedClearSkySolarRadiation,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
+    UPDATEDSEQUENCES = (evap_logs.LoggedClearSkySolarRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        for idx in range(der.nmblogentries-1, 0, -1):
-            log.loggedclearskysolarradiation[idx] = \
-                log.loggedclearskysolarradiation[idx-1]
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            log.loggedclearskysolarradiation[idx] = log.loggedclearskysolarradiation[
+                idx - 1
+            ]
         log.loggedclearskysolarradiation[0] = flu.clearskysolarradiation
 
 
@@ -818,18 +822,29 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended
-        for Germany by `DWA-M 504`_:
+        for Germany by `DWA-M 504`_ for January and the default values
+        (a=0.25, b=0.5) for February:
 
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> angstromconstant(0.19)
-        >>> angstromfactor(0.55)
+        >>> angstromconstant.jan = 0.19
+        >>> angstromfactor.jan = 0.55
+        >>> angstromconstant.feb = 0.25
+        >>> angstromfactor.feb = 0.5
+        >>> derived.moy.update()
         >>> inputs.sunshineduration = 12.0
         >>> fluxes.possiblesunshineduration = 14.0
         >>> fluxes.extraterrestrialradiation = 40.0
+        >>> model.idx_sim = 1
         >>> model.calc_globalradiation_v1()
         >>> fluxes.globalradiation
         globalradiation(26.457143)
+        >>> model.idx_sim = 2
+        >>> model.calc_globalradiation_v1()
+        >>> fluxes.globalradiation
+        globalradiation(27.142857)
 
         For zero possible sunshine durations, |Calc_GlobalRadiation_V1|
         sets |GlobalRadiation| to zero:
@@ -839,31 +854,35 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         >>> fluxes.globalradiation
         globalradiation(0.0)
     """
+
     CONTROLPARAMETERS = (
         evap_control.AngstromConstant,
         evap_control.AngstromFactor,
     )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
     REQUIREDSEQUENCES = (
         evap_fluxes.ExtraterrestrialRadiation,
         evap_inputs.SunshineDuration,
         evap_fluxes.PossibleSunshineDuration,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.GlobalRadiation,
-    )
+    RESULTSEQUENCES = (evap_fluxes.GlobalRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if flu.possiblesunshineduration > 0.:
+        if flu.possiblesunshineduration > 0.0:
+            idx = der.moy[model.idx_sim]
             flu.globalradiation = flu.extraterrestrialradiation * (
-                con.angstromconstant+con.angstromfactor *
-                inp.sunshineduration/flu.possiblesunshineduration
+                con.angstromconstant[idx]
+                + con.angstromfactor[idx]
+                * inp.sunshineduration
+                / flu.possiblesunshineduration
             )
         else:
-            flu.globalradiation = 0.
+            flu.globalradiation = 0.0
 
 
 class Update_LoggedGlobalRadiation_V1(modeltools.Method):
@@ -896,23 +915,18 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         |   3 |             2.0 | 2.0  3.0                    1.0 |
         |   4 |             4.0 | 4.0  2.0                    3.0 |
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.NmbLogEntries,
-    )
-    REQUIREDSEQUENCES = (
-        evap_fluxes.GlobalRadiation,
-    )
-    UPDATEDSEQUENCES = (
-        evap_logs.LoggedGlobalRadiation,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_fluxes.GlobalRadiation,)
+    UPDATEDSEQUENCES = (evap_logs.LoggedGlobalRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        for idx in range(der.nmblogentries-1, 0, -1):
-            log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx-1]
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx - 1]
         log.loggedglobalradiation[0] = flu.globalradiation
 
 
@@ -932,17 +946,14 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
         >>> fluxes.netshortwaveradiation
         netshortwaveradiation(15.4)
     """
-    REQUIREDSEQUENCES = (
-        evap_fluxes.GlobalRadiation,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.NetShortwaveRadiation,
-    )
+
+    REQUIREDSEQUENCES = (evap_fluxes.GlobalRadiation,)
+    RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.netshortwaveradiation = (1.-.23)*flu.globalradiation
+        flu.netshortwaveradiation = (1.0 - 0.23) * flu.globalradiation
 
 
 class Calc_NetLongwaveRadiation_V1(modeltools.Method):
@@ -1001,6 +1012,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> fluxes.netlongwaveradiation
         netlongwaveradiation(3.959909)
     """
+
     DERIVEDPARAMETERS = (
         evap_derived.NmbLogEntries,
         evap_derived.Seconds,
@@ -1013,9 +1025,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         evap_logs.LoggedGlobalRadiation,
         evap_logs.LoggedClearSkySolarRadiation,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.NetLongwaveRadiation,
-    )
+    RESULTSEQUENCES = (evap_fluxes.NetLongwaveRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1023,20 +1033,24 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        if flu.clearskysolarradiation > 0.:
+        if flu.clearskysolarradiation > 0.0:
             d_globalradiation = flu.globalradiation
             d_clearskysolarradiation = flu.clearskysolarradiation
         else:
-            d_globalradiation = 0.
-            d_clearskysolarradiation = 0.
+            d_globalradiation = 0.0
+            d_clearskysolarradiation = 0.0
             for idx in range(der.nmblogentries):
-                d_clearskysolarradiation += \
-                    log.loggedclearskysolarradiation[idx]
+                d_clearskysolarradiation += log.loggedclearskysolarradiation[idx]
                 d_globalradiation += log.loggedglobalradiation[idx]
         flu.netlongwaveradiation = (
-            4.903e-9/24./60./60.*der.seconds*(inp.airtemperature+273.16)**4 *
-            (.34-.14*flu.actualvapourpressure**.5) *
-            (1.35*d_globalradiation/d_clearskysolarradiation-0.35)
+            4.903e-9
+            / 24.0
+            / 60.0
+            / 60.0
+            * der.seconds
+            * (inp.airtemperature + 273.16) ** 4
+            * (0.34 - 0.14 * flu.actualvapourpressure ** 0.5)
+            * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
         )
 
 
@@ -1058,18 +1072,17 @@ class Calc_NetRadiation_V1(modeltools.Method):
         >>> fluxes.netradiation
         netradiation(7.6)
     """
+
     REQUIREDSEQUENCES = (
         evap_fluxes.NetShortwaveRadiation,
         evap_fluxes.NetLongwaveRadiation,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.NetRadiation,
-    )
+    RESULTSEQUENCES = (evap_fluxes.NetRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.netradiation = flu.netshortwaveradiation-flu.netlongwaveradiation
+        flu.netradiation = flu.netshortwaveradiation - flu.netlongwaveradiation
 
 
 class Calc_SoilHeatFlux_V1(modeltools.Method):
@@ -1126,27 +1139,22 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         the best results for intermediate (e.g. 12 hours) or larger
         step sizes (e.g. one month).
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.Seconds,
-    )
-    REQUIREDSEQUENCES = (
-        evap_fluxes.NetRadiation,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.SoilHeatFlux,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.Seconds,)
+    REQUIREDSEQUENCES = (evap_fluxes.NetRadiation,)
+    RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if der.seconds < 60.*60.*24.:
-            if flu.netradiation >= 0.:
-                flu.soilheatflux = .1*flu.netradiation
+        if der.seconds < 60.0 * 60.0 * 24.0:
+            if flu.netradiation >= 0.0:
+                flu.soilheatflux = 0.1 * flu.netradiation
             else:
-                flu.soilheatflux = .5*flu.netradiation
+                flu.soilheatflux = 0.5 * flu.netradiation
         else:
-            flu.soilheatflux = 0.
+            flu.soilheatflux = 0.0
 
 
 class Calc_PsychrometricConstant_V1(modeltools.Method):
@@ -1167,18 +1175,15 @@ class Calc_PsychrometricConstant_V1(modeltools.Method):
         >>> fluxes.psychrometricconstant
         psychrometricconstant(0.054397)
     """
-    REQUIREDSEQUENCES = (
-        evap_inputs.AtmosphericPressure,
-    )
-    RESULTSEQUENCES = (
-        evap_fluxes.PsychrometricConstant,
-    )
+
+    REQUIREDSEQUENCES = (evap_inputs.AtmosphericPressure,)
+    RESULTSEQUENCES = (evap_fluxes.PsychrometricConstant,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.psychrometricconstant = 6.65e-4*inp.atmosphericpressure
+        flu.psychrometricconstant = 6.65e-4 * inp.atmosphericpressure
 
 
 class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
@@ -1242,9 +1247,8 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(0.629106)
     """
-    DERIVEDPARAMETERS = (
-        evap_derived.Seconds,
-    )
+
+    DERIVEDPARAMETERS = (evap_derived.Seconds,)
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_fluxes.SaturationVapourPressureSlope,
@@ -1255,9 +1259,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         evap_fluxes.SaturationVapourPressure,
         evap_fluxes.ActualVapourPressure,
     )
-    RESULTSEQUENCES = (
-        evap_fluxes.ReferenceEvapotranspiration,
-    )
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1265,18 +1267,23 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.referenceevapotranspiration = (
-            (.408*flu.saturationvapourpressureslope *
-             (flu.netradiation-flu.soilheatflux) +
-             flu.psychrometricconstant*(37.5/60./60.*der.seconds) /
-             (inp.airtemperature+273.)*flu.adjustedwindspeed *
-             (flu.saturationvapourpressure-flu.actualvapourpressure)) /
-            (flu.saturationvapourpressureslope +
-             flu.psychrometricconstant*(1.+.34*flu.adjustedwindspeed))
+            0.408
+            * flu.saturationvapourpressureslope
+            * (flu.netradiation - flu.soilheatflux)
+            + flu.psychrometricconstant
+            * (37.5 / 60.0 / 60.0 * der.seconds)
+            / (inp.airtemperature + 273.0)
+            * flu.adjustedwindspeed
+            * (flu.saturationvapourpressure - flu.actualvapourpressure)
+        ) / (
+            flu.saturationvapourpressureslope
+            + flu.psychrometricconstant * (1.0 + 0.34 * flu.adjustedwindspeed)
         )
 
 
 class Model(modeltools.AdHocModel):
     """The Evap base model."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

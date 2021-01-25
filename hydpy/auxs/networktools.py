@@ -7,6 +7,7 @@ different data.
 # import...
 # ...from standard library
 from typing import *
+
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -23,13 +24,13 @@ class RiverBasinNumber(str):
 
     >>> RiverBasinNumber(1230)
     RiverBasinNumber(123)
-    >>> RiverBasinNumber('0123')
+    >>> RiverBasinNumber("0123")
     RiverBasinNumber(123)
 
     Numbers not interpretable as a river basin number result in the
     following error message:
 
-    >>> RiverBasinNumber('123A')
+    >>> RiverBasinNumber("123A")
     Traceback (most recent call last):
     ...
     ValueError: The given value `123A` could not be interpreted as a river \
@@ -65,11 +66,11 @@ basin number.
         try:
             # PyCharm bug, see https://stackoverflow.com/questions/49465166/
             # noinspection PyArgumentList
-            return str.__new__(RiverBasinNumber, str(int(value)).strip('0'))
+            return str.__new__(RiverBasinNumber, str(int(value)).strip("0"))
         except ValueError:
             raise ValueError(
-                f'The given value `{value}` could not be '
-                f'interpreted as a river basin number.'
+                f"The given value `{value}` could not be "
+                f"interpreted as a river basin number."
             ) from None
 
     @property
@@ -82,7 +83,7 @@ basin number.
         >>> RiverBasinNumber(123).is_rivermouth
         False
         """
-        return self[-1] == '9'
+        return self[-1] == "9"
 
     @property
     def is_mainchannel(self) -> bool:
@@ -128,8 +129,7 @@ basin number.
 
     @property
     def _possible_next_last_initial_digits(self) -> Iterator[str]:
-        return (digit for digit in ('3', '5', '7', '9') if
-                digit > self.rstrip('9')[-1])
+        return (digit for digit in ("3", "5", "7", "9") if digit > self.rstrip("9")[-1])
 
     @property
     def possible_next_initial_digits(self) -> Tuple[str, ...]:
@@ -158,8 +158,10 @@ basin number.
         128 128 ('129',)
         129 129 ('13', '15', '17', '19')
         """
-        return tuple(self.rstrip('9')[:-1]+digit for digit
-                     in self._possible_next_last_initial_digits)
+        return tuple(
+            self.rstrip("9")[:-1] + digit
+            for digit in self._possible_next_last_initial_digits
+        )
 
     @property
     def nmb_digits(self) -> int:
@@ -184,7 +186,7 @@ basin number.
         return False
 
     def __repr__(self) -> str:
-        return f'RiverBasinNumber({str.__repr__(self)[1:-1]})'
+        return f"RiverBasinNumber({str.__repr__(self)[1:-1]})"
 
 
 class RiverBasinNumbers(tuple):
@@ -210,15 +212,16 @@ class RiverBasinNumbers(tuple):
     >>> 11263 in rbns
     False
     """
+
     def __new__(cls, values: Iterable[Union[int, str]]):
         _values = tuple(RiverBasinNumber(value) for value in values)
         obj = tuple.__new__(RiverBasinNumbers, sorted(_values))
-        vars(obj)['_tree'] = None
+        vars(obj)["_tree"] = None
         return obj
 
     @property
     def _tree(self):
-        if vars(self)['_tree'] is None:
+        if vars(self)["_tree"] is None:
             tree = {}
             for rbn in self:
                 subtree = tree
@@ -228,11 +231,11 @@ class RiverBasinNumbers(tuple):
                     except KeyError:
                         subtree[digit] = {}
                         subtree = subtree[digit]
-                subtree['0'] = {}
-            vars(self)['_tree'] = tree
-        return vars(self)['_tree']
+                subtree["0"] = {}
+            vars(self)["_tree"] = tree
+        return vars(self)["_tree"]
 
-    def select(self, number: Union[int, str]) -> 'RiverBasinNumbers':
+    def select(self, number: Union[int, str]) -> "RiverBasinNumbers":
         """Select and return all river basin numbers starting with the given
         number.
 
@@ -249,7 +252,7 @@ class RiverBasinNumbers(tuple):
         >>> rbns.select(114)
         RiverBasinNumbers(())
         """
-        prefix = ''
+        prefix = ""
         tree = self._tree
         for digit in RiverBasinNumber(number):
             try:
@@ -262,7 +265,7 @@ class RiverBasinNumbers(tuple):
             if tree_:
                 numbers.remove(number_)
                 for digit_, subtree in tree_.items():
-                    subnumber = RiverBasinNumber(number_+digit_)
+                    subnumber = RiverBasinNumber(number_ + digit_)
                     numbers.add(subnumber)
                     _walk(subnumber, subtree, numbers)
             return numbers
@@ -270,8 +273,7 @@ class RiverBasinNumbers(tuple):
         riverbasinnumbers = {prefix}
         return RiverBasinNumbers(_walk(prefix, tree, riverbasinnumbers))
 
-    def _get_next_number(self, number: Union[int, str]) -> \
-            Optional[RiverBasinNumber]:
+    def _get_next_number(self, number: Union[int, str]) -> Optional[RiverBasinNumber]:
         number = RiverBasinNumber(number)
         for pdn1 in number.possible_next_initial_digits:
             neighbours = self.select(pdn1)
@@ -351,11 +353,10 @@ class RiverBasinNumbers(tuple):
                 tree = tree[digit]
             except KeyError:
                 return False
-        return '0' in tree
+        return "0" in tree
 
     def __repr__(self) -> str:
-        return objecttools.assignrepr_tuple(
-            self, 'RiverBasinNumbers(', 60) + ')'
+        return objecttools.assignrepr_tuple(self, "RiverBasinNumbers(", 60) + ")"
 
 
 class RiverBasinNumbers2Selection:
@@ -380,11 +381,11 @@ class RiverBasinNumbers2Selection:
     _up2down: Dict[RiverBasinNumber, Optional[RiverBasinNumber]]
 
     def __init__(self, numbers: Iterable[Union[int, str]]):
-        self.supplier_prefix = 'land_'
-        self.router_prefix = 'stream_'
-        self.node_prefix = 'node_'
-        self.last_node = 'node_outlet'
-        self.selection_name = 'complete'
+        self.supplier_prefix = "land_"
+        self.router_prefix = "stream_"
+        self.node_prefix = "node_"
+        self.last_node = "node_outlet"
+        self.selection_name = "complete"
         rbns = RiverBasinNumbers(numbers)
         self._up2down = dict(tuple_ for tuple_ in zip(rbns, rbns.next_numbers))
 
@@ -396,8 +397,7 @@ class RiverBasinNumbers2Selection:
     @property
     def _router_numbers(self) -> Tuple[RiverBasinNumber, ...]:
         """A tuple of the numbers of all "routing basins"."""
-        return tuple(up for up in self._up2down.keys()
-                     if up in self._up2down.values())
+        return tuple(up for up in self._up2down.keys() if up in self._up2down.values())
 
     def _get_nodename(self, string: str) -> str:
         return self.node_prefix + string
@@ -451,8 +451,8 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the elements
         and nodes:
 
-        >>> rbns2s.supplier_prefix = 'a_'
-        >>> rbns2s.node_prefix = 'b_'
+        >>> rbns2s.supplier_prefix = "a_"
+        >>> rbns2s.node_prefix = "b_"
         >>> rbns2s.supplier_elements
         Elements("a_111", "a_1121", "a_1122", "a_1123", "a_1124", "a_1125",
                  "a_11261", "a_11262", "a_11269", "a_1129", "a_113")
@@ -503,8 +503,8 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the elements
         and nodes:
 
-        >>> rbns2s.router_prefix = 'c_'
-        >>> rbns2s.node_prefix = 'd_'
+        >>> rbns2s.router_prefix = "c_"
+        >>> rbns2s.node_prefix = "d_"
         >>> rbns2s.router_elements
         Elements("c_1123", "c_1125", "c_11269", "c_1129", "c_113")
         """
@@ -516,8 +516,7 @@ class RiverBasinNumbers2Selection:
                 outlet = self._get_nodename(self._up2down[router])
             except TypeError:
                 outlet = self.last_node
-            elements += devicetools.Element(
-                element, inlets=inlet, outlets=outlet)
+            elements += devicetools.Element(element, inlets=inlet, outlets=outlet)
         return elements
 
     @property
@@ -543,15 +542,14 @@ class RiverBasinNumbers2Selection:
         It is both possible to change the prefix names of the nodes and
         the name of the outlet node separately:
 
-        >>> rbns2s.node_prefix = 'b_'
-        >>> rbns2s.last_node = 'l_node'
+        >>> rbns2s.node_prefix = "b_"
+        >>> rbns2s.last_node = "l_node"
         >>> rbns2s.nodes
         Nodes("b_1123", "b_1125", "b_11269", "b_1129", "b_113", "l_node")
         """
-        return (
-            devicetools.Nodes(
-                self.node_prefix+routers for routers in self._router_numbers) +
-            devicetools.Node(self.last_node))
+        return devicetools.Nodes(
+            self.node_prefix + routers for routers in self._router_numbers
+        ) + devicetools.Node(self.last_node)
 
     @property
     def selection(self) -> selectiontools.Selection:
@@ -576,7 +574,7 @@ class RiverBasinNumbers2Selection:
         nodes and elements, one is also free to define an arbitrary
         selection name:
 
-        >>> rbns2s.selection_name = 'sel'
+        >>> rbns2s.selection_name = "sel"
         >>> from hydpy import pub
         >>> with pub.options.ellipsis(1):
         ...     print(repr(rbns2s.selection))
@@ -584,5 +582,4 @@ class RiverBasinNumbers2Selection:
                   nodes=("node_1123", ...,"node_outlet"),
                   elements=("land_111", ...,"stream_113"))
         """
-        return selectiontools.Selection(
-            self.selection_name, self.nodes, self.elements)
+        return selectiontools.Selection(self.selection_name, self.nodes, self.elements)

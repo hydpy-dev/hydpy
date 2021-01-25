@@ -11,11 +11,13 @@ from hydpy.core import sequencetools
 
 class LoggedTotalRemoteDischarge(sequencetools.LogSequence):
     """Logged discharge values from somewhere else [m3/s]."""
+
     NDIM, NUMERIC = 1, False
 
 
 class LoggedOutflow(sequencetools.LogSequence):
     """Logged discharge values from the dam itself [m3/s]."""
+
     NDIM, NUMERIC = 1, False
 
 
@@ -51,11 +53,12 @@ cannot be changed, but this was attempted for element `?`.
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape):
-        if exceptiontools.attrready(self, 'shape'):
+        if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
-                f'The shape of parameter `{self.name}` cannot be '
-                f'changed, but this was attempted for element '
-                f'`{objecttools.devicename(self)}`.')
+                f"The shape of parameter `{self.name}` cannot be "
+                f"changed, but this was attempted for element "
+                f"`{objecttools.devicename(self)}`."
+            )
         super().__hydpy__set_shape__(shape)
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
@@ -63,9 +66,11 @@ cannot be changed, but this was attempted for element `?`.
 
 class LoggedRequiredRemoteRelease(ShapeOne):
     """Logged required discharge values computed by another model [m3/s]."""
+
     NDIM, NUMERIC = 1, False
 
 
 class LoggedAllowedRemoteRelieve(ShapeOne):
     """Logged allowed discharge values computed by another model [m3/s]."""
+
     NDIM, NUMERIC = 1, False

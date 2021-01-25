@@ -31,13 +31,13 @@ Another exception is that |lland_v1| allows for smoothing the calculated
 The following general setup is identical with the one of |lland_v1|:
 
 >>> from hydpy import pub
->>> pub.timegrids = '2000-01-01', '2000-01-05', '1h'
+>>> pub.timegrids = "2000-01-01", "2000-01-05", "1h"
 >>> from hydpy.models.lland_v2 import *
->>> parameterstep('1h')
+>>> parameterstep("1h")
 >>> from hydpy import Node, Element
->>> outlet = Node('outlet')
->>> inlet = Node('inlet')
->>> land = Element('land', inlets=inlet, outlets=outlet)
+>>> outlet = Node("outlet")
+>>> inlet = Node("inlet")
+>>> land = Element("land", inlets=inlet, outlets=outlet)
 >>> land.model = model
 >>> nhru(1)
 >>> ft(1.0)
@@ -72,7 +72,7 @@ the ones of |lland_v1|, except that the Turc-Wendling related parameter
 >>> wmax(200.0)
 >>> fk(relative=0.5)
 >>> pwp(relative=0.05)
->>> kapgrenz(option='0_WMax/10')
+>>> kapgrenz(option="0_WMax/10")
 >>> kapmax(0.08)
 >>> beta(0.005)
 >>> fbeta(1.0)
@@ -153,7 +153,7 @@ inflow exactly:
 
 .. integration-test::
 
-    >>> test('lland_v2_acker_summer',
+    >>> test("lland_v2_acker_summer",
     ...      axis1=(inputs.nied, fluxes.qah),
     ...      axis2=states.bowa)
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor |      nbes | sbes |      et0 |     evpo |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |      qdb |     qib1 |     qib2 |      qbb |     qkap |     qdgz |      qah |       qa |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga | inlet |   outlet |
@@ -267,7 +267,7 @@ inflow exactly:
 .. integration-test::
 
     >>> inlet.sequences.sim.series = 0.3
-    >>> test('lland_v2_acker_routing',
+    >>> test("lland_v2_acker_routing",
     ...      axis1=(inputs.nied, fluxes.qah),
     ...      axis2=states.bowa)
     |                date | nied | teml |       pet |  qz |  qzh |  nkor | tkor |      nbes | sbes |      et0 |     evpo |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |      qdb |     qib1 |     qib2 |      qbb |     qkap |     qdgz |      qah |       qa |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga | inlet |   outlet |
@@ -388,7 +388,7 @@ smaller than one and defining a suitable "old" evaporation value (|WET0|):
     >>> wfet0(0.01)
     >>> test.inits.wet0 = 1.0
     >>> inlet.sequences.sim.series = 0.0
-    >>> test('lland_v2_wasser',
+    >>> test("lland_v2_wasser",
     ...      axis1=(fluxes.nkor, fluxes.evpo, fluxes.evi, fluxes.qah))
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor | nbes | sbes |      et0 |     evpo |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |       qah |        qa | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga | inlet |    outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -502,7 +502,7 @@ with relevant inflow exactly:
     >>> inlet.sequences.sim.series = 0.3
     >>> wfet0(1.0)
     >>> test.inits.wet0 = 0.0
-    >>> test('lland_v2_wasser_routing',
+    >>> test("lland_v2_wasser_routing",
     ...      axis1=(fluxes.nkor, fluxes.evpo, fluxes.evi, fluxes.qah))
     |                date | nied | teml |       pet |  qz |  qzh |  nkor | tkor | nbes | sbes |      et0 |     evpo |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |       qah |       qa | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga | inlet |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -614,7 +614,7 @@ exactly (with :math:`NegQ = False`):
 
     >>> negq(True)
     >>> inlet.sequences.sim.series = 0.0
-    >>> test('lland_v2_wasser_negq',
+    >>> test("lland_v2_wasser_negq",
     ...      axis1=(fluxes.nkor, fluxes.evpo, fluxes.evi, fluxes.qah))
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor | nbes | sbes |      et0 |     evpo |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |       qah |        qa | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga | inlet |    outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -726,7 +726,7 @@ test :ref:`lland_v1_see` for water areas of type |SEE| exactly (with
 
     >>> lnk(SEE)
     >>> negq(False)
-    >>> test('lland_v2_see',
+    >>> test("lland_v2_see",
     ...      axis1=(fluxes.nkor, fluxes.evpo, fluxes.evi, fluxes.qah))
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor | nbes | sbes |      et0 |     evpo |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |      qah |       qa | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz | qdga1 | qdga2 | qiga1 | qiga2 |      qbga | inlet |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -837,7 +837,7 @@ test :ref:`lland_v1_fluss` for water areas of type |FLUSS| exactly (with
 .. integration-test::
 
     >>> lnk(FLUSS)
-    >>> test('lland_v2_fluss',
+    >>> test("lland_v2_fluss",
     ...      axis1=(fluxes.nkor, fluxes.evpo, fluxes.evi, fluxes.qah))
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor | nbes | sbes |      et0 |     evpo |       evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap |      qdgz |       qah |       qa | inzp | wats | waes | bowa |     qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |     qdga1 |     qdga2 | qiga1 | qiga2 | qbga | inlet |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -947,7 +947,7 @@ test :ref:`lland_v1_vers` for land use type |VERS| exactly:
 .. integration-test::
 
     >>> lnk(VERS)
-    >>> test('lland_v2_vers',
+    >>> test("lland_v2_vers",
     ...      axis1=(inputs.nied, fluxes.qah, states.bowa))
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor |      nbes | sbes |      et0 |     evpo |      evi | evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |       qah |       qa |     inzp | wats | waes | bowa |    qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |     qdga2 | qiga1 | qiga2 | qbga | inlet |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1058,9 +1058,9 @@ exactly:
 .. integration-test::
 
     >>> lnk(ACKER)
-    >>> kapgrenz(option='FK')
+    >>> kapgrenz(option="FK")
     >>> rbeta(True)
-    >>> test('lland_v2_acker_qkap',
+    >>> test("lland_v2_acker_qkap",
     ...      axis1=(fluxes.qbb, fluxes.qkap),
     ...      axis2=states.bowa)
     |                date | nied | teml |       pet |  qz | qzh |  nkor | tkor |      nbes | sbes |      et0 |     evpo |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb |     qib1 |     qib2 |      qbb | qkap |      qdgz |      qah |       qa |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |      qbga | inlet |   outlet |
@@ -1187,7 +1187,7 @@ we need to adapt the |PET| values to the changed |TemL| values):
     ...     0.074055, 0.2705, 1.23095, 2.866595, 4.66193, 6.271463, 6.833792,
     ...     6.738053, 8.078045, 7.222285, 6.044787, 4.837587, 2.353282, 1.092032,
     ...     0.289745, 0.080167, 0.080565, 0.080962, 0.081357)
-    >>> test('lland_v2_acker_winter',
+    >>> test("lland_v2_acker_winter",
     ...      axis1=(inputs.nied, fluxes.wada),
     ...      axis2=(states.waes, states.wats))
     |                date | nied |       teml |      pet |  qz | qzh |  nkor |       tkor |      nbes |      sbes |      et0 |     evpo |      evi |      evb |      wgtf |     wnied |   schmpot |     schm |      wada |      qdb |     qib1 |     qib2 |      qbb | qkap |     qdgz |      qah |       qa |     inzp |       wats |       waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |      qbga | inlet |   outlet |
@@ -1294,6 +1294,7 @@ we need to adapt the |PET| values to the changed |TemL| values):
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
@@ -1302,9 +1303,8 @@ from hydpy.models.lland.lland_constants import *
 
 class Model(modeltools.AdHocModel):
     """External PET/degree-day version of HydPy-L-Land."""
-    INLET_METHODS = (
-        lland_model.Pick_QZ_V1,
-    )
+
+    INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         lland_model.Calc_QZH_V1,
@@ -1343,15 +1343,14 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_QA_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        lland_model.Pass_QA_V1,
-    )
+    OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v2|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES

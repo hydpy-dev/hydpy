@@ -1,5 +1,5 @@
 
-version: 4.0a14.{build}
+version: 4.0a17.{build}
 
 environment:
   PYPIPA:
@@ -20,6 +20,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install scipy"
   - "%PYTHON%\\python.exe -m pip install matplotlib"
   - "%PYTHON%\\python.exe -m pip install bokeh"
+  - "%PYTHON%\\python.exe -m pip install black"
   - "%PYTHON%\\python.exe -m pip install netcdf4!=1.5.3"
   - "%PYTHON%\\python.exe -m pip install networkx"
   - "%PYTHON%\\python.exe -m pip install pandas"

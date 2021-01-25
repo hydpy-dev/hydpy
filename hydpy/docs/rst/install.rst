@@ -2,7 +2,6 @@
 .. _Python Package Index: https://pypi.org/project/HydPy/
 .. _Python 3.6, 3.7, or 3.8: https://www.python.org/downloads/
 .. _numpy: http://www.numpy.org/
-.. _netcdf4: http://unidata.github.io/netcdf4-python/
 .. _Kalypso: https://kalypso.bjoernsen.de/index.php?id=382&L=1
 .. _Delft-FEWS: https://oss.deltares.nl/web/delft-fews
 .. _releases: https://github.com/hydpy-dev/hydpy/releases
@@ -10,7 +9,6 @@
 .. _Miniconda: https://conda.io/miniconda.html
 .. _Spyder: https://www.spyder-ide.org/
 .. _bokeh: https://bokeh.pydata.org/en/latest/
-.. _conda: https://conda.io/docs/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _releases: https://github.com/hydpy-dev/hydpy/releases
 .. _issue: https://github.com/hydpy-dev/hydpy/issues
@@ -32,8 +30,7 @@ to type::
 
 into your command-line tool to install the latest version of
 *HydPy* on your computer.  `pip` then installs necessary
-site-packages like `numpy`_ on-the-fly.  Optional site-packages
-like `netcdf4`_ must be installed manually, as described below.
+site-packages like `numpy`_ on-the-fly.
 
 For 64 bit Windows, the `Python Package Index`_ provides so-called
 "wheels", which include pre-compiled binaries and simplify
@@ -59,11 +56,7 @@ are new to Python, we recommend installing a convenient Python distribution
 like `Anaconda`_, already containing many scientific and mathematical tools
 as well as the integrated development environment `Spyder`_.  A more
 lightweight alternative would be to install `Miniconda`_ and use it
-to install only the required libraries afterwards.  For example, if you want
-to enable *HydPy* to read and write NetCDF files, you need to install
-the `netcdf4`_ library::
-
-   conda install netcdf4
+to install only the required libraries afterwards.
 
 Selecting a HydPy distribution
 ------------------------------

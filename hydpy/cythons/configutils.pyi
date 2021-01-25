@@ -1,5 +1,3 @@
-
-
 class Config:
 
     _abs_error_max: float

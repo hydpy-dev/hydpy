@@ -2,7 +2,7 @@
 
 from hydpy.models.hland_v1 import *
 
-controlcheck(projectdir=r'LahnH', controldir='default')
+controlcheck(projectdir=r"LahnH", controldir="default")
 
 ic(0.96158999999999994, 1.4615899999999999, 0.96218999999999999,
    1.4621900000000001, 0.96277999999999997, 1.46278, 0.96335999999999999,

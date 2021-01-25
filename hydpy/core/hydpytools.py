@@ -2,12 +2,14 @@
 """This module implements the main features for managing *HydPy* projects."""
 # import...
 # ...from standard library
+import collections
 import itertools
 import warnings
 from typing import *
+
 # ...from site-packages
-import numpy
 import networkx
+
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -17,18 +19,20 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core.logtools import Logger
     from hydpy.core.sequencetools import Sequence
 
 
-ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
+ConditionsType = Dict[
+    str, Dict[str, Dict[str, Union[float, Vector[float], Matrix[float]]]]
+]
 
 
 class HydPy:
-    # noinspection PyUnresolvedReferences
     """The main class for managing *HydPy* projects.
 
     In typical *HydPy* projects, one prepares a single instance of class
@@ -55,7 +59,7 @@ class HydPy:
     directory.  Pass `LahnH` to the constructor of class |HydPy|:
 
     >>> from hydpy import HydPy
-    >>> hp = HydPy('LahnH')
+    >>> hp = HydPy("LahnH")
 
     So far, our |HydPy| instance does not know any project configurations
     except its name.  Most of this information would be available via
@@ -139,8 +143,8 @@ at the moment.
     >>> hp.elements.land_dill.model
     Traceback (most recent call last):
     ...
-    AttributeError: The model object of element `land_dill` has been \
-requested but not been prepared so far.
+    hydpy.core.exceptiontools.AttributeNotReady: The model object of \
+element `land_dill` has been requested but not been prepared so far.
 
     Hence, we need to call method |HydPy.prepare_models|, which
     instructs all |Element| objects to read the relevant parameter
@@ -157,10 +161,10 @@ requested but not been prepared so far.
     ...     hp.prepare_models()
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: The initialisation period has \
-not been defined via attribute `timegrids` of module `pub` yet but might \
-be required to prepare the model properly.
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to initialise \
+the model object of element `land_dill`, the following error occurred: \
+The initialisation period has not been defined via attribute `timegrids` \
+of module `pub` yet but might be required to prepare the model properly.
 
     Oops, something went wrong.  We forgot to define the simulation
     period, which might be relevant for some time-dependent
@@ -190,7 +194,7 @@ be required to prepare the model properly.
     further information):
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+    >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
 
     Now method |HydPy.prepare_models| does not complain anymore and
     adds an instance of the |hland_v1| application model to element
@@ -222,8 +226,8 @@ be required to prepare the model properly.
 
     >>> model.parameters.control.percmax
     percmax(1.39636)
-    >>> pub.options.parameterstep('1h')
-    Period('1d')
+    >>> pub.options.parameterstep("1h")
+    Period("1d")
 
     The values of the derived parameters, which need to be calculated
     before starting a simulation run based on the control parameters
@@ -637,7 +641,7 @@ requested to make any internal data available.
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
-    deviceorder: List[devicetools.Device]
+    deviceorder: List[Union[devicetools.Node, devicetools.Element]]
     loggers: Dict[str, 'Logger']
 
     def __init__(self, projectname: Optional[str] = None) -> None:
@@ -669,7 +673,7 @@ requested to make any internal data available.
         AttributeError: The actual HydPy instance does not handle any nodes \
 at the moment.
 
-        >>> hp.nodes = 'dill', 'lahn_1'
+        >>> hp.nodes = "dill", "lahn_1"
         >>> hp.nodes
         Nodes("dill", "lahn_1")
 
@@ -681,8 +685,7 @@ at the moment.
         nodes = self._nodes
         if nodes is None:
             raise AttributeError(
-                'The actual HydPy instance does not handle any '
-                'nodes at the moment.'
+                "The actual HydPy instance does not handle any " "nodes at the moment."
             )
         return nodes
 
@@ -713,7 +716,7 @@ at the moment.
         AttributeError: The actual HydPy instance does not handle any elements \
 at the moment.
 
-        >>> hp.elements = 'land_dill', 'land_lahn_1'
+        >>> hp.elements = "land_dill", "land_lahn_1"
         >>> hp.elements
         Elements("land_dill", "land_lahn_1")
 
@@ -725,8 +728,8 @@ at the moment.
         elements = self._elements
         if elements is None:
             raise AttributeError(
-                'The actual HydPy instance does not handle any '
-                'elements at the moment.'
+                "The actual HydPy instance does not handle any "
+                "elements at the moment."
             )
         return elements
 
@@ -753,8 +756,8 @@ at the moment.
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_everything()
 
         Now you can start a simulation run and inspect the calculated
@@ -799,7 +802,7 @@ at the moment.
         stemming from the network files:
 
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy('LahnH')
+        >>> hp = HydPy("LahnH")
         >>> pub.selections
         Traceback (most recent call last):
         ...
@@ -861,8 +864,8 @@ of module `pub` is not defined at the moment.
 
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
-        ...     hp = HydPy('LahnH')
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         ...     hp.prepare_models()
 
@@ -911,11 +914,11 @@ of module `pub` is not defined at the moment.
         Missing parameter information in auxiliary files results in errors
         like the following:
 
-        >>> filepath = 'LahnH/control/default/land.py'
+        >>> filepath = "LahnH/control/default/land.py"
         >>> with TestIO():
         ...     with open(filepath) as infile:
-        ...         text = infile.read().replace('alpha(1.0)', '')
-        ...     with open(filepath, 'w') as outfile:
+        ...         text = infile.read().replace("alpha(1.0)", "")
+        ...     with open(filepath, "w") as outfile:
         ...         outfile.write(text)
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -930,7 +933,7 @@ does not define value(s) for parameter `alpha`.
         Completely wrong control files result in the following error:
 
         >>> with TestIO():
-        ...     with open('LahnH/control/default/land_dill.py', 'w'):
+        ...     with open("LahnH/control/default/land_dill.py", "w"):
         ...         pass
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -947,8 +950,8 @@ to the HydPy documentation on how to prepare control files properly.
 
         >>> from hydpy import HydPy
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, 'prepare_models') as mocked:
-        ...     hp = HydPy('test')
+        >>> with mock.patch.object(HydPy, "prepare_models") as mocked:
+        ...     hp = HydPy("test")
         ...     hp.init_models()
         Traceback (most recent call last):
         ...
@@ -960,15 +963,16 @@ Use method `prepare_models` instead.
         """
         self.prepare_models()
         warnings.warn(
-            'Method `init_models` of class `HydPy` is deprecated.  '
-            'Use method `prepare_models` instead.',
-            exceptiontools.HydPyDeprecationWarning)
+            "Method `init_models` of class `HydPy` is deprecated.  "
+            "Use method `prepare_models` instead.",
+            exceptiontools.HydPyDeprecationWarning,
+        )
 
     def save_controls(
-            self,
-            parameterstep: Optional[timetools.PeriodConstrArg] = None,
-            simulationstep: Optional[timetools.PeriodConstrArg] = None,
-            auxfiler: Optional['auxfiletools.Auxfiler'] = None,
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
     ) -> None:
         """Write the control files of all current |Element| objects.
 
@@ -991,16 +995,16 @@ Use method `prepare_models` instead.
 
         >>> import os
         >>> with TestIO():
-        ...     os.listdir('LahnH/control')
+        ...     os.listdir("LahnH/control")
         ['default']
 
         Next, we use the |ControlManager| to create a new directory
         and write analogue control files into it:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
+        ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls()
-        ...     sorted(os.listdir('LahnH/control'))
+        ...     sorted(os.listdir("LahnH/control"))
         ['default', 'newdir']
 
         We focus our examples on the (shorter) control files of
@@ -1016,16 +1020,16 @@ Use method `prepare_models` instead.
 
         The corresponding written control file defines the same values:
 
-        >>> dir_ = 'LahnH/control/newdir/'
+        >>> dir_ = "LahnH/control/newdir/"
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
         lag(0.583)
         damp(0.0)
@@ -1035,7 +1039,7 @@ Use method `prepare_models` instead.
         stems from the |Timegrid| object available via |pub|:
 
         >>> pub.timegrids.stepsize
-        Period('1d')
+        Period("1d")
 
         Use the |Auxfiler| class to avoid redefining the same parameter
         values in multiple control files.  Here, we prepare an |Auxfiler|
@@ -1043,10 +1047,11 @@ Use method `prepare_models` instead.
         above:
 
         >>> from hydpy import Auxfiler
-        >>> aux = Auxfiler()
-        >>> aux += 'hstream_v1'
-        >>> aux.hstream_v1.stream = model.parameters.control.damp
-        >>> aux.hstream_v1.stream = model.parameters.control.lag
+        >>> auxfiler = Auxfiler("hstream_v1")
+        >>> auxfiler.hstream_v1.add_parameter(
+        ...     model.parameters.control.damp, filename="stream")
+        >>> auxfiler.hstream_v1.add_parameter(
+        ...     model.parameters.control.lag, filename="stream")
 
         When passing the |Auxfiler| object to the method |HydPy.save_controls|,
         the control file of element `stream_lahn_1_lahn_2` does not
@@ -1054,35 +1059,35 @@ Use method `prepare_models` instead.
         the auxiliary file `stream.py` instead:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
-        ...     hp.save_controls(auxfiler=aux)
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...     pub.controlmanager.currentdir = "newdir"
+        ...     hp.save_controls(auxfiler=auxfiler)
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
-        lag(auxfile='stream')
-        damp(auxfile='stream')
+        lag(auxfile="stream")
+        damp(auxfile="stream")
         <BLANKLINE>
 
         `stream.py` contains the actual value definitions:
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream.py') as controlfile:
+        ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
-        damp(0.0)
         lag(0.583)
+        damp(0.0)
         <BLANKLINE>
 
         The |hstream_v1| model of element `stream_lahn_2_lahn_3` defines
@@ -1091,17 +1096,17 @@ Use method `prepare_models` instead.
         |hstream_control.Damp| can reference control file `stream.py`:
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_2_lahn_3.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_2_lahn_3.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1d')
-        parameterstep('1d')
+        simulationstep("1d")
+        parameterstep("1d")
         <BLANKLINE>
         lag(0.417)
-        damp(auxfile='stream')
+        damp(auxfile="stream")
         <BLANKLINE>
 
         Another option is to pass alternative step size information.
@@ -1113,48 +1118,48 @@ Use method `prepare_models` instead.
         as to be expected:
 
         >>> with TestIO():
-        ...     pub.controlmanager.currentdir = 'newdir'
+        ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls(
-        ...         auxfiler=aux, parameterstep='2d', simulationstep='1h')
-        ...     with open(dir_ + 'stream_lahn_1_lahn_2.py') as controlfile:
+        ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
+        ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
-        lag(auxfile='stream')
-        damp(auxfile='stream')
+        lag(auxfile="stream")
+        damp(auxfile="stream")
         <BLANKLINE>
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream.py') as controlfile:
+        ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
-        damp(0.0)
         lag(0.2915)
+        damp(0.0)
         <BLANKLINE>
 
         >>> with TestIO():
-        ...     with open(dir_ + 'stream_lahn_2_lahn_3.py') as controlfile:
+        ...     with open(dir_ + "stream_lahn_2_lahn_3.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hstream_v1 import *
         <BLANKLINE>
-        simulationstep('1h')
-        parameterstep('2d')
+        simulationstep("1h")
+        parameterstep("2d")
         <BLANKLINE>
         lag(0.2085)
-        damp(auxfile='stream')
+        damp(auxfile="stream")
         <BLANKLINE>
         """
         self.elements.save_controls(
@@ -1204,10 +1209,10 @@ Use method `prepare_models` instead.
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
-        >>> path = 'LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py'
+        >>> path = "LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
@@ -1217,7 +1222,7 @@ Use method `prepare_models` instead.
         second half of the initialisation period, respectively, and
         write, in both cases, the resulting final conditions to disk:
 
-        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> sm
         sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
@@ -1226,8 +1231,8 @@ Use method `prepare_models` instead.
         >>> with TestIO():
         ...     hp.save_conditions()
 
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-03"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> with TestIO():
         ...     hp.save_conditions()
@@ -1250,10 +1255,10 @@ Use method `prepare_models` instead.
            208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
            236.244147, 234.972621)
 
-        >>> path = 'LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py'
+        >>> path = "LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         ...         print(lines[12])
@@ -1266,13 +1271,13 @@ Use method `prepare_models` instead.
         |ConditionManager| instance:
 
         >>> with TestIO():
-        ...     pub.conditionmanager.currentdir = 'test'
+        ...     pub.conditionmanager.currentdir = "test"
         ...     hp.save_conditions()
 
-        >>> path = 'LahnH/conditions/test/land_dill.py'
+        >>> path = "LahnH/conditions/test/land_dill.py"
         >>> with TestIO():
-        ...     with open(path, 'r') as file_:
-        ...         lines = file_.read().split('\\n')
+        ...     with open(path, "r") as file_:
+        ...         lines = file_.read().split("\\n")
         ...         print(lines[10])
         ...         print(lines[11])
         ...         print(lines[12])
@@ -1283,7 +1288,7 @@ Use method `prepare_models` instead.
         This change remains permanent until you undo it manually:
 
         >>> sm(0.0)
-        >>> pub.timegrids.sim.firstdate = '1996-01-01'
+        >>> pub.timegrids.sim.firstdate = "1996-01-01"
         >>> with TestIO():
         ...     hp.load_conditions()
         >>> sm
@@ -1394,9 +1399,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         self.elements.reset_conditions()
 
-    @property
-    def conditions(self) -> ConditionsType:
-        # noinspection PyUnresolvedReferences,PyTypeChecker
+    def _get_conditions(self) -> ConditionsType:
         """A nested dictionary, containing the values of all condition
         sequences of all currently handled models.
 
@@ -1416,10 +1419,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_values
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-04-01', '1d'
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-04-01", "1d"
         ...     hp.prepare_everything()
-        >>> pub.timegrids.sim.lastdate = '1996-02-20'
+        >>> pub.timegrids.sim.lastdate = "1996-02-20"
         >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
         70.553509, 94.344086, nan, nan
@@ -1439,8 +1442,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         >>> conditions = hp.conditions
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.firstdate = '1996-02-20'
-        >>> pub.timegrids.sim.lastdate = '1996-04-01'
+        >>> pub.timegrids.sim.firstdate = "1996-02-20"
+        >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(first[48:52])
@@ -1459,8 +1462,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         with the ones of the first simulation run:
 
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.firstdate = '1996-02-20'
-        >>> pub.timegrids.sim.lastdate = '1996-04-01'
+        >>> pub.timegrids.sim.firstdate = "1996-02-20"
+        >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(second[48:52])
@@ -1500,12 +1503,21 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         return self.elements.conditions
 
-    @conditions.setter
-    def conditions(self, conditions: ConditionsType) -> None:
+    def _set_conditions(self, conditions: ConditionsType) -> None:
         self.elements.conditions = conditions
 
+    conditions = property(_get_conditions, _set_conditions)
+
     @property
-    def networkproperties(self) -> Dict[str, Any]:
+    def networkproperties(
+        self,
+    ) -> Dict[
+        str,
+        Union[
+            int,
+            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+        ],
+    ]:
         """Some properties of the network defined by the currently relevant
         |Node| and |Element| objects.
 
@@ -1513,11 +1525,12 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for further information.
         """
         return {
-            'Number of nodes': len(self.nodes),
-            'Number of elements': len(self.elements),
-            'Number of end nodes': len(self.endnodes),
-            'Number of distinct networks': len(self.segregatednetworks),
-            'Applied node variables': self.variables
+            "Number of nodes": len(self.nodes),
+            "Number of elements": len(self.elements),
+            "Number of end nodes": len(self.endnodes),
+            "Number of distinct networks": len(self.segregatednetworks),
+            "Applied node variables": self.variables,
+            "Applied model types": self.modeltypes,
         }
 
     def print_networkproperties(self) -> None:
@@ -1532,21 +1545,31 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, TestIO
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
+        ...     hp.prepare_models()
         >>> hp.print_networkproperties()
         Number of nodes: 4
         Number of elements: 7
         Number of end nodes: 1
         Number of distinct networks: 1
-        Applied node variables: Q
+        Applied node variables: Q (4)
+        Applied model types: hland_v1 (4) and hstream_v1 (3)
         """
+        value: Union[
+            str,
+            int,
+            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+        ]
         for key, value in self.networkproperties.items():
-            if isinstance(value, typingtools.IterableNonString):
-                value = objecttools.enumeration(value)
-            print(f'{key}: {value}')
+            if isinstance(value, dict):
+                value = objecttools.enumeration(
+                    f"{name} ({nmb})" for name, nmb in value.items()
+                )
+            print(f"{key}: {value}")
 
     @property
     def endnodes(self) -> devicetools.Nodes:
@@ -1560,7 +1583,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.endnodes
         Nodes("lahn_3")
@@ -1600,15 +1623,14 @@ one value needed to be trimmed.  The old and the new value(s) are \
         endnodes = devicetools.Nodes()
         for node in self.nodes:
             for element in node.exits:
-                if ((element in self.elements) and
-                        (node not in element.receivers)):
+                if (element in self.elements) and (node not in element.receivers):
                     break
             else:
                 endnodes += node
         return endnodes
 
     @property
-    def segregatednetworks(self) -> 'selectiontools.Selections':
+    def segregatednetworks(self) -> "selectiontools.Selections":
         """The number of segregated networks defined by the currently
         relevant |Node| and |Element| objects.
 
@@ -1622,7 +1644,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.segregatednetworks
         Selections("lahn_3")
@@ -1709,15 +1731,15 @@ one value needed to be trimmed.  The old and the new value(s) are \
         element `stream_lahn_1_nowhere`, which we connect to node `lahn_1`:
 
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> from hydpy import Element
-        >>> _ = Element('stream_lahn_2_lahn_3', outlets='nowhere')
-        >>> hp.nodes += 'nowhere'
-        >>> hp.elements += Element('stream_lahn_1_nowhere',
-        ...                        inlets='lahn_1',
-        ...                        outlets='somewhere')
-        >>> hp.nodes += 'somewhere'
+        >>> _ = Element("stream_lahn_2_lahn_3", outlets="nowhere")
+        >>> hp.nodes += "nowhere"
+        >>> hp.elements += Element("stream_lahn_1_nowhere",
+        ...                        inlets="lahn_1",
+        ...                        outlets="somewhere")
+        >>> hp.nodes += "somewhere"
 
         Now there are three end nodes but only two segregated networks,
         as node `nowhere` does not reference any upstream devices not
@@ -1742,8 +1764,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         sels1 = selectiontools.Selections()
         sels2 = selectiontools.Selections()
-        complete = selectiontools.Selection(
-            'complete', self.nodes, self.elements)
+        complete = selectiontools.Selection("complete", self.nodes, self.elements)
         for node in self.endnodes:
             sel = complete.copy(node.name).select_upstream(node)
             sels1 += sel
@@ -1758,8 +1779,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return sels1
 
     @property
-    def variables(self) -> List[devicetools.NodeVariableType]:
-        # noinspection PyUnresolvedReferences
+    def variables(self) -> Dict[devicetools.NodeVariableType, int]:
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
 
@@ -1767,20 +1787,51 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy('LahnH')
+        ...     hp = HydPy("LahnH")
         ...     hp.prepare_network()
         >>> hp.variables
-        ['Q']
+        {'Q': 4}
 
         >>> from hydpy import FusedVariable, hland_T, Node
-        >>> hp.nodes += Node('test', variable=FusedVariable('T', hland_T))
+        >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
         >>> hp.variables
-        ['Q', FusedVariable('T', hland_T)]
+        {'Q': 4, FusedVariable("T", hland_T): 1}
         """
-        variables = set([])
+        variables: Dict[str, int] = collections.defaultdict(lambda: 0)
         for node in self.nodes:
-            variables.add(node.variable)
-        return sorted(variables, key=str)
+            variables[node.variable] += 1
+        return dict(
+            sorted(
+                variables.items(),
+                key=lambda tuple_: f"{(tuple_[0])}{str(tuple_[1]).rjust(9)}",
+            )
+        )
+
+    @property
+    def modeltypes(self) -> Dict[str, int]:
+        """Summary of all |Model| subclasses of the currently relevant
+        |Element| objects.
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy("LahnH")
+        ...     hp.prepare_network()
+        >>> hp.modeltypes
+        {'unprepared': 7}
+
+        >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_models()
+        >>> hp.modeltypes
+        {'hland_v1': 4, 'hstream_v1': 3}
+        """
+        modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
+        for element in self.elements:
+            name = str(exceptiontools.getattr_(element, "model", "unprepared"))
+            modeltypes[name] += 1
+        return dict(sorted(modeltypes.items()))
 
     def open_files(self, idx: int = 0) -> None:
         """Open all required internal time-series files.
@@ -1804,27 +1855,27 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
     @overload
     def update_devices(
-            self,
-            *,
-            selection: 'selectiontools.Selection',
+        self,
+        *,
+        selection: "selectiontools.Selection",
     ) -> None:
         """Selection as input"""
 
     @overload
     def update_devices(
-            self,
-            *,
-            nodes: devicetools.NodesConstrArg = ...,
-            elements: devicetools.ElementsConstrArg = ...,
+        self,
+        *,
+        nodes: Optional[devicetools.NodesConstrArg] = None,
+        elements: Optional[devicetools.ElementsConstrArg] = None,
     ) -> None:
         """Devices as input"""
 
     def update_devices(
-            self,
-            *,
-            selection=None,
-            nodes=None,
-            elements=None,
+        self,
+        *,
+        selection: Optional["selectiontools.Selection"] = None,
+        nodes: Optional[devicetools.NodesConstrArg] = None,
+        elements: Optional[devicetools.ElementsConstrArg] = None,
     ) -> None:
         """Determine the order, in which method |HydPy.simulate| processes
         the currently relevant |Node| and |Element| objects.
@@ -1868,7 +1919,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Second, you can pass some nodes only, which by the way removes the
         old elements:
 
-        >>> hp.update_devices(nodes='dill')
+        >>> hp.update_devices(nodes="dill")
         >>> hp.nodes
         Nodes("dill")
         >>> hp.elements
@@ -1880,7 +1931,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Third, you can pass some elements only, which by the way removes the
         old nodes:
 
-        >>> hp.update_devices(elements=['land_lahn_1', 'land_dill'])
+        >>> hp.update_devices(elements=["land_lahn_1", "land_dill"])
         >>> hp.nodes
         Nodes()
         >>> hp.elements
@@ -1892,8 +1943,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
         Fourth, you can pass nodes and elements at the same time:
 
-        >>> hp.update_devices(nodes='dill',
-        ...                   elements=['land_lahn_1', 'land_dill'])
+        >>> hp.update_devices(nodes="dill",
+        ...                   elements=["land_lahn_1", "land_dill"])
         >>> hp.nodes
         Nodes("dill")
         >>> hp.elements
@@ -1923,7 +1974,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         and devices contained within a selection at the same time:
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
-        ...                   nodes='dill')
+        ...                   nodes="dill")
         Traceback (most recent call last):
         ...
         ValueError: Method `update_devices` of class `HydPy` does not allow \
@@ -1931,48 +1982,42 @@ to use both the `selection` argument and the `nodes` or  the `elements` \
 argument at the same time.
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
-        ...                   elements=['land_lahn_1', 'land_dill'])
+        ...                   elements=["land_lahn_1", "land_dill"])
         Traceback (most recent call last):
         ...
         ValueError: Method `update_devices` of class `HydPy` does not allow \
 to use both the `selection` argument and the `nodes` or  the `elements` \
 argument at the same time.
         """
-        selection_given = selection is not None
-        devices_given = (nodes is not None) or (elements is not None)
-        if selection_given and devices_given:
-            raise ValueError(
-                'Method `update_devices` of class `HydPy` does not allow '
-                'to use both the `selection` argument and the `nodes` or  '
-                'the `elements` argument at the same time.'
-            )
-        if selection_given:
-            self.nodes = selection.nodes
-            self.elements = selection.elements
-        if devices_given:
+        if (nodes is not None) or (elements is not None):
+            if selection is not None:
+                raise ValueError(
+                    "Method `update_devices` of class `HydPy` does not allow "
+                    "to use both the `selection` argument and the `nodes` or  "
+                    "the `elements` argument at the same time."
+                )
             del self.nodes
-            # noinspection PyUnboundLocalVariable
             if nodes is None:
                 nodes = devicetools.Nodes()
-            # noinspection PyUnboundLocalVariable
             self.nodes = nodes
             del self.elements
-            # noinspection PyUnboundLocalVariable
             if elements is None:
                 elements = devicetools.Elements()
-            # noinspection PyUnboundLocalVariable
             self.elements = elements
-        # noinspection PyTypeChecker
+        if selection is not None:
+            self.nodes = selection.nodes
+            self.elements = selection.elements
         devices = networkx.topological_sort(create_directedgraph(self))
-        nodes = self.nodes.names
-        elements = self.elements.names
+        nodenames = self.nodes.names
+        elementnames = self.elements.names
         self.deviceorder = [
-            device for device in devices
-            if (device.name in nodes) or (device.name in elements)
+            device
+            for device in devices
+            if (device.name in nodenames) or (device.name in elementnames)
         ]
 
     @property
-    def methodorder(self) -> List[Callable]:
+    def methodorder(self) -> List[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element|
         objects to be processed by method |HydPy.simulate| during a
         simulation time step, ordered in a correct execution sequence.
@@ -1982,17 +2027,17 @@ argument at the same time.
         """
         funcs = []
         for node in self.nodes:
-            if node.deploymode in ('oldsim', 'obs_oldsim'):
+            if node.deploymode in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_simdata)
-            if node.deploymode in ('obs', 'obs_newsim', 'obs_oldsim'):
+            if node.deploymode in ("obs", "obs_newsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_obsdata)
         for node in self.nodes:
-            if node.deploymode not in ('oldsim', 'obs_oldsim'):
+            if node.deploymode not in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)
-            elif device.deploymode in ('obs_newsim', 'obs_oldsim'):
+            elif device.deploymode in ("obs_newsim", "obs_oldsim"):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
         for element in self.elements:
             if element.senders:
@@ -2003,7 +2048,7 @@ argument at the same time.
         for element in self.elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploymode not in ('oldsim', 'obs_oldsim'):
+            if node.deploymode not in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.save_simdata)
         for logger in self.loggers.values():
             funcs.append(logger.update)
@@ -2046,7 +2091,7 @@ argument at the same time.
 
         >>> hp.reset_conditions()
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
         54.043745, 37.320814, 0.0, 0.0
@@ -2055,8 +2100,8 @@ argument at the same time.
         of the `sim` |Timegrid| to the second half of the initialisation
         period, |HydPy.simulate| completes the time-series:
 
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-03"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_3.sequences.sim.series)
         54.043745, 37.320814, 31.922053, 28.413644
@@ -2086,7 +2131,7 @@ argument at the same time.
 
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
         42.3697, 27.210443, 22.930066, 20.20133
-        >>> hp.nodes.lahn_2.deploymode = 'oldsim'
+        >>> hp.nodes.lahn_2.deploymode = "oldsim"
         >>> hp.nodes.lahn_2.sequences.sim.series -= 10.0
 
         After performing another simulation run (over the whole
@@ -2099,8 +2144,8 @@ argument at the same time.
         time step):
 
         >>> hp.reset_conditions()
-        >>> pub.timegrids.sim.firstdate = '1996-01-01'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = "1996-01-01"
+        >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
         32.3697, 17.210443, 12.930066, 10.20133
@@ -2114,7 +2159,7 @@ argument at the same time.
         and simulation period (more often, one would read measured
         data from files via methods as |HydPy.load_obsseries|):
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs'
+        >>> hp.nodes.lahn_2.deploymode = "obs"
         >>> hp.nodes.lahn_2.sequences.obs.series = 0.0
 
         Now the simulated values of node `lahn_2` are identical with
@@ -2157,7 +2202,7 @@ argument at the same time.
         to deploy its observed values.  However, for each missing observation,
         it deploys its newly simulated value instead:
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs_newsim'
+        >>> hp.nodes.lahn_2.deploymode = "obs_newsim"
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.obs.series)
@@ -2171,7 +2216,7 @@ argument at the same time.
         `obs_newsim` but uses already available "old" simulation results
         as substitutes:
 
-        >>> hp.nodes.lahn_2.deploymode = 'obs_oldsim'
+        >>> hp.nodes.lahn_2.deploymode = "obs_oldsim"
         >>> hp.reset_conditions()
         >>> hp.nodes.lahn_2.sequences.sim.series = (
         ...     32.3697, 17.210443, 12.930066, 10.20133)
@@ -2187,7 +2232,7 @@ argument at the same time.
         to `newsim` results in the default behaviour of the method
         |HydPy.simulate|, again:
 
-        >>> hp.nodes.lahn_2.deploymode = 'newsim'
+        >>> hp.nodes.lahn_2.deploymode = "newsim"
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_2.sequences.sim.series)
@@ -2208,8 +2253,8 @@ argument at the same time.
 
         >>> from hydpy import HydPy
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, 'simulate') as mocked:
-        ...     hp = HydPy('test')
+        >>> with mock.patch.object(HydPy, "simulate") as mocked:
+        ...     hp = HydPy("test")
         ...     hp.doit()
         Traceback (most recent call last):
         ...
@@ -2221,9 +2266,10 @@ Use method `simulate` instead.
         """
         self.simulate()
         warnings.warn(
-            'Method `doit` of class `HydPy` is deprecated.  '
-            'Use method `simulate` instead.',
-            exceptiontools.HydPyDeprecationWarning)
+            "Method `doit` of class `HydPy` is deprecated.  "
+            "Use method `simulate` instead.",
+            exceptiontools.HydPyDeprecationWarning,
+        )
 
     def prepare_allseries(self, ramflag: bool = True) -> None:
         """Allow all current |IOSequence| objects to handle time-series
@@ -2360,7 +2406,7 @@ Use method `simulate` instead.
 
 
 def create_directedgraph(
-        devices: Union[HydPy, 'selectiontools.Selection'],
+    devices: Union[HydPy, "selectiontools.Selection"],
 ) -> networkx.DiGraph:
     """Create a directed graph based on the given devices."""
     digraph = networkx.DiGraph()

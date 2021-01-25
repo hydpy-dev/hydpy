@@ -11,17 +11,23 @@ iuh, see the examples or the source code of class
 # ...from standard library
 import abc
 import itertools
+from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from Hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
-pyplot = exceptiontools.OptionalImport(
-    'pyplot', ['matplotlib.pyplot'], locals())
-special = exceptiontools.OptionalImport(
-    'special', ['scipy.special'], locals())
+
+if TYPE_CHECKING:
+    from matplotlib import pyplot
+    from scipy import special
+else:
+    pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
 
 
 class ParameterIUH:
@@ -35,10 +41,12 @@ class ParameterIUH:
 
     def __init__(self, name, type_=float, doc=None):
         self.name = name
-        self._name = '_'+name
+        self._name = "_" + name
         self.type_ = type_
-        self.__doc__ = (f'Instantaneous unit hydrograph parameter: '
-                        f'{name if doc is None else str(doc)}')
+        self.__doc__ = (
+            f"Instantaneous unit hydrograph parameter: "
+            f"{name if doc is None else str(doc)}"
+        )
 
     def __get__(self, obj, type_=None):
         return self if obj is None else getattr(obj, self._name, None)
@@ -48,9 +56,9 @@ class ParameterIUH:
             return self.type_(value)
         except BaseException:
             raise TypeError(
-                f'The value `{value}` of type `{type(value).__name__}` could '
-                f'not be converted to type `{self.type_.__name__}` of the '
-                f'instantaneous unit hydrograph parameter `{self.name}`.'
+                f"The value `{value}` of type `{type(value).__name__}` could "
+                f"not be converted to type `{self.type_.__name__}` of the "
+                f"instantaneous unit hydrograph parameter `{self.name}`."
             ) from None
 
 
@@ -99,13 +107,13 @@ class MetaIUH(type):
                 primary_parameters[key] = value
             elif isinstance(value, SecondaryParameterIUH):
                 secondary_parameters[key] = value
-        dict_['_PRIMARY_PARAMETERS'] = primary_parameters
-        dict_['_SECONDARY_PARAMETERS'] = secondary_parameters
+        dict_["_PRIMARY_PARAMETERS"] = primary_parameters
+        dict_["_SECONDARY_PARAMETERS"] = secondary_parameters
         return type.__new__(mcs, name, parents, dict_)
 
 
 # Just for making MetaIUH the type of class IUH both in Python 2 and 3:
-_MetaIUH = MetaIUH('_MetaIUH', (), {})
+_MetaIUH = MetaIUH("_MetaIUH", (), {})
 
 
 class IUH(_MetaIUH):
@@ -155,14 +163,15 @@ class IUH(_MetaIUH):
                 setattr(self, key, value)
         else:
             raise ValueError(
-                f'When passing primary parameter values as initialization '
-                f'arguments of the instantaneous unit hydrograph class '
-                f'`{type(self).__name__}`, or when using method '
-                f'`set_primary_parameters`, one has to to define all values '
-                f'at once via keyword arguments.  But instead of the primary '
-                f'parameter names `{objecttools.enumeration(required)}` the '
-                f'following keywords were given: '
-                f'{objecttools.enumeration(given)}.')
+                f"When passing primary parameter values as initialization "
+                f"arguments of the instantaneous unit hydrograph class "
+                f"`{type(self).__name__}`, or when using method "
+                f"`set_primary_parameters`, one has to to define all values "
+                f"at once via keyword arguments.  But instead of the primary "
+                f"parameter names `{objecttools.enumeration(required)}` the "
+                f"following keywords were given: "
+                f"{objecttools.enumeration(given)}."
+            )
 
     @property
     def primary_parameters_complete(self):
@@ -198,13 +207,13 @@ class IUH(_MetaIUH):
         associated iuh values respectively."""
         delays = []
         responses = []
-        sum_responses = 0.
-        for t in itertools.count(self.dt_response/2., self.dt_response):
+        sum_responses = 0.0
+        for t in itertools.count(self.dt_response / 2.0, self.dt_response):
             delays.append(t)
             response = self(t)
             responses.append(response)
-            sum_responses += self.dt_response*response
-            if (sum_responses > .9) and (response < self.smallest_response):
+            sum_responses += self.dt_response * response
+            if (sum_responses > 0.9) and (response < self.smallest_response):
                 break
         return numpy.array(delays), numpy.array(responses)
 
@@ -217,13 +226,13 @@ class IUH(_MetaIUH):
         """
         delays, responses = self.delay_response_series
         pyplot.plot(delays, responses, **kwargs)
-        pyplot.xlabel('time')
-        pyplot.ylabel('response')
+        pyplot.xlabel("time")
+        pyplot.ylabel("response")
         if threshold is not None:
-            threshold = numpy.clip(threshold, 0., 1.)
+            threshold = numpy.clip(threshold, 0.0, 1.0)
             cumsum = numpy.cumsum(responses)
-            idx = numpy.where(cumsum >= threshold*cumsum[-1])[0][0]
-            pyplot.xlim(0., delays[idx])
+            idx = numpy.where(cumsum >= threshold * cumsum[-1])[0][0]
+            pyplot.xlim(0.0, delays[idx])
 
     @property
     def moment1(self):
@@ -238,8 +247,7 @@ class IUH(_MetaIUH):
         instantaneous unit hydrograph."""
         moment1 = self.moment1
         delays, response = self.delay_response_series
-        return statstools.calc_mean_time_deviation(
-            delays, response, moment1)
+        return statstools.calc_mean_time_deviation(delays, response, moment1)
 
     @property
     def moments(self):
@@ -248,16 +256,16 @@ class IUH(_MetaIUH):
         return numpy.array([self.moment1, self.moment2])
 
     def __repr__(self):
-        parts = [type(self).__name__, '(']
+        parts = [type(self).__name__, "("]
         for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
-                parts.extend([name, '=', objecttools.repr_(value), ', '])
-        if parts[-1] == ', ':
-            parts[-1] = ')'
+                parts.extend([name, "=", objecttools.repr_(value), ", "])
+        if parts[-1] == ", ":
+            parts[-1] = ")"
         else:
-            parts.append(')')
-        return ''.join(parts)
+            parts.append(")")
+        return "".join(parts)
 
 
 class TranslationDiffusionEquation(IUH):
@@ -370,13 +378,13 @@ class TranslationDiffusionEquation(IUH):
 
     Suitable type conversions are performed when new parameter values are set:
 
-    >>> tde.x = '1.'
+    >>> tde.x = "1."
     >>> tde.x
     1.0
 
     It a new value cannot be converted, an error is raised:
 
-    >>> tde.x = 'a'
+    >>> tde.x = "a"
     Traceback (most recent call last):
     ...
     TypeError: The value `a` of type `str` could not be converted to type \
@@ -395,30 +403,35 @@ arguments of the instantaneous unit hydrograph class \
 keyword arguments.  But instead of the primary parameter names `d, u, and x` \
 the following keywords were given: d and u.
     """
-    u = PrimaryParameterIUH('u', doc='Wave velocity [L/T].')
-    d = PrimaryParameterIUH('d', doc='Diffusion coefficient [L²/T].')
-    x = PrimaryParameterIUH('x', doc='Routing distance [L].')
-    a = SecondaryParameterIUH('a', doc='Distance related coefficient.')
-    b = SecondaryParameterIUH('b', doc='Velocity related coefficient.')
+
+    u = PrimaryParameterIUH("u", doc="Wave velocity [L/T].")
+    d = PrimaryParameterIUH("d", doc="Diffusion coefficient [L²/T].")
+    x = PrimaryParameterIUH("x", doc="Routing distance [L].")
+    a = SecondaryParameterIUH("a", doc="Distance related coefficient.")
+    b = SecondaryParameterIUH("b", doc="Velocity related coefficient.")
 
     def calc_secondary_parameters(self):
         """Determine the values of the secondary parameters
-         |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.
-         """
-        self.a = self.x/(2.*self.d**.5)
-        self.b = self.u/(2.*self.d**.5)
+        |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.
+        """
+        self.a = self.x / (2.0 * self.d ** 0.5)
+        self.b = self.u / (2.0 * self.d ** 0.5)
 
     def __call__(self, t) -> numpy.ndarray:
         t = numpy.array(t)
         t = numpy.clip(t, 1e-10, numpy.inf)
         # pylint: disable=invalid-unary-operand-type
-        return self.a/(t*(numpy.pi*t)**.5)*numpy.exp(-t*(self.a/t-self.b)**2)
+        return (
+            self.a
+            / (t * (numpy.pi * t) ** 0.5)
+            * numpy.exp(-t * (self.a / t - self.b) ** 2)
+        )
 
     @property
     def moment1(self):
         """The first time delay weighted statistical moment of the
         translation diffusion equation."""
-        return self.x/self.u
+        return self.x / self.u
 
 
 class LinearStorageCascade(IUH):
@@ -446,21 +459,23 @@ class LinearStorageCascade(IUH):
     0.122042, 0.028335, 0.004273, 0.00054
 
     """
-    n = PrimaryParameterIUH('n', doc='Number of linear storages [-].')
+
+    n = PrimaryParameterIUH("n", doc="Number of linear storages [-].")
     k = PrimaryParameterIUH(
-        'k', doc='Time of concentration of each individual storage [T].')
-    c = SecondaryParameterIUH('c', doc='Proportionality factor.')
+        "k", doc="Time of concentration of each individual storage [T]."
+    )
+    c = SecondaryParameterIUH("c", doc="Proportionality factor.")
 
     def calc_secondary_parameters(self):
         """Determine the value of the secondary parameter
         |LinearStorageCascade.c|."""
-        self.c = 1./(self.k*special.gamma(self.n))
+        self.c = 1.0 / (self.k * special.gamma(self.n))
 
     def __call__(self, t) -> numpy.ndarray:
-        return self.c*(t/self.k)**(self.n-1)*numpy.exp(-t/self.k)
+        return self.c * (t / self.k) ** (self.n - 1) * numpy.exp(-t / self.k)
 
     @property
     def moment1(self):
         """The first time delay weighted statistical moment of the
         linear storage cascade."""
-        return self.k*self.n
+        return self.k * self.n

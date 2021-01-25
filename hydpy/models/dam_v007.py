@@ -31,14 +31,14 @@ including an identical inflow series and an identical relationship
 between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
->>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
->>> parameterstep('1d')
->>> element = Element('element', inlets='input_', outlets='output')
+>>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
+>>> parameterstep("1d")
+>>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model
 >>> IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
 >>> IntegrationTest.plotting_options.axis2 = states.watervolume
 >>> test = IntegrationTest(element)
->>> test.dateformat = '%d.%m.'
+>>> test.dateformat = "%d.%m."
 >>> test.inits = [(states.watervolume, 0.0)]
 >>> watervolume2waterlevel(
 ...     weights_input=1.0, weights_output=1.0,
@@ -71,7 +71,7 @@ identical with the ones of the :ref:`dam_v006_base_scenario` example of
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
     >>> waterlevelminimumthreshold(0.0)
-    >>> test('dam_v007_base_scenario')
+    >>> test("dam_v007_base_scenario")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -117,7 +117,7 @@ relevant when the water volume exceeds about 1.4 million m³:
     >>> pyplot.savefig(
     ...     os.path.join(
     ...         figs.__path__[0],
-    ...         'dam_v007_waterlevel2flooddischarge.png',
+    ...         "dam_v007_waterlevel2flooddischarge.png",
     ...     ),
     ... )
     >>> pyplot.close()
@@ -130,7 +130,7 @@ the peak flow to 7.3 m³/s:
 
 .. integration-test::
 
-    >>> test('dam_v007_spillway')
+    >>> test("dam_v007_spillway")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -170,7 +170,7 @@ flow to 4.6 m³/s:
 
     >>> allowedrelease(4.0)
     >>> waterlevelminimumthreshold(0.1)
-    >>> test('dam_v007_allowed_release')
+    >>> test("dam_v007_allowed_release")
     |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |      0.037088 |            0.0 | 0.037088 |   -0.003204 |    0.0 | 0.037088 |
@@ -205,9 +205,10 @@ increased computation times.
 """
 # import...
 # ...from HydPy
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -215,6 +216,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 7 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -222,9 +224,7 @@ class Model(modeltools.ELSModel):
         dam_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (
-        dam_model.Pic_Inflow_V1,
-    )
+    INLET_METHODS = (dam_model.Pic_Inflow_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
@@ -234,12 +234,8 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V1,
-    )
-    OUTLET_METHODS = (
-        dam_model.Pass_Outflow_V1,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
+    OUTLET_METHODS = (dam_model.Pass_Outflow_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 

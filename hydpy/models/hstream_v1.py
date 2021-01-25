@@ -17,22 +17,22 @@ Integration tests
     We perform the following examples over a simulation period of 20 hours:
 
     >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '01.01.2000 00:00', '01.01.2000 20:00', '1h'
+    >>> pub.timegrids = "01.01.2000 00:00", "01.01.2000 20:00", "1h"
 
     We also set the time step size of the parameter values defined
     below to one hour:
 
     >>> from hydpy.models.hstream_v1 import *
-    >>> parameterstep('1h')
+    >>> parameterstep("1h")
 
     The |hstream_v1| model, handled by |Element| `stream`, queries its
     inflow from two |Node| objects (`input1` and `input2`) and passes its
     outflow to a single |Node| object (`output`):
 
-    >>> nodes = Nodes('input1', 'input2', 'output')
-    >>> stream = Element('stream',
-    ...                  inlets=['input1', 'input2'],
-    ...                  outlets='output')
+    >>> nodes = Nodes("input1", "input2", "output")
+    >>> stream = Element("stream",
+    ...                  inlets=["input1", "input2"],
+    ...                  outlets="output")
     >>> stream.model = model
 
     The test function object sets the initial inflow of all segments
@@ -41,7 +41,7 @@ Integration tests
     >>> from hydpy.core.testtools import IntegrationTest
     >>> test = IntegrationTest(stream,
     ...                        inits=((states.qjoints, 0.),))
-    >>> test.dateformat = '%H:%M'
+    >>> test.dateformat = "%H:%M"
 
     We define two flood events, one for each inflow node:
 
@@ -61,7 +61,7 @@ Integration tests
 
     >>> lag(0.0)
     >>> damp(0.0)
-    >>> test('hstream_v1_ex1')
+    >>> test("hstream_v1_ex1")
     |  date | qjoints | input1 | input2 | output |
     ----------------------------------------------
     | 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |
@@ -101,7 +101,7 @@ Integration tests
 
     >>> lag(0.0)
     >>> damp(1.0)
-    >>> test('hstream_v1_ex2')
+    >>> test("hstream_v1_ex2")
     |  date | qjoints | input1 | input2 | output |
     ----------------------------------------------
     | 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |
@@ -141,7 +141,7 @@ Integration tests
 
     >>> lag(3.0)
     >>> damp(0.0)
-    >>> test('hstream_v1_ex3')
+    >>> test("hstream_v1_ex3")
     |  date |                   qjoints | input1 | input2 | output |
     ----------------------------------------------------------------
     | 00:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |
@@ -179,7 +179,7 @@ Integration tests
 
     >>> lag(3.0)
     >>> damp(1.0)
-    >>> test('hstream_v1_ex4')
+    >>> test("hstream_v1_ex4")
     |  date |                            qjoints | input1 | input2 |   output |
     ---------------------------------------------------------------------------
     | 00:00 |  0.0       0.0       0.0       0.0 |    0.0 |    0.0 |      0.0 |
@@ -215,6 +215,7 @@ Integration tests
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+
 # ...from hstream
 from hydpy.models.hstream import hstream_masks
 from hydpy.models.hstream import hstream_model
@@ -222,23 +223,19 @@ from hydpy.models.hstream import hstream_model
 
 class Model(modeltools.AdHocModel):
     """The HBV96 version of HydPy-H-Stream (|hstream_v1|)."""
-    INLET_METHODS = (
-        hstream_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (hstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        hstream_model.Calc_QJoints_V1,
-    )
+    RUN_METHODS = (hstream_model.Calc_QJoints_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        hstream_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (hstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
 
 
 class Masks(masktools.Masks):
     """Masks applicable to |hstream_v1|."""
+
     # pylint: disable=no-member
     # bug of pylint 2.4?
     CLASSES = hstream_masks.Masks.CLASSES

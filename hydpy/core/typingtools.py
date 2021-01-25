@@ -5,17 +5,18 @@ eventually dynamical) typing."""
 # ...from standard library
 import abc
 from typing import *
-from typing_extensions import Protocol
+from typing_extensions import Protocol  # type: ignore[misc]
+
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
     from hydpy.cythons.autogen import pointerutils
 
-T = TypeVar('T')
-T1 = TypeVar('T1')
-T2 = TypeVar('T2')
-T3 = TypeVar('T3')
+T = TypeVar("T")
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
 
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
@@ -24,30 +25,410 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
-Vector = MutableMapping[int, float]
+Sequence1 = Union[T, Sequence[T]]
+Sequence2 = Union[T1, T2, Sequence[Union[T1, T2]]]
+Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
+
+Float_co = TypeVar("Float_co", covariant=True)
+Float1 = TypeVar("Float1", bound=float)
+Float2 = TypeVar("Float2", bound=float)
 
 
-class IterableNonString(abc.ABC):
-    """Abstract base class for checking if an object is iterable but not a
-    string.
-    
+class VectorInput(Protocol[Float_co]):
+    """Protocol class for providing input to "mathematical", 1-dimensional arrays."""
+
+    @overload
+    def __getitem__(
+        self,
+        item: int,
+    ) -> Float_co:
+        ...
+
+    @overload
+    def __getitem__(
+        self,
+        item: slice,
+    ) -> "VectorInput[Float_co]":
+        ...
+
+    def __getitem__(
+        self,
+        item: Union[int, slice],
+    ) -> Union[Float_co, "VectorInput[Float_co]"]:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+    def __iter__(self) -> Iterator[Float_co]:
+        ...
+
+
+MatrixInput = VectorInput[VectorInput[Float_co]]
+
+VectorSlice = Union[slice, VectorInput[int]]
+
+
+class Vector(VectorInput[Float1]):
+    """Protocol class for defining "mathematical", 1-dimensional sequences."""
+
+    @overload
+    def __getitem__(
+        self,
+        item: int,
+    ) -> Float1:
+        ...
+
+    @overload
+    def __getitem__(
+        self,
+        item: VectorSlice,
+    ) -> "Vector[Float1]":
+        ...
+
+    def __getitem__(
+        self,
+        item: Union[int, slice, VectorInput[int]],
+    ) -> Union[Float1, "Vector[Float1]"]:
+        ...
+
+    @overload
+    def __setitem__(
+        self,
+        item: int,
+        value: float,
+    ) -> None:
+        ...
+
+    @overload
+    def __setitem__(
+        self,
+        item: VectorSlice,
+        value: Union[float, VectorInput[float]],
+    ) -> None:
+        ...
+
+    def __setitem__(
+        self,
+        item: Union[int, VectorSlice],
+        value: Union[float, VectorInput[float]],
+    ) -> None:
+        ...
+
+    def __invert__(self) -> "Vector[Float1]":
+        ...
+
+    def __add__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __radd__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __sub__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __rsub__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __mul__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __rmul__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __truediv__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __rtruediv__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __pow__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __rpow__(
+        self: "Vector[Float1]",
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[Union[Float1, Float2]]":
+        ...
+
+    def __lt__(
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def __le__(
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def __eq__(  # type: ignore[override]
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def __ne__(  # type: ignore[override]
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def __ge__(
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def __gt__(
+        self,
+        other: Union[Float2, "Vector[Float2]"],
+    ) -> "Vector[bool]":
+        ...
+
+    def shape(self) -> Tuple[int]:
+        """Length of the vector."""
+
+
+class Matrix(MatrixInput[Float1]):
+    """Protocol class for providing input to "mathematical", 2-dimensional arrays."""
+
+    @overload
+    def __getitem__(
+        self,
+        item: Tuple[int, int],
+    ) -> Float1:
+        ...
+
+    @overload
+    def __getitem__(
+        self,
+        item: Union[
+            int,
+            Tuple[int, VectorSlice],
+            Tuple[VectorSlice, int],
+        ],
+    ) -> Vector[Float1]:
+        ...
+
+    @overload
+    def __getitem__(
+        self,
+        item: Union[slice, Tuple[VectorSlice, VectorSlice]],
+    ) -> "Matrix[Float1]":
+        ...
+
+    def __getitem__(
+        self,
+        item: Union[
+            Tuple[int, int],
+            int,
+            Tuple[int, VectorSlice],
+            Tuple[VectorSlice, int],
+            slice,
+            Tuple[VectorSlice, VectorSlice],
+        ],
+    ) -> Union[Float1, Vector[Float1], "Matrix[Float1]"]:
+        ...
+
+    @overload
+    def __setitem__(self, item: Tuple[int, int], value: float) -> None:
+        ...
+
+    @overload
+    def __setitem__(
+        self,
+        item: Union[int, Tuple[int, VectorSlice], Tuple[VectorSlice, int]],
+        value: Union[float, VectorInput[float]],
+    ) -> None:
+        ...
+
+    @overload
+    def __setitem__(
+        self,
+        item: Union[slice, Tuple[VectorSlice, VectorSlice]],
+        value: Union[float, MatrixInput[float]],
+    ) -> None:
+        ...
+
+    def __setitem__(
+        self,
+        item: Union[
+            int,
+            Tuple[int, int],
+            Tuple[int, VectorSlice],
+            Tuple[VectorSlice, int],
+            slice,
+            Tuple[VectorSlice, VectorSlice],
+        ],
+        value: Union[float, VectorInput[float], MatrixInput[float]],
+    ) -> None:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+    def __iter__(self) -> Iterator[Vector[Float1]]:
+        ...
+
+    def __invert__(self) -> "Matrix[Float1]":
+        ...
+
+    def __add__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __radd__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __sub__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __rsub__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __mul__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __rmul__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __truediv__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __rtruediv__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __pow__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __rpow__(
+        self: "Matrix[Float1]",
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[Union[Float1, Float2]]":
+        ...
+
+    def __lt__(
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def __le__(
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def __eq__(  # type: ignore[override]
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def __ne__(  # type: ignore[override]
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def __ge__(
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def __gt__(
+        self,
+        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
+    ) -> "Matrix[bool]":
+        ...
+
+    def shape(self) -> Tuple[int, int]:
+        """Length of both matrix axes."""
+
+
+ArrayFloat = TypeVar(
+    "ArrayFloat",
+    float,
+    Vector[float],
+    Matrix[float],
+)
+
+
+class IterableNonString(Iterable[object], abc.ABC):
+    """Abstract base class for checking if an object is iterable but not a string.
+
     >>> from hydpy.core.typingtools import IterableNonString
-    >>> isinstance('asdf', IterableNonString)
+    >>> isinstance("asdf", IterableNonString)
     False
-    >>> isinstance(['asdf'], IterableNonString)
+    >>> isinstance(["asdf"], IterableNonString)
     True
     >>> issubclass(str, IterableNonString)
     False
     >>> issubclass(list, IterableNonString)
     True
-    >>>
     """
 
     @classmethod
-    def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, '__iter__') and
-                not (isinstance(subclass, str) or
-                     issubclass(subclass, str)))
+    def __subclasshook__(cls, subclass: Type[object]) -> bool:
+        return hasattr(subclass, "__iter__") and not (
+            isinstance(subclass, str) or issubclass(subclass, str)
+        )
 
 
 class VariableProtocol(Protocol):
@@ -90,14 +471,25 @@ class CyModelProtocol(Protocol):
 
 
 __all__ = [
-    'IterableNonString',
-    'Mayberable1',
-    'Mayberable2',
-    'Mayberable3',
-    'MayNonerable1',
-    'MayNonerable2',
-    'MayNonerable3',
-    'Vector',
-    'VariableProtocol',
-    'CyModelProtocol',
+    "ArrayFloat",
+    "CyModelProtocol",
+    "IterableNonString",
+    "MatrixInput",
+    "Matrix",
+    "Mayberable1",
+    "Mayberable2",
+    "Mayberable3",
+    "MayNonerable1",
+    "MayNonerable2",
+    "MayNonerable3",
+    "Sequence1",
+    "Sequence2",
+    "Sequence3",
+    "T",
+    "T1",
+    "T2",
+    "T3",
+    "VariableProtocol",
+    "VectorInput",
+    "Vector",
 ]

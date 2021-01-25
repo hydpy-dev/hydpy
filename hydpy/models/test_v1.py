@@ -11,6 +11,7 @@ simple storage with a linear loss term and without any input.  The loss rate
 # ...HydPy specific
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from test
 from hydpy.models.test import test_model
 from hydpy.models.test import test_solver
@@ -18,6 +19,7 @@ from hydpy.models.test import test_solver
 
 class Model(modeltools.ELSModel):
     """Test model, Version 1."""
+
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,
         test_solver.RelErrorMax,
@@ -28,12 +30,8 @@ class Model(modeltools.ELSModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
-    PART_ODE_METHODS = (
-        test_model.Calc_Q_V1,
-    )
-    FULL_ODE_METHODS = (
-        test_model.Calc_S_V1,
-    )
+    PART_ODE_METHODS = (test_model.Calc_Q_V1,)
+    FULL_ODE_METHODS = (test_model.Calc_S_V1,)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELS = ()

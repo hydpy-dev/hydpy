@@ -3,29 +3,36 @@
 # pylint: enable=missing-docstring
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
-from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 
 
 class Latitude(parametertools.Parameter):
     """The latitude [decimal degrees]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90., 90.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90.0, 90.0)
 
 
 class Longitude(parametertools.Parameter):
     """The longitude [decimal degrees]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180., 180.)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180.0, 180.0)
 
 
 class MeasuringHeightWindSpeed(parametertools.Parameter):
     """The height above ground of the wind speed measurements [m]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class AngstromConstant(parametertools.Parameter):
+class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 0.25
 
     def trim(self, lower=None, upper=None):
         """Trim values following :math:`AngstromConstant \\leq  1 -
@@ -42,21 +49,18 @@ class AngstromConstant(parametertools.Parameter):
         angstromconstant(0.4)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromfactor,
-                'value',
-                None,
-            )
-            if upper is None:
-                upper = 1.
-            else:
-                upper = 1. - upper
+            upper = self.subpars.angstromfactor.values.copy()
+            idxs = numpy.isnan(upper)
+            upper[idxs] = 1.0
+            upper[~idxs] = 1.0 - upper[~idxs]
         super().trim(lower, upper)
 
 
-class AngstromFactor(parametertools.Parameter):
+class AngstromFactor(parametertools.MonthParameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 0.5
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`AngstromFactor \\leq  1 -
@@ -74,13 +78,8 @@ class AngstromFactor(parametertools.Parameter):
         angstromfactor(0.4)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromconstant,
-                'value',
-                None,
-            )
-            if upper is None:
-                upper = 1.
-            else:
-                upper = 1. - upper
+            upper = self.subpars.angstromconstant.values.copy()
+            idxs = numpy.isnan(upper)
+            upper[idxs] = 1.0
+            upper[~idxs] = 1.0 - upper[~idxs]
         super().trim(lower, upper)

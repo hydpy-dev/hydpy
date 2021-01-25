@@ -5,8 +5,10 @@
 # import...
 # ...from standard library
 from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.conv import conv_control
@@ -14,11 +16,10 @@ from hydpy.models.conv import conv_control
 
 class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    CONTROLPARAMETERS = (
-        conv_control.InputCoordinates,
-    )
+    CONTROLPARAMETERS = (conv_control.InputCoordinates,)
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
@@ -54,11 +55,10 @@ class NmbInputs(parametertools.Parameter):
 
 class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    CONTROLPARAMETERS = (
-        conv_control.OutputCoordinates,
-    )
+    CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
@@ -94,6 +94,7 @@ class NmbOutputs(parametertools.Parameter):
 
 class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -128,7 +129,8 @@ class Distances(parametertools.Parameter):
         distances = numpy.empty((len(outcoords), len(incoords)), dtype=float)
         for idx, outcoord in enumerate(outcoords):
             distances[idx, :] = numpy.sqrt(
-                numpy.sum((outcoord-incoords)**2, axis=1))
+                numpy.sum((outcoord - incoords) ** 2, axis=1)
+            )
         self.__hydpy__set_shape__(distances.shape)
         self.__hydpy__set_value__(distances)
 
@@ -136,6 +138,7 @@ class Distances(parametertools.Parameter):
 class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
     outlet node [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -143,9 +146,7 @@ class ProximityOrder(parametertools.Parameter):
         conv_control.InputCoordinates,
         conv_control.OutputCoordinates,
     )
-    DERIVEDPARAMETERS = (
-        Distances,
-    )
+    DERIVEDPARAMETERS = (Distances,)
 
     def update(self) -> None:
         """Determine the proximity-order of the inlet and outlet nodes.
@@ -193,6 +194,7 @@ class ProximityOrder(parametertools.Parameter):
 class Weights(parametertools.Parameter):
     """Weighting coefficients of the inlet nodes corresponding to their
     proximity to each outlet node and parameter |Power| [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -256,8 +258,8 @@ class Weights(parametertools.Parameter):
         weights = numpy.empty((len(distances), nmbinputs), dtype=float)
         for idx, distances_ in enumerate(distances):
             sorteddistances = distances_[proximityorder[idx, :]]
-            jdxs = sorteddistances > 0.
-            weights[idx, jdxs] = 1./sorteddistances[jdxs]**power
+            jdxs = sorteddistances > 0.0
+            weights[idx, jdxs] = 1.0 / sorteddistances[jdxs] ** power
             weights[idx, ~jdxs] = numpy.inf
         self.__hydpy__set_shape__(weights.shape)
         self.__hydpy__set_value__(weights)

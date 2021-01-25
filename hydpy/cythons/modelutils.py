@@ -262,6 +262,7 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 import copy
 import distutils.core
 import distutils.extension
+
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 import functools
@@ -274,12 +275,16 @@ import shutil
 import sys
 import types
 from typing import *
+
 # ...third party modules
 import numpy
+
 # noinspection PyUnresolvedReferences
-from numpy import inf    # pylint: disable=unused-import
+from numpy import inf  # pylint: disable=unused-import
+
 # noinspection PyUnresolvedReferences
-from numpy import nan    # pylint: disable=unused-import
+from numpy import nan  # pylint: disable=unused-import
+
 # ...from HydPy
 import hydpy
 from hydpy import config
@@ -293,7 +298,11 @@ from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
 from hydpy.core import typingtools
-build = exceptiontools.OptionalImport('build', ['Cython.Build'], locals())
+
+if TYPE_CHECKING:
+    import Cython.Build as build
+else:
+    build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
 
 
 def get_dllextension() -> str:
@@ -308,31 +317,31 @@ def get_dllextension() -> str:
     >>> import platform
     >>> from unittest import mock
     >>> with mock.patch.object(
-    ...     platform, 'system', side_effect=lambda: 'Windows') as mocked:
+    ...     platform, "system", side_effect=lambda: "Windows") as mocked:
     ...     get_dllextension()
     '.pyd'
     >>> with mock.patch.object(
-    ...     platform, 'system', side_effect=lambda: 'Linux') as mocked:
+    ...     platform, "system", side_effect=lambda: "Linux") as mocked:
     ...     get_dllextension()
     '.so'
     """
-    if platform.system().lower() == 'windows':
-        return '.pyd'
-    return '.so'
+    if platform.system().lower() == "windows":
+        return ".pyd"
+    return ".so"
 
 
 _dllextension = get_dllextension()
 
-_int = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
+_int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
 TYPE2STR = {
-    bool: 'bint',
+    bool: "bint",
     int: _int,
     parametertools.IntConstant: _int,
-    float: 'double',
-    str: 'str',
-    None: 'void',
-    typingtools.Vector: 'double[:]',
+    float: "double",
+    str: "str",
+    None: "void",
+    typingtools.Vector: "double[:]",
 }
 """Maps Python types to Cython compatible type declarations.
 
@@ -340,12 +349,9 @@ The Cython type belonging to Python's |int| is selected to agree
 with numpy's default integer type on the current platform/system.
 """
 
-NDIM2STR = {0: '',
-            1: '[:]',
-            2: '[:,:]',
-            3: '[:,:,:]'}
+NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 
-_nogil = ' nogil' if config.FASTCYTHON else ''
+_nogil = " nogil" if config.FASTCYTHON else ""
 
 
 class Lines(list):
@@ -359,17 +365,16 @@ class Lines(list):
         the given number of indentation levels.
         """
         if isinstance(line, str):
-            list.append(self, indent*4*' ' + line)
+            list.append(self, indent * 4 * " " + line)
         else:
             for subline in line:
-                list.append(self, indent*4*' ' + subline)
+                list.append(self, indent * 4 * " " + subline)
 
     def __repr__(self):
-        return '\n'.join(self) + '\n'
+        return "\n".join(self) + "\n"
 
 
-def get_methodheader(
-        methodname: str, nogil: bool = False, idxarg: bool = False) -> str:
+def get_methodheader(methodname: str, nogil: bool = False, idxarg: bool = False) -> str:
     """Returns the Cython method header for methods without arguments except
     `self`.
 
@@ -378,17 +383,17 @@ def get_methodheader(
     >>> from hydpy.cythons.modelutils import get_methodheader
     >>> from hydpy import config
     >>> config.FASTCYTHON = False
-    >>> print(get_methodheader(methodname='test', nogil=True, idxarg=False))
+    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=False))
     cpdef inline void test(self):
     >>> config.FASTCYTHON = True
-    >>> print(get_methodheader(methodname='test', nogil=True, idxarg=True))
+    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=True))
     cpdef inline void test(self, int idx) nogil:
     """
     if not config.FASTCYTHON:
         nogil = False
-    header = f'cpdef inline void {methodname}(self'
-    header += ', int idx)' if idxarg else ')'
-    header += ' nogil:' if nogil else ':'
+    header = f"cpdef inline void {methodname}(self"
+    header += ", int idx)" if idxarg else ")"
+    header += " nogil:" if nogil else ":"
     return header
 
 
@@ -398,23 +403,25 @@ def decorate_method(wrapped: Callable) -> property:
     the respective model does not implement a method with the
     same name as the wrapped method.
     """
+
     def wrapper(self):
         lines = Lines()
         if hasattr(self.model, wrapped.__name__):
-            print(f'            . {wrapped.__name__}')
+            print(f"            . {wrapped.__name__}")
             lines.add(1, get_methodheader(wrapped.__name__, nogil=True))
             for line in wrapped(self):
                 lines.add(2, line)
         return lines
+
     functools.update_wrapper(wrapper, wrapped)
-    wrapper.__doc__ = f'Lines of model method {wrapped.__name__}.'
+    wrapper.__doc__ = f"Lines of model method {wrapped.__name__}."
     return property(wrapper)
 
 
 class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
-    Model: Type['modeltools.Model']
+    Model: Type["modeltools.Model"]
     Parameters: Type[parametertools.Parameters]
     Sequences: Type[sequencetools.Sequences]
     tester: testtools.Tester
@@ -422,7 +429,7 @@ class Cythonizer:
     def __init__(self):
         self._cymodule = None
         frame = inspect.currentframe().f_back
-        self.pymodule = frame.f_globals['__name__']
+        self.pymodule = frame.f_globals["__name__"]
         for (key, value) in frame.f_locals.items():
             setattr(self, key, value)
 
@@ -462,15 +469,15 @@ class Cythonizer:
 
         >>> def test():
         ...     sc = lambda: print(
-        ...         f'calling method `cythonize` '
-        ...         f'(usecython={bool(pub.options.usecython)})')
+        ...         f"calling method `cythonize` "
+        ...         f"(usecython={bool(pub.options.usecython)})")
         ...     se = lambda: print(
-        ...         f'calling method `perform_tests` '
-        ...         f'(usecython={bool(pub.options.usecython)})')
+        ...         f"calling method `perform_tests` "
+        ...         f"(usecython={bool(pub.options.usecython)})")
         ...     with mock.patch.object(
-        ...                 Cythonizer, 'cythonize', side_effect=sc) as mc,\\
+        ...                 Cythonizer, "cythonize", side_effect=sc) as mc,\\
         ...             mock.patch.object(
-        ...                 Tester, 'perform_tests', side_effect=se) as mt:
+        ...                 Tester, "perform_tests", side_effect=se) as mt:
         ...         cythonizer.finalise()
 
         With either option |Options.autocompile| or property
@@ -531,11 +538,11 @@ class Cythonizer:
         Cython and then into C, compile it, and move the resulting dll
         file to the `autogen` subfolder of subpackage `cythons`."""
         with printtools.PrintStyle(color=33, font=4):
-            print(f'Translate module/package {self.pyname}.')
+            print(f"Translate module/package {self.pyname}.")
         with printtools.PrintStyle(color=33, font=2):
             self.pyxwriter.write()
         with printtools.PrintStyle(color=31, font=4):
-            print(f'Compile module {self.cyname}.')
+            print(f"Compile module {self.cyname}.")
         with printtools.PrintStyle(color=31, font=2):
             self.compile_()
             self.move_dll()
@@ -551,7 +558,7 @@ class Cythonizer:
         >>> cythonizer.pyname
         'hland_v1'
         """
-        return self.pymodule.split('.')[-1]
+        return self.pymodule.split(".")[-1]
 
     @property
     def cyname(self) -> str:
@@ -564,7 +571,7 @@ class Cythonizer:
         >>> cythonizer.cyname
         'c_hland_v1'
         """
-        return 'c_' + self.pyname
+        return "c_" + self.pyname
 
     @property
     def cydirpath(self) -> str:
@@ -578,7 +585,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.cydirpath)
         True
         """
-        return getattr(cythons.autogen, '__path__')[0]
+        return cythons.autogen.__path__[0]  # type: ignore[attr-defined, name-defined]
 
     @property
     def cymodule(self) -> types.ModuleType:
@@ -597,10 +604,10 @@ class Cythonizer:
 
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
-        >>> Cythonizer.cyname = 'wrong'
+        >>> Cythonizer.cyname = "wrong"
         >>> cythonizer._cymodule = None
         >>> from unittest import mock
-        >>> with mock.patch.object(Cythonizer, 'cythonize') as mock:
+        >>> with mock.patch.object(Cythonizer, "cythonize") as mock:
         ...     cythonizer.cymodule
         Traceback (most recent call last):
         ...
@@ -613,7 +620,7 @@ class Cythonizer:
         cymodule = self._cymodule
         if cymodule:
             return cymodule
-        modulepath = f'hydpy.cythons.autogen.{self.cyname}'
+        modulepath = f"hydpy.cythons.autogen.{self.cyname}"
         try:
             self._cymodule = importlib.import_module(modulepath)
         except ModuleNotFoundError:
@@ -633,7 +640,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.pyxfilepath)
         True
         """
-        return os.path.join(self.cydirpath, f'{self.cyname}.pyx')
+        return os.path.join(self.cydirpath, f"{self.cyname}.pyx")
 
     @property
     def dllfilepath(self) -> str:
@@ -647,7 +654,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.dllfilepath)
         True
         """
-        return os.path.join(self.cydirpath, f'{self.cyname}{_dllextension}')
+        return os.path.join(self.cydirpath, f"{self.cyname}{_dllextension}")
 
     @property
     def buildpath(self) -> str:
@@ -658,10 +665,10 @@ class Cythonizer:
         >>> repr_(cythonizer.buildpath)   # doctest: +ELLIPSIS
         '.../hydpy/cythons/autogen/_build'
         """
-        return os.path.join(self.cydirpath, '_build')
+        return os.path.join(self.cydirpath, "_build")
 
     @property
-    def pyxwriter(self) -> 'PyxWriter':
+    def pyxwriter(self) -> "PyxWriter":
         """A new |PyxWriter| instance.
 
         >>> from hydpy.models.hland_v1 import cythonizer
@@ -674,7 +681,7 @@ class Cythonizer:
         """
         model = self.Model()
         dict_ = vars(self)
-        dict_['model'] = model
+        dict_["model"] = model
         model.parameters = importtools.prepare_parameters(dict_)
         model.sequences = importtools.prepare_sequences(dict_)
         return PyxWriter(self, model, self.pyxfilepath)
@@ -724,7 +731,7 @@ class Cythonizer:
          'modelutils.py',
          'hland_v1.py']
         """
-        basepath = hydpy.__path__[0]
+        basepath = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
         filepaths = set()
         for child in vars(self).values():
             try:
@@ -763,12 +770,10 @@ class Cythonizer:
 
         >>> pub.options.forcecompiling = False
         >>> from unittest import mock
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/somename-packages/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/somename-packages/hydpy"]):
         ...     cythonizer.outdated
         False
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/pkgs/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/pkgs/hydpy"]):
         ...     cythonizer.outdated
         False
 
@@ -776,12 +781,11 @@ class Cythonizer:
         of the site-packages directory) property |Cythonizer.outdated|
         returns |True| if the required DLL file is not available at all:
 
-        >>> with mock.patch(
-        ...         'hydpy.__path__', ['folder/local_dir/hydpy']):
+        >>> with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
         ...     with mock.patch.object(
-        ...             type(cythonizer), 'dllfilepath',
+        ...             type(cythonizer), "dllfilepath",
         ...             new_callable=mock.PropertyMock) as dllfilepath:
-        ...         dllfilepath.return_value = 'missing'
+        ...         dllfilepath.return_value = "missing"
         ...         cythonizer.outdated
         True
 
@@ -792,19 +796,18 @@ class Cythonizer:
 
         >>> from hydpy import TestIO
         >>> with TestIO():
-        ...     with open('new.txt', 'w'):
+        ...     with open("new.txt", "w"):
         ...         pass
-        ...     with mock.patch(
-        ...             'hydpy.__path__', ['folder/local_dir/hydpy']):
+        ...     with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
         ...         with mock.patch.object(
-        ...                 type(cythonizer), 'dllfilepath',
+        ...                 type(cythonizer), "dllfilepath",
         ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = 'new.txt'
+        ...             mocked.return_value = "new.txt"
         ...             cythonizer.outdated
         ...         with mock.patch.object(
-        ...                 type(cythonizer), 'pysourcefiles',
+        ...                 type(cythonizer), "pysourcefiles",
         ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = ['new.txt']
+        ...             mocked.return_value = ["new.txt"]
         ...             cythonizer.outdated
         False
         True
@@ -813,9 +816,10 @@ class Cythonizer:
         """
         if hydpy.pub.options.forcecompiling:
             return True
-        foldername = os.path.split(os.path.split(hydpy.__path__[0])[0])[-1]
-        testname = foldername.split('-')[-1]
-        if testname in ('pkgs', 'packages'):
+        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        foldername = os.path.split(os.path.split(hydpypath)[0])[-1]
+        testname = foldername.split("-")[-1]
+        if testname in ("pkgs", "packages"):
             return False
         if not os.path.exists(self.dllfilepath):
             return True
@@ -829,13 +833,22 @@ class Cythonizer:
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
         argv = copy.deepcopy(sys.argv)
-        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath,
-                    '--build-temp='+self.buildpath]
-        exc_modules = [distutils.extension.Extension(
-            'hydpy.cythons.autogen.'+self.cyname,
-            [self.pyxfilepath], extra_compile_args=['-O2'])]
-        distutils.core.setup(ext_modules=build.cythonize(exc_modules),
-                             include_dirs=[numpy.get_include()])
+        sys.argv = [
+            sys.argv[0],
+            "build_ext",
+            "--build-lib=" + self.buildpath,
+            "--build-temp=" + self.buildpath,
+        ]
+        exc_modules = [
+            distutils.extension.Extension(
+                "hydpy.cythons.autogen." + self.cyname,
+                [self.pyxfilepath],
+                extra_compile_args=["-O2"],
+            )
+        ]
+        distutils.core.setup(
+            ext_modules=build.cythonize(exc_modules), include_dirs=[numpy.get_include()]
+        )
         sys.argv = argv
 
     def move_dll(self) -> None:
@@ -861,16 +874,16 @@ somewhere else, is named somehow else, or could not be build at all.
         >>> from hydpy import TestIO
         >>> with TestIO():   # doctest: +ELLIPSIS
         ...     with mock.patch.object(
-        ...             type(cythonizer), 'buildpath',
-        ...             new_callable=mock.PropertyMock) as mocked_buildpath:
-        ...         mocked_buildpath.return_value = '_build'
-        ...         os.makedirs('_build/subdir', exist_ok=True)
-        ...         filepath = f'_build/subdir/c_hland_v1{get_dllextension()}'
-        ...         with open(filepath, 'w'):
+        ...             type(cythonizer), "buildpath", new_callable=mock.PropertyMock
+        ...     ) as mocked_buildpath:
+        ...         mocked_buildpath.return_value = "_build"
+        ...         os.makedirs("_build/subdir", exist_ok=True)
+        ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
+        ...         with open(filepath, "w"):
         ...             pass
         ...         with mock.patch(
-        ...                 'shutil.move',
-        ...                 side_effect=PermissionError('Denied!')):
+        ...                 "shutil.move",
+        ...                 side_effect=PermissionError("Denied!")):
         ...             cythonizer.move_dll()
         Traceback (most recent call last):
         ...
@@ -886,39 +899,42 @@ to close all Python processes and restart the cythonization afterwards.
         system_dependent_filename = None
         for dirinfo in dirinfos:
             for filename in dirinfo[2]:
-                if (filename.startswith(self.cyname) and
-                        filename.endswith(_dllextension)):
+                if filename.startswith(self.cyname) and filename.endswith(
+                    _dllextension
+                ):
                     system_dependent_filename = filename
                     break
             if system_dependent_filename:
                 try:
-                    shutil.move(os.path.join(dirinfo[0],
-                                             system_dependent_filename),
-                                os.path.join(self.cydirpath,
-                                             self.cyname + _dllextension))
+                    shutil.move(
+                        os.path.join(dirinfo[0], system_dependent_filename),
+                        os.path.join(self.cydirpath, self.cyname + _dllextension),
+                    )
                     break
                 except BaseException:
                     objecttools.augment_excmessage(
-                        f'After trying to cythonize module `{self.pyname}`, '
-                        f'when trying to move the final cython module '
-                        f'`{system_dependent_filename}` from directory '
-                        f'`{self.buildpath}` to directory '
-                        f'`{objecttools.repr_(self.cydirpath)}`',
-                        f'A likely error cause is that the cython module '
-                        f'`{self.cyname}{_dllextension}` does already exist '
-                        f'in this directory and is currently blocked by '
-                        f'another Python process.  Maybe it helps to close '
-                        f'all Python processes and restart the cythonization '
-                        f'afterwards.')
+                        f"After trying to cythonize module `{self.pyname}`, "
+                        f"when trying to move the final cython module "
+                        f"`{system_dependent_filename}` from directory "
+                        f"`{self.buildpath}` to directory "
+                        f"`{objecttools.repr_(self.cydirpath)}`",
+                        f"A likely error cause is that the cython module "
+                        f"`{self.cyname}{_dllextension}` does already exist "
+                        f"in this directory and is currently blocked by "
+                        f"another Python process.  Maybe it helps to close "
+                        f"all Python processes and restart the cythonization "
+                        f"afterwards.",
+                    )
         else:
             raise IOError(
-                f'After trying to cythonize model `{self.pyname}`, the '
-                f'resulting file `{self.cyname}{_dllextension}` could '
-                f'not be found in directory '
-                f'`{objecttools.repr_(self.buildpath)}` nor any of its '
-                f'subdirectories.  The distutil report should tell '
-                f'whether the file has been stored somewhere else, is '
-                f'named somehow else, or could not be build at all.')
+                f"After trying to cythonize model `{self.pyname}`, the "
+                f"resulting file `{self.cyname}{_dllextension}` could "
+                f"not be found in directory "
+                f"`{objecttools.repr_(self.buildpath)}` nor any of its "
+                f"subdirectories.  The distutil report should tell "
+                f"whether the file has been stored somewhere else, is "
+                f"named somehow else, or could not be build at all."
+            )
 
 
 class PyxWriter:
@@ -931,11 +947,12 @@ class PyxWriter:
     """
 
     cythonizer: Cythonizer
-    model: 'modeltools.Model'
+    model: "modeltools.Model"
     pyxpath: str
 
-    def __init__(self, cythonizer: Cythonizer, model: 'modeltools.Model',
-                 pyxpath: str) -> None:
+    def __init__(
+        self, cythonizer: Cythonizer, model: "modeltools.Model", pyxpath: str
+    ) -> None:
         self.cythonizer = cythonizer
         self.model = model
         self.pyxpath = pyxpath
@@ -943,29 +960,29 @@ class PyxWriter:
     def write(self) -> None:
         """Collect the source code and write it into a Cython extension
         file ("pyx")."""
-        with open(self.pyxpath, 'w') as pxf:
-            print('    * cython options')
+        with open(self.pyxpath, "w") as pxf:
+            print("    * cython options")
             pxf.write(repr(self.cythondistutilsoptions))
-            print('    * C imports')
+            print("    * C imports")
             pxf.write(repr(self.cimports))
-            print('    * constants (if defined)')
+            print("    * constants (if defined)")
             pxf.write(repr(self.constants))
-            print('    * parameter classes')
+            print("    * parameter classes")
             pxf.write(repr(self.parameters))
-            print('    * sequence classes')
+            print("    * sequence classes")
             pxf.write(repr(self.sequences))
-            print('    * numerical parameters')
+            print("    * numerical parameters")
             pxf.write(repr(self.numericalparameters))
-            print('    * submodel classes')
+            print("    * submodel classes")
             pxf.write(repr(self.submodels))
-            print('    * model class')
-            print('        - model attributes')
+            print("    * model class")
+            print("        - model attributes")
             pxf.write(repr(self.modeldeclarations))
-            print('        - standard functions')
+            print("        - standard functions")
             pxf.write(repr(self.modelstandardfunctions))
-            print('        - numeric functions')
+            print("        - numeric functions")
             pxf.write(repr(self.modelnumericfunctions))
-            print('        - additional functions')
+            print("        - additional functions")
             pxf.write(repr(self.modeluserfunctions))
 
     @property
@@ -1006,47 +1023,51 @@ class PyxWriter:
         >>> config.PROFILECYTHON = False
         """
         if config.FASTCYTHON:
-            lines = Lines('#!python',
-                          '# cython: language_level=3',
-                          '# cython: boundscheck=False',
-                          '# cython: wraparound=False',
-                          '# cython: initializedcheck=False',
-                          '# cython: cdivision=True')
+            lines = Lines(
+                "#!python",
+                "# cython: language_level=3",
+                "# cython: boundscheck=False",
+                "# cython: wraparound=False",
+                "# cython: initializedcheck=False",
+                "# cython: cdivision=True",
+            )
         else:
-            lines = Lines('#!python',
-                          '# cython: language_level=3',
-                          '# cython: boundscheck=True',
-                          '# cython: wraparound=True',
-                          '# cython: initializedcheck=True',
-                          '# cython: cdivision=False')
+            lines = Lines(
+                "#!python",
+                "# cython: language_level=3",
+                "# cython: boundscheck=True",
+                "# cython: wraparound=True",
+                "# cython: initializedcheck=True",
+                "# cython: cdivision=False",
+            )
         if config.PROFILECYTHON:
-            lines.add(0, '# cython: linetrace=True')
-            lines.add(0, '# distutils: define_macros=CYTHON_TRACE=1')
-            lines.add(0, '# distutils: define_macros=CYTHON_TRACE_NOGIL=1')
+            lines.add(0, "# cython: linetrace=True")
+            lines.add(0, "# distutils: define_macros=CYTHON_TRACE=1")
+            lines.add(0, "# distutils: define_macros=CYTHON_TRACE_NOGIL=1")
         return lines
 
     @property
     def cimports(self) -> List[str]:
         """Import command lines."""
         return Lines(
-            'import numpy',
-            'cimport numpy',
-            'from libc.math cimport exp, fabs, log, '
-            'sin, cos, tan, asin, acos, atan, isnan, isinf',
-            'from libc.math cimport NAN as nan',
-            'from libc.math cimport INFINITY as inf',
-            'from libc.stdio cimport *',
-            'from libc.stdlib cimport *',
-            'import cython',
-            'from cpython.mem cimport PyMem_Malloc',
-            'from cpython.mem cimport PyMem_Realloc',
-            'from cpython.mem cimport PyMem_Free',
-            'from hydpy.cythons.autogen import pointerutils',
-            'from hydpy.cythons.autogen cimport pointerutils',
-            'from hydpy.cythons.autogen cimport configutils',
-            'from hydpy.cythons.autogen cimport smoothutils',
-            'from hydpy.cythons.autogen cimport annutils',
-            'from hydpy.cythons.autogen cimport rootutils',
+            "import numpy",
+            "cimport numpy",
+            "from libc.math cimport exp, fabs, log, "
+            "sin, cos, tan, asin, acos, atan, isnan, isinf",
+            "from libc.math cimport NAN as nan",
+            "from libc.math cimport INFINITY as inf",
+            "from libc.stdio cimport *",
+            "from libc.stdlib cimport *",
+            "import cython",
+            "from cpython.mem cimport PyMem_Malloc",
+            "from cpython.mem cimport PyMem_Realloc",
+            "from cpython.mem cimport PyMem_Free",
+            "from hydpy.cythons.autogen import pointerutils",
+            "from hydpy.cythons.autogen cimport pointerutils",
+            "from hydpy.cythons.autogen cimport configutils",
+            "from hydpy.cythons.autogen cimport smoothutils",
+            "from hydpy.cythons.autogen cimport annutils",
+            "from hydpy.cythons.autogen cimport rootutils",
         )
 
     @property
@@ -1054,11 +1075,14 @@ class PyxWriter:
         """Constants declaration lines."""
         lines = Lines()
         for (name, member) in vars(self.cythonizer).items():
-            if (name.isupper() and not inspect.isclass(member) and
-                    isinstance(member, (float, int, str))):
+            if (
+                name.isupper()
+                and not inspect.isclass(member)
+                and isinstance(member, tuple([t for t in TYPE2STR if t]))
+            ):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
-                lines.add(0, f'cdef public {ctype} {name} = {member}')
+                lines.add(0, f"cdef public {ctype} {name} = {member}")
         return lines
 
     @property
@@ -1066,70 +1090,63 @@ class PyxWriter:
         """Parameter declaration lines."""
         lines = Lines()
         if self.model.parameters:
-            lines.add(0, '@cython.final')
-            lines.add(0, 'cdef class Parameters:')
+            lines.add(0, "@cython.final")
+            lines.add(0, "cdef class Parameters:")
             for subpars in self.model.parameters:
-                lines.add(
-                    1,
-                    f'cdef public {type(subpars).__name__} {subpars.name}')
+                lines.add(1, f"cdef public {type(subpars).__name__} {subpars.name}")
             for subpars in self.model.parameters:
-                print(f'        - {subpars.name}')
-                lines.add(0, '@cython.final')
-                lines.add(0, f'cdef class {type(subpars).__name__}:')
+                print(f"        - {subpars.name}")
+                lines.add(0, "@cython.final")
+                lines.add(0, f"cdef class {type(subpars).__name__}:")
                 for par in subpars:
                     try:
                         ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     except KeyError:
                         ctype = par.TYPE + NDIM2STR[par.NDIM]
-                    lines.add(1, f'cdef public {ctype} {par.name}')
+                    lines.add(1, f"cdef public {ctype} {par.name}")
         return lines
 
     @property
     def sequences(self) -> List[str]:
         """Sequence declaration lines."""
         lines = Lines()
-        lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Sequences:')
+        lines.add(0, "@cython.final")
+        lines.add(0, "cdef class Sequences:")
         for subseqs in self.model.sequences:
-            lines.add(
-                1,
-                f'cdef public {type(subseqs).__name__} {subseqs.name}')
+            lines.add(1, f"cdef public {type(subseqs).__name__} {subseqs.name}")
         if self.model.sequences.states:
-            lines.add(1, 'cdef public StateSequences old_states')
-            lines.add(1, 'cdef public StateSequences new_states')
+            lines.add(1, "cdef public StateSequences old_states")
+            lines.add(1, "cdef public StateSequences new_states")
         for subseqs in self.model.sequences:
-            print(f'        - {subseqs.name}')
-            lines.add(0, '@cython.final')
-            lines.add(0, f'cdef class {type(subseqs).__name__}:')
+            print(f"        - {subseqs.name}")
+            lines.add(0, "@cython.final")
+            lines.add(0, f"cdef class {type(subseqs).__name__}:")
             for seq in subseqs:
-                ctype = f'double{NDIM2STR[seq.NDIM]}'
+                ctype = f"double{NDIM2STR[seq.NDIM]}"
                 if isinstance(subseqs, sequencetools.LinkSequences):
                     if seq.NDIM == 0:
-                        lines.add(1, f'cdef double *{seq.name}')
+                        lines.add(1, f"cdef double *{seq.name}")
                     elif seq.NDIM == 1:
-                        lines.add(1, f'cdef double **{seq.name}')
-                        lines.add(1, f'cdef public int len_{seq.name}')
+                        lines.add(1, f"cdef double **{seq.name}")
+                        lines.add(1, f"cdef public int len_{seq.name}")
                         lines.add(
-                            1,
-                            f'cdef public {TYPE2STR[int]}[:] _{seq.name}_ready')
+                            1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready"
+                        )
                 else:
-                    lines.add(1, f'cdef public {ctype} {seq.name}')
-                lines.add(1, f'cdef public int _{seq.name}_ndim')
-                lines.add(1, f'cdef public int _{seq.name}_length')
+                    lines.add(1, f"cdef public {ctype} {seq.name}")
+                lines.add(1, f"cdef public int _{seq.name}_ndim")
+                lines.add(1, f"cdef public int _{seq.name}_length")
                 for idx in range(seq.NDIM):
-                    lines.add(1, f'cdef public int _{seq.name}_length_{idx}')
+                    lines.add(1, f"cdef public int _{seq.name}_length_{idx}")
                 if seq.NUMERIC:
-                    ctype_numeric = 'double' + NDIM2STR[seq.NDIM+1]
-                    lines.add(
-                        1, f'cdef public {ctype_numeric} _{seq.name}_points')
-                    lines.add(
-                        1, f'cdef public {ctype_numeric} _{seq.name}_results')
+                    ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
+                    lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_points")
+                    lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_results")
                     if isinstance(subseqs, sequencetools.FluxSequences):
                         lines.add(
-                            1,
-                            f'cdef public {ctype_numeric} '
-                            f'_{seq.name}_integrals')
-                        lines.add(1, f'cdef public {ctype} _{seq.name}_sum')
+                            1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals"
+                        )
+                        lines.add(1, f"cdef public {ctype} _{seq.name}_sum")
                 if isinstance(subseqs, sequencetools.IOSequences):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.IOSequences):
@@ -1142,11 +1159,11 @@ class PyxWriter:
                 lines.extend(self.get_value(subseqs))
                 lines.extend(self.set_value(subseqs))
             if isinstance(
-                    subseqs,
-                    (
-                        sequencetools.InputSequences,
-                        sequencetools.OutputSequences,
-                    ),
+                subseqs,
+                (
+                    sequencetools.InputSequences,
+                    sequencetools.OutputSequences,
+                ),
             ):
                 lines.extend(self.set_pointer(subseqs))
             if isinstance(subseqs, sequencetools.OutputSequences):
@@ -1157,139 +1174,147 @@ class PyxWriter:
     def iosequence(seq: sequencetools.IOSequence) -> List[str]:
         """Declaration lines for the given |IOSequence| object."""
         lines = Lines()
-        lines.add(1, f'cdef public bint _{seq.name}_diskflag')
-        lines.add(1, f'cdef public str _{seq.name}_path')
-        lines.add(1, f'cdef FILE *_{seq.name}_file')
-        lines.add(1, f'cdef public bint _{seq.name}_ramflag')
-        ctype = f'double{NDIM2STR[seq.NDIM+1]}'
-        lines.add(1, f'cdef public {ctype} _{seq.name}_array')
+        lines.add(1, f"cdef public bint _{seq.name}_diskflag")
+        lines.add(1, f"cdef public str _{seq.name}_path")
+        lines.add(1, f"cdef FILE *_{seq.name}_file")
+        lines.add(1, f"cdef public bint _{seq.name}_ramflag")
+        ctype = f"double{NDIM2STR[seq.NDIM+1]}"
+        lines.add(1, f"cdef public {ctype} _{seq.name}_array")
         if isinstance(seq, sequencetools.InputSequence):
-            lines.add(1, f'cdef public bint _{seq.name}_inputflag')
-            lines.add(1, f'cdef double *_{seq.name}_inputpointer')
+            lines.add(1, f"cdef public bint _{seq.name}_inputflag")
+            lines.add(1, f"cdef double *_{seq.name}_inputpointer")
         elif isinstance(seq, sequencetools.OutputSequence):
-            lines.add(1, f'cdef public bint _{seq.name}_outputflag')
-            lines.add(1, f'cdef double *_{seq.name}_outputpointer')
+            lines.add(1, f"cdef public bint _{seq.name}_outputflag")
+            lines.add(1, f"cdef double *_{seq.name}_outputpointer")
         return lines
 
     @staticmethod
     def open_files(subseqs: sequencetools.IOSequences) -> List[str]:
         """Open file statements."""
-        print('            . open_files')
+        print("            . open_files")
         lines = Lines()
-        lines.add(1, 'cpdef open_files(self, int idx):')
+        lines.add(1, "cpdef open_files(self, int idx):")
         for seq in subseqs:
-            lines.add(2, f'if self._{seq.name}_diskflag:')
+            lines.add(2, f"if self._{seq.name}_diskflag:")
             lines.add(
                 3,
-                f'self._{seq.name}_file = '
-                f'fopen(str(self._{seq.name}_path).encode(), "rb+")')
+                f"self._{seq.name}_file = "
+                f'fopen(str(self._{seq.name}_path).encode(), "rb+")',
+            )
             if seq.NDIM == 0:
-                lines.add(3, f'fseek(self._{seq.name}_file, idx*8, SEEK_SET)')
+                lines.add(3, f"fseek(self._{seq.name}_file, idx*8, SEEK_SET)")
             else:
                 lines.add(
                     3,
-                    f'fseek(self._{seq.name}_file, '
-                    f'idx*self._{seq.name}_length*8, SEEK_SET)')
+                    f"fseek(self._{seq.name}_file, "
+                    f"idx*self._{seq.name}_length*8, SEEK_SET)",
+                )
         return lines
 
     @staticmethod
     def close_files(subseqs: sequencetools.IOSequences) -> List[str]:
         """Close file statements."""
-        print('            . close_files')
+        print("            . close_files")
         lines = Lines()
-        lines.add(1, 'cpdef inline close_files(self):')
+        lines.add(1, "cpdef inline close_files(self):")
         for seq in subseqs:
-            lines.add(2, f'if self._{seq.name}_diskflag:')
-            lines.add(3, f'fclose(self._{seq.name}_file)')
+            lines.add(2, f"if self._{seq.name}_diskflag:")
+            lines.add(3, f"fclose(self._{seq.name}_file)")
         return lines
 
     @staticmethod
     def load_data(subseqs: sequencetools.IOSequences) -> List[str]:
         """Load data statements."""
-        print('            . load_data')
+        print("            . load_data")
         lines = Lines()
-        lines.add(1, f'cpdef inline void load_data(self, int idx) {_nogil}:')
-        lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+        lines.add(1, f"cpdef inline void load_data(self, int idx) {_nogil}:")
+        lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
-                lines.add(2, f'if self._{seq.name}_inputflag:')
-                lines.add(
-                    3, f'self.{seq.name} = self._{seq.name}_inputpointer[0]')
-                if_or_elif = 'elif'
+                lines.add(2, f"if self._{seq.name}_inputflag:")
+                lines.add(3, f"self.{seq.name} = self._{seq.name}_inputpointer[0]")
+                if_or_elif = "elif"
             else:
-                if_or_elif = 'if'
-            lines.add(2, f'{if_or_elif} self._{seq.name}_diskflag:')
+                if_or_elif = "if"
+            lines.add(2, f"{if_or_elif} self._{seq.name}_diskflag:")
             if seq.NDIM == 0:
-                lines.add(
-                    3, f'fread(&self.{seq.name}, 8, 1, self._{seq.name}_file)')
+                lines.add(3, f"fread(&self.{seq.name}, 8, 1, self._{seq.name}_file)")
             else:
                 lines.add(
-                    3, f'fread(&self.{seq.name}[0], 8, '
-                    f'self._{seq.name}_length, self._{seq.name}_file)')
-            lines.add(2, f'elif self._{seq.name}_ramflag:')
+                    3,
+                    f"fread(&self.{seq.name}[0], 8, "
+                    f"self._{seq.name}_length, self._{seq.name}_file)",
+                )
+            lines.add(2, f"elif self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
-                lines.add(3, f'self.{seq.name} = self._{seq.name}_array[idx]')
+                lines.add(3, f"self.{seq.name} = self._{seq.name}_array[idx]")
             else:
-                indexing = ''
+                indexing = ""
                 for idx in range(seq.NDIM):
                     lines.add(
-                        3+idx,
-                        f'for jdx{idx} in '
-                        f'range(self._{seq.name}_length_{idx}):')
-                    indexing += f'jdx{idx}, '
+                        3 + idx,
+                        f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
+                    )
+                    indexing += f"jdx{idx}, "
                 indexing = indexing[:-2]
                 lines.add(
-                    3+seq.NDIM,
-                    f'self.{seq.name}[{indexing}] = '
-                    f'self._{seq.name}_array[idx, {indexing}]')
+                    3 + seq.NDIM,
+                    f"self.{seq.name}[{indexing}] = "
+                    f"self._{seq.name}_array[idx, {indexing}]",
+                )
         return lines
 
     @staticmethod
     def save_data(subseqs: sequencetools.IOSequences) -> List[str]:
         """Save data statements."""
-        print('            . save_data')
+        print("            . save_data")
         lines = Lines()
-        lines.add(1, f'cpdef inline void save_data(self, int idx) {_nogil}:')
-        lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+        lines.add(1, f"cpdef inline void save_data(self, int idx) {_nogil}:")
+        lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
-                lines.add(2, f'if self._{seq.name}_inputflag:')
+                lines.add(2, f"if self._{seq.name}_inputflag:")
                 indent = 3
             else:
                 indent = 2
-            lines.add(indent, f'if self._{seq.name}_diskflag:')
+            lines.add(indent, f"if self._{seq.name}_diskflag:")
             if seq.NDIM == 0:
                 lines.add(
-                    indent+1,
-                    f'fwrite(&self.{seq.name}, 8, 1, self._{seq.name}_file)')
+                    indent + 1, f"fwrite(&self.{seq.name}, 8, 1, self._{seq.name}_file)"
+                )
             else:
                 lines.add(
-                    indent+1,
-                    f'fwrite(&self.{seq.name}[0], 8, '
-                    f'self._{seq.name}_length, self._{seq.name}_file)')
-            lines.add(indent, f'elif self._{seq.name}_ramflag:')
+                    indent + 1,
+                    f"fwrite(&self.{seq.name}[0], 8, "
+                    f"self._{seq.name}_length, self._{seq.name}_file)",
+                )
+            lines.add(indent, f"elif self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
-                lines.add(indent+1,
-                          f'self._{seq.name}_array[idx] = self.{seq.name}')
+                lines.add(indent + 1, f"self._{seq.name}_array[idx] = self.{seq.name}")
             else:
-                indexing = ''
+                indexing = ""
                 for idx in range(seq.NDIM):
                     lines.add(
-                        indent+1+idx,
-                        f'for jdx{idx} in '
-                        f'range(self._{seq.name}_length_{idx}):')
-                    indexing += f'jdx{idx},'
+                        indent + 1 + idx,
+                        f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
+                    )
+                    indexing += f"jdx{idx},"
                 indexing = indexing[:-1]
                 lines.add(
-                    3+seq.NDIM,
-                    f'self._{seq.name}_array[idx, {indexing}] = '
-                    f'self.{seq.name}[{indexing}]')
+                    3 + seq.NDIM,
+                    f"self._{seq.name}_array[idx, {indexing}] = "
+                    f"self.{seq.name}[{indexing}]",
+                )
         return lines
 
-    def set_pointer(self,
-                    subseqs: Union[sequencetools.InputSequences,
-                                   sequencetools.OutputSequences,
-                                   sequencetools.LinkSequences]) -> List[str]:
+    def set_pointer(
+        self,
+        subseqs: Union[
+            sequencetools.InputSequences,
+            sequencetools.OutputSequences,
+            sequencetools.LinkSequences,
+        ],
+    ) -> List[str]:
         """Set pointer statements for all input, output, and link sequences."""
         lines = Lines()
         if isinstance(subseqs, sequencetools.InputSequences):
@@ -1312,133 +1337,147 @@ class PyxWriter:
     @staticmethod
     def set_pointer0d(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Set pointer statements for 0-dimensional link sequences."""
-        print('            . set_pointer0d')
+        print("            . set_pointer0d")
         lines = Lines()
-        lines.add(1, 'cpdef inline set_pointer0d'
-                     '(self, str name, pointerutils.Double value):')
-        lines.add(2, 'cdef pointerutils.PDouble pointer = '
-                     'pointerutils.PDouble(value)')
+        lines.add(
+            1,
+            "cpdef inline set_pointer0d" "(self, str name, pointerutils.Double value):",
+        )
+        lines.add(
+            2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
+        )
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self.{seq.name} = pointer.p_value')
+            lines.add(3, f"self.{seq.name} = pointer.p_value")
         return lines
 
     @staticmethod
     def get_value(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Get value statements for link sequences."""
-        print('            . get_value')
+        print("            . get_value")
         lines = Lines()
-        lines.add(1, 'cpdef get_value(self, str name):')
-        lines.add(2, 'cdef int idx')
+        lines.add(1, "cpdef get_value(self, str name):")
+        lines.add(2, "cdef int idx")
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                lines.add(3, f'return self.{seq.name}[0]')
+                lines.add(3, f"return self.{seq.name}[0]")
             elif seq.NDIM == 1:
-                lines.add(3, f'values = numpy.empty(self.len_{seq.name})')
-                lines.add(3, f'for idx in range(self.len_{seq.name}):')
+                lines.add(3, f"values = numpy.empty(self.len_{seq.name})")
+                lines.add(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                lines.add(4, f'values[idx] = self.{seq.name}[idx][0]')
-                lines.add(3, 'return values')
+                lines.add(4, f"values[idx] = self.{seq.name}[idx][0]")
+                lines.add(3, "return values")
         return lines
 
     @staticmethod
     def set_value(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Set value statements for link sequences."""
-        print('            . set_value')
+        print("            . set_value")
         lines = Lines()
-        lines.add(1, 'cpdef set_value(self, str name, value):')
+        lines.add(1, "cpdef set_value(self, str name, value):")
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                lines.add(3, f'self.{seq.name}[0] = value')
+                lines.add(3, f"self.{seq.name}[0] = value")
             elif seq.NDIM == 1:
-                lines.add(3, f'for idx in range(self.len_{seq.name}):')
+                lines.add(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                lines.add(4, f'self.{seq.name}[idx][0] = value[idx]')
+                lines.add(4, f"self.{seq.name}[idx][0] = value[idx]")
         return lines
 
     @staticmethod
-    def _check_pointer(lines: Lines, seq: sequencetools.LinkSequence) \
-            -> None:
-        lines.add(4, f'pointerutils.check0(self._{seq.name}_length_0)')
-        lines.add(4, f'if self._{seq.name}_ready[idx] == 0:')
-        lines.add(5, f'pointerutils.check1(self._{seq.name}_length_0, idx)')
-        lines.add(5, f'pointerutils.check2(self._{seq.name}_ready, idx)')
+    def _check_pointer(lines: Lines, seq: sequencetools.LinkSequence) -> None:
+        lines.add(4, f"pointerutils.check0(self._{seq.name}_length_0)")
+        lines.add(4, f"if self._{seq.name}_ready[idx] == 0:")
+        lines.add(5, f"pointerutils.check1(self._{seq.name}_length_0, idx)")
+        lines.add(5, f"pointerutils.check2(self._{seq.name}_ready, idx)")
 
     @staticmethod
     def alloc(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Allocate memory statements for 1-dimensional link sequences."""
-        print('            . setlength')
+        print("            . setlength")
         lines = Lines()
-        lines.add(1, f'cpdef inline alloc(self, name, {TYPE2STR[int]} length):')
+        lines.add(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self._{seq.name}_length_0 = length')
+            lines.add(3, f"self._{seq.name}_length_0 = length")
             lines.add(
                 3,
-                f'self._{seq.name}_ready = '
-                f'numpy.full(length, 0, dtype={ TYPE2STR[int].split("_")[0]})')
+                f"self._{seq.name}_ready = "
+                f"numpy.full(length, 0, dtype={ TYPE2STR[int].split('_')[0]})",
+            )
             lines.add(
                 3,
-                f'self.{seq.name} = '
-                f'<double**> PyMem_Malloc(length * sizeof(double*))')
+                f"self.{seq.name} = "
+                f"<double**> PyMem_Malloc(length * sizeof(double*))",
+            )
         return lines
 
     @staticmethod
     def dealloc(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Deallocate memory statements for 1-dimensional link sequences."""
-        print('            . dealloc')
+        print("            . dealloc")
         lines = Lines()
-        lines.add(1, 'cpdef inline dealloc(self, name):')
+        lines.add(1, "cpdef inline dealloc(self, name):")
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'PyMem_Free(self.{seq.name})')
+            lines.add(3, f"PyMem_Free(self.{seq.name})")
         return lines
 
     @staticmethod
     def set_pointer1d(subseqs: sequencetools.LinkSequences) -> List[str]:
         """Set_pointer statements for 1-dimensional link sequences."""
-        print('            . set_pointer1d')
+        print("            . set_pointer1d")
         lines = Lines()
-        lines.add(1, 'cpdef inline set_pointer1d'
-                     '(self, str name, pointerutils.Double value, int idx):')
-        lines.add(2, 'cdef pointerutils.PDouble pointer = '
-                     'pointerutils.PDouble(value)')
+        lines.add(
+            1,
+            "cpdef inline set_pointer1d"
+            "(self, str name, pointerutils.Double value, int idx):",
+        )
+        lines.add(
+            2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
+        )
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self.{seq.name}[idx] = pointer.p_value')
-            lines.add(3, f'self._{seq.name}_ready[idx] = 1')
+            lines.add(3, f"self.{seq.name}[idx] = pointer.p_value")
+            lines.add(3, f"self._{seq.name}_ready[idx] = 1")
         return lines
 
     @staticmethod
     def set_pointerinput(subseqs: sequencetools.InputSequences) -> List[str]:
         """Set pointer statements for input sequences."""
-        print('            . set_pointerinput')
+        print("            . set_pointerinput")
         lines = Lines()
-        lines.add(1, 'cpdef inline set_pointerinput'
-                     '(self, str name, pointerutils.PDouble value):')
+        lines.add(
+            1,
+            "cpdef inline set_pointerinput"
+            "(self, str name, pointerutils.PDouble value):",
+        )
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f'self._{seq.name}_inputpointer = value.p_value')
+            lines.add(3, f"self._{seq.name}_inputpointer = value.p_value")
         return lines
 
     def set_pointeroutput(
-            self,
-            subseqs: Union[sequencetools.OutputSequences],
+        self,
+        subseqs: Union[sequencetools.OutputSequences],
     ) -> List[str]:
         """Set pointer statements for output sequences."""
-        print('            . set_pointeroutput')
+        print("            . set_pointeroutput")
         lines = Lines()
-        lines.add(1, 'cpdef inline set_pointeroutput'
-                     '(self, str name, pointerutils.PDouble value):')
+        lines.add(
+            1,
+            "cpdef inline set_pointeroutput"
+            "(self, str name, pointerutils.PDouble value):",
+        )
         subseqs = self._filter_outputsequences(subseqs)
         if subseqs:
             for seq in subseqs:
                 lines.add(2, f'if name == "{seq.name}":')
-                lines.add(3, f'self._{seq.name}_outputpointer = value.p_value')
+                lines.add(3, f"self._{seq.name}_outputpointer = value.p_value")
         else:
-            lines.add(2, 'pass')
+            lines.add(2, "pass")
         return lines
 
     @staticmethod
@@ -1450,23 +1489,32 @@ class PyxWriter:
         """Numeric parameter declaration lines."""
         lines = Lines()
         if isinstance(self.model, modeltools.SolverModel):
-            lines.add(0, '@cython.final')
-            lines.add(0, 'cdef class NumConsts:')
-            for name in ('nmb_methods', 'nmb_stages'):
-                lines.add(1, f'cdef public {TYPE2STR[int]} {name}')
-            for name in ('dt_increase', 'dt_decrease'):
-                lines.add(1, f'cdef public {TYPE2STR[float]} {name}')
-            lines.add(1, 'cdef public configutils.Config pub')
-            lines.add(1, 'cdef public double[:, :, :] a_coefs')
-            lines.add(0, 'cdef class NumVars:')
-            lines.add(1, 'cdef public bint use_relerror')
-            for name in ('nmb_calls', 'idx_method', 'idx_stage'):
-                lines.add(1, f'cdef public {TYPE2STR[int]} {name}')
-            for name in ('t0', 't1', 'dt', 'dt_est', 'abserror', 'relerror',
-                         'last_abserror', 'last_relerror',
-                         'extrapolated_abserror', 'extrapolated_relerror'):
-                lines.add(1, f'cdef public {TYPE2STR[float]} {name}')
-            lines.add(1, f'cdef public {TYPE2STR[bool]} f0_ready')
+            lines.add(0, "@cython.final")
+            lines.add(0, "cdef class NumConsts:")
+            for name in ("nmb_methods", "nmb_stages"):
+                lines.add(1, f"cdef public {TYPE2STR[int]} {name}")
+            for name in ("dt_increase", "dt_decrease"):
+                lines.add(1, f"cdef public {TYPE2STR[float]} {name}")
+            lines.add(1, "cdef public configutils.Config pub")
+            lines.add(1, "cdef public double[:, :, :] a_coefs")
+            lines.add(0, "cdef class NumVars:")
+            lines.add(1, "cdef public bint use_relerror")
+            for name in ("nmb_calls", "idx_method", "idx_stage"):
+                lines.add(1, f"cdef public {TYPE2STR[int]} {name}")
+            for name in (
+                "t0",
+                "t1",
+                "dt",
+                "dt_est",
+                "abserror",
+                "relerror",
+                "last_abserror",
+                "last_relerror",
+                "extrapolated_abserror",
+                "extrapolated_relerror",
+            ):
+                lines.add(1, f"cdef public {TYPE2STR[float]} {name}")
+            lines.add(1, f"cdef public {TYPE2STR[bool]} f0_ready")
         return lines
 
     @property
@@ -1474,45 +1522,44 @@ class PyxWriter:
         """Submodel declaration lines."""
         lines = Lines()
         for submodel in self.model.SUBMODELS:
-            lines.add(0, '@cython.final')
+            lines.add(0, "@cython.final")
             lines.add(
                 0,
-                f'cdef class {objecttools.classname(submodel)}(rootutils.'
-                f'{objecttools.classname(submodel.CYTHONBASECLASS)}):')
-            lines.add(1, 'cpdef public Model model')
-            lines.add(1, 'def __init__(self, Model model):')
-            lines.add(2, 'self.model = model')
+                f"cdef class {objecttools.classname(submodel)}(rootutils."
+                f"{objecttools.classname(submodel.CYTHONBASECLASS)}):",
+            )
+            lines.add(1, "cpdef public Model model")
+            lines.add(1, "def __init__(self, Model model):")
+            lines.add(2, "self.model = model")
             for idx, method in enumerate(submodel.METHODS):
-                lines.add(
-                    1, f'cpdef double apply_method{idx}(self, double x) nogil:')
-                lines.add(2, f'return self.model.{method.__name__.lower()}(x)')
+                lines.add(1, f"cpdef double apply_method{idx}(self, double x) nogil:")
+                lines.add(2, f"return self.model.{method.__name__.lower()}(x)")
         return lines
 
     @property
     def modeldeclarations(self) -> List[str]:
         """The attribute declarations of the model class."""
-        submodels = getattr(self.model, 'SUBMODELS', ())
+        submodels = getattr(self.model, "SUBMODELS", ())
         lines = Lines()
-        lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Model:')
+        lines.add(0, "@cython.final")
+        lines.add(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
-                    lines.add(1, f'cdef public int {name}')
+                    lines.add(1, f"cdef public int {name}")
         if self.model.parameters:
-            lines.add(1, 'cdef public Parameters parameters')
-        lines.add(1, 'cdef public Sequences sequences')
+            lines.add(1, "cdef public Parameters parameters")
+        lines.add(1, "cdef public Sequences sequences")
         for submodel in submodels:
-            lines.add(1, f'cdef public {submodel.__name__} {submodel.name}')
-        if hasattr(self.model, 'numconsts'):
-            lines.add(1, 'cdef public NumConsts numconsts')
-        if hasattr(self.model, 'numvars'):
-            lines.add(1, 'cdef public NumVars numvars')
+            lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
+        if hasattr(self.model, "numconsts"):
+            lines.add(1, "cdef public NumConsts numconsts")
+        if hasattr(self.model, "numvars"):
+            lines.add(1, "cdef public NumVars numvars")
         if submodels:
-            lines.add(1, 'def __init__(self):')
+            lines.add(1, "def __init__(self):")
             for submodel in submodels:
-                lines.add(
-                    2, f'self.{submodel.name} = {submodel.__name__}(self)')
+                lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
         return lines
 
     @property
@@ -1555,24 +1602,24 @@ class PyxWriter:
     @property
     def simulate(self) -> List[str]:
         """Simulation statements."""
-        print('                . simulate')
+        print("                . simulate")
         lines = Lines()
-        lines.add(1, f'cpdef inline void simulate(self, int idx) {_nogil}:')
-        lines.add(2, 'self.idx_sim = idx')
+        lines.add(1, f"cpdef inline void simulate(self, int idx) {_nogil}:")
+        lines.add(2, "self.idx_sim = idx")
         if self.model.sequences.inputs:
-            lines.add(2, 'self.load_data()')
+            lines.add(2, "self.load_data()")
         if self.model.INLET_METHODS:
-            lines.add(2, 'self.update_inlets()')
+            lines.add(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
-            lines.add(2, 'self.solve()')
+            lines.add(2, "self.solve()")
         else:
-            lines.add(2, 'self.run()')
+            lines.add(2, "self.run()")
             if self.model.sequences.states:
-                lines.add(2, 'self.new2old()')
+                lines.add(2, "self.new2old()")
         if self.model.OUTLET_METHODS:
-            lines.add(2, 'self.update_outlets()')
+            lines.add(2, "self.update_outlets()")
         if self.model.sequences.fluxes or self.model.sequences.states:
-            lines.add(2, 'self.update_outputs()')
+            lines.add(2, "self.update_outputs()")
         return lines
 
     @property
@@ -1631,31 +1678,31 @@ class PyxWriter:
         <BLANKLINE>
         """
         lines = Lines()
-        if not (self.model.sequences.inputs or
-                self.model.sequences.fluxes or
-                self.model.sequences.states):
+        if not (
+            self.model.sequences.inputs
+            or self.model.sequences.fluxes
+            or self.model.sequences.states
+        ):
             return lines
-        for func in ('open_files', 'close_files', 'load_data', 'save_data'):
-            if (func == 'load_data') and not self.model.sequences.inputs:
+        for func in ("open_files", "close_files", "load_data", "save_data"):
+            if (func == "load_data") and not self.model.sequences.inputs:
                 continue
-            print(f'            . {func}')
-            nogil = func in ('load_data', 'save_data')
-            idx_as_arg = func == 'save_data'
-            lines.add(1, get_methodheader(
-                func, nogil=nogil, idxarg=idx_as_arg))
+            print(f"            . {func}")
+            nogil = func in ("load_data", "save_data")
+            idx_as_arg = func == "save_data"
+            lines.add(1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg))
             for subseqs in self.model.sequences:
-                if func == 'load_data':
-                    applyfuncs: Tuple[str, ...] = ('inputs',)
+                if func == "load_data":
+                    applyfuncs: Tuple[str, ...] = ("inputs",)
                 else:
-                    applyfuncs = ('inputs', 'fluxes', 'states')
+                    applyfuncs = ("inputs", "fluxes", "states")
                 if subseqs.name in applyfuncs:
-                    if func == 'close_files':
-                        lines.add(2, f'self.sequences.{subseqs.name}.{func}()')
+                    if func == "close_files":
+                        lines.add(2, f"self.sequences.{subseqs.name}.{func}()")
                     else:
                         lines.add(
-                            2,
-                            f'self.sequences.{subseqs.name}.'
-                            f'{func}(self.idx_sim)')
+                            2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
+                        )
         return lines
 
     @property
@@ -1663,75 +1710,70 @@ class PyxWriter:
         """Old states to new states statements."""
         lines = Lines()
         if self.model.sequences.states:
-            print('                . new2old')
-            lines.add(1, get_methodheader('new2old', nogil=True))
-            lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+            print("                . new2old")
+            lines.add(1, get_methodheader("new2old", nogil=True))
+            lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
             for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
                     lines.add(
                         2,
-                        f'self.sequences.old_states.{seq.name} = '
-                        f'self.sequences.new_states.{seq.name}')
+                        f"self.sequences.old_states.{seq.name} = "
+                        f"self.sequences.new_states.{seq.name}",
+                    )
                 else:
-                    indexing = ''
+                    indexing = ""
                     for idx in range(seq.NDIM):
                         lines.add(
-                            2+idx,
-                            f'for jdx{idx} in range(self.sequences.states.'
-                            f'_{seq.name}_length_{idx}):')
-                        indexing += f'jdx{idx},'
+                            2 + idx,
+                            f"for jdx{idx} in range(self.sequences.states."
+                            f"_{seq.name}_length_{idx}):",
+                        )
+                        indexing += f"jdx{idx},"
                     indexing = indexing[:-1]
                     lines.add(
-                        2+seq.NDIM,
-                        f'self.sequences.old_states.{seq.name}[{indexing}] = '
-                        f'self.sequences.new_states.{seq.name}[{indexing}]')
+                        2 + seq.NDIM,
+                        f"self.sequences.old_states.{seq.name}[{indexing}] = "
+                        f"self.sequences.new_states.{seq.name}[{indexing}]",
+                    )
         return lines
 
     def _call_methods(self, name, methods, idx_as_arg=False):
         lines = Lines()
         if hasattr(self.model, name):
-            lines.add(1, get_methodheader(name,
-                                          nogil=True,
-                                          idxarg=idx_as_arg))
+            lines.add(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
             if idx_as_arg:
-                lines.add(2, 'self.idx_sim = idx')
+                lines.add(2, "self.idx_sim = idx")
             anything = False
             for method in methods:
-                lines.add(2, f'self.{method.__name__.lower()}()')
+                lines.add(2, f"self.{method.__name__.lower()}()")
                 anything = True
             if not anything:
-                lines.add(2, 'pass')
+                lines.add(2, "pass")
         return lines
 
     @property
     def update_receivers(self) -> List[str]:
         """Lines of the model method with the same name."""
-        return self._call_methods('update_receivers',
-                                  self.model.RECEIVER_METHODS,
-                                  True)
+        return self._call_methods("update_receivers", self.model.RECEIVER_METHODS, True)
 
     @property
     def update_inlets(self) -> List[str]:
         """Lines of the model method with the same name."""
-        return self._call_methods('update_inlets',
-                                  self.model.INLET_METHODS)
+        return self._call_methods("update_inlets", self.model.INLET_METHODS)
 
-    def run(self, model: 'modeltools.AdHocModel') -> List[str]:
+    def run(self, model: "modeltools.AdHocModel") -> List[str]:
         """Return the lines of the model method with the same name."""
-        return self._call_methods('run', model.RUN_METHODS)
+        return self._call_methods("run", model.RUN_METHODS)
 
     @property
     def update_outlets(self) -> List[str]:
         """Lines of the model method with the same name."""
-        return self._call_methods('update_outlets',
-                                  self.model.OUTLET_METHODS)
+        return self._call_methods("update_outlets", self.model.OUTLET_METHODS)
 
     @property
     def update_senders(self) -> List[str]:
         """Lines of the model method with the same name."""
-        return self._call_methods('update_senders',
-                                  self.model.SENDER_METHODS,
-                                  True)
+        return self._call_methods("update_senders", self.model.SENDER_METHODS, True)
 
     @property
     def update_outputs_model(self) -> List[str]:
@@ -1740,7 +1782,7 @@ class PyxWriter:
         lines = Lines()
         add = lines.add
         methodheader = get_methodheader(
-            'update_outputs',
+            "update_outputs",
             nogil=True,
             idxarg=False,
         )
@@ -1748,22 +1790,22 @@ class PyxWriter:
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
         if fluxes:
-            add(2, 'self.sequences.fluxes.update_outputs()')
+            add(2, "self.sequences.fluxes.update_outputs()")
         if states:
-            add(2, 'self.sequences.states.update_outputs()')
+            add(2, "self.sequences.states.update_outputs()")
         if not (fluxes or states):
-            add(2, 'pass')
+            add(2, "pass")
         return lines
 
     def update_outputs(
-            self,
-            subseqs: sequencetools.OutputSequences,
+        self,
+        subseqs: sequencetools.OutputSequences,
     ) -> List[str]:
         """Lines of the subsequences method with the same name."""
         lines = Lines()
         add = lines.add
         methodheader = get_methodheader(
-            'update_outputs',
+            "update_outputs",
             nogil=True,
             idxarg=False,
         )
@@ -1772,34 +1814,31 @@ class PyxWriter:
         if subseqs:
             for seq in subseqs:
                 name = seq.name
-                add(2, f'if self._{name}_outputflag:')
-                add(3, f'self._{name}_outputpointer[0] = self.{name}')
+                add(2, f"if self._{name}_outputflag:")
+                add(3, f"self._{name}_outputpointer[0] = self.{name}")
         else:
-            add(2, 'pass')
+            add(2, "pass")
         return lines
 
-    def calculate_single_terms(self, model: 'modeltools.SolverModel') \
-            -> List[str]:
+    def calculate_single_terms(self, model: "modeltools.SolverModel") -> List[str]:
         """Return the lines of the model method with the same name."""
-        lines = self._call_methods('calculate_single_terms',
-                                   model.PART_ODE_METHODS)
+        lines = self._call_methods("calculate_single_terms", model.PART_ODE_METHODS)
         if lines:
-            lines.insert(1, ('        self.numvars.nmb_calls ='
-                             'self.numvars.nmb_calls+1'))
+            lines.insert(
+                1, ("        self.numvars.nmb_calls =" "self.numvars.nmb_calls+1")
+            )
         return lines
 
-    def calculate_full_terms(self, model: 'modeltools.SolverModel') \
-            -> List[str]:
+    def calculate_full_terms(self, model: "modeltools.SolverModel") -> List[str]:
         """Return the lines of the model method with the same name."""
-        return self._call_methods('calculate_full_terms',
-                                  model.FULL_ODE_METHODS)
+        return self._call_methods("calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
     def listofmodeluserfunctions(self) -> List[Tuple[str, Callable]]:
         """User functions of the model class."""
         lines = []
         for (name, member) in vars(self.model).items():
-            if getattr(getattr(member, '__func__', None), 'CYTHONIZE', False):
+            if getattr(getattr(member, "__func__", None), "CYTHONIZE", False):
                 lines.append((name, member))
         return lines
 
@@ -1808,7 +1847,7 @@ class PyxWriter:
         """Model-specific functions."""
         lines = Lines()
         for (name, func) in self.listofmodeluserfunctions:
-            print(f'            . {name}')
+            print(f"            . {name}")
             funcconverter = FuncConverter(self.model, name, func)
             lines.extend(funcconverter.pyxlines)
         return lines
@@ -1817,20 +1856,20 @@ class PyxWriter:
     def solve(self) -> List[str]:
         """Lines of the model method with the same name."""
         lines = Lines()
-        solve = getattr(self.model, 'solve', None)
+        solve = getattr(self.model, "solve", None)
         if solve:
-            print('            . solve')
-            funcconverter = FuncConverter(self.model, 'solve', solve)
+            print("            . solve")
+            funcconverter = FuncConverter(self.model, "solve", solve)
             lines.extend(funcconverter.pyxlines)
         return lines
 
     @staticmethod
     def _assign_seqvalues(subseqs, subseqs_name, target, index, load):
         subseqs = list(subseqs)
-        from1 = f'self.sequences.{subseqs_name}.%s'
-        to1 = f'self.sequences.{subseqs_name}._%s_{target}'
+        from1 = f"self.sequences.{subseqs_name}.%s"
+        to1 = f"self.sequences.{subseqs_name}._%s_{target}"
         if index is not None:
-            to1 += f'[self.numvars.{index}]'
+            to1 += f"[self.numvars.{index}]"
         if load:
             from1, to1 = to1, from1
         yield from PyxWriter._declare_idxs(subseqs)
@@ -1838,20 +1877,27 @@ class PyxWriter:
             from2 = from1 % seq.name
             to2 = to1 % seq.name
             if seq.NDIM == 0:
-                yield f'{to2} = {from2}'
+                yield f"{to2} = {from2}"
             elif seq.NDIM == 1:
-                yield (f'for idx0 in range(self.sequences.'
-                       f'{subseqs_name}._{seq.name}_length):')
-                yield f'    {to2}[idx0] = {from2}[idx0]'
+                yield (
+                    f"for idx0 in range(self.sequences."
+                    f"{subseqs_name}._{seq.name}_length):"
+                )
+                yield f"    {to2}[idx0] = {from2}[idx0]"
             elif seq.NDIM == 2:
-                yield (f'for idx0 in range(self.sequences.'
-                       f'{subseqs_name}._{seq.name}_length0):')
-                yield (f'    for idx1 in range(self.sequences.'
-                       f'{subseqs_name}._{seq.name}_length1):')
-                yield f'        {to2}[idx0, idx1] = {from2}[idx0, idx1]'
+                yield (
+                    f"for idx0 in range(self.sequences."
+                    f"{subseqs_name}._{seq.name}_length0):"
+                )
+                yield (
+                    f"    for idx1 in range(self.sequences."
+                    f"{subseqs_name}._{seq.name}_length1):"
+                )
+                yield f"        {to2}[idx0, idx1] = {from2}[idx0, idx1]"
             else:
                 raise NotImplementedError(
-                    f'NDIM of sequence `{seq.name}` is higher than expected.')
+                    f"NDIM of sequence `{seq.name}` is higher than expected."
+                )
 
     @staticmethod
     def _declare_idxs(subseqs):
@@ -1859,69 +1905,75 @@ class PyxWriter:
         for seq in subseqs:
             maxdim = max(maxdim, seq.NDIM)
         if maxdim == 1:
-            yield 'cdef int idx0'
+            yield "cdef int idx0"
         elif maxdim == 2:
-            yield 'cdef int idx0, idx1'
+            yield "cdef int idx0, idx1"
 
     @decorate_method
     def get_point_states(self) -> Iterator[str]:
         """Get point statements for state sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.states,
-            subseqs_name='states',
-            target='points',
-            index='idx_stage',
-            load=True)
+            subseqs_name="states",
+            target="points",
+            index="idx_stage",
+            load=True,
+        )
 
     @decorate_method
     def set_point_states(self) -> Iterator[str]:
         """Set point statements for state sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.states,
-            subseqs_name='states',
-            target='points',
-            index='idx_stage',
-            load=False)
+            subseqs_name="states",
+            target="points",
+            index="idx_stage",
+            load=False,
+        )
 
     @decorate_method
     def set_result_states(self) -> Iterator[str]:
         """Get results statements for state sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.states,
-            subseqs_name='states',
-            target='results',
-            index='idx_method',
-            load=False)
+            subseqs_name="states",
+            target="results",
+            index="idx_method",
+            load=False,
+        )
 
     @decorate_method
     def get_sum_fluxes(self) -> Iterator[str]:
         """Get sum statements for flux sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.fluxes.numericsequences,
-            subseqs_name='fluxes',
-            target='sum',
+            subseqs_name="fluxes",
+            target="sum",
             index=None,
-            load=True)
+            load=True,
+        )
 
     @decorate_method
     def set_point_fluxes(self) -> Iterator[str]:
         """Set point statements for flux sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.fluxes.numericsequences,
-            subseqs_name='fluxes',
-            target='points',
-            index='idx_stage',
-            load=False)
+            subseqs_name="fluxes",
+            target="points",
+            index="idx_stage",
+            load=False,
+        )
 
     @decorate_method
     def set_result_fluxes(self) -> Iterator[str]:
         """Set result statements for flux sequences."""
         yield self._assign_seqvalues(
             subseqs=self.model.sequences.fluxes.numericsequences,
-            subseqs_name='fluxes',
-            target='results',
-            index='idx_method',
-            load=False)
+            subseqs_name="fluxes",
+            target="results",
+            index="idx_method",
+            load=False,
+        )
 
     @decorate_method
     def integrate_fluxes(self) -> Iterator[str]:
@@ -1930,39 +1982,50 @@ class PyxWriter:
         for seq in self.model.sequences.fluxes.numericsequences:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
-            yield 'cdef int jdx'
+            yield "cdef int jdx"
         elif max_ndim == 1:
-            yield 'cdef int jdx, idx0'
+            yield "cdef int jdx, idx0"
         elif max_ndim == 2:
-            yield 'cdef int jdx, idx0, idx1'
+            yield "cdef int jdx, idx0, idx1"
         for seq in self.model.sequences.fluxes.numericsequences:
-            to_ = f'self.sequences.fluxes.{seq.name}'
-            from_ = f'self.sequences.fluxes._{seq.name}_points'
-            coefs = ('self.numvars.dt * self.numconsts.a_coefs'
-                     '[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]')
+            to_ = f"self.sequences.fluxes.{seq.name}"
+            from_ = f"self.sequences.fluxes._{seq.name}_points"
+            coefs = (
+                "self.numvars.dt * self.numconsts.a_coefs"
+                "[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]"
+            )
             if seq.NDIM == 0:
-                yield f'{to_} = 0.'
-                yield 'for jdx in range(self.numvars.idx_method):'
-                yield f'    {to_} = {to_} +{coefs}*{from_}[jdx]'
+                yield f"{to_} = 0."
+                yield "for jdx in range(self.numvars.idx_method):"
+                yield f"    {to_} = {to_} +{coefs}*{from_}[jdx]"
             elif seq.NDIM == 1:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length):')
-                yield f'    {to_}[idx0] = 0.'
-                yield '    for jdx in range(self.numvars.idx_method):'
-                yield (f'        {to_}[idx0] = '
-                       f'{to_}[idx0] + {coefs}*{from_}[jdx, idx0]')
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length):"
+                )
+                yield f"    {to_}[idx0] = 0."
+                yield "    for jdx in range(self.numvars.idx_method):"
+                yield (
+                    f"        {to_}[idx0] = "
+                    f"{to_}[idx0] + {coefs}*{from_}[jdx, idx0]"
+                )
             elif seq.NDIM == 2:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in range('
-                       f'self.sequences.fluxes._{seq.name}_length1):')
-                yield f'        {to_}[idx0, idx1] = 0.'
-                yield '        for jdx in range(self.numvars.idx_method):'
-                yield (f'            {to_}[idx0, idx1] = '
-                       f'{to_}[idx0, idx1] + {coefs}*{from_}[jdx, idx0, idx1]')
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length0):"
+                )
+                yield (
+                    f"    for idx1 in range("
+                    f"self.sequences.fluxes._{seq.name}_length1):"
+                )
+                yield f"        {to_}[idx0, idx1] = 0."
+                yield "        for jdx in range(self.numvars.idx_method):"
+                yield (
+                    f"            {to_}[idx0, idx1] = "
+                    f"{to_}[idx0, idx1] + {coefs}*{from_}[jdx, idx0, idx1]"
+                )
             else:
                 raise NotImplementedError(
-                    f'NDIM of sequence `{seq.name}` is higher than expected.')
+                    f"NDIM of sequence `{seq.name}` is higher than expected."
+                )
 
     @decorate_method
     def reset_sum_fluxes(self) -> Iterator[str]:
@@ -1970,22 +2033,27 @@ class PyxWriter:
         subseqs = list(self.model.sequences.fluxes.numericsequences)
         yield from PyxWriter._declare_idxs(subseqs)
         for seq in subseqs:
-            to_ = f'self.sequences.fluxes._{seq.name}_sum'
+            to_ = f"self.sequences.fluxes._{seq.name}_sum"
             if seq.NDIM == 0:
-                yield f'{to_} = 0.'
+                yield f"{to_} = 0."
             elif seq.NDIM == 1:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length):')
-                yield f'    {to_}[idx0] = 0.'
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length):"
+                )
+                yield f"    {to_}[idx0] = 0."
             elif seq.NDIM == 2:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length1):')
-                yield f'        {to_}[idx0, idx1] = 0.'
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length0):"
+                )
+                yield (
+                    f"    for idx1 in "
+                    f"range(self.sequences.fluxes._{seq.name}_length1):"
+                )
+                yield f"        {to_}[idx0, idx1] = 0."
             else:
                 raise NotImplementedError(
-                    f'NDIM of sequence `{seq.name}` is higher than expected.')
+                    f"NDIM of sequence `{seq.name}` is higher than expected."
+                )
 
     @decorate_method
     def addup_fluxes(self) -> Iterator[str]:
@@ -1993,96 +2061,119 @@ class PyxWriter:
         subseqs = list(self.model.sequences.fluxes.numericsequences)
         yield from PyxWriter._declare_idxs(subseqs)
         for seq in subseqs:
-            to_ = f'self.sequences.fluxes._{seq.name}_sum'
-            from_ = f'self.sequences.fluxes.{seq.name}'
+            to_ = f"self.sequences.fluxes._{seq.name}_sum"
+            from_ = f"self.sequences.fluxes.{seq.name}"
             if seq.NDIM == 0:
-                yield f'{to_} = {to_} + {from_}'
+                yield f"{to_} = {to_} + {from_}"
             elif seq.NDIM == 1:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length):')
-                yield f'    {to_}[idx0] = {to_}[idx0] + {from_}[idx0]'
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length):"
+                )
+                yield f"    {to_}[idx0] = {to_}[idx0] + {from_}[idx0]"
             elif seq.NDIM == 2:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length1):')
-                yield (f'        {to_}[idx0, idx1] = '
-                       f'{to_}[idx0, idx1] + {from_}[idx0, idx1]')
+                yield (
+                    f"for idx0 in " f"range(self.sequences.fluxes._{seq.name}_length0):"
+                )
+                yield (
+                    f"    for idx1 in "
+                    f"range(self.sequences.fluxes._{seq.name}_length1):"
+                )
+                yield (
+                    f"        {to_}[idx0, idx1] = "
+                    f"{to_}[idx0, idx1] + {from_}[idx0, idx1]"
+                )
             else:
                 raise NotImplementedError(
-                    f'NDIM of sequence `{seq.name}` is higher than expected.')
+                    f"NDIM of sequence `{seq.name}` is higher than expected."
+                )
 
     @decorate_method
     def calculate_error(self) -> Iterator[str]:
         """Calculate error statements."""
         subseqs = list(self.model.sequences.fluxes.numericsequences)
         if self.model.SOLVERSEQUENCES:
-            subseqs = [seq for seq in subseqs if
-                       isinstance(seq, self.model.SOLVERSEQUENCES)]
+            subseqs = [
+                seq for seq in subseqs if isinstance(seq, self.model.SOLVERSEQUENCES)
+            ]
         yield from PyxWriter._declare_idxs(subseqs)
-        userel = 'self.numvars.use_relerror:'
-        abserror = 'self.numvars.abserror'
-        relerror = 'self.numvars.relerror'
-        index = 'self.numvars.idx_method'
-        yield 'cdef double abserror'
-        yield f'{abserror} = 0.'
-        yield f'if {userel}'
-        yield f'    {relerror} = 0.'
-        yield 'else:'
-        yield f'    {relerror} = inf'
+        userel = "self.numvars.use_relerror:"
+        abserror = "self.numvars.abserror"
+        relerror = "self.numvars.relerror"
+        index = "self.numvars.idx_method"
+        yield "cdef double abserror"
+        yield f"{abserror} = 0."
+        yield f"if {userel}"
+        yield f"    {relerror} = 0."
+        yield "else:"
+        yield f"    {relerror} = inf"
         for seq in subseqs:
-            results = f'self.sequences.fluxes._{seq.name}_results'
+            results = f"self.sequences.fluxes._{seq.name}_results"
             if seq.NDIM == 0:
-                yield (f'abserror = fabs('
-                       f'{results}[{index}]-{results}[{index}-1])')
-                yield f'{abserror} = max({abserror}, abserror)'
-                yield f'if {userel}'
-                yield f'    if {results}[{index}] == 0.:'
-                yield f'        {relerror} = inf'
-                yield '    else:'
-                yield (f'        {relerror} = max('
-                       f'{relerror}, fabs(abserror/{results}[{index}]))')
+                yield f"abserror = fabs(" f"{results}[{index}]-{results}[{index}-1])"
+                yield f"{abserror} = max({abserror}, abserror)"
+                yield f"if {userel}"
+                yield f"    if {results}[{index}] == 0.:"
+                yield f"        {relerror} = inf"
+                yield "    else:"
+                yield (
+                    f"        {relerror} = max("
+                    f"{relerror}, fabs(abserror/{results}[{index}]))"
+                )
             elif seq.NDIM == 1:
-                yield (f'for idx0 in range('
-                       f'self.sequences.fluxes._{seq.name}_length):')
-                yield (f'    abserror = fabs('
-                       f'{results}[{index}, idx0]-{results}[{index}-1, idx0])')
-                yield f'    {abserror} = max({abserror}, abserror)'
-                yield f'    if {userel}'
-                yield f'        if {results}[{index}, idx0] == 0.:'
-                yield f'            {relerror} = inf'
-                yield '        else:'
-                yield (f'            {relerror} = max('
-                       f'{relerror}, fabs(abserror/{results}[{index}, idx0]))')
+                yield (
+                    f"for idx0 in range(" f"self.sequences.fluxes._{seq.name}_length):"
+                )
+                yield (
+                    f"    abserror = fabs("
+                    f"{results}[{index}, idx0]-{results}[{index}-1, idx0])"
+                )
+                yield f"    {abserror} = max({abserror}, abserror)"
+                yield f"    if {userel}"
+                yield f"        if {results}[{index}, idx0] == 0.:"
+                yield f"            {relerror} = inf"
+                yield "        else:"
+                yield (
+                    f"            {relerror} = max("
+                    f"{relerror}, fabs(abserror/{results}[{index}, idx0]))"
+                )
             elif seq.NDIM == 2:
-                yield (f'for idx0 in range('
-                       f'self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in range('
-                       f'self.sequences.fluxes._{seq.name}_length1):')
+                yield (
+                    f"for idx0 in range(" f"self.sequences.fluxes._{seq.name}_length0):"
+                )
+                yield (
+                    f"    for idx1 in range("
+                    f"self.sequences.fluxes._{seq.name}_length1):"
+                )
 
-                yield (f'        abserror = fabs({results}[{index}, '
-                       f'idx0, idx1]-{results}[{index}-1, idx0, idx1])')
-                yield f'        {abserror} = max({abserror}, abserror)'
-                yield f'        if {userel}'
-                yield f'            if {results}[{index}, idx0, idx1] == 0.:'
-                yield f'                {relerror} = inf'
-                yield '            else:'
-                yield (f'                {relerror} = max('
-                       f'{relerror}, '
-                       f'fabs(abserror/{results}[{index}, idx0, idx1]))')
+                yield (
+                    f"        abserror = fabs({results}[{index}, "
+                    f"idx0, idx1]-{results}[{index}-1, idx0, idx1])"
+                )
+                yield f"        {abserror} = max({abserror}, abserror)"
+                yield f"        if {userel}"
+                yield f"            if {results}[{index}, idx0, idx1] == 0.:"
+                yield f"                {relerror} = inf"
+                yield "            else:"
+                yield (
+                    f"                {relerror} = max("
+                    f"{relerror}, "
+                    f"fabs(abserror/{results}[{index}, idx0, idx1]))"
+                )
             else:
                 raise NotImplementedError(
-                    f'NDIM of sequence `{seq.name}` is higher than expected.')
+                    f"NDIM of sequence `{seq.name}` is higher than expected."
+                )
 
     @property
     def extrapolate_error(self) -> List[str]:
         """Extrapolate error statements."""
         lines = Lines()
-        extrapolate_error = getattr(self.model, 'extrapolate_error', None)
+        extrapolate_error = getattr(self.model, "extrapolate_error", None)
         if extrapolate_error:
-            print('            . extrapolate_error')
+            print("            . extrapolate_error")
             funcconverter = FuncConverter(
-                self.model, 'extrapolate_error', extrapolate_error)
+                self.model, "extrapolate_error", extrapolate_error
+            )
             lines.extend(funcconverter.pyxlines)
         return lines
 
@@ -2108,7 +2199,7 @@ class PyxWriter:
 
         >>> import os
         >>> import hydpy
-        >>> filepath = os.path.join(hydpy.__path__[0], 'hland.py')
+        >>> filepath = os.path.join(hydpy.__path__[0], "hland.py")
         >>> os.path.exists(filepath)
         True
 
@@ -2118,97 +2209,95 @@ class PyxWriter:
         >>> os.path.exists(filepath)
         False
         """
-        filepath = os.path.join(hydpy.__path__[0], f'{self.model.name}.py')
-        base = '.'.join(self.model.__module__.split('.')[:3])
-        with open(filepath, 'w') as stubfile:
+        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        filepath = os.path.join(hydpypath, f"{self.model.name}.py")
+        base = ".".join(self.model.__module__.split(".")[:3])
+        with open(filepath, "w") as stubfile:
             stubfile.write(
-                f'# -*- coding: utf-8 -*-\n\n'
-                f'import hydpy\n'
-                f'from {base} import *\n'
-                f'from hydpy.core.parametertools import (\n'
-                f'  FastAccess,)\n'
-                f'from hydpy.core.parametertools import (\n'
-                f'  Parameters, FastAccessParameter)\n'
-                f'from hydpy.core.sequencetools import (\n'
-                f'    Sequences,)\n\n'
+                f"# -*- coding: utf-8 -*-\n\n"
+                f"import hydpy\n"
+                f"from {base} import *\n"
+                f"from hydpy.core.parametertools import (\n"
+                f"  FastAccess,)\n"
+                f"from hydpy.core.parametertools import (\n"
+                f"  Parameters, FastAccessParameter)\n"
+                f"from hydpy.core.sequencetools import (\n"
+                f"    Sequences,)\n\n"
             )
             for group in self.model.parameters:
-                classname = f'FastAccess{group.name.capitalize()}Parameters'
-                stubfile.write(
-                    f'\n\nclass {classname}(FastAccessParameter):\n'
-                )
+                classname = f"FastAccess{group.name.capitalize()}Parameters"
+                stubfile.write(f"\n\nclass {classname}(FastAccessParameter):\n")
                 for partype in group.CLASSES:
                     stubfile.write(
-                        f'    {partype.__name__.lower()}: '
-                        f'{partype.__module__}.{partype.__name__}\n')
+                        f"    {partype.__name__.lower()}: "
+                        f"{partype.__module__}.{partype.__name__}\n"
+                    )
             for group in self.model.parameters:
-                classname = f'{group.name.capitalize()}Parameters'
-                stubfile.write(f'\n\nclass {classname}({classname}):\n')
-                stubfile.write(f'    fastaccess: FastAccess{classname}\n')
+                classname = f"{group.name.capitalize()}Parameters"
+                stubfile.write(f"\n\nclass {classname}({classname}):\n")
+                stubfile.write(f"    fastaccess: FastAccess{classname}\n")
                 for partype in group.CLASSES:
                     stubfile.write(
-                        f'    {partype.__name__.lower()}: '
-                        f'{partype.__module__}.{partype.__name__}\n')
-            stubfile.write('\n\nclass Parameters(Parameters):\n')
+                        f"    {partype.__name__.lower()}: "
+                        f"{partype.__module__}.{partype.__name__}\n"
+                    )
+            stubfile.write("\n\nclass Parameters(Parameters):\n")
             for group in self.model.parameters:
-                classname = f'{group.name.capitalize()}Parameters'
-                stubfile.write(f'    {group.name}: {classname}\n')
+                classname = f"{group.name.capitalize()}Parameters"
+                stubfile.write(f"    {group.name}: {classname}\n")
 
             for group in self.model.sequences:
-                classname = f'FastAccess{type(group).__name__}'
-                stubfile.write(
-                    f'\n\nclass {classname}(FastAccess):\n'
-                )
+                classname = f"FastAccess{type(group).__name__}"
+                stubfile.write(f"\n\nclass {classname}(FastAccess):\n")
                 for partype in group.CLASSES:
                     stubfile.write(
-                        f'    {partype.__name__.lower()}: '
-                        f'{partype.__module__}.{partype.__name__}\n')
+                        f"    {partype.__name__.lower()}: "
+                        f"{partype.__module__}.{partype.__name__}\n"
+                    )
             for group in self.model.sequences:
                 classname = type(group).__name__
-                stubfile.write(f'\n\nclass {classname}({classname}):\n')
-                stubfile.write(f'    fastaccess: FastAccess{classname}\n')
-                if classname == 'StateSequences':
-                    stubfile.write(
-                        f'    fastaccess_old: FastAccess{classname}\n'
-                    )
-                    stubfile.write(
-                        f'    fastaccess_new: FastAccess{classname}\n'
-                    )
+                stubfile.write(f"\n\nclass {classname}({classname}):\n")
+                stubfile.write(f"    fastaccess: FastAccess{classname}\n")
+                if classname == "StateSequences":
+                    stubfile.write(f"    fastaccess_old: FastAccess{classname}\n")
+                    stubfile.write(f"    fastaccess_new: FastAccess{classname}\n")
                 for partype in group.CLASSES:
                     stubfile.write(
-                        f'    {partype.__name__.lower()}: '
-                        f'{partype.__module__}.{partype.__name__}\n')
-            stubfile.write('\n\nclass Sequences(Sequences):\n')
+                        f"    {partype.__name__.lower()}: "
+                        f"{partype.__module__}.{partype.__name__}\n"
+                    )
+            stubfile.write("\n\nclass Sequences(Sequences):\n")
             for group in self.model.sequences:
                 classname = type(group).__name__
-                stubfile.write(f'    {group.name}: {classname}\n')
+                stubfile.write(f"    {group.name}: {classname}\n")
 
             stubfile.write(
-                '\n\nclass Model(Model):\n'
-                '    parameters: Parameters\n'
-                '    sequences: Sequences\n'
+                "\n\nclass Model(Model):\n"
+                "    parameters: Parameters\n"
+                "    sequences: Sequences\n"
             )
             for methodgroup in self.model.METHOD_GROUPS:
                 for method in getattr(self.model, methodgroup):
                     stubfile.write(
-                        f'    {method.__name__.lower()}: '
-                        f'hydpy.core.modeltools.Method\n'
+                        f"    {method.__name__.lower()}: "
+                        f"hydpy.core.modeltools.Method\n"
                     )
 
-            stubfile.write('\n\nmodel: Model\n')
-            stubfile.write('parameters: Parameters\n')
-            stubfile.write('sequences: Sequences\n')
+            stubfile.write("\n\nmodel: Model\n")
+            stubfile.write("parameters: Parameters\n")
+            stubfile.write("sequences: Sequences\n")
             for group in self.model.parameters:
-                classname = f'{group.name.capitalize()}Parameters'
-                stubfile.write(f'{group.name}: {classname}\n')
+                classname = f"{group.name.capitalize()}Parameters"
+                stubfile.write(f"{group.name}: {classname}\n")
             for group in self.model.sequences:
                 classname = type(group).__name__
-                stubfile.write(f'{group.name}: {classname}\n')
+                stubfile.write(f"{group.name}: {classname}\n")
             if self.model.parameters.control:
                 for partype in self.model.parameters.control.CLASSES:
                     stubfile.write(
-                        f'{partype.__name__.lower()}: '
-                        f'{partype.__module__}.{partype.__name__}\n')
+                        f"{partype.__name__.lower()}: "
+                        f"{partype.__module__}.{partype.__name__}\n"
+                    )
 
 
 class FuncConverter:
@@ -2216,15 +2305,14 @@ class FuncConverter:
     and provides the required Cython code via property
     |FuncConverter.pyxlines|."""
 
-    model: 'modeltools.Model'
+    model: "modeltools.Model"
     funcname: str
     func: Callable
 
-    def __init__(
-            self, model: 'modeltools.Model', funcname: str, func: Callable):
+    def __init__(self, model: "modeltools.Model", funcname: str, func: Callable):
         self.model = model
         self.funcname = funcname
-        vars(self)['func'] = func
+        vars(self)["func"] = func
 
     @property
     def argnames(self) -> List[str]:
@@ -2234,7 +2322,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
@@ -2249,13 +2337,14 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'inp', 'flu', 'k')
         """
         # noinspection PyUnresolvedReferences
-        return tuple(vn if vn != 'model' else 'self'
-                     for vn in self.func.__code__.co_varnames)
+        return tuple(
+            vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
+        )
 
     @property
     def locnames(self) -> List[str]:
@@ -2266,7 +2355,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
         ['self', 'con', 'inp', 'flu', 'k']
         """
@@ -2281,19 +2370,19 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
         ['parameters.control', 'sequences.inputs', 'sequences.fluxes']
         """
         names = []
-        for groupname in ('parameters', 'sequences'):
+        for groupname in ("parameters", "sequences"):
             for subgroup in getattr(self.model, groupname):
                 if subgroup.name[:3] in self.varnames:
-                    names.append(groupname + '.' + subgroup.name)
-        if 'old' in self.varnames:
-            names.append('sequences.old_states')
-        if 'new' in self.varnames:
-            names.append('sequences.new_states')
+                    names.append(groupname + "." + subgroup.name)
+        if "old" in self.varnames:
+            names.append("sequences.old_states")
+        if "new" in self.varnames:
+            names.append("sequences.new_states")
         return names
 
     @property
@@ -2305,11 +2394,11 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
         ['con', 'inp', 'flu']
         """
-        return [name.split('.')[-1][:3] for name in self.subgroupnames]
+        return [name.split(".")[-1][:3] for name in self.subgroupnames]
 
     @property
     def untypedvarnames(self) -> List[str]:
@@ -2319,12 +2408,15 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedvarnames
         ['k']
         """
-        return [name for name in self.varnames
-                if name not in self.subgroupshortcuts + ['self']]
+        return [
+            name
+            for name in self.varnames
+            if name not in self.subgroupshortcuts + ["self"]
+        ]
 
     @property
     def untypedarguments(self) -> List[str]:
@@ -2334,14 +2426,16 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedarguments
         []
         """
         defline = self.cleanlines[0]
-        return [name for name in self.untypedvarnames
-                if ((f', {name},' in defline) or
-                    (f', {name})' in defline))]
+        return [
+            name
+            for name in self.untypedvarnames
+            if ((f", {name}," in defline) or (f", {name})" in defline))
+        ]
 
     @property
     def untypedinternalvarnames(self) -> List[str]:
@@ -2352,12 +2446,13 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedinternalvarnames
         ['k']
         """
-        return [name for name in self.untypedvarnames if
-                name not in self.untypedarguments]
+        return [
+            name for name in self.untypedvarnames if name not in self.untypedarguments
+        ]
 
     @property
     def cleanlines(self) -> List[str]:
@@ -2375,22 +2470,21 @@ class FuncConverter:
           * replace "model." with "self."
         """
         code = inspect.getsource(self.func)
-        code = '\n'.join(code.split('"""')[::2])
-        code = code.replace('modelutils.', '')
-        code = code.replace('model.', 'self.')
-        for (name, shortcut) in zip(self.subgroupnames,
-                                    self.subgroupshortcuts):
-            code = code.replace(f'{shortcut}.', f'self.{name}.')
+        code = "\n".join(code.split('"""')[::2])
+        code = code.replace("modelutils.", "")
+        code = code.replace("model.", "self.")
+        for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
+            code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
         self.remove_imath_operators(lines)
-        del lines[0]   # remove @staticmethod
-        lines = [line[4:] for line in lines]   # unindent
+        del lines[0]  # remove @staticmethod
+        lines = [line[4:] for line in lines]  # unindent
         argnames = self.argnames
-        argnames[0] = 'self'
-        lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
-        lines = [line.split('#')[0] for line in lines]
-        lines = [line for line in lines if 'fastaccess' not in line]
+        argnames[0] = "self"
+        lines[0] = f"def {self.funcname}({', '.join(argnames)}):"
+        lines = [line.split("#")[0] for line in lines]
+        lines = [line for line in lines if "fastaccess" not in line]
         lines = [line.rstrip() for line in lines if line.rstrip()]
         return Lines(*lines)
 
@@ -2401,22 +2495,22 @@ class FuncConverter:
         The following example is not an exhaustive test but shows
         how the method works in principle:
 
-        >>> code = 'asdf = \\\n(a\n+b)'
+        >>> code = "asdf = \\\n(a\n+b)"
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> FuncConverter.remove_linebreaks_within_equations(code)
         'asdf = (a+b)'
         """
-        code = code.replace('\\\n', '')
+        code = code.replace("\\\n", "")
         chars = []
         counter = 0
         for char in code:
-            if char in ('(', '[', '{'):
+            if char in ("(", "[", "{"):
                 counter += 1
-            elif char in (')', ']', '}'):
+            elif char in (")", "]", "}"):
                 counter -= 1
-            if not (counter and (char == '\n')):
+            if not (counter and (char == "\n")):
                 chars.append(char)
-        return ''.join(chars)
+        return "".join(chars)
 
     @staticmethod
     def remove_imath_operators(lines: List[str]):
@@ -2426,20 +2520,22 @@ class FuncConverter:
         The following example is not an exhaustive test but shows
         how the method works in principle:
 
-        >>> lines = ['    x += 1*1']
+        >>> lines = ["    x += 1*1"]
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> FuncConverter.remove_imath_operators(lines)
         >>> lines
         ['    x = x + (1*1)']
         """
         for idx, line in enumerate(lines):
-            for operator in ('+=', '-=', '**=', '*=', '//=', '/=', '%='):
+            for operator in ("+=", "-=", "**=", "*=", "//=", "/=", "%="):
                 sublines = line.split(operator)
                 if len(sublines) > 1:
-                    indent = line.count(' ') - line.lstrip().count(' ')
+                    indent = line.count(" ") - line.lstrip().count(" ")
                     sublines = [sl.strip() for sl in sublines]
-                    line = (f'{indent*" "}{sublines[0]} = '
-                            f'{sublines[0]} {operator[:-1]} ({sublines[1]})')
+                    line = (
+                        f"{indent*' '}{sublines[0]} = "
+                        f"{sublines[0]} {operator[:-1]} ({sublines[1]})"
+                    )
                     lines[idx] = line
 
     @property
@@ -2463,7 +2559,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model('hland_v1')
+        ...     model = prepare_model("hland_v1")
 
         First, we show an example on a standard method without additional
         arguments and returning nothing but requiring two local variables:
@@ -2478,7 +2574,7 @@ class FuncConverter:
         ...             d_pc = con.kg[k]*inp.p[k]
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
-        >>> FuncConverter(model, 'calc_test_v1', model.calc_test_v1).pyxlines
+        >>> FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
             cpdef inline void calc_test_v1(self)  nogil:
                 cdef double d_pc
                 cdef int k
@@ -2498,28 +2594,29 @@ self.parameters.control.kg[k]*self.sequences.inputs.p[k]
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
-        >>> FuncConverter(model, 'calc_test_v2', model.calc_test_v2).pyxlines
+        >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
             cpdef inline double calc_test_v2(\
 self, double value, double[:] values)  nogil:
                 return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
         """
-        lines = ['    '+line for line in self.cleanlines]
+        lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
         # noinspection PyUnresolvedReferences
         annotations = self.func.__annotations__
         lines[0] = lines[0].replace(
-            'def ', f'cpdef inline {TYPE2STR[annotations["return"]]} ')
-        lines[0] = lines[0].replace('):', f') {_nogil}:')
+            "def ", f"cpdef inline {TYPE2STR[annotations['return']]} "
+        )
+        lines[0] = lines[0].replace("):", f") {_nogil}:")
         for name in self.untypedarguments:
             type_ = TYPE2STR[annotations[name]]
-            lines[0] = lines[0].replace(f', {name},', f', {type_} {name},')
-            lines[0] = lines[0].replace(f', {name})', f', {type_} {name})')
+            lines[0] = lines[0].replace(f", {name},", f", {type_} {name},")
+            lines[0] = lines[0].replace(f", {name})", f", {type_} {name})")
         for name in self.untypedinternalvarnames:
-            if name.startswith('d_'):
-                lines.insert(1, '        cdef double ' + name)
+            if name.startswith("d_"):
+                lines.insert(1, "        cdef double " + name)
             else:
-                lines.insert(1, '        cdef int ' + name)
+                lines.insert(1, "        cdef int " + name)
         return Lines(*lines)
 
 
@@ -2529,7 +2626,7 @@ def exp(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import exp
     >>> from unittest import mock
-    >>> with mock.patch('numpy.exp') as func:
+    >>> with mock.patch("numpy.exp") as func:
     ...     _ = exp(123.4)
     >>> func.call_args
     call(123.4)
@@ -2543,7 +2640,7 @@ def log(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import log
     >>> from unittest import mock
-    >>> with mock.patch('numpy.log') as func:
+    >>> with mock.patch("numpy.log") as func:
     ...     _ = log(123.4)
     >>> func.call_args
     call(123.4)
@@ -2557,7 +2654,7 @@ def fabs(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import fabs
     >>> from unittest import mock
-    >>> with mock.patch('math.fabs') as func:
+    >>> with mock.patch("math.fabs") as func:
     ...     _ = fabs(123.4)
     >>> func.call_args
     call(123.4)
@@ -2571,7 +2668,7 @@ def sin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import sin
     >>> from unittest import mock
-    >>> with mock.patch('numpy.sin') as func:
+    >>> with mock.patch("numpy.sin") as func:
     ...     _ = sin(123.4)
     >>> func.call_args
     call(123.4)
@@ -2585,7 +2682,7 @@ def cos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import cos
     >>> from unittest import mock
-    >>> with mock.patch('numpy.cos') as func:
+    >>> with mock.patch("numpy.cos") as func:
     ...     _ = cos(123.4)
     >>> func.call_args
     call(123.4)
@@ -2599,7 +2696,7 @@ def tan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import tan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.tan') as func:
+    >>> with mock.patch("numpy.tan") as func:
     ...     _ = tan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2613,7 +2710,7 @@ def asin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import asin
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arcsin') as func:
+    >>> with mock.patch("numpy.arcsin") as func:
     ...     _ = asin(123.4)
     >>> func.call_args
     call(123.4)
@@ -2627,7 +2724,7 @@ def acos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import acos
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arccos') as func:
+    >>> with mock.patch("numpy.arccos") as func:
     ...     _ = acos(123.4)
     >>> func.call_args
     call(123.4)
@@ -2641,7 +2738,7 @@ def atan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import atan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.arctan') as func:
+    >>> with mock.patch("numpy.arctan") as func:
     ...     _ = atan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2655,7 +2752,7 @@ def isnan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.isnan') as func:
+    >>> with mock.patch("numpy.isnan") as func:
     ...     _ = isnan(123.4)
     >>> func.call_args
     call(123.4)
@@ -2669,7 +2766,7 @@ def isinf(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch('numpy.isinf') as func:
+    >>> with mock.patch("numpy.isinf") as func:
     ...     _ = isinf(123.4)
     >>> func.call_args
     call(123.4)

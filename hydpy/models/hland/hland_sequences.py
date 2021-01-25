@@ -18,7 +18,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     The following example shows how subclass |PC| works:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 20.0, 30.0, 40.0)
@@ -27,6 +27,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> round_(fluxes.pc.average_values())
     2.5
     """
+
     mask = hland_masks.Complete()
 
     @property
@@ -47,7 +48,7 @@ class State1DSequence(sequencetools.StateSequence):
     implements mask |Soil|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 20.0, 30.0, 40.0)
@@ -57,6 +58,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> round_(states.sm.average_values())
     30.0
     """
+
     mask = hland_masks.Complete()
 
     @property

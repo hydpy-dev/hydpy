@@ -24,9 +24,11 @@ import types
 import typing
 from typing import *
 import unittest
+
 # ...from site-packages
 # import matplotlib    actual import below
 import numpy
+
 # import pandas    actual import below
 # import scipy    actual import below
 # ...from HydPy
@@ -44,51 +46,59 @@ from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
 
 EXCLUDE_MEMBERS = (
-    'CLASSES',
-    'RUN_METHODS',
-    'ADD_METHODS',
-    'INLET_METHODS',
-    'OUTLET_METHODS',
-    'RECEIVER_METHODS',
-    'SENDER_METHODS',
-    'PART_ODE_METHODS',
-    'FULL_ODE_METHODS',
-    'CONTROLPARAMETERS',
-    'DERIVEDPARAMETERS',
-    'FIXEDPARAMETERS',
-    'REQUIREDSEQUENCES',
-    'UPDATEDSEQUENCES',
-    'RESULTSEQUENCES',
-    'SOLVERPARAMETERS',
-    'SOLVERSEQUENCES',
-    'SUBMETHODS',
-    'SUBMODELS',
-    'fastaccess',
-    'fastaccess_new',
-    'fastaccess_old',
-    'pars',
-    'seqs',
+    "CLASSES",
+    "RUN_METHODS",
+    "ADD_METHODS",
+    "INLET_METHODS",
+    "OUTLET_METHODS",
+    "RECEIVER_METHODS",
+    "SENDER_METHODS",
+    "PART_ODE_METHODS",
+    "FULL_ODE_METHODS",
+    "CONTROLPARAMETERS",
+    "DERIVEDPARAMETERS",
+    "FIXEDPARAMETERS",
+    "REQUIREDSEQUENCES",
+    "UPDATEDSEQUENCES",
+    "RESULTSEQUENCES",
+    "SOLVERPARAMETERS",
+    "SOLVERSEQUENCES",
+    "SUBMETHODS",
+    "SUBMODELS",
+    "fastaccess",
+    "fastaccess_new",
+    "fastaccess_old",
+    "pars",
+    "seqs",
 )
 
-_PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
-                                          ('constants', 'Constants'),
-                                          ('control', 'Control parameters'),
-                                          ('derived', 'Derived parameters'),
-                                          ('fixed', 'Fixed parameters'),
-                                          ('solver', 'Solver parameters')))
+_PAR_SPEC2CAPT = collections.OrderedDict(
+    (
+        ("parameters", "Parameter tools"),
+        ("constants", "Constants"),
+        ("control", "Control parameters"),
+        ("derived", "Derived parameters"),
+        ("fixed", "Fixed parameters"),
+        ("solver", "Solver parameters"),
+    )
+)
 
-_SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
-                                          ('inputs', 'Input sequences'),
-                                          ('fluxes', 'Flux sequences'),
-                                          ('states', 'State sequences'),
-                                          ('logs', 'Log sequences'),
-                                          ('inlets', 'Inlet sequences'),
-                                          ('outlets', 'Outlet sequences'),
-                                          ('receivers', 'Receiver sequences'),
-                                          ('senders', 'Sender sequences'),
-                                          ('aides', 'Aide sequences')))
+_SEQ_SPEC2CAPT = collections.OrderedDict(
+    (
+        ("sequences", "Sequence tools"),
+        ("inputs", "Input sequences"),
+        ("fluxes", "Flux sequences"),
+        ("states", "State sequences"),
+        ("logs", "Log sequences"),
+        ("inlets", "Inlet sequences"),
+        ("outlets", "Outlet sequences"),
+        ("receivers", "Receiver sequences"),
+        ("senders", "Sender sequences"),
+        ("aides", "Aide sequences"),
+    )
+)
 
-_AUX_SPEC2CAPT = collections.OrderedDict((('masks', 'Masks'),))
+_AUX_SPEC2CAPT = collections.OrderedDict((("masks", "Masks"),))
 
 _all_spec2capt = _PAR_SPEC2CAPT.copy()
 _all_spec2capt.update(_SEQ_SPEC2CAPT)
@@ -97,7 +107,7 @@ _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 def _add_title(title, marker):
     """Return a title for a basemodels docstring."""
-    return ['', title, marker*len(title)]
+    return ["", title, marker * len(title)]
 
 
 def _add_lines(specification, module):
@@ -110,36 +120,42 @@ def _add_lines(specification, module):
     of their definition in the respective modules, but results in a better
     documentation structure.
     """
-    caption = _all_spec2capt.get(specification, 'dummy')
-    if caption.split()[-1] in ('parameters', 'sequences', 'Masks'):
+    caption = _all_spec2capt.get(specification, "dummy")
+    if caption.split()[-1] in ("parameters", "sequences", "Masks"):
         exists_collectionclass = True
-        name_collectionclass = caption.title().replace(' ', '')
+        name_collectionclass = caption.title().replace(" ", "")
     else:
         exists_collectionclass = False
     lines = []
     exc_mem = ", ".join(EXCLUDE_MEMBERS)
-    if specification == 'model':
-        lines += ['',
-                  f'.. autoclass:: {module.__name__}.Model',
-                  '    :members:',
-                  '    :show-inheritance:',
-                  f'    :exclude-members: {exc_mem}']
+    if specification == "model":
+        lines += [
+            "",
+            f".. autoclass:: {module.__name__}.Model",
+            "    :members:",
+            "    :show-inheritance:",
+            f"    :exclude-members: {exc_mem}",
+        ]
     elif exists_collectionclass:
-        lines += ['',
-                  f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
-                  f'.{name_collectionclass}',
-                  '    :members:',
-                  '    :noindex:',
-                  '    :show-inheritance:',
-                  f'    :exclude-members: {exc_mem}']
-    lines += ['',
-              '.. automodule:: ' + module.__name__,
-              '    :members:',
-              '    :show-inheritance:']
-    if specification == 'model':
-        lines += [f'    :exclude-members: Model, {exc_mem}']
+        lines += [
+            "",
+            f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
+            f".{name_collectionclass}",
+            "    :members:",
+            "    :noindex:",
+            "    :show-inheritance:",
+            f"    :exclude-members: {exc_mem}",
+        ]
+    lines += [
+        "",
+        ".. automodule:: " + module.__name__,
+        "    :members:",
+        "    :show-inheritance:",
+    ]
+    if specification == "model":
+        lines += [f"    :exclude-members: Model, {exc_mem}"]
     elif exists_collectionclass:
-        lines += [f'    :exclude-members:  {name_collectionclass}, {exc_mem}']
+        lines += [f"    :exclude-members:  {name_collectionclass}, {exc_mem}"]
     return lines
 
 
@@ -151,138 +167,154 @@ def autodoc_basemodel(module):
     """
     autodoc_tuple2doc(module)
     namespace = module.__dict__
-    moduledoc = namespace.get('__doc__')
-    basemodulename = namespace['__name__'].split('.')[-1]
-    modules = {key: value for key, value in namespace.items()
-               if (isinstance(value, types.ModuleType) and
-                   key.startswith(basemodulename+'_'))}
+    moduledoc = namespace.get("__doc__")
+    basemodulename = namespace["__name__"].split(".")[-1]
+    modules = {
+        key: value
+        for key, value in namespace.items()
+        if (
+            isinstance(value, types.ModuleType) and key.startswith(basemodulename + "_")
+        )
+    }
     substituter = Substituter(hydpy.substituter)
     lines = []
-    specification = 'model'
-    modulename = f'{basemodulename}_{specification}'
+    specification = "model"
+    modulename = f"{basemodulename}_{specification}"
     if modulename in modules:
         module = modules[modulename]
-        lines += _add_title('Method Features', '-')
+        lines += _add_title("Method Features", "-")
         lines += _add_lines(specification, module)
         substituter.add_module(module)
         methods = list(module.Model.get_methods())
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
-    for (title, spec2capt) in (('Parameter Features', _PAR_SPEC2CAPT),
-                               ('Sequence Features', _SEQ_SPEC2CAPT),
-                               ('Auxiliary Features', _AUX_SPEC2CAPT)):
+    for (title, spec2capt) in (
+        ("Parameter Features", _PAR_SPEC2CAPT),
+        ("Sequence Features", _SEQ_SPEC2CAPT),
+        ("Auxiliary Features", _AUX_SPEC2CAPT),
+    ):
         found_module = False
-        new_lines = _add_title(title, '-')
+        new_lines = _add_title(title, "-")
         for (specification, caption) in spec2capt.items():
-            modulename = basemodulename+'_'+specification
+            modulename = basemodulename + "_" + specification
             module = modules.get(modulename)
             if module:
                 found_module = True
-                new_lines += _add_title(caption, '.')
+                new_lines += _add_title(caption, ".")
                 new_lines += _add_lines(specification, module)
                 substituter.add_module(module)
-                _gain_and_insert_additional_information_into_docstrings(
-                    module, methods)
+                _gain_and_insert_additional_information_into_docstrings(module, methods)
         if found_module:
             lines += new_lines
-    moduledoc += '\n'.join(lines)
-    namespace['__doc__'] = moduledoc
-    basemodule = importlib.import_module(namespace['__name__'])
+    moduledoc += "\n".join(lines)
+    namespace["__doc__"] = moduledoc
+    basemodule = importlib.import_module(namespace["__name__"])
     substituter.add_module(basemodule)
     substituter.update_masters()
-    namespace['substituter'] = substituter
+    namespace["substituter"] = substituter
 
 
 def _insert_links_into_docstring(target, insertion):
     try:
-        target.__doc__ += ''
+        target.__doc__ += ""
     except BaseException:
         return
-    doc = getattr(target, '__doc__', None)
+    doc = getattr(target, "__doc__", None)
     if doc is not None:
-        position = target.__doc__.find('\n\n')
+        position = target.__doc__.find("\n\n")
         if position == -1:
-            target.__doc__ = '\n\n'.join([doc, insertion])
+            target.__doc__ = "\n\n".join([doc, insertion])
         else:
             position += 2
-            target.__doc__ = ''.join([
-                doc[:position],
-                insertion,
-                doc[position:],
-            ])
+            target.__doc__ = "".join(
+                [
+                    doc[:position],
+                    insertion,
+                    doc[position:],
+                ]
+            )
     return
 
 
 def _extend_methoddocstrings(module):
     for method in module.Model.get_methods():
         _insert_links_into_docstring(
-            method, '\n'.join(_get_methoddocstringinsertions(method)))
+            method, "\n".join(_get_methoddocstringinsertions(method))
+        )
 
 
 def _get_ending(container: Sized):
-    return 's' if len(container) > 1 else ''
+    return "s" if len(container) > 1 else ""
 
 
 def _get_methoddocstringinsertions(method):
     insertions = []
-    submethods = getattr(method, 'SUBMETHODS', ())
+    submethods = getattr(method, "SUBMETHODS", ())
     if submethods:
-        insertions.append(
-            f'    Required submethod{_get_ending(submethods)}:')
+        insertions.append(f"    Required submethod{_get_ending(submethods)}:")
         for submethod in submethods:
-            insertions.append(f'      :class:`~{submethod.__module__}.'
-                              f'{submethod.__name__}`')
-        insertions.append('')
-    for pargroup in ('control', 'derived', 'fixed', 'solver'):
-        pars = getattr(method, f'{pargroup.upper()}PARAMETERS', ())
+            insertions.append(
+                f"      :class:`~{submethod.__module__}." f"{submethod.__name__}`"
+            )
+        insertions.append("")
+    for pargroup in ("control", "derived", "fixed", "solver"):
+        pars = getattr(method, f"{pargroup.upper()}PARAMETERS", ())
         if pars:
             insertions.append(
-                f'    Requires the {pargroup} parameter{_get_ending(pars)}:')
+                f"    Requires the {pargroup} parameter{_get_ending(pars)}:"
+            )
             for par in pars:
-                insertions.append(
-                    f'      :class:`~{par.__module__}.{par.__name__}`')
-            insertions.append('')
+                insertions.append(f"      :class:`~{par.__module__}.{par.__name__}`")
+            insertions.append("")
     for statement, tuplename in (
-            ('Requires the', 'REQUIREDSEQUENCES'),
-            ('Updates the', 'UPDATEDSEQUENCES'),
-            ('Calculates the', 'RESULTSEQUENCES')):
+        ("Requires the", "REQUIREDSEQUENCES"),
+        ("Updates the", "UPDATEDSEQUENCES"),
+        ("Calculates the", "RESULTSEQUENCES"),
+    ):
         for seqtype in (
-                sequencetools.InletSequence,
-                sequencetools.ReceiverSequence,
-                sequencetools.InputSequence,
-                sequencetools.FluxSequence,
-                sequencetools.StateSequence,
-                sequencetools.LogSequence,
-                sequencetools.AideSequence,
-                sequencetools.OutletSequence,
-                sequencetools.SenderSequence):
-            seqs = [seq for seq in getattr(method, tuplename, ())
-                    if issubclass(seq, seqtype)]
+            sequencetools.InletSequence,
+            sequencetools.ReceiverSequence,
+            sequencetools.InputSequence,
+            sequencetools.FluxSequence,
+            sequencetools.StateSequence,
+            sequencetools.LogSequence,
+            sequencetools.AideSequence,
+            sequencetools.OutletSequence,
+            sequencetools.SenderSequence,
+        ):
+            seqs = [
+                seq
+                for seq in getattr(method, tuplename, ())
+                if issubclass(seq, seqtype)
+            ]
             if seqs:
                 insertions.append(
-                    f'    {statement} '
-                    f'{seqtype.__name__[:-8].lower()} '
-                    f'sequence{_get_ending(seqs)}:'
+                    f"    {statement} "
+                    f"{seqtype.__name__[:-8].lower()} "
+                    f"sequence{_get_ending(seqs)}:"
                 )
                 for seq in seqs:
                     insertions.append(
-                        f'      :class:`~{seq.__module__}.{seq.__name__}`')
-                insertions.append('')
+                        f"      :class:`~{seq.__module__}.{seq.__name__}`"
+                    )
+                insertions.append("")
     if insertions:
-        insertions.append('')
+        insertions.append("")
     return insertions
 
 
 def _gain_and_insert_additional_information_into_docstrings(module, allmethods):
     for value in vars(module).values():
         insertions = []
-        for role, description in (('SUBMETHODS', 'Required'),
-                                  ('CONTROLPARAMETERS', 'Required'),
-                                  ('DERIVEDPARAMETERS', 'Required'),
-                                  ('FIXEDPARAMETERS', 'Required'),
-                                  ('RESULTSEQUENCES', 'Calculated'),
-                                  ('UPDATEDSEQUENCES', 'Updated'),
-                                  ('REQUIREDSEQUENCES', 'Required')):
+        for role, description in (
+            ("SUBMETHODS", "Required"),
+            ("CONTROLPARAMETERS", "Required"),
+            ("DERIVEDPARAMETERS", "Required"),
+            ("FIXEDPARAMETERS", "Required"),
+            ("RESULTSEQUENCES", "Calculated"),
+            ("UPDATEDSEQUENCES", "Updated"),
+            ("REQUIREDSEQUENCES", "Required"),
+        ):
             relevantmethods = set()
             for method in allmethods:
                 if value in getattr(method, role, ()):
@@ -290,15 +322,16 @@ def _gain_and_insert_additional_information_into_docstrings(module, allmethods):
             if relevantmethods:
                 subinsertions = []
                 for method in relevantmethods:
-                    subinsertions.append(f'      :class:`~{method.__module__}.'
-                                         f'{method.__name__}`')
+                    subinsertions.append(
+                        f"      :class:`~{method.__module__}." f"{method.__name__}`"
+                    )
                 insertions.append(
-                    f'    {description} by the '
-                    f'method{_get_ending(subinsertions)}:')
+                    f"    {description} by the " f"method{_get_ending(subinsertions)}:"
+                )
                 insertions.extend(sorted(subinsertions))
-                insertions.append('\n')
+                insertions.append("\n")
 
-        _insert_links_into_docstring(value, '\n'.join(insertions))
+        _insert_links_into_docstring(value, "\n".join(insertions))
 
 
 def autodoc_applicationmodel(module):
@@ -311,7 +344,7 @@ def autodoc_applicationmodel(module):
     """
     autodoc_tuple2doc(module)
     name_applicationmodel = module.__name__
-    name_basemodel = name_applicationmodel.split('_')[0]
+    name_basemodel = name_applicationmodel.split("_")[0]
     module_basemodel = importlib.import_module(name_basemodel)
     substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module)
@@ -337,11 +370,11 @@ class Substituter:
 
     @staticmethod
     def consider_member(
-            name_member: str,
-            member: Any,
-            module,
-            class_=None,
-            ignore: Optional[Dict[str, any]] = None,
+        name_member: str,
+        member: Any,
+        module,
+        class_=None,
+        ignore: Optional[Dict[str, any]] = None,
     ):
         """Return |True| if the given member should be added to the
         substitutions. If not return |False|.
@@ -353,28 +386,24 @@ class Substituter:
 
         A constant like |numpy.nan| should be added:
 
-        >>> Substituter.consider_member(
-        ...     'nan', numpy.nan, numpy)
+        >>> Substituter.consider_member("nan", numpy.nan, numpy)
         True
 
         Members with a prefixed underscore should not be added:
 
-        >>> Substituter.consider_member(
-        ...     '_NoValue', numpy._NoValue, numpy)
+        >>> Substituter.consider_member("_NoValue", numpy._NoValue, numpy)
         False
 
         Members that are actually imported modules should not be added:
 
-        >>> Substituter.consider_member(
-        ...     'warnings', numpy.warnings, numpy)
+        >>> Substituter.consider_member("warnings", numpy.warnings, numpy)
         False
 
         Members that are actually defined in other modules should
         not be added:
 
         >>> numpy.Substituter = Substituter
-        >>> Substituter.consider_member(
-        ...     'Substituter', numpy.Substituter, numpy)
+        >>> Substituter.consider_member("Substituter", numpy.Substituter, numpy)
         False
         >>> del numpy.Substituter
 
@@ -382,15 +411,13 @@ class Substituter:
         (either from the standard library or from site-packages)
         should be added...
 
-        >>> Substituter.consider_member(
-        ...     'clip', numpy.clip, numpy)
+        >>> Substituter.consider_member("clip", numpy.clip, numpy)
         True
 
         ...but not members defined in *HydPy* submodules:
 
         >>> import hydpy
-        >>> Substituter.consider_member(
-        ...     'Node', hydpy.Node, hydpy)
+        >>> Substituter.consider_member("Node", hydpy.Node, hydpy)
         False
 
         For descriptor instances (with method `__get__`) being members
@@ -398,37 +425,35 @@ class Substituter:
 
         >>> from hydpy.auxs import anntools
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN)
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN)
         True
 
         You can decide to ignore certain members:
 
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN, {'test': 1.0})
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN,
+        ...     {"test": 1.0})
         True
         >>> Substituter.consider_member(
-        ...     'shape_neurons', anntools.ANN.shape_neurons,
-        ...     anntools, anntools.ANN,
-        ...     {'shape_neurons': anntools.ANN.shape_neurons})
+        ...     "shape_neurons", anntools.ANN.shape_neurons, anntools, anntools.ANN,
+        ...     {"shape_neurons": anntools.ANN.shape_neurons})
         False
         """
         if ignore and (name_member in ignore):
             return False
-        if name_member.startswith('_'):
+        if name_member.startswith("_"):
             return False
         if inspect.ismodule(member):
             return False
-        real_module = getattr(member, '__module__', None)
+        real_module = getattr(member, "__module__", None)
         if (module is not typing) and (name_member in typing.__all__):
             return False
         if not real_module:
             return True
         if real_module != module.__name__:
-            if class_ and hasattr(member, '__get__'):
+            if class_ and hasattr(member, "__get__"):
                 return True
-            if 'hydpy' in real_module:
+            if "hydpy" in real_module:
                 return False
             if module.__name__ not in real_module:
                 return False
@@ -479,12 +504,12 @@ class Substituter:
         'func'
         """
         if inspect.isroutine(member) or isinstance(member, numpy.ufunc):
-            return 'func'
+            return "func"
         if inspect.isclass(member):
-            return 'class'
+            return "class"
         if cython:
-            return 'func'
-        return 'const'
+            return "func"
+        return "const"
 
     def add_substitution(self, short, medium, long, module):
         """Add the given substitutions both as a `short2long` and a
@@ -494,11 +519,11 @@ class Substituter:
         short and medium descriptions are `var1` and `mod1.var1`:
 
         >>> import types
-        >>> module1 = types.ModuleType('hydpy.module1')
+        >>> module1 = types.ModuleType("hydpy.module1")
         >>> from hydpy.core.autodoctools import Substituter
         >>> substituter = Substituter()
         >>> substituter.add_substitution(
-        ...     'var1', 'mod1.var1', 'module1.variable1', module1)
+        ...     "var1", "mod1.var1", "module1.variable1", module1)
         >>> print(substituter.get_commands())
         .. var1 replace:: module1.variable1
         .. mod1.var1 replace:: module1.variable1
@@ -506,9 +531,9 @@ class Substituter:
         Adding `variable2` of `module2` has no effect on the predefined
         substitutions:
 
-        >>> module2 = types.ModuleType('hydpy.module2')
+        >>> module2 = types.ModuleType("hydpy.module2")
         >>> substituter.add_substitution(
-        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        ...     "var2", "mod2.var2", "module2.variable2", module2)
         >>> print(substituter.get_commands())
         .. var1 replace:: module1.variable1
         .. var2 replace:: module2.variable2
@@ -521,7 +546,7 @@ class Substituter:
         to `module1`) is removed:
 
         >>> substituter.add_substitution(
-        ...     'var1', 'mod2.var1', 'module2.variable1', module2)
+        ...     "var1", "mod2.var1", "module2.variable1", module2)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -532,7 +557,7 @@ class Substituter:
         result in any undesired side-effects:
 
         >>> substituter.add_substitution(
-        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        ...     "var2", "mod2.var2", "module2.variable2", module2)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -543,9 +568,9 @@ class Substituter:
         `medium2long` mapping is supported for modules not part of the
         *HydPy* package:
 
-        >>> module3 = types.ModuleType('module3')
+        >>> module3 = types.ModuleType("module3")
         >>> substituter.add_substitution(
-        ...     'var3', 'mod3.var3', 'module3.variable3', module3)
+        ...     "var3", "mod3.var3", "module3.variable3", module3)
         >>> print(substituter.get_commands())
         .. var2 replace:: module2.variable2
         .. mod1.var1 replace:: module1.variable1
@@ -559,7 +584,7 @@ class Substituter:
 
         >>> import builtins
         >>> substituter.add_substitution(
-        ...     'str', 'blt.str', ':func:`~builtins.str`', builtins)
+        ...     "str", "blt.str", ":func:`~builtins.str`", builtins)
         >>> print(substituter.get_commands())
         .. str replace:: :func:`str`
         .. var2 replace:: module2.variable2
@@ -569,10 +594,10 @@ class Substituter:
         .. mod3.var3 replace:: module3.variable3
         """
         name = module.__name__
-        if 'builtin' in name:
-            self.short2long[short] = long.split('~')[0] + long.split('.')[-1]
+        if "builtin" in name:
+            self.short2long[short] = long.split("~")[0] + long.split(".")[-1]
         else:
-            if ('hydpy' in name) and (short not in self.blacklist):
+            if ("hydpy" in name) and (short not in self.blacklist):
                 if short in self.short2long:
                     if self.short2long[short] != long:
                         self.blacklist.add(short)
@@ -594,22 +619,22 @@ class Substituter:
 
         First, the module itself is added:
 
-        >>> substituter.find('|numpy|')
+        >>> substituter.find("|numpy|")
         |numpy| :mod:`~numpy`
 
         Second, constants like |numpy.nan| are added:
 
-        >>> substituter.find('|numpy.nan|')
+        >>> substituter.find("|numpy.nan|")
         |numpy.nan| :const:`~numpy.nan`
 
         Third, functions like |numpy.clip| are added:
 
-        >>> substituter.find('|numpy.clip|')
+        >>> substituter.find("|numpy.clip|")
         |numpy.clip| :func:`~numpy.clip`
 
         Fourth, clases line |numpy.ndarray| are added:
 
-        >>> substituter.find('|numpy.ndarray|')
+        >>> substituter.find("|numpy.ndarray|")
         |numpy.ndarray| :class:`~numpy.ndarray`
 
         Method |Substituter.add_module| also searches for available
@@ -617,13 +642,16 @@ class Substituter:
 
         >>> from hydpy.core import timetools
         >>> substituter.add_module(timetools)
-        >>> substituter.find('Timegrids.init')
+        >>> substituter.find("Timegrids.init")
+        |Timegrids.initindices| :const:`~hydpy.core.timetools.Timegrids.initindices`
         |Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
+        |timetools.Timegrids.initindices| \
+:const:`~hydpy.core.timetools.Timegrids.initindices`
         |timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`
 
         >>> from hydpy.auxs import calibtools
         >>> substituter.add_module(calibtools)
-        >>> substituter.find('ReplaceIUH.update_parameters')
+        >>> substituter.find("ReplaceIUH.update_parameters")
         |ReplaceIUH.update_parameters| \
 :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
         |calibtools.ReplaceIUH.update_parameters| \
@@ -633,67 +661,60 @@ class Substituter:
 
         >>> from hydpy.cythons import pointerutils
         >>> substituter.add_module(pointerutils, cython=True)
-        >>> substituter.find('set_pointer')
+        >>> substituter.find("set_pointer")
         |PPDouble.set_pointer| \
 :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
         |pointerutils.PPDouble.set_pointer| \
 :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
         """
-        name_module = module.__name__.split('.')[-1]
-        short = ('|%s|'
-                 % name_module)
-        long = (':mod:`~%s`'
-                % module.__name__)
+        name_module = module.__name__.split(".")[-1]
+        short = "|%s|" % name_module
+        long = ":mod:`~%s`" % module.__name__
         self.short2long[short] = long
         for (name_member, member) in vars(module).items():
-            if self.consider_member(
-                    name_member, member, module):
+            if self.consider_member(name_member, member, module):
                 role = self.get_role(member, cython)
-                short = f'|{name_member}|'
-                medium = f'|{name_module}.{name_member}|'
-                long = f':{role}:`~{module.__name__}.{name_member}`'
+                short = f"|{name_member}|"
+                medium = f"|{name_module}.{name_member}|"
+                long = f":{role}:`~{module.__name__}.{name_member}`"
                 self.add_substitution(short, medium, long, module)
                 if inspect.isclass(member):
-                    annotations = getattr(member, '__annotations__', {})
+                    annotations = getattr(member, "__annotations__", {})
                     for name_submember, submember in vars(member).items():
                         if self.consider_member(
-                                name_member=name_submember,
-                                member=submember,
-                                module=module,
-                                class_=member,
-                                ignore=annotations,
+                            name_member=name_submember,
+                            member=submember,
+                            module=module,
+                            class_=member,
+                            ignore=annotations,
                         ):
                             role = self.get_role(submember, cython)
-                            short = f'|{name_member}.{name_submember}|'
+                            short = f"|{name_member}.{name_submember}|"
                             medium = (
-                                f'|{name_module}.{name_member}.'
-                                f'{name_submember}|'
+                                f"|{name_module}.{name_member}." f"{name_submember}|"
                             )
                             long = (
-                                f':{role}:`~{module.__name__}.'
-                                f'{name_member}.{name_submember}`'
+                                f":{role}:`~{module.__name__}."
+                                f"{name_member}.{name_submember}`"
                             )
                             self.add_substitution(short, medium, long, module)
                     for name_submember, submember in annotations.items():
-                        short = f'|{name_member}.{name_submember}|'
-                        medium = (
-                            f'|{name_module}.{name_member}.'
-                            f'{name_submember}|'
-                        )
+                        short = f"|{name_member}.{name_submember}|"
+                        medium = f"|{name_module}.{name_member}." f"{name_submember}|"
                         long = (
-                            f':attr:`~{module.__name__}.'
-                            f'{name_member}.{name_submember}`'
+                            f":attr:`~{module.__name__}."
+                            f"{name_member}.{name_submember}`"
                         )
                         self.add_substitution(short, medium, long, module)
 
     def add_modules(self, package):
         """Add the modules of the given package without their members."""
         for name in os.listdir(package.__path__[0]):
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
-            name = name.split('.')[0]
-            short = '|%s|' % name
-            long = ':mod:`~%s.%s`' % (package.__package__, name)
+            name = name.split(".")[0]
+            short = "|%s|" % name
+            long = ":mod:`~%s.%s`" % (package.__package__, name)
             self.short2long[short] = long
 
     def update_masters(self):
@@ -716,7 +737,7 @@ class Substituter:
         During initialization, all mappings handled by the master object
         are passed to its new slave:
 
-        >>> sub3.find('Node|')
+        >>> sub3.find("Node|")
         |Node| :class:`~hydpy.core.devicetools.Node`
         |devicetools.Node| :class:`~hydpy.core.devicetools.Node`
 
@@ -724,21 +745,21 @@ class Substituter:
 
         >>> from hydpy.core import hydpytools
         >>> sub3.add_module(hydpytools)
-        >>> sub3.find('HydPy|')
+        >>> sub3.find("HydPy|")
         |HydPy| :class:`~hydpy.core.hydpytools.HydPy`
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
-        >>> sub2.find('HydPy|')
+        >>> sub2.find("HydPy|")
 
         Through calling |Substituter.update_masters|, the `medium2long`
         mappings are passed from the slave to its master:
 
         >>> sub3.update_masters()
-        >>> sub2.find('HydPy|')
+        >>> sub2.find("HydPy|")
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
 
         Then each master object updates its own master object also:
 
-        >>> sub1.find('HydPy|')
+        >>> sub1.find("HydPy|")
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
 
         In reverse, subsequent updates of master objects to not affect
@@ -746,21 +767,21 @@ class Substituter:
 
         >>> from hydpy.core import masktools
         >>> sub1.add_module(masktools)
-        >>> sub1.find('Masks|')
+        >>> sub1.find("Masks|")
         |Masks| :class:`~hydpy.core.masktools.Masks`
         |NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
-        >>> sub2.find('Masks|')
+        >>> sub2.find("Masks|")
 
         Through calling |Substituter.update_slaves|, the `medium2long`
         mappings are passed the master to all of its slaves:
 
         >>> sub1.update_slaves()
-        >>> sub2.find('Masks|')
+        >>> sub2.find("Masks|")
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
-        >>> sub3.find('Masks|')
+        >>> sub3.find("Masks|")
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`
         """
@@ -821,8 +842,8 @@ replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
         commands = []
         for key, value in self:
             if (source is None) or (key in source):
-                commands.append('.. %s replace:: %s' % (key, value))
-        return '\n'.join(commands)
+                commands.append(".. %s replace:: %s" % (key, value))
+        return "\n".join(commands)
 
     def find(self, text):
         """Print all substitutions that include the given text string."""
@@ -842,23 +863,47 @@ def prepare_mainsubstituter():
     file of *HydPy*."""
     # pylint: disable=import-outside-toplevel
     import matplotlib
+    from matplotlib import figure
+    from matplotlib import pyplot
     import pandas
     import scipy
+
     substituter = Substituter()
-    for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
-                   os, sys, time, collections, itertools, subprocess, scipy,
-                   typing, platform, math, mimetypes, pandas, matplotlib):
+    for module in (
+        builtins,
+        numpy,
+        datetime,
+        unittest,
+        doctest,
+        inspect,
+        io,
+        os,
+        sys,
+        time,
+        collections,
+        itertools,
+        subprocess,
+        scipy,
+        typing,
+        platform,
+        math,
+        mimetypes,
+        pandas,
+        matplotlib,
+        figure,
+        pyplot,
+    ):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
         for _, name, _ in pkgutil.walk_packages(subpackage.__path__):
-            full_name = subpackage.__name__ + '.' + name
+            full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))
     substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (annutils, smoothutils, pointerutils):
         substituter.add_module(cymodule, cython=True)
-    substituter.short2long['|pub|'] = ':mod:`~hydpy.pub`'
-    substituter.short2long['|config|'] = ':mod:`~hydpy.config`'
+    substituter.short2long["|pub|"] = ":mod:`~hydpy.pub`"
+    substituter.short2long["|config|"] = ":mod:`~hydpy.config`"
     return substituter
 
 
@@ -883,71 +928,72 @@ def _number_of_line(member_tuple):
 
 
 def autodoc_module(module):
-    """Add a short summary of all implemented members to a modules docstring.
-    """
-    doc = getattr(module, '__doc__')
+    """Add a short summary of all implemented members to a modules docstring."""
+    doc = getattr(module, "__doc__")
     members = []
     for name, member in inspect.getmembers(module):
-        if ((not name.startswith('_')) and
-                (inspect.getmodule(member) is module)):
+        if (not name.startswith("_")) and (inspect.getmodule(member) is module):
             members.append((name, member))
     members = sorted(members, key=_number_of_line)
     if members:
-        lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
-                 % module.__name__]
+        lines = [
+            "\n\nModule :mod:`~%s` implements the following members:\n"
+            % module.__name__
+        ]
         for (name, member) in members:
             if inspect.isfunction(member):
-                type_ = 'func'
+                type_ = "func"
             elif inspect.isclass(member):
-                type_ = 'class'
+                type_ = "class"
             else:
-                type_ = 'obj'
-            lines.append('      * :%s:`~%s` %s'
-                         % (type_, name, objecttools.description(member)))
-        doc = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
+                type_ = "obj"
+            lines.append(
+                "      * :%s:`~%s` %s" % (type_, name, objecttools.description(member))
+            )
+        doc = doc + "\n\n" + "\n".join(lines) + "\n\n" + 80 * "_"
         module.__doc__ = doc
 
 
 _name2descr = {
-    'CLASSES': 'The following classes are selected',
-    'RECEIVER_METHODS': (
+    "CLASSES": "The following classes are selected",
+    "RECEIVER_METHODS": (
         'The following "receiver update methods" are called in '
-        'the given sequence before performing a simulation step'
+        "the given sequence before performing a simulation step"
     ),
-    'INLET_METHODS': (
+    "INLET_METHODS": (
         'The following "inlet update methods" are called in the '
-        'given sequence at the beginning of each simulation step'
+        "given sequence at the beginning of each simulation step"
     ),
-    'RUN_METHODS': (
+    "RUN_METHODS": (
         'The following "run methods" are called in the given '
-        'sequence during each simulation step'
+        "sequence during each simulation step"
     ),
-    'PART_ODE_METHODS': (
-        'The following methods define the relevant components '
-        'of a system of ODE equations (e.g. direct runoff)'
+    "PART_ODE_METHODS": (
+        "The following methods define the relevant components "
+        "of a system of ODE equations (e.g. direct runoff)"
     ),
-    'FULL_ODE_METHODS': (
-        'The following methods define the complete equations of '
-        'an ODE system (e.g. change in storage of `fast water` '
-        'due to effective precipitation and direct runoff)'
+    "FULL_ODE_METHODS": (
+        "The following methods define the complete equations of "
+        "an ODE system (e.g. change in storage of `fast water` "
+        "due to effective precipitation and direct runoff)"
     ),
-    'OUTLET_METHODS': (
+    "OUTLET_METHODS": (
         'The following "outlet update methods" are called in the '
-        'given sequence at the end of each simulation step'
+        "given sequence at the end of each simulation step"
     ),
-    'SENDER_METHODS': (
+    "SENDER_METHODS": (
         'The following "sender update methods" are called in '
-        'the given sequence after performing a simulation step'
+        "the given sequence after performing a simulation step"
     ),
-    'ADD_METHODS': (
+    "ADD_METHODS": (
         'The following "additional methods" might be called '
-        'by one or more of the other methods or are meant to '
-        'be directly called by the user'
+        "by one or more of the other methods or are meant to "
+        "be directly called by the user"
     ),
-    'SUBMODELS': (
+    "SUBMODELS": (
         'The following "submodels" might be called by one or more '
-        'of the implemented methods or are meant to be directly '
-        'called by the user'
+        "of the implemented methods or are meant to be directly "
+        "called by the user"
     ),
 }
 
@@ -962,18 +1008,19 @@ def autodoc_tuple2doc(module):
         for tuplename, descr in _name2descr.items():
             tuple_ = getattr(member, tuplename, None)
             if tuple_:
-                logstring = f'{modulename}.{membername}.{tuplename}'
+                logstring = f"{modulename}.{membername}.{tuplename}"
                 if logstring not in _loggedtuples:
                     _loggedtuples.add(logstring)
-                    lst = [f'\n\n\n    {descr}:']
-                    if tuplename == 'CLASSES':
-                        type_ = 'func'
+                    lst = [f"\n\n\n    {descr}:"]
+                    if tuplename == "CLASSES":
+                        type_ = "func"
                     else:
-                        type_ = 'class'
+                        type_ = "class"
                     for cls in tuple_:
                         lst.append(
-                            f'      * '
-                            f':{type_}:`~{cls.__module__}.{cls.__name__}`'
-                            f' {objecttools.description(cls)}')
-                    doc = getattr(member, '__doc__')
-                    member.__doc__ = doc + '\n'.join(l for l in lst)
+                            f"      * "
+                            f":{type_}:`~{cls.__module__}.{cls.__name__}`"
+                            f" {objecttools.description(cls)}"
+                        )
+                    doc = getattr(member, "__doc__")
+                    member.__doc__ = doc + "\n".join(l for l in lst)

@@ -785,11 +785,11 @@ datetime of the Python standard library for for further information.
             * axis2: sequences to be shown initially on the second axis.
         """
 
-        def _update_act_names(sequence_) -> None:
+        def _update_act_names(sequence_, name_) -> None:
             if isinstance(sequence_, act_types1):
-                act_names1.append(name)
+                act_names1.append(name_)
             if isinstance(sequence_, act_types2):
-                act_names2.append(name)
+                act_names2.append(name_)
 
         if not filename.endswith(".html"):
             filename += ".html"
@@ -820,24 +820,24 @@ datetime of the Python standard library for for further information.
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series))
-                _update_act_names(sequence)
+                _update_act_names(sequence, name)
             elif sequence.shape[0] == 1:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series[:, 0]))
-                _update_act_names(sequence)
+                _update_act_names(sequence, name)
             else:
                 for idx in range(sequence.shape[0]):
                     subname = f"{name}_{idx+1}"
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
                     sel_series.append(list(sequence.series[:, idx]))
-                    _update_act_names(sequence)
+                    _update_act_names(sequence, subname)
 
         fig = subplots.make_subplots(
             rows=1,
             cols=1,
-            specs=[[{"secondary_y": True}]],
+            specs=[[dict(secondary_y=True)]],
         )
         fig.update_xaxes(
             showgrid=False,
@@ -891,62 +891,51 @@ datetime of the Python standard library for for further information.
             ["add all to y-axis 2", [False, True]],
         ):
             subbuttons = [
-                {
-                    "label": label,
-                    "method": "restyle",
-                    "args": [
-                        {
-                            "visible": len(sel_sequences) * visibles,
-                        }
-                    ],
-                }
+                dict(
+                    label=label,
+                    method="restyle",
+                    args=[dict(visible=len(sel_sequences) * visibles)],
+                )
             ]
             for idx, name in enumerate(sel_names):
                 subbuttons.append(
-                    {
-                        "label": name,
-                        "method": "restyle",
-                        "args": [
-                            {
-                                "visible": visibles,
-                            },
-                            [2 * idx, 2 * idx + 1],
-                        ],
-                    }
+                    dict(
+                        label=name,
+                        method="restyle",
+                        args=[dict(visible=visibles), [2 * idx, 2 * idx + 1]],
+                    )
                 )
             buttons.append(subbuttons)
 
         fig.update_layout(
             hovermode="x unified",
             updatemenus=[
-                {
-                    "active": 0,
-                    "xanchor": "left",
-                    "x": 0.0,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[0],
-                },
-                {
-                    "active": 0,
-                    "xanchor": "center",
-                    "x": 0.5,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[1],
-                },
-                {
-                    "active": 0,
-                    "xanchor": "right",
-                    "x": 1.0,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[2],
-                },
+                dict(
+                    active=0,
+                    xanchor="left",
+                    x=0.0,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[0],
+                ),
+                dict(
+                    active=0,
+                    xanchor="center",
+                    x=0.5,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[1],
+                ),
+                dict(
+                    active=0,
+                    xanchor="right",
+                    x=1.0,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[2],
+                ),
             ],
-            legend={
-                "tracegroupgap": 100,
-            },
+            legend=dict(tracegroupgap=100),
         )
 
         docspath = docs.__path__[0]  # type: ignore[attr-defined, name-defined]

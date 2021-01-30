@@ -434,6 +434,8 @@ class Test:
                 array = self.get_output_array(parseq)
                 if parseq.NDIM == 0:
                     strings[-1].append(objecttools.repr_(array[idx]))
+                elif len(parseq) == 0:
+                    strings[-1].append("-")
                 else:
                     strings[-1].extend(objecttools.repr_(value) for value in array[idx])
         return strings

@@ -3009,7 +3009,7 @@ Use method `prepare_model` instead.
             if series.ndim == 1:
                 ps = pandas.Series(series, index=index)
                 ps.plot(label=label, **kwargs)
-            if series.ndim == 2:
+            if series.ndim == 2 and series.shape[1] > 0:
                 ps = pandas.Series(series[:, 0], index=index)
                 axessubplot = ps.plot(label=label, **kwargs)
                 color = kwargs.pop("color", kwargs.pop("c", None))

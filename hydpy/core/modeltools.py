@@ -2102,18 +2102,18 @@ class ELSModel(SolverModel):
             if solversequences and not isinstance(flux, solversequences):
                 continue
             results = getattr(fluxes.fastaccess, f"_{flux.name}_results")
-            absdiff = (
+            absdiff = numpy.abs(
                 results[self.numvars.idx_method] - results[self.numvars.idx_method - 1]
             )
-            self.numvars.abserror = max(
-                self.numvars.abserror, numpy.max(numpy.abs(absdiff))
-            )
+            try:
+                maxdiff = numpy.max(absdiff)
+            except ValueError:
+                continue
+            self.numvars.abserror = max(self.numvars.abserror, maxdiff)
             if self.numvars.use_relerror:
                 idxs = results[self.numvars.idx_method] != 0.0
                 if numpy.any(idxs):
-                    reldiff = numpy.abs(
-                        absdiff[idxs] / results[self.numvars.idx_method][idxs]
-                    )
+                    reldiff = absdiff[idxs] / results[self.numvars.idx_method][idxs]
                 else:
                     reldiff = numpy.inf
                 self.numvars.relerror = max(

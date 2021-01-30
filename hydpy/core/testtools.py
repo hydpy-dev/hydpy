@@ -68,12 +68,18 @@ class StdOutErr:
         self.encoding = sys.stdout.encoding
         self.texts = []
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.encoding = sys.stdout.encoding
-        sys.stdout = self
-        sys.stderr = self
+        # just for testing:
+        sys.stdout = self  # type: ignore[assignment]
+        sys.stderr = self  # type: ignore[assignment]
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback: types.TracebackType,
+    ) -> None:
         if not self.texts:
             self.print_("no failures occurred")
         else:
@@ -113,8 +119,11 @@ class Tester:
     package: str
     ispackage: bool
 
-    def __init__(self):
-        frame = inspect.currentframe().f_back
+    def __init__(self) -> None:
+        frame = inspect.currentframe()
+        assert isinstance(frame, types.FrameType)
+        frame = frame.f_back
+        assert isinstance(frame, types.FrameType)
         self.filepath = frame.f_code.co_filename
         self.package = frame.f_locals["__package__"]
         self.ispackage = os.path.split(self.filepath)[-1] == "__init__.py"
@@ -178,7 +187,7 @@ class Tester:
             if (fn.endswith(".py") and not fn.startswith("_"))
         ]
 
-    def perform_tests(self):
+    def perform_tests(self) -> None:
         """Perform all doctests either in Python or in Cython mode depending
         on the state of |Options.usecython| set in module |pub|.
 
@@ -313,16 +322,10 @@ hydpy.models.hland.hland_control.ZoneType
                 ), devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
                     projectname = exceptiontools.getattr_(
-                        hydpy.pub,
-                        "projectname",
-                        None,
+                        hydpy.pub, "projectname", None, str
                     )
                     del hydpy.pub.projectname
-                    timegrids = exceptiontools.getattr_(
-                        hydpy.pub,
-                        "timegrids",
-                        None,
-                    )
+                    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
                     del hydpy.pub.timegrids
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()
@@ -336,7 +339,8 @@ hydpy.models.hland.hland_control.ZoneType
                                 optionflags=doctest.ELLIPSIS,
                             )
                     finally:
-                        hydpy.pub.projectname = projectname
+                        if projectname is not None:
+                            hydpy.pub.projectname = projectname
                         if timegrids is not None:
                             hydpy.pub.timegrids = timegrids
                         IntegrationTest.plotting_options = plotting_options
@@ -386,7 +390,7 @@ class Test:
 
     @property
     @abc.abstractmethod
-    def raw_first_col_strings(self):
+    def raw_first_col_strings(self) -> List[str]:
         """To be implemented by the subclasses of |Test|."""
 
     @staticmethod
@@ -395,12 +399,12 @@ class Test:
         """To be implemented by the subclasses of |Test|."""
 
     @property
-    def nmb_rows(self):
+    def nmb_rows(self) -> int:
         """The number of rows of the table."""
         return len(self.raw_first_col_strings) + 1
 
     @property
-    def nmb_cols(self):
+    def nmb_cols(self) -> int:
         """The number of columns in the table."""
         nmb = 1
         for parseq in self.parseqs:
@@ -408,7 +412,7 @@ class Test:
         return nmb
 
     @property
-    def raw_header_strings(self):
+    def raw_header_strings(self) -> List[str]:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
@@ -421,7 +425,7 @@ class Test:
         return strings
 
     @property
-    def raw_body_strings(self):
+    def raw_body_strings(self) -> List[List[str]]:
         """All raw strings for the body of the table."""
         strings = []
         for (idx, first_string) in enumerate(self.raw_first_col_strings):
@@ -435,15 +439,15 @@ class Test:
         return strings
 
     @property
-    def raw_strings(self):
+    def raw_strings(self) -> List[List[str]]:
         """All raw strings for the complete table."""
         return [self.raw_header_strings] + self.raw_body_strings
 
     @property
-    def col_widths(self):
+    def col_widths(self) -> List[int]:
         """The widths of all columns of the table."""
         strings = self.raw_strings
-        widths = []
+        widths: List[int] = []
         for jdx in range(self.nmb_cols):
             widths.append(0)
             for idx in range(self.nmb_rows):
@@ -451,7 +455,7 @@ class Test:
         return widths
 
     @property
-    def col_separators(self):
+    def col_separators(self) -> List[str]:
         """The separators for adjacent columns."""
         seps = ["| "]
         for parseq in self.parseqs:
@@ -462,12 +466,16 @@ class Test:
         return seps
 
     @property
-    def row_nmb_characters(self):
+    def row_nmb_characters(self) -> int:
         """The number of characters of a single row of the table."""
         return sum(self.col_widths) + sum((len(sep) for sep in self.col_separators))
 
     @staticmethod
-    def _interleave(separators, strings, widths):
+    def _interleave(
+        separators: Sequence[str],
+        strings: Iterable[str],
+        widths: Iterable[int],
+    ) -> str:
         """Generate a table line from the given arguments."""
         lst = [
             value
@@ -477,7 +485,11 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(self, idx1=None, idx2=None) -> str:
+    def make_table(
+        self,
+        idx1: Optional[int] = None,
+        idx2: Optional[int] = None,
+    ) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -500,7 +512,11 @@ class Test:
             )
         return "\n".join(lines)
 
-    def print_table(self, idx1=None, idx2=None):
+    def print_table(
+        self,
+        idx1: Optional[int] = None,
+        idx2: Optional[int] = None,
+    ) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
 
@@ -508,13 +524,18 @@ class Test:
 class PlottingOptions:
     """Plotting options of class |IntegrationTest|."""
 
-    def __init__(self):
+    width: int
+    height: int
+    axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
+    axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
+
+    def __init__(self) -> None:
         self.width = 600
         self.height = 300
         self.selected = None
         self.activated = None
-        self.axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None
-        self.axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None
+        self.axis1 = None
+        self.axis2 = None
 
 
 class IntegrationTest(Test):
@@ -535,7 +556,12 @@ class IntegrationTest(Test):
 
     plotting_options = PlottingOptions()
 
-    def __init__(self, element, seqs=None, inits=None):
+    def __init__(
+        self,
+        element: devicetools.Element,
+        seqs=None,
+        inits=None,
+    ) -> None:
         """Prepare the element and its nodes and put them into a HydPy object
         and make their sequences ready for use for integration testing."""
         del self.inits

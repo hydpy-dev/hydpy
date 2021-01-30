@@ -182,17 +182,17 @@ class Tester:
         """Perform all doctests either in Python or in Cython mode depending
         on the state of |Options.usecython| set in module |pub|.
 
-        Usually, |Tester.perform_tests| is triggered automatically by a
-        |Cythonizer| object assigned to the same base or application
-        model as a |Tester| object.  However, you are free to call
-        it any time when in doubt of the functionality of a particular
-        base or application model.  Doing so might change some of the
-        states of your current configuration, but only temporarily
-        (we pick the |Timegrids| object of module |pub| as an example,
-        which is changed multiple times during testing but finally
-        reset to the original value):
+        Usually, |Tester.perform_tests| is triggered automatically by a |Cythonizer|
+        object assigned to the same base or application model as a |Tester| object.
+        However, you are free to call it any time when in doubt of the functionality
+        of a particular base or application model.  Doing so might change some of the
+        states of your current configuration, but only temporarily (besides
+        "projectname" we pick the |Timegrids| object of module |pub| as an example,
+        which is changed multiple times during testing but finally reset to the
+        original value):
 
         >>> from hydpy import pub
+        >>> pub.projectname = "test"
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
         >>> from hydpy.models import hland, hland_v1
@@ -228,6 +228,8 @@ class Tester:
             * hland_v1:
                 no failures occurred
 
+        >>> pub.projectname
+        'test'
         >>> pub.timegrids
         Timegrids("2000-01-01 00:00:00",
                   "2001-01-01 00:00:00",
@@ -269,6 +271,8 @@ hydpy.models.hland.hland_control.ZoneType
             * hland_states:
                 no failures occurred
 
+        >>> pub.projectname
+        'test'
         >>> pub.timegrids
         Timegrids("2000-01-01 00:00:00",
                   "2001-01-01 00:00:00",
@@ -278,18 +282,13 @@ hydpy.models.hland.hland_control.ZoneType
         color = 34 if hydpy.pub.options.usecython else 36
         with printtools.PrintStyle(color=color, font=4):
             print(
-                "Test %s %s in %sython mode."
-                % (
-                    "package" if self.ispackage else "module",
-                    self.package if self.ispackage else self.modulenames[0],
-                    "C" if hydpy.pub.options.usecython else "P",
-                )
+                f"Test {'package' if self.ispackage else 'module'} "
+                f"{self.package if self.ispackage else self.modulenames[0]} "
+                f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
             )
         with printtools.PrintStyle(color=color, font=2):
             for name in self.modulenames:
-                print(
-                    "    * %s:" % name,
-                )
+                print(f"    * {name}:")
                 # pylint: disable=not-callable
                 # pylint does understand that all options are callable
                 # except option `printincolor`!?

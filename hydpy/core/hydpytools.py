@@ -15,6 +15,7 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
@@ -1830,8 +1831,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
         for element in self.elements:
-            name = str(exceptiontools.getattr_(element, "model", "unprepared"))
-            modeltypes[name] += 1
+            model = exceptiontools.getattr_(
+                element, "model", "unprepared", modeltools.Model
+            )
+            modeltypes[str(model)] += 1
         return dict(sorted(modeltypes.items()))
 
     def open_files(self, idx: int = 0) -> None:

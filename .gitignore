@@ -27,6 +27,7 @@ dist
 gui
 helpers
 examples
+cover/*
 coverage.html
 coverage.xml
 .coverage

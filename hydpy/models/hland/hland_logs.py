@@ -30,16 +30,16 @@ class QUH(sequencetools.LogSequence):
     When a wrong number of input values is given, |QUH| distributes
     their sum equally and emits the following warning:
 
-    >>> logs.quh(1.0, 2.0, 3.0, 0.0)
+    >>> logs.quh(1.0, 2.0, 3.0, 0.0)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     UserWarning: Due to the following problem, log sequence `quh` of \
 element `?` handling model `hland` could be initialised with a averaged \
 value only: While trying to set the value(s) of variable `quh`, the \
 following error occurred: While trying to convert the value(s) \
-`(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3,)` and type \
+`(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3...)` and type \
 `float`, the following error occurred: could not broadcast input array \
-from shape (4,) into shape (3,)
+from shape (4...) into shape (3...)
 
     >>> logs.quh
     quh(3.0, 3.0, 0.0)

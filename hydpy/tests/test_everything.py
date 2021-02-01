@@ -123,6 +123,15 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                             optionflags=doctest.ELLIPSIS,
                         ),
                     )
+                elif sys.version_info[:2] < (3, 7):
+                    # numpy 1.20 fixed some error messages but does not support
+                    # Python 3.6, which we still need for compatibility with arcpy
+                    suite.addTest(
+                        doctest.DocTestSuite(
+                            module,
+                            optionflags=doctest.IGNORE_EXCEPTION_DETAIL,
+                        ),
+                    )
                 else:
                     suite.addTest(
                         doctest.DocTestSuite(

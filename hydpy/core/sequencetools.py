@@ -3550,7 +3550,7 @@ class StateSequence(
 the following error occurred: While trying to convert the value(s) \
 `(1.0, 2.0, 3.0)` to a numpy ndarray with shape `(2,)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (3) into shape (2)
+shape (3,) into shape (2,)
 
     Just for completeness:  Method |StateSequence.new2old| effectively
     takes the new values as old ones, but more efficiently than using
@@ -3890,7 +3890,7 @@ sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
 sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
 While trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with \
 shape `(1,)` and type `float`, the following error occurred: could not \
-broadcast input array from shape (2) into shape (1)
+broadcast input array from shape (2,) into shape (1,)
 
         In the example above, the 1-dimensional inlet sequence
         |hstream_inlets.Q| points to the value of a single |NodeSequence|

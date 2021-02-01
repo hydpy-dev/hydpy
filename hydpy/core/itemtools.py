@@ -266,10 +266,9 @@ class ChangeItem(ExchangeItem):
         >>> item.value = 1, 2
         Traceback (most recent call last):
         ...
-        ValueError: When trying to convert the value(s) `(1, 2)` assigned \
-to SetItem `ic` to a numpy array of shape `()` and type `float`, the \
-following error occurred: could not broadcast input array from shape (2) \
-into shape ()
+        ValueError: When trying to convert the value(s) `(1, 2)` assigned to \
+SetItem `ic` to a numpy array of shape `()` and type `float`, the following error \
+occurred: could not broadcast input array from shape (2,) into shape ()
         """
         return self._value
 

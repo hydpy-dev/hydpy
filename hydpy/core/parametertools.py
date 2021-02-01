@@ -1201,7 +1201,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
 the following error occurred: While trying to convert the value(s) \
 `[ 0.5  1. ]` to a numpy ndarray with shape `(2, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (2) into shape (2,3)
+shape (2,) into shape (2,3)
     """
 
     TIME: Optional[bool]
@@ -2323,8 +2323,8 @@ following error occurred: float() argument must be a string or a number...
     ...
     ValueError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `par` of element `?`, the \
-following error occurred: could not broadcast input array from shape (2) \
-into shape (3)
+following error occurred: could not broadcast input array from shape (2,) \
+into shape (3,)
 
     If you do not require seasonally varying parameter values in a specific
     situation, you can pass a single positional argument:
@@ -2348,7 +2348,7 @@ into shape (3)
 the following error occurred: While trying to convert the value(s) \
 `[ 1.  2.]` to a numpy ndarray with shape `(366, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (2) into shape (366,3)
+shape (2,) into shape (366,3)
 
     .. testsetup::
 
@@ -3063,13 +3063,13 @@ as a keyword, but the following keywords are not: `south`.
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the row related attribute `north`, the following error \
-occurred: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: could not broadcast input array from shape (3,) into shape (2,)
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the column related attribute `apr2sep`, the following error \
-occurred: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: could not broadcast input array from shape (3,) into shape (2,)
 
     >>> iswarm.shape = (1, 1)
 

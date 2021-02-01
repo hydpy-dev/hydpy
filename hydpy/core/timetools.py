@@ -2467,7 +2467,9 @@ are required, but the given array consist of 12 entries/rows only.
         Traceback (most recent call last):
         ...
         ValueError: While trying to prefix timegrid information to the given \
-array, the following error occurred: setting an array element with a sequence.
+array, the following error occurred: setting an array element with a sequence. \
+The requested array has an inhomogeneous shape after 1 dimensions. \
+The detected shape was (2,) + inhomogeneous part.
 
         The following error occurs when the given array does not fit to
         the defined time grid.

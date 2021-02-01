@@ -33,7 +33,7 @@ element `?` handling model `hstream` could be  initialised with an averaged \
 value only: While trying to set the value(s) of variable `qjoints`, the \
 following error occurred: While trying to convert the value(s) `(1.0, 2.0)` \
 to a numpy ndarray with shape `(3,)` and type `float`, the following error \
-occurred: could not broadcast input array from shape (2) into shape (3)
+occurred: could not broadcast input array from shape (2,) into shape (3,)
 
     >>> states.qjoints
     qjoints(1.5, 1.5, 1.5)

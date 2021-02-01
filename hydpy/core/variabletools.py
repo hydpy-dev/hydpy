@@ -1151,7 +1151,7 @@ no values have been defined so far.
         ValueError: While trying to set the value(s) of variable `var`, \
 the following error occurred: While trying to convert the value(s) `(1, 2)` \
 to a numpy ndarray with shape `(2, 3)` and type `int`, the following error \
-occurred: could not broadcast input array from shape (2) into shape (2,3)
+occurred: could not broadcast input array from shape (2,) into shape (2,3)
         >>> var.value
         array([[2, 2, 2],
                [2, 2, 2]])

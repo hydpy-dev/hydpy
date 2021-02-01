@@ -471,7 +471,7 @@ No method `GET_missing` available.
 execute method `POST_parameteritemvalues`, the following error occurred: \
 When trying to convert the value(s) `[]` assigned to SetItem `alpha` to a \
 numpy array of shape `()` and type `float`, the following error occurred: \
-could not broadcast input array from shape (0) into shape ()...
+could not broadcast input array from shape (0,) into shape ()...
 
     Some methods require identity information, passed as query parameter
     `id`, used for internal bookmarking:

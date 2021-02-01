@@ -354,7 +354,7 @@ def controlcheck(
     While trying to set the value(s) of variable `sm`, the following error \
 occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to \
 a numpy ndarray with shape `(12,)` and type `float`, the following error \
-occurred: could not broadcast input array from shape (2) into shape (12)
+occurred: could not broadcast input array from shape (2,) into shape (12,)
     ...
 
     With a little trick, we can fake to be "inside" condition file

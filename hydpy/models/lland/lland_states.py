@@ -104,6 +104,13 @@ class TauS(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
 
+class Psi(lland_sequences.State1DSequence):
+    """Abflussbeiwert (runoff generation coefficient) [-]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, 1.0)
+    mask = lland_masks.Soil()
+
+
 class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
     [MJ/m²]."""

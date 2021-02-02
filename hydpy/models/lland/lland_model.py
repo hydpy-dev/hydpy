@@ -7331,6 +7331,99 @@ class Calc_QDB_V1(modeltools.Method):
                 flu.qdb[k] = max(flu.qdb[k], 0.0)
 
 
+class Calc_Psi_V1(modeltools.Method):
+    r"""ToDo
+
+    Basic equation:
+      :math:`\Psi_{t+1} =
+      c_w \cdot
+      \left(1 - cos \left( \pi \cdot min \left(P_t / c_p, 1 \right) \right)  \right)
+      + (1 - c_w) \cdot \Psi_t`
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep("1d")
+    >>> nhru(6)
+    >>> lnk(ACKER)
+    >>> psif(10.0)
+    >>> psiw(1.0)
+    >>> fluxes.wada = 0.0, 2.5, 5.0, 7.5, 10.0, 12.5
+    >>> states.psi = 0.0
+    >>> model.calc_psi_v1()
+    >>> states.psi
+    psi(0.0, 0.146447, 0.5, 0.853553, 1.0, 1.0)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.PsiF,
+        lland_control.PsiW,
+    )
+    FIXEDPARAMETERS = (lland_fixed.Pi,)
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
+    UPDATEDSEQUENCES = (lland_states.Psi,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
+                sta.psi[k] = modelutils.nan
+            else:
+                if con.psif[k] == 0.0:
+                    d_forcing = 1.0
+                else:
+                    d_forcing = (
+                        1.0
+                        - modelutils.cos(min(flu.wada[k] / con.psif[k], 1.0) * fix.pi)
+                    ) / 2.0
+                sta.psi[k] = con.psiw[k] * d_forcing + (1.0 - con.psiw[k]) * sta.psi[k]
+
+
+class Calc_QDB_V2(modeltools.Method):
+    """ToDo"""
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.WMax,
+        lland_control.BSf,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.WaDa,
+        lland_states.Psi,
+        lland_states.BoWa,
+    )
+    RESULTSEQUENCES = (lland_fluxes.QDB,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == WASSER:
+                flu.qdb[k] = 0.0
+            elif (con.lnk[k] in (VERS, FLUSS, SEE)) or (con.wmax[k] <= 0.0):
+                flu.qdb[k] = flu.wada[k]
+            else:
+                flu.qdb[k] = sta.psi[k] * flu.wada[k]
+                d_rest = flu.wada[k] - flu.qdb[k]
+                if sta.bowa[k] < con.wmax[k]:
+                    d_sfa = (1.0 - sta.bowa[k] / con.wmax[k]) ** (
+                        1.0 / (con.bsf[k] + 1.0)
+                    ) - (d_rest / ((con.bsf[k] + 1.0) * con.wmax[k]))
+                else:
+                    d_sfa = 0.0
+                flu.qdb[k] += sta.bowa[k] + d_rest - con.wmax[k]
+                if d_sfa > 0.0:
+                    flu.qdb[k] += d_sfa ** (con.bsf[k] + 1.0) * con.wmax[k]
+                flu.qdb[k] = max(flu.qdb[k], 0.0)
+
+
 class Update_QDB_V1(modeltools.Method):
     """Update the direct runoff according to the degree of frost sealing.
 
@@ -8747,6 +8840,8 @@ class Model(modeltools.AdHocModel):
         Calc_QIB1_V1,
         Calc_QIB2_V1,
         Calc_QDB_V1,
+        Calc_Psi_V1,
+        Calc_QDB_V2,
         Update_QDB_V1,
         Calc_BoWa_V1,
         Calc_QBGZ_V1,

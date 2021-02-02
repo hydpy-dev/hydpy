@@ -41,7 +41,7 @@ class Quad(modeltools.Submodel):
     def apply_method0(self, value: float) -> float:
         """Apply the model method to be integrated.
 
-        For example, submodel |wland_model.QuadDVEq| integrates method
+        For example, submodel |wland_model.QuadDVEq_V1| integrates method
         |wland_model.Return_DVH_V1|:
 
         >>> from hydpy.models.wland import *
@@ -54,7 +54,7 @@ class Quad(modeltools.Submodel):
         >>> from hydpy import round_
         >>> round_(model.return_dvh_v1(600.0))
         0.05178
-        >>> round_(model.quaddveq.apply_method0(600.0))
+        >>> round_(model.quaddveq_v1.apply_method0(600.0))
         0.05178
         """
         return self._cysubmodel.apply_method0(value)

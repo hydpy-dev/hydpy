@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+"""
+.. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
+"""
 
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.auxs import quadtools
+from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.cythons.autogen import smoothutils
 from hydpy.models.wland import wland_control
@@ -1218,10 +1220,16 @@ class Return_DVH_V1(modeltools.Method):
     the groundwater table.
 
     Basic equation (discontinous):
-      :math:`DHD = Thetas \cdot \left(1 - \left( \frac{h}{PsiAE} \right)^{-1/b} \right)`
+      .. math::
+        DVH = \begin{cases}
+          0 &|\ DG \leq PsiAE
+          \\
+          ThetaS \cdot \left(1 - \left( \frac{h}{PsiAE} \right)^{-1/b} \right)
+          &|\ PsiAE < DG
+        \end{cases}
 
     This power law is the differential of the equation underlying method
-    |Calc_DVEq_V1| with respect to height.  :cite:`ref-Brauer2014 also cites it
+    |Calc_DVEq_V1| with respect to height.  :cite:`ref-Brauer2014` also cites it
     (equation 6) but does not use it directly.
 
     Examples:
@@ -1268,7 +1276,6 @@ class Return_DVH_V1(modeltools.Method):
         wland_control.B,
     )
     DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (wland_states.DG,)
 
     @staticmethod
     def __call__(model: modeltools.Model, h: float) -> float:
@@ -1282,9 +1289,7 @@ class Calc_DVEq_V2(modeltools.Method):
     r"""Calculate the equilibrium storage deficit of the vadose zone.
 
     Basic equation:
-
-     .. math::
-        DHEq = \int_{0}^{DG} Return\_DHD\_V1(h) \ \ dh
+      :math:`DHEq = \int_{0}^{DG} Return\_DVH\_V1(h) \ \ dh`
 
     Method |Calc_DVEq_V2| integrates |Return_DVH_V1| numerically, based on the
     Lobatto-Gauß quadrature.  Hence, it should give nearly identical results as
@@ -1355,6 +1360,7 @@ class Calc_DVEq_V2(modeltools.Method):
         wland_control.ThetaS,
         wland_control.PsiAE,
         wland_control.B,
+        wland_control.SH,
     )
     DERIVEDPARAMETERS = (
         wland_derived.NUG,
@@ -1362,6 +1368,7 @@ class Calc_DVEq_V2(modeltools.Method):
     )
     REQUIREDSEQUENCES = (wland_states.DG,)
     RESULTSEQUENCES = (wland_aides.DVEq,)
+    SUBMETHODS = (Return_DVH_V1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1372,13 +1379,554 @@ class Calc_DVEq_V2(modeltools.Method):
         if der.nug:
             d_x0 = -10.0 * con.sh
             if sta.dg > con.psiae:
-                d_below = model.quaddveq.integrate(d_x0, con.psiae, 2, 20, 1e-8)
-                d_above = model.quaddveq.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
+                d_below = model.quaddveq_v1.integrate(d_x0, con.psiae, 2, 20, 1e-8)
+                d_above = model.quaddveq_v1.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
                 aid.dveq = d_below + d_above
             else:
-                aid.dveq = model.quaddveq.integrate(d_x0, sta.dg, 2, 20, 1e-8)
+                aid.dveq = model.quaddveq_v1.integrate(d_x0, sta.dg, 2, 20, 1e-8)
         else:
             aid.dveq = modelutils.nan
+
+
+class Calc_DVEq_V3(modeltools.Method):
+    r"""Calculate the equilibrium storage deficit of the vadose zone.
+
+    Basic equation (discontinuous):
+      .. math::
+        DHEq = ThetaR \cdot DG + \begin{cases}
+          0 &|\ DG \leq PsiAE
+          \\
+          ThetaS \cdot \left( DG - \frac{DG^{1-1/b}}{(1-1/b) \cdot PsiAE^{-1/B}} -
+          \frac{PsiAE}{1-B} \right) &|\ PsiAE < DG
+        \end{cases}
+
+    Method |Calc_DVEq_V3| extends the original `WALRUS`_ relationship between the
+    groundwater depth and the equilibrium water deficit of the vadose zone defined
+    by equation 5 of :cite:`ref-Brauer2014` and implemented into application model
+    |wland| by method |Calc_DVEq_V1|.  Parameter |ThetaR| introduces a (small)
+    amount of water to fill the tension-saturated area directly above the groundwater
+    table.  This "residual saturation" allows the direct injection of water into
+    groundwater without risking infinitely fast groundwater depth changes.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_dveq_v3,
+        ...     last_example=8,
+        ...     parseqs=(states.dg, aides.dveq)
+        ... )
+        >>> test.nexts.dg = 200.0, 299.0, 300.0, 301.0, 400.0, 800.0, 1600.0, 3200.0
+
+        Without smoothing:
+
+        >>> test()
+        | ex. |     dg |       dveq |
+        -----------------------------
+        |   1 |  200.0 |        2.0 |
+        |   2 |  299.0 |       2.99 |
+        |   3 |  300.0 |        3.0 |
+        |   4 |  301.0 |    3.01013 |
+        |   5 |  400.0 |   5.152935 |
+        |   6 |  800.0 |  28.718393 |
+        |   7 | 1600.0 | 111.172058 |
+        |   8 | 3200.0 | 337.579867 |
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.NUG,)
+    REQUIREDSEQUENCES = (wland_states.DG,)
+    RESULTSEQUENCES = (wland_aides.DVEq,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nug:
+            if sta.dg < con.psiae:
+                aid.dveq = con.thetar * sta.dg
+            else:
+                aid.dveq = (con.thetas - con.thetar) * (
+                    sta.dg
+                    - sta.dg ** (1.0 - 1.0 / con.b)
+                    / (1.0 - 1.0 / con.b)
+                    / con.psiae ** (-1.0 / con.b)
+                    - con.psiae / (1.0 - con.b)
+                ) + con.thetar * sta.dg
+        else:
+            aid.dveq = modelutils.nan
+
+
+class Return_DVH_V2(modeltools.Method):
+    r"""Return the storage deficit of the vadose zone at a specific height above
+    the groundwater table.
+
+    Basic equation (discontinous):
+      .. math::
+        DVH = ThetaR + \begin{cases}
+          0 &|\ DG \leq PsiAE
+          \\
+          (ThetaS-ThetaR) \cdot \left(1 - \left( \frac{h}{PsiAE} \right)^{-1/b} \right)
+          &|\ PsiAE < DG
+        \end{cases}
+
+    The given equation is the differential of the equation underlying method
+    |Calc_DVEq_V3| with respect to height.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+
+        With smoothing:
+
+        >>> from hydpy import repr_
+        >>> sh(0.0)
+        >>> derived.rh1.update()
+        >>> for h in [200.0, 299.0, 300.0, 301.0, 400.0, 500.0, 600.0]:
+        ...     print(repr_(h), repr_(model.return_dvh_v2(h)))
+        200.0 0.01
+        299.0 0.01
+        300.0 0.01
+        301.0 0.010259
+        400.0 0.031806
+        500.0 0.047877
+        600.0 0.060485
+
+        Without smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> for h in [200.0, 299.0, 300.0, 301.0, 400.0, 500.0, 600.0]:
+        ...     print(repr_(h), repr_(model.return_dvh_v2(h)))
+        200.0 0.01
+        299.0 0.010001
+        300.0 0.010039
+        301.0 0.01026
+        400.0 0.031806
+        500.0 0.047877
+        600.0 0.060485
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.RH1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, h: float) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        d_h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
+        return con.thetar + (
+            (con.thetas - con.thetar) * (1.0 - (d_h / con.psiae) ** (-1.0 / con.b))
+        )
+
+
+class Calc_DVEq_V4(modeltools.Method):
+    r"""Calculate the equilibrium storage deficit of the vadose zone.
+
+    Basic equation:
+      :math:`DHEq = \int_{0}^{DG} Return\_DVH\_V2(h) \ \ dh`
+
+    Method |Calc_DVEq_V4| integrates |Return_DVH_V2| numerically, based on the
+    Lobatto-Gauß quadrature.  The short discussion in the documentation on
+    |Calc_DVEq_V2| (which integrates |Return_DVH_V1|) also applies on |Calc_DVEq_V4|.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> derived.nug(0)
+        >>> model.calc_dveq_v4()
+        >>> aides.dveq
+        dveq(nan)
+
+        >>> derived.nug(1)
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_dveq_v4,
+        ...     last_example=8,
+        ...     parseqs=(states.dg, aides.dveq)
+        ... )
+        >>> test.nexts.dg = 200.0, 299.0, 300.0, 301.0, 400.0, 800.0, 1600.0, 3200.0
+
+        Without smoothing:
+
+        >>> sh(0.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |     dg |       dveq |
+        -----------------------------
+        |   1 |  200.0 |        2.0 |
+        |   2 |  299.0 |       2.99 |
+        |   3 |  300.0 |        3.0 |
+        |   4 |  301.0 |    3.01013 |
+        |   5 |  400.0 |   5.152935 |
+        |   6 |  800.0 |  28.718393 |
+        |   7 | 1600.0 | 111.172058 |
+        |   8 | 3200.0 | 337.579867 |
+
+        With smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |     dg |       dveq |
+        -----------------------------
+        |   1 |  200.0 |        2.1 |
+        |   2 |  299.0 |       3.09 |
+        |   3 |  300.0 |   3.100032 |
+        |   4 |  301.0 |   3.110172 |
+        |   5 |  400.0 |   5.252979 |
+        |   6 |  800.0 |  28.818477 |
+        |   7 | 1600.0 | 111.272224 |
+        |   8 | 3200.0 | 337.680198 |
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+        wland_control.SH,
+    )
+    DERIVEDPARAMETERS = (
+        wland_derived.NUG,
+        wland_derived.RH1,
+    )
+    REQUIREDSEQUENCES = (wland_states.DG,)
+    RESULTSEQUENCES = (wland_aides.DVEq,)
+    SUBMETHODS = (Return_DVH_V2,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nug:
+            d_x0 = -10.0 * con.sh
+            if sta.dg > con.psiae:
+                d_below = model.quaddveq_v2.integrate(d_x0, con.psiae, 2, 20, 1e-8)
+                d_above = model.quaddveq_v2.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
+                aid.dveq = d_below + d_above
+            else:
+                aid.dveq = model.quaddveq_v2.integrate(d_x0, sta.dg, 2, 20, 1e-8)
+        else:
+            aid.dveq = modelutils.nan
+
+
+class Return_ErrorDV_V1(modeltools.Method):
+    r"""Calculate the difference between the equilibrium and the actual storage
+    deficit of the vadose zone.
+
+    Basic equation:
+      :math:`DVEq_{Calc\_DVEq\_V3} - DV`
+
+    Method |Return_ErrorDV_V1| uses |Calc_DVEq_V3| to calculate the equilibrium
+    deficit corresponding to the current groundwater depth.  The following example
+    shows that it resets the values |DG| and |DVEq|,  which it needs to change
+    temporarily, to their original states.
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> states.dg = -9.0
+        >>> aides.dveq = -99.0
+        >>> states.dv = 3.152935
+        >>> from hydpy import round_
+        >>> round_(model.return_errordv_v1(400.0))
+        2.0
+        >>> states.dg
+        dg(-9.0)
+        >>> aides.dveq
+        dveq(-99.0)
+
+    Technical checks:
+
+        As mentioned above, method |Return_ErrorDV_V1| changes the values of the
+        sequences |DG| and |DVEq|, but only temporarily.  Hence, we do not include
+        them into the method specifications, even if the following check considers
+        this to be erroneous:
+
+        >>> from hydpy.core.testtools import check_selectedvariables
+        >>> from hydpy.models.wland.wland_model import Return_ErrorDV_V1
+        >>> print(check_selectedvariables(Return_ErrorDV_V1))
+        Definitely missing: dveq and dg
+        Possibly missing (REQUIREDSEQUENCES):
+            Calc_DVEq_V3: DG
+        Possibly missing (RESULTSEQUENCES):
+            Calc_DVEq_V3: DVEq
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.NUG,)
+    REQUIREDSEQUENCES = (wland_states.DV,)
+    SUBMETHODS = (Calc_DVEq_V3,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, dg: float) -> float:
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        d_dveq, d_dg = aid.dveq, sta.dg
+        sta.dg = dg
+        model.calc_dveq_v3()
+        d_delta = aid.dveq - sta.dv
+        aid.dveq, sta.dg = d_dveq, d_dg
+        return d_delta
+
+
+class Calc_DGEq_V1(modeltools.Method):
+    r"""Calculate the equilibrium groundwater depth.
+
+    Method |Calc_DGEq_V1| calculates the equilibrium groundwater depth for the
+    current water deficit of the vadose zone, following methods |Return_DVH_V2|
+    and |Calc_DVEq_V3|.  As we are not aware of an analytical solution, we solve
+    it numerically via class |PegasusDGEq|, which performs an iterative root-search
+    based on the `Pegasus method`_.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_dgeq_v1,
+        ...     last_example=13,
+        ...     parseqs=(states.dv, aides.dgeq)
+        ... )
+        >>> test.nexts.dv = (
+        ...     -1.0, -0.01, 0.0, 0.01, 1.0, 2.0, 2.99, 3.0,
+        ...     3.01012983, 5.1529353, 28.71839324, 111.1720584, 337.5798671)
+        >>> test()
+        | ex. |         dv |   dgeq |
+        -----------------------------
+        |   1 |       -1.0 |    0.0 |
+        |   2 |      -0.01 |    0.0 |
+        |   3 |        0.0 |    0.0 |
+        |   4 |       0.01 |    1.0 |
+        |   5 |        1.0 |  100.0 |
+        |   6 |        2.0 |  200.0 |
+        |   7 |       2.99 |  299.0 |
+        |   8 |        3.0 |  300.0 |
+        |   9 |    3.01013 |  301.0 |
+        |  10 |   5.152935 |  400.0 |
+        |  11 |  28.718393 |  800.0 |
+        |  12 | 111.172058 | 1600.0 |
+        |  13 | 337.579867 | 3200.0 |
+    """
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.NUG,)
+    REQUIREDSEQUENCES = (wland_states.DV,)
+    RESULTSEQUENCES = (wland_aides.DGEq,)
+    SUBMETHODS = (Return_ErrorDV_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.psiae.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if sta.dv > 0.0:
+            d_error = model.return_errordv_v1(con.psiae)
+            if d_error <= 0.0:
+                aid.dgeq = model.pegasusdgeq.find_x(
+                    con.psiae,
+                    10000.0,
+                    con.psiae,
+                    1000000.0,
+                    0.0,
+                    1e-8,
+                    20,
+                )
+            else:
+                aid.dgeq = model.pegasusdgeq.find_x(
+                    0.0,
+                    con.psiae,
+                    0.0,
+                    con.psiae,
+                    0.0,
+                    1e-8,
+                    20,
+                )
+        else:
+            aid.dgeq = 0.0
+
+
+class Calc_GF_V1(modeltools.Method):
+    r"""Calculate the gain factor for changes in groundwater depth.
+
+    Basic equation (discontinuous):
+     .. math::
+        GF = \begin{cases}
+          0 &|\ DG \leq 0
+          \\
+          Return\_DVH\_V2(DGEq - DG)^{-1} &|\ 0 < DG
+        \end{cases}
+
+    The original `WALRUS`_ model attributes a passive role to groundwater dynamics.
+    All water entering or leaving the underground is added to or subtracted from the
+    vadose zone, and the groundwater table only reacts on such changes until it is in
+    equilibrium with the updated water deficit in the vadose zone.  Hence, the movement
+    of the groundwater table is generally slow.  However, in catchments with
+    near-surface water tables, we often observe fast responses of groundwater to input
+    forcings, maybe due to rapid infiltration along macropores or the re-infiltration
+    of channel water.  In such situations, where the input water somehow bypasses the
+    vadose zone, the speed of the rise of the groundwater table depends not only on
+    the effective pore size of the soil material but also on the soil's degree of
+    saturation directly above the groundwater table.  The smaller the remaining pore
+    size, the larger the fraction between the water table's rise and the actual
+    groundwater recharge.  We call this fraction the "gain factor" (|GF|).
+
+    The `WALRUS`_ model does not explicitly account for the soil moisture in different
+    depths above the groundwater table.  To keep the vertically lumped approach, we
+    use the difference between the actual (|DG|) and the equilibrium groundwater depth
+    (|DGEq|) as an indicator for the wetness above the groundwater table.  When |DG|
+    is identical with |DGEq|, soil moisture and groundwater are in equilibrium.  Then,
+    the tension-saturated area is fully developed, and the groundwater table moves
+    quickly (depending on |ThetaR|).  The opposite case is when |DG| is much smaller
+    than |DGEq|.  Such a situation occurs after a fast rise of the groundwater table
+    when the soil water still needs much redistribution before it can be in equilibrium
+    with groundwater.  In the most extreme case, the gain factor is just as large as
+    indicated by the effective pore size alone (depending on |ThetaS|).
+
+    The above discussion only applies as long as the groundwater table is below the
+    soil surface.  For large-scale ponding (see :cite:`ref-Brauer2014`, section 5.11),
+    we set |GF| to zero.  See the documentation on the methods |Calc_CDG_V1| and
+    |Calc_FGS_V1| for related discussions.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> thetar(0.01)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> sh(0.0)
+        >>> aides.dgeq = 5000.0
+        >>> derived.rh1.update()
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_gf_v1,
+        ...     last_example=16,
+        ...     parseqs=(states.dg, aides.gf)
+        ... )
+        >>> test.nexts.dg = (
+        ...     -10.0, -1.0, 0.0, 1.0, 10.0,
+        ...     1000.0, 2000.0, 3000.0, 4000.0, 4500.0, 4600.0,
+        ...     4690.0, 4699.0, 4700.0, 4701.0, 4710.0)
+        >>> test()
+        | ex. |     dg |        gf |
+        ----------------------------
+        |   1 |  -10.0 |       0.0 |
+        |   2 |   -1.0 |       0.0 |
+        |   3 |    0.0 |   2.81175 |
+        |   4 |    1.0 |  5.623782 |
+        |   5 |   10.0 |  5.626316 |
+        |   6 | 1000.0 |  5.963555 |
+        |   7 | 2000.0 |  6.496601 |
+        |   8 | 3000.0 |  7.510869 |
+        |   9 | 4000.0 | 10.699902 |
+        |  10 | 4500.0 |  20.88702 |
+        |  11 | 4600.0 | 31.440737 |
+        |  12 | 4690.0 | 79.686112 |
+        |  13 | 4699.0 | 97.470815 |
+        |  14 | 4700.0 |     100.0 |
+        |  15 | 4701.0 |     100.0 |
+        |  16 | 4710.0 |     100.0 |
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |     dg |        gf |
+        ----------------------------
+        |   1 |  -10.0 |       0.0 |
+        |   2 |   -1.0 |  0.056232 |
+        |   3 |    0.0 |   2.81175 |
+        |   4 |    1.0 |  5.567544 |
+        |   5 |   10.0 |  5.626316 |
+        |   6 | 1000.0 |  5.963555 |
+        |   7 | 2000.0 |  6.496601 |
+        |   8 | 3000.0 |  7.510869 |
+        |   9 | 4000.0 | 10.699902 |
+        |  10 | 4500.0 |  20.88702 |
+        |  11 | 4600.0 | 31.440737 |
+        |  12 | 4690.0 | 79.686112 |
+        |  13 | 4699.0 | 97.465434 |
+        |  14 | 4700.0 | 99.609455 |
+        |  15 | 4701.0 | 99.994314 |
+        |  16 | 4710.0 |     100.0 |
+    """
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.ThetaR,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.RH1,)
+    REQUIREDSEQUENCES = (
+        wland_states.DG,
+        wland_aides.DGEq,
+    )
+    RESULTSEQUENCES = (wland_aides.GF,)
+    SUBMETHODS = (Return_DVH_V2,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        aid.gf = smoothutils.smooth_logistic1(sta.dg, der.rh1) / model.return_dvh_v2(
+            aid.dgeq - sta.dg
+        )
 
 
 class Calc_CDG_V1(modeltools.Method):
@@ -1388,7 +1936,7 @@ class Calc_CDG_V1(modeltools.Method):
     Basic equation (discontinuous):
       :math:`CDG = \frac{DV-min(DVEq, DG)}{CV}`
 
-    Note that this equation slightly differs from equation 6 of :cite:`ref-Brauer2014.
+    Note that this equation slightly differs from equation 6 of :cite:`ref-Brauer2014`.
     In case of large-scale ponding, |DVEq| always stays at zero and we let |DG|
     take control of the speed of the water table movement.  See the documentation
     on method |Calc_FGS_V1| for additional information on the differences between
@@ -1448,8 +1996,12 @@ class Calc_CDG_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.CV,)
-    DERIVEDPARAMETERS = (wland_derived.NUG,)
+    DERIVEDPARAMETERS = (
+        wland_derived.NUG,
+        wland_derived.RH1,
+    )
     REQUIREDSEQUENCES = (
+        wland_states.DG,
         wland_states.DV,
         wland_aides.DVEq,
     )
@@ -1465,6 +2017,108 @@ class Calc_CDG_V1(modeltools.Method):
         if der.nug:
             d_target = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
             flu.cdg = (sta.dv - d_target) / con.cv
+        else:
+            flu.cdg = 0.0
+
+
+class Calc_CDG_V2(modeltools.Method):
+    r"""Calculate the change in the vadose zone's storage deficit due to percolation,
+    capillary rise, macropore-infiltration, seepage, groundwater drainage, and
+    channel water infiltration.
+
+    Basic equation:
+      :math:`CDG = \frac{DV-min(DVEq, DG)}{CV} + GF \cdot \big( FGS - PV - FXG \big)`
+
+    Method |Calc_CDG_V2| extends |Calc_CDG_V1|, which implements the (nearly) original
+    `WALRUS`_ relationship defined by equation 6 of :cite:`ref-Brauer2014`).  See the
+    documentation on method |Calc_GF_V1| for a comprehensive explanation of the reason
+    for this extension.
+
+    Examples:
+
+        Without large-scale ponding:
+
+        >>> from hydpy.models.wland import *
+        >>> simulationstep('12h')
+        >>> parameterstep('1d')
+        >>> cv(10.0)
+        >>> sh(0.0)
+        >>> derived.rh1.update()
+        >>> states.dv = 100.0
+        >>> states.dg = 1000.0
+        >>> fluxes.pv = 1.0
+        >>> fluxes.fxg = 2.0
+        >>> fluxes.fgs = 4.0
+        >>> aides.dveq = 80.0
+        >>> aides.gf = 2.0
+        >>> model.calc_cdg_v2()
+        >>> fluxes.cdg
+        cdg(3.0)
+
+        With large-scale ponding and without smoothing:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_cdg_v2,
+        ...     last_example=5,
+        ...     parseqs=(states.dg, fluxes.cdg)
+        ... )
+        >>> aides.gf = 0.0
+        >>> states.dv = -10.0
+        >>> aides.dveq = 0.0
+        >>> test.nexts.dg = 10.0, 1.0, 0.0, -1.0, -10.0
+        >>> test()
+        | ex. |    dg |   cdg |
+        -----------------------
+        |   1 |  10.0 |  -0.5 |
+        |   2 |   1.0 |  -0.5 |
+        |   3 |   0.0 |  -0.5 |
+        |   4 |  -1.0 | -0.45 |
+        |   5 | -10.0 |   0.0 |
+
+        With large-scale ponding and with smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |    dg |       cdg |
+        ---------------------------
+        |   1 |  10.0 |      -0.5 |
+        |   2 |   1.0 | -0.499891 |
+        |   3 |   0.0 | -0.492458 |
+        |   4 |  -1.0 | -0.449891 |
+        |   5 | -10.0 |       0.0 |
+    """
+
+    CONTROLPARAMETERS = (wland_control.CV,)
+    DERIVEDPARAMETERS = (
+        wland_derived.NUG,
+        wland_derived.RH1,
+    )
+    REQUIREDSEQUENCES = (
+        wland_fluxes.PV,
+        wland_fluxes.FGS,
+        wland_fluxes.FXG,
+        wland_states.DG,
+        wland_states.DV,
+        wland_aides.DVEq,
+        wland_aides.GF,
+    )
+    RESULTSEQUENCES = (wland_fluxes.CDG,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nug:
+            d_target = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
+            d_cdg_slow = (sta.dv - d_target) / con.cv
+            d_cdg_fast = aid.gf * (flu.fgs - flu.pv - flu.fxg)
+            flu.cdg = d_cdg_slow + d_cdg_fast
         else:
             flu.cdg = 0.0
 
@@ -2009,11 +2663,24 @@ class Pass_R_V1(modeltools.Method):
         out.q[0] += flu.r
 
 
-class QuadDVEq(quadtools.Quad):
+class PegasusDGEq(roottools.Pegasus):
+    """Pegasus iterator for finding the equilibrium groundwater depth."""
+
+    METHODS = (Return_ErrorDV_V1,)
+
+
+class QuadDVEq_V1(quadtools.Quad):
     """Adaptive quadrature method for integrating the equilibrium storage deficit
     of the vadose zone."""
 
     METHODS = (Return_DVH_V1,)
+
+
+class QuadDVEq_V2(quadtools.Quad):
+    """Adaptive quadrature method for integrating the equilibrium storage deficit
+    of the vadose zone."""
+
+    METHODS = (Return_DVH_V2,)
 
 
 class Model(modeltools.ELSModel):
@@ -2031,7 +2698,11 @@ class Model(modeltools.ELSModel):
         Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
-    ADD_METHODS = (Return_DVH_V1,)
+    ADD_METHODS = (
+        Return_ErrorDV_V1,
+        Return_DVH_V1,
+        Return_DVH_V2,
+    )
     PART_ODE_METHODS = (
         Calc_FXS_V1,
         Calc_FXG_V1,
@@ -2055,7 +2726,12 @@ class Model(modeltools.ELSModel):
         Calc_RH_V1,
         Calc_DVEq_V1,
         Calc_DVEq_V2,
+        Calc_DVEq_V3,
+        Calc_DVEq_V4,
+        Calc_DGEq_V1,
+        Calc_GF_V1,
         Calc_CDG_V1,
+        Calc_CDG_V2,
     )
     FULL_ODE_METHODS = (
         Update_IC_V1,
@@ -2071,4 +2747,8 @@ class Model(modeltools.ELSModel):
         Pass_R_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELS = (QuadDVEq,)
+    SUBMODELS = (
+        PegasusDGEq,
+        QuadDVEq_V1,
+        QuadDVEq_V2,
+    )

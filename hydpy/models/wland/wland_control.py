@@ -329,7 +329,7 @@ class ThetaS(wland_parameters.SoilParameter):
     See the documentation on class |SoilParameter| for further information.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, 1.0)
 
     _SOIL2VALUE = {
         SAND: 0.395,
@@ -344,6 +344,62 @@ class ThetaS(wland_parameters.SoilParameter):
         SILTY_CLAY: 0.492,
         CLAY: 0.482,
     }
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |ThetaS| following :math:`1e^{-6} \leq ThetaS \leq 1.0` and,
+        if |ThetaR| exists for the relevant application model, also following
+        :math:`ThetaR \leq ThetaS`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> thetas(0.0)
+        >>> thetas
+        thetas(0.000001)
+
+        >>> thetar.value = 0.5
+        >>> thetas(0.4)
+        >>> thetas
+        thetas(0.5)
+
+        >>> thetas(soil=SANDY_LOAM)
+        >>> thetas
+        thetas(0.5)
+
+        >>> thetas(1.01)
+        >>> thetas
+        thetas(1.0)
+        """
+        if lower is None:
+            if exceptiontools.hasattr_(self.subpars, "thetar"):
+                lower = exceptiontools.getattr_(self.subpars.thetar, "value", 1e-6)
+            else:
+                lower = 1e-6
+        super().trim(lower, upper)
+
+
+class ThetaR(parametertools.Parameter):
+    """Residual soil moisture deficit at tension saturation [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-6, None)
+    INIT = 0.01
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |ThetaR| following :math:`1e^{-6} \leq ThetaR \leq ThetaS`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetar(0.0)
+        >>> thetar
+        thetar(0.000001)
+        >>> thetas(0.41)
+        >>> thetar(0.42)
+        >>> thetar
+        thetar(0.41)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.thetas, "value", None)
+        super().trim(lower, upper)
 
 
 class Zeta1(parametertools.Parameter):

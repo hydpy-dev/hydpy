@@ -30,3 +30,15 @@ class DVEq(sequencetools.AideSequence):
     depth [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
+class DGEq(sequencetools.AideSequence):
+    """Equilibrium groundwater depth for the actual storage deficit of the vadose
+    zone [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
+class GF(sequencetools.AideSequence):
+    """Gain factor for changes in groundwater depth [-]."""
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)

@@ -1062,12 +1062,13 @@ class PyxWriter:
             "from cpython.mem cimport PyMem_Malloc",
             "from cpython.mem cimport PyMem_Realloc",
             "from cpython.mem cimport PyMem_Free",
+            "from hydpy.cythons.autogen cimport annutils",
+            "from hydpy.cythons.autogen cimport configutils",
             "from hydpy.cythons.autogen import pointerutils",
             "from hydpy.cythons.autogen cimport pointerutils",
-            "from hydpy.cythons.autogen cimport configutils",
-            "from hydpy.cythons.autogen cimport smoothutils",
-            "from hydpy.cythons.autogen cimport annutils",
+            "from hydpy.cythons.autogen cimport quadutils",
             "from hydpy.cythons.autogen cimport rootutils",
+            "from hydpy.cythons.autogen cimport smoothutils",
         )
 
     @property
@@ -1523,10 +1524,12 @@ class PyxWriter:
         lines = Lines()
         for submodel in self.model.SUBMODELS:
             lines.add(0, "@cython.final")
+            cls = submodel.CYTHONBASECLASS
             lines.add(
                 0,
-                f"cdef class {objecttools.classname(submodel)}(rootutils."
-                f"{objecttools.classname(submodel.CYTHONBASECLASS)}):",
+                f"cdef class {objecttools.classname(submodel)}("
+                f"{cls.__module__.split('.')[-1]}."
+                f"{objecttools.classname(cls)}):",
             )
             lines.add(1, "cpdef public Model model")
             lines.add(1, "def __init__(self, Model model):")

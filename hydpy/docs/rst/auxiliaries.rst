@@ -21,6 +21,7 @@ what purpose it could serve.
    calibtools
    iuhtools
    networktools
+   quadtools
    roottools
    smoothtools
    statstools

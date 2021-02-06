@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.auxs import quadtools
 from hydpy.cythons import modelutils
 from hydpy.cythons.autogen import smoothutils
 from hydpy.models.wland import wland_control
@@ -1212,6 +1213,174 @@ class Calc_DVEq_V1(modeltools.Method):
             aid.dveq = modelutils.nan
 
 
+class Return_DVH_V1(modeltools.Method):
+    r"""Return the storage deficit of the vadose zone at a specific height above
+    the groundwater table.
+
+    Basic equation (discontinous):
+      :math:`DHD = Thetas \cdot \left(1 - \left( \frac{h}{PsiAE} \right)^{-1/b} \right)`
+
+    This power law is the differential of the equation underlying method
+    |Calc_DVEq_V1| with respect to height.  :cite:`ref-Brauer2014 also cites it
+    (equation 6) but does not use it directly.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> thetas(0.4)
+        >>> psiae(300.0)
+        >>> b(5.0)
+
+        With smoothing:
+
+        >>> from hydpy import repr_
+        >>> sh(0.0)
+        >>> derived.rh1.update()
+        >>> for h in [200.0, 299.0, 300.0, 301.0, 400.0, 500.0, 600.0]:
+        ...     print(repr_(h), repr_(model.return_dvh_v1(h)))
+        200.0 0.0
+        299.0 0.0
+        300.0 0.0
+        301.0 0.000266
+        400.0 0.022365
+        500.0 0.038848
+        600.0 0.05178
+
+        Without smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> for h in [200.0, 299.0, 300.0, 301.0, 400.0, 500.0, 600.0]:
+        ...     print(repr_(h), repr_(model.return_dvh_v1(h)))
+        200.0 0.0
+        299.0 0.000001
+        300.0 0.00004
+        301.0 0.000267
+        400.0 0.022365
+        500.0 0.038848
+        600.0 0.05178
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (wland_derived.RH1,)
+    REQUIREDSEQUENCES = (wland_states.DG,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, h: float) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        d_h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
+        return con.thetas * (1.0 - (d_h / con.psiae) ** (-1.0 / con.b))
+
+
+class Calc_DVEq_V2(modeltools.Method):
+    r"""Calculate the equilibrium storage deficit of the vadose zone.
+
+    Basic equation:
+
+     .. math::
+        DHEq = \int_{0}^{DG} Return\_DHD\_V1(h) \ \ dh
+
+    Method |Calc_DVEq_V2| integrates |Return_DVH_V1| numerically, based on the
+    Lobatto-Gauß quadrature.  Hence, it should give nearly identical results as
+    method |Calc_DVEq_V1|, which provides the analytical solution to the underlying
+    power law. The benefit of method |Calc_DVEq_V2| is that it supports the
+    regularisation of |Return_DVH_V1|, which |Calc_DVEq_V1| does not.  In our
+    experience, this benefit does not justify the additional numerical cost.
+    However, we keep it for educational purposes; mainly as a starting point to
+    implement alternative relationships between the soil water deficit and the
+    groundwater table that we cannot solve analytically.
+
+    Examples:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> derived.nug(0)
+        >>> model.calc_dveq_v2()
+        >>> aides.dveq
+        dveq(nan)
+
+        >>> derived.nug(1)
+        >>> thetas(0.4)
+        >>> psiae(300.0)
+        >>> b(5.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_dveq_v2,
+        ...     last_example=8,
+        ...     parseqs=(states.dg, aides.dveq)
+        ... )
+        >>> test.nexts.dg = 200.0, 299.0, 300.0, 301.0, 400.0, 800.0, 1600.0, 3200.0
+
+        Without smoothing:
+
+        >>> sh(0.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |     dg |       dveq |
+        -----------------------------
+        |   1 |  200.0 |        0.0 |
+        |   2 |  299.0 |        0.0 |
+        |   3 |  300.0 |        0.0 |
+        |   4 |  301.0 |   0.000133 |
+        |   5 |  400.0 |   1.182498 |
+        |   6 |  800.0 |  21.249634 |
+        |   7 | 1600.0 |  97.612368 |
+        |   8 | 3200.0 | 313.415248 |
+
+        With smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |     dg |       dveq |
+        -----------------------------
+        |   1 |  200.0 |        0.0 |
+        |   2 |  299.0 |        0.0 |
+        |   3 |  300.0 |   0.000033 |
+        |   4 |  301.0 |   0.000176 |
+        |   5 |  400.0 |   1.182542 |
+        |   6 |  800.0 |   21.24972 |
+        |   7 | 1600.0 |  97.612538 |
+        |   8 | 3200.0 | 313.415588 |
+    """
+
+    CONTROLPARAMETERS = (
+        wland_control.ThetaS,
+        wland_control.PsiAE,
+        wland_control.B,
+    )
+    DERIVEDPARAMETERS = (
+        wland_derived.NUG,
+        wland_derived.RH1,
+    )
+    REQUIREDSEQUENCES = (wland_states.DG,)
+    RESULTSEQUENCES = (wland_aides.DVEq,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nug:
+            d_x0 = -10.0 * con.sh
+            if sta.dg > con.psiae:
+                d_below = model.quaddveq.integrate(d_x0, con.psiae, 2, 20, 1e-8)
+                d_above = model.quaddveq.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
+                aid.dveq = d_below + d_above
+            else:
+                aid.dveq = model.quaddveq.integrate(d_x0, sta.dg, 2, 20, 1e-8)
+        else:
+            aid.dveq = modelutils.nan
+
+
 class Calc_CDG_V1(modeltools.Method):
     r"""Calculate the change in the groundwater depth due to percolation and
     capillary rise.
@@ -1840,6 +2009,13 @@ class Pass_R_V1(modeltools.Method):
         out.q[0] += flu.r
 
 
+class QuadDVEq(quadtools.Quad):
+    """Adaptive quadrature method for integrating the equilibrium storage deficit
+    of the vadose zone."""
+
+    METHODS = (Return_DVH_V1,)
+
+
 class Model(modeltools.ELSModel):
     """The *HydPy-W-Land* model."""
 
@@ -1855,7 +2031,7 @@ class Model(modeltools.ELSModel):
         Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
-    ADD_METHODS = ()
+    ADD_METHODS = (Return_DVH_V1,)
     PART_ODE_METHODS = (
         Calc_FXS_V1,
         Calc_FXG_V1,
@@ -1878,6 +2054,7 @@ class Model(modeltools.ELSModel):
         Calc_FGS_V1,
         Calc_RH_V1,
         Calc_DVEq_V1,
+        Calc_DVEq_V2,
         Calc_CDG_V1,
     )
     FULL_ODE_METHODS = (
@@ -1894,4 +2071,4 @@ class Model(modeltools.ELSModel):
         Pass_R_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELS = ()
+    SUBMODELS = (QuadDVEq,)

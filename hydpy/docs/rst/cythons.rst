@@ -38,6 +38,7 @@ offers other strategies to decrease computation times.
    configutils
    modelutils
    pointerutils
+   quadutils
+   rootutils
    sequenceutils
    smoothutils
-   rootutils

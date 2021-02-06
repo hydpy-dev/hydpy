@@ -1146,11 +1146,8 @@ class Calc_DVEq_V1(modeltools.Method):
 
     Basic equation (discontinuous):
       .. math::
-        DVEq =
-        \begin{cases}
-          DG &|\ DG \leq 0
-          \\
-          0 &|\ 0 < DG \leq PsiAE
+        DVEq = \begin{cases}
+          0 &|\ DG \leq PsiAE
           \\
           ThetaS \cdot \left( DG - \frac{DG^{1-1/b}}{(1-1/b) \cdot PsiAE^{-1/B}} -
           \frac{PsiAE}{1-B} \right) &|\ PsiAE < DG
@@ -1167,51 +1164,22 @@ class Calc_DVEq_V1(modeltools.Method):
         >>> test = UnitTest(
         ...     model=model,
         ...     method=model.calc_dveq_v1,
-        ...     last_example=11,
+        ...     last_example=6,
         ...     parseqs=(states.dg, aides.dveq)
         ... )
-        >>> test.nexts.dg = (
-        ...     -50.0, -1.0, 0.0, 1.0, 50.0, 100.0,
-        ...     200.0, 400.0, 800.0, 1600.0, 3200.0,
-        ... )
+        >>> test.nexts.dg = 200.0, 300.0, 400.0, 800.0, 1600.0, 3200.0
 
         Without smoothing:
 
-        >>> sh(0.0)
-        >>> derived.rh1.update()
         >>> test()
         | ex. |     dg |       dveq |
         -----------------------------
-        |   1 |  -50.0 |      -50.0 |
-        |   2 |   -1.0 |       -1.0 |
-        |   3 |    0.0 |        0.0 |
-        |   4 |    1.0 |        0.0 |
-        |   5 |   50.0 |        0.0 |
-        |   6 |  100.0 |        0.0 |
-        |   7 |  200.0 |        0.0 |
-        |   8 |  400.0 |   1.182498 |
-        |   9 |  800.0 |  21.249634 |
-        |  10 | 1600.0 |  97.612368 |
-        |  11 | 3200.0 | 313.415248 |
-
-        With smoothing:
-
-        >>> sh(1.0)
-        >>> derived.rh1.update()
-        >>> test()
-        | ex. |     dg |       dveq |
-        -----------------------------
-        |   1 |  -50.0 |      -50.0 |
-        |   2 |   -1.0 |  -1.002187 |
-        |   3 |    0.0 |  -0.150844 |
-        |   4 |    1.0 |  -0.002187 |
-        |   5 |   50.0 |        0.0 |
-        |   6 |  100.0 |        0.0 |
-        |   7 |  200.0 |        0.0 |
-        |   8 |  400.0 |   1.182498 |
-        |   9 |  800.0 |  21.249634 |
-        |  10 | 1600.0 |  97.612368 |
-        |  11 | 3200.0 | 313.415248 |
+        |   1 |  200.0 |        0.0 |
+        |   2 |  300.0 |        0.0 |
+        |   3 |  400.0 |   1.182498 |
+        |   4 |  800.0 |  21.249634 |
+        |   5 | 1600.0 |  97.612368 |
+        |   6 | 3200.0 | 313.415248 |
     """
 
     CONTROLPARAMETERS = (
@@ -1219,10 +1187,7 @@ class Calc_DVEq_V1(modeltools.Method):
         wland_control.PsiAE,
         wland_control.B,
     )
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH1,
-    )
+    DERIVEDPARAMETERS = (wland_derived.NUG,)
     REQUIREDSEQUENCES = (wland_states.DG,)
     RESULTSEQUENCES = (wland_aides.DVEq,)
 
@@ -1233,8 +1198,8 @@ class Calc_DVEq_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            if sta.dg <= con.psiae:
-                aid.dveq = smoothutils.smooth_min1(sta.dg, 0.0, der.rh1)
+            if sta.dg < con.psiae:
+                aid.dveq = 0.0
             else:
                 aid.dveq = con.thetas * (
                     sta.dg
@@ -1251,20 +1216,66 @@ class Calc_CDG_V1(modeltools.Method):
     r"""Calculate the change in the groundwater depth due to percolation and
     capillary rise.
 
-    Basic equation:
-      :math:`CDG = \frac{DV-DVEq}{CV}`
+    Basic equation (discontinuous):
+      :math:`CDG = \frac{DV-min(DVEq, DG)}{CV}`
 
-    Example:
+    Note that this equation slightly differs from equation 6 of :cite:`ref-Brauer2014.
+    In case of large-scale ponding, |DVEq| always stays at zero and we let |DG|
+    take control of the speed of the water table movement.  See the documentation
+    on method |Calc_FGS_V1| for additional information on the differences between
+    |wland| and `WALRUS`_ for this rare situation.
+
+    Examples:
 
         >>> from hydpy.models.wland import *
         >>> simulationstep('12h')
         >>> parameterstep('1d')
         >>> cv(10.0)
+        >>> sh(0.0)
+        >>> derived.rh1.update()
         >>> states.dv = 100.0
+        >>> states.dg = 1000.0
         >>> aides.dveq = 80.0
         >>> model.calc_cdg_v1()
         >>> fluxes.cdg
         cdg(1.0)
+
+        Without large-scale ponding:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model=model,
+        ...     method=model.calc_cdg_v1,
+        ...     last_example=5,
+        ...     parseqs=(states.dg, fluxes.cdg)
+        ... )
+
+        With large-scale ponding and without smoothing:
+
+        >>> states.dv = -10.0
+        >>> aides.dveq = 0.0
+        >>> test.nexts.dg = 10.0, 1.0, 0.0, -1.0, -10.0
+        >>> test()
+        | ex. |    dg |   cdg |
+        -----------------------
+        |   1 |  10.0 |  -0.5 |
+        |   2 |   1.0 |  -0.5 |
+        |   3 |   0.0 |  -0.5 |
+        |   4 |  -1.0 | -0.45 |
+        |   5 | -10.0 |   0.0 |
+
+        With large-scale ponding and with smoothing:
+
+        >>> sh(1.0)
+        >>> derived.rh1.update()
+        >>> test()
+        | ex. |    dg |       cdg |
+        ---------------------------
+        |   1 |  10.0 |      -0.5 |
+        |   2 |   1.0 | -0.499891 |
+        |   3 |   0.0 | -0.492458 |
+        |   4 |  -1.0 | -0.449891 |
+        |   5 | -10.0 |       0.0 |
     """
 
     CONTROLPARAMETERS = (wland_control.CV,)
@@ -1283,7 +1294,8 @@ class Calc_CDG_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            flu.cdg = (sta.dv - aid.dveq) / con.cv
+            d_target = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
+            flu.cdg = (sta.dv - d_target) / con.cv
         else:
             flu.cdg = 0.0
 

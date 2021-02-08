@@ -176,6 +176,11 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                         action="ignore",
                         message="tostring",
                     )
+                    warnings.filterwarnings(
+                        action="ignore",
+                        category=DeprecationWarning,
+                        message="`np.bool`",
+                    )
                     runner = unittest.TextTestRunner(stream=file_)
                     testresult = runner.run(suite)
                     doctests[name] = testresult

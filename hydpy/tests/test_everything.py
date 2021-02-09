@@ -174,10 +174,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                     )
                     warnings.filterwarnings(
                         action="ignore",
-                        message="tostring",
-                    )
-                    warnings.filterwarnings(
-                        action="ignore",
                         category=DeprecationWarning,
                         message="`np.bool`",
                     )

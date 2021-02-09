@@ -185,7 +185,6 @@ pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 
-warnings.filterwarnings("ignore", r"tostring")
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:
 try:

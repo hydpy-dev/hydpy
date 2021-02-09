@@ -1684,7 +1684,7 @@ class Return_ErrorDV_V1(modeltools.Method):
         >>> from hydpy.core.testtools import check_selectedvariables
         >>> from hydpy.models.wland.wland_model import Return_ErrorDV_V1
         >>> print(check_selectedvariables(Return_ErrorDV_V1))
-        Definitely missing: dveq and dg
+        Definitely missing: dg and dveq
         Possibly missing (REQUIREDSEQUENCES):
             Calc_DVEq_V3: DG
         Possibly missing (RESULTSEQUENCES):

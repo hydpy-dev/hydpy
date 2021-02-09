@@ -1608,7 +1608,7 @@ def update_integrationtests(
         resultfile.write(docstring)
 
 
-def _enumerate(variables: Iterable[variabletools.Variable]) -> str:
+def _enumerate(variables: Iterable[Type[typingtools.VariableProtocol]]) -> str:
     return objecttools.enumeration(
         v.__name__ for v in variabletools.sort_variables(variables)
     )
@@ -1862,22 +1862,26 @@ def check_selectedvariables(
     # search for variables that are used in the source code but not
     # among the selected variables:
     source = inspect.getsource(method.__call__)
-    vars_source = set()
-    unbound_vars = inspect.getclosurevars(method.__call__).unbound
-    for var, prefix in itertools.product(unbound_vars, prefixes):
-        if f"{prefix}.{var}" in source:
-            if var.startswith("len_"):
-                var = var[4:]
-            vars_source.add(var)
-    vars_selected = set()
+    varnames_source: Set[str] = set()
+    unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
+    for varname, prefix in itertools.product(unbound_vars, prefixes):
+        if f"{prefix}.{varname}" in source:
+            if varname.startswith("len_"):
+                varname = varname[4:]
+            varnames_source.add(varname)
+    varnames_selected: Set[str] = set()
     for group in groups:
-        vars_selected.update(g.__name__.lower() for g in getattr(method, group))
-    diff = vars_source - vars_selected
-    if diff:
-        results.append(f"{blanks}Definitely missing: {objecttools.enumeration(diff)}")
+        varnames_selected.update(g.__name__.lower() for g in getattr(method, group))
+    varnames_diff: List[str] = sorted(varnames_source - varnames_selected)
+    if varnames_diff:
+        results.append(
+            f"{blanks}Definitely missing: {objecttools.enumeration(varnames_diff)}"
+        )
 
     # search for variables selected by at least one submethod
     # but not by the method calling these submethods:
+    vars_method: Set[Type[typingtools.VariableProtocol]]
+    vars_submethods: Set[Type[typingtools.VariableProtocol]]
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
@@ -1898,26 +1902,32 @@ def check_selectedvariables(
 
     # search for selected variables that are neither used within the
     # source code nor selected by any submethod:
-    group2vars_method = {g: set(getattr(method, g)) for g in groups}
-    group2vars_submethods = {g: set() for g in groups}
+    group2vars_method: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+        g: set(getattr(method, g)) for g in groups
+    }
+    group2vars_submethods: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+        g: set() for g in groups
+    }
     for submethod in method.SUBMETHODS:
         for group, vars_submethods in group2vars_submethods.items():
             vars_submethods.update(getattr(submethod, group))
     for group, vars_method in group2vars_method.items():
         vars_submethods = group2vars_submethods[group]
-        diff = [
+        diff_ = [
             method
             for method in vars_method - vars_submethods
-            if method.__name__.lower() not in vars_source
+            if method.__name__.lower() not in varnames_source
         ]
-        if diff:
+        if diff_:
             results.append(
                 f"{blanks}Possibly erroneously selected ({group}): "
-                f"{_enumerate(diff)}"
+                f"{_enumerate(diff_)}"
             )
 
     # search for variables that are selected multiple times:
-    dupl = set()
+    vars1: Tuple[Type[typingtools.VariableProtocol], ...]
+    vars2: Tuple[Type[typingtools.VariableProtocol], ...]
+    dupl: Set[Type[typingtools.VariableProtocol]] = set()
     for group1 in groups:
         vars1 = getattr(method, group1)
         for var in vars1:

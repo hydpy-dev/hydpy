@@ -8,9 +8,13 @@ environment:
     secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
   matrix:
     - PYTHON: "C:\\Python36-x64"
+      make_exe: false
     - PYTHON: "C:\\Python37-x64"
+      make_exe: false
     - PYTHON: "C:\\Python38-x64"
+      make_exe: false
     - PYTHON: "C:\\Python39-x64"
+      make_exe: true
 
 install:
 #  - cinst nsis
@@ -28,7 +32,7 @@ install:
   - python -m pip install networkx
   - python -m pip install pandas
   - python -m pip install plotly
-  - python -m pip install pynsist
+  - if %make_exe%==true python -m pip install pynsist
   - python -m pip install setuptools
   - python -m pip install typing_extensions
   - python -m pip install twine
@@ -42,20 +46,20 @@ before_test:
   - python disable_autodoc.py
   - python setup.py install
   - python make_and_install_dists.py
-  - python -m pip install attrs
-  - python prepare_hydpy_installer.py
-  - pynsist make_hydpy_installer.cfg
+  - if %make_exe%==true python -m pip install attrs
+  - if %make_exe%==true python prepare_hydpy_installer.py
+  - if %make_exe%==true pynsist make_hydpy_installer.cfg
   - python -m pip uninstall cython --yes
   - rename hydpy _hydpy
 
 test_script:
   - hyd.py test_everything
-  - cd dist
-  - python -m pip uninstall hydpy --yes
-  - cd..
-  - python call_installer.py
-  - SET PATH=C:\Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
-  - hyd.py test_everything
+  - if %make_exe%==true cd dist
+  - if %make_exe%==true python -m pip uninstall hydpy --yes
+  - if %make_exe%==true cd..
+  - if %make_exe%==true python call_installer.py
+  - if %make_exe%==true SET PATH=C:\Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
+  - if %make_exe%==true hyd.py test_everything
 
 after_test:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"

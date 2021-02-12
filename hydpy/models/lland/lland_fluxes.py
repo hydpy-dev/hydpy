@@ -308,7 +308,7 @@ class DailyNetShortwaveRadiation(lland_sequences.Flux1DSequence):
 class DailyNetLongwaveRadiation(lland_sequences.Flux1DSequence):
     """Daily net longwave radiation [MJ/m²/d].
 
-    With positive values, the soil gains heat from radiation.
+    With positive values, the soil looses heat from radiation.
     """
 
     NDIM, NUMERIC = 1, False

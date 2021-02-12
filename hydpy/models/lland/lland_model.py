@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
 """
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
@@ -3060,33 +3058,36 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
 
 
 class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
-    """Calculate and return the net longwave radiation for snow-covered areas.
+    r"""Calculate and return the net longwave radiation for snow-covered areas.
 
-    Method |Return_NetLongwaveRadiationSnow_V1| relies on two different
-    equations, one for forests (|LAUBW|, |MISCHW|, and |NADELW|) and the
-    other other one for all other land use classes :cite:`ref-LARSIM` (based
-    on :cite:`ref-Thompson1981`).
+    Method |Return_NetLongwaveRadiationSnow_V1| differentiates between forests
+    (|LAUBW|, |MISCHW|, and |NADELW|) and open areas.  The outgoing longwave radiation
+    always depends on the snow surface temperature.  For open areas, the ingoing counter
+    radiation stems from the atmosphere only.  This atmospheric radiation is partly
+    replaced by the longwave radiation emitted by the tree canopies for forests.  The
+    lower the value of parameter |Fr|, the higher this shading effect of the canopies.
+    See :cite:`ref-LARSIM` and:cite:`ref-Thompson1981` for further information.
 
     Basic equation:
 
       .. math::
-        \\begin{cases}
-        Fr \\cdot \\Bigl(0.97 \\cdot Sigma \\cdot \\bigl((TKor + 273.15)^4 -
-        R_{Latm}\\bigl)\\Bigl)
-        &|\\
-        Lnk \\in \\{LAUBW, MISCHW, NADELW\\}
-        \\\\
-        Sigma \\cdot (TempSSurface + 273.15)^4 - R_{Latm}
-        &|\\
-        Lnk \\notin \\{LAUBW, MISCHW, NADELW\\}
-        \\end{cases}
+        Sigma \cdot (TempSSurface + 273.15)^4 - \begin{cases}
+        Fr \cdot R_{Latm} + \big( 1 - Fr  \big) \cdot
+        \big( 0.97 \cdot Sigma \cdot (TKor + 273.15)^4 \big)
+        &|\
+        Lnk \in \{LAUBW, MISCHW, NADELW\}
+        \\
+        R_{Latm}
+        &|\
+        Lnk \notin \{LAUBW, MISCHW, NADELW\}
+        \end{cases}
 
       :math:`R_{Latm} =
-      FrAtm \\cdot Sigma \\cdot  (Tkor+273.15)^4 \\cdot
-      \\left(\\frac{ActualVapourPressure \\cdot 10}{TKor+273.15}\\right)^{1/7}
-      \\cdot \\left(1 + 0.22 \\cdot \\left(
-      1 - \\frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\\right)^2
-      \\right)`
+      FrAtm \cdot Sigma \cdot  (Tkor+273.15)^4 \cdot
+      \left(\frac{ActualVapourPressure \cdot 10}{TKor+273.15}\right)^{1/7}
+      \cdot \left(1 + 0.22 \cdot \left(
+      1 - \frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\right)^2
+      \right)`
 
     Example:
 
@@ -3096,7 +3097,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> lnk(ACKER, LAUBW)
         >>> derived.moy(5)
         >>> derived.days(1/24)
-        >>> derived.fr(0.5)
+        >>> derived.fr(0.3)
         >>> emissivity(0.95)
         >>> fluxes.tempssurface = -5.0
         >>> fluxes.tkor = 0.0
@@ -3108,7 +3109,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         ...     print_values(
         ...         [hru, model.return_netlongwaveradiationsnow_v1(hru)])
         0, 0.208605
-        1, 0.127729
+        1, 0.029784
     """
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
@@ -3149,10 +3150,8 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
             * (1.0 + 0.22 * (1.0 - d_relsunshine) ** 2)
         )
         if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-            idx = der.moy[model.idx_sim]
-            return der.fr[con.lnk[k] - 1, idx] * (
-                0.97 * d_sigma * (flu.tkor[k] + 273.15) ** 4 - d_ratm
-            )
+            d_fr = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
+            d_ratm = d_fr * d_ratm + (1.0 - d_fr) * (0.97 * d_sigma * d_temp ** 4)
         return d_sigma * (flu.tempssurface[k] + 273.15) ** 4 - d_ratm
 
 

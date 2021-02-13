@@ -3057,6 +3057,65 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
             )
 
 
+class Calc_RLAtm_V1(modeltools.Method):
+    r"""Calculate the longwave radiation emitted from the atmosphere
+    :cite:`ref-LARSIM` :cite:`ref-Thompson1981`.
+
+    Basic equation:
+
+      :math:`RLAtm =
+      FrAtm \cdot Sigma \cdot  (Tkor + 273.15)^4 \cdot
+      \left( \frac{ActualVapourPressure \cdot 10}{TKor + 273.15} \right) ^{1/7}
+      \cdot \left(1 + 0.22 \cdot \left(
+      1 - \frac{DailySunshineDuration}{DailyPossibleSunshineDuration} \right)^2
+      \right)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> derived.days(1/24)
+        >>> emissivity(0.95)
+        >>> fluxes.tkor = 0.0, 10.0
+        >>> fluxes.actualvapourpressure = 0.6
+        >>> fluxes.dailysunshineduration = 12.0
+        >>> fluxes.dailypossiblesunshineduration = 14.0
+        >>> model.calc_rlatm_v1()
+        >>> aides.rlatm
+        rlatm(0.846746, 0.972711)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU,)
+    DERIVEDPARAMETERS = (lland_derived.Days,)
+    FIXEDPARAMETERS = (
+        lland_fixed.Sigma,
+        lland_fixed.FrAtm,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TKor,
+        lland_fluxes.ActualVapourPressure,
+        lland_fluxes.DailySunshineDuration,
+        lland_fluxes.DailyPossibleSunshineDuration,
+    )
+    RESULTSEQUENCES = (lland_aides.RLAtm,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        d_rs = flu.dailysunshineduration / flu.dailypossiblesunshineduration
+        d_common = fix.fratm * fix.sigma * der.days * (1.0 + 0.22 * (1.0 - d_rs) ** 2)
+        for k in range(con.nhru):
+            d_t = flu.tkor[k] + 273.15
+            aid.rlatm[k] = d_common * (
+                d_t ** 4 * (flu.actualvapourpressure[k] * 10.0 / d_t) ** (1.0 / 7.0)
+            )
+
+
 class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     r"""Calculate and return the net longwave radiation for snow-covered areas.
 
@@ -3072,22 +3131,15 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
 
       .. math::
         Sigma \cdot (TempSSurface + 273.15)^4 - \begin{cases}
-        Fr \cdot R_{Latm} + \big( 1 - Fr  \big) \cdot
+        Fr \cdot RLAtm + \big( 1 - Fr  \big) \cdot
         \big( 0.97 \cdot Sigma \cdot (TKor + 273.15)^4 \big)
         &|\
         Lnk \in \{LAUBW, MISCHW, NADELW\}
         \\
-        R_{Latm}
+        RLAtm
         &|\
         Lnk \notin \{LAUBW, MISCHW, NADELW\}
         \end{cases}
-
-      :math:`R_{Latm} =
-      FrAtm \cdot Sigma \cdot  (Tkor+273.15)^4 \cdot
-      \left(\frac{ActualVapourPressure \cdot 10}{TKor+273.15}\right)^{1/7}
-      \cdot \left(1 + 0.22 \cdot \left(
-      1 - \frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\right)^2
-      \right)`
 
     Example:
 
@@ -3098,12 +3150,9 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> derived.moy(5)
         >>> derived.days(1/24)
         >>> derived.fr(0.3)
-        >>> emissivity(0.95)
         >>> fluxes.tempssurface = -5.0
         >>> fluxes.tkor = 0.0
-        >>> fluxes.actualvapourpressure = 0.6
-        >>> fluxes.dailysunshineduration = 12.0
-        >>> fluxes.dailypossiblesunshineduration = 14.0
+        >>> aides.rlatm = 0.846746
         >>> from hydpy import print_values
         >>> for hru in range(2):
         ...     print_values(
@@ -3114,20 +3163,15 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
     DERIVEDPARAMETERS = (
-        lland_derived.MOY,
         lland_derived.Days,
+        lland_derived.MOY,
         lland_derived.Fr,
     )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.FrAtm,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Sigma,)
     REQUIREDSEQUENCES = (
         lland_fluxes.TempSSurface,
         lland_fluxes.TKor,
-        lland_fluxes.ActualVapourPressure,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
+        lland_aides.RLAtm,
     )
 
     @staticmethod
@@ -3139,20 +3183,14 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_relsunshine = flu.dailysunshineduration / flu.dailypossiblesunshineduration
+        aid = model.sequences.aides.fastaccess
         d_sigma = fix.sigma * der.days
         d_temp = flu.tkor[k] + 273.15
-        d_ratm = (
-            fix.fratm
-            * d_sigma
-            * d_temp ** 4
-            * (flu.actualvapourpressure[k] * 10.0 / d_temp) ** (1.0 / 7.0)
-            * (1.0 + 0.22 * (1.0 - d_relsunshine) ** 2)
-        )
+        d_counter = aid.rlatm[k]
         if con.lnk[k] in (LAUBW, MISCHW, NADELW):
             d_fr = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
-            d_ratm = d_fr * d_ratm + (1.0 - d_fr) * (0.97 * d_sigma * d_temp ** 4)
-        return d_sigma * (flu.tempssurface[k] + 273.15) ** 4 - d_ratm
+            d_counter = d_fr * d_counter + (1.0 - d_fr) * (0.97 * d_sigma * d_temp ** 4)
+        return fix.sigma * der.days * (flu.tempssurface[k] + 273.15) ** 4 - d_counter
 
 
 class Update_TauS_V1(modeltools.Method):
@@ -4342,9 +4380,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 2.0
         >>> derived.nmblogentries.update()
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = -2.0
+        >>> aides.rlatm = 17.581556544
 
         Under the defined conditions and for a snow surface temperature of
         -4 °C, the net energy gain would be negative:
@@ -4411,16 +4448,14 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     FIXEDPARAMETERS = (
         lland_fixed.PsyInv,
         lland_fixed.Sigma,
-        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
         lland_fluxes.ReducedWindSpeed2m,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
         lland_aides.TempS,
+        lland_aides.RLAtm,
     )
     RESULTSEQUENCES = (
         lland_fluxes.TempSSurface,
@@ -4497,9 +4532,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 1.0, 1.0, 2.0, 2.0, 2.0, 20.0
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = nan, -2.0, -2.0, -50.0, -200.0, -2.0
+        >>> aides.rlatm = 17.581556544
         >>> for hru in range(6):
         ...     _ = model.return_tempssurface_v1(hru)
 
@@ -4581,7 +4615,6 @@ class Return_TempSSurface_V1(modeltools.Method):
     FIXEDPARAMETERS = (
         lland_fixed.Sigma,
         lland_fixed.PsyInv,
-        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
@@ -4589,9 +4622,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         lland_fluxes.ReducedWindSpeed2m,
         lland_fluxes.ActualVapourPressure,
         lland_states.WAeS,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
         lland_aides.TempS,
+        lland_aides.RLAtm,
     )
     RESULTSEQUENCES = (
         lland_fluxes.TempSSurface,
@@ -4671,9 +4703,8 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 2.0
         >>> states.esnow = -0.1
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> fluxes.tz = 0.0
+        >>> aides.rlatm = 17.581556544
 
         Under the defined conditions the "correct" next value of |ESnow|,
         when following the Backward Euler approach, is approximately
@@ -4780,7 +4811,6 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         lland_fixed.LambdaG,
         lland_fixed.Sigma,
         lland_fixed.PsyInv,
-        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
         lland_states.WAeS,
@@ -4790,10 +4820,9 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         lland_fluxes.ReducedWindSpeed2m,
         lland_fluxes.TZ,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
-        lland_aides.TempS,
         lland_states.ESnow,
+        lland_aides.TempS,
+        lland_aides.RLAtm,
     )
     RESULTSEQUENCES = (
         lland_fluxes.TempSSurface,
@@ -4870,9 +4899,8 @@ class Update_ESnow_V1(modeltools.Method):
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 2.0
         >>> states.esnow = -0.1
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> fluxes.tz = 0.0
+        >>> aides.rlatm = 17.581556544
 
         For the first, snow-free response unit, the energy content of the
         snow layer is zero.  For the other response units we see that the
@@ -4959,19 +4987,17 @@ class Update_ESnow_V1(modeltools.Method):
         lland_fixed.LambdaG,
         lland_fixed.Sigma,
         lland_fixed.PsyInv,
-        lland_fixed.FrAtm,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
         lland_fluxes.ReducedWindSpeed2m,
         lland_fluxes.ActualVapourPressure,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
         lland_fluxes.TZ,
         lland_states.WATS,
         lland_states.WAeS,
         lland_aides.TempS,
+        lland_aides.RLAtm,
     )
     UPDATEDSEQUENCES = (lland_states.ESnow,)
     RESULTSEQUENCES = (
@@ -8715,6 +8741,7 @@ class Model(modeltools.AdHocModel):
         Calc_NetShortwaveRadiation_V1,
         Calc_NetShortwaveRadiationSnow_V1,
         Calc_DailyNetShortwaveRadiation_V1,
+        Calc_RLAtm_V1,
         Calc_G_V1,
         Calc_G_V2,
         Calc_EvB_V2,

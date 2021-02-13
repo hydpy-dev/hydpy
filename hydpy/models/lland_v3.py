@@ -1936,6 +1936,7 @@ class Model(modeltools.AdHocModel):
         lland_model.Update_TauS_V1,
         lland_model.Calc_ActualAlbedo_V1,
         lland_model.Calc_NetShortwaveRadiationSnow_V1,
+        lland_model.Calc_RLAtm_V1,
         lland_model.Calc_TZ_V1,
         lland_model.Calc_WG_V1,
         lland_model.Update_ESnow_V1,

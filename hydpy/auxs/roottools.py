@@ -91,9 +91,8 @@ class Pegasus(modeltools.Submodel):
         >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 1.0
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = -2.0
+        >>> aides.rlatm = 17.581556544
 
         Method |lland_model.Return_TempSSurface_V1| finds the following
         surface temperature value:

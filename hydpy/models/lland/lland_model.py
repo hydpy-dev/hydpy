@@ -819,7 +819,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         We define an initialisation period covering both a leap year (2000)
         and a non-leap year (2001):
 
-        >>> from hydpy.models.evap import *
+        >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> from hydpy import pub, round_
         >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"

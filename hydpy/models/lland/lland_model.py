@@ -6794,6 +6794,95 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
                 sta.inzp[k] -= flu.evi[k]
 
 
+class Calc_EvI_Inzp_V2(modeltools.Method):
+    r"""Calculate interception evaporation and update the interception
+    storage accordingly.
+
+    Basic equation:
+      :math:`\frac{dInzp}{dt} = -EvI`
+
+      .. math::
+        EvI = \begin{cases}
+        EvPo
+        &|\
+        Inzp > 0 \land \big( Lnk \in \{LAUBW, MISCHW, NADELW\} \lor WAeS = 0 \big)
+        \\
+        0
+        &|\
+        Inzp = 0 \lor \big( Lnk \notin \{LAUBW, MISCHW, NADELW\} \land WAeS = 0 \big)
+        \end{cases}
+
+    Examples:
+
+        For all forest land-use types (|LAUBW|, |MISCHW|), interception
+        evaporation (|EvI|) is identical with potential evapotranspiration
+        (|EvPo|) as long as it is met by available intercepted water (|Inzp|):
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep("1d")
+        >>> nhru(3)
+        >>> lnk(LAUBW, MISCHW, NADELW)
+        >>> states.inzp = 0.0, 2.0, 4.0
+        >>> states.waes = 0.0, 0.0, 1.0
+        >>> fluxes.evpo = 3.0
+        >>> model.calc_evi_inzp_v2()
+        >>> states.inzp
+        inzp(0.0, 0.0, 1.0)
+        >>> fluxes.evi
+        evi(0.0, 2.0, 3.0)
+
+        For all other land areas, no interception evaporation occurs when a snow
+        cover is present (indicated by a |WAeS| values larger zero):
+
+        >>> lnk(ACKER)
+        >>> states.inzp = 0.0, 2.0, 4.0
+        >>> model.calc_evi_inzp_v2()
+        >>> states.inzp
+        inzp(0.0, 0.0, 4.0)
+        >>> fluxes.evi
+        evi(0.0, 2.0, 0.0)
+
+        For water areas (|WASSER|, |FLUSS| and |SEE|), |EvI| is generally
+        equal to |EvPo| (but this might be corrected by a method called
+        after |Calc_EvI_Inzp_V2| has been applied) and |Inzp| is set to zero:
+
+        >>> lnk(WASSER, FLUSS, SEE)
+        >>> states.inzp = 2.0
+        >>> fluxes.evpo = 3.0
+        >>> model.calc_evi_inzp_v1()
+        >>> states.inzp
+        inzp(0.0, 0.0, 0.0)
+        >>> fluxes.evi
+        evi(3.0, 3.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.EvPo,
+        lland_states.WAeS,
+    )
+    UPDATEDSEQUENCES = (lland_states.Inzp,)
+    RESULTSEQUENCES = (lland_fluxes.EvI,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.evi[k] = flu.evpo[k]
+                sta.inzp[k] = 0.0
+            elif con.lnk[k] in (LAUBW, MISCHW, NADELW) or sta.waes[k] == 0:
+                flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
+                sta.inzp[k] -= flu.evi[k]
+            else:
+                flu.evi[k] = 0.0
+
+
 class Calc_EvB_V2(modeltools.Method):
     """Calculate the actual evapotranspiration from the soil.
 
@@ -8757,6 +8846,7 @@ class Model(modeltools.AdHocModel):
         Calc_ActualSurfaceResistance_V1,
         Calc_EvPo_V2,
         Calc_EvI_Inzp_V1,
+        Calc_EvI_Inzp_V2,
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,

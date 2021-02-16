@@ -35,23 +35,15 @@ install:
   - pip install "sphinxcontrib.bibtex<2"
 
 script:
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then
-        pylint hydpy;
-        fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then
-        python setup.py install;
-        python hydpy/docs/prepare.py;
-        travis-sphinx build --source=hydpy/docs/auto;
-        python hydpy/docs/modify_html.py;
-        fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then
-        python setup.py install;
-        python hydpy/tests/check_consistency.py;
-        fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then
-        black hydpy --exclude=hydpy/data/ --check;
-        python setup.py install;
-        fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then travis_wait 20 pylint hydpy ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python setup.py install ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python setup.py install ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/tests/check_consistency.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then black hydpy --exclude=hydpy/data/ --check ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then python setup.py install ; fi
 
 env:
   global:

@@ -9,9 +9,16 @@ all doctests defined in the different modules and documentation files.
 import os
 import sys
 import importlib
+import time
 import unittest
 import doctest
 import warnings
+
+
+def print_(*args, **kwargs):
+    """Print immediately."""
+    print(*args, **kwargs)
+    sys.stdout.flush()
 
 
 class _FilterFilenames:
@@ -76,6 +83,8 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import testtools
 
+pingtime: float = time.perf_counter()
+
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -109,6 +118,9 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
             if fn[-4:] in (".rst", ".pyx")
         ]
         for name in modulenames + docfilenames:
+            if time.perf_counter() > pingtime + 5 * 60:
+                print_("`test_everything` still running...")
+                pingtime = time.perf_counter()
             if name.split(".")[-1] in ("apidoc", "prepare", "modify_html"):
                 continue
             if not name[-4:] in (".rst", ".pyx"):
@@ -185,12 +197,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                 )
                 problems = testresult.errors + testresult.failures
                 if problems:
-                    print(f"\nDetailed error information on module {name}:")
+                    pingtime = time.perf_counter()
+                    print_(f"\nDetailed error information on module {name}:")
                     for idx, problem in enumerate(problems):
-                        print(f"    Error no. {idx+1}:")
-                        print(f"        {problem[0]}")
+                        print_(f"    Error no. {idx+1}:")
+                        print_(f"        {problem[0]}")
                         for line in problem[1].split("\n"):
-                            print(f"        {line}")
+                            print_(f"        {line}")
     successfuldoctests.update(
         {name: runner for (name, runner) in doctests.items() if not runner.nmbproblems}
     )
@@ -199,22 +212,22 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
     )
 
     if successfuldoctests:
-        print(f"\nIn the following modules, no doc test failed in {mode} mode:")
+        print_(f"\nIn the following modules, no doc test failed in {mode} mode:")
         for name, testresult in sorted(successfuldoctests.items()):
             if name[-4:] in (".rst", ".pyx"):
-                print(f"    {name}")
+                print_(f"    {name}")
             else:
-                print(f"    {name} " f"({testresult} successes)")
+                print_(f"    {name} " f"({testresult} successes)")
     if faileddoctests:
-        print(
+        print_(
             f"\nAt least one doc test failed in each of the "
             f"following modules in {mode} mode:"
         )
         for name, testresult in sorted(faileddoctests.items()):
-            print(f"    {name} ({testresult.nmbproblems} failures/errors)")
+            print_(f"    {name} ({testresult.nmbproblems} failures/errors)")
 
 # Return the exit code.
-print(
+print_(
     f"\ntest_everything.py found {len(allfaileddoctests[0])} failing "
     f"doctest suites in Python mode and {len(allfaileddoctests[1])} "
     f"failing doctest suites in Cython mode."

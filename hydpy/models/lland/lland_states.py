@@ -31,9 +31,81 @@ class Inzp(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
 
+class STInz(lland_sequences.State1DSequence):
+    """Wasseräquivalent Trockenschnee im Interzeptionsspeicher (total water equivalent
+    of the intercepted snow) [mm]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    mask = lland_masks.Forest()
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim values in accordance with :math:`SInz \leq PWMax \cdot STInz`,
+        or at least in accordance with if :math:`STInz \geq 0`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(7)
+        >>> pwmax(2.0)
+        >>> states.sinz = -1.0, 0.0, 1.0, -1.0, 5.0, 10.0, 20.0
+        >>> states.stinz(-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0)
+        >>> states.stinz
+        stinz(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
+        """
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        sinz = self.subseqs.sinz
+        if lower is None:
+            lower = numpy.clip(sinz / pwmax, 0.0, numpy.inf)
+            lower[numpy.isnan(lower)] = 0.0
+        super().trim(lower, upper)
+
+
+class SInz(lland_sequences.State1DSequence):
+    """Wasseräquivalent Gesamtschnee im Interzeptionsspeicher (frozen water equivalent
+    of the intercepted snow) [mm]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    mask = lland_masks.Forest()
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim values in accordance with :math:`0 \leq SInz \leq PWMax \cdot STInz`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep("1d")
+        >>> nhru(7)
+        >>> pwmax(2.0)
+        >>> states.stinz = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
+        >>> states.sinz(-1.0, 0.0, 1.0, -1.0, 5.0, 10.0, 20.0)
+        >>> states.sinz
+        sinz(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
+        """
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        stinz = self.subseqs.stinz
+        if upper is None:
+            upper = pwmax * stinz
+        super().trim(lower, upper)
+
+
+class ESnowInz(lland_sequences.State1DSequence):
+    """Kälteinhalt der Schneedecke des Interzeptionsspeichers [MJ/m²]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = lland_masks.Forest()
+
+
+class ASInz(lland_sequences.State1DSequence):
+    """Dimensionsloses Alter des interzipierten Schnees (dimensionless age of the
+    intercepted snow layer) [-].
+
+    If there is no intercepted snow, the value of |ASInz| is |numpy.nan|.
+    """
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    mask = lland_masks.Forest()
+
+
 class WATS(lland_sequences.State1DSequence):
-    """Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
-    cover) [mm]."""
+    """Wasseräquivalent Trockenschnee auf der Bodenoberfläche (frozen water equivalent
+    of the snow cover) [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Land()
@@ -60,8 +132,8 @@ class WATS(lland_sequences.State1DSequence):
 
 
 class WAeS(lland_sequences.State1DSequence):
-    """Wasseräquivalent Gesamtschnee (total water equivalent of the snow
-    cover) [mm]."""
+    """Wasseräquivalent Gesamtschnee auf der Bodenoberfläche (total water equivalent
+    of the snow cover) [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Land()
@@ -132,70 +204,6 @@ class BoWa(lland_sequences.State1DSequence):
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.wmax
         super().trim(lower, upper)
-
-
-# class SInz(lland_sequences.State1DSequence):
-#     """Wasseräquivalent Schnee des Interzeptionsspeichers [mm]."""
-#     NDIM, NUMERIC, SPAN = 1, False, (0., None)
-#
-#     def trim(self, lower=None, upper=None):
-#         """Trim values in accordance with :math:`WAeS \\leq PWMax
-#         \\cdot WATS`.
-#
-#         >>> from hydpy.models.lland import *
-#         >>> parameterstep("1d")
-#         >>> nhru(7)
-#         >>> pwmax(2.)
-#         >>> states.stinz = 0., 0., 0., 5., 5., 5., 5.
-#         >>> states.sinz(-1., 0., 1., -1., 5., 10., 20.)
-#         >>> states.sinz
-#         sinz(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
-#         """
-#         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-#         stinz = self.subseqs.stinz
-#         if upper is None:
-#             upper = pwmax*stinz
-#         super().trim(lower, upper)
-
-
-# class STInz(lland_sequences.State1DSequence):
-#     """Wasseräquivalent Trockenschnee des Schnee-Interzeptionsspeichers [mm].
-#     """
-#     NDIM, NUMERIC, SPAN = 1, False, (0., None)
-#
-#     def trim(self, lower=None, upper=None):
-#         """Trim values in accordance with :math:`WAeS \\leq PWMax
-#         \\cdot WATS`, or at least in accordance with if :math:`WATS \\geq 0`.
-#
-#         >>> from hydpy.models.lland import *
-#         >>> parameterstep("1d")
-#         >>> nhru(7)
-#         >>> pwmax(2.0)
-#         >>> states.sinz = -1., 0., 1., -1., 5., 10., 20.
-#         >>> states.stinz(-1., 0., 0., 5., 5., 5., 5.)
-#         >>> states.stinz
-#         stinz(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
-#         """
-#         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-#         sinz = self.subseqs.sinz
-#         if lower is None:
-#             lower = numpy.clip(sinz/pwmax, 0., numpy.inf)
-#             lower[numpy.isnan(lower)] = 0.0
-#         super().trim(lower, upper)
-
-
-class ESnowInz(lland_sequences.State1DSequence):
-    """Kälteinhalt der Schneedecke des Interzeptionsspeichers [MJ/m²]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
-    mask = lland_masks.Land()
-
-
-class ASInz(lland_sequences.State1DSequence):
-    """Dimensionsloses Alter der Schneedecke des Interzeptionsspeichers."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = lland_masks.Land()
 
 
 class QDGZ1(sequencetools.StateSequence):

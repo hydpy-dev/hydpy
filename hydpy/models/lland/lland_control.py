@@ -370,6 +370,57 @@ class HInz(parametertools.Parameter):
     INIT = 0.2
 
 
+# snow interception
+
+
+class P1SIMax(parametertools.Parameter):
+    """Konstante zur Berechnung der maximalen Schneeinterzeptionskapazität basierend
+    auf dem Blattflächenindex (constant for calculating the maximum snow interception
+    capacity based on the leaf area index) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 8.0
+
+
+class P2SIMax(parametertools.Parameter):
+    """Faktor zur Berechnung der maximalen Schneeinterzeptionskapazität basierend
+    auf dem Blattflächenindex (factor for calculating the maximum snow interception
+    capacity based on the leaf area index) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.5
+
+
+class P1SIRate(parametertools.Parameter):
+    """Konstante zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf dem Blattflächenindex (constant for
+    calculating the ratio of the snow interception rate and the precipitation
+    intensity based on the leaf area index) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class P2SIRate(parametertools.Parameter):
+    """Faktor zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf dem Blattflächenindex (factor for
+    calculating the ratio of the snow interception rate and precipitation intensity
+    based on the leaf area index) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.02
+
+
+class P3SIRate(parametertools.Parameter):
+    """Faktor zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf der bereits interzipierten Schneemenge
+    (factor for calculating the ratio of the snow interception rate and precipitation
+    intensity based on the amount of already intercepted snow) [1/mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.05)
+    INIT = 0.003
+
+
 # snow
 
 
@@ -1520,49 +1571,6 @@ class NegQ(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0.0, None)
     INIT = False
-
-
-# work in progress
-
-
-class P1SIMax(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 8.0
-
-
-class P2SIMax(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 1.5
-
-
-class P1SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.2
-
-
-class P2SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.02
-
-
-class P3SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.05)
-    INIT = 0.003
 
 
 WMax.CONTROLPARAMETERS = (

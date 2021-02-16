@@ -28,3 +28,13 @@ class TempS(sequencetools.AideSequence):
     """
 
     NDIM, NUMERIC = 1, False
+
+
+class TempSInz(sequencetools.AideSequence):
+    """Temperatur des interzepierten Schnees (temperature of the intercepted snow) [°C].
+
+    Note that the value of sequence |TempSInz| is |numpy.nan| for missing intercepted
+    snow.
+    """
+
+    NDIM, NUMERIC = 1, False

@@ -41,4 +41,5 @@ class DGEq(sequencetools.AideSequence):
 
 class GF(sequencetools.AideSequence):
     """Gain factor for changes in groundwater depth [-]."""
+
     NDIM, NUMERIC, SPAN = 0, False, (None, None)

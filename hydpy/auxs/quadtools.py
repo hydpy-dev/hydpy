@@ -12,8 +12,8 @@ from hydpy.cythons.autogen import quadutils
 
 
 class Quad(modeltools.Submodel):
-    """Numerical solver for quadrature problems based on the Gauss-Lobatto quadrature.
-    """
+    """Numerical solver for quadrature problems based on the Gauss-Lobatto
+    quadrature."""
 
     CYTHONBASECLASS = quadutils.QuadBase
     PYTHONCLASS = quadutils.QuadPython

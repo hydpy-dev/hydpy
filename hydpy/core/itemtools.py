@@ -14,6 +14,8 @@ from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
+
 
 Device2Target = Dict[
     Union[devicetools.Node, devicetools.Element],
@@ -278,7 +280,7 @@ class ChangeItem(ExchangeItem):
     """Base class for changing the values of multiple |Parameter| or
     |Sequence_| objects of a specific type."""
 
-    name: str
+    name: Name
     ndim: int
     _shape: Optional[Tuple[int, ...]]
     _value: numpy.ndarray
@@ -472,7 +474,7 @@ class SetItem(ChangeItem):
         target: str,
         ndim: int,
     ) -> None:
-        self.name = str(name)
+        self.name = Name(name)
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = int(ndim)
         self._value = None
@@ -589,7 +591,7 @@ class MathItem(ChangeItem):
         base: str,
         ndim: int,
     ) -> None:
-        self.name = str(name)
+        self.name = Name(name)
         self.targetspecs = ExchangeSpecification(master, target)
         self.basespecs = ExchangeSpecification(master, base)
         self.ndim = int(ndim)
@@ -691,7 +693,7 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or
     |Sequence_| objects of a specific type."""
 
-    _device2name: Dict[Union[devicetools.Node, devicetools.Element], str]
+    _device2name: Dict[Union[devicetools.Node, devicetools.Element], Name]
 
     def __init__(self, master: str, target: str) -> None:
         self.target = target.replace(".", "_")
@@ -726,7 +728,7 @@ class GetItem(ExchangeItem):
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
-            self._device2name[device] = f"{device.name}_{self.target}"
+            self._device2name[device] = Name(f"{device.name}_{self.target}")
         for target in self.device2target.values():
             self.ndim = target.NDIM
             if self.targetspecs.series:
@@ -737,7 +739,7 @@ class GetItem(ExchangeItem):
         self,
         idx1: Optional[int] = None,
         idx2: Optional[int] = None,
-    ) -> Iterator[Tuple[str, str]]:
+    ) -> Iterator[Tuple[Name, str]]:
         """Sequentially return name-value-pairs describing the current state
         of the target variables.
 

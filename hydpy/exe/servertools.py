@@ -253,6 +253,7 @@ from hydpy.core import itemtools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
+from hydpy.core.typingtools import *
 
 
 # pylint: disable=wrong-import-position, wrong-import-order
@@ -262,6 +263,9 @@ import http.server
 
 mimetypes.inited = False
 # pylint: enable=wrong-import-position, wrong-import-order
+
+
+ID = NewType("ID", str)
 
 
 class ServerState:
@@ -345,11 +349,11 @@ class ServerState:
     parameteritems: List[itemtools.ChangeItem]
     conditionitems: List[itemtools.ChangeItem]
     getitems: List[itemtools.GetItem]
-    conditions: Dict[str, Dict[int, hydpytools.ConditionsType]]
-    parameteritemvalues: Dict[str, Dict[str, Any]]
-    modifiedconditionitemvalues: Dict[str, Dict[str, Any]]
-    getitemvalues: Dict[str, Dict[str, str]]
-    timegrids: Dict[str, timetools.Timegrid]
+    conditions: Dict[ID, Dict[int, hydpytools.ConditionsType]]
+    parameteritemvalues: Dict[ID, Dict[Name, Any]]
+    modifiedconditionitemvalues: Dict[ID, Dict[Name, Any]]
+    getitemvalues: Dict[ID, Dict[Name, str]]
+    timegrids: Dict[ID, timetools.Timegrid]
     init_conditions: hydpytools.ConditionsType
     idx1: int
     idx2: int
@@ -880,13 +884,13 @@ but have not been calculated so far.
                 ) from exc
 
     @property
-    def _id(self) -> str:
+    def _id(self) -> ID:
         return self._get_queryparameter("id")
 
-    def _get_queryparameter(self, name: str) -> str:
+    def _get_queryparameter(self, name: str) -> ID:
         query = urllib.parse.urlparse(self.path).query
         try:
-            return urllib.parse.parse_qs(query)[name][0]
+            return cast(ID, urllib.parse.parse_qs(query)[name][0])
         except KeyError:
             self._statuscode = 400
             raise RuntimeError(

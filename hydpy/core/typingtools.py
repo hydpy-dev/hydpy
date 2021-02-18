@@ -18,6 +18,8 @@ T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
 
+Name = NewType("Name", str)
+
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
 Mayberable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]]]
@@ -492,6 +494,7 @@ __all__ = [
     "MayNonerable1",
     "MayNonerable2",
     "MayNonerable3",
+    "Name",
     "ScriptFunction",
     "Sequence1",
     "Sequence2",

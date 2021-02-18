@@ -825,6 +825,7 @@ but have not been calculated so far.
     >>> process.kill()
     >>> _ = process.communicate()
     """
+
     # pylint: disable=invalid-name
     # due to "GET" and "POST" method names in accordance
     # with BaseHTTPRequestHandler
@@ -1185,6 +1186,7 @@ def start_server(
     socket: Union[int, str],
     projectname: str,
     xmlfilename: str,
+    maxrequests: Union[int, str] = 5,
 ) -> None:
     """Start the *HydPy* server using the given socket.
 
@@ -1193,6 +1195,31 @@ def start_server(
     within the project folder unless `xmlfilename` is an absolute file path.
     The XML configuration file must be valid concerning the schema file
     `HydPyConfigMultipleRuns.xsd` (see class |ServerState| for further information).
+
+    The |HydPyServer| allows for five still unhandled requests before refusing new
+    connections by default.  Use the optional `maxrequests` argument to increase this
+    number (which might be necessary when parallelising optimisation or data
+    assimilation):
+
+    >>> from hydpy.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> command = \
+"hyd.py start_server 8080 LahnH multiple_runs_alpha.xml maxrequests=100"
+    >>> from hydpy import run_subprocess, TestIO
+    >>> with TestIO():
+    ...     process = run_subprocess(command, blocking=False, verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
+
+    >>> from urllib import request
+    >>> command = "maxrequests = self.server.request_queue_size"
+    >>> response = request.urlopen("http://localhost:8080/evaluate",
+    ...                            data=bytes(command, encoding="utf-8"))
+    >>> print(str(response.read(), encoding="utf-8"))
+    maxrequests = 100
+
+    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> process.kill()
+    >>> _ = process.communicate()
 
     Note that function |start_server| tries to read the "mime types" from
     a dictionary stored in the file `mimetypes.txt` available in subpackage
@@ -1227,7 +1254,12 @@ def start_server(
         projectname=projectname,
         xmlfile=xmlfilename,
     )
-    server = http.server.HTTPServer(("", int(socket)), HydPyServer)
+
+    class _HTTPServer(http.server.HTTPServer):
+
+        request_queue_size = int(maxrequests)
+
+    server = _HTTPServer(("", int(socket)), HydPyServer)
     server.serve_forever()
 
 

@@ -1394,11 +1394,11 @@ def assignrepr_list3(
 
 def flatten_repr(self: object) -> str:
     """Remove the newline characters from the string representation of the
-    given object and return it.
+    given object.
 
-    Complex string representations like the following one are convenient
-    when working interactively, but cause line breaks when included in
-    strings like in exception messages:
+    Complex string representations like the following one convenient when working
+    interactively, but cause line breaks when included in strings like in exception
+    messages:
 
     >>> from hydpy import Node
     >>> node = Node("name", keywords="test")
@@ -1413,7 +1413,7 @@ def flatten_repr(self: object) -> str:
     Node("name", variable="Q", keywords="test")
 
     When implementing a new class into the HydPy framework requiring a complex
-    "|repr| string", either customize an simpler "|str| string" manually (as
+    "|repr| string", either customise a simpler "|str| string" manually (as
     already done for the class |Node| or use function |flatten_repr|:
 
     >>> print(f"We print {node}!")
@@ -1426,7 +1426,7 @@ def flatten_repr(self: object) -> str:
     >>> Node.__str__ = __str__
 
     The named tuple subclass |lstream_v001.Characteristics| of application
-    model |lstream_v001| uses function |flatten_repr| in the expected manner:
+    model |lstream_v001| relies on function |flatten_repr|:
 
     >>> from hydpy.models.lstream_v001 import Characteristics
     >>> characteristics = Characteristics(
@@ -1451,12 +1451,24 @@ def flatten_repr(self: object) -> str:
     >>> print(characteristics)
     Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \
 length_orig=3.0, nmb_subsections=4, length_adj=2.0)
+
+    You can apply function |flatten_repr| on arbitrary objects on the fly, but
+    without any guarantee, the result always looks good.  For the following
+    simple examples on some built-in types, everything seems to work:
+
+    >>> flatten_repr(1)
+    '1'
+    >>> flatten_repr((1, 2))
+    '(1, 2)'
+    >>> flatten_repr([(1,2),(3,4)])
+    '[(1, 2), (3, 4)]'
     """
     string = " ".join(string.strip() for string in repr(self).split("\n"))
     idx = string.find("(")
-    string = f"{string[:idx]}({string[idx+1:].strip()}"
-    if string.endswith(", )"):
-        string = f"{string[:-3]})"
+    if idx > 0:
+        string = f"{string[:idx]}({string[idx+1:].strip()}"
+        if string.endswith(", )"):
+            string = f"{string[:-3]})"
     return string
 
 

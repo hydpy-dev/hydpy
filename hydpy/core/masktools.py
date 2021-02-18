@@ -12,8 +12,10 @@ import numpy
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
-from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.core import parametertools
 
 
 class _MaskDescriptor:
@@ -235,7 +237,7 @@ determined as long as parameter `zonetype` is not prepared properly.
         return cls.array2mask(numpy.in1d(indices.values, cls.RELEVANT_VALUES), **kwargs)
 
     @classmethod
-    def get_refindices(cls, variable) -> parametertools.Parameter:
+    def get_refindices(cls, variable) -> "parametertools.Parameter":
         """Return the |Parameter| object for determining which
         entries of |IndexMask| are |True| and which are |False|.
 

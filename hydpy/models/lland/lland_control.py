@@ -1457,12 +1457,6 @@ class EQI1(parametertools.Parameter):
                 "value",
                 None,
             )
-        if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.eqb,
-                "value",
-                None,
-            )
         super().trim(lower, upper)
 
 

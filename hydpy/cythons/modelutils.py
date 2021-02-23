@@ -1079,7 +1079,7 @@ class PyxWriter:
             if (
                 name.isupper()
                 and not inspect.isclass(member)
-                and isinstance(member, tuple([t for t in TYPE2STR if t]))
+                and isinstance(member, tuple(t for t in TYPE2STR if t))
             ):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]

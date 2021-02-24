@@ -8507,14 +8507,14 @@ class Calc_EvB_V2(modeltools.Method):
 
     Example:
 
-        For sealed surfaces, water areas and snow-covered hydrological
-        response units, there is no soil evapotranspiration:
+        For sealed surfaces, water areas and snow-covered hydrological response units
+        that are not forests, there is no soil evapotranspiration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep()
         >>> nhru(6)
-        >>> lnk(VERS, WASSER, FLUSS, SEE, NADELW, NADELW)
+        >>> lnk(VERS, WASSER, FLUSS, SEE, ACKER, ACKER)
         >>> states.waes = 0.0, 0.0, 0.0, 0.0, 0.1, 10.0
         >>> model.calc_evb_v2()
         >>> fluxes.evb
@@ -8527,7 +8527,6 @@ class Calc_EvB_V2(modeltools.Method):
         in accordance with the base equation defined above:
 
         >>> lnk(NADELW)
-        >>> states.waes = 0.0
         >>> emissivity(0.96)
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 8.0, 8.0, 8.0, 8.0, 8.0, -30.0
@@ -8583,7 +8582,7 @@ class Calc_EvB_V2(modeltools.Method):
         for k in range(con.nhru):
             if (
                 (con.lnk[k] in (VERS, WASSER, FLUSS, SEE))
-                or (sta.waes[k] > 0.0)
+                or ((con.lnk[k] not in (LAUBW, MISCHW, NADELW) and sta.waes[k] > 0.0))
                 or (flu.evpo[k] == 0.0)
             ):
                 flu.evb[k] = 0.0

@@ -57,6 +57,7 @@ for name in os.listdir("hydpy"):
         packages.append(".".join(("hydpy", name)))
 packages.append("hydpy.conf")
 packages.append("hydpy.cythons.autogen")
+packages.append("hydpy.docs.autofigs")
 packages.append("hydpy.docs.figs")
 packages.append("hydpy.docs.html_")
 packages.append("hydpy.docs.rst")
@@ -80,6 +81,7 @@ for dir_, _, _ in os.walk(os.path.join("hydpy", "data")):
 package_data = {
     "hydpy.conf": ["*.npy", "*.xsd", "*.xsdt"],
     "hydpy.cythons": ["*.pyi"],
+    "hydpy.docs.autofigs": ["*.png"],
     "hydpy.docs.figs": ["*.png"],
     "hydpy.docs.rst": ["*.rst"],
     "hydpy.tests": [".coveragerc"],
@@ -284,7 +286,6 @@ if install:
 
     # Copy all extension files (pyx) and all compiled Cython files (pyd or so)
     # into the original `autogen` folder.
-    # (Thought for developers only - if it fails, its not that a big deal...)
     print_("\nCopy extension files and dlls backwards:")
     path_autogen = os.path.join(oldpath, "hydpy", "cythons", "autogen")
     for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
@@ -298,7 +299,6 @@ if install:
                 print_("\t!!! failed !!!")
 
     # Copy the generated plotly plots into the original docs subpackage
-    # (on Travis-CI: for including them into the online-documentation).
     print_("\nCopy plotly plots backwards:")
     path_html = os.path.join(oldpath, "hydpy", "docs", "html_")
     import hydpy.docs.html_
@@ -309,9 +309,8 @@ if install:
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
-    # Copy the (possibly new) matplotlib plots into the original docs subpackage
-    # (on Travis-CI: for including them into the online-documentation).
-    print_("\nCopy matplotlib plots backwards:")
+    # Copy the manually generated figures into the original docs subpackage
+    print_("\nCopy manually generated plots backwards:")
     path_figs = os.path.join(oldpath, "hydpy", "docs", "figs")
     import hydpy.docs.figs
 
@@ -319,6 +318,17 @@ if install:
         if filename.endswith(".png"):
             path_in = prep(hydpy.docs.figs.__path__[0], filename)
             path_out = prep(path_figs, filename)
+            source2target(path_in, path_out)
+
+    # Copy the automatically generated figures into the original docs subpackage
+    print_("\nCopy automatically generated plots backwards:")
+    path_autofigs = os.path.join(oldpath, "hydpy", "docs", "autofigs")
+    import hydpy.docs.autofigs
+
+    for filename in os.listdir(hydpy.docs.autofigs.__path__[0]):
+        if filename.endswith(".png"):
+            path_in = prep(hydpy.docs.autofigs.__path__[0], filename)
+            path_out = prep(path_autofigs, filename)
             source2target(path_in, path_out)
 
     # Copy the (possibly new) configuration files into the original subpackage.

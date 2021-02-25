@@ -26,6 +26,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import docs
+from hydpy.docs import autofigs
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
@@ -2011,3 +2012,21 @@ not among the result sequences of any of its predecessors: DryAirPressure
             results.append(f"{blanks}Potential consistency problems between methods:")
             results.append(subresult)
     return "\n".join(results)
+
+
+def save_autofig(
+    filename: str,
+    figure: Optional[pyplot.Figure] = None,
+) -> None:
+    """Save a figure automatically generated during testing in the special `autofig`
+    sub-package so that Sphinx can include it into the documentation later.
+
+    When passing no figure, function |save_autofig| takes the currently active one.
+    """
+    filepath = f"{autofigs.__path__[0]}/{filename}"  # type: ignore[attr-defined]
+    if figure:
+        figure.savefig(filepath)
+        figure.clear()
+    else:
+        pyplot.savefig(filepath)
+        pyplot.close()

@@ -74,19 +74,8 @@ following graph):
 ...     intercepts_hidden=0.0, intercepts_output=0.0,
 ...     activation=0)
 >>> watervolume2waterlevel.plot(0.0, 1.0)
-
-.. testsetup::
-
-    >>> import os
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(
-    ...     os.path.join(
-    ...         figs.__path__[0],
-    ...         "dam_v006_watervolume2waterlevel.png",
-    ...     ),
-    ... )
-    >>> pyplot.close()
+>>> from hydpy.core.testtools import save_autofig
+>>> save_autofig("dam_v006_watervolume2waterlevel.png")
 
 .. image:: dam_v006_watervolume2waterlevel.png
    :width: 400
@@ -103,16 +92,7 @@ a single linear relationship which applies for the whole year:
 ...     intercepts_hidden=0.0, intercepts_output=0.0,
 ...     activation=0))
 >>> waterlevel2flooddischarge.plot(0.0, 1.0)
-
-.. testsetup::
-
-    >>> pyplot.savefig(
-    ...     os.path.join(
-    ...         figs.__path__[0],
-    ...         "dam_v006_waterlevel2flooddischarge.png",
-    ...     ),
-    ... )
-    >>> pyplot.close()
+>>> save_autofig("dam_v006_waterlevel2flooddischarge.png")
 
 .. image:: dam_v006_waterlevel2flooddischarge.png
    :width: 400

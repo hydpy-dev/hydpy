@@ -2975,15 +2975,8 @@ class ProfileMixin:
         prints it directly on your screen:
 
         >>> model.plot_profile()
-
-        You can use the `pyplot` API of `matplotlib` to modify the figure
-        or to save it to disk (or print it to the screen, in case the
-        interactive mode of `matplotlib` is disabled):
-
-        >>> from matplotlib import pyplot
-        >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + "/lstream_plot_profile.png")
-        >>> pyplot.close()
+        >>> from hydpy.core.testtools import save_autofig
+        >>> save_autofig("lstream_plot_profile.png")
 
         .. image:: lstream_plot_profile.png
         """

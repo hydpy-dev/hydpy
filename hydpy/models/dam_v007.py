@@ -108,19 +108,8 @@ relevant when the water volume exceeds about 1.4 million m³:
 ...     weights_input=10.0, weights_output=50.0,
 ...     intercepts_hidden=-20.0, intercepts_output=0.0))
 >>> waterlevel2flooddischarge.plot(0.0, 2.0)
-
-.. testsetup::
-
-    >>> import os
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(
-    ...     os.path.join(
-    ...         figs.__path__[0],
-    ...         "dam_v007_waterlevel2flooddischarge.png",
-    ...     ),
-    ... )
-    >>> pyplot.close()
+>>> from hydpy.core.testtools import save_autofig
+>>> save_autofig("dam_v007_waterlevel2flooddischarge.png")
 
 .. image:: dam_v007_waterlevel2flooddischarge.png
    :width: 400

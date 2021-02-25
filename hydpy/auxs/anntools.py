@@ -168,10 +168,8 @@ class ANN(BaseANN):
     or to save it to disk (or print it to the screen, in case the
     interactive mode of `matplotlib` is disabled):
 
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + "/ANN_plot.png")
-    >>> pyplot.close()
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("ANN_plot.png")
 
     .. image:: ANN_plot.png
 
@@ -1452,10 +1450,8 @@ class SeasonalANN(BaseANN):
     or to save it to disk (or print it to the screen, in case the
     interactive mode of `matplotlib` is disabled):
 
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + "/SeasonalANN_plot.png")
-    >>> pyplot.close()
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("SeasonalANN_plot.png")
 
     .. image:: SeasonalANN_plot.png
 

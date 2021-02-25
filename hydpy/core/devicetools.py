@@ -2101,10 +2101,9 @@ the given group name `test`.
         object.  Use it to for further plot handling, e.g. for adding a title
         and saving the current figure to disk:
 
-        >>> from hydpy.docs import figs
+        >>> from hydpy.core.testtools import save_autofig
         >>> text = figure.axes[0].set_title('daily')
-        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_1.png")
-        >>> figure.clear()
+        >>> save_autofig("Node_plot_allseries_1.png", figure)
 
         .. image:: Node_plot_allseries_1.png
 
@@ -2113,8 +2112,7 @@ the given group name `test`.
 
         >>> figure = dill.plot_allseries(stepsize="monthly")
         >>> text = figure.axes[0].set_title('monthly')
-        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_2.png")
-        >>> figure.clear()
+        >>> save_autofig("Node_plot_allseries_2.png", figure)
 
         .. image:: Node_plot_allseries_2.png
 
@@ -2129,8 +2127,7 @@ the given group name `test`.
         ...                                linewidths=2,
         ...                                linestyles=("--", ":"),
         ...                                focus=True,)
-        >>> figure.savefig(figs.__path__[0] + "/Node_plot_allseries_3.png")
-        >>> figure.clear()
+        >>> save_autofig("Node_plot_allseries_3.png", figure)
 
         .. image:: Node_plot_allseries_3.png
 
@@ -3053,9 +3050,8 @@ Use method `prepare_model` instead.
         or to save it to disk (or print it to the screen, in case the
         interactive mode of `matplotlib` is disabled):
 
-        >>> from matplotlib import pyplot
-        >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_inputseries.png")
+        >>> from hydpy.core.testtools import save_autofig
+        >>> save_autofig("Element_plot_inputseries.png")
         >>> pyplot.close()
 
         .. image:: Element_plot_inputseries.png
@@ -3073,9 +3069,7 @@ Use method `prepare_model` instead.
         supported by `matplotlib` for modifying the line style:
 
         >>> land.plot_fluxseries(["q0", "q1"], linewidth=2)
-
-        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_fluxseries.png")
-        >>> pyplot.close()
+        >>> save_autofig("Element_plot_fluxseries.png")
 
         .. image:: Element_plot_fluxseries.png
 
@@ -3084,9 +3078,7 @@ Use method `prepare_model` instead.
         sequences |hland_states.SP| and |hland_states.WC| of |hland_v1|):
 
         >>> land.plot_stateseries(["sp", "wc"])
-
-        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_stateseries1.png")
-        >>> pyplot.close()
+        >>> save_autofig("Element_plot_stateseries1.png")
 
         .. image:: Element_plot_stateseries1.png
 
@@ -3097,9 +3089,7 @@ Use method `prepare_model` instead.
         >>> land.plot_stateseries(["sm"], color="grey")
         >>> land.plot_stateseries(
         ...     ["sm"], average=True, color="black", linewidth=3)
-
-        >>> pyplot.savefig(figs.__path__[0] + "/Element_plot_stateseries2.png")
-        >>> pyplot.close()
+        >>> save_autofig("Element_plot_stateseries2.png")
 
         .. image:: Element_plot_stateseries2.png
         """

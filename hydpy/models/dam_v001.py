@@ -147,19 +147,8 @@ Integration tests
     ...     activation=0)
     >>> # This plot confirms the linearity of the defined relationship:
     >>> watervolume2waterlevel.plot(0.0, 100.0)
-
-    .. testsetup::
-
-        >>> import os
-        >>> from matplotlib import pyplot
-        >>> from hydpy.docs import figs
-        >>> pyplot.savefig(
-        ...     os.path.join(
-        ...         figs.__path__[0],
-        ...         "dam_v001_watervolume2waterlevel.png",
-        ...     ),
-        ... )
-        >>> pyplot.close()
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("dam_v001_watervolume2waterlevel.png")
 
     .. image:: dam_v001_watervolume2waterlevel.png
        :width: 400
@@ -172,16 +161,7 @@ Integration tests
     ...     weights_input=0.0, weights_output=0.0,
     ...     intercepts_hidden=0.0, intercepts_output=0.0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
-
-    .. testsetup::
-
-        >>> pyplot.savefig(
-        ...     os.path.join(
-        ...         figs.__path__[0],
-        ...         "dam_v001_waterlevel2flooddischarge_1.png",
-        ...     ),
-        ... )
-        >>> pyplot.close()
+    >>> save_autofig("dam_v001_waterlevel2flooddischarge_1.png")
 
     .. image:: dam_v001_waterlevel2flooddischarge_1.png
        :width: 400
@@ -898,16 +878,7 @@ Integration tests
     ...     intercepts_hidden=0.0, intercepts_output=0.0,
     ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
-
-    .. testsetup::
-
-        >>> pyplot.savefig(
-        ...     os.path.join(
-        ...         figs.__path__[0],
-        ...         "dam_v001_waterlevel2flooddischarge_2.png",
-        ...     ),
-        ... )
-        >>> pyplot.close()
+    >>> save_autofig("dam_v001_waterlevel2flooddischarge_2.png")
 
     .. image:: dam_v001_waterlevel2flooddischarge_2.png
        :width: 400
@@ -1060,16 +1031,7 @@ Integration tests
     ...     intercepts_hidden=0.0, intercepts_output=0.0,
     ...     activation=0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
-
-    .. testsetup::
-
-        >>> pyplot.savefig(
-        ...     os.path.join(
-        ...         figs.__path__[0],
-        ...         "dam_v001_waterlevel2flooddischarge_3.png",
-        ...     ),
-        ... )
-        >>> pyplot.close()
+    >>> save_autofig("dam_v001_waterlevel2flooddischarge_3.png")
 
     .. image:: dam_v001_waterlevel2flooddischarge_3.png
        :width: 400

@@ -32,6 +32,8 @@ import os
 from typing import *
 
 # ...from site-packages
+# from scipy but not optional due to using interp1d during module initialisation:
+from scipy import interpolate    # pylint: disable=ungrouped-imports
 import numpy
 
 # ...from HydPy
@@ -40,12 +42,8 @@ from hydpy.core import exceptiontools
 from hydpy.cythons.autogen import smoothutils
 
 if TYPE_CHECKING:
-    from scipy import interpolate
     from scipy import optimize
 else:
-    interpolate = exceptiontools.OptionalImport(
-        "interpolate", ["scipy.interpolate"], locals()
-    )
     optimize = exceptiontools.OptionalImport("optimize", ["scipy.optimize"], locals())
 
 

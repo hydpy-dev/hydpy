@@ -2061,7 +2061,7 @@ the given group name `test`.
         linewidths: Optional[Union[int, Tuple[int, int]]] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> pyplot.Figure:
+    ) -> "pyplot.Figure":
         """Plot the |IOSequence.series| data of both the |Sim| and
         the |Obs| sequence object.
 
@@ -2178,7 +2178,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: Optional[int] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> pyplot.Figure:
+    ) -> "pyplot.Figure":
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2202,7 +2202,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: Optional[int] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> pyplot.Figure:
+    ) -> "pyplot.Figure":
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2226,7 +2226,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidths: Iterable[Optional[int]],
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> pyplot.Figure:
+    ) -> "pyplot.Figure":
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
             for sequence, label, color, linestyle, linewidth in zip(

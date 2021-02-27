@@ -2016,7 +2016,7 @@ not among the result sequences of any of its predecessors: DryAirPressure
 
 def save_autofig(
     filename: str,
-    figure: Optional[pyplot.Figure] = None,
+    figure: Optional["pyplot.Figure"] = None,
 ) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.

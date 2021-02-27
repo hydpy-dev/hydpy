@@ -33,7 +33,7 @@ from typing import *
 
 # ...from site-packages
 # from scipy but not optional due to using interp1d during module initialisation:
-from scipy import interpolate    # pylint: disable=ungrouped-imports
+from scipy import interpolate  # pylint: disable=ungrouped-imports
 import numpy
 
 # ...from HydPy

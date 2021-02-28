@@ -379,7 +379,9 @@ to any sequences: in2.
         `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword
         of different node objects:
 
-        >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
+        >>> from hydpy import pub
+        >>> from hydpy.inputs import hland_P
+        >>> from hydpy.outputs import hland_Q0, hland_UZ
         >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
         >>> inp1 = Node("inp1", variable=hland_P)
@@ -412,7 +414,9 @@ to any sequences: in2.
         multiple subclasses (see the documentation on class |FusedVariable|
         for more information and a more realistic example):
 
-        >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import lland_Nied
+        >>> from hydpy.outputs import lland_QDGZ
         >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
         >>> inp2 = Node("inp2", variable=Precip)
         >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
@@ -434,7 +438,7 @@ to any sequences: in2.
         Method |Model.connect| reports if one of the given fused variables
         does not find a fitting sequence:
 
-        >>> from hydpy import lland_TemL
+        >>> from hydpy.inputs import lland_TemL
         >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10",

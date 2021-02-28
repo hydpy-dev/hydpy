@@ -3049,8 +3049,8 @@ class InputSequence(
     both types of input data sources at the same time works well and that
     the different |Node.deploymode| options are supported:
 
-    >>> from hydpy import (Element, FusedVariable, hland_T, hland_P, HydPy,
-    ...                    Node, print_values, pub, TestIO)
+    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_values, pub, TestIO
+    >>> from hydpy.inputs import  hland_T, hland_P
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_t = Node("node_t", variable=hland_T)
@@ -3168,8 +3168,8 @@ class OutputSequence(
     and place it more prominently.  In short, it shows that everything works
     well for the different |Node.deploymode| options:
 
-    >>> from hydpy import (Element, hland_Perc, hland_Q0, hland_Q1, hland_UZ,
-    ...                    HydPy, Node, print_values, pub, Selection, TestIO)
+    >>> from hydpy import Element, HydPy, Node, print_values, pub, Selection, TestIO
+    >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1, hland_UZ
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_q0 = Node("node_q0", variable=hland_Q0)
@@ -4147,7 +4147,8 @@ class NodeSequence(
         >>> Node("test_node_1", "T").sequences.sim.descr_sequence
         'sim_t'
 
-        >>> from hydpy import hland_T, FusedVariable, lland_TemL
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import hland_T, lland_TemL
         >>> Temp = FusedVariable("Temp", hland_T, lland_TemL)
         >>> Node("test_node_2", Temp).sequences.sim.descr_sequence
         'sim_temp'

@@ -11,7 +11,6 @@ hydrological models.
 # ...from standard library
 import importlib
 import os
-import pkgutil
 import warnings
 from typing import *
 
@@ -300,31 +299,6 @@ __all__ = [
 
 sequence2alias: Dict[sequencetools.TypesInOutSequence, str] = {}
 
-_select = (
-    sequencetools.InputSequence,
-    sequencetools.FluxSequence,
-    sequencetools.StateSequence,
-)
-modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
-for moduleinfo in pkgutil.walk_packages([modelpath]):
-    if moduleinfo.ispkg:
-        for group in ("inputs", "fluxes", "states"):
-            modulepath = f"hydpy.models.{moduleinfo.name}.{moduleinfo.name}_{group}"
-            try:
-                module = importlib.import_module(modulepath)
-            except ModuleNotFoundError:
-                continue
-            for member in vars(module).values():
-                if (
-                    (getattr(member, "__module__", None) == modulepath)
-                    and issubclass(member, _select)
-                    and member.NDIM == 0
-                ):
-                    alias = f"{moduleinfo.name}_{member.__name__}"
-                    sequence2alias[member] = alias
-                    locals()[alias] = member
-                    __all__.append(alias)
-
 if config.USEAUTODOC:
     with warnings.catch_warnings():
         warnings.filterwarnings(
@@ -348,6 +322,7 @@ if config.USEAUTODOC:
                     autodoctools.autodoc_module(module)
         autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         with pub.options.autocompile(False):
+            modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]  # pylint: disable=line-too-long
             for filename in os.listdir(modelpath):
                 path = os.path.join(modelpath, filename)
                 if os.path.isdir(path) and not filename.startswith("_"):

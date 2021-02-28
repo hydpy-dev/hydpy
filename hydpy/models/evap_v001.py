@@ -29,7 +29,8 @@ define an outlet sequence.  Hence, we need to manually select an output
 sequence, which usually is |ReferenceEvapotranspiration|.  We import
 its globally available alias and prepare the corresponding output node:
 
->>> from hydpy import Element, evap_ReferenceEvapotranspiration, Node
+>>> from hydpy import Element, Node
+>>> from hydpy.outputs import evap_ReferenceEvapotranspiration
 >>> node = Node("node", variable=evap_ReferenceEvapotranspiration)
 
 Now we can prepare an instance of |evap_v001| and assign it to an element

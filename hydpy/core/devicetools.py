@@ -293,9 +293,9 @@ class FusedVariable:
     available aliases):
 
     >>> from hydpy import FusedVariable
-    >>> from hydpy import evap_ReferenceEvapotranspiration, lland_PET
+    >>> from hydpy.inputs import lland_PET, evap_AirTemperature, lland_TemL
+    >>> from hydpy.outputs import evap_ReferenceEvapotranspiration
     >>> E = FusedVariable("E", evap_ReferenceEvapotranspiration, lland_PET)
-    >>> from hydpy import evap_AirTemperature, lland_TemL
     >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     Now we can construct the network:
@@ -390,7 +390,7 @@ class FusedVariable:
 
     Changing the member sequences of an existing fused variable is not allowed:
 
-    >>> from hydpy import hland_T
+    >>> from hydpy.inputs import hland_T
     >>> FusedVariable("T", hland_T, lland_TemL)
     Traceback (most recent call last):
     ...
@@ -1798,7 +1798,7 @@ immutable Elements objects is not allowed.
         nodes handling "class variables" use the aliases importable from
         the top-level of the *HydPy* package:
 
-        >>> from hydpy import hland_P
+        >>> from hydpy.inputs import hland_P
         >>> Node("test4", variable=hland_P)
         Node("test4", variable=hland_P)
 
@@ -1806,7 +1806,8 @@ immutable Elements objects is not allowed.
         |FusedVariable| objects.  The string representation then relies
         on the name of the fused variable:
 
-        >>> from hydpy import FusedVariable, lland_Nied
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import lland_Nied
         >>> Precipitation = FusedVariable("Precip", hland_P, lland_Nied)
         >>> Node("test5", variable=Precipitation)
         Node("test5", variable=Precip)

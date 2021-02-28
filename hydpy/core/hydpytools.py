@@ -1807,7 +1807,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.variables
         {'Q': 4}
 
-        >>> from hydpy import FusedVariable, hland_T, Node
+        >>> from hydpy import FusedVariable, Node
+        >>> from hydpy.inputs import hland_T
         >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
         >>> hp.variables
         {'Q': 4, FusedVariable("T", hland_T): 1}

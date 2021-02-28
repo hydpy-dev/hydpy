@@ -436,10 +436,9 @@ Selections objects, single Selection objects, or iterables containing \
         self,
         value: Union[str, "Selection"],
     ) -> bool:
-        try:
-            return value in self.__selections.values()
-        except AttributeError:
+        if isinstance(value, str):
             return value in self.names
+        return value in self.__selections.values()
 
     def __iter__(self) -> Iterator["Selection"]:
         return iter(self.__selections.values())
@@ -638,12 +637,20 @@ type `int`, the following error occurred: 'int' object has no attribute 'nodes'
     AttributeError: While trying to subtract selection `test` with object \
 `dill` of type `Node`, the following error occurred: 'Node' object has no \
 attribute 'nodes'
-    >>> test == "wrong"
+    >>> test < "wrong"
     Traceback (most recent call last):
     ...
     AttributeError: While trying to compare selection `test` with object \
 `wrong` of type `str`, the following error occurred: 'str' object has no \
 attribute 'nodes'
+
+    But as usual, checking for equality or inequality return |False| and |True| for
+    uncomparable objects:
+
+    >>> test == "wrong"
+    False
+    >>> test != "wrong"
+    True
 
     Applying the |str| function only returns the selection name:
 
@@ -1427,19 +1434,21 @@ hland_T, lland_Nied
     ) -> bool:
         return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
-    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __eq__(
         self,
-        other: "Selection",
+        other: Any,
     ) -> bool:
-        return (self.nodes == other.nodes) and (self.elements == other.elements)
+        if isinstance(other, (hydpytools.HydPy, Selection)):
+            return (self.nodes == other.nodes) and (self.elements == other.elements)
+        return False
 
-    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ne__(
         self,
-        other: "Selection",
+        other: Any,
     ) -> bool:
-        return (self.nodes != other.nodes) or (self.elements != other.elements)
+        if isinstance(other, (hydpytools.HydPy, Selection)):
+            return (self.nodes != other.nodes) or (self.elements != other.elements)
+        return True
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ge__(

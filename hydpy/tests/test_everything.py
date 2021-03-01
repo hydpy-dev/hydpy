@@ -13,22 +13,23 @@ import time
 import unittest
 import doctest
 import warnings
+from typing import *
 
 
-def print_(*args, **kwargs):
+def print_(*args: str) -> None:
     """Print immediately."""
-    print(*args, **kwargs)
+    print(*args)
     sys.stdout.flush()
 
 
 class _FilterFilenames:
-    def __init__(self, argv):
-        self.selection = []
+    def __init__(self, argv: List[str]) -> None:
+        self.selection: List[str] = []
         for arg_ in argv:
             if arg_.startswith("select="):
                 self.selection.extend(_ for _ in arg_[7:].split(","))
 
-    def __call__(self, names) -> list:
+    def __call__(self, names: Sequence[str]) -> List[str]:
         if self.selection:
             return [_ for _ in names if _ in self.selection]
         return list(names)
@@ -56,42 +57,42 @@ else:
 # mechanism of HydPy.
 from hydpy import pub
 
-pub.options.forcecompiling = forcecompiling
-pub.options.skipdoctests = True
-import hydpy.models
+with pub.options.forcecompiling(forcecompiling), pub.options.skipdoctests(True):
+    import hydpy.models
 
-path_: str = hydpy.models.__path__[0]  # type: ignore[attr-defined, name-defined]
-for name in [fn.split(".")[0] for fn in os.listdir(path_)]:
-    if name != "__init__":
-        modulename = "hydpy.models." + name
-        alreadyimported = modulename in sys.modules
-        module = importlib.import_module(modulename)
-        if alreadyimported:
-            importlib.reload(module)
+    path_: str = hydpy.models.__path__[0]  # type: ignore[attr-defined, name-defined]
+    for name in [fn.split(".")[0] for fn in os.listdir(path_)]:
+        if name != "__init__":
+            modulename = "hydpy.models." + name
+            alreadyimported = modulename in sys.modules
+            module = importlib.import_module(modulename)
+            if alreadyimported:
+                importlib.reload(module)
 
-pub.options.skipdoctests = False
-pub.options.forcecompiling = False
 
-# Write the required configuration files to be generated dynamically.
+# Write the required configuration and alias files to be generated dynamically.
+from hydpy.core.aliastools import write_sequencealiases
 from hydpy.auxs.xmltools import XSDWriter
 
+write_sequencealiases()
 XSDWriter().write_xsd()
 
 # Perform all tests (first in Python mode, then in Cython mode)
-pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import testtools
 
 pingtime: float = time.perf_counter()
 
-alldoctests = ({}, {})
-allsuccessfuldoctests = ({}, {})
-allfaileddoctests = ({}, {})
+DocTest = Dict[str, Tuple[unittest.TestResult, int]]
+DocTests = Tuple[DocTest, DocTest]
+alldoctests: DocTests = ({}, {})
+allsuccessfuldoctests: DocTests = ({}, {})
+allfaileddoctests: DocTests = ({}, {})
 for (mode, doctests, successfuldoctests, faileddoctests) in zip(
     ("Python", "Cython"), alldoctests, allsuccessfuldoctests, allfaileddoctests
 ):
-    path_: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+    path_ = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
     for dirpath, dirnames, filenames_ in os.walk(path_):
         is_package = "__init__.py" in filenames_
         if "__init__.py" not in filenames_:
@@ -191,10 +192,10 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                     )
                     runner = unittest.TextTestRunner(stream=file_)
                     testresult = runner.run(suite)
-                    doctests[name] = testresult
-                doctests[name].nmbproblems = len(testresult.errors) + len(
-                    testresult.failures
-                )
+                    doctests[name] = (
+                        testresult,
+                        len(testresult.errors) + len(testresult.failures),
+                    )
                 problems = testresult.errors + testresult.failures
                 if problems:
                     pingtime = time.perf_counter()
@@ -205,26 +206,34 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                         for line in problem[1].split("\n"):
                             print_(f"        {line}")
     successfuldoctests.update(
-        {name: runner for (name, runner) in doctests.items() if not runner.nmbproblems}
+        {
+            name: (runner, nmbproblems)
+            for name, (runner, nmbproblems) in doctests.items()
+            if not nmbproblems
+        }
     )
     faileddoctests.update(
-        {name: runner for (name, runner) in doctests.items() if runner.nmbproblems}
+        {
+            name: (runner, nmbproblems)
+            for name, (runner, nmbproblems) in doctests.items()
+            if nmbproblems
+        }
     )
 
     if successfuldoctests:
         print_(f"\nIn the following modules, no doc test failed in {mode} mode:")
-        for name, testresult in sorted(successfuldoctests.items()):
+        for name, (testresult, _) in sorted(successfuldoctests.items()):
             if name[-4:] in (".rst", ".pyx"):
                 print_(f"    {name}")
             else:
-                print_(f"    {name} " f"({testresult} successes)")
+                print_(f"    {name} ({testresult.testsRun} successes)")
     if faileddoctests:
         print_(
             f"\nAt least one doc test failed in each of the "
             f"following modules in {mode} mode:"
         )
-        for name, testresult in sorted(faileddoctests.items()):
-            print_(f"    {name} ({testresult.nmbproblems} failures/errors)")
+        for name, (testresult, nmbproblems) in sorted(faileddoctests.items()):
+            print_(f"    {name} ({nmbproblems} failures/errors)")
 
 # Return the exit code.
 print_(

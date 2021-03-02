@@ -334,7 +334,7 @@ _dllextension = get_dllextension()
 
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
-TYPE2STR = {
+TYPE2STR: Dict[Optional[Type[Any]], str] = {
     bool: "bint",
     int: _int,
     parametertools.IntConstant: _int,
@@ -351,6 +351,18 @@ TYPE2STR = {
 The Cython type belonging to Python's |int| is selected to agree
 with numpy's default integer type on the current platform/system.
 """
+
+_checkable_types: List[Type[Any]] = []
+for maybe_a_type in TYPE2STR:
+    try:
+        isinstance(1, maybe_a_type)  # type: ignore[arg-type]
+    except TypeError:
+        continue
+    assert isinstance(maybe_a_type, type)
+    _checkable_types.append(maybe_a_type)
+CHECKABLE_TYPES: Tuple[Type[Any], ...] = tuple(_checkable_types)
+""""Real types" of |TYPE2STR| allowed as second arguments of function |isinstance|."""
+del _checkable_types
 
 NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 
@@ -1082,7 +1094,7 @@ class PyxWriter:
             if (
                 name.isupper()
                 and not inspect.isclass(member)
-                and isinstance(member, tuple(t for t in TYPE2STR if t))
+                and isinstance(member, CHECKABLE_TYPES)
             ):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]

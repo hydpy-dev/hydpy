@@ -95,7 +95,7 @@ from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import seriestools
 from hydpy.core import timetools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
 from hydpy.cythons.autogen import pointerutils
 
 if TYPE_CHECKING:
@@ -112,8 +112,8 @@ DeviceType = TypeVar("DeviceType", "Node", "Element")
 DevicesTypeBound = TypeVar("DevicesTypeBound", bound="Devices")
 DevicesTypeUnbound = TypeVar("DevicesTypeUnbound", "Nodes", "Elements")
 
-NodesConstrArg = typingtools.MayNonerable2["Node", str]
-ElementsConstrArg = typingtools.MayNonerable2["Element", str]
+NodesConstrArg = MayNonerable2["Node", str]
+ElementsConstrArg = MayNonerable2["Element", str]
 NodeConstrArg = Union["Node", str]
 ElementConstrArg = Union["Element", str]
 
@@ -650,9 +650,7 @@ of the following classes: Node and str.
     _shadowed_keywords: Set[str]
     forceiterable: bool = False
 
-    def __new__(
-        cls, *values: typingtools.MayNonerable2[DeviceType, str], mutable: bool = True
-    ):
+    def __new__(cls, *values: MayNonerable2[DeviceType, str], mutable: bool = True):
         if len(values) == 1 and isinstance(values[0], Devices):
             return values[0]
         self = super().__new__(cls)
@@ -1042,7 +1040,7 @@ which is in conflict with using their names as identifiers.
         for (_, device) in sorted(self._name2device.items()):
             yield device
 
-    def __contains__(self, value: typingtools.Mayberable2[DeviceType, str]):
+    def __contains__(self, value: Mayberable2[DeviceType, str]):
         device = self.get_contentclass()(value)
         return device.name in self._name2device
 
@@ -1051,7 +1049,7 @@ which is in conflict with using their names as identifiers.
 
     def __add__(
         self: DevicesTypeBound,
-        other: typingtools.Mayberable2[DeviceType, str],
+        other: Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         new = copy.copy(self)
         new.mutable = True
@@ -1061,7 +1059,7 @@ which is in conflict with using their names as identifiers.
 
     def __iadd__(
         self: DevicesTypeBound,
-        other: typingtools.Mayberable2[DeviceType, str],
+        other: Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         for device in type(self)(other):
             self.add_device(device)
@@ -1069,7 +1067,7 @@ which is in conflict with using their names as identifiers.
 
     def __sub__(
         self: DevicesTypeBound,
-        other: typingtools.Mayberable2[DeviceType, str],
+        other: Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         new = copy.copy(self)
         new.mutable = True
@@ -1082,7 +1080,7 @@ which is in conflict with using their names as identifiers.
 
     def __isub__(
         self: DevicesTypeBound,
-        other: typingtools.Mayberable2[DeviceType, str],
+        other: Mayberable2[DeviceType, str],
     ) -> DevicesTypeBound:
         for device in type(self)(other):
             try:
@@ -1663,7 +1661,7 @@ class Device(Generic[DevicesTypeUnbound]):
         return vars(self)["keywords"]
 
     @keywords.setter
-    def keywords(self, keywords: typingtools.Mayberable1[str]) -> None:
+    def keywords(self, keywords: Mayberable1[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
         vars(self)["keywords"].update(*keywords)
 
@@ -1725,7 +1723,7 @@ immutable Elements objects is not allowed.
         self,
         value: NodeConstrArg,
         variable: NodeVariableType = None,
-        keywords: typingtools.MayNonerable1[str] = None,
+        keywords: MayNonerable1[str] = None,
     ):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
@@ -2554,7 +2552,7 @@ is not allowed.
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
-        keywords: typingtools.MayNonerable1[str] = None,
+        keywords: MayNonerable1[str] = None,
     ):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
@@ -2983,34 +2981,69 @@ Use method `prepare_model` instead.
             else:
                 subseqs.activate_disk()
 
-    def __plot(
+    def _plot_series(
         self,
+        *,
         subseqs: sequencetools.SubSequences,
-        names: Optional[Iterable[str]],
+        names: Optional[Sequence[str]],
         average: bool,
-        kwargs: Dict,
-    ) -> None:
-        index = _get_pandasindex()
+        labels: Optional[Tuple[str, ...]],
+        colors: Optional[Union[str, Tuple[str, ...]]],
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]],
+        linewidths: Optional[Union[int, Tuple[int, ...]]],
+        focus: bool,
+    ) -> "pyplot.Figure":
+        def _prepare_tuple(
+            input_: Optional[Union[T, Tuple[T, ...]]],
+            nmb_entries: int,
+        ) -> Tuple[Optional[T], ...]:
+            if isinstance(input_, tuple):
+                return input_
+            return nmb_entries * (input_,)
+
+        idx0, idx1 = hydpy.pub.timegrids.evalindices
+        index = _get_pandasindex()[idx0:idx1]
+        selseqs: Iterable[sequencetools.IOSequence[Any, Any]]
         if names:
-            selseqs: Iterable[sequencetools.IOSequence] = (
-                getattr(subseqs, name) for name in names
-            )
+            selseqs = (getattr(subseqs, name.lower()) for name in names)
         else:
             selseqs = subseqs
-        for seq in selseqs:
-            label = kwargs.pop("label", " ".join((self.name, seq.name)))
+        nmb_sequences = len(subseqs)
+        labels_: Tuple[Optional[str], ...]
+        if isinstance(labels, tuple):
+            labels_ = labels
+        else:
+            labels_ = nmb_sequences * (labels,)
+        for sequence, label, color, linestyle, linewidth in zip(
+            selseqs,
+            labels_,
+            _prepare_tuple(colors, nmb_sequences),
+            _prepare_tuple(linestyles, nmb_sequences),
+            _prepare_tuple(linewidths, nmb_sequences),
+        ):
+            label_ = label if label else " ".join((self.name, type(sequence).__name__))
             if average:
-                series = seq.average_series()
-                label = f"{label}, averaged"
+                series = sequence.average_series()[idx0:idx1]
+                label_ = f"{label_}, averaged"
             else:
-                series = seq.series
+                series = sequence.evalseries
+            kwargs = dict(
+                label=label_,
+                ax=pyplot.gca(),
+            )
+            if color is not None:
+                kwargs["color"] = color
+            if linestyle is not None:
+                kwargs["linestyle"] = linestyle
+            if linewidth is not None:
+                kwargs["linewidth"] = linewidth
             if series.ndim == 1:
                 ps = pandas.Series(series, index=index)
-                ps.plot(label=label, **kwargs)
+                ps.plot(**kwargs)
             if series.ndim == 2 and series.shape[1] > 0:
                 ps = pandas.Series(series[:, 0], index=index)
-                axessubplot = ps.plot(label=label, **kwargs)
-                color = kwargs.pop("color", kwargs.pop("c", None))
+                axessubplot = ps.plot(**kwargs)
+                kwargs["label"] = "None"
                 kwargs["color"] = axessubplot.get_lines()[-1].get_color()
                 for j in range(1, series.shape[1]):
                     ps = pandas.Series(series[:, j], index=index)
@@ -3023,104 +3056,151 @@ Use method `prepare_model` instead.
             line for line in pyplot.legend().get_lines() if line.get_label() != "None"
         ]
         pyplot.legend(handles=lines)
+        if not focus:
+            pyplot.ylim((0.0, None))
+        return pyplot.gcf()
 
     def plot_inputseries(
         self,
-        names: Optional[Iterable[str]] = None,
+        names: Optional[Sequence[str]] = None,
+        *,
         average: bool = False,
-        **kwargs: Any,
-    ) -> None:
+        labels: Optional[Tuple[str, ...]] = None,
+        colors: Optional[Union[str, Tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        focus: bool = True,
+    ) -> "pyplot.Figure":
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
 
         We demonstrate the functionalities of method |Element.plot_inputseries|
         based on the `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, _, _ = prepare_full_example_2(lastdate="1997-01-01")
+        >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        Without any arguments, |Element.plot_inputseries| prints the
-        time-series of all input sequences handled by its |Model| object
-        directly to the screen (in the given example: |hland_inputs.P|,
-        |hland_inputs.T|, |hland_inputs.TN|, and |hland_inputs.EPN| of
-        application model |hland_v1|):
+        Without any arguments, |Element.plot_inputseries| prints the time-series of
+        all input sequences handled by its |Model| object directly to the screen (in
+        our example |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
+        |hland_inputs.EPN| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
-        >>> land.plot_inputseries()
+        >>> figure = land.plot_inputseries()
 
-        You can use the `pyplot` API of `matplotlib` to modify the figure
-        or to save it to disk (or print it to the screen, in case the
-        interactive mode of `matplotlib` is disabled):
+        You can use the `pyplot` API of `matplotlib` to modify the returned figure or
+        to save it to disk (or print it to the screen, in case the interactive mode of
+        `matplotlib` is disabled):
 
         >>> from hydpy.core.testtools import save_autofig
-        >>> save_autofig("Element_plot_inputseries.png")
-        >>> pyplot.close()
+        >>> save_autofig("Element_plot_inputseries.png", figure)
 
         .. image:: Element_plot_inputseries.png
 
-        Methods |Element.plot_fluxseries| and |Element.plot_stateseries|
-        work in the same manner.  Before applying them, one has at first
-        to calculate the time-series of the |FluxSequence| and
-        |StateSequence| objects:
+        Methods |Element.plot_fluxseries| and |Element.plot_stateseries| work in the
+        same manner.  Before applying them, one has to calculate the time-series of
+        the |FluxSequence| and |StateSequence| objects first:
 
         >>> hp.simulate()
 
-        All three methods allow to select certain sequences by passing their
-        names (here, flux sequences |hland_fluxes.Q0| and |hland_fluxes.Q1|
-        of |hland_v1|). Additionally, you can pass the keyword arguments
-        supported by `matplotlib` for modifying the line style:
+        All three methods allow selecting specific sequences by passing their names
+        (here, flux sequences |hland_fluxes.Q0| and |hland_fluxes.Q1| of |hland_v1|).
+        Additionally, you can pass general or individual values to the arguments
+        `labels`, `colors`, `linestyles`, and `linewidths`:
 
-        >>> land.plot_fluxseries(["q0", "q1"], linewidth=2)
-        >>> save_autofig("Element_plot_fluxseries.png")
+        >>> figure = land.plot_fluxseries(
+        ...     ["q0", "q1"], labels=("direct runoff", "base flow"),
+        ...     colors=("red", "green"), linestyles="--", linewidths=2)
+        >>> save_autofig("Element_plot_fluxseries.png", figure)
 
         .. image:: Element_plot_fluxseries.png
 
-        For 1-dimensional |IOSequence| objects, all three methods plot the
-        individual time-series in the same colour (here, from the state
-        sequences |hland_states.SP| and |hland_states.WC| of |hland_v1|):
+        For 1-dimensional |IOSequence| objects, all three methods plot the individual
+        time-series in the same colour.  We demonstrate this for the frozen
+        (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
+        snow cover of different hydrological response units.  Therefore, we restrict
+        the shown period to February and March via the |Timegrids.eval_| time-grid:
 
-        >>> land.plot_stateseries(["sp", "wc"])
-        >>> save_autofig("Element_plot_stateseries1.png")
+        >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
+        ...     figure = land.plot_stateseries(["sp", "wc"])
+        >>> save_autofig("Element_plot_stateseries1.png", figure)
 
         .. image:: Element_plot_stateseries1.png
 
-        Alternatively, you can print the averaged time-series through
-        passing |True| to the method `average` argument (demonstrated
-        for the state sequence |hland_states.SM|):
+        Alternatively, you can print the averaged time-series by assigning |True| to
+        argument `average`.  We demonstrate this functionality for the state sequence
+        |hland_states.SM| (this time, without focusing on the time-series y-extent:
 
-        >>> land.plot_stateseries(["sm"], color="grey")
-        >>> land.plot_stateseries(
-        ...     ["sm"], average=True, color="black", linewidth=3)
-        >>> save_autofig("Element_plot_stateseries2.png")
+        >>> figure = land.plot_stateseries(["sm"], colors=("grey",))
+        >>> figure = land.plot_stateseries(
+        ...     ["sm"], average=True, focus=False, colors="black", linewidths=3)
+        >>> save_autofig("Element_plot_stateseries2.png", figure)
 
         .. image:: Element_plot_stateseries2.png
         """
-        self.__plot(self.model.sequences.inputs, names, average, kwargs)
+        return self._plot_series(
+            subseqs=self.model.sequences.inputs,
+            names=names,
+            average=average,
+            labels=labels,
+            colors=colors,
+            linestyles=linestyles,
+            linewidths=linewidths,
+            focus=focus,
+        )
 
     def plot_fluxseries(
         self,
-        names: Optional[Iterable[str]] = None,
+        names: Optional[Sequence[str]] = None,
+        *,
         average: bool = False,
-        **kwargs: Any,
-    ) -> None:
+        labels: Optional[Tuple[str, ...]] = None,
+        colors: Optional[Union[str, Tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        focus: bool = True,
+    ) -> "pyplot.Figure":
         """Plot the `flux` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for
         additional information.
         """
-        self.__plot(self.model.sequences.fluxes, names, average, kwargs)
+        return self._plot_series(
+            subseqs=self.model.sequences.fluxes,
+            names=names,
+            average=average,
+            labels=labels,
+            colors=colors,
+            linestyles=linestyles,
+            linewidths=linewidths,
+            focus=focus,
+        )
 
     def plot_stateseries(
         self,
-        names: Optional[Iterable[str]] = None,
+        names: Optional[Sequence[str]] = None,
+        *,
         average: bool = False,
-        **kwargs: Any,
-    ) -> None:
+        labels: Optional[Tuple[str, ...]] = None,
+        colors: Optional[Union[str, Tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        focus: bool = True,
+    ) -> "pyplot.Figure":
         """Plot the `state` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for
         additional information.
         """
-        self.__plot(self.model.sequences.states, names, average, kwargs)
+        return self._plot_series(
+            subseqs=self.model.sequences.states,
+            names=names,
+            average=average,
+            labels=labels,
+            colors=colors,
+            linestyles=linestyles,
+            linewidths=linewidths,
+            focus=focus,
+        )
 
     def assignrepr(self, prefix: str) -> str:
         """Return a |repr| string with a prefixed assignment."""
@@ -3233,8 +3313,7 @@ def clear_registries_temporarily():
             registry.update(copy_)
 
 
-def _get_pandasindex():
-    # noinspection PyProtectedMember
+def _get_pandasindex() -> "pandas.Index":
     """
     >>> from hydpy import pub
     >>> pub.timegrids = "2004.01.01", "2005.01.01", "1d"

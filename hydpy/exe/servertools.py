@@ -425,7 +425,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml",
+    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
     ...         blocking=False, verbose=False)
     ...     result = run_subprocess(
     ...         "hyd.py await_server 8080 10", verbose=False)
@@ -915,6 +915,7 @@ calculated so far.
     # pylint: disable=invalid-name
     # due to "GET" and "POST" method names in accordance with BaseHTTPRequestHandler
 
+    server: "_HTTPServerBase"
     state: ClassVar[ServerState]
     extensions_map: ClassVar[Dict[str, str]]
     _requesttype: Literal["GET", "POST"]
@@ -1039,7 +1040,38 @@ calculated so far.
 
         Method |HydPyServer.POST_evaluate| serves to test and debug, primarily.
         The main documentation on class |HydPyServer| explains its usage.
+
+        For safety purposes, method |HydPyServer.POST_evaluate| only works if you
+        start the *HydPy* Server in debug mode by writing "debugging=enable", as
+        we do in  the examples of the main documentation on class |HydPyServer|.
+        When not working in debug mode, trying to use this method results in the
+        following error message:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import run_subprocess, TestIO
+        >>> with TestIO():
+        ...     process = run_subprocess(
+        ...         "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml",
+        ...         blocking=False, verbose=False)
+        ...     _ = run_subprocess("hyd.py await_server 8080 10", verbose=False)
+        >>> from urllib import request
+        >>> request.urlopen("http://localhost:8080/evaluate", data=b"")
+        Traceback (most recent call last):
+        ...
+        urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `POST_evaluate`, the following error occurred: You can only use the POST \
+method `evaluate` if you have started the `HydPy Server` in debugging mode.
+
+        >>> _ = request.urlopen("http://localhost:8080/close_server")
+        >>> process.kill()
+        >>> _ = process.communicate()
         """
+        if not self.server.debugmode:
+            raise RuntimeError(
+                "You can only use the POST method `evaluate` if you "
+                "have started the `HydPy Server` in debugging mode."
+            )
         for name, value in self._inputs.items():
             result = eval(value)
             self._outputs[name] = objecttools.flatten_repr(result)
@@ -1376,11 +1408,17 @@ calculated so far.
         cls.state.hp.simulate()
 
 
+class _HTTPServerBase(http.server.HTTPServer):
+
+    debugmode: bool = False
+
+
 def start_server(
     socket: Union[int, str],
     projectname: str,
     xmlfilename: str,
     maxrequests: Union[int, str] = 5,
+    debugging: Literal["enable", "disable"] = "disable",
 ) -> None:
     """Start the *HydPy* server using the given socket.
 
@@ -1397,8 +1435,9 @@ def start_server(
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
-    >>> command = \
-"hyd.py start_server 8080 LahnH multiple_runs_alpha.xml maxrequests=100"
+    >>> command = (
+    ...     "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml "
+    ...     "debugging=enable maxrequests=100")
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
     ...     process = run_subprocess(command, blocking=False, verbose=False)
@@ -1414,6 +1453,9 @@ def start_server(
     >>> _ = request.urlopen("http://localhost:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
+
+    Please see the documentation on method |HydPyServer.POST_evaluate| for an
+    explanation of the "debugging" argument.
 
     Note that function |start_server| tries to read the "mime types" from
     a dictionary stored in the file `mimetypes.txt` available in subpackage
@@ -1449,8 +1491,9 @@ def start_server(
         xmlfile=xmlfilename,
     )
 
-    class _HTTPServer(http.server.HTTPServer):
+    class _HTTPServer(_HTTPServerBase):
 
+        debugmode = debugging == "enable"
         request_queue_size = int(maxrequests)
 
     server = _HTTPServer(("", int(socket)), HydPyServer)

@@ -451,13 +451,13 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     Asking for its status tells us that the server is ready (which may take a while,
     depending on the particular project's size):
 
-    >>> test("get_status")
+    >>> test("status")
     status = ready
 
     You can query the current version number of the *HydPy* installation used to
     start the server:
 
-    >>> result = test("get_version", return_result=True)   # doctest: +ELLIPSIS
+    >>> result = test("version", return_result=True)   # doctest: +ELLIPSIS
     version = ...
     >>> hydpy.__version__ in result
     True
@@ -1044,11 +1044,11 @@ calculated so far.
             result = eval(value)
             self._outputs[name] = objecttools.flatten_repr(result)
 
-    def GET_get_status(self) -> None:
+    def GET_status(self) -> None:
         """Return "status = ready" as soon as possible."""
         self._outputs["status"] = "ready"
 
-    def GET_get_version(self) -> None:
+    def GET_version(self) -> None:
         """Return Hydpy's version number."""
         self._outputs["version"] = hydpy.__version__
 
@@ -1489,7 +1489,7 @@ the following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            urllib.request.urlopen(f"http://localhost:{port}/get_status")
+            urllib.request.urlopen(f"http://localhost:{port}/status")
             break
         except urllib.error.URLError:
             time.sleep(0.1)

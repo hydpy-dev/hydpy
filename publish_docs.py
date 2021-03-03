@@ -41,6 +41,6 @@ for line in lines:
             force=True,
             nojekyll=True,
         )
-    break
+        break
 else:
     print_("No push to GitHub-Pages.")

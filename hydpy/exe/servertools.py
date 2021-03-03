@@ -437,20 +437,30 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     additional data:
 
     >>> from urllib import request
-    >>> def test(name, id_=None, data=None):
+    >>> def test(name, id_=None, data=None, return_result=False):
     ...     url = f"http://localhost:8080/{name}"
     ...     if id_:
     ...         url = f"{url}?id={id_}"
     ...     if data:
     ...         data = bytes(data, encoding="utf-8")
     ...     response = request.urlopen(url, data=data)
-    ...     print(str(response.read(), encoding="utf-8"))
+    ...     result = str(response.read(), encoding="utf-8")
+    ...     print(result)
+    ...     return result if return_result else None
 
     Asking for its status tells us that the server is ready (which may take a while,
     depending on the particular project's size):
 
     >>> test("get_status")
     status = ready
+
+    You can query the current version number of the *HydPy* installation used to
+    start the server:
+
+    >>> result = test("get_version", return_result=True)   # doctest: +ELLIPSIS
+    version = ...
+    >>> hydpy.__version__ in result
+    True
 
     |HydPyServer| returns the error code `400` if it realises the URL to be wrong:
 
@@ -1037,6 +1047,10 @@ calculated so far.
     def GET_get_status(self) -> None:
         """Return "status = ready" as soon as possible."""
         self._outputs["status"] = "ready"
+
+    def GET_get_version(self) -> None:
+        """Return Hydpy's version number."""
+        self._outputs["version"] = hydpy.__version__
 
     def GET_close_server(self) -> None:
         """Stop and close the *HydPy* server."""

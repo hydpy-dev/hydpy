@@ -180,7 +180,7 @@ from hydpy.exe.servertools import (
 )
 
 
-__version__ = "4.0a18"
+__version__ = "4.1a0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()

@@ -416,17 +416,16 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
 class Calc_AM_UM_V1(modeltools.Method):
     """Calculate the wetted area and the wetted perimeter of the main channel.
 
-    The main channel is assumed to have identical slopes on both sides.
-    Water flowing exactly above the main channel is contributing to |AM|.
-    Both theoretical surfaces separating the water above the main channel
-    from the water above the forelands are contributing to |UM|.
+    The main channel is assumed to have identical slopes on both sides.  Water flowing
+    exactly above the main channel contributes to |AM|.  Both theoretical surfaces
+    separating the water above the main channel from the water above the forelands
+    contribute to |UM|.
 
     Examples:
 
-        Generally, a trapezoid with reflection symmetry is assumed.  Here,
-        we set its smaller base (bottom) to a length of 2 meters, its legs
-        to an inclination of 1 meter per 4 meters, and its height (depths)
-        to 1 meter:
+        Generally, a trapezoid with reflection symmetry is assumed.  Here, we set its
+        smaller base (bottom) to a length of 2 meters, its legs to an inclination of
+        1 meter per 4 meters, and its height (depths) to 1 meter:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
@@ -435,17 +434,15 @@ class Calc_AM_UM_V1(modeltools.Method):
         >>> bnm(4.0)
         >>> derived.bnmf.update()
 
-        First, we show that all calculations agree with the unmodified
-        triple trapezoid profile results when setting the smoothing
-        parameter |HRP| to zero:
+        First, we show that all calculations agree with the unmodified triple trapezoid
+        profile results when setting the smoothing parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
-        This example deals with normal flow conditions, where water flows
-        within the main channel completely (|H| < |HM|, the first five
-        channel sections), and with high flow conditions, where water
-        flows over the foreland also (|H| > |HM|, the three last channel
-        sections):
+        This example deals with normal flow conditions, where water flows within the
+        main channel completely (|H| < |HM|, the first five channel sections), and
+        with high flow conditions, where water flows over the foreland also
+        (|H| > |HM|, the three last channel sections):
 
         >>> hm(1.0)
         >>> states.h = 0.0, 0.1, 0.5, 0.9, 1.0, 1.1, 1.5, 2.0
@@ -469,10 +466,9 @@ class Calc_AM_UM_V1(modeltools.Method):
         >>> aides.um
         um(2.0, 2.2, 3.0, 3.8, 4.0, 4.2, 5.0, 6.0)
 
-        Second, we repeat both examples with a reasonable smoothing
-        parameterisation.  As to be expected, the primary deviations occur
-        around the original discontinuities related the channel bottom
-        and the transition from the main channel to both forelands:
+        Second, we repeat both examples with a reasonable smoothing parameterisation.
+        The primary deviations occur around the original discontinuities related to
+        the channel bottom and the main channel's transition to both forelands:
 
         >>> hr(0.1)
         >>> derived.hrp.update()
@@ -532,9 +528,9 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
 
     Examples:
 
-        In the following, we repeat the examples of the documentation on
-        method |Calc_AM_UM_V1| and check the correctness of the derivatives
-        by comparing the results of class |NumericalDifferentiator|:
+        In the following, we repeat the examples of the documentation on method
+        |Calc_AM_UM_V1| and check the derivatives' correctness by comparing the
+        results of class |NumericalDifferentiator|:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
@@ -642,12 +638,12 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
 class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
     """Calculate the wetted area and wetted perimeter of both forelands.
 
-    Each foreland lies between the main channel and one outer embankment.
-    The water flowing exactly above a foreland is contributing to |ALV|
-    or |ARV|.  The theoretical surface separating the water above the main
-    channel from the water above the foreland is not contributing to |ULV|
-    or |URV|, but the surface separating the water above the foreland from
-    the water above its outer embankment is contributing to |ULV| and |URV|.
+    Each foreland lies between the main channel and one outer embankment. The water
+    flowing exactly above a foreland is contributing to |ALV| or |ARV|.  The
+    theoretical surface separating the water above the main channel from the water
+    above the foreland is not contributing to |ULV| or |URV|. On the other hand, the
+    surface separating the water above the foreland from the water above its outer
+    embankment is contributing to |ULV| and |URV|.
 
     Examples:
 
@@ -656,21 +652,19 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         >>> gts(14)
         >>> hm(1.0)
 
-        First, we show that all calculations agree with the unmodified
-        triple trapezoid profile results when setting the smoothing
-        parameter |HRP| to zero:
+        First, we show that all calculations agree with the unmodified triple trapezoid
+        profile results when setting the smoothing parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
-        This example deals with normal flow conditions, where water flows
-        within the main channel completely (|H| < |HM|, the first four channel
-        sections); with moderate high flow conditions, where water flows over
-        both forelands, but not over their embankments (|HM| < |H| < (|HM| +
-        |HV|), channel sections six to eight or twelve for the left and the
-        right foreland, respectively), and with extreme high flow conditions,
-        where water flows over both forelands and their outer embankments
-        ((|HM| + |HV|) < |H|, the last six or two channel sections for the
-        left and the right foreland, respectively):
+        This example deals with normal flow conditions, where water flows within the
+        main channel completely (|H| < |HM|, the first four channel sections); with
+        moderate high flow conditions, where water flows over both forelands, but not
+        over their embankments (|HM| < |H| < (|HM| + |HV|), channel sections six to
+        eight or twelve for the left and the right foreland, respectively), and with
+        extreme high flow conditions, where water flows over both forelands and their
+        outer embankments ((|HM| + |HV|) < |H|, the last six or two channel sections
+        for the left and the right foreland, respectively):
 
         >>> bv(left=2.0, right=3.0)
         >>> bnv(left=4.0, right=5.0)
@@ -709,19 +703,16 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         alv(0.0, 0.0, 0.0, 0.0, 0.02, 0.5, 1.62, 2.0, 2.4, 4.0, 5.6, 6.0, 6.4,
             10.0)
         >>> aides.arv
-        arv(0.0, 0.0, 0.0, 0.0, 0.2, 1.0, 1.8, 2.0, 2.2, 3.0, 3.8, 4.0, 4.2, \
-6.0)
+        arv(0.0, 0.0, 0.0, 0.0, 0.2, 1.0, 1.8, 2.0, 2.2, 3.0, 3.8, 4.0, 4.2, 6.0)
         >>> aides.ulv
         ulv(0.0, 0.0, 0.0, 0.0, 0.412311, 2.061553, 3.710795, 4.123106,
             4.223106, 4.623106, 5.023106, 5.123106, 5.223106, 6.123106)
         >>> aides.urv
-        urv(2.0, 2.0, 2.0, 2.0, 2.1, 2.5, 2.9, 3.0, 3.1, 3.5, 3.9, 4.0, 4.1, \
-5.0)
+        urv(2.0, 2.0, 2.0, 2.0, 2.1, 2.5, 2.9, 3.0, 3.1, 3.5, 3.9, 4.0, 4.1, 5.0)
 
-        Second, we repeat both examples with a reasonable smoothing
-        parameterisation.  As to be expected, the primary deviations occur
-        around the original discontinuities related the channel bottom
-        and the transition from the main channel to both forelands:
+        Second, we repeat both examples with a reasonable smoothing parameterisation.
+        The primary deviations occur around the original discontinuities related to
+        the channel bottom and the main channel's transition to both forelands:
 
         >>> hr(0.1)
         >>> derived.hrp.update()
@@ -740,8 +731,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
             6.325, 10.125, 14.72475, 15.995801, 17.29475, 29.0)
         >>> aides.ulv
         ulv(2.0, 2.000052, 2.041231, 2.168976, 2.453542, 4.061565, 5.679564,
-            5.995113, 6.191875, 6.623066, 7.023106, 7.123106, 7.223106, \
-8.123106)
+            5.995113, 6.191875, 6.623066, 7.023106, 7.123106, 7.223106, 8.123106)
         >>> aides.urv
         urv(3.0, 3.000064, 3.05099, 3.208971, 3.560892, 5.549574, 7.589118,
             8.09902, 8.608921, 10.648478, 12.647147, 13.03005, 13.257049,
@@ -811,9 +801,9 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 
     Examples:
 
-        In the following, we repeat the examples of the documentation on
-        method |Calc_ALV_ARV_ULV_URV_V1| and check the correctness of the
-        derivatives by comparing the results of class |NumericalDifferentiator|:
+        In the following, we repeat the examples of the documentation on method
+        |Calc_ALV_ARV_ULV_URV_V1| and check the derivatives' correctness by comparing
+        the results of class |NumericalDifferentiator|:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
@@ -977,10 +967,10 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
     """Calculate the wetted area and perimeter of both outer embankments.
 
-    Each outer embankment lies beyond its foreland.  The water flowing
-    exactly above an embankment is added to |ALVR| and |ARVR|.  The
-    theoretical surface separating water above the foreland from the
-    water above its embankment is not contributing to |ULVR| and |URVR|.
+    Each outer embankment lies beyond its foreland.  The water flowing exactly above
+    an embankment adds to |ALVR| and |ARVR|.  The theoretical surface separating water
+    above the foreland from the water above its embankment is not contributing to
+    |ULVR| and |URVR|.
 
     Examples:
 
@@ -989,9 +979,8 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         >>> gts(11)
         >>> hm(1.0)
 
-        First, we show that all calculations agree with the unmodified
-        triple trapezoid profile results when the setting the smoothing
-        parameter |HRP| to zero:
+        First, we show that all calculations agree with the unmodified triple trapezoid
+        profile results when the setting the smoothing parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
@@ -1039,10 +1028,9 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         urvr(0.0, 2.54951, 4.589118, 5.09902, 5.608921, 7.648529, 9.688137,
              10.198039, 10.707941, 12.747549, 15.297059)
 
-        Second, we repeat both examples with a reasonable smoothing
-        parameterisation.  As to be expected, the primary deviations occur
-        around the original discontinuities related the channel bottom
-        and the transition from the main channel to both forelands:
+        Second, we repeat both examples with a reasonable smoothing parameterisation.
+        The primary deviations occur around the original discontinuities related to
+        the channel bottom and the main channel's transition to both forelands:
 
         >>> hr(0.1)
         >>> derived.hrp.update()
@@ -1116,9 +1104,9 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
 
     Examples:
 
-        In the following, we repeat the examples of the documentation on
-        method |Calc_ALVR_ARVR_ULVR_URVR_V1| and check the correctness of the
-        derivatives by comparing the results of class |NumericalDifferentiator|:
+        In the following, we repeat the examples of the documentation on method
+        |Calc_ALVR_ARVR_ULVR_URVR_V1| and check the derivatives' correctness by
+        comparing the results of class |NumericalDifferentiator|:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
@@ -1533,8 +1521,8 @@ class Calc_QLV_QRV_V2(modeltools.Method):
 
 
 class Calc_QLVDH_QRVDH_V1(modeltools.Method):
-    """Calculate the derivative of the discharge of both forelands with
-    respect to the stage following method |Calc_QLV_QRV_V1|.
+    """Calculate the derivative of both forelands' discharge with respect to the stage
+    following method |Calc_QLV_QRV_V1|.
 
     Basic equation:
       :math:`QVDH = MFV \\cdot
@@ -1916,7 +1904,7 @@ class Calc_QG_V1(modeltools.Method):
     """Calculate the discharge of the total cross-section.
 
     Basic equation:
-      :math:`QG = QM+QLV+QRV+QLVR+QRVR`
+      :math:`QG = QM + QLV + QRV + QLVR + QRVR`
 
     Example:
 
@@ -1953,44 +1941,42 @@ class Calc_QG_V1(modeltools.Method):
 
 
 class Calc_QG_V2(modeltools.Method):
-    """Determine the discharge of each the total cross-section based on an
-    artificial neural network describing the relationship between water
-    storage in the total channel and discharge.
+    r"""Calculate the discharge of the total cross-section based on an interpolated
+    flow velocity.
+
+    Basic equation:
+      :math:`QG = EK \cdot \frac{1000 \cdot V_{interpolated} \cdot VG \cdot GTS}{Laen}`
 
     Example:
 
-        The following example applies a very simple relationship based
-        on a single neuron:
+        For simplicity, we define a linear between flow velocity and water storage:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> gts(2)
-        >>> vg2qg(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
-        ...       weights_input=0.5, weights_output=1.0,
-        ...       intercepts_hidden=0.0, intercepts_output=-0.5)
-
+        >>> laen(10.0)
+        >>> ek(0.5)
+        >>> vg2fg(weights_input=1.0, weights_output=1.0,
+        ...       intercepts_hidden=0.0, intercepts_output=0.0, activation=0)
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qg_v2,
-        ...                 last_example=10,
+        ...                 last_example=3,
         ...                 parseqs=(states.vg,
         ...                          fluxes.qg))
-        >>> test.nexts.vg = numpy.ones((10, 2))
-        >>> test.nexts.vg[:, 0] = numpy.arange(0.0, 10.0)
-        >>> test.nexts.vg[:, 1] = numpy.arange(10.0, 20.0)
+        >>> test.nexts.vg = numpy.empty((4, 2))
+        >>> test.nexts.vg[:, 0] = numpy.arange(-1.0, 3.0)
+        >>> test.nexts.vg[:, 1] = numpy.arange(3.0, 7.0)
         >>> test()
-        | ex. |        vg |                 qg |
-        ----------------------------------------
-        |   1 | 0.0  10.0 |      0.0  0.493307 |
-        |   2 | 1.0  11.0 | 0.122459   0.49593 |
-        |   3 | 2.0  12.0 | 0.231059  0.497527 |
-        |   4 | 3.0  13.0 | 0.317574  0.498499 |
-        |   5 | 4.0  14.0 | 0.380797  0.499089 |
-        |   6 | 5.0  15.0 | 0.424142  0.499447 |
-        |   7 | 6.0  16.0 | 0.452574  0.499665 |
-        |   8 | 7.0  17.0 | 0.470688  0.499797 |
-        |   9 | 8.0  18.0 | 0.482014  0.499877 |
-        |  10 | 9.0  19.0 | 0.489013  0.499925 |
+        | ex. |        vg |            qg |
+        -----------------------------------
+        |   1 | -1.0  3.0 |   0.0   900.0 |
+        |   2 |  0.0  4.0 |   0.0  1600.0 |
+        |   3 |  1.0  5.0 | 100.0  2500.0 |
+
+        Our example shows that a linear velocity-volume relationship results in a
+        quadratic discharge-volume relationship. Note also that we generally set the
+        discharge to zero for negative volumes.
 
         For more realistic approximations of measured relationships between
         storage and discharge, we require larger neural networks.
@@ -1998,7 +1984,9 @@ class Calc_QG_V2(modeltools.Method):
 
     CONTROLPARAMETERS = (
         lstream_control.GTS,
-        lstream_control.VG2QG,
+        lstream_control.Laen,
+        lstream_control.VG2FG,
+        lstream_control.EK,
     )
     REQUIREDSEQUENCES = (lstream_states.VG,)
     RESULTSEQUENCES = (lstream_fluxes.QG,)
@@ -2006,12 +1994,13 @@ class Calc_QG_V2(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         for i in range(con.gts):
-            con.vg2qg.inputs[0] = sta.vg[i]
-            con.vg2qg.calculate_values()
-            flu.qg[i] = con.vg2qg.outputs[0]
+            con.vg2fg.inputs[0] = sta.vg[i]
+            con.vg2fg.calculate_values()
+            d_v = max(con.ek * con.vg2fg.outputs[0], 0.0)
+            flu.qg[i] = 1000.0 * d_v * sta.vg[i] * con.gts / con.laen
 
 
 class Calc_WBM_V1(modeltools.Method):
@@ -2574,8 +2563,8 @@ class Return_QF_V1(modeltools.Method):
     Technical checks:
 
         Note that method |Return_QF_V1| calculates the value of sequence |QG|
-        temporarily and resets it afterwards and calculates all other values
-        of the mentioned sequences without resetting:
+        temporarily and resets it afterwards, and calculates all other values of the
+        mentioned sequences without resetting:
 
         >>> from hydpy.core.testtools import check_selectedvariables
         >>> from hydpy.models.lstream.lstream_model import Return_QF_V1
@@ -2691,14 +2680,13 @@ class Return_H_V1(modeltools.Method):
     """Calculate and return the water stage corresponding to the current
     discharge value.
 
-    Method |Return_H_V1| is a helper function not for performing
-    simulation runs but for easing the implementation of method
+    Method |Return_H_V1| is a helper function not for performing simulation runs but
+    for easing the implementation of method
     |lstream_v001.Model.calculate_characteristiclength| of application model
-    |lstream_v001| (or similar functionalities).  More specifically, it
-    performs a root search by applying the |Pegasus| method implemented
-    in module `rootutils` on the target method |Return_QF_V1|.  Hence, please
-    see the additional application notes in the documentation on method
-    |Return_QF_V1|.
+    |lstream_v001| (or similar functionalities).  It performs a root search by applying
+    the |Pegasus| method implemented in module `rootutils` on the target method
+    |Return_QF_V1|.  Hence, please see the additional application notes in the
+    documentation on method |Return_QF_V1|.
 
     Example:
 
@@ -2735,10 +2723,9 @@ class Return_H_V1(modeltools.Method):
         >>> round_(model.return_h_v1())
         1.0
 
-        To evaluate the reliability of our implementation, we search for
-        water stages covering an extensive range of discharge values.
-        The last printed column shows that method |Return_H_V1| finds the
-        correct water stage in all cases:
+        To evaluate our implementation's reliability, we search for water stages
+        covering an extensive range of discharge values.  The last printed column
+        shows that method |Return_H_V1| finds the correct water stage in all cases:
 
         >>> import numpy
         >>> for q in [0.0]+list(numpy.logspace(-6, 6, 13)):
@@ -2776,14 +2763,13 @@ class Return_H_V1(modeltools.Method):
         100000.0, 37.330632, 0.0
         1000000.0, 81.363979, 0.0
 
-        Due to smoothing the water stage with respect to the channel bottom,
-        small discharge values result in negative water stages.  The smallest
-        allowed stage is -10 m.
+        Due to smoothing the water stage with respect to the channel bottom, small
+        discharge values result in negative water stages.  The lowest allowed stage
+        is -10 m.
 
-        Through setting the regularisation parameter |HR| to zero (which
-        we do not recommend), method |Return_H_V1| should return the
-        non-negative water stages agreeing with the original, discontinuous
-        Manning-Strickler equation:
+        Through setting the regularisation parameter |HR| to zero (which we do not
+        recommend), method |Return_H_V1| should return the non-negative water stages
+        agreeing with the original, discontinuous Manning-Strickler equation:
 
         >>> hr(0.0)
         >>> parameters.update()
@@ -2944,8 +2930,8 @@ class ProfileMixin:
     based on a triple trapezoid profile."""
 
     def plot_profile(self, labelformat: str = "%.1f"):
-        """Plot the triple trapezoid profile and insert the discharge values
-        at some characteristic stages.
+        """Plot the triple trapezoid profile and insert the discharge values at some
+        distinct stages.
 
         We reuse the second example given in the main documentation on module
         |lstream_v001|:
@@ -2971,7 +2957,7 @@ class ProfileMixin:
         >>> parameters.update()
 
         Calling method |ProfileMixin.plot_profile| prepares the profile
-        plot and, depending on you `matplotlib` configuration, eventually
+        plot and, depending on your `matplotlib` configuration, eventually
         prints it directly on your screen:
 
         >>> model.plot_profile()

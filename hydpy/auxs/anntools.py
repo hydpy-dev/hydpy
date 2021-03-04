@@ -452,6 +452,7 @@ attribute `nmb_inputs` first.
 
     def __call__(
         self,
+        *,
         nmb_inputs=1,
         nmb_neurons=(1,),
         nmb_outputs=1,
@@ -1302,7 +1303,7 @@ parameter `ann` of element `?` has not been defined so far.
                 objecttools.assignrepr_list2(self.activation, f"{blanks}activation=")
                 + ","
             )
-        lines.append(f"{indent*' '})")
+        lines.append(f'{indent*" "})')
         return "\n".join(lines)
 
     def __repr__(self):
@@ -1337,6 +1338,26 @@ parameter `ann` of element `?` has not been defined so far.
             ys_[idx] = self.outputs[idx_output]
         pyplot.plot(xs_, ys_, **kwargs)
         self._update_labels()
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        if id(self) == id(other):
+            return True
+        if isinstance(other, ANN):
+            all_ = numpy.all
+            return (
+                (self.shape_inputs == other.shape_inputs)
+                and (self.shape_neurons == other.shape_neurons)
+                and (self.shape_outputs == other.shape_outputs)
+                and all_(self.weights_input[:] == other.weights_input[:])
+                and all_(self.weights_hidden == other.weights_hidden)
+                and all_(self.weights_output == other.weights_output)
+                and all_(self.intercepts_hidden == other.intercepts_hidden)
+                and all_(self.intercepts_output == other.intercepts_output)
+            )
+        return NotImplemented
 
 
 def ann(**kwargs) -> ANN:

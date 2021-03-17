@@ -8,6 +8,12 @@
       <list itemType="string"/>
     </simpleType>
 
+    <simpleType name="nonEmptyListOfStrings">
+      <restriction base="string">
+          <minLength value="1"/>
+      </restriction>
+    </simpleType>
+
     <simpleType name="listOfDoubles">
       <list itemType="double"/>
     </simpleType>
@@ -17,19 +23,15 @@
             <choice maxOccurs="unbounded">
                 <element name="checkseries"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="flattennetcdf"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="isolatenetcdf"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="parameterstep"
-                         minOccurs="0"
-                         maxOccurs="1">
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="string">
                             <pattern value="[0-9]+[smhd]"/>
@@ -37,8 +39,7 @@
                     </simpleType>
                 </element>
                 <element name="reprdigits"
-                         minOccurs="0"
-                         maxOccurs="1">
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="-1"/>
@@ -47,8 +48,7 @@
                     </simpleType>
                 </element>
                 <element name="timeaxisnetcdf"
-                         minOccurs="0"
-                         maxOccurs="1">
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="0"/>
@@ -58,28 +58,22 @@
                 </element>
                 <element name="usecython"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="usedefaultvalues"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="utcoffset"
                          type="integer"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="warnmissingobsfile"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="warnmissingsimfile"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
                 <element name="warntrim"
                          type="boolean"
-                         minOccurs="0"
-                         maxOccurs="1"/>
+                         minOccurs="0"/>
             </choice>
         </complexType>
     </element>
@@ -104,11 +98,36 @@
         </complexType>
     </element>
 
+    <element name="add_selections">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:add_selection" maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="add_selection">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:devices"
+                         minOccurs="0"/>
+                <element ref="hpcb:keywords"
+                         minOccurs="0"/>
+                <element ref="hpcb:selections"
+                         minOccurs="0"/>
+            </sequence>
+            <attribute name="name" type="string"/>
+        </complexType>
+    </element>
+
     <element name="selections"
-             type="hpcb:listOfStrings"/>
+             type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="devices"
-             type="hpcb:listOfStrings"/>
+             type="hpcb:nonEmptyListOfStrings"/>
+
+    <element name="keywords"
+         type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="conditions_io">
         <complexType>

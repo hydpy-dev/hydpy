@@ -10,7 +10,7 @@ information).  |run_simulation| expects that the *HydPy* project you want to wor
 with is available in your current working directory and contains an XML configuration
 file (as `single_run.xml` in the example project folder `LahnH`).  This configuration
 file must agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
-in the :ref:`configuration` subpackage and seperately downloadable for each
+in the :ref:`configuration` subpackage and separately downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing models, you have
 to update this schema file.  *HydPy* does this automatically through its setup
 mechanism (see the documentation on class |XSDWriter|).
@@ -193,10 +193,9 @@ named `wrong`.  Please make sure your XML file follows the relevant XML schema.
 
 
 def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selections:
-    text = xmlelement.text
-    if text is None:
-        return selectiontools.Selections()
     selections = []
+    text = xmlelement.text
+    assert text is not None
     for name in text.split():
         try:
             selections.append(getattr(hydpy.pub.selections, name))
@@ -204,33 +203,9 @@ def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selecti
             raise NameError(
                 f"The XML configuration file tries to define a selection "
                 f"using the text `{name}`, but the actual project does not "
-                f" handle such a `Selection` object."
+                f"handle such a `Selection` object."
             ) from None
     return selectiontools.Selections(*selections)
-
-
-def _query_devices(xmlelement: ElementTree.Element) -> selectiontools.Selection:
-    selection = selectiontools.Selection("temporary_result_of_xml_parsing")
-    text = xmlelement.text
-    if text is None:
-        return selection
-    elements = hydpy.pub.selections.complete.elements
-    nodes = hydpy.pub.selections.complete.nodes
-    for name in text.split():
-        try:
-            selection.elements += getattr(elements, name)
-            continue
-        except AttributeError:
-            try:
-                selection.nodes += getattr(nodes, name)
-            except AttributeError:
-                raise NameError(
-                    f"The XML configuration file tries to define additional "
-                    f"devices using the text `{name}`, but the complete "
-                    f"selection of the actual project does neither handle a "
-                    f"`Node` or `Element` object with such a name or keyword."
-                ) from None
-    return selection
 
 
 def strip(name: str) -> str:
@@ -247,8 +222,8 @@ def run_simulation(
     projectname: str,
     xmlfile: str,
 ) -> None:
-    """Perform a HydPy workflow in agreement with the given XML configuration file
-    available in the given project's directory. ToDo
+    """Perform a *HydPy* workflow in agreement with the given XML configuration file
+    available in the given project's directory.
 
     Function |run_simulation| is a "script function".  We explain its normal usage
     in the main documentation on module |xmltools|.
@@ -266,6 +241,8 @@ def run_simulation(
     interface.update_timegrids()
     write("Read all network files")
     hp.prepare_network()
+    write("Create the custom selections (if defined)")
+    interface.update_selections()
     write("Activate the selected network")
     hp.update_devices(
         selection=interface.fullselection,
@@ -290,7 +267,7 @@ class XMLBase:
     |XMLSeries|, and |XMLSubseries|.
 
     Subclasses of |XMLBase| support iterating XML subelements while skipping those
-    named `selections` or `devices`:
+    named `selections`:
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy.data import make_filepath
@@ -365,7 +342,7 @@ XML schema.
     def __iter__(self) -> Iterator[ElementTree.Element]:
         for element in self.root:
             name = strip(element.tag)
-            if name not in ("selections", "devices"):
+            if name != "selections":
                 yield element
 
 
@@ -646,6 +623,128 @@ correctly refer to one of the available XML schema files \
                     netcdftools.query_timegrid(ncfile)
                 )
 
+    def update_selections(self) -> None:
+        """Create |Selection| objects based on the `add_selections` XML element and
+        add them to the |Selections| object available in module |pub|.
+
+        The `Lahn` example project comes with four selections:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> from hydpy.auxs.xmltools import find, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface("single_run.xml")
+        >>> pub.selections
+        Selections("complete", "headwaters", "nonheadwaters", "streams")
+
+        Following the definitions of the `add_selections` element of the configuration
+        file `single_run.xml`, method |XMLInterface.update_selections| creates three
+        additional selections based on given device names, keywords, or selection
+        names (you could also combine these subelements):
+
+        >>> interface.update_selections()
+        >>> pub.selections
+        Selections("complete", "from_devices", "from_keywords",
+                   "from_selections", "headwaters", "nonheadwaters", "streams")
+        >>> pub.selections.from_devices
+        Selection("from_devices",
+                  nodes=(),
+                  elements=("land_lahn_1", "land_lahn_2"))
+        >>> pub.selections.from_keywords
+        Selection("from_keywords",
+                  nodes=(),
+                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                            "land_lahn_3"))
+        >>> pub.selections.from_selections
+        Selection("from_selections",
+                  nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
+                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                            "land_lahn_3", "stream_dill_lahn_2",
+                            "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+
+        Defining wrong device names, keywords, or selection names results in the
+        following error messages:
+
+        >>> add_selections = find(interface.root, "add_selections")
+        >>> add_selections[2][0].text = "streams no_selection"
+        >>> interface.update_selections()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The XML configuration file tried to add the devices of a \
+selection named `no_selection` to the custom selection `from_selections` but none \
+of the available selections has this name.
+
+        >>> add_selections[1][0].text = "catchment no_keyword"
+        >>> interface.update_selections()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The XML configuration file tried to add at least one device \
+based on the keyword `no_keyword` to the custom selection `from_keywords` but none \
+of the available devices has this keyword.
+
+        >>> add_selections[0][0].text = "dill no_device"
+        >>> interface.update_selections()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The XML configuration file tried to add a device named \
+`no_device` to the custom selection `from_devices` but none of the available \
+devices has this name.
+        """
+
+        def _get_texts(root: ElementTree.Element, name: str) -> List[str]:
+            xmlelement = find(root=root, name=name, optional=True)
+            if xmlelement is None or xmlelement.text is None:
+                return []
+            return xmlelement.text.split()
+
+        elements = hydpy.pub.selections.complete.elements
+        nodes = hydpy.pub.selections.complete.nodes
+        add_selections = find(self.root, "add_selections", optional=True)
+        if add_selections is not None:
+            for add_selection in add_selections:
+                name_new_selection = add_selection.attrib["name"]
+                new_selection = selectiontools.Selection(name_new_selection)
+                for name_device in _get_texts(add_selection, "devices"):
+                    try:
+                        element = elements[name_device]
+                        new_selection.elements[element.name] = element
+                    except KeyError:
+                        try:
+                            node = nodes[name_device]
+                            new_selection.nodes[node.name] = node
+                        except KeyError:
+                            raise RuntimeError(
+                                f"The XML configuration file tried to add a device "
+                                f"named `{name_device}` to the custom selection "
+                                f"`{name_new_selection}` but none of the available "
+                                f"devices has this name."
+                            ) from None
+                for keyword in _get_texts(add_selection, "keywords"):
+                    nmb_devices = len(new_selection)
+                    new_selection.elements += elements.search_keywords(keyword)
+                    new_selection.nodes += nodes.search_keywords(keyword)
+                    if len(new_selection) == nmb_devices:
+                        raise RuntimeError(
+                            f"The XML configuration file tried to add at least one "
+                            f"device based on the keyword `{keyword}` to the custom "
+                            f"selection `{name_new_selection}` but none of the "
+                            f"available devices has this keyword."
+                        ) from None
+                for name_old_selection in _get_texts(add_selection, "selections"):
+                    try:
+                        new_selection += hydpy.pub.selections[name_old_selection]
+                    except KeyError:
+                        raise RuntimeError(
+                            f"The XML configuration file tried to add the devices of "
+                            f"a selection named `{name_old_selection}` to the custom "
+                            f"selection `{name_new_selection}` but none of the "
+                            f"available selections has this name."
+                        ) from None
+                hydpy.pub.selections += new_selection
+
     @property
     def selections(self) -> selectiontools.Selections:
         # noinspection PyUnresolvedReferences
@@ -659,6 +758,7 @@ correctly refer to one of the available XML schema files \
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_selections()
         >>> interface.find("selections").text = "headwaters streams"
         >>> selections = interface.selections
         >>> for selection in selections:
@@ -674,41 +774,14 @@ correctly refer to one of the available XML schema files \
         Traceback (most recent call last):
         ...
         NameError: The XML configuration file tries to define a selection using the \
-text `head_waters`, but the actual project does not  handle such a `Selection` object.
+text `head_waters`, but the actual project does not handle such a `Selection` object.
         """
         return _query_selections(self.find("selections", optional=False))
 
     @property
-    def devices(self) -> selectiontools.Selection:
-        """The additional devices defined on the main level of the actual XML file
-        collected by a |Selection| object.
-
-        >>> from hydpy.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy("LahnH")
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     interface = XMLInterface("single_run.xml")
-        >>> interface.devices
-        Selection("temporary_result_of_xml_parsing",
-                  nodes="dill",
-                  elements=("land_dill", "land_lahn_1"))
-        >>> interface.find("devices").text = "land_lahn1"
-        >>> interface.devices
-        Traceback (most recent call last):
-        ...
-        NameError: The XML configuration file tries to define additional devices using \
-the text `land_lahn1`, but the complete selection of the actual project does neither \
-handle a `Node` or `Element` object with such a name or keyword.
-        """
-        return _query_devices(self.find("devices", optional=False))
-
-    @property
     def elements(self) -> Iterator[devicetools.Element]:
-        """Yield all |Element| objects returned by |XMLInterface.selections| and
-        |XMLInterface.devices| without duplicates.
+        """Yield all |Element| objects returned by |XMLInterface.selections| without
+        duplicates.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -718,6 +791,8 @@ handle a `Node` or `Element` object with such a name or keyword.
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_timegrids()
+        >>> interface.update_selections()
         >>> interface.find("selections").text = "headwaters streams"
         >>> for element in interface.elements:
         ...      print(element.name)
@@ -728,7 +803,6 @@ handle a `Node` or `Element` object with such a name or keyword.
         stream_lahn_2_lahn_3
         """
         selections = copy.copy(self.selections)
-        selections += self.devices
         elements: Set[devicetools.Element] = set()
         for selection in selections:
             for element in selection.elements:
@@ -749,17 +823,22 @@ handle a `Node` or `Element` object with such a name or keyword.
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_selections()
         >>> interface.find("selections").text = "nonheadwaters"
         >>> interface.fullselection
         Selection("fullselection",
-                  nodes=("dill", "lahn_2", "lahn_3"),
+                  nodes=("lahn_2", "lahn_3"),
+                  elements=("land_lahn_2", "land_lahn_3"))
+        >>> interface.find("selections").text = "from_keywords"
+        >>> interface.fullselection
+        Selection("fullselection",
+                  nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "land_lahn_3"))
         """
         fullselection = selectiontools.Selection("fullselection")
         for selection in self.selections:
             fullselection += selection
-        fullselection += self.devices
         return fullselection
 
     @property
@@ -826,8 +905,10 @@ class XMLConditions(XMLBase):
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     interface = XMLInterface("single_run.xml")
+        ...     interface.update_selections()
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.load_conditions()
+        >>> interface.update_timegrids()
         >>> hp.elements.land_lahn_1.model.sequences.states.lz
         lz(8.18711)
         >>> hp.elements.land_lahn_2.model.sequences.states.lz
@@ -855,6 +936,8 @@ class XMLConditions(XMLBase):
         ...     hp.prepare_models()
         ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface("single_run.xml")
+        ...     interface.update_timegrids()
+        ...     interface.update_selections()
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "LahnH/conditions/init_1996_01_06"
@@ -924,7 +1007,6 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find("writers", optional=False)]
 
     def prepare_series(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Call |XMLSubseries.prepare_series| of all |XMLSubseries| objects with the
         same memory |set| object.
 
@@ -973,7 +1055,7 @@ class XMLSelector(XMLBase):
         """The |Selections| object defined for the respective `reader` or `writer`
         element of the actual XML file. ToDo
 
-        If the `reader` or `writer` element does not define a special selections
+        If the `reader` or `writer` element does not define a special `selections`
         element, the general |XMLInterface.selections| element of |XMLInterface|
         is used.
 
@@ -987,13 +1069,14 @@ class XMLSelector(XMLBase):
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_selections()
         >>> series_io = interface.series_io
         >>> for seq in (series_io.readers + series_io.writers):
         ...     print(seq.info, seq.selections.names)
-        all input data ()
-        precipitation ('headwaters',)
+        all input data ('from_keywords',)
+        precipitation ('headwaters', 'from_devices')
         soilmoisture ('complete',)
-        averaged ('complete',)
+        averaged ('from_selections',)
 
         If property |XMLSelector.selections| does not find the definition of a
         |Selections| object, it raises the following error:
@@ -1020,55 +1103,6 @@ Please make sure your XML file follows the relevant XML schema.
             selections = master.find("selections")
         return _query_selections(selections)
 
-    @property
-    def devices(self) -> selectiontools.Selection:
-        """The additional devices defined for the respective `reader` or `writer`
-        element contained within a |Selection| object. ToDo
-
-        If the `reader` or `writer` element does not define its own additional devices,
-        |XMLInterface.devices| of |XMLInterface| is used.
-
-        >>> from hydpy.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy("LahnH")
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     interface = XMLInterface("single_run.xml")
-        >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.writers):
-        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
-        all input data Nodes() \
-Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
-        precipitation Nodes() Elements("land_lahn_1", "land_lahn_2")
-        soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
-        averaged Nodes() Elements()
-
-        If property |XMLSelector.selections| does not find the definition of a
-        |Selections| object, it raises the following error:
-
-        >>> interface.root.remove(interface.find("devices"))
-        >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.writers):
-        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
-        Traceback (most recent call last):
-        ...
-        AttributeError: Unable to find a XML element named "devices".  \
-Please make sure your XML file follows the relevant XML schema.
-        """
-        devices = self.find("devices")
-        master: XMLBase = self
-        while devices is None:
-            master = getattr(master, "master", None)
-            if master is None:
-                raise AttributeError(
-                    'Unable to find a XML element named "devices".  Please make '
-                    "sure your XML file follows the relevant XML schema."
-                )
-            devices = master.find("devices")
-        return _query_devices(devices)
-
     @overload
     def _get_devices(
         self,
@@ -1089,7 +1123,6 @@ Please make sure your XML file follows the relevant XML schema.
     ) -> Union[Iterator[devicetools.Node], Iterator[devicetools.Element]]:
         """Extract all nodes or elements."""
         selections = copy.copy(self.selections)
-        selections += self.devices
         devices = set()
         for selection in selections:
             for device in getattr(selection, attr):
@@ -1110,6 +1143,7 @@ Please make sure your XML file follows the relevant XML schema.
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_selections()
         >>> for element in interface.series_io.writers[0].elements:
         ...     print(element.name)
         land_dill
@@ -1131,6 +1165,7 @@ Please make sure your XML file follows the relevant XML schema.
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
+        >>> interface.update_selections()
         >>> for node in interface.series_io.writers[0].nodes:
         ...     print(node.name)
         dill
@@ -1318,6 +1353,7 @@ class XMLSubseries(XMLSelector):
         ...     hp.prepare_models()
         ...     interface = XMLInterface("single_run.xml")
         >>> interface.update_timegrids()
+        >>> interface.update_selections()
         >>> series_io = interface.series_io
 
         >>> memory = set()
@@ -1357,6 +1393,7 @@ class XMLSubseries(XMLSelector):
         ...     interface = XMLInterface("single_run.xml")
         ...     interface.update_options()
         ...     interface.update_timegrids()
+        ...     interface.update_selections()
         ...     series_io = interface.series_io
         ...     series_io.prepare_series()
         ...     series_io.load_series()
@@ -1384,8 +1421,9 @@ class XMLSubseries(XMLSelector):
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     interface = XMLInterface("single_run.xml")
-        ...     interface.update_options()
+        >>> interface.update_options()
         >>> interface.update_timegrids()
+        >>> interface.update_selections()
         >>> series_io = interface.series_io
         >>> series_io.prepare_series()
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0
@@ -1471,6 +1509,7 @@ class XMLExchange(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
         >>> for item in interface.exchange.parameteritems:
         ...     print(item.name)
         alpha
@@ -1499,6 +1538,7 @@ class XMLExchange(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
         >>> for item in interface.exchange.conditionitems:
         ...     print(item.name)
         sm_lahn_2
@@ -1524,6 +1564,7 @@ class XMLExchange(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
         >>> for item in interface.exchange.getitems:
         ...     print(item.target)
         factors_tmean
@@ -1552,9 +1593,10 @@ class XMLExchange(XMLBase):
         """
         for item in itertools.chain(self.conditionitems, self.getitems):
             for target in item.device2target.values():
-                assert isinstance(target, sequencetools.IOSequence)
-                if item.targetspecs.series and not target.ramflag:
-                    target.activate_ram()
+                if item.targetspecs.series:
+                    assert isinstance(target, sequencetools.IOSequence)
+                    if not target.ramflag:
+                        target.activate_ram()
                 # for base in getattr(item, "device2base", {}).values():
                 #     if item.basespecs.series and not base.ramflag:
                 #         base.activate_ram()   ToDo
@@ -1671,6 +1713,7 @@ class XMLVar(XMLSelector):
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
 
         One of the defined |SetItem| objects modifies the values of all
         |hland_control.Alpha| objects of application model |hland_v1|.  We demonstrate
@@ -1866,7 +1909,6 @@ class XMLVar(XMLSelector):
 
     def _collect_variables(self, item: itemtools.ExchangeItem) -> None:
         selections = self.selections
-        selections += self.devices
         item.collect_variables(selections)
 
 
@@ -2205,8 +2247,6 @@ class XSDWriter:
                     <sequence>
                         <element ref="hpcb:selections"
                                  minOccurs="0"/>
-                        <element ref="hpcb:devices"
-                                 minOccurs="0"/>
         ...
                         <element name="hland_v1"
                                  type="hpcb:hland_v1_setitemsType"
@@ -2231,8 +2271,6 @@ class XSDWriter:
                 f"{blanks}    <complexType>",
                 f"{blanks}        <sequence>",
                 f'{blanks}            <element ref="hpcb:selections"',
-                f'{blanks}                     minOccurs="0"/>',
-                f'{blanks}            <element ref="hpcb:devices"',
                 f'{blanks}                     minOccurs="0"/>',
             ]
         )
@@ -2293,8 +2331,8 @@ class XSDWriter:
         modelname: str,
         indent: int,
     ) -> str:
-        """Return a string defining the required types for the given
-        combination of an exchange item group and an application model.
+        """Return a string defining the required types for the given combination of
+        an exchange item group and an application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
@@ -2302,8 +2340,6 @@ class XSDWriter:
             <complexType name="hland_v1_setitemsType">
                 <sequence>
                     <element ref="hpcb:selections"
-                             minOccurs="0"/>
-                    <element ref="hpcb:devices"
                              minOccurs="0"/>
                     <element name="control"
                              minOccurs="0"
@@ -2319,8 +2355,6 @@ class XSDWriter:
             f'{blanks}<complexType name="{type_}">',
             f"{blanks}    <sequence>",
             f'{blanks}        <element ref="hpcb:selections"',
-            f'{blanks}                 minOccurs="0"/>',
-            f'{blanks}        <element ref="hpcb:devices"',
             f'{blanks}                 minOccurs="0"/>',
             cls.get_subgroupsiteminsertion(itemgroup, modelname, indent + 2),
             f"{blanks}    </sequence>",
@@ -2344,8 +2378,6 @@ class XSDWriter:
             <complexType name="nodes_setitemsType">
                 <sequence>
                     <element ref="hpcb:selections"
-                             minOccurs="0"/>
-                    <element ref="hpcb:devices"
                              minOccurs="0"/>
                     <element name="sim"
                              type="hpcb:setitemType"
@@ -2372,8 +2404,6 @@ class XSDWriter:
             f'{blanks}<complexType name="nodes_{itemgroup}Type">',
             f"{blanks}    <sequence>",
             f'{blanks}        <element ref="hpcb:selections"',
-            f'{blanks}                 minOccurs="0"/>',
-            f'{blanks}        <element ref="hpcb:devices"',
             f'{blanks}                 minOccurs="0"/>',
         ]
         type_ = "getitemType" if itemgroup == "getitems" else "setitemType"
@@ -2464,8 +2494,6 @@ class XSDWriter:
                     <sequence>
                         <element ref="hpcb:selections"
                                  minOccurs="0"/>
-                        <element ref="hpcb:devices"
-                                 minOccurs="0"/>
                         <element name="area"
                                  type="hpcb:setitemType"
                                  minOccurs="0"
@@ -2525,8 +2553,6 @@ class XSDWriter:
             f"{blanks1}    <complexType>",
             f"{blanks1}        <sequence>",
             f'{blanks1}            <element ref="hpcb:selections"',
-            f'{blanks1}                     minOccurs="0"/>',
-            f'{blanks1}            <element ref="hpcb:devices"',
             f'{blanks1}                     minOccurs="0"/>',
         ]
         seriesflags = [False] if subgroup.name == "control" else [False, True]

@@ -20,15 +20,30 @@
         <stepsize>1d</stepsize>
     </timegrid>
 
-    <selections>
-        complete
-    </selections>
+    <add_selections>
+        <add_selection name="from_devices">
+            <devices>
+                land_lahn_1
+                land_lahn_2
+            </devices>
+        </add_selection>
+        <add_selection name="from_keywords">
+            <keywords>
+                catchment
+            </keywords>
+        </add_selection>
+        <add_selection name="from_selections">
+            <selections>
+                headwaters
+                nonheadwaters
+                streams
+            </selections>
+        </add_selection>
+    </add_selections>
 
-    <devices>
-        land_dill
-        land_lahn_1
-        dill
-    </devices>
+    <selections>
+        from_selections
+    </selections>
 
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
@@ -61,10 +76,7 @@
 
         <readers>
             <reader info="all input data">
-                <selections/>
-                <devices>
-                    catchment
-                </devices>
+                <selections>from_keywords</selections>
                 <sequences>
                     <hland_v1>
                         <inputs>
@@ -86,11 +98,8 @@
             <writer info="precipitation">
                 <selections>
                     headwaters
+                    from_devices
                 </selections>
-                <devices>
-                    land_lahn_1
-                    land_lahn_2
-                </devices>
                 <sequences>
                     <hland_v1>
                         <inputs>
@@ -109,9 +118,7 @@
             </writer>
 
             <writer info="soilmoisture">
-                <selections>
-                    complete
-                </selections>
+                <selections>complete</selections>
                 <sequences>
                     <hland_v1>
                         <states>
@@ -128,7 +135,6 @@
             </writer>
 
             <writer info="averaged">
-                <devices/>
                 <sequences>
                     <node>
                         <sim/>

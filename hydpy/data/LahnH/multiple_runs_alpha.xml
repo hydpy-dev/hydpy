@@ -7,11 +7,18 @@
         <lastdate>1996-01-06T00:00:00</lastdate>
         <stepsize>1d</stepsize>
     </timegrid>
-    <selections/>
-    <devices>
-        dill
-        land_dill
-    </devices>
+    <add_selections>
+        <add_selection name="node">
+            <devices>dill</devices>
+        </add_selection>
+        <add_selection name="element">
+            <devices>land_dill</devices>
+        </add_selection>
+    </add_selections>
+    <selections>
+        node
+        element
+    </selections>
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
         <outputdir>init_1996_01_06</outputdir> <!-- optional ? -->
@@ -55,6 +62,7 @@
             <hland_v1>
                 <control>
                     <alpha>
+                        <selections>element</selections>
                         <alias>alpha</alias>
                         <dim>0</dim>
                         <init>2.0</init>
@@ -64,8 +72,7 @@
         </setitems>
         <getitems>
             <nodes>
-                <selections/>
-                <devices>dill</devices>
+                <selections>node</selections>
                 <sim.series/>
             </nodes>
         </getitems>

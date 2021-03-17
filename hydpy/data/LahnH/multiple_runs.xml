@@ -12,11 +12,37 @@
         <stepsize>1d</stepsize>
     </timegrid>
 
+    <add_selections>
+        <add_selection name="dill">
+            <devices>
+                dill
+            </devices>
+        </add_selection>
+        <add_selection name="land_dill">
+            <devices>
+                land_dill
+            </devices>
+        </add_selection>
+        <add_selection name="land_lahn_1">
+            <devices>
+                land_lahn_1
+            </devices>
+        </add_selection>
+        <add_selection name="land_lahn_2">
+            <devices>
+                land_lahn_2
+            </devices>
+        </add_selection>
+        <add_selection name="land_lahn_3">
+            <devices>
+                land_lahn_3
+            </devices>
+        </add_selection>
+    </add_selections>
+
     <selections>
         complete
     </selections>
-
-    <devices/>
 
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
@@ -103,17 +129,16 @@
             </hstream_v1>
         </setitems>
         <setitems>
-            <selections/>
             <hland_v1>
                 <states>
                     <sm>
-                        <devices>land_lahn_2</devices>
+                        <selections>land_lahn_2</selections>
                         <alias>sm_lahn_2</alias>
                         <dim>0</dim>
                         <init>123.0</init>
                     </sm>
                     <sm>
-                        <devices>land_lahn_1</devices>
+                        <selections>land_lahn_1</selections>
                         <alias>sm_lahn_1</alias>
                         <dim>1</dim>
                         <init>
@@ -123,7 +148,7 @@
                     </sm>
                 </states>
                 <logs>
-                    <devices>land_lahn_2</devices>
+                    <selections>land_lahn_2</selections>
                     <quh>
                         <alias>quh</alias>
                         <dim>0</dim>
@@ -152,8 +177,7 @@
                         <control.rfcf/>
                     </sfcf>
                     <sfcf>
-                        <selections/>
-                        <devices>land_lahn_3</devices>
+                        <selections>land_lahn_3</selections>
                         <alias>sfcf_3</alias>
                         <dim>1</dim>
                         <init>
@@ -168,27 +192,23 @@
         <getitems>
             <hland_v1>
                 <factors>
-                    <selections/>
-                    <devices>land_dill</devices>
+                    <selections>catchment_dill</selections>
                     <tmean/>
                 </factors>
                 <fluxes>
-                    <selections/>
-                    <devices>land_dill</devices>
+                    <selections>land_dill</selections>
                     <qt/>
                     <qt.series/>
                 </fluxes>
                 <states>
                     <sm/>
                     <sm.series>
-                        <selections/>
-                        <devices>land_lahn_3</devices>
+                        <selections>land_lahn_3</selections>
                     </sm.series>
                 </states>
             </hland_v1>
             <nodes>
-                <selections/>
-                <devices>dill</devices>
+                <selections>dill</selections>
                 <sim.series/>
             </nodes>
         </getitems>

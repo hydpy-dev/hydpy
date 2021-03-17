@@ -366,6 +366,8 @@ class ServerState:
         interface.update_timegrids()
         write("Read all network files")
         hp.prepare_network()
+        write("Create the custom selections (if defined)")
+        interface.update_selections()
         write("Activate the selected network")
         hp.update_devices(
             selection=interface.fullselection,

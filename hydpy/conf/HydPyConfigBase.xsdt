@@ -379,8 +379,6 @@
         <sequence>
             <element ref="hpcb:selections"
                      minOccurs="0"/>
-            <element ref="hpcb:devices"
-                     minOccurs="0"/>
             <element name="alias"
                      type="string"/>
             <element name="dim"
@@ -393,8 +391,6 @@
     <complexType name="getitemType">
         <sequence>
             <element ref="hpcb:selections"
-                     minOccurs="0"/>
-            <element ref="hpcb:devices"
                      minOccurs="0"/>
         </sequence>
     </complexType>

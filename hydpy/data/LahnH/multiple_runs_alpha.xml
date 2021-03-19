@@ -8,16 +8,18 @@
         <stepsize>1d</stepsize>
     </timegrid>
     <add_selections>
-        <add_selection name="node">
+        <add_selection>
+            <name>gauge</name>
             <devices>dill</devices>
         </add_selection>
-        <add_selection name="element">
+        <add_selection>
+            <name>catchment</name>
             <devices>land_dill</devices>
         </add_selection>
     </add_selections>
     <selections>
-        node
-        element
+        gauge
+        catchment
     </selections>
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
@@ -62,9 +64,9 @@
             <hland_v1>
                 <control>
                     <alpha>
-                        <selections>element</selections>
-                        <alias>alpha</alias>
-                        <dim>0</dim>
+                        <selections>catchment</selections>
+                        <name>alpha</name>
+                        <level>global</level>
                         <init>2.0</init>
                     </alpha>
                 </control>
@@ -72,7 +74,7 @@
         </setitems>
         <getitems>
             <nodes>
-                <selections>node</selections>
+                <selections>gauge</selections>
                 <sim.series/>
             </nodes>
         </getitems>

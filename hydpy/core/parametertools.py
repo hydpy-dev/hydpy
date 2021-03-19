@@ -159,6 +159,20 @@ class Parameters:
     derived
     >>> len(model.parameters)
     2
+
+    Keyword access provides a type-safe way to query a subgroup via a string:
+
+    >>> type(model.parameters["control"]).__name__
+    'ControlParameters'
+    >>> type(model.parameters["wrong"])
+    Traceback (most recent call last):
+    ...
+    TypeError: There is no parameter subgroup named `wrong`.
+    >>> model.parameters["model"]
+    Traceback (most recent call last):
+    ...
+    TypeError: Attribute `model` is of type `Model`, which is not a subtype of class \
+`SubParameters`.
     """
 
     model: "modeltools.Model"
@@ -412,6 +426,18 @@ set yet: c1(?).
         """
         for subpars in (self.derived, self.solver):
             yield subpars
+
+    def __getitem__(self, item: str) -> "SubParameters":
+        try:
+            subpars = getattr(self, item)
+        except AttributeError:
+            raise TypeError(f"There is no parameter subgroup named `{item}`.") from None
+        if isinstance(subpars, SubParameters):
+            return subpars
+        raise TypeError(
+            f"Attribute `{item}` is of type `{type(subpars).__name__}`, "
+            f"which is not a subtype of class `SubParameters`."
+        )
 
     def __iter__(self) -> Iterator["SubParameters"]:
         for subpars in (self.control, self.derived, self.fixed, self.solver):

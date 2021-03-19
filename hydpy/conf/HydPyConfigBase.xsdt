@@ -109,6 +109,8 @@
     <element name="add_selection">
         <complexType>
             <sequence>
+                <element name="name"
+                     type="string"/>
                 <element ref="hpcb:devices"
                          minOccurs="0"/>
                 <element ref="hpcb:keywords"
@@ -116,7 +118,6 @@
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
             </sequence>
-            <attribute name="name" type="string"/>
         </complexType>
     </element>
 
@@ -375,14 +376,23 @@
         </complexType>
     </element>
 
+    <simpleType name="_levelType">
+        <restriction base="string">
+            <enumeration value="global"/>
+            <enumeration value="selection"/>
+            <enumeration value="device"/>
+            <enumeration value="subunit"/>
+        </restriction>
+    </simpleType>
+
     <complexType name="setitemType">
         <sequence>
             <element ref="hpcb:selections"
                      minOccurs="0"/>
-            <element name="alias"
+            <element name="name"
                      type="string"/>
-            <element name="dim"
-                     type="nonNegativeInteger"/>
+            <element name="level"
+                     type="hpcb:_levelType"/>
             <element name="init"
                      type="hpcb:listOfDoubles"/>
         </sequence>
@@ -390,6 +400,9 @@
 
     <complexType name="getitemType">
         <sequence>
+            <element name="name"
+                     type="string"
+                     minOccurs="0"/>
             <element ref="hpcb:selections"
                      minOccurs="0"/>
         </sequence>

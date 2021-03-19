@@ -296,26 +296,26 @@ class ServerState:
 
     >>> for item in state.parameteritems:
     ...     print(item)
-    SetItem("alpha", "hland_v1", "control.alpha", 0)
-    SetItem("beta", "hland_v1", "control.beta", 0)
-    SetItem("lag", "hstream_v1", "control.lag", 0)
-    SetItem("damp", "hstream_v1", "control.damp", 0)
-    AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", 0)
-    AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", 0)
-    AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", 1)
+    SetItem("alpha", "hland_v1", "control.alpha", "global")
+    SetItem("beta", "hland_v1", "control.beta", "global")
+    SetItem("lag", "hstream_v1", "control.lag", "global")
+    SetItem("damp", "hstream_v1", "control.damp", "global")
+    AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", "subunit")
     >>> for item in state.conditionitems:
     ...     print(item)
-    SetItem("sm_lahn_2", "hland_v1", "states.sm", 0)
-    SetItem("sm_lahn_1", "hland_v1", "states.sm", 1)
-    SetItem("quh", "hland_v1", "logs.quh", 0)
+    SetItem("sm_lahn_2", "hland_v1", "states.sm", "device")
+    SetItem("sm_lahn_1", "hland_v1", "states.sm", "subunit")
+    SetItem("quh", "hland_v1", "logs.quh", "device")
     >>> for item in state.getitems:
     ...     print(item)
-    GetItem("hland_v1", "factors.tmean")
-    GetItem("hland_v1", "fluxes.qt")
-    GetItem("hland_v1", "fluxes.qt.series")
-    GetItem("hland_v1", "states.sm")
-    GetItem("hland_v1", "states.sm.series")
-    GetItem("nodes", "nodes.sim.series")
+    GetItem("?", "hland_v1", "factors.tmean")
+    GetItem("current_discharge", "hland_v1", "fluxes.qt")
+    GetItem("entire_discharge_series", "hland_v1", "fluxes.qt.series")
+    GetItem("?", "hland_v1", "states.sm")
+    GetItem("?", "hland_v1", "states.sm.series")
+    GetItem("?", "nodes", "nodes.sim.series")
 
     The initialisation also memorises the initial conditions of all elements:
 
@@ -536,9 +536,9 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_2 = Double0D
     sfcf_3 = Double1D
     >>> test("query_conditionitemtypes")
-    sm_lahn_2 = Double0D
+    sm_lahn_2 = Double1D
     sm_lahn_1 = Double1D
-    quh = Double0D
+    quh = Double1D
     >>> test("query_getitemtypes")
     land_dill_factors_tmean = Double0D
     land_dill_fluxes_qt = Double0D
@@ -565,9 +565,9 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_2 = 0.2
     sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
     >>> test("query_initialconditionitemvalues")
-    sm_lahn_2 = 123.0
+    sm_lahn_2 = [123.]
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
-    quh = 10.0
+    quh = [10.]
     >>> test("query_initialgetitemvalues")    # doctest: +ELLIPSIS
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
@@ -894,9 +894,9 @@ calculated so far.
     sfcf_1 = 0.3
     sfcf_2 = 0.2
     sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
-    sm_lahn_2 = 123.0
+    sm_lahn_2 = [123.]
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
-    quh = 10.0
+    quh = [10.]
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]

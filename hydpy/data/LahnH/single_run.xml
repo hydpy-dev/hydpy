@@ -24,16 +24,19 @@
     </timegrid>
 
     <add_selections>
-        <add_selection name="from_devices">
+        <add_selection>
+            <name>from_devices</name>
             <devices>
                 land_lahn_1
                 land_lahn_2
             </devices>
         </add_selection>
-        <add_selection name="from_keywords">
+        <add_selection>
+            <name>from_keywords</name>
             <keywords>catchment</keywords>
         </add_selection>
-        <add_selection name="from_selections">
+        <add_selection>
+            <name>from_selections</name>
             <selections>
                 headwaters
                 nonheadwaters

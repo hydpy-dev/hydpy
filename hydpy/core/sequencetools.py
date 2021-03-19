@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for defining and handling different kinds of the
-sequences (time-series) of hydrological models."""
+"""This module implements tools for defining and handling different kinds of sequences
+(time-series) of hydrological models."""
 # import...
 # ...from standard library
 import abc
@@ -450,6 +450,20 @@ class Sequences:
     outlets
     >>> len(sequences)
     7
+
+    Keyword access provides a type-safe way to query a subgroup via a string:
+
+    >>> type(sequences["inputs"]).__name__
+    'InputSequences'
+    >>> type(sequences["wrong"])
+    Traceback (most recent call last):
+    ...
+    TypeError: There is no sequence subgroup named `wrong`.
+    >>> sequences["model"]
+    Traceback (most recent call last):
+    ...
+    TypeError: Attribute `model` is of type `Model`, which is not a subtype of class \
+`SubSequences`.
 
     Class |Sequences| provides some methods related to reading and writing time-series
     data, which (directly or indirectly) call the corresponding methods of the handled
@@ -936,6 +950,21 @@ neither a filename is given nor does the model know its master element.
         self.factors.update_outputs()
         self.fluxes.update_outputs()
         self.states.update_outputs()
+
+    def __getitem__(
+        self,
+        item: str,
+    ) -> "SubSequences[Union[Sequences, devicetools.Node], Sequence_, FastAccess]":
+        try:
+            subseqs = getattr(self, item)
+        except AttributeError:
+            raise TypeError(f"There is no sequence subgroup named `{item}`.") from None
+        if isinstance(subseqs, SubSequences):
+            return subseqs
+        raise TypeError(
+            f"Attribute `{item}` is of type `{type(subseqs).__name__}`, "
+            f"which is not a subtype of class `SubSequences`."
+        )
 
     def __iter__(self) -> Iterator["ModelSequences"]:
         if self.inlets:

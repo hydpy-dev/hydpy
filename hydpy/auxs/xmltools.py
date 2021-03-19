@@ -278,8 +278,8 @@ class XMLBase:
     hland_v1
     >>> for element in itemgroup.models[0].subvars[0].vars[0]:
     ...     print(strip(element.tag))
-    alias
-    dim
+    name
+    level
     init
     """
 
@@ -669,7 +669,7 @@ correctly refer to one of the available XML schema files \
         following error messages:
 
         >>> add_selections = find(interface.root, "add_selections")
-        >>> add_selections[2][0].text = "streams no_selection"
+        >>> add_selections[2][1].text = "streams no_selection"
         >>> interface.update_selections()
         Traceback (most recent call last):
         ...
@@ -677,7 +677,7 @@ correctly refer to one of the available XML schema files \
 selection named `no_selection` to the custom selection `from_selections` but none \
 of the available selections has this name.
 
-        >>> add_selections[1][0].text = "catchment no_keyword"
+        >>> add_selections[1][1].text = "catchment no_keyword"
         >>> interface.update_selections()
         Traceback (most recent call last):
         ...
@@ -685,7 +685,7 @@ of the available selections has this name.
 based on the keyword `no_keyword` to the custom selection `from_keywords` but none \
 of the available devices has this keyword.
 
-        >>> add_selections[0][0].text = "dill no_device"
+        >>> add_selections[0][1].text = "dill no_device"
         >>> interface.update_selections()
         Traceback (most recent call last):
         ...
@@ -705,7 +705,8 @@ devices has this name.
         add_selections = find(self.root, "add_selections", optional=True)
         if add_selections is not None:
             for add_selection in add_selections:
-                name_new_selection = add_selection.attrib["name"]
+                name_new_selection = find(add_selection, "name", optional=False).text
+                assert name_new_selection is not None
                 new_selection = selectiontools.Selection(name_new_selection)
                 for name_device in _get_texts(add_selection, "devices"):
                     try:
@@ -1751,7 +1752,7 @@ class XMLVar(XMLSelector):
         >>> item.name
         'sm_lahn_2'
         >>> item.value
-        array(123.)
+        array([123.])
         >>> hp.elements.land_lahn_2.model.sequences.states.sm
         sm(138.31396, 135.71124, 147.54968, 145.47142, 154.96405, 153.32805,
            160.91917, 159.62434, 165.65575, 164.63255)
@@ -1869,7 +1870,12 @@ class XMLVar(XMLSelector):
         master: str,
         itemtype: Type[itemtools.GetItem],
     ) -> itemtools.GetItem:
-        item = itemtype(master, target)
+        xmlelement = self.find("name", optional=True)
+        if xmlelement is None or xmlelement.text is None:
+            name = cast(Name, "?")
+        else:
+            name = cast(Name, xmlelement.text)
+        item = itemtype(name, master, target)
         self._collect_variables(item)
         return item
 
@@ -1879,29 +1885,29 @@ class XMLVar(XMLSelector):
         master: str,
         itemtype: Type[_SetOrAddItem],
     ) -> _SetOrAddItem:
-        dim = self.find("dim", optional=False).text
-        assert dim is not None
+        name = cast(Name, self.find("name", optional=False).text)
+        assert name is not None
+        level = self.find("level", optional=False).text
+        assert level is not None
         init = self.find("init", optional=False).text
         assert init is not None
         init = ",".join(init.split())
-        alias = self.find("alias", optional=False).text
-        assert alias is not None
         item: _SetOrAddItem
         if issubclass(itemtype, itemtools.AddItem):
             assert not issubclass(itemtype, itemtools.SetItem)
             item = itemtype(
-                name=alias,
+                name=name,
                 master=master,
                 target=target,
                 base=strip(list(self)[-1].tag),
-                ndim=int(dim),
+                level=cast(itemtools.LevelType, level),
             )
         else:
             item = itemtype(
-                name=alias,
+                name=name,
                 master=master,
                 target=target,
-                ndim=int(dim),
+                level=cast(itemtools.LevelType, level),
             )
         self._collect_variables(item)
         item.value = eval(init)

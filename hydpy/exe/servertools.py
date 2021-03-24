@@ -23,7 +23,7 @@ was the original reason for adding module |servertools| to the *HydPy* framework
 
 Module |servertools| solves such integration problems by running *HydPy* within an
 HTTP server.  After starting such a server, one can use any HTTP client (e.g. `curl`_)
-to perform the steps described above.
+to perform the above steps.
 
 The *HydPy* server's API is relatively simple, allowing to perform a "normal"
 calibration using a few server methods only.  However, it is also more restrictive
@@ -68,12 +68,11 @@ dill_nodes_sim_series = [nan, nan, nan, nan, nan]
 
 In general, it is possible to control the *HydPy* server via invoking each method
 with a separate HTTP request.  However, one can use methods |HydPyServer.GET_execute|
-and |HydPyServer.POST_execute| alternatively to execute a larger number of methods
-with only one HTTP request.  We now define three such metafunctions.  The first one
-changes the value of the parameter |hland_control.Alpha|  The second one runs a
-simulation.  The third one prints the newly calculated discharge at the outlet of
-the headwater catchment `Dill`.  All of this is very similar to what the
-`HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.
+and |HydPyServer.POST_execute| alternatively to execute many methods with only one HTTP
+request.  We now define three such metafunctions.  The first one changes the value of
+the parameter |hland_control.Alpha|  The second one runs a simulation.  The third one
+prints the newly calculated discharge at the outlet of the headwater catchment `Dill`.
+All of this is very similar to what the `HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.
 
 Function `set_itemvalues` wraps the POST methods
 |HydPyServer.POST_register_simulationdates|,
@@ -143,7 +142,7 @@ In the simplest example, we perform a simulation throughout five days for an
 >>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
 2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874
 
-The next example shows interlocked simulation runs.  The first call only triggers
+The following example shows interlocked simulation runs.  The first call only triggers
 a simulation run for the first initialised day:
 
 >>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
@@ -219,13 +218,12 @@ tool works as well):
 >>> _ = process.communicate()
 
 The above description focussed on coupling *HydPy* to `OpenDA`_.  However, the applied
-atomic submethods of class |HydPyServer| also allow to couple *HydPy*  with other
+atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
 software products. See the documentation on class |HydPyServer| for further information.
 """
 # import...
 # ...from standard library
 import collections
-import copy
 import mimetypes
 import os
 
@@ -340,7 +338,7 @@ class ServerState:
 
     hp: hydpytools.HydPy
     parameteritems: List[itemtools.ChangeItem]
-    conditionitems: List[itemtools.ChangeItem]
+    conditionitems: List[itemtools.SetItem]
     getitems: List[itemtools.GetItem]
     conditions: Dict[ID, Dict[int, hydpytools.ConditionsType]]
     parameteritemvalues: Dict[ID, Dict[Name, Any]]
@@ -472,8 +470,7 @@ No method `GET_missing` available.
 
     The error code is `500` in all other cases of error:
 
-    >>> test("register_parameteritemvalues", id_="0",
-    ...      data="alpha = []")    # doctest: +ELLIPSIS
+    >>> test("register_parameteritemvalues", id_="0", data="alpha = []")
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
@@ -550,7 +547,7 @@ has been extracted but cannot be further processed: `x == y`.
     land_lahn_3_states_sm_series = TimeSeries1D
     dill_nodes_sim_series = TimeSeries0D
 
-    The same holds for the initial values of the exchange-items.  Method
+    The same holds for the initial values of the exchange items.  Method
     |HydPyServer.GET_query_initialitemvalues| returns them all at once while the
     methods |HydPyServer.GET_query_initialparameteritemvalues|,
     |HydPyServer.GET_query_initialconditionitemvalues|), and
@@ -641,8 +638,8 @@ Nothing registered under the id `1`.  The available ids are: 0.
     The logic of the parameter-related GET and POST methods is very similar to the
     logic of the simulation date-related methods discussed above.  Method
     |HydPyServer.POST_register_parameteritemvalues| registers new values of the
-    exchange-items, and method |HydPyServer.GET_activate_parameteritemvalues|
-    activates them (applies them on the relevant parameters):
+    exchange items, and method |HydPyServer.GET_activate_parameteritemvalues|
+    activates them (assigns them to the relevant parameters):
 
     >>> test("register_parameteritemvalues", id_="0",
     ...      data=("alpha = 3.0\\n"
@@ -668,7 +665,7 @@ Nothing registered under the id `1`.  The available ids are: 0.
     alpha = alpha(3.0)
     sfcf = sfcf(1.34283)
 
-    The list of exchange-items must be complete:
+    The list of exchange items must be complete:
 
     >>> test("register_parameteritemvalues", id_="0",
     ...      data=("alpha = 3.0\\n"
@@ -710,17 +707,24 @@ A value for parameter item `lag` is missing.
     Note the trimming of the too-high value for the state sequence |hland_states.SM|
     to its highest possible value defined by control parameter |hland_control.FC|):
 
-    >>> sequences = "HydPyServer.state.hp.elements.land_lahn_2.model.sequences"
-    >>> test("evaluate",
-    ...      data=(f"sm = {sequences}.states.sm \\n"
-    ...            f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    >>> for element in ("land_lahn_1", "land_lahn_2"):
+    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     test("evaluate",
+    ...          data=(f"sm = {sequences}.states.sm \\n"
+    ...                f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    sm = sm(99.27505, ..., 142.84148)
+    quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
     quh = quh(0.7, 0.0)
     >>> test("activate_conditionitemvalues", id_="0")
     <BLANKLINE>
-    >>> test("evaluate",
-    ...      data=(f"sm = {sequences}.states.sm \\n"
-    ...            f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    >>> for element in ("land_lahn_1", "land_lahn_2"):
+    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     test("evaluate",
+    ...          data=(f"sm = {sequences}.states.sm \\n"
+    ...                f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
+    quh = quh(0.0)
     sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)
     quh = quh(1.0, 0.0)
 
@@ -735,9 +739,9 @@ method `GET_query_getitemvalues`, the following error occurred: Nothing register
 under the id `0`.  There is nothing registered, so far.
 
     As the error message explains, we first need to fill the registry for the given
-    `id` parameter.  As opposed to the examples above, we do not do this by sending
-    external data via a POST request but by retrieving the server's currently active
-    data.  We accomplish this task by calling the GET method
+    `id` parameter.  Unlike the examples above, we do not do this by sending external
+    data via a POST request but by retrieving the server's currently active data.  We
+    accomplish this task by calling the GET method
     |HydPyServer.GET_update_getitemvalues|:
 
     >>> test("update_getitemvalues", id_="0")
@@ -867,16 +871,17 @@ calculated so far.
     information on how they evolve during a simulation.  For such purposes, you can
     use method |HydPyServer.GET_update_conditionitemvalues| to store the current
     conditions under an arbitrary `id` and use method
-    |HydPyServer.GET_query_conditionitemvalues| to query them later.  Please note
-    that these methods are not flexible enough for many real-world applications
-    yet and we will improve them later:
+    |HydPyServer.GET_query_conditionitemvalues| to query them later.  Note that this
+    approach so far only works when using |SetItem| objects that modify their target
+    sequence on the `device` or `subunit` level (please tell us if you encounter other
+    relevant use-cases):
 
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")    # doctest: +ELLIPSIS
     sm_lahn_2 = [99.84802...]
     sm_lahn_1 = [49.92944...]
-    quh = [0.00081...]
+    quh = [0.00040...]
 
     Above, we explained the recommended way to query the initial values of all or
     a subgroup of the available exchange items.  Alternatively, you can first register
@@ -1330,7 +1335,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
             self._outputs[item] = value
 
     def POST_register_conditionitemvalues(self) -> None:
-        """Register the send condition values under the given `id`."""
+        """Register the send condition item values under the given `id`."""
         self._post_register_itemvalues(
             typename="condition",
             items=self.state.conditionitems,
@@ -1338,22 +1343,23 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         )
 
     def GET_activate_conditionitemvalues(self) -> None:
-        """Activate the condition values logged under the given `id`."""
+        """Apply the condition item values registered under the given `id` to modify
+        the current |StateSequence| and |LogSequence| values."""
         item2value = self._get_registered_content(self.state.conditionitemvalues)
         for item in self.state.conditionitems:
             item.value = item2value[item.name]
             item.update_variables()
 
     def GET_update_conditionitemvalues(self) -> None:
-        """ToDo: extend functionality"""
+        """Convert the current |StateSequence| and |LogSequence| values to condition
+        item values (when necessary) and register them under the given `id`."""
         item2value = self._get_registered_content(self.state.conditionitemvalues)
         for item in self.state.conditionitems:
-            item2value[item.name] = copy.deepcopy(
-                list(item.device2target.values())[0].value
-            )
+            item.extract_values()
+            item2value[item.name] = item.value
 
     def GET_query_conditionitemvalues(self) -> None:
-        """Return the condition values logged under the given `id`."""
+        """Return the condition item values registered under the given `id`."""
         item2value = self._get_registered_content(self.state.conditionitemvalues)
         for item, value in item2value.items():
             self._outputs[item] = value
@@ -1460,15 +1466,14 @@ def start_server(
     Please see the documentation on method |HydPyServer.POST_evaluate| for an
     explanation of the "debugging" argument.
 
-    Note that function |start_server| tries to read the "mime types" from
-    a dictionary stored in the file `mimetypes.txt` available in subpackage
-    `conf` and passes it as attribute `extension_map` to class |HydPyServer|.
-    The reason is to avoid the long computation time of function
-    |mimetypes.init| of module |mimetypes|, usually called when defining
-    class `BaseHTTPRequestHandler` of module `http.server`.  If file
-    `mimetypes.txt` does not exist or does not work for some reasons,
-    |start_server| calls |mimetypes.init| as usual, (over)writes
-    `mimetypes.txt`, and tries to proceed as expected.
+    Note that function |start_server| tries to read the "mime types" from a dictionary
+    stored in the file `mimetypes.txt` available in subpackage `conf` and passes it as
+    attribute `extension_map` to class |HydPyServer|.  The reason is to avoid the long
+    computation time of function |mimetypes.init| of module |mimetypes|, usually called
+    when defining class `BaseHTTPRequestHandler` of module `http.server`.  If file
+    `mimetypes.txt` does not exist or does not work for , |start_server| calls
+    |mimetypes.init| as usual, (over)writes `mimetypes.txt` and tries to proceed as
+    expected.
     """
     confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
     filepath = os.path.join(confpath, "mimetypes.txt")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements so-called exchange items, simplifying the
-modification of the values of |Parameter| and |Sequence_| objects."""
+"""This module implements so-called exchange items, simplifying modifying the values of
+|Parameter| and |Sequence_| objects."""
 # import...
 # ...from standard library
 from typing import *
@@ -70,7 +70,7 @@ class ExchangeSpecification:
     or complete time-series (|True|)."""
     subgroup: Optional[str]
     """For model variables, the name of the parameter or sequence subgroup of the
-    target or base variable; for node sequences |None|."""
+    target or base variable; for node sequences, |None|."""
 
     def __init__(
         self,
@@ -89,8 +89,8 @@ class ExchangeSpecification:
 
     @property
     def specstring(self) -> str:
-        """The string corresponding to the current values of `subgroup`, `state`,
-        and `variable`.
+        """The string corresponding to the current values of `subgroup`, `state`, and
+        `variable`.
 
         >>> from hydpy.core.itemtools import ExchangeSpecification
         >>> spec = ExchangeSpecification("hland_v1", "fluxes.qt")
@@ -132,7 +132,7 @@ class ExchangeItem:
     def ndim(self) -> int:
         """The number of dimensions of the handled value vector.
 
-        Property |ExchangeItem.ndim| to be overwritten by the concrete subclasses:
+        Property |ExchangeItem.ndim| needs to be overwritten by the concrete subclasses:
 
         >>> from hydpy.core.itemtools import ExchangeItem
         >>> ExchangeItem().ndim
@@ -337,8 +337,8 @@ class ChangeItem(ExchangeItem):
 
     @property
     def value(self) -> numpy.ndarray:
-        """The item value(s) used for changing the values of target variables through
-        applying method |ChangeItem.update_variables| of class |ChangeItem|.
+        """The item value(s) changing the values of target variables through applying
+        method |ChangeItem.update_variables| of class |ChangeItem|.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -388,9 +388,8 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         |ExchangeItem| and determine the |ChangeItem.shape| of the current
         |ChangeItem| object afterwards.
 
-        For the following examples, we prepare the `LahnH` example project and
-        remove the "complete" selection from the |Selections| object available
-        in module |pub|:
+        For the following examples, we prepare the `LahnH` example project and remove
+        the "complete" selection from the |Selections| object available in module |pub|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -410,7 +409,7 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         land_lahn_2 ic(0.96159, ..., 1.46393)
         land_lahn_3 ic(0.96064, ..., 1.46444)
 
-        Similarly, attribute |ExchangeItem.selection2target| maps all relevant
+        Similarly, attribute |ExchangeItem.selection2targets| maps all relevant
         selections to the chosen target variables:
 
         >>> for selection, targets in item.selection2targets.items():
@@ -440,9 +439,9 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         >>> item.shape
         (4,)
 
-        For the "subunit" level, we need one value for each vector entry of all
-        target variables (for parameter |hland_states.IC| of base model |hland|,
-        this agrees with the total number of hydrological response units):
+        For the "subunit" level, we need one value for each vector entry of all target
+        variables (for parameter |hland_states.IC| of base model |hland|, this agrees
+        with the total number of hydrological response units):
 
         >>> item = SetItem("ic", "hland", "states.ic", "subunit")
         >>> item.collect_variables(pub.selections)
@@ -466,8 +465,8 @@ occurred: could not broadcast input array from shape (2,) into shape ()
     ) -> None:
         """Assign the given value(s) to the given target or base variable.
 
-        If the assignment fails, |ChangeItem.update_variable| raises an error like
-        the following:
+        If the assignment fails, |ChangeItem.update_variable| raises an error like the
+        following:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -500,9 +499,8 @@ value `wrong` cannot be converted to type `float`.
         """Assign the current objects |ChangeItem.value| to the values of the target
         variables.
 
-        For the following examples, we prepare the `LahnH` example project and
-        remove the "complete" selection from the |Selections| object available
-        in module |pub|:
+        For the following examples, we prepare the `LahnH` example project and remove
+        the "complete" selection from the |Selections| object available in module |pub|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -511,7 +509,7 @@ value `wrong` cannot be converted to type `float`.
         "Global" |SetItem| objects assign the same value to all chosen 0-dimensional
         target variables (we use parameter |hland_control.Alpha| as an example):
 
-        >>> from hydpy.core.itemtools import SetItem
+        >>> from hydpy import SetItem
         >>> item = SetItem("alpha", "hland_v1", "control.alpha", "global")
         >>> item
         SetItem("alpha", "hland_v1", "control.alpha", "global")
@@ -544,9 +542,25 @@ value `wrong` cannot be converted to type `float`.
         >>> land_dill.model.parameters.control.fc
         fc(200.0)
 
-        When working on the "selection" level, a |SetItem| object assigns one
-        specific value to the target variables of each relevant selection, regardless
-        of whether these target variables are 0- or 1-dimensional:
+        The same holds for 2-dimensional target variables like the sequence
+        |hland_states.SP| (we increase the number of snow classes and thus the length
+        of the first axis for demonstration purposes):
+
+        >>> land_dill.model.parameters.control.sclass(2)
+        >>> item = SetItem("sp", "hland_v1", "states.sp", "global")
+        >>> item.collect_variables(pub.selections)
+        >>> item.value = 5.0
+        >>> land_dill.model.sequences.states.sp
+        sp([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
+            [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
+        >>> item.update_variables()
+        >>> land_dill.model.sequences.states.sp
+        sp([[5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+            [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]])
+
+        When working on the "selection" level, a |SetItem| object assigns one specific
+        value to the target variables of each relevant selection, regardless of target
+        variable's dimensionality:
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", "selection")
         >>> item.collect_variables(pub.selections)
@@ -564,7 +578,7 @@ value `wrong` cannot be converted to type `float`.
         In contrast, when working on the "device" level, each device receives one
         specific value (note that the final values of element `land_lahn_2` are partly
         affected and that those of element `land_lahn_3` are all affected by the
-        |hland_states.IC.trim| method of sequence |hland_states.IC|):
+        |hland_states.Ic.trim| method of sequence |hland_states.IC|):
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", "device")
         >>> item.collect_variables(pub.selections)
@@ -577,9 +591,9 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2 ic(1.0, 1.5, ..., 1.0, 1.5)
         land_lahn_3 ic(1.0, 1.5, ..., 1.5, 1.5)
 
-        For the most detailed "subunit" level, the |SetItem| object handles one value
-        for each of the 49 hydrological response units of the complete `Lahn` river
-        basin:
+        For the most detailed "subunit" level and 1-dimensional variables as
+        |hland_states.IC|, the |SetItem| object handles one value for each of the 49
+        hydrological response units of the complete `Lahn` river basin:
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", "subunit")
         >>> item.collect_variables(pub.selections)
@@ -591,6 +605,24 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_1 ic(0.12, 0.13, ... 0.23, 0.24)
         land_lahn_2 ic(0.25, 0.26, ..., 0.33, 0.34)
         land_lahn_3 ic(0.35, 0.36, ..., 0.47, 0.48)
+
+        We increased the number of snow classes per zone to two for element `land_dill`.
+        Hence, its snow-related |hland_states.SP| object handles 22 instead of 11
+        values, and we need to assign 61 instead of 49 values to the |SetItem|
+        object.  Each item value relates to a specific matrix entry of a specific
+        target variable:
+
+        >>> item = SetItem("sp", "hland_v1", "states.sp", "subunit")
+        >>> item.collect_variables(pub.selections)
+        >>> item.value = [value/100 for value in range(61)]
+        >>> item.update_variables()
+        >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+        ...     print(element, element.model.sequences.states.sp)
+        land_dill sp([[0.0, ...0.11],
+            [0.12, ...0.23]])
+        land_lahn_1 sp(0.24, ...0.36)
+        land_lahn_2 sp(0.37, ...0.46)
+        land_lahn_3 sp(0.47, ...0.6)
         """
         values = self.value
         if self.level == "global":
@@ -607,7 +639,10 @@ value `wrong` cannot be converted to type `float`.
             idx0 = 0
             for variable in self.device2target.values():
                 idx1 = idx0 + len(variable)
-                self.update_variable(variable, values[idx0:idx1])
+                subvalues = values[idx0:idx1]
+                if variable.NDIM > 1:
+                    subvalues = subvalues.reshape(variable.shape)
+                self.update_variable(variable, subvalues)
                 idx0 = idx1
 
 
@@ -630,6 +665,137 @@ class SetItem(ChangeItem):
         self.device2target = {}
         self.selection2targets = {}
 
+    def extract_values(self) -> None:
+        """Extract the target variables' values.
+
+        Method |SetItem.extract_values| implements the inverse functionality of method
+        |ChangeItem.update_variables|.  It queries the values of the target variables,
+        aggregates them when necessary, and assigns them to the current |SetItem|
+        object.  Please read the documentation on method |ChangeItem.update_variables|
+        first, explaining the "aggregation level" concept underlying both methods.
+
+        For the following examples, we prepare the `LahnH` example project:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, _ = prepare_full_example_2()
+
+        We define three |SetItem| objects, which handle states of different
+        dimensionality.  `lz` addresses the 0-dimensional sequence |hland_states.LZ|,
+        `sm` the 1-dimensional sequence |hland_states.SM|, and `sp` the 2-dimensional
+        sequence |hland_states.SP|:
+
+        >>> from hydpy import print_values, round_, SetItem
+        >>> lz = SetItem("lz", "hland_v1", "states.lz", "to be defined")
+        >>> sm = SetItem("sm", "hland_v1", "states.sm", "to be defined")
+        >>> sp = SetItem("sp", "hland_v1", "states.sp", "to be defined")
+
+        The following test function updates the aggregation level and calls
+        |SetItem.extract_values| for all three items:
+
+        >>> def test(level):
+        ...     for item in (lz, sm, sp):
+        ...         item.level = level
+        ...         item.collect_variables(pub.selections)
+        ...         item.extract_values()
+
+        We mainly focus on the sequences of the application model of element
+        `land_dill` when comparing results:
+
+        >>> dill = hp.elements.land_dill.model
+
+        For rigorous testing, we increase the number of snow classes of this model
+        instance and thus the length of the first axis of its |hland_states.SP| object:
+
+        >>> dill.parameters.control.sclass(2)
+        >>> dill.sequences.states.sp = [
+        ...     [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
+        ...     [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5]]
+
+        For all aggregation levels except `subunit`, |SetItem.extract_values| relies on
+        the (spatial) aggregation of data, which is not possible beyond the `device`
+        level.  Therefore, until the implementation of a more general spatial data
+        concept into *HydPy*, |SetItem.extract_values| raises the following error when
+        being applied on items working on the `global` or `selection` level:
+
+        >>> test("global")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: HydPy does not support averaging values across different \
+elements so far.  So, it is not possible to aggregate to the global level.
+
+        >>> test("selection")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: HydPy does not support averaging values across different \
+elements so far.  So, it is not possible to aggregate to the selection level.
+
+        For the `device` level and non-scalar variables, |SetItem.extract_values| uses
+        the |Variable.average_values| method of class |Variable| for calculating the
+        individual exchange item values:
+
+        >>> test("device")
+        >>> print_values(lz.value)
+        8.70695, 8.18711, 10.14007, 7.52648
+        >>> dill.sequences.states.lz
+        lz(8.70695)
+        >>> print_values(sm.value)
+        211.47288, 115.77717, 147.057048, 114.733823
+        >>> round_(dill.sequences.states.sm.average_values())
+        211.47288
+        >>> print_values(sp.value)
+        6.353987, 0.0, 0.0, 0.0
+        >>> round_(dill.sequences.states.sp.average_values())
+        6.353987
+
+        For the `subunit` level, no aggregation is necessary:
+
+        >>> test("subunit")
+        >>> print_values(lz.value)
+        8.70695, 8.18711, 10.14007, 7.52648
+        >>> dill.sequences.states.lz
+        lz(8.70695)
+        >>> print_values(sm.value)  # doctest: +ELLIPSIS
+        185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+        222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427,
+        99.27505, ... 164.63255, 101.31248,
+        97.225, 111.3861, 107.64977, 120.59559, 117.26499, 129.01711,
+        126.0465, 136.66663, 134.01408, 143.59799, 141.24428, 147.75786,
+        153.54053
+        >>> dill.sequences.states.sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+        >>> hp.elements.land_lahn_3.model.sequences.states.sm
+        sm(101.31248, 97.225, 111.3861, 107.64977, 120.59559, 117.26499,
+           129.01711, 126.0465, 136.66663, 134.01408, 143.59799, 141.24428,
+           147.75786, 153.54053)
+        >>> print_values(sp.value)
+        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 1.5,
+        2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        """
+        if self.level == "device":
+            itemvalues = numpy.empty(self.shape, dtype=float)
+            for idx, variable in enumerate(self.device2target.values()):
+                itemvalues[idx] = variable.average_values()
+        elif self.level == "subunit":
+            itemvalues = numpy.empty(self.shape, dtype=float)
+            idx0 = 0
+            for variable in self.device2target.values():
+                idx1 = idx0 + len(variable)
+                targetvalues = variable.values
+                if variable.NDIM > 1:
+                    targetvalues = targetvalues.flatten()
+                itemvalues[idx0:idx1] = targetvalues
+                idx0 = idx1
+        else:
+            raise NotImplementedError(
+                f"HydPy does not support averaging values across different elements so "
+                f"far.  So, it is not possible to aggregate to the {self.level} level."
+            )
+        self.value = itemvalues
+
     def __repr__(self) -> str:
         return (
             f'{type(self).__name__}("{self.name}", '
@@ -641,11 +807,11 @@ class SetItem(ChangeItem):
 class MathItem(ChangeItem):
     # pylint: disable=abstract-method
     # due to pylint issue https://github.com/PyCQA/pylint/issues/179
-    """This base class performs some mathematical operations on the given values
-    before assigning them to the handled target variables.
+    """This base class performs some mathematical operations on the given values before
+    assigning them to the handled target variables.
 
-    Subclasses of |MathItem| like |AddItem| handle not only target variables but
-    also base variables:
+    Subclasses of |MathItem| like |AddItem| handle not only target variables but also
+    base variables:
 
     >>> from hydpy.core.itemtools import MathItem
     >>> item = MathItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", "global")
@@ -731,10 +897,11 @@ class MathItem(ChangeItem):
 class AddItem(MathItem):
     """|MathItem| subclass performing additions.
 
-    The following examples relate closely to the ones explained in the documentation on
-    method |ChangeItem.update_variables| of class |ChangeItem|.  We similarly  repeat
-    them all to show that our |AddItem| always uses the sum of its own value(s) and the
-    value(s) of the related base variable to update the value(s) of the target variable.
+    The following examples relate closely to the ones explained in the documentation of
+    the method |ChangeItem.update_variables| of class |ChangeItem|.  Therefore, we
+    similarly repeat them all to show that our |AddItem| always uses the sum of its own
+    value(s) and the value(s) of the related base variable to update the value(s) of
+    the target variable.
 
     We prepare the `LahnH` example project and remove the "complete" selection from
     the |Selections| object available in module |pub|:
@@ -743,9 +910,9 @@ class AddItem(MathItem):
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> del pub.selections["complete"]
 
-    We use the rainfall correction parameter (|hland_control.RFCF|) of application
-    model |hland_v1| as the base variable.  To allow strict testing, we define a
-    different correction factor for each of the 49 hydrological response units:
+    We use the rainfall correction parameter (|hland_control.RfCF|) of the application
+    model |hland_v1| as the base variable.  Defining a different correction factor for
+    each of the 49 hydrological response units allows strict testing:
 
     >>> value = 0.8
     >>> for element in hp.elements.catchment:
@@ -759,7 +926,7 @@ class AddItem(MathItem):
     land_lahn_2 rfcf(1.05, ... 1.14)
     land_lahn_3 rfcf(1.15, ... 1.28)
 
-    We choose the snowfall correction parameter (|hland_control.SFCF|) as the target
+    We choose the snowfall correction parameter (|hland_control.SfCF|) as the target
     variable.  The following test calculations show the expected results for all
     available aggregation levels:
 
@@ -834,7 +1001,7 @@ class AddItem(MathItem):
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
-and the value(s) `[ 1.04283 ... 1.04283]` of variable `rfcf` of element `land_dill`, \
+and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element `land_dill`, \
 the following error occurred: operands could not be broadcast together with shapes \
 (12,) (2,)...
         """
@@ -884,7 +1051,7 @@ class GetItem(ExchangeItem):
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `ndim` of GetItem \
 `temp` is not ready.
 
-        See the documentation on method |GetItem.collect_variables| for further
+        See the documentation of the method |GetItem.collect_variables| for further
         information.
         """
         if self._ndim is None:
@@ -898,11 +1065,11 @@ class GetItem(ExchangeItem):
         selections: selectiontools.Selections,
     ) -> None:
         """Apply method |ExchangeItem.collect_variables| of the base class
-        |ExchangeItem| and determine the `ndim` attribute of the current |GetItem|
-        object afterwards.
+        |ExchangeItem| and determine the |GetItem.ndim| attribute of the current
+        |GetItem| object afterwards.
 
-        The value of `ndim` depends on whether the target variable's values or time
-        series are of interest:
+        The value of |GetItem.ndim| depends on whether the target variable's values or
+        time series are of interest:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -931,15 +1098,15 @@ class GetItem(ExchangeItem):
         idx1: Optional[int] = None,
         idx2: Optional[int] = None,
     ) -> Iterator[Tuple[Name, str]]:
-        """Sequentially return name-value-pairs describing the current state of the
+        """Sequentially return name-value pairs describing the current state of the
         target variables.
 
-        The names are automatically generated and contain both the name of the
-        |Device| of the respective |Variable| object and the target description:
+        The names are automatically generated and contain both the name of the |Device|
+        of the respective |Variable| object and the target description:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy.core.itemtools import SetItem
+        >>> from hydpy import SetItem
         >>> item = GetItem("lz", "hland_v1", "states.lz")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.lz = 100.0

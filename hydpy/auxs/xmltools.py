@@ -88,6 +88,7 @@ Spatially averaged time series values are stored in files ending with the suffix
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import collections
 import copy
 import itertools
@@ -126,7 +127,9 @@ else:
     xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
 
 _SetOrAddItem = TypeVar("_SetOrAddItem", itemtools.SetItem, itemtools.AddItem)
-_GetOrChangeItem = TypeVar("_GetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem)
+_GetOrChangeItem = TypeVar(
+    "_GetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem, itemtools.SetItem
+)
 
 namespace = (
     "{https://github.com/hydpy-dev/hydpy/releases/download/"
@@ -748,7 +751,6 @@ devices has this name.
 
     @property
     def selections(self) -> selectiontools.Selections:
-        # noinspection PyUnresolvedReferences
         """The |Selections| object defined on the main level of the actual XML file.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -814,7 +816,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     @property
     def fullselection(self) -> selectiontools.Selection:
         """A |Selection| object that contains all |Element| and |Node| objects defined
-        by |XMLInterface.selections| and |XMLInterface.devices|.
+        by |XMLInterface.selections|.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1527,7 +1529,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def conditionitems(self) -> List[itemtools.ChangeItem]:
+    def conditionitems(self) -> List[itemtools.SetItem]:
         """Return all items for changing condition sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1548,7 +1550,7 @@ class XMLExchange(XMLBase):
         """
         return self._get_items_of_certain_item_types(
             itemgroups=("states", "logs"),
-            itemtype=itemtools.ChangeItem,
+            itemtype=itemtools.SetItem,
         )
 
     @property
@@ -2049,7 +2051,7 @@ class XSDWriter:
     @classmethod
     def get_modelinsertion(
         cls,
-        model: "modeltools.Model",
+        model: modeltools.Model,
         indent: int,
     ) -> str:
         """Return the insertion string required for the given application model.
@@ -2192,7 +2194,7 @@ class XSDWriter:
                         <choice>
                             <element name="control.responses"/>
         ...
-                            <element name="logs.logout"/>
+                            <element name="fluxes.qout"/>
                         </choice>
                     </extension>
                 </complexContent>
@@ -2213,7 +2215,7 @@ class XSDWriter:
                     f"{blanks}            <choice>",
                 ]
             )
-            for subvars in cls._get_subvars(model):
+            for subvars in cls._get_subvars(model, conditions=False):
                 for var in subvars:
                     subs.append(
                         f"{blanks}                "
@@ -2246,8 +2248,7 @@ class XSDWriter:
         """Return a string defining the XML element for the given exchange item group.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_itemsinsertion(
-        ...     "setitems", 1))    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_itemsinsertion("setitems", 1))  # doctest: +ELLIPSIS
             <element name="setitems">
                 <complexType>
                     <sequence>
@@ -2432,8 +2433,8 @@ class XSDWriter:
         modelname: str,
         indent: int,
     ) -> str:
-        """Return a string defining the required types for the given
-        combination of an exchange item group and an application model.
+        """Return a string defining the required types for the given combination of an
+        exchange item group and an application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupsiteminsertion(
@@ -2456,7 +2457,8 @@ class XSDWriter:
         """
         subs = []
         model = importtools.prepare_model(modelname)
-        for subvars in cls._get_subvars(model):
+        conditions = itemgroup in ("getitems", "setitems")
+        for subvars in cls._get_subvars(model, conditions=conditions):
             subs.append(
                 cls.get_subgroupiteminsertion(itemgroup, model, subvars, indent)
             )
@@ -2465,10 +2467,14 @@ class XSDWriter:
     @classmethod
     def _get_subvars(
         cls,
-        model: "modeltools.Model",
-    ) -> Iterator["variabletools.SubVariables[Any, Any, Any]"]:
+        model: modeltools.Model,
+        conditions: bool,
+    ) -> Iterator[variabletools.SubVariables[Any, Any, Any]]:
         yield model.parameters.control
-        for name in ("inputs", "factors", "fluxes", "states", "logs"):
+        names = ["inputs", "factors", "fluxes"]
+        if conditions:
+            names.extend(("states", "logs"))
+        for name in names:
             subseqs = getattr(model.sequences, name, None)
             if subseqs:
                 yield subseqs
@@ -2477,8 +2483,8 @@ class XSDWriter:
     def get_subgroupiteminsertion(
         cls,
         itemgroup: str,
-        model: "modeltools.Model",
-        subgroup: "variabletools.SubVariables[Any, Any, Any]",
+        model: modeltools.Model,
+        subgroup: variabletools.SubVariables[Any, Any, Any],
         indent: int,
     ) -> str:
         """Return a string defining the required types for the given combination of an

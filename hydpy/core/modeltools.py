@@ -47,7 +47,7 @@ class Method:
 
     __call__: Callable
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.__call__.CYTHONIZE = True
 
 
@@ -810,7 +810,7 @@ but sequence `pc` is 1-dimensional.
     def __str__(self) -> str:
         return self.name
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
 
         modulename = cls.__module__
         if modulename.count(".") > 2:
@@ -2226,7 +2226,7 @@ class Submodel:
     PYTHONCLASS: ClassVar[Type]
     _cysubmodel: Type
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
 
     def __init__(self, model: Model) -> None:

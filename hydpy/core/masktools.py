@@ -36,7 +36,7 @@ class BaseMask(numpy.ndarray):
     def __new__(cls, array=None, **kwargs):
         return cls.array2mask(array, **kwargs)
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
 
     @classmethod

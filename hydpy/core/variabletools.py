@@ -1027,7 +1027,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.__valueready = False
         self.__shapeready = False
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()

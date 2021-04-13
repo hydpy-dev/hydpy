@@ -3163,7 +3163,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
 
     strict_valuehandling: ClassVar[bool] = False
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         rownames = cls.ROWNAMES
         colnames = cls.COLNAMES

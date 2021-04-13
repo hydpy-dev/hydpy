@@ -275,10 +275,22 @@ class RiverBasinNumbers(tuple):
 
     def _get_next_number(self, number: Union[int, str]) -> Optional[RiverBasinNumber]:
         number = RiverBasinNumber(number)
+        true_neighbours = []
         for pdn1 in number.possible_next_initial_digits:
+            base = number.rstrip("9")[:-1]
             neighbours = self.select(pdn1)
-            if neighbours:
-                return min(neighbours)
+            for neighbour in neighbours:
+                if len(neighbour) == len(number):
+                    if int(neighbour) % 2 != 0 and neighbour > number:
+                        true_neighbours.append(neighbour)
+                elif len(neighbour) > len(number):
+                    end = neighbour[len(base):]
+                    if end[1:] == len(end[1:]) * '1':
+                        true_neighbours.append(neighbour)
+                else:
+                    true_neighbours.append(neighbour)
+            if true_neighbours:
+                return min(true_neighbours)
         return None
 
     @property

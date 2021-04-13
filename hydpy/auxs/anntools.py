@@ -434,6 +434,91 @@ class ANN(BaseANN):
     hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_layers` \
 of object `ann` is not usable so far.  At least, you have to prepare \
 attribute `nmb_inputs` first.
+
+    You can compare |anntools.ANN| objects for equality.  The following exhaustive
+    tests ensure that one |anntools.ANN| is only considered equal with another
+    |anntools.ANN| object with the same network shape and parameter values:
+
+    >>> ann == ann
+    True
+
+    >>> ann == 1
+    False
+
+    >>> ann2 = ANN(None)
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=1,
+    ...      weights_input=[[10.0, 5.0],
+    ...                     [10.0, 5.0]],
+    ...      weights_hidden=[[[10.0],
+    ...                       [-10.0]]],
+    ...      weights_output=[[1.0]],
+    ...      intercepts_hidden=[[-7.5, -7.5],
+    ...                         [-7.5, nan]],
+    ...      intercepts_output=[0.0])
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_input[0, 0] = nan
+    >>> ann == ann2
+    False
+    >>> ann2.weights_input[0, 0] = 10.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_hidden[0, 1, 0] = 5.0
+    >>> ann == ann2
+    False
+    >>> ann2.weights_hidden[0, 1, 0] = -10.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_output[0, 0] = 2.0
+    >>> ann == ann2
+    False
+    >>> ann2.weights_output[0, 0] = 1.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.intercepts_hidden[1, 0] = nan
+    >>> ann == ann2
+    False
+    >>> ann2.intercepts_hidden[1, 0] = -7.5
+    >>> ann == ann2
+    True
+
+    >>> ann2.intercepts_output[0] = 0.1
+    >>> ann == ann2
+    False
+    >>> ann2.intercepts_output[0] = 0.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.activation[0, 0] = 0
+    >>> ann == ann2
+    False
+    >>> ann2.activation[0, 0] = 1
+    >>> ann == ann2
+    True
+
+    >>> ann2(nmb_inputs=1,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=1)
+    >>> ann == ann2
+    False
+
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(1, 1),
+    ...      nmb_outputs=1)
+    >>> ann == ann2
+    False
+
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=2)
+    >>> ann == ann2
+    False
     """
 
     NDIM = 0
@@ -1345,19 +1430,26 @@ parameter `ann` of element `?` has not been defined so far.
         return id(self)
 
     def __eq__(self, other: object) -> bool:
+        def _equal_array(
+            x: Union[Vector[float], Matrix[int], Matrix[float]],
+            y: Union[Vector[float], Matrix[int], Matrix[float]],
+        ) -> bool:
+            idxs = ~(numpy.isnan(x) * numpy.isnan(y))
+            return bool(numpy.all(x[idxs] == y[idxs]))
+
         if id(self) == id(other):
             return True
         if isinstance(other, ANN):
-            all_ = numpy.all
             return (
-                (self.shape_inputs == other.shape_inputs)
-                and (self.shape_neurons == other.shape_neurons)
-                and (self.shape_outputs == other.shape_outputs)
-                and all_(self.weights_input[:] == other.weights_input[:])
-                and all_(self.weights_hidden == other.weights_hidden)
-                and all_(self.weights_output == other.weights_output)
-                and all_(self.intercepts_hidden == other.intercepts_hidden)
-                and all_(self.intercepts_output == other.intercepts_output)
+                self.shape_inputs == other.shape_inputs
+                and self.shape_neurons == other.shape_neurons
+                and self.shape_outputs == other.shape_outputs
+                and _equal_array(self.weights_input[:], other.weights_input[:])
+                and _equal_array(self.weights_hidden, other.weights_hidden)
+                and _equal_array(self.weights_output, other.weights_output)
+                and _equal_array(self.intercepts_hidden, other.intercepts_hidden)
+                and _equal_array(self.intercepts_output, other.intercepts_output)
+                and _equal_array(self.activation, other.activation)
             )
         return NotImplemented
 

@@ -1825,7 +1825,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         flu.perc = 0.0
         flu.q0 = 0.0
-        for dummy in range(con.recstep):
+        for _ in range(con.recstep):
             sta.uz += der.dt * flu.inuz
             d_perc = min(der.dt * con.percmax * flu.contriarea, sta.uz)
             sta.uz -= d_perc
@@ -2199,6 +2199,110 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
             log.quh[jdx - 1] = der.uh[jdx] * flu.inuh + log.quh[jdx]
 
 
+class Calc_OutUH_SC_V1(modeltools.Method):
+    """Calculate the linear storage cascade output (state-space approach).
+
+    simple explicit Euler method, unstable and inaccurate (or: requires a
+    high |RecStep| value. But fits to the calculation of |Q0| and |Perc|.
+    Okay or better implicit or semi-analytical?
+
+    Examples:
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep('1d')
+        >>> parameterstep('1d')
+        >>> nmbstorages(0)
+        >>> fluxes.inuh = 2.0
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(2.0)
+
+        >>> nmbstorages(5)
+        >>> derived.ksc(inf)
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(2.0)
+
+        >>> derived.ksc(2.0)
+        >>> control.recstep(1)
+        >>> derived.dt.update()
+        >>> states.sc = 0.0
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(2.0)
+        >>> states.sc
+        sc(0.0, 0.0, 0.0, 0.0, 0.0)
+
+        >>> control.recstep(10)
+        >>> derived.dt.update()
+        >>> states.sc = 0.0
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(0.084262)
+        >>> states.sc
+        sc(0.714101, 0.542302, 0.353323, 0.202141, 0.103872)
+
+        >>> from hydpy import round_
+        >>> round_(fluxes.outuh + sum(states.sc))
+        2.0
+
+        >>> control.recstep(100)
+        >>> derived.dt.update()
+        >>> states.sc = 0.0
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(0.026159)
+        >>> states.sc
+        sc(0.850033, 0.590099, 0.327565, 0.149042, 0.057103)
+        >>> round_(fluxes.outuh + sum(states.sc))
+        2.0
+
+        >>> nmbstorages(1)
+        >>> derived.ksc(2.0/5)
+        >>> states.sc = 0.0
+        >>> model.calc_outuh_sc_v1()
+        >>> fluxes.outuh
+        outuh(0.355517)
+        >>> states.sc
+        sc(1.644483)
+        >>> round_(fluxes.outuh + sum(states.sc))
+        2.0
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbStorages,
+        hland_control.RecStep,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.DT,
+        hland_derived.KSC,
+    )
+    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
+    UPDATEDSEQUENCES = (hland_states.SC,)
+    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        if (con.nmbstorages == 0) or modelutils.isinf(der.ksc):
+            flu.outuh = flu.inuh
+        else:
+            flu.outuh = 0.0
+            for _ in range(con.recstep):
+                sta.sc[0] += der.dt * flu.inuh
+                for j in range(con.nmbstorages - 1):
+                    d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
+                    sta.sc[j] -= d_q
+                    sta.sc[j + 1] += d_q
+                j = con.nmbstorages - 1
+                d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
+                sta.sc[j] -= d_q
+                flu.outuh += d_q
+
+
 class Calc_QT_V1(modeltools.Method):
     """Calculate the total discharge after possible abstractions.
 
@@ -2294,6 +2398,7 @@ class Model(modeltools.AdHocModel):
         Calc_Q1_LZ_V1,
         Calc_InUH_V1,
         Calc_OutUH_QUH_V1,
+        Calc_OutUH_SC_V1,
         Calc_QT_V1,
     )
     ADD_METHODS = ()

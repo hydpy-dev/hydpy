@@ -32,6 +32,7 @@ So far the following application models are compiled:
 .. toctree::
 
    hland_v1 (HBV96 version of HydPy-H-Land) <hland_v1>
+   hland_v2 (under development) <hland_v2>
    hstream_v1 (HBV96 version of HydPy-H-Stream) <hstream_v1>
    hbranch_v1 (HBV96 version of HydPy-H-Branch) <hbranch_v1>
 

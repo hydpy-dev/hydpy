@@ -314,6 +314,43 @@ class UH(parametertools.Parameter):
             self(uh / numpy.sum(uh))
 
 
+class KSC(parametertools.Parameter):
+    """Coefficient of the individual storages of the linear storage cascade
+    [1/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        hland_control.MaxBaz,
+        hland_control.NmbStorages,
+    )
+
+    def update(self):
+        """Update |KSC| based on
+        :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep('12h')
+        >>> parameterstep('1d')
+        >>> maxbaz(8.0)
+        >>> nmbstorages(2.0)
+        >>> derived.ksc.update()
+        >>> derived.ksc
+        ksc(0.5)
+
+        >>> maxbaz(0.0)
+        >>> nmbstorages(2.0)
+        >>> derived.ksc.update()
+        >>> derived.ksc
+        ksc(inf)
+        """
+        control = self.subpars.pars.control
+        if control.maxbaz.value <= 0.0:
+            self.value = numpy.inf
+        else:
+            self.value = 2.0 * control.nmbstorages.value / control.maxbaz.value
+
+
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 

@@ -58,7 +58,7 @@ class NmbZones(parametertools.Parameter):
                     par.shape = self.value
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (seq.NDIM > 0) and (seq.name != "quh"):
+                if (seq.NDIM > 0) and (seq.name not in ("quh", "sc")):
                     seq.shape = self.value
 
 
@@ -409,6 +409,26 @@ class MaxBaz(parametertools.Parameter):
     """Base length of the triangle unit hydrograph [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+
+class NmbStorages(parametertools.Parameter):
+    """Number of storages of the linear storage cascade [-].
+
+    Defining a value for parameter |NmbStorages| automatically sets the
+    shape of state sequence |SC|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep()
+    >>> nmbstorages(5)
+    >>> states.sc.shape
+    (5,)
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    def __call__(self, *args, **kwargs):
+        super().__call__(*args, **kwargs)
+        self.subpars.pars.model.sequences.states.sc.shape = self
 
 
 class Abstr(parametertools.Parameter):

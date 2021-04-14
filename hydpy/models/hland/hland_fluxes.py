@@ -155,13 +155,13 @@ class Q1(sequencetools.FluxSequence):
 
 
 class InUH(sequencetools.FluxSequence):
-    """Input of the triangle unit hydrograph  [m]."""
+    """Input of the triangle unit hydrograph  [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class OutUH(sequencetools.FluxSequence):
-    """Output of the triangle unit hydrograph  [m]."""
+    """Output of the triangle unit hydrograph  [mm]."""
 
     NDIM, NUMERIC = 0, False
 

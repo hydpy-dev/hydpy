@@ -36,7 +36,7 @@ class Ic(hland_sequences.State1DSequence):
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
             upper = control.icmax
-        hland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class SP(hland_sequences.State1DSequence):
@@ -69,7 +69,7 @@ class SP(hland_sequences.State1DSequence):
             wc_values[numpy.isnan(wc_values)] = 0.0
             with numpy.errstate(divide="ignore", invalid="ignore"):
                 lower = numpy.clip(wc_values / whc.values, 0.0, numpy.inf)
-        hland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class WC(hland_sequences.State1DSequence):
@@ -96,7 +96,7 @@ class WC(hland_sequences.State1DSequence):
         sp = self.subseqs.sp
         if upper is None:
             upper = whc * sp
-        hland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class SM(hland_sequences.State1DSequence):
@@ -120,7 +120,7 @@ class SM(hland_sequences.State1DSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.fc
-        hland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class UZ(sequencetools.StateSequence):
@@ -159,7 +159,7 @@ class LZ(sequencetools.StateSequence):
             control = self.subseqs.seqs.model.parameters.control
             if not any(control.zonetype.values == ILAKE):
                 lower = 0.0
-        sequencetools.StateSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class SC(sequencetools.StateSequence):

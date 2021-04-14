@@ -14,3 +14,4 @@ exclude_lines =
     if TYPE_CHECKING
     if typing.TYPE_CHECKING
     \.\.\.
+    assert False

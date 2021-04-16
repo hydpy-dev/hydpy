@@ -3,6 +3,9 @@
 # pylint: enable=missing-docstring
 
 # import...
+# ...from standard library
+import warnings
+
 # ...from site-packages
 import numpy
 
@@ -14,6 +17,8 @@ from hydpy.core import parametertools
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER
+
+_ZERO_DIVISION_MESSAGE = "divide by zero encountered in true_divide"
 
 
 class RelSoilArea(parametertools.Parameter):
@@ -78,7 +83,8 @@ class RelLandArea(parametertools.Parameter):
 
 
 class RelZoneArea(
-    parametertools.RelSubweightsMixin, hland_parameters.ParameterComplete
+    parametertools.RelSubweightsMixin,
+    hland_parameters.ParameterComplete,
 ):
     """Relative zone area of all zone types [-].
 
@@ -102,7 +108,8 @@ class RelZoneArea(
 
 
 class RelSoilZoneArea(
-    parametertools.RelSubweightsMixin, hland_parameters.ParameterSoil
+    parametertools.RelSubweightsMixin,
+    hland_parameters.ParameterSoil,
 ):
     """Relative zone area of all |FIELD| and |FOREST| zones [-].
 
@@ -126,7 +133,8 @@ class RelSoilZoneArea(
 
 
 class RelLandZoneArea(
-    parametertools.RelSubweightsMixin, hland_parameters.ParameterLand
+    parametertools.RelSubweightsMixin,
+    hland_parameters.ParameterLand,
 ):
     """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].
 
@@ -198,9 +206,9 @@ class DT(parametertools.Parameter):
         >>> derived.dt
         dt(0.2)
 
-        Note that the value assigned to recstep is related to the given
-        parameter step size of one day.  The actually applied recstep of
-        the last example is:
+        Note that the value assigned to parameter |RecStep| depends on the current
+        parameter step size (one day).  Due to the current simulation step size (one
+        hour), the applied |RecStep| value is five:
 
         >>> recstep.value
         5
@@ -208,8 +216,167 @@ class DT(parametertools.Parameter):
         self(1 / self.subpars.pars.control.recstep)
 
 
+class W0(parametertools.Parameter):
+    """Weight for calculating surface runoff [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.K0,)
+
+    def update(self):
+        """Update |W0| based on :math:`W0 = e^{-1/K0}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> k0(0.0, 0.05, 0.5, 5.0, inf)
+        >>> from hydpy import round_
+        >>> round_(k0.values)
+        0.0, 1.2, 12.0, 120.0, inf
+        >>> derived.w0.update()
+        >>> derived.w0
+        w0(0.0, 0.434598, 0.920044, 0.991701, 1.0)
+        """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
+            self.values = numpy.exp(-1.0 / self.subpars.pars.control.k0.values)
+
+
+class W1(parametertools.Parameter):
+    """Weight for calculating interflow [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.K1,)
+
+    def update(self):
+        """Update |W1| based on :math:`W1 = e^{-1/K1}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> nmbzones(4)
+        >>> k1(0.05, 0.5, 5.0, inf)
+        >>> from hydpy import round_
+        >>> round_(k1.values)
+        1.442695, 12.0, 120.0, inf
+        >>> derived.w1.update()
+        >>> derived.w1
+        w1(0.5, 0.920044, 0.991701, 1.0)
+        """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
+            self.values = numpy.exp(-1.0 / self.subpars.pars.control.k1.values)
+
+
+class W2(parametertools.Parameter):
+    """Weight for calculating the quick response base flow [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.K2,)
+
+    def update(self):
+        """Update |W2| based on :math:`W2 = e^{-1/K2}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> nmbzones(4)
+        >>> k2(0.05, 0.5, 5.0, inf)
+        >>> from hydpy import round_
+        >>> round_(k2.values)
+        1.442695, 12.0, 120.0, inf
+        >>> derived.w2.update()
+        >>> derived.w2
+        w2(0.5, 0.920044, 0.991701, 1.0)
+        """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
+            self.values = numpy.exp(-1.0 / self.subpars.pars.control.k2.values)
+
+
+class W3(parametertools.Parameter):
+    """Weight for calculating the response of the first-order groundwater reservoir
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.K3,)
+
+    def update(self):
+        """Update |W3| based on :math:`W3 = e^{-1/K3}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> k3(5.0)
+        >>> from hydpy import round_
+        >>> round_(k3.value)
+        120.0
+        >>> derived.w3.update()
+        >>> derived.w3
+        w3(0.991701)
+        """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
+            self.values = numpy.exp(-1.0 / self.subpars.pars.control.k3.value)
+
+
+class K4(parametertools.Parameter):
+    """Storage time for very delayed baseflow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    def update(self):
+        """Update |hland_derived.K4| based on :math:`K4 = K3/9`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> k3(1.0)
+        >>> from hydpy import round_
+        >>> round_(k3.value)
+        24.0
+        >>> derived.k4.update()
+        >>> derived.k4
+        k4(9.0)
+        >>> round_(derived.k4.value)
+        216.0
+        """
+        self.values = 9.0 * self.subpars.pars.control.k3.value
+
+
+class W4(parametertools.Parameter):
+    """Weight for calculating the response of the second-order groundwater reservoir
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    DERIVEDPARAMETERS = (K4,)
+
+    def update(self):
+        """Update |W4| based on :math:`W4 = e^{-1/K4}`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> derived.k4(5.0)
+        >>> from hydpy import round_
+        >>> round_(derived.k4.value)
+        120.0
+        >>> derived.w4.update()
+        >>> derived.w4
+        w4(0.991701)
+        """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
+            self.values = numpy.exp(-1.0 / self.subpars.k4.value)
+
+
 class UH(parametertools.Parameter):
-    """Unit hydrograph ordinates based on a isosceles triangle [-]."""
+    """Unit hydrograph ordinates based on an isosceles triangle [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling: bool = False
@@ -223,9 +390,9 @@ class UH(parametertools.Parameter):
 
             This method also updates the shape of log sequence |QUH|.
 
-        |MaxBaz| determines the end point of the triangle.  A value of
-        |MaxBaz| being not larger than the simulation step size is
-        identical with applying no unit hydrograph at all:
+        |MaxBaz| determines the endpoint of the triangle.  A value of |MaxBaz| being
+        not larger than the simulation step size is identical with applying no unit
+        hydrograph at all:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -237,9 +404,9 @@ class UH(parametertools.Parameter):
         >>> derived.uh
         uh(1.0)
 
-        Note that, due to difference of the parameter and the simulation
-        step size in the given example, the largest assignment resulting
-        in a `inactive` unit hydrograph is 1/2:
+        Note that, due to the given difference of the parameter and the simulation step
+        size, the largest assigned value resulting in an "inactive" unit hydrograph is
+        1/2:
 
         >>> maxbaz(0.5)
         >>> derived.uh.update()
@@ -248,9 +415,8 @@ class UH(parametertools.Parameter):
         >>> derived.uh
         uh(1.0)
 
-        When |MaxBaz| is in accordance with two simulation steps, both
-        unit hydrograph ordinats must be 1/2 due to symmetry of the
-        triangle:
+        When the value of |MaxBaz| is twice the simulation step size, both unit
+        hydrograph ordinates must be 1/2 due to the symmetry of the triangle:
 
         >>> maxbaz(1.0)
         >>> derived.uh.update()
@@ -261,8 +427,8 @@ class UH(parametertools.Parameter):
         >>> derived.uh.values
         array([ 0.5,  0.5])
 
-        A |MaxBaz| value in accordance with three simulation steps results
-        in the ordinate values 2/9, 5/9, and 2/9:
+        A |MaxBaz| value three times the simulation step size results in the ordinate
+        values 2/9, 5/9, and 2/9:
 
         >>> maxbaz(1.5)
         >>> derived.uh.update()
@@ -271,9 +437,8 @@ class UH(parametertools.Parameter):
         >>> derived.uh
         uh(0.222222, 0.555556, 0.222222)
 
-        And a final example, where the end of the triangle lies within
-        a simulation step, resulting in the fractions 8/49, 23/49, 16/49,
-        and 2/49:
+        When the end of the triangle lies in the middle of the fourth interval, the
+        resulting fractions are:
 
         >>> maxbaz(1.75)
         >>> derived.uh.update()
@@ -330,8 +495,7 @@ class UH(parametertools.Parameter):
 
 
 class KSC(parametertools.Parameter):
-    """Coefficient of the individual storages of the linear storage cascade
-    [1/T]."""
+    """Coefficient of the individual storages of the linear storage cascade [1/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
 
@@ -341,8 +505,7 @@ class KSC(parametertools.Parameter):
     )
 
     def update(self):
-        """Update |KSC| based on
-        :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.
+        """Update |KSC| based on :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.
 
         >>> from hydpy.models.hland import *
         >>> simulationstep('12h')
@@ -374,8 +537,7 @@ class QFactor(parametertools.Parameter):
     CONTROLPARAMETERS = (hland_control.Area,)
 
     def update(self):
-        """Update |QFactor| based on |Area| and the current simulation
-        step size.
+        """Update |QFactor| based on |Area| and the current simulation step size.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")

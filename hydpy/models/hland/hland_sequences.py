@@ -12,10 +12,9 @@ class Flux1DSequence(sequencetools.FluxSequence):
     """Base class for 1-dimensional flux subclasses that support
     aggregation with respect to |ZoneArea|.
 
-    All |Flux1DSequence| subclasses should stick to the mask |Complete|.
+    All |Flux1DSequence| subclasses should select mask |Complete|.
 
-
-    The following example shows how subclass |PC| works:
+    The following example shows how the subclass |PC| works:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -32,20 +31,18 @@ class Flux1DSequence(sequencetools.FluxSequence):
 
     @property
     def refweights(self):
-        """Alias for the associated instance of |ZoneArea| for calculating
-        areal values."""
+        """Alias for the associated instance of |ZoneArea| for calculating areal
+        values."""
         return self.subseqs.seqs.model.parameters.control.zonearea
 
 
 class State1DSequence(sequencetools.StateSequence):
-    """Base class for 1-dimensional state subclasses that support
-    aggregation with respect to |ZoneArea|.
+    """Base class for 1-dimensional state subclasses that support aggregation with
+    respect to |ZoneArea|.
 
-    All |State1DSequence| subclasses must implement fitting mask objects
-    individually.
+    All |State1DSequence| subclasses must implement fitting mask objects individually.
 
-    The following example shows how subclass |SM| works, which
-    implements mask |Soil|:
+    The following example shows how subclass |SM| works, which implements mask |Soil|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")

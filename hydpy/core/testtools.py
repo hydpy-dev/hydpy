@@ -140,6 +140,7 @@ class Tester:
          'hland_constants.py',
          'hland_control.py',
          'hland_derived.py',
+         'hland_fixed.py',
          'hland_fluxes.py',
          'hland_inputs.py',
          'hland_logs.py',
@@ -170,6 +171,7 @@ class Tester:
         ['hland_constants',
          'hland_control',
          'hland_derived',
+         'hland_fixed',
          'hland_fluxes',
          'hland_inputs',
          'hland_logs',
@@ -197,7 +199,7 @@ class Tester:
         However, you are free to call it any time when in doubt of the functionality
         of a particular base or application model.  Doing so might change some of the
         states of your current configuration, but only temporarily (besides
-        "projectname" we pick the |Timegrids| object of module |pub| as an example,
+        "projectname") we pick the |Timegrids| object of module |pub| as an example,
         which is changed multiple times during testing but finally reset to the
         original value):
 
@@ -213,6 +215,8 @@ class Tester:
             * hland_control:
                 no failures occurred
             * hland_derived:
+                no failures occurred
+            * hland_fixed:
                 no failures occurred
             * hland_fluxes:
                 no failures occurred
@@ -245,10 +249,9 @@ class Tester:
                   "2001-01-01 00:00:00",
                   "1d")
 
-        To show the reporting of possible errors, we change the
-        string representation of parameter |hland_control.ZoneType|
-        temporarily.  Again, the |Timegrids| object is reset to its
-        initial state after testing:
+        To show the reporting of possible errors, we change the string representation
+        of parameter |hland_control.ZoneType| temporarily.  Again, the |Timegrids|
+        object is reset to its initial state after testing:
 
         >>> from unittest import mock
         >>> with mock.patch(

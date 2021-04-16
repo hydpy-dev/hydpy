@@ -12,18 +12,15 @@ from hydpy.models.hland import hland_masks
 
 
 class ParameterComplete(parametertools.ZipParameter):
-    """Base class for 1-dimensional parameters relevant for all types
-    of zones.
+    """Base class for 1-dimensional parameters relevant for all types of zones.
 
-    |ParameterComplete| applies the features of class |ZipParameter|
-    on the land use types `field`, `forest`, `glacier`, and `ilake`
-    and consideres them all as relevant (e.g. for calculating
-    weighted averages).
+    |ParameterComplete| applies the features of class |ZipParameter| on the land use
+    types |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| and considers them all as relevant
+    (e.g., for calculating weighted averages).
 
-    The following examples are based on parameter |PCorr|, which is
-    directly derived from |ParameterComplete|.  After preparing
-    the parameter |NmbZones|, parameter |PCorr| allows to set its
-    values using the relevant land use types as keywords:
+    We use parameter |PCorr|, in the following examples, which is a subclass of
+    |ParameterComplete|.  After preparing the parameter |ZoneType|, |PCorr| allows
+    setting its values using the relevant land-use types as keywords:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -35,7 +32,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr.values
     array([ 2.,  1.,  4.,  3.,  2.])
 
-    Parameter |ZoneArea| is used for calculating the areal means (see
+    Parameter |ZoneArea| serves for calculating areal means (see the documentation on
     |property| |ParameterComplete.refweights|):
 
     >>> zonearea(0.0, 1.0, 2.0, 3.0, 4.0)
@@ -43,8 +40,8 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> round_(pcorr.average_values())
     2.6
 
-    Alternatively, pass other masks defined in module |hland_masks|,
-    to take only certain types of zones into account:
+    Alternatively, pass other masks defined in module |hland_masks| to take only
+    certain types of zones into account:
 
     >>> round_(pcorr.average_values(model.masks.field))
     2.0
@@ -53,9 +50,8 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> round_(pcorr.average_values(model.masks.field, "forest"))
     1.8
 
-    All other masks (e.g. |hland_masks.Soil| used by |ParameterSoil|
-    subclasses as |hland_control.IcMax|) are subsets of mask
-    |hland_masks.Complete|:
+    All other masks (for example, |hland_masks.Soil|, being used by |ParameterSoil|
+    subclasses as |hland_control.IcMax|) are subsets of mask |hland_masks.Complete|:
 
     >>> icmax.mask in pcorr.mask
     True
@@ -68,17 +64,16 @@ class ParameterComplete(parametertools.ZipParameter):
 
     @property
     def refweights(self):
-        """Reference to the associated instance of |RelZoneArea| for
-        calculating areal mean values."""
+        """Reference to the associated instance of |RelZoneArea| for calculating areal
+        mean values."""
         return self.subpars.pars.control.zonearea
 
 
 class ParameterSoil(ParameterComplete):
-    """Base class for 1-dimensional parameters relevant for |FIELD|
-    and |FOREST| zones.
+    """Base class for 1-dimensional parameters relevant for |FIELD| and |FOREST| zones.
 
-    |ParameterSoil| works similar to |ParameterComplete|. Some examples
-    based on parameter |IcMax|:
+    |ParameterSoil| works similar to |ParameterComplete|. Some examples based on
+    parameter |IcMax|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -100,11 +95,11 @@ class ParameterSoil(ParameterComplete):
 
 
 class ParameterLand(ParameterComplete):
-    """Base class for 1-dimensional parameters relevant for |FIELD|,
-    |FOREST|, and |GLACIER| zones.
+    """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
+    |GLACIER| zones.
 
-    |ParameterLand| works similar to |ParameterComplete|.  Some examples
-    based on parameter |WHC|:
+    |ParameterLand| works similar to |ParameterComplete|.  Some examples based on
+    parameter |WHC|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -128,8 +123,8 @@ class ParameterLand(ParameterComplete):
 class ParameterLake(ParameterComplete):
     """Base class for 1-dimensional parameters relevant for |ILAKE| zones.
 
-    |ParameterLake| works similar to |ParameterComplete|.  Some examples
-    based on parameter |TTIce|:
+    |ParameterLake| works similar to |ParameterComplete|.  Some examples based on
+    parameter |TTIce|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -153,8 +148,8 @@ class ParameterLake(ParameterComplete):
 class ParameterGlacier(ParameterComplete):
     """Base class for 1-dimensional parameters relevant for |GLACIER| zones.
 
-    |ParameterLake| works similar to |ParameterComplete|.  Some examples
-    based on parameter |GMelt|:
+    |ParameterLake| works similar to |ParameterComplete|.  Some examples based on
+    parameter |GMelt|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -177,11 +172,11 @@ class ParameterGlacier(ParameterComplete):
 
 
 class ParameterNoGlacier(ParameterComplete):
-    """Base class for 1-dimensional parameters relevant for |FIELD|,
-    |FOREST|, and |ILAKE| zones.
+    """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
+    |ILAKE| zones.
 
-    |ParameterSoil| works similar to |ParameterComplete|.  Some examples
-    based on parameter |ECorr|:
+    |ParameterNoGlacier| works similar to |ParameterComplete|.  Some examples based on
+    parameter |ECorr|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")

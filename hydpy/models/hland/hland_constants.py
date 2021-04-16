@@ -1,29 +1,19 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-H-Land model (|hland|) allows for the subdivision of subbasins
-into zones (hydrological response units).  Some processes, e.g. interception,
-are calculated separately for each zone.  This is why some parameters (e.g.
-the interception capacity |IcMax|) and some sequences (e.g. the actual
-interception storage |Ic|) are 1-dimensional.  Each entry represents the
-value of a different zone.
+"""Base model |hland| allows dividing subbasins into zones (hydrological response
+units).  It applies the equations related to some processes (for example, interception)
+separately for each zone.  Consequently, parameters as the interception capacity
+|IcMax| and sequences as the actual interception storage |Ic| are 1-dimensional.
+Each entry represents the value of a different zone.
 
-In contrasts to the original HBV96 model, the HydPy-H-Land model allows for
-arbitrary definitions of zones.  Nevertheless, the original distinction
-in accordance with four different zone types is still supported.  The
-parameter |ZoneType| defines e.g. which entry of |IcMax| is related to
-which zone type via integer values.  Note that for zones of type |FIELD|
-and |FOREST| the same equations are applied. (Usually, larger |IcMax|
-values and smaller |CFMax| are assigned to |FOREST| zones due to their
-higher leaf area index and the associated decrease in solar radiation.)
-On the contrary, zones of type |GLACIER| and |ILAKE| are partly connected
-to different process equations.
-
-For comprehensibility, this module introduces the relevant integer constants.
-Through performing a wildcard import
+In contrast to the original HBV96 model, |hland| allows defining individual parameter
+values for each zone, which provides flexibility but might also be a little overwhelming
+in many use-cases.  Hence, we also support the original HBV96-distinction into the zone
+types "field", "forest", "glacier", and "ilake" (internal lake).  Parameter "ZoneType"
+specifies the type of each response unit via one of the integer constants |FIELD|,
+|FOREST|, |GLACIER|, and |ILAKE|. Through performing a wildcard import, these constants
+become available in your local namespace:
 
 >>> from hydpy.models.hland import *
-
-these are available in your local namespace:
-
 >>> FIELD, FOREST, GLACIER, ILAKE
 (1, 2, 3, 4)
 """

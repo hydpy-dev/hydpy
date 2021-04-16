@@ -23,7 +23,7 @@ class Ic(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.IcMax,)
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`IC \\leq ICMAX`.
+        r"""Trim |Ic| following :math:`0 \leq IC \leq ICMAX`.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -48,7 +48,7 @@ class SP(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.WHC,)
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
+        r"""Trim |SP| following :math:`WC \leq WHC \cdot SP`.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -81,7 +81,7 @@ class WC(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.WHC,)
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
+        """Trim |WC| following :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -100,7 +100,10 @@ class WC(hland_sequences.State1DSequence):
 
 
 class SM(hland_sequences.State1DSequence):
-    """Soil moisture [mm]."""
+    """Soil moisture [mm].
+
+    Note that PREVAH uses the abbreviation `SSM` instead of the HBV96 abbreviation `SM`.
+    """
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = hland_masks.Soil()
@@ -108,7 +111,7 @@ class SM(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.FC,)
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`SM \\leq FC`.
+        r"""Trim |SM| following :math:`0 \leq SM \leq FC`.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -129,6 +132,12 @@ class UZ(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
+class SUZ(sequencetools.StateSequence):
+    """Upper storage reservoir [mm]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+
 class LZ(sequencetools.StateSequence):
     """Storage in the lower zone layer [mm]."""
 
@@ -137,8 +146,8 @@ class LZ(sequencetools.StateSequence):
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
     def trim(self, lower=None, upper=None):
-        """Trim negative value whenever there is no internal lake within
-        the respective subbasin.
+        """Trim negative values if the actual subbasin does not contain an internal
+        lake.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -160,6 +169,41 @@ class LZ(sequencetools.StateSequence):
             if not any(control.zonetype.values == ILAKE):
                 lower = 0.0
         super().trim(lower, upper)
+
+
+class SG1(sequencetools.StateSequence):
+    """Fast response groundwater reservoir [mm]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+    CONTROLPARAMETERS = (hland_control.SG1Max,)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |SG1| following :math:`0  \leq SG1 \leq SG1Max`.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> sg1max(100.0)
+        >>> states.sg1(-50.0, 0.0, 50.0, 100.0, 150.0)
+        >>> states.sg1
+        sg1(0.0, 0.0, 50.0, 100.0, 100.0)
+        """
+        if upper is None:
+            upper = self.subseqs.seqs.model.parameters.control.sg1max
+        super().trim(lower, upper)
+
+
+class SG2(sequencetools.StateSequence):
+    """First-order slow response groundwater reservoir [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
+class SG3(sequencetools.StateSequence):
+    """Second-order slow response groundwater reservoir [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class SC(sequencetools.StateSequence):

@@ -4,18 +4,16 @@
 HydPy-H (HBV)
 =============
 
-HydPy implements a very close emulation of the central routines of
-the famous HBV96 model, introduced by Lindstroem et al
-:cite:`ref-LINDSTROM1997272`.
-As discussed in :cite:`ref-Tyralla2013`, the results of
-version 1 application models of HydPy-H and the IHMS-HBV96
-implementation of the Swedish Meteorological and Hydrological Institute
-agree very well for the majority of the tested river basins [#f1]_.
-This documentation focusses on technical aspects of HydPy-H and tries
-to be as precise as possible regarding the implementation of the
-process equations.  The background of the scientifical development of
-the HBV96 model is more thoroughly covered in Lindstroem et al
-:cite:`ref-LINDSTROM1997272`.
+*HydPy* implements a very close emulation of the central routines of the famous
+HBV96 model, introduced by Lindstroem et al :cite:`ref-Lindstrom1997HBV96`.
+As discussed in :cite:`ref-Tyralla2013`, the results of version 1 application
+models of HydPy-H and the IHMS-HBV96 implementation of the Swedish
+Meteorological and Hydrological Institute agree very well for the majority of
+the tested river basins [#f1]_. This documentation focusses on technical
+aspects of HydPy-H and tries to be as precise as possible regarding the
+implementation of the process equations.  The background of the scientifical
+development of the HBV96 model is more thoroughly covered in Lindstroem et al.
+:cite:`ref-Lindstrom1997HBV96`.
 
 HydPy-H is divided into three base models, which can be used to compile
 different application models:
@@ -31,13 +29,14 @@ So far the following application models are compiled:
 
 .. toctree::
 
-   hland_v1 (HBV96 version of HydPy-H-Land) <hland_v1>
+   hland_v1 (HBV96) <hland_v1>
    hland_v2 (under development) <hland_v2>
-   hstream_v1 (HBV96 version of HydPy-H-Stream) <hstream_v1>
-   hbranch_v1 (HBV96 version of HydPy-H-Branch) <hbranch_v1>
+   hland_v3 (HBV96/PREVAH) <hland_v3>
+   hstream_v1 (HBV96) <hstream_v1>
+   hbranch_v1 (HBV96) <hbranch_v1>
 
 All these application models are stand-alone models, which can be
-combined freely with all other models implemented in HydPy.
+combined freely with all other models implemented in *HydPy*.
 
 .. rubric:: Footnotes
 

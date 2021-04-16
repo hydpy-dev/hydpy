@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
-
+"""
+.. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
+"""
 # import...
+# from standard library
+import warnings
+
 # from site-packages
 import numpy
 
 # ...from HydPy
+from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from hland
-from hydpy.core import exceptiontools
-from hydpy.core import objecttools
 from hydpy.models.hland import hland_constants
+from hydpy.models.hland import hland_fixed
 from hydpy.models.hland import hland_parameters
 
 
@@ -25,22 +29,27 @@ class Area(parametertools.Parameter):
 class NmbZones(parametertools.Parameter):
     """Number of zones (hydrological response units) in a subbasin [-].
 
-    Note that |NmbZones| determines the length of most 1-dimensional
-    HydPy-H-Land parameters and sequences.  This required that the value of
-    the respective |NmbZones| instance is set before any of the values
-    of these 1-dimensional parameters or sequences are set.  Changing the
-    value of the |NmbZones| instance necessitates setting their values
-    again.
+    Note that |NmbZones| determines the length of most 1-dimensional parameters and
+    sequences.  Usually, you should first prepare |NmbZones| and define the values of
+    all 1-dimensional parameters and sequences afterwards:
 
-    Examples:
+    >>> from hydpy.models.hland import *
+    >>> parameterstep("1d")
+    >>> nmbzones(5)
+    >>> icmax.shape
+    (5,)
+    >>> states.ic.shape
+    (5,)
 
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> icmax.shape
-        (5,)
-        >>> states.ic.shape
-        (5,)
+    Changing the value of "N" later reshapes the affected parameters and sequences and
+    makes it necessary the reset their values:
+
+    >>> icmax(2.0)
+    >>> icmax
+    icmax(2.0)
+    >>> nmbzones(3)
+    >>> icmax
+    icmax(?)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
@@ -63,10 +72,10 @@ class NmbZones(parametertools.Parameter):
 
 
 class ZoneType(parametertools.NameParameter):
-    """Type of each zone.
+    """Type of each zone [-].
 
-    For increasing legibility, the HydPy-H-Land constants are used for
-    string representions of |ZoneType| objects:
+    Parameter |ZoneType| relies on the integer constants defined in module
+    |hland_constants| for representing zone types:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
@@ -123,7 +132,7 @@ class PCorr(hland_parameters.ParameterComplete):
 
 
 class PCAlt(hland_parameters.ParameterComplete):
-    """Elevation correction factor for precipitation [-1/100m]."""
+    """Elevation correction factor for precipitation [1/100m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
@@ -291,17 +300,17 @@ class K(parametertools.Parameter):
 
     In addition to the |Parameter| call method, it is possible to
     set the value of parameter |K| in accordance to the keyword arguments
-    `khq`, `hq` and (optionally) `alpha`.  If `alpha` is not given, the
-    value of the respective |Alpha| instance is taken.  This requires the
-    |Alpha| instance to be initialized beforehand.
+    `khq`, `hq` and (optionally) `alpha`:
 
-    Basic Equation:
+    Parameter |K| allows defining its value via the keyword arguments `khq`, `hq` and
+    (optionally) `alpha`:
+
         :math:`K = \\frac{HQ}{(HQ/KHQ)^{1+Alpha}}`
 
     Examples:
 
-        When directly setting the value of parameter k, one only needs to be
-        aware of its time dependence:
+        When directly setting the value of parameter |K|, one should be be aware of
+        its time dependence:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -312,8 +321,7 @@ class K(parametertools.Parameter):
         >>> k.value
         1.0
 
-        Alternatively, one can specify the following three keyword
-        arguments directly,...
+        Alternatively, one can specify the mentioned three keyword arguments:
 
         >>> k(hq=10.0, khq=2.0, alpha=1.0)
         >>> k
@@ -321,7 +329,8 @@ class K(parametertools.Parameter):
         >>> k.value
         0.2
 
-        ...or define the value of parameter alpha beforehand:
+        If a value for keyword argument `alpha` is missing, parameter |K| tries to
+        query it from parameter |Alpha|.
 
         >>> alpha(2.0)
         >>> k(hq=10.0, khq=2.0)
@@ -330,30 +339,29 @@ class K(parametertools.Parameter):
         >>> k.value
         0.04
 
-        The following exceptions occur for wrong combinations of
-        keyword arguments or when |Alpha| has not been prepared
-        beforehand (still has the value |numpy.nan|):
+        The following exceptions occur for wrong combinations of keyword arguments or
+        when |Alpha| is not ready (still has the value |numpy.nan|):
 
         >>> k(wrong=1)
         Traceback (most recent call last):
         ...
-        ValueError: For parameter `k` of element `?` a value can be set \
-directly or indirectly by using the keyword arguments `khq` and `hq`.
+        ValueError: For parameter `k` of element `?` a value can be set directly or \
+indirectly by using the keyword arguments `khq` and `hq`.
 
         >>> k(hq=10.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `k` of \
-element `?`, at least the keywords arguments `khq` and `hq` must be given.
+        ValueError: For the alternative calculation of parameter `k` of element `?`, \
+at least the keywords arguments `khq` and `hq` must be given.
 
         >>> import numpy
         >>> alpha(numpy.nan)
         >>> k(hq=10.0, khq=2.0)
         Traceback (most recent call last):
         ...
-        RuntimeError: For the alternative calculation of parameter `k` of \
-element `?`, either the keyword argument `alpha` must be given or the value \
-of parameter `alpha` must be defined beforehand.
+        RuntimeError: For the alternative calculation of parameter `k` of element `?`, \
+either the keyword argument `alpha` must be given or the value of parameter `alpha` \
+must be defined beforehand.
     """
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
@@ -393,10 +401,186 @@ of parameter `alpha` must be defined beforehand.
             self(hq / ((hq / khq) ** (alpha + 1.0)))
 
 
+class SGR(parametertools.Parameter):
+    """Threshold content of |SUZ| for the generation of surface runoff [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class K0(parametertools.Parameter):
+    """Storage time for surface runoff [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
+
+    # CONTROLPARAMETERS = (K1,)   defined below
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
+        :math:`K^* = -1/ln \left( 1 - e^{-1 / k1} \right)`.
+
+        The additional restriction :math:`K^*` serves to prevent the storage |SUZ|
+        from taking on negative values (see `issue 67`_).
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1h")
+        >>> nmbzones(5)
+        >>> k1(48.0, 48.0, 48.0, 48.0, nan)
+        >>> k0(24.0, 36.0, 48.0, 72.0, 72.0)
+        >>> k0
+        k0(25.730308, 36.0, 48.0, 48.0, 72.0)
+        """
+        if lower is None:
+            try:
+                lower = -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / self.subpars.k1.values))
+            except exceptiontools.AttributeNotReady:
+                lower = 0.0
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.k1, "value", None)
+        super().trim(lower, upper)
+
+
+class K1(parametertools.Parameter):
+    """Storage time for interflow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
+
+    # CONTROLPARAMETERS = (K0, K2,)   defined below
+    FIXEDPARAMETERS = (hland_fixed.K1L,)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |K1| following :math:`max (K0, K^*) \leq K1 \leq K2` with
+        :math:`K^* = max \left( -1/ln \left( 1 - e^{-1 / k0} \right), K1L \right)`.
+
+        The additional restriction :math:`K^*` serves to prevent the storage |SUZ|
+        from taking on negative values (see `issue 67`_).
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1h")
+        >>> nmbzones(9)
+        >>> k1(24.0, 24.0, 72.0, 120.0, 24.0, 24.0, 120.0, nan, nan)
+        >>> k1
+        k1(34.624681, 34.624681, 72.0, 120.0, 34.624681, 34.624681, 120.0, nan,
+           nan)
+        >>> k1.values = nan
+        >>> k0(48.0, 24.0, 24.0, 24.0, nan, 24.0, nan, 24.0, nan)
+        >>> k2(96.0, 96.0, 96.0, 96.0, nan, nan, 96.0, 96.0, nan)
+        >>> k1(24.0, 24.0, 72.0, 120.0, 24.0, 24.0, 120.0, nan, nan)
+        >>> k1
+        k1(48.0, 52.324614, 72.0, 96.0, 34.624681, 52.324614, 96.0, nan, nan)
+        """
+        if lower is None:
+            k1l = self.subpars.pars.fixed.k1l.value
+            try:
+                lower = self.subpars.k0.values
+            except exceptiontools.AttributeNotReady:
+                lower = k1l
+            else:
+                lower = numpy.clip(
+                    lower,
+                    -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / lower)),
+                    numpy.inf,
+                )
+                lower = numpy.clip(lower, k1l, numpy.inf)
+                lower[numpy.isnan(lower)] = k1l
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.k2, "values", None)
+        super().trim(lower, upper)
+
+
+class SG1Max(parametertools.Parameter):
+    """Maximum content of the fast response groundwater reservoir |SG1| [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
 class K4(parametertools.Parameter):
     """Recession coefficient of the lower zone layer [1/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+
+
+class K2(parametertools.Parameter):
+    """Storage time for quick response baseflow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
+
+    # CONTROLPARAMETERS = (K1, K3,)   defined below
+    FIXEDPARAMETERS = (hland_fixed.K1L,)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |K2| following :math:`max(K1, K1L) \leq K2 \leq K3`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1h")
+        >>> nmbzones(6)
+        >>> k2(12.0, 12.0, 12.0, nan, 96.0, 120.0)
+        >>> k2
+        k2(34.624681, 34.624681, 34.624681, nan, 96.0, 120.0)
+        >>> k2.values = nan
+        >>> k1(24.0, 72.0, nan, nan, nan, 72.0)
+        >>> k3(96.0)
+        >>> k2(12.0, 12.0, 12.0, nan, 96.0, 120.0)
+        >>> k2
+        k2(34.624681, 72.0, 34.624681, nan, 96.0, 96.0)
+        """
+        if lower is None:
+            k1l = self.subpars.pars.fixed.k1l.value
+            try:
+                lower = self.subpars.k1.values
+            except exceptiontools.AttributeNotReady:
+                lower = k1l
+            else:
+                lower[numpy.isnan(lower)] = k1l
+                lower = numpy.clip(lower, k1l, numpy.inf)
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.k3, "value", None)
+        super().trim(lower, upper)
+
+
+class K3(parametertools.Parameter):
+    """Storage time for delayed baseflow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (1.0, None)
+
+    CONTROLPARAMETERS = (K2,)
+    FIXEDPARAMETERS = (hland_fixed.K1L,)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |K3| in accordance with :math:`max(K2, K1L) \leq K3`.
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1h")
+        >>> nmbzones(3)
+        >>> k3(12.0)
+        >>> k3
+        k3(34.624681)
+        >>> k3.values = nan
+        >>> k2(36.0, 36.0, nan)
+        >>> k2.value[0] /= 3.0
+        >>> k3(12.0)
+        >>> k3
+        k3(36.0)
+        >>> k2.values[1] /= 3.0
+        >>> k3(12.0)
+        >>> k3
+        k3(34.624681)
+        """
+        if lower is None:
+            k1l = self.subpars.pars.fixed.k1l.value
+            try:
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("error")
+                    lower = numpy.nanmax(self.subpars.k2.values)
+            except (exceptiontools.AttributeNotReady, RuntimeWarning):
+                lower = k1l
+            else:
+                if not k1l < lower:
+                    lower = k1l
+        super().trim(lower, upper)
 
 
 class Gamma(parametertools.Parameter):
@@ -435,3 +619,14 @@ class Abstr(parametertools.Parameter):
     """Abstraction of water from computed outflow [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+K0.CONTROLPARAMETERS = (K1,)
+K1.CONTROLPARAMETERS = (
+    K0,
+    K2,
+)
+K2.CONTROLPARAMETERS = (
+    K1,
+    K3,
+)

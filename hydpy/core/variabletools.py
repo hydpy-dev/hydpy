@@ -423,12 +423,12 @@ def _trim_float_nd(self, lower, upper):
         upper = numpy.inf
     upper = numpy.full(shape, upper, dtype=float)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
-    idxs = numpy.where(numpy.isnan(values))
+    idxs = numpy.isnan(values)
     values[idxs] = lower[idxs]
     if numpy.any(values < lower) or numpy.any(values > upper):
         old = values.copy()
         trimmed = numpy.clip(values, lower, upper)
-        self.values = trimmed
+        values[:] = trimmed
         if numpy.any(
             (old + get_tolerance(old)) < (lower - get_tolerance(lower))
         ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):

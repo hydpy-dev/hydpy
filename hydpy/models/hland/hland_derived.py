@@ -95,6 +95,11 @@ class RelZoneArea(
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling: bool = False
 
+    CONTROLPARAMETERS = (
+        hland_control.ZoneArea,
+        hland_control.ZoneType,
+    )
+
 
 class RelSoilZoneArea(
     parametertools.RelSubweightsMixin, hland_parameters.ParameterSoil
@@ -114,6 +119,11 @@ class RelSoilZoneArea(
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling: bool = False
 
+    CONTROLPARAMETERS = (
+        hland_control.ZoneArea,
+        hland_control.ZoneType,
+    )
+
 
 class RelLandZoneArea(
     parametertools.RelSubweightsMixin, hland_parameters.ParameterLand
@@ -132,6 +142,11 @@ class RelLandZoneArea(
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling: bool = False
+
+    CONTROLPARAMETERS = (
+        hland_control.ZoneArea,
+        hland_control.ZoneType,
+    )
 
 
 class TTM(hland_parameters.ParameterLand):

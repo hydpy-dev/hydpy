@@ -16,6 +16,7 @@ import itertools
 import os
 import types
 from typing import *
+from typing_extensions import Final  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -194,12 +195,12 @@ a group of masks (at the moment).
 
     element: Optional["devicetools.Element"]
     cymodel: Optional[typingtools.CyModelProtocol]
-    _name: ClassVar[Optional[str]] = None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: "masktools.Masks"
     idx_sim = Idx_Sim()
 
+    _NAME: Final[str]
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -635,12 +636,7 @@ but sequence `pc` is 1-dimensional.
         >>> hland.name
         'hland'
         """
-        name = self._name
-        if name is None:
-            substrings = self.__module__.split(".")
-            name = substrings[1] if len(substrings) == 2 else substrings[2]
-            type(self)._name = name
-        return name
+        return self._NAME
 
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
@@ -817,6 +813,7 @@ but sequence `pc` is 1-dimensional.
             modulename = modulename.rpartition(".")[0]
         module = importlib.import_module(modulename)
         modelname = modulename.split(".")[-1]
+        cls._NAME = modelname
 
         allsequences = set()
         st = sequencetools
@@ -846,7 +843,7 @@ but sequence `pc` is 1-dimensional.
             if not hasattr(module, classname):
                 members = {
                     "CLASSES": variabletools.sort_variables(sequences),
-                    "__doc__": f"{classname[:-9]} sequences " f"of model {modelname}.",
+                    "__doc__": f"{classname[:-9]} sequences of model {modelname}.",
                     "__module__": modulename,
                 }
                 typesequence = type(classname, (typesequences,), members)

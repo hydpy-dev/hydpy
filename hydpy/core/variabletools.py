@@ -1010,7 +1010,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ("subvars", "fastaccess")
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
-    strict_valuehandling: ClassVar[bool] = True
+    strict_valuehandling: bool = True
 
     __hydpy__subclasscounter__ = 1
 

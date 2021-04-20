@@ -2387,7 +2387,7 @@ shape (2,) into shape (366,3)
 
     TYPE = float
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -2879,7 +2879,7 @@ index 1 is out of bounds for axis 0 with size 1
     NDIM = 1
     ENTRYNAMES: ClassVar[Tuple[str, ...]]
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -3161,7 +3161,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
     ROWNAMES: ClassVar[Tuple[str, ...]]
     COLNAMES: ClassVar[Tuple[str, ...]]
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -3385,7 +3385,7 @@ parameter value must be given, but is not.
     """
 
     NDIM = 1
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __call__(self, *args, **kwargs) -> None:
         try:

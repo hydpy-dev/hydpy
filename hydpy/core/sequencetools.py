@@ -1385,7 +1385,7 @@ variable `evpo` can only be retrieved after it has been defined.
     INIT: float = 0.0
     NUMERIC: bool
 
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
     @property
     def subseqs(self) -> SubSequencesType:

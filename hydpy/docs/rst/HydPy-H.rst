@@ -32,6 +32,7 @@ So far the following application models are compiled:
    hland_v1 (HBV96) <hland_v1>
    hland_v2 (under development) <hland_v2>
    hland_v3 (HBV96/PREVAH) <hland_v3>
+   hland_v4 (HBV96/COSERO) <hland_v4>
    hstream_v1 (HBV96) <hstream_v1>
    hbranch_v1 (HBV96) <hbranch_v1>
 

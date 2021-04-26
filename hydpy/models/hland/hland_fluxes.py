@@ -156,6 +156,42 @@ class Q0(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class QVs1(sequencetools.FluxSequence):
+    """Percolation from the surface flow reservoir [mm].
+
+    Note that COSERO uses the abbreviation `QVS1ZON` instead.
+    """
+
+    NDIM, NUMERIC = 1, False
+
+
+class QAb1(sequencetools.FluxSequence):
+    """Surface flow [mm].
+
+    Note that COSERO uses the abbreviation `QAB1ZON` instead.
+    """
+
+    NDIM, NUMERIC = 1, False
+
+
+class QVs2(sequencetools.FluxSequence):
+    """Percolation from the interflow reservoir [mm].
+
+    Note that COSERO uses the abbreviation `QVS2ZON` instead.
+    """
+
+    NDIM, NUMERIC = 1, False
+
+
+class QAb2(sequencetools.FluxSequence):
+    """Interflow [mm].
+
+    Note that COSERO uses the abbreviation `QAB2ZON` instead.
+    """
+
+    NDIM, NUMERIC = 1, False
+
+
 class EL(sequencetools.FluxSequence):
     """Actual lake evaporation [mm]."""
 

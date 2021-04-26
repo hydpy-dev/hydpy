@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
-
+"""
+.. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
+"""
 # imports...
 # ...from standard library
 from typing import *
@@ -9,6 +9,7 @@ from typing import *
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
@@ -1877,6 +1878,386 @@ class Calc_DP_SUZ_V1(modeltools.Method):
                 sta.suz[k] -= flu.dp[k]
 
 
+class Calc_QAb_QVs_BW_V1(modeltools.Method):
+    """Calculate the flow and the percolation from a two-outlet reservoir and update it.
+
+    Method |Calc_QAb_QVs_BW_V1| is an "additional method" used by the "run methods"
+    |Calc_QAb1_QVs1_BW1_V1| and |Calc_QAb2_QVs2_BW2_V1| for calculating the flow and
+    the percolation from the surface water reservoir and the interflow reservoir,
+    respectively.  See the documentation on method |Calc_QAb1_QVs1_BW1_V1| for further
+    information.
+    """
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model,
+        k: int,
+        h: Vector[float],
+        k1: Vector[float],
+        k2: Vector[float],
+        s0: Vector[float],
+        qz: Vector[float],
+        qa1: Vector[float],
+        qa2: Vector[float],
+        t0: float,
+    ) -> None:
+        d_h = h[k]
+        d_k1 = k1[k]
+        d_k2 = k2[k]
+        d_qz = qz[k]
+        d_s0 = s0[k]
+        if (d_k1 == 0.0) and (d_s0 > d_h):
+            qa1[k] += d_s0 - d_h
+            s0[k] = d_s0 = d_h
+        if (d_k1 == 0.0) and (d_s0 == d_h) and (d_qz > d_h / d_k2):
+            d_qa2 = d_h / d_k2
+            d_dt = 1.0 - t0
+            qa2[k] += d_dt * d_qa2
+            qa1[k] += d_dt * (d_qz - d_qa2)
+        elif d_k2 == 0.0:
+            qa2[k] += d_s0 + d_qz
+            s0[k] = 0.0
+        elif (d_s0 < d_h) or (d_s0 == d_h and d_qz <= d_h / d_k2):
+            if (d_s0 == d_h) or (d_qz <= d_h / d_k2):
+                d_t1 = 1.0
+            elif modelutils.isinf(d_k2):
+                d_t1 = (d_h - d_s0) / d_qz
+            else:
+                d_t1 = t0 + d_k2 * modelutils.log(
+                    (d_qz - d_s0 / d_k2) / (d_qz - d_h / d_k2)
+                )
+            if 0.0 < d_t1 < 1.0:
+                qa2[k] += (d_t1 - t0) * d_qz - (d_h - d_s0)
+                s0[k] = d_h
+                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, d_t1)
+            elif modelutils.isinf(d_k2):
+                s0[k] += (1.0 - t0) * d_qz
+            else:
+                d_dt = 1.0 - t0
+                d_k2qz = d_k2 * d_qz
+                s0[k] = d_k2qz - (d_k2qz - d_s0) * modelutils.exp(-d_dt / d_k2)
+                qa2[k] += d_s0 - s0[k] + d_dt * d_qz
+        else:
+            d_v1 = 1.0 / d_k1 + 1.0 / d_k2
+            d_v2 = d_qz + d_h / d_k1
+            d_nom = d_v2 - d_h * d_v1
+            d_denom = d_v2 - d_s0 * d_v1
+            if (d_s0 == d_h) or (d_denom == 0.0) or (not 0 < d_nom / d_denom <= 1):
+                d_t1 = 1.0
+            else:
+                d_t1 = t0 - 1.0 / d_v1 * modelutils.log(d_nom / d_denom)
+                d_t1 = min(d_t1, 1.0)
+            d_dt = d_t1 - t0
+            d_v3 = (d_v2 * d_dt) / d_v1
+            d_v4 = d_denom / d_v1 ** 2 * (1.0 - modelutils.exp(-d_dt * d_v1))
+            d_qa1 = (d_v3 - d_v4 - d_h * d_dt) / d_k1
+            d_qa2 = (d_v3 - d_v4) / d_k2
+            qa1[k] += d_qa1
+            qa2[k] += d_qa2
+            if d_t1 == 1.0:
+                s0[k] += d_dt * d_qz - d_qa1 - d_qa2
+            else:
+                s0[k] = d_h
+            if d_t1 < 1.0:
+                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, d_t1)
+
+
+class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
+    r"""Calculate the flow and the percolation from the surface flow reservoir and
+    update it.
+
+    Basic equations:
+      :math:`\frac{dBW1}{dt} = R - QAb1 - QVs1`
+
+      :math:`QAb1 = \frac{max(BW1 - H1, 0)}{TAb1}`
+
+      :math:`QVs1 = \frac{BW1}{TVs1}`
+
+    We follow the new COSERO implementation described in :cite:`ref-Kling2005` and
+    :cite:`ref-Kling2006` and solve the given ordinary differential equation under the
+    assumption of constant inflow (|R|).  Despite the simple appearance of the short
+    equation, its solution is quite complicated due to the threshold |H1| used
+    (:cite:`ref-Kling2005` and :cite:`ref-Kling2006` explain the math in some detail).
+    Additionally, we allow setting either |TAb1| or |TVs1| to |numpy.inf| or zero,
+    which allows for disabling certain functionalities of the surface flow reservoir.
+    Consequently, our source code includes many branches, and much testing is required
+    to get some confidence in its robustness.  We verified each of the following tests
+    with numerical integration results.  You can find this independent test code in
+    `issue 68`_.  Please tell us if you encounter a plausible combination of parameter
+    values not adequately covered by our tests or source code.
+
+    Examples:
+
+        We prepare eight zones with identical values for the control parameters |H1|,
+        |TAb1|, and |TVs1|.  We only vary the inflow (|R|) and the initial state
+        (|BW1|).  For the first and the second zone, |BW1| changes but remains
+        permanently below |H1|.  Hence, all water leaving the storage leaves via
+        percolation.  For the third and the fourth zone, |BW1| also changes but is
+        permanently above |H1|.  Hence, there is a continuous generation of percolation
+        and surface runoff.  For the fifth and sixth zone, |BW1| starts below and ends
+        above |H1| and the other way round.  For the seventh and the eighth zone,
+        inflow and outflow are balanced:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> nmbzones(8)
+        >>> zonetype(FIELD)
+        >>> h1(4.0)
+        >>> tab1(1.0)
+        >>> tvs1(2.0)
+        >>> fluxes.r = 0.0, 2.0, 0.0, 2.0, 5.0, 0.1, 0.5, 2.5
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 1.561119, 1.956437, 0.246114, 0.181758, 0.0, 1.0)
+        >>> fluxes.qvs1
+        qvs1(0.442398, 0.672805, 1.780559, 1.978219, 1.007586, 1.086805, 0.5,
+             1.5)
+        >>> states.bw1
+        bw1(1.557602, 3.327195, 5.658322, 7.065344, 5.7463, 3.831437, 2.0, 6.0)
+
+        In the following examples, we keep the general configuration but set either
+        |TAb1| or |TVs1| to |numpy.inf| or zero (you can replace |numpy.inf| with a
+        high value and zero with a low value to confirm the correct "direction" of our
+        handling of these special cases):
+
+        >>> infinity = inf
+        >>> zero = 0.0
+
+        Setting |TAb1| to |numpy.inf| disables the surface runoff:
+
+        >>> tab1(infinity)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.qvs1
+        qvs1(0.442398, 0.672805, 1.990793, 2.221199, 1.018414, 1.117516, 0.5,
+             1.615203)
+        >>> states.bw1
+        bw1(1.557602, 3.327195, 7.009207, 8.778801, 5.981586, 3.982484, 2.0,
+            6.884797)
+
+        Setting |TAb1| to zero enforces all water exceeding |H1| becomes surface
+        runoff immediately:
+
+        >>> tab1(zero)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 5.0, 6.0, 2.115471, 1.0, 0.0, 3.5)
+        >>> fluxes.qvs1
+        qvs1(0.442398, 0.672805, 0.884797, 1.0, 0.884529, 0.896317, 0.5, 1.0)
+        >>> states.bw1
+        bw1(1.557602, 3.327195, 3.115203, 4.0, 4.0, 3.203683, 2.0, 4.0)
+
+        Setting |TVs1| to |numpy.inf| disables the percolation:
+
+        >>> tab1(1.0)
+        >>> tvs1(infinity)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 1.967347, 2.393469, 0.408182, 0.414775, 0.0, 1.319592)
+        >>> fluxes.qvs1
+        qvs1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> states.bw1
+        bw1(2.0, 4.0, 7.032653, 8.606531, 6.591818, 4.685225, 2.5, 7.180408)
+
+        Setting |TAb1| to zero ensures that all availalbe water becomes percolation
+        immediately:
+
+        >>> tvs1(zero)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.qvs1
+        qvs1(2.0, 4.0, 9.0, 11.0, 7.0, 5.1, 2.5, 8.5)
+        >>> states.bw1
+        bw1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        The following examples repeat the ones above for the edge case where the
+        threshold value |H1| is zero:
+
+        >>> h1(0.0)
+        >>> tvs1(2.0)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.703511, 1.09883, 3.165801, 3.561119, 1.691807, 1.778544,
+             0.802341, 2.604682)
+        >>> fluxes.qvs1
+        qvs1(0.351756, 0.549415, 1.5829, 1.780559, 0.845904, 0.889272, 0.40117,
+             1.302341)
+        >>> states.bw1
+        bw1(0.944733, 2.351756, 4.251299, 5.658322, 4.462289, 2.432184,
+            1.296489, 4.592977)
+
+        >>> tab1(infinity)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.qvs1
+        qvs1(0.442398, 0.672805, 1.990793, 2.221199, 1.018414, 1.117516, 0.5,
+             1.615203)
+        >>> states.bw1
+        bw1(1.557602, 3.327195, 7.009207, 8.778801, 5.981586, 3.982484, 2.0,
+            6.884797)
+
+        >>> tab1(zero)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(2.0, 4.0, 9.0, 11.0, 7.0, 5.1, 2.5, 8.5)
+        >>> fluxes.qvs1
+        qvs1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> states.bw1
+        bw1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        >>> tab1(1.0)
+        >>> tvs1(infinity)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.786939, 1.213061, 3.541224, 3.967347, 1.852245, 1.988653,
+             0.893469, 2.893469)
+        >>> fluxes.qvs1
+        qvs1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> states.bw1
+        bw1(1.213061, 2.786939, 5.458776, 7.032653, 5.147755, 3.111347,
+            1.606531, 5.606531)
+
+        >>> tvs1(zero)
+        >>> states.bw1 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.qvs1
+        qvs1(2.0, 4.0, 9.0, 11.0, 7.0, 5.1, 2.5, 8.5)
+        >>> states.bw1
+        bw1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.H1,
+        hland_control.TAb1,
+        hland_control.TVs1,
+    )
+    REQUIREDSEQUENCES = (hland_fluxes.R,)
+    UPDATEDSEQUENCES = (hland_states.BW1,)
+    RESULTSEQUENCES = (
+        hland_fluxes.QAb1,
+        hland_fluxes.QVs1,
+    )
+    SUBMETHODS = (Calc_QAb_QVs_BW_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            flu.qab1[k] = 0.0
+            flu.qvs1[k] = 0.0
+            if con.zonetype[k] != ILAKE:
+                model.calc_qab_qvs_bw_v1(
+                    k,
+                    con.h1,
+                    con.tab1,
+                    con.tvs1,
+                    sta.bw1,
+                    flu.r,
+                    flu.qab1,
+                    flu.qvs1,
+                    0.0,
+                )
+
+
+class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
+    r"""Calculate the flow and the percolation from the interflow reservoir and update
+    it.
+
+    Basic equations:
+      :math:`\frac{dBW2}{dt} = QVs1 - QAb2 - QVs2`
+
+      :math:`QAb2 = \frac{max(BW2 - H2, 0)}{TAb2}`
+
+      :math:`QVs2 = \frac{BW2}{TVs2}`
+
+    Method |Calc_QAb2_QVs2_BW2_V1| is functionally identical with method
+    |Calc_QAb1_QVs1_BW1_V1| and also relies on the "additional method"
+    |Calc_QAb_QVs_BW_V1|.  Please see the documentation on method
+    |Calc_QAb1_QVs1_BW1_V1|, which provides more information and exhaustive example
+    calculations.
+
+    Example:
+
+        We only repeat the first example of the documentation on method
+        |Calc_QAb1_QVs1_BW1_V1| to verify that method |Calc_QAb2_QVs2_BW2_V1| calls
+        method |Calc_QAb_QVs_BW_V1| correctly:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> nmbzones(8)
+        >>> zonetype(FIELD)
+        >>> h2(4.0)
+        >>> tab2(1.0)
+        >>> tvs2(2.0)
+        >>> fluxes.qvs1 = 0.0, 2.0, 0.0, 2.0, 5.0, 0.1, 0.5, 2.5
+        >>> states.bw2 = 2.0, 2.0, 9.0, 9.0, 2.0, 5.0, 2.0, 6.0
+        >>> model.calc_qab2_qvs2_bw2_v1()
+        >>> fluxes.qab2
+        qab2(0.0, 0.0, 1.561119, 1.956437, 0.246114, 0.181758, 0.0, 1.0)
+        >>> fluxes.qvs2
+        qvs2(0.442398, 0.672805, 1.780559, 1.978219, 1.007586, 1.086805, 0.5,
+             1.5)
+        >>> states.bw2
+        bw2(1.557602, 3.327195, 5.658322, 7.065344, 5.7463, 3.831437, 2.0, 6.0)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.H2,
+        hland_control.TAb2,
+        hland_control.TVs2,
+    )
+    REQUIREDSEQUENCES = (hland_fluxes.QVs1,)
+    UPDATEDSEQUENCES = (hland_states.BW2,)
+    RESULTSEQUENCES = (
+        hland_fluxes.QAb2,
+        hland_fluxes.QVs2,
+    )
+    SUBMETHODS = (Calc_QAb_QVs_BW_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            flu.qab2[k] = 0.0
+            flu.qvs2[k] = 0.0
+            if con.zonetype[k] != ILAKE:
+                model.calc_qab_qvs_bw_v1(
+                    k,
+                    con.h2,
+                    con.tab2,
+                    con.tvs2,
+                    sta.bw2,
+                    flu.qvs1,
+                    flu.qab2,
+                    flu.qvs2,
+                    0.0,
+                )
+
+
 class Calc_RS_RI_SUZ_V1(modeltools.Method):
     r"""Calculate the surface runoff and the interflow and remove them from the upper
     storage reservoir.
@@ -1982,7 +2363,7 @@ class Calc_LZ_V1(modeltools.Method):
         upper zone layer to the lower zone storage:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
+        >>> parameterstep()
         >>> nmbzones(2)
         >>> zonetype(FIELD, FIELD)
         >>> derived.rellandarea = 1.0
@@ -2034,6 +2415,56 @@ class Calc_LZ_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
                 sta.lz += der.relzonearea[k] * flu.pc[k]
+
+
+class Calc_LZ_V2(modeltools.Method):
+    r"""Add the percolation from the interflow reservoir and the lake precipitation to
+    the lower zone storage.
+
+    Basic equation:
+      :math:`\frac{dLZ}{dt} = QVs2 + Pc`
+
+    Example:
+
+        The first three zones of type |FIELD|, |FOREST|, and |GLACIER| contribute via
+        deep percolation to the lower zone reservoir.  For the fourth zone of type
+        |ILAKE|, precipitation contributes to the lower zone storage directly:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(4)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+        >>> derived.relzonearea = 0.4, 0.3, 0.2, 0.1
+        >>> fluxes.qvs2 = 1.0, 2.0, 3.0, nan
+        >>> fluxes.pc = nan, nan, nan, 4.0
+        >>> states.lz = 5.0
+        >>> model.calc_lz_v2()
+        >>> states.lz
+        lz(7.0)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    REQUIREDSEQUENCES = (
+        hland_fluxes.QVs2,
+        hland_fluxes.PC,
+    )
+    UPDATEDSEQUENCES = (hland_states.LZ,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == ILAKE:
+                sta.lz += der.relzonearea[k] * flu.pc[k]
+            else:
+                sta.lz += der.relzonearea[k] * flu.qvs2[k]
 
 
 class Calc_GR1_V1(modeltools.Method):
@@ -2657,7 +3088,7 @@ class Calc_InUH_V1(modeltools.Method):
         adds only the half value of |Q0| to |InUH|:
 
         >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
+        >>> parameterstep()
         >>> derived.rellandarea = 0.5
         >>> fluxes.q0 = 4.0
         >>> fluxes.q1 = 1.0
@@ -2678,6 +3109,53 @@ class Calc_InUH_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.inuh = der.rellandarea * flu.q0 + flu.q1
+
+
+class Calc_InUH_V2(modeltools.Method):
+    r"""Calculate linear storage cascade input.
+
+    Basic equation:
+        :math:`InUH = QAb1 + QAb2`
+
+    Example:
+
+        The unit hydrograph receives base flow (|Q1|) from the whole subbasin and direct
+        flow (|Q0|) only from field zones, forest zones, and glacier zones.  In the
+        following example, these occupy only one half of the subbasin, so |Calc_InUH_V1|
+        adds only the half value of |Q0| to |InUH|:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(4)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+        >>> derived.rellandzonearea = 0.5, 0.3, 0.2, nan
+        >>> fluxes.qab1 = 1.0, 2.0, 3.0, nan
+        >>> fluxes.qab2 = 4.0, 5.0, 6.0, nan
+        >>> model.calc_inuh_v2()
+        >>> fluxes.inuh
+        inuh(6.4)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (hland_derived.RelLandZoneArea,)
+    REQUIREDSEQUENCES = (
+        hland_fluxes.QAb1,
+        hland_fluxes.QAb2,
+    )
+    RESULTSEQUENCES = (hland_fluxes.InUH,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.inuh = 0.0
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                flu.inuh += der.rellandzonearea[k] * (flu.qab1[k] + flu.qab2[k])
 
 
 class Calc_OutUH_QUH_V1(modeltools.Method):
@@ -2970,6 +3448,64 @@ class Calc_RA_RT_V2(modeltools.Method):
         flu.rt = flu.ro - flu.ra
 
 
+class Calc_RA_RT_V3(modeltools.Method):
+    r"""Calculate the actual abstraction and the total discharge in mm.
+
+    Basic equation:
+        :math:`RA = Abstr / QFactor`
+
+        :math:`RT = RelLandArea \cdot OutUH + Q1 - RA`
+
+    Examples:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> abstr(1.0)
+        >>> derived.rellandarea(0.8)
+        >>> derived.qfactor(0.5)
+        >>> fluxes.outuh = 2.5
+        >>> fluxes.q1 = 1.0
+        >>> model.calc_ra_rt_v3()
+        >>> fluxes.ra
+        ra(2.0)
+        >>> fluxes.rt
+        rt(1.0)
+
+        A requested abstraction larger than the total available discharge does not
+        result in negative outcomes:
+
+        >>> abstr(2.0)
+        >>> model.calc_ra_rt_v3()
+        >>> fluxes.ra
+        ra(3.0)
+        >>> fluxes.rt
+        rt(0.0)
+    """
+
+    CONTROLPARAMETERS = (hland_control.Abstr,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelLandArea,
+        hland_derived.QFactor,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.OutUH,
+        hland_fluxes.Q1,
+    )
+    RESULTSEQUENCES = (
+        hland_fluxes.RA,
+        hland_fluxes.RT,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.rt = der.rellandarea * flu.outuh + flu.q1
+        flu.ra = min(con.abstr / der.qfactor, flu.rt)
+        flu.rt -= flu.ra
+
+
 class Calc_QT_V1(modeltools.Method):
     r"""Calculate the total discharge after possible abstractions.
 
@@ -3092,8 +3628,11 @@ class Model(modeltools.AdHocModel):
         Calc_ContriArea_V1,
         Calc_Q0_Perc_UZ_V1,
         Calc_DP_SUZ_V1,
+        Calc_QAb1_QVs1_BW1_V1,
+        Calc_QAb2_QVs2_BW2_V1,
         Calc_RS_RI_SUZ_V1,
         Calc_LZ_V1,
+        Calc_LZ_V2,
         Calc_GR1_V1,
         Calc_RG1_SG1_V1,
         Calc_GR2_GR3_V1,
@@ -3103,14 +3642,16 @@ class Model(modeltools.AdHocModel):
         Calc_EL_LZ_V1,
         Calc_Q1_LZ_V1,
         Calc_InUH_V1,
+        Calc_InUH_V2,
         Calc_OutUH_QUH_V1,
         Calc_OutUH_SC_V1,
         Calc_RO_V1,
         Calc_RA_RT_V2,
+        Calc_RA_RT_V3,
         Calc_QT_V1,
         Calc_QT_V2,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (Calc_QAb_QVs_BW_V1,)
     OUTLET_METHODS = (Pass_Q_v1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

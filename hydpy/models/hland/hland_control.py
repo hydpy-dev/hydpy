@@ -440,6 +440,25 @@ class K0(parametertools.Parameter):
         super().trim(lower, upper)
 
 
+class H1(parametertools.Parameter):
+    """Outlet level of the reservoir for simulating surface flow [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class TAb1(parametertools.Parameter):
+    """Recession coefficient for simulating surface flow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+
+
+class TVs1(parametertools.Parameter):
+    """Recession coefficient for simulating percolation from the surface flow module
+    [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+
+
 class K1(parametertools.Parameter):
     """Storage time for interflow [T]."""
 
@@ -493,6 +512,25 @@ class SG1Max(parametertools.Parameter):
     """Maximum content of the fast response groundwater reservoir |SG1| [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class H2(parametertools.Parameter):
+    """Outlet level of the reservoir for simulating interflow [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class TAb2(parametertools.Parameter):
+    """Recession coefficient for simulating interflow [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+
+
+class TVs2(parametertools.Parameter):
+    """Recession coefficient for simulating percolation from the interflow module
+    [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
 
 class K4(parametertools.Parameter):

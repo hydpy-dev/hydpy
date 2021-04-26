@@ -102,7 +102,8 @@ class WC(hland_sequences.State1DSequence):
 class SM(hland_sequences.State1DSequence):
     """Soil moisture [mm].
 
-    Note that PREVAH uses the abbreviation `SSM` instead of the HBV96 abbreviation `SM`.
+    Note that PREVAH uses the abbreviation `SSM`, and COSERO uses the abbreviation
+    `BW0ZON` instead of the HBV96 abbreviation `SM`.
     """
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
@@ -138,8 +139,30 @@ class SUZ(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
 
+class BW1(sequencetools.StateSequence):
+    """Water stored in the surface flow reservoir [mm].
+
+    Note that COSERO uses the abbreviation `BW1ZON` instead.
+    """
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+
+class BW2(sequencetools.StateSequence):
+    """Water stored in the interflow reservoir [mm].
+
+    Note that COSERO uses the abbreviation `BW2ZON` instead.
+    """
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+
 class LZ(sequencetools.StateSequence):
-    """Storage in the lower zone layer [mm]."""
+    """Storage in the lower zone layer [mm].
+
+    Note that COSERO uses the abbreviation `BW3Geb` instead of the HBV96 abbreviation
+    `LZ`.
+    """
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 

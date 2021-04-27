@@ -41,7 +41,7 @@ class GTS(parametertools.Parameter):
     h(nan, nan, nan)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)

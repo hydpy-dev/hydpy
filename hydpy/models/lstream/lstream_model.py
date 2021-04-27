@@ -2443,26 +2443,37 @@ class Update_VG_V1(modeltools.Method):
 class Calc_QA_V1(modeltools.Method):
     """Query the actual outflow.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> gts(3)
+        >>> fluxes.qz = 1.0
         >>> fluxes.qg = 2.0, 3.0, 4.0
         >>> model.calc_qa_v1()
         >>> fluxes.qa
         qa(4.0)
+        >>> gts(0)
+        >>> model.calc_qa_v1()
+        >>> fluxes.qa
+        qa(1.0)
     """
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (lstream_fluxes.QG,)
+    REQUIREDSEQUENCES = (
+        lstream_fluxes.QZ,
+        lstream_fluxes.QG,
+    )
     RESULTSEQUENCES = (lstream_fluxes.QA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qa = flu.qg[con.gts - 1]
+        if con.gts > 0:
+            flu.qa = flu.qg[con.gts - 1]
+        else:
+            flu.qa = flu.qz
 
 
 class Pass_Q_V1(modeltools.Method):

@@ -33,7 +33,6 @@ click: https://github.com/pallets/click/blob/master/LICENSE.rst
 mypy_extensions: https://github.com/python/mypy_extensions/blob/master/LICENSE
 pathspec: https://github.com/cpburnz/python-path-specification/blob/master/LICENSE
 toml: https://github.com/uiri/toml/blob/master/LICENSE
-typed_ast: https://github.com/python/typed_ast/blob/master/LICENSE
 bokeh: https://github.com/bokeh/bokeh/blob/master/LICENSE.txt
 jinja2: https://github.com/pallets/jinja/blob/master/LICENSE.rst
 black: https://github.com/psf/black/blob/master/LICENSE

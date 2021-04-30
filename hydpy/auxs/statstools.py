@@ -1396,9 +1396,9 @@ def hsepd(
     obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]],
-    return_pars: Literal[False],
-    silent: bool,
+    inits: Optional[Iterable[float]] = None,
+    return_pars: Literal[False] = False,
+    silent: bool = True,
 ) -> float:
     """sim and obs as argument, do not return parameters"""
 
@@ -1410,9 +1410,9 @@ def hsepd(
     obs: VectorInput[float],
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]],
-    return_pars: Literal[True],
-    silent: bool,
+    inits: Optional[Iterable[float]] = None,
+    return_pars: Literal[True] = True,
+    silent: bool = True,
 ) -> Tuple[float, Tuple[float, float, float, float]]:
     """sim and obs as arguments, do return parameters"""
 
@@ -1423,9 +1423,9 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]],
-    return_pars: Literal[False],
-    silent: bool,
+    inits: Optional[Iterable[float]] = None,
+    return_pars: Literal[False] = False,
+    silent: bool = True,
 ) -> float:
     """node as an arguments, do not return parameters"""
 
@@ -1436,9 +1436,9 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]],
-    return_pars: Literal[True],
-    silent: bool,
+    inits: Optional[Iterable[float]] = None,
+    return_pars: Literal[True] = True,
+    silent: bool = True,
 ) -> Tuple[float, Tuple[float, float, float, float]]:
     """node as an argument, do return parameters"""
 

@@ -12,10 +12,10 @@ import numpy
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import parametertools
-    from hydpy.core import typingtools
 
 
 class _MaskDescriptor:
@@ -36,7 +36,7 @@ class BaseMask(numpy.ndarray):
     def __new__(cls, array=None, **kwargs):
         return cls.array2mask(array, **kwargs)
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
 
     @classmethod
@@ -107,10 +107,16 @@ class CustomMask(BaseMask):
     False
     """
 
-    def __call__(self, bools):
+    def __call__(
+        self: T,
+        bools: Union[VectorInput[bool], MatrixInput[bool]],
+    ) -> T:
         return type(self)(bools)
 
-    def __contains__(self, other):
+    def __contains__(
+        self,
+        other: Union[VectorInput[bool], MatrixInput[bool]],
+    ) -> bool:
         return numpy.all(self[other])
 
 
@@ -146,10 +152,12 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    variable: "typingtools.VariableProtocol"
+    variable: VariableProtocol
 
     def __new__(
-        cls, variable: Optional["typingtools.VariableProtocol"] = None, **kwargs
+        cls,
+        variable: Optional[VariableProtocol] = None,
+        **kwargs,
     ):
         if variable is None:
             return _MaskDescriptor(cls)
@@ -164,7 +172,7 @@ class DefaultMask(BaseMask):
         return numpy.all(self()[other])
 
     @classmethod
-    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
+    def new(cls, variable: VariableProtocol, **kwargs):
         """Return a new |DefaultMask| object associated with the
         given |Variable| object."""
         return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
@@ -183,12 +191,13 @@ class IndexMask(DefaultMask):
     """
 
     RELEVANT_VALUES: Tuple[int, ...]
-    variable: "typingtools.VariableProtocol"
+    variable: VariableProtocol
 
     @classmethod
-    def new(cls, variable: "typingtools.VariableProtocol", **kwargs):
+    def new(cls, variable: VariableProtocol, **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
+
         Entries are only |True|, if the integer values of the
         respective entries of the referenced parameter are contained
         in the |IndexMask| class attribute tuple `RELEVANT_VALUES`.
@@ -208,9 +217,18 @@ determined as long as parameter `zonetype` is not prepared properly.
         >>> zonetype(FIELD, FOREST, ILAKE, GLACIER)
         >>> states.sm.mask
         Soil([ True,  True, False, False])
+
+        If the shape of the |IndexMask.refindices| parameter is zero (which
+        is actually not allowed for |hland|), the returned mask is empty:
+
+        >>> zonetype.shape = 0
+        >>> states.shape = 0
+        >>> states.sm.mask
+        Soil([])
         """
         indices = cls.get_refindices(variable)
-        if numpy.min(exceptiontools.getattr_(indices, "values", 0)) < 1:
+        values = exceptiontools.getattr_(indices, "values", None)
+        if (values is None) or ((len(values) > 0) and (numpy.min(values) < 1)):
             raise RuntimeError(
                 f"The mask of parameter {objecttools.elementphrase(variable)} "
                 f"cannot be determined as long as parameter `{indices.name}` "

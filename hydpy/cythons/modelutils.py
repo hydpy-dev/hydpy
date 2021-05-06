@@ -334,20 +334,35 @@ _dllextension = get_dllextension()
 
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
-TYPE2STR = {
+TYPE2STR: Dict[Optional[Type[Any]], str] = {
     bool: "bint",
     int: _int,
     parametertools.IntConstant: _int,
     float: "double",
     str: "str",
     None: "void",
-    typingtools.Vector: "double[:]",
+    typingtools.Vector: "double[:]",  # to be removed as soon as possible
+    typingtools.Vector[float]: "double[:]",  # This works because the `__getitem__`
+    # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
+    # is documented behaviour, so this might cause (little) trouble in the future.
 }
 """Maps Python types to Cython compatible type declarations.
 
 The Cython type belonging to Python's |int| is selected to agree
 with numpy's default integer type on the current platform/system.
 """
+
+_checkable_types: List[Type[Any]] = []
+for maybe_a_type in TYPE2STR:
+    try:
+        isinstance(1, maybe_a_type)  # type: ignore[arg-type]
+    except TypeError:
+        continue
+    assert isinstance(maybe_a_type, type)
+    _checkable_types.append(maybe_a_type)
+CHECKABLE_TYPES: Tuple[Type[Any], ...] = tuple(_checkable_types)
+""""Real types" of |TYPE2STR| allowed as second arguments of function |isinstance|."""
+del _checkable_types
 
 NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 
@@ -1062,12 +1077,13 @@ class PyxWriter:
             "from cpython.mem cimport PyMem_Malloc",
             "from cpython.mem cimport PyMem_Realloc",
             "from cpython.mem cimport PyMem_Free",
+            "from hydpy.cythons.autogen cimport annutils",
+            "from hydpy.cythons.autogen cimport configutils",
             "from hydpy.cythons.autogen import pointerutils",
             "from hydpy.cythons.autogen cimport pointerutils",
-            "from hydpy.cythons.autogen cimport configutils",
-            "from hydpy.cythons.autogen cimport smoothutils",
-            "from hydpy.cythons.autogen cimport annutils",
+            "from hydpy.cythons.autogen cimport quadutils",
             "from hydpy.cythons.autogen cimport rootutils",
+            "from hydpy.cythons.autogen cimport smoothutils",
         )
 
     @property
@@ -1078,7 +1094,7 @@ class PyxWriter:
             if (
                 name.isupper()
                 and not inspect.isclass(member)
-                and isinstance(member, tuple([t for t in TYPE2STR if t]))
+                and isinstance(member, CHECKABLE_TYPES)
             ):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
@@ -1523,10 +1539,12 @@ class PyxWriter:
         lines = Lines()
         for submodel in self.model.SUBMODELS:
             lines.add(0, "@cython.final")
+            cls = submodel.CYTHONBASECLASS
             lines.add(
                 0,
-                f"cdef class {objecttools.classname(submodel)}(rootutils."
-                f"{objecttools.classname(submodel.CYTHONBASECLASS)}):",
+                f"cdef class {objecttools.classname(submodel)}("
+                f"{cls.__module__.split('.')[-1]}."
+                f"{objecttools.classname(cls)}):",
             )
             lines.add(1, "cpdef public Model model")
             lines.add(1, "def __init__(self, Model model):")

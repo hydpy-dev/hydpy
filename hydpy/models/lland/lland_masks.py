@@ -59,6 +59,12 @@ class Soil(Complete):
     RELEVANT_VALUES = _exclude(WASSER, SEE, FLUSS, VERS)
 
 
+class Forest(Complete):
+    """Mask including the land uses |LAUBW|, |MISCHW|, and |NADELW|."""
+
+    RELEVANT_VALUES = (LAUBW, MISCHW, NADELW)
+
+
 class Sied_D(Complete):
     """Mask for land use |SIED_D|."""
 
@@ -174,6 +180,7 @@ class Masks(masktools.Masks):
         Complete,
         Land,
         Soil,
+        Forest,
         Sied_D,
         Sied_L,
         Vers,

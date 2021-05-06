@@ -370,6 +370,57 @@ class HInz(parametertools.Parameter):
     INIT = 0.2
 
 
+# snow interception
+
+
+class P1SIMax(parametertools.Parameter):
+    """Konstante zur Berechnung der maximalen Schneeinterzeptionskapazität basierend
+    auf dem Blattflächenindex (constant for calculating the maximum snow interception
+    capacity based on the leaf area index) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 8.0
+
+
+class P2SIMax(parametertools.Parameter):
+    """Faktor zur Berechnung der maximalen Schneeinterzeptionskapazität basierend
+    auf dem Blattflächenindex (factor for calculating the maximum snow interception
+    capacity based on the leaf area index) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.5
+
+
+class P1SIRate(parametertools.Parameter):
+    """Konstante zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf dem Blattflächenindex (constant for
+    calculating the ratio of the snow interception rate and the precipitation
+    intensity based on the leaf area index) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class P2SIRate(parametertools.Parameter):
+    """Faktor zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf dem Blattflächenindex (factor for
+    calculating the ratio of the snow interception rate and precipitation intensity
+    based on the leaf area index) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.02
+
+
+class P3SIRate(parametertools.Parameter):
+    """Faktor zur Berechnung des Verhältnisses von Schneeinerzeptionsrate und
+    Niederschlagsintensität basierend auf der bereits interzipierten Schneemenge
+    (factor for calculating the ratio of the snow interception rate and precipitation
+    intensity based on the amount of already intercepted snow) [1/mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.05)
+    INIT = 0.003
+
+
 # snow
 
 
@@ -1148,6 +1199,89 @@ class RBeta(parametertools.Parameter):
     INIT = False
 
 
+class VolBMax(parametertools.Parameter):
+    """Maximaler Inhalt des Gebietsspeichers für Basisabfluss (maximum value of
+    the storage compartment for base flow) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = numpy.inf
+
+
+class GSBMax(parametertools.Parameter):
+    """Faktor zur Anpassung von |VolBMax| (factor for adjusting |VolBMax|) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.0
+
+
+class GSBGrad1(parametertools.Parameter):
+    """Höchste Volumenzunahme des Gebietsspeichers für Basisabfluss ohne Begrenzung
+    des Zuflusses (highest possible storage increase of the compartment for base
+    flow without inflow reductions) [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    INIT = numpy.inf
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> gsbgrad2(1.0)
+        >>> gsbgrad1(0.0)
+        >>> gsbgrad1
+        gsbgrad1(0.0)
+        >>> gsbgrad1(1.0)
+        >>> gsbgrad1
+        gsbgrad1(1.0)
+        >>> gsbgrad1(2.0)
+        >>> gsbgrad1
+        gsbgrad1(1.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(
+                self.subpars.gsbgrad2,
+                "value",
+                None,
+            )
+        super().trim(lower, upper)
+
+
+class GSBGrad2(parametertools.Parameter):
+    """Volumenzunahme des Gebietsspeichers für Basisabfluss, oberhalb der jeglicher
+    Zufluss ausgeschlossen ist (highest possible storage increase of the compartment
+    for base flow) [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    INIT = numpy.inf
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> gsbgrad1(1.0)
+        >>> gsbgrad2(2.0)
+        >>> gsbgrad2
+        gsbgrad2(2.0)
+        >>> gsbgrad2(1.0)
+        >>> gsbgrad2
+        gsbgrad2(1.0)
+        >>> gsbgrad2(0.0)
+        >>> gsbgrad2
+        gsbgrad2(1.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(
+                self.subpars.gsbgrad1,
+                "value",
+                None,
+            )
+        super().trim(lower, upper)
+
+
 # runoff concentration
 
 
@@ -1323,12 +1457,6 @@ class EQI1(parametertools.Parameter):
                 "value",
                 None,
             )
-        if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.eqb,
-                "value",
-                None,
-            )
         super().trim(lower, upper)
 
 
@@ -1437,49 +1565,6 @@ class NegQ(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0.0, None)
     INIT = False
-
-
-# work in progress
-
-
-class P1SIMax(parametertools.Parameter):
-    """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 8.0
-
-
-class P2SIMax(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 1.5
-
-
-class P1SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.2
-
-
-class P2SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.02
-
-
-class P3SIRate(parametertools.Parameter):
-    """ToDo: Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.05)
-    INIT = 0.003
 
 
 WMax.CONTROLPARAMETERS = (

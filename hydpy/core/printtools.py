@@ -7,17 +7,14 @@ import os
 import sys
 import tempfile
 import time
-from typing import IO
+import types
 from typing import *
-
-# ...from site-packages
-import wrapt
+from typing import TextIO
 
 # ...from HydPy
 import hydpy
-
-
-T = TypeVar("T")
+from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 
 class PrintStyle:
@@ -26,9 +23,14 @@ class PrintStyle:
 
     color: int
     font: int
-    file: IO
+    file: TextIO
 
-    def __init__(self, color: int, font: int, file: Optional[IO] = None) -> None:
+    def __init__(
+        self,
+        color: int,
+        font: int,
+        file: Optional[TextIO] = None,
+    ) -> None:
         self.color = color
         self.font = font
         self.file = sys.stdout if file is None else file
@@ -37,7 +39,12 @@ class PrintStyle:
         if hydpy.pub.options.printincolor:
             print(end=f"\x1B[{self.font};30;{self.color}m", file=self.file)
 
-    def __exit__(self, exception, message, traceback_) -> None:
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback: types.TracebackType,
+    ) -> None:
         if hydpy.pub.options.printincolor:
             print(end="\x1B[0m", file=self.file)
 
@@ -45,8 +52,13 @@ class PrintStyle:
 _printprogress_indentation = -4
 
 
-@wrapt.decorator
-def print_progress(wrapped, _=None, args=None, kwargs=None):
+@objecttools.decorator
+def print_progress(  # type: ignore[no-untyped-def]
+    wrapped: Callable[..., None],
+    _=None,
+    args=None,
+    kwargs=None,
+):
     """Add print commands time to the given function informing about
      execution time.
 

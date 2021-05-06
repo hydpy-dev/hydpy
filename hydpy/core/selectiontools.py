@@ -20,6 +20,7 @@ from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import sequencetools
 from hydpy.core import typingtools
 
 ModelTypesArg = Union[
@@ -436,10 +437,9 @@ Selections objects, single Selection objects, or iterables containing \
         self,
         value: Union[str, "Selection"],
     ) -> bool:
-        try:
-            return value in self.__selections.values()
-        except AttributeError:
+        if isinstance(value, str):
             return value in self.names
+        return value in self.__selections.values()
 
     def __iter__(self) -> Iterator["Selection"]:
         return iter(self.__selections.values())
@@ -638,12 +638,20 @@ type `int`, the following error occurred: 'int' object has no attribute 'nodes'
     AttributeError: While trying to subtract selection `test` with object \
 `dill` of type `Node`, the following error occurred: 'Node' object has no \
 attribute 'nodes'
-    >>> test == "wrong"
+    >>> test < "wrong"
     Traceback (most recent call last):
     ...
     AttributeError: While trying to compare selection `test` with object \
 `wrong` of type `str`, the following error occurred: 'str' object has no \
 attribute 'nodes'
+
+    But as usual, checking for equality or inequality return |False| and |True| for
+    uncomparable objects:
+
+    >>> test == "wrong"
+    False
+    >>> test != "wrong"
+    True
 
     Applying the |str| function only returns the selection name:
 
@@ -1305,8 +1313,8 @@ requires string as left operand, not list
         the default variable `Q`:
 
         >>> from hydpy import FusedVariable, Node
-        >>> from hydpy import hland_P, hland_T, lland_Nied
-        >>> from hydpy import hland_Perc, hland_Q0, hland_Q1
+        >>> from hydpy.inputs import hland_P, hland_T, lland_Nied
+        >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
         >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
         >>> Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
         >>> nodes = pub.selections.headwaters.nodes
@@ -1323,8 +1331,8 @@ requires string as left operand, not list
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
-        from hydpy import hland_P, hland_Perc, hland_Q0, hland_Q1, \
-hland_T, lland_Nied
+        from hydpy.inputs import hland_P, hland_T, lland_Nied
+        from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
         <BLANKLINE>
         Precip = FusedVariable("Precip", hland_P, lland_Nied)
         Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
@@ -1350,18 +1358,24 @@ hland_T, lland_Nied
                 keywords="catchment")
         <BLANKLINE>
         """
-        aliases: Set[str] = set()
+        inputaliases: Set[str] = set()
+        outputaliases: Set[str] = set()
         fusedvariables: Set[devicetools.FusedVariable] = set()
         for variable in self.nodes.variables:
             if isinstance(variable, str):
                 continue
             if isinstance(variable, devicetools.FusedVariable):
                 fusedvariables.add(variable)
+            elif issubclass(variable, sequencetools.InputSequence):
+                inputaliases.add(hydpy.sequence2alias[variable])
             else:
-                aliases.add(hydpy.sequence2alias[variable])
+                outputaliases.add(hydpy.sequence2alias[variable])
         for fusedvariable in fusedvariables:
             for sequence in fusedvariable:
-                aliases.add(hydpy.sequence2alias[sequence])
+                if issubclass(sequence, sequencetools.InputSequence):
+                    inputaliases.add(hydpy.sequence2alias[sequence])
+                else:
+                    outputaliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:
@@ -1370,10 +1384,13 @@ hland_T, lland_Nied
                 file_.write("\nfrom hydpy import Element, FusedVariable, Node")
             else:
                 file_.write("\nfrom hydpy import Element, Node")
-            if aliases:
-                file_.write(f"\nfrom hydpy import {', '.join(sorted(aliases))}\n\n")
-            else:
-                file_.write("\n\n")
+            if inputaliases:
+                aliases = ", ".join(sorted(inputaliases))
+                file_.write(f"\nfrom hydpy.inputs import {aliases}")
+            if outputaliases:
+                aliases = ", ".join(sorted(outputaliases))
+                file_.write(f"\nfrom hydpy.outputs import {aliases}")
+            file_.write("\n\n")
             for fusedvariable in sorted(fusedvariables, key=str):
                 file_.write(f"{fusedvariable} = {repr(fusedvariable)}\n")
             if fusedvariables:
@@ -1427,19 +1444,21 @@ hland_T, lland_Nied
     ) -> bool:
         return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
-    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __eq__(
         self,
-        other: "Selection",
+        other: Any,
     ) -> bool:
-        return (self.nodes == other.nodes) and (self.elements == other.elements)
+        if isinstance(other, (hydpytools.HydPy, Selection)):
+            return (self.nodes == other.nodes) and (self.elements == other.elements)
+        return False
 
-    @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ne__(
         self,
-        other: "Selection",
+        other: Any,
     ) -> bool:
-        return (self.nodes != other.nodes) or (self.elements != other.elements)
+        if isinstance(other, (hydpytools.HydPy, Selection)):
+            return (self.nodes != other.nodes) or (self.elements != other.elements)
+        return True
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
     def __ge__(

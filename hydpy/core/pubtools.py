@@ -3,8 +3,8 @@
 # import...
 # ...from standard library
 import types
-from typing import NoReturn
 from typing import *
+from typing import NoReturn
 
 # ...from HydPy
 from hydpy.core import exceptiontools
@@ -14,6 +14,7 @@ from hydpy.core import optiontools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.cythons.autogen import configutils
@@ -28,7 +29,7 @@ class _PubProperty(
     def __init__(self) -> None:
         super().__init__(self._fget)
 
-    def _fget(self, obj: object) -> NoReturn:
+    def _fget(self, obj: Any) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
             f"Attribute {self.name} of module `pub` is not defined at the moment.",
         )
@@ -88,13 +89,26 @@ class TimegridsProperty(
                              "1d"))
     """
 
-    @staticmethod
-    def _fset(_, value) -> timetools.Timegrids:
+    def call_fset(
+        self,
+        obj: Any,
+        value: Union[
+            timetools.Timegrids,
+            Tuple[
+                timetools.DateConstrArg,
+                timetools.DateConstrArg,
+                timetools.PeriodConstrArg,
+            ],
+        ],
+    ) -> None:
         """Try to convert the given input value(s)."""
         try:
-            return timetools.Timegrids(*value)
+            timegrids = timetools.Timegrids(*value)
         except TypeError:
-            return timetools.Timegrids(value)
+            timegrids = timetools.Timegrids(value)  # type: ignore
+            # this will most likely fail, we just want to reuse
+            # the standard error message
+        super().call_fset(obj, timegrids)
 
 
 class Pub(types.ModuleType):
@@ -149,6 +163,7 @@ module `pub` is not defined at the moment.
 
     options: optiontools.Options
     config: "configutils.Config"
+    scriptfunctions: Dict[str, ScriptFunction]
 
     projectname = _PubProperty[
         str,
@@ -185,5 +200,5 @@ module `pub` is not defined at the moment.
             name=name,
             doc=doc,
         )
-        self.options: optiontools.Options = optiontools.Options()
-        self.scriptfunctions: Dict[str, Callable] = {}
+        self.options = optiontools.Options()
+        self.scriptfunctions = {}

@@ -8,6 +8,8 @@ venv
 *.c
 *.h
 temp
+hydpy/inputs.py
+hydpy/outputs.py
 hydpy/conf/mimetypes.txt
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
@@ -18,6 +20,7 @@ hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
 hydpy/conf/HydPyConfigBase.xsd
 hydpy/docs/html_/*.html
+hydpy/docs/autofigs/*.png
 hydpy/docs/auto
 hydpy/tests/iotesting/*
 !hydpy/test/iotesting/__init__.py
@@ -27,6 +30,7 @@ dist
 gui
 helpers
 examples
+cover/*
 coverage.html
 coverage.xml
 .coverage

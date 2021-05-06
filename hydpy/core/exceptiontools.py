@@ -3,12 +3,18 @@
 
 # import...
 # ...from standard-library
+import enum
 import importlib
 import types
 from typing import *
 
 # ...from HydPy
 from hydpy.core import objecttools
+
+
+T = TypeVar("T")
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
 
 
 class HydPyDeprecationWarning(DeprecationWarning):
@@ -89,14 +95,72 @@ def hasattr_(
         return True
 
 
-_GETATTR_NO_DEFAULT = type("_GETATTR_NO_DEFAULT", (), {})
+class _Enum(enum.Enum):
+    GETATTR_NO_DEFAULT = 1
 
 
+@overload
 def getattr_(
     obj: Any,
     name: str,
-    default: Any = _GETATTR_NO_DEFAULT,
-) -> bool:
+) -> Any:
+    ...
+
+
+@overload
+def getattr_(
+    obj: Any,
+    name: str,
+    default: None,
+) -> Optional[Any]:
+    ...
+
+
+@overload
+def getattr_(
+    obj: Any,
+    name: str,
+    default: T,
+) -> T:
+    ...
+
+
+@overload
+def getattr_(
+    obj: Any,
+    name: str,
+    *,
+    type_: Type[T],
+) -> T:
+    ...
+
+
+@overload
+def getattr_(
+    obj: Any,
+    name: str,
+    default: None,
+    type_: Type[T],
+) -> Optional[T]:
+    ...
+
+
+@overload
+def getattr_(
+    obj: Any,
+    name: str,
+    default: T1,
+    type_: Type[T2],
+) -> Union[T1, T2]:
+    ...
+
+
+def getattr_(  # type: ignore[misc]
+    obj: Any,
+    name: str,
+    default: Union[T, _Enum] = _Enum.GETATTR_NO_DEFAULT,
+    type_: Optional[Type[T]] = None,
+) -> Any:
     """Return the attribute with the given name or, if it does not exist,
     the default value, if available.
 
@@ -134,13 +198,50 @@ variable `par` can only be retrieved after it has been defined.
     (2,)
     >>> getattr_(par, "shape", (4,))
     (2,)
+
+    Function |getattr_| allows to specify the expected return type and raises
+    an |AssertionError| if necessary:
+
+    >>> getattr_(par, "NDIM", type_=int)
+    1
+    >>> getattr_(par, "NDIM", type_=str)
+    Traceback (most recent call last):
+    ...
+    AssertionError: returned type: int, allowed type: str
+
+    Additionally, it infers the expected return type from the default argument
+    automatically:
+
+    >>> getattr_(par, "NDIM", "wrong")
+    Traceback (most recent call last):
+    ...
+    AssertionError: returned type: int, allowed type(s): str
+
+    If the attribute type differs from the default value type, you need to define
+    the attribute type explicitly:
+
+    >>> getattr_(par, "NDIM", "wrong", int)
+    1
     """
-    if default == _GETATTR_NO_DEFAULT:
-        return getattr(obj, name)
+    if default is _Enum.GETATTR_NO_DEFAULT:
+        value = getattr(obj, name)
+        if type_ is not None and not isinstance(value, type_):
+            raise AssertionError(
+                f"returned type: {type(value).__name__}, "
+                f"allowed type: {type_.__name__}"
+            )
+        return value
     try:
-        return getattr(obj, name, default)
+        value = getattr(obj, name, default)
     except AttributeNotReady:
         return default
+    types_ = ((type_,) if type_ else ()) + ((type(default),) if default else ())
+    if types_ and not isinstance(value, types_):
+        raise AssertionError(
+            f"returned type: {type(value).__name__}, allowed type(s): "
+            f"{objecttools.enumeration(type_.__name__ for type_ in types_)}"
+        )
+    return value
 
 
 class OptionalModuleNotAvailable(ImportError):

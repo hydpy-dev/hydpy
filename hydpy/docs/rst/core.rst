@@ -59,6 +59,7 @@ writing *HydPy* code.
 .. toctree::
    :hidden:
 
+   aliastools
    autodoctools
    auxfiletools
    devicetools

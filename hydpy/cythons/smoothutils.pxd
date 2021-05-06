@@ -16,3 +16,7 @@ cpdef double smooth_max1(
     double x_value, double y_value, double parameter) nogil
 cpdef double smooth_min1(
     double x_value, double y_value, double parameter) nogil
+cpdef double smooth_max2(
+    double x_value, double y_value, double z_value, double parameter) nogil
+cpdef double smooth_min2(
+    double x_value, double y_value, double z_value, double parameter) nogil

@@ -1010,7 +1010,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ("subvars", "fastaccess")
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
 
-    strict_valuehandling: ClassVar[bool] = True
+    strict_valuehandling: bool = True
 
     __hydpy__subclasscounter__ = 1
 
@@ -1027,7 +1027,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.__valueready = False
         self.__shapeready = False
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()
@@ -1055,6 +1055,11 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self,
     ) -> Tuple[Union[float, int, bool, "pointerutils.Double",], bool,]:
         """To be overridden."""
+
+    def __call__(self, *args) -> None:
+        if len(args) == 1:
+            args = args[0]
+        self.values = args
 
     def __hydpy__get_value__(self):
         """The actual parameter or sequence value(s).
@@ -1151,7 +1156,7 @@ no values have been defined so far.
         ValueError: While trying to set the value(s) of variable `var`, \
 the following error occurred: While trying to convert the value(s) `(1, 2)` \
 to a numpy ndarray with shape `(2, 3)` and type `int`, the following error \
-occurred: could not broadcast input array from shape (2) into shape (2,3)
+occurred: could not broadcast input array from shape (2,) into shape (2,3)
         >>> var.value
         array([[2, 2, 2],
                [2, 2, 2]])

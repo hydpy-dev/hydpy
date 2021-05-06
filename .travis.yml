@@ -8,6 +8,7 @@ matrix:
     - python: 3.6
     - python: 3.7
     - python: 3.8
+    - python: 3.9
 
 install:
   - pip install --upgrade pip setuptools wheel
@@ -18,29 +19,32 @@ install:
   - pip install black
   - pip install bokeh
   - pip install coverage
+  - pip install ghp-import
   - pip install networkx
   - pip install netCDF4
   - pip install pandas
   - pip install plotly
-  - pip install pylint
+  - pip install pylint astroid!=2.5.3
   - pip install typing_extensions
   - pip install wrapt
   - pip install xmlschema
   - pip install docutils
-  - pip install sphinx
-  - pip install travis-sphinx
+  - pip install sphinx!=3.5.0
   - pip install sphinxcontrib-fulltoc
   - pip install sphinxprettysearchresults
   - pip install "sphinxcontrib.bibtex<2"
 
 script:
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pylint hydpy; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then black hydpy --exclude=hydpy/data/ --check; fi
-  - python setup.py install
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/tests/check_consistency.py; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then travis_wait 20 pylint hydpy ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python setup.py install ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then sphinx-build hydpy/docs/auto hydpy/docs/auto/build ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python combine_docversions.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python setup.py install ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/tests/check_consistency.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then black hydpy --exclude=hydpy/data/ --check ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then python setup.py install ; fi
 
 env:
   global:
@@ -48,4 +52,4 @@ env:
     - secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == "3.7" ]]; then travis-sphinx deploy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == "3.7" ]]; then python publish_docs_copy.py ; fi

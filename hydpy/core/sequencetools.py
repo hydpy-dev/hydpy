@@ -1385,7 +1385,7 @@ variable `evpo` can only be retrieved after it has been defined.
     INIT: float = 0.0
     NUMERIC: bool
 
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
     @property
     def subseqs(self) -> SubSequencesType:
@@ -1412,13 +1412,6 @@ variable `evpo` can only be retrieved after it has been defined.
         values and some related attributes, eventually."""
         if not self.NDIM:
             self.shape = ()
-
-    def __call__(self, *args) -> None:
-        """The prefered way to pass values to |Sequence_| instances
-        within initial condition files."""
-        if len(args) == 1:
-            args = args[0]
-        self.values = args
 
     @property
     def initinfo(self) -> Tuple[Union[float, "pointerutils.Double"], bool]:
@@ -3056,8 +3049,8 @@ class InputSequence(
     both types of input data sources at the same time works well and that
     the different |Node.deploymode| options are supported:
 
-    >>> from hydpy import (Element, FusedVariable, hland_T, hland_P, HydPy,
-    ...                    Node, print_values, pub, TestIO)
+    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_values, pub, TestIO
+    >>> from hydpy.inputs import  hland_T, hland_P
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_t = Node("node_t", variable=hland_T)
@@ -3175,8 +3168,8 @@ class OutputSequence(
     and place it more prominently.  In short, it shows that everything works
     well for the different |Node.deploymode| options:
 
-    >>> from hydpy import (Element, hland_Perc, hland_Q0, hland_Q1, hland_UZ,
-    ...                    HydPy, Node, print_values, pub, Selection, TestIO)
+    >>> from hydpy import Element, HydPy, Node, print_values, pub, Selection, TestIO
+    >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1, hland_UZ
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_q0 = Node("node_q0", variable=hland_Q0)
@@ -3550,7 +3543,7 @@ class StateSequence(
 the following error occurred: While trying to convert the value(s) \
 `(1.0, 2.0, 3.0)` to a numpy ndarray with shape `(2,)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (3) into shape (2)
+shape (3,) into shape (2,)
 
     Just for completeness:  Method |StateSequence.new2old| effectively
     takes the new values as old ones, but more efficiently than using
@@ -3890,7 +3883,7 @@ sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
 sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
 While trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with \
 shape `(1,)` and type `float`, the following error occurred: could not \
-broadcast input array from shape (2) into shape (1)
+broadcast input array from shape (2,) into shape (1,)
 
         In the example above, the 1-dimensional inlet sequence
         |hstream_inlets.Q| points to the value of a single |NodeSequence|
@@ -4154,7 +4147,8 @@ class NodeSequence(
         >>> Node("test_node_1", "T").sequences.sim.descr_sequence
         'sim_t'
 
-        >>> from hydpy import hland_T, FusedVariable, lland_TemL
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import hland_T, lland_TemL
         >>> Temp = FusedVariable("Temp", hland_T, lland_TemL)
         >>> Node("test_node_2", Temp).sequences.sim.descr_sequence
         'sim_temp'

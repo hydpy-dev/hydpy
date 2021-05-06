@@ -27,19 +27,19 @@ if install:
     from distutils.core import setup
     from distutils.extension import Extension
 else:
-    from setuptools import setup, Extension
+    from setuptools import setup, Extension  # type: ignore[no-redef]
 
 
-def print_(*args, **kwargs):
-    print(*args, **kwargs)
+def print_(message: str) -> None:
+    print(message)
     sys.stdout.flush()
 
 
-def prep(*folders):
+def prep(*folders: str) -> str:
     return os.path.abspath(os.path.join(*folders))
 
 
-def source2target(source, target, do_copy=True):
+def source2target(source: str, target: str, do_copy: bool = True) -> None:
     print_(f"  {source}\n    --> {target}")
     if do_copy:
         shutil.copy(source, target)
@@ -57,6 +57,7 @@ for name in os.listdir("hydpy"):
         packages.append(".".join(("hydpy", name)))
 packages.append("hydpy.conf")
 packages.append("hydpy.cythons.autogen")
+packages.append("hydpy.docs.autofigs")
 packages.append("hydpy.docs.figs")
 packages.append("hydpy.docs.html_")
 packages.append("hydpy.docs.rst")
@@ -80,6 +81,7 @@ for dir_, _, _ in os.walk(os.path.join("hydpy", "data")):
 package_data = {
     "hydpy.conf": ["*.npy", "*.xsd", "*.xsdt"],
     "hydpy.cythons": ["*.pyi"],
+    "hydpy.docs.autofigs": ["*.png"],
     "hydpy.docs.figs": ["*.png"],
     "hydpy.docs.rst": ["*.rst"],
     "hydpy.tests": [".coveragerc"],
@@ -159,7 +161,7 @@ else:
         source2target(path, name, False)
         ext_modules.append(Extension(name, [path], extra_compile_args=["-O2"]))
 
-print_()
+print_("")
 
 # There seem to be different places where the `build_ext` module can be found:
 try:
@@ -173,7 +175,7 @@ with open("README.rst", "r") as readmefile:
 # The usual setup definitions.
 setup(
     name="HydPy",
-    version="4.0a17",
+    version="4.1a0",
     description="A framework for the development and application of "
     "hydrological models.",
     long_description=long_description,
@@ -185,12 +187,13 @@ setup(
         "Intended Audience :: Education",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Science/Research",
-        ("License :: OSI Approved :: " "GNU Lesser General Public License v3 (LGPLv3)"),
+        "License :: OSI Approved :: " "GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering",
     ],
@@ -252,7 +255,7 @@ if install:
     import hydpy
 
     path_in = prep(".", "sitecustomize.py")
-    path_out = prep(os.path.split(hydpy.__path__[0])[0], "sitecustomize.py")
+    path_out = prep(os.path.split(hydpy.__path__[0])[0], "sitecustomize.py")  # type: ignore[attr-defined]
     source2target(path_in, path_out)
 
     # Assure that the actual `debug_cython` option also effects the
@@ -263,7 +266,7 @@ if install:
 
     # Execute all tests.
     oldpath = os.path.abspath(".")
-    path = os.path.abspath(hydpy.tests.__path__[0])
+    path = os.path.abspath(hydpy.tests.__path__[0])  # type: ignore[attr-defined]
     print_(f"\nChange cwd for testing:\n\t{path}")
     os.chdir(path)
     exitcode = subprocess.run(
@@ -281,51 +284,66 @@ if install:
         )
         sys.exit(1)
 
+    # Copy the automatically generated first level modules into the original
+    # main folder
+    print_("\n:Copy automatically generated Python files backwards:")
+    path_hydpy = os.path.join(oldpath, "hydpy")
+    for filename in os.listdir(hydpy.__path__[0]):  # type: ignore[attr-defined]
+        if filename.endswith(".py"):
+            path_in = prep(hydpy.__path__[0], filename)  # type: ignore[attr-defined]
+            path_out = prep(path_hydpy, filename)
+            source2target(path_in, path_out)
+
     # Copy all extension files (pyx) and all compiled Cython files (pyd or so)
     # into the original `autogen` folder.
-    # (Thought for developers only - if it fails, its not that a big deal...)
     print_("\nCopy extension files and dlls backwards:")
     path_autogen = os.path.join(oldpath, "hydpy", "cythons", "autogen")
-    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
+    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):  # type: ignore[attr-defined]
         ending = filename.split(".")[-1]
         if ending in ("pyd", "so", "pyx", "pxd"):
-            try:
-                path_in = prep(hydpy.cythons.autogen.__path__[0], filename)
-                path_out = prep(path_autogen, filename)
-                source2target(path_in, path_out)
-            except BaseException:
-                print_("\t!!! failed !!!")
+            path_in = prep(hydpy.cythons.autogen.__path__[0], filename)  # type: ignore[attr-defined]
+            path_out = prep(path_autogen, filename)
+            source2target(path_in, path_out)
 
     # Copy the generated plotly plots into the original docs subpackage
-    # (on Travis-CI: for including them into the online-documentation).
     print_("\nCopy plotly plots backwards:")
     path_html = os.path.join(oldpath, "hydpy", "docs", "html_")
     import hydpy.docs.html_
 
-    for filename in os.listdir(hydpy.docs.html_.__path__[0]):
+    for filename in os.listdir(hydpy.docs.html_.__path__[0]):  # type: ignore[attr-defined]
         if filename.endswith(".html"):
-            path_in = prep(hydpy.docs.html_.__path__[0], filename)
+            path_in = prep(hydpy.docs.html_.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
-    # Copy the (possibly new) matplotlib plots into the original docs subpackage
-    # (on Travis-CI: for including them into the online-documentation).
-    print_("\nCopy matplotlib plots backwards:")
+    # Copy the manually generated figures into the original docs subpackage
+    print_("\nCopy manually generated plots backwards:")
     path_figs = os.path.join(oldpath, "hydpy", "docs", "figs")
     import hydpy.docs.figs
 
-    for filename in os.listdir(hydpy.docs.figs.__path__[0]):
+    for filename in os.listdir(hydpy.docs.figs.__path__[0]):  # type: ignore[attr-defined]
         if filename.endswith(".png"):
-            path_in = prep(hydpy.docs.figs.__path__[0], filename)
+            path_in = prep(hydpy.docs.figs.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_figs, filename)
+            source2target(path_in, path_out)
+
+    # Copy the automatically generated figures into the original docs subpackage
+    print_("\nCopy automatically generated plots backwards:")
+    path_autofigs = os.path.join(oldpath, "hydpy", "docs", "autofigs")
+    import hydpy.docs.autofigs
+
+    for filename in os.listdir(hydpy.docs.autofigs.__path__[0]):  # type: ignore[attr-defined]
+        if filename.endswith(".png"):
+            path_in = prep(hydpy.docs.autofigs.__path__[0], filename)  # type: ignore[attr-defined]
+            path_out = prep(path_autofigs, filename)
             source2target(path_in, path_out)
 
     # Copy the (possibly new) configuration files into the original subpackage.
     print_("\nCopy configuration data backwards:")
     path_conf = os.path.join(oldpath, "hydpy", "conf")
-    for filename in os.listdir(hydpy.conf.__path__[0]):
+    for filename in os.listdir(hydpy.conf.__path__[0]):  # type: ignore[attr-defined]
         if not filename.startswith("_"):
-            path_in = prep(hydpy.conf.__path__[0], filename)
+            path_in = prep(hydpy.conf.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_conf, filename)
             source2target(path_in, path_out)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module provides tools for defining and handling different kinds
-of the parameters of hydrological models."""
+of parameters of hydrological models."""
 # import...
 # ...from standard library
 import copy
@@ -44,8 +44,8 @@ def get_controlfileheader(
     The header contains the default coding information, the import command
     for the given model and the actual parameter and simulation step sizes.
 
-    The first example shows that, if you pass the model argument as a
-    string, you have to take care that this string makes sense:
+    If you pass the model argument as a string, you have to take care that this
+    string makes sense:
 
     >>> from hydpy.core.parametertools import get_controlfileheader
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
@@ -61,10 +61,10 @@ def get_controlfileheader(
     <BLANKLINE>
     <BLANKLINE>
 
-    The second example shows the saver option to pass the proper model
-    object.  It also shows that function |get_controlfileheader| tries
-    to gain the parameter and simulation step sizes from the global
-    |Timegrids| object contained in the module |pub| when necessary:
+    The safer option is to pass the proper model object.  Besides that, the following
+    example also shows that function |get_controlfileheader| tries to gain the
+    parameter and simulation step sizes from the global |Timegrids| object contained
+    in the module |pub| when necessary:
 
     >>> model = prepare_model("lland_v1")
     >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
@@ -243,44 +243,66 @@ variable `lag`, no value has been defined so far.
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
         auxfiler: Optional["auxfiletools.Auxfiler"] = None,
     ):
-        """Write the control parameters to file.
+        """Write the control parameters (and eventually some solver parameters) to a
+        control file
 
-        Usually, a control file consists of a header (see the documentation
-        on the method |get_controlfileheader|) and the string representations
-        of the individual |Parameter| objects handled by the `control`
-        |SubParameters| object.
+        Usually, a control file consists of a header (see the documentation on the
+        method |get_controlfileheader|) and the string representations of the individual
+        |Parameter| objects handled by the `control` |SubParameters| object.
 
-        The main functionality of method |Parameters.save_controls| is
-        demonstrated in the documentation on the method |HydPy.save_controls|
-        of class |HydPy|, which one would apply to write the parameter
-        information of complete *HydPy* projects.  However, to call
-        |Parameters.save_controls| on individual |Parameters| objects
-        offers the advantage to choose an arbitrary file path, as shown
-        in the following example:
+        The main functionality of method |Parameters.save_controls| is demonstrated in
+        the documentation on method |HydPy.save_controls| of class |HydPy|, which one
+        would apply to write the parameter information of complete *HydPy* projects.
+        However, to call |Parameters.save_controls| on individual |Parameters| objects
+        offers the advantage to choose an arbitrary file path, as shown in the following
+        example:
 
-        >>> from hydpy.models.hstream_v1 import *
+        >>> from hydpy.models.test_v3 import *
         >>> parameterstep("1d")
         >>> simulationstep("1h")
-        >>> lag(1.0)
-        >>> damp(0.5)
+        >>> k(0.1)
+        >>> n(3)
 
         >>> from hydpy import Open
         >>> with Open():
         ...     model.parameters.save_controls("otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
-        -------------------------------------
+        ----------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.test_v3 import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
         <BLANKLINE>
-        lag(1.0)
-        damp(0.5)
+        k(0.1)
+        n(3)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Method |Parameters.save_controls| also writes the string representations of
+        all |SolverParameter| objects with non-default values into the control file:
+
+        >>> solver.abserrormax(1e-6)
+        >>> with Open():
+        ...     model.parameters.save_controls("otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        ----------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.test_v3 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        k(0.1)
+        n(3)
+        <BLANKLINE>
+        solver.abserrormax(0.000001)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Without a given file path and a proper project configuration,
         method |Parameters.save_controls| raises the following error:
@@ -306,7 +328,15 @@ handling the model.
                     if auxfilename:
                         lines.append(f'{par.name}(auxfile="{auxfilename}")\n')
                         continue
-                lines.append(repr(par) + "\n")
+                lines.append(f"{repr(par)}\n")
+            solver_lines = tuple(
+                f"solver.{repr(par)}\n"
+                for par in self.solver
+                if exceptiontools.attrready(par, "alternative_initvalue")
+            )
+            if solver_lines:
+                lines.append("\n")
+            lines.extend(solver_lines)
         text = "".join(lines)
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
@@ -376,7 +406,7 @@ set yet: c1(?).
         """Iterate through all subgroups of "secondary" parameters.
 
         These secondary parameter subgroups are the `derived` parameters
-        and the `solver` parameters, at the moment:
+        and the `solver` parameters at the moment:
 
         >>> from hydpy.models.hstream_v1 import *
         >>> parameterstep("1d")
@@ -562,7 +592,7 @@ class KeywordArguments(Generic[T]):
     >>> kwargs2.valid
     False
 
-    Flag |KeywordArguments.valid| for example helps to distinguish between empty
+    Flag |KeywordArguments.valid|, for example, helps to distinguish between empty
     objects that are okay to be empty and those that are not.  When we, for example,
     set all hydrological response units to land-use type |lland_constants.WASSER|
     (water), parameter |lland_control.TRefT| returns the following valid
@@ -1201,7 +1231,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
 the following error occurred: While trying to convert the value(s) \
 `[ 0.5  1. ]` to a numpy ndarray with shape `(2, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (2) into shape (2,3)
+shape (2,) into shape (2,3)
     """
 
     TIME: Optional[bool]
@@ -2323,8 +2353,8 @@ following error occurred: float() argument must be a string or a number...
     ...
     ValueError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `par` of element `?`, the \
-following error occurred: could not broadcast input array from shape (2) \
-into shape (3)
+following error occurred: could not broadcast input array from shape (2,) \
+into shape (3,)
 
     If you do not require seasonally varying parameter values in a specific
     situation, you can pass a single positional argument:
@@ -2348,7 +2378,7 @@ into shape (3)
 the following error occurred: While trying to convert the value(s) \
 `[ 1.  2.]` to a numpy ndarray with shape `(366, 3)` and type `float`, \
 the following error occurred: could not broadcast input array from \
-shape (2) into shape (366,3)
+shape (2,) into shape (366,3)
 
     .. testsetup::
 
@@ -2357,7 +2387,7 @@ shape (2) into shape (366,3)
 
     TYPE = float
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -2849,7 +2879,7 @@ index 1 is out of bounds for axis 0 with size 1
     NDIM = 1
     ENTRYNAMES: ClassVar[Tuple[str, ...]]
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -3063,13 +3093,13 @@ as a keyword, but the following keywords are not: `south`.
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the row related attribute `north`, the following error \
-occurred: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: could not broadcast input array from shape (3,) into shape (2,)
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the column related attribute `apr2sep`, the following error \
-occurred: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: could not broadcast input array from shape (3,) into shape (2,)
 
     >>> iswarm.shape = (1, 1)
 
@@ -3131,9 +3161,9 @@ a normal attribute nor a row or column related attribute named `wrong`.
     ROWNAMES: ClassVar[Tuple[str, ...]]
     COLNAMES: ClassVar[Tuple[str, ...]]
 
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         rownames = cls.ROWNAMES
         colnames = cls.COLNAMES
@@ -3355,7 +3385,7 @@ parameter value must be given, but is not.
     """
 
     NDIM = 1
-    strict_valuehandling: ClassVar[bool] = False
+    strict_valuehandling: bool = False
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -3550,8 +3580,8 @@ class SolverParameter(Parameter):
     >>> tol.alternative_initvalue
     Traceback (most recent call last):
     ...
-    AttributeError: No alternative initial value for solver parameter \
-`tol` of element `?` has been defined so far.
+    hydpy.core.exceptiontools.AttributeNotReady: No alternative initial value for \
+solver parameter `tol` of element `?` has been defined so far.
     >>> tol.update()
     >>> tol
     tol(0.1)
@@ -3584,6 +3614,7 @@ class SolverParameter(Parameter):
     """
 
     INIT: Union[int, float, bool]
+    _alternative_initvalue: Optional[float]
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -3600,10 +3631,10 @@ class SolverParameter(Parameter):
         See the main documentation on class |SolverParameter| for more
         information.
         """
-        try:
-            self(self.alternative_initvalue)
-        except AttributeError:
-            self(self.modify_init())
+        if self._alternative_initvalue:
+            self.value = self.alternative_initvalue
+        else:
+            self.value = self.modify_init()
 
     def modify_init(self) -> Union[bool, int, float]:
         """Return the value of class constant `INIT`.
@@ -3623,7 +3654,7 @@ class SolverParameter(Parameter):
         information.
         """
         if self._alternative_initvalue is None:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 f"No alternative initial value for solver parameter "
                 f"{objecttools.elementphrase(self)} has been defined so far."
             )

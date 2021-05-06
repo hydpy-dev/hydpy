@@ -12,6 +12,9 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland import lland_sequences
 
 
+# inflow
+
+
 class QZ(sequencetools.FluxSequence):
     """Zufluss in das Teilgebiet (inflow into the subcatchment) [m³/s]."""
 
@@ -22,6 +25,9 @@ class QZH(sequencetools.FluxSequence):
     """Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm]."""
 
     NDIM, NUMERIC = 0, False
+
+
+# meteorological input
 
 
 class TemLTag(sequencetools.FluxSequence):
@@ -64,32 +70,6 @@ class TKorTag(lland_sequences.Flux1DSequence):
     mask = lland_masks.Complete()
 
 
-class F2SIMax(lland_sequences.Flux1DSequence):
-    """ToDo: Faktor zur Berechnung der Schneeinterzeptionskapazität als
-    Funktion der Lufttemperatur [-]."""
-
-    NDIM, NUMERIC = 1, False
-
-
-class SInzpCap(lland_sequences.Flux1DSequence):
-    """Schneeinterzeptionskapazität [mm]."""
-
-    NDIM, NUMERIC = 1, False
-
-
-class F2SIRate(lland_sequences.Flux1DSequence):
-    """ToDo: Faktor zur Berechnung der Schneeinterzeptionsratet als
-    Funktion der Lufttemperatur [-]."""
-
-    NDIM, NUMERIC = 1, False
-
-
-class SInzpRate(lland_sequences.Flux1DSequence):
-    """Schneeinterzeptionsrate [mm]."""
-
-    NDIM, NUMERIC = 1, False
-
-
 class WindSpeed2m(sequencetools.FluxSequence):
     """Wind speed at a height of 2 m above the ground for grass [m/s]."""
 
@@ -127,6 +107,15 @@ class DailySaturationVapourPressure(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
+
+
+class SaturationVapourPressureInz(lland_sequences.Flux1DSequence):
+    """Sättigungsdampdruck unmittelbar oberhalb der Oberfläche des interzepierten
+    Schnees (saturation vapour pressure directly above the surface of the intercepted
+    snow) [kPa]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
 
 
 class SaturationVapourPressureSnow(lland_sequences.Flux1DSequence):
@@ -284,8 +273,20 @@ class NetShortwaveRadiation(lland_sequences.Flux1DSequence):
     mask = lland_masks.Complete()
 
 
+class NetShortwaveRadiationInz(lland_sequences.Flux1DSequence):
+    """Kurzwellige Netto-Strahlungsbilanz für den interzipierten Schnee (net shortwave
+    radiation for intercepted snow) [MJ/m²].
+
+    With positive values, the soil gains heat from radiation.  Without intercepted
+    snow, |NetShortwaveRadiationInz| is |numpy.nan|.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
 class NetShortwaveRadiationSnow(lland_sequences.Flux1DSequence):
-    """Netto kurzwellige Strahlungsbilanz für Schneeoberflächen (net shortwave
+    """Kurzwellige Netto-Strahlungsbilanz für Schneeoberflächen (net shortwave
     radiation for snow surfaces) [MJ/m²].
 
     With positive values, the soil gains heat from radiation.
@@ -308,11 +309,22 @@ class DailyNetShortwaveRadiation(lland_sequences.Flux1DSequence):
 class DailyNetLongwaveRadiation(lland_sequences.Flux1DSequence):
     """Daily net longwave radiation [MJ/m²/d].
 
-    With positive values, the soil gains heat from radiation.
+    With positive values, the soil looses heat from radiation.
     """
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
+
+
+class NetLongwaveRadiationInz(lland_sequences.Flux1DSequence):
+    """Langwellige Nettostrahlung des interzepierten Schnees (net longwave radiation
+    of the intercepted snow [MJ/m²].
+
+    With positive values, the snow-layer gains heat from radiation.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
 
 
 class NetLongwaveRadiationSnow(lland_sequences.Flux1DSequence):
@@ -333,6 +345,17 @@ class NetRadiation(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
+
+
+class NetRadiationInz(lland_sequences.Flux1DSequence):
+    """Nettostrahlung des interzepierten Schnees (total net radiation of the
+    intercepted snow [MJ/m²].
+
+    With positive values, the soil gains heat from radiation.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
 
 
 class NetRadiationSnow(lland_sequences.Flux1DSequence):
@@ -395,6 +418,109 @@ class SBes(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
+
+
+class SnowIntMax(lland_sequences.Flux1DSequence):
+    """Schneeinterzeptionsspeicherkapazität (capacity of the snow interception
+    storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class SnowIntRate(lland_sequences.Flux1DSequence):
+    """Anteil des im Schneeinterzeptionsspeicher zurückgehaltenen Niederschlags
+    (ratio between the snow interception rate and precipitation) [-]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class NBesInz(lland_sequences.Flux1DSequence):
+    """Gesamter Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht
+    (total stand precipitation reaching the snow interception storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class SBesInz(lland_sequences.Flux1DSequence):
+    """Gefrorener Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht
+    (frozen amount of stand precipitation reaching the snow interception storage)
+    [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class WNiedInz(lland_sequences.Flux1DSequence):
+    """Niederschlagsbedingter Wärmestrom in den Schneeinterzeptionsspeicher (heat flux
+    into the snow interception storage due to precipitation) [MJ/m²].
+
+    With positive values, the snow layer gains heat from precipitation.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class ActualAlbedoInz(lland_sequences.Flux1DSequence):
+    """Aktuelle Albedo der Oberfläche des interzeptierten Schnees (the current albedo
+    of the surface of the intercepted snow) [-].
+
+    If there is no intercepted snow, the value of |ActualAlbedoInz| is |numpy.nan|.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class WaDaInz(lland_sequences.Flux1DSequence):
+    """Wasserdargebot des Schneeinterzeptionsspeichers (water leaving the snow
+    interception storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class SchmPotInz(lland_sequences.Flux1DSequence):
+    """Potentielle Schmelze des interzepierten Schnees (potential amount of snow
+    melting within the snow interception storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class SchmInz(lland_sequences.Flux1DSequence):
+    """Tatsächliche Schmelze des interzepierten Schnees (actual amount of snow
+    melting within the snow cover) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class GefrPotInz(lland_sequences.Flux1DSequence):
+    """Potentielles Wiedergefrieren des interzipierten Schnees (potential amount
+    of water refreezing within the snow interception storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class GefrInz(lland_sequences.Flux1DSequence):
+    """Tatsächliche Wiedergefrieren des interzipierten Schnees (actual amount of
+    water refreezing within the snow interception storage) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
+class EvSInz(lland_sequences.Flux1DSequence):
+    """Tatsächliche Verdunstung des interzepierten Schnees (actual evaporation of
+    the intercepted snow) [mm]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
 
 
 class ET0(lland_sequences.Flux1DSequence):
@@ -510,6 +636,17 @@ class Gefr(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class WLatInz(lland_sequences.Flux1DSequence):
+    """Latente Wärmestrom interzepierter Schnee/Atmosphäre (latent heat flux between
+    the intercepted snow and the atmosphere) [MJ/m²].
+
+    With positive values, the snow-layer looses heat to the atmosphere.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
 class WLatSnow(lland_sequences.Flux1DSequence):
     """Latente Wärmestrom Schnee/Atmosphäre (latent heat flux between
     the snow-layer and the atmosphere) [MJ/m²].
@@ -521,6 +658,17 @@ class WLatSnow(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class WSensInz(lland_sequences.Flux1DSequence):
+    """Fühlbare Wärmestrom interzipierter Schnee/Atmosphäre (sensible heat flux
+    between the intercepted snow and the atmosphere) [MJ/m²].
+
+    With positive values, the snow-layer looses heat to the atmosphere.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
+
+
 class WSensSnow(lland_sequences.Flux1DSequence):
     """Fühlbare Wärmestrom Schnee/Atmosphäre (sensible heat flux between
     the snow-layer and the atmosphere) [MJ/m²].
@@ -530,6 +678,17 @@ class WSensSnow(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
+
+
+class WSurfInz(lland_sequences.Flux1DSequence):
+    """Wärmestrom vom Körper des interzepierten Schnees bis zu dessen Schneeoberfläche
+    (heat flux from the body of the intercepted snow to its surface) [MJ/m²].
+
+    With positive values, the snow-layer looses heat to the atmosphere.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Forest()
 
 
 class WSurf(lland_sequences.Flux1DSequence):

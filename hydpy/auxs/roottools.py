@@ -91,9 +91,8 @@ class Pegasus(modeltools.Submodel):
         >>> fluxes.reducedwindspeed2m = 3.0
         >>> fluxes.actualvapourpressure = 0.29
         >>> fluxes.netshortwaveradiationsnow = 1.0
-        >>> fluxes.dailysunshineduration = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
         >>> aides.temps = -2.0
+        >>> aides.rlatm = 17.581556544
 
         Method |lland_model.Return_TempSSurface_V1| finds the following
         surface temperature value:
@@ -103,8 +102,8 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.return_tempssurface_v1(0))
         -8.064938
 
-        To validate this result, we confirm that the net energy gain
-        corresponding to this surface temperature is approximately zero:
+        We confirm that the net energy gain corresponding to this surface
+        temperature is approximately zero to validate this result:
 
         >>> round_(model.return_energygainsnowsurface_v1(-8.064938))
         0.0
@@ -152,10 +151,11 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.return_energygainsnowsurface_v1(-8.06493))
         -0.000014
 
-        `x0` does not need to be smaller than `x1`:
+        `x0` does not need to be smaller than `x1`, and `xmin` does not need to be
+        smaller than `xmax` by necessity (the algorithm swaps values when necessary):
 
         >>> round_(model.pegasustempssurface.find_x(
-        ...     50.0, -50.0, -100.0, 100.0, 0.0, 1e-8, 10))
+        ...     50.0, -50.0, 100.0, -100.0, 0.0, 1e-8, 10))
         -8.064938
 
         An ill-defined initial interval might decrease efficiency but
@@ -168,16 +168,15 @@ class Pegasus(modeltools.Submodel):
         ...     -50.0, -20.0, -100.0, 100.0, 0.0, 1e-8, 10))
         -8.064938
 
-        Defining proper values for arguments `xmin` and `xmax` provides
-        a way to prevent possible program crashes.  As an example, we do
-        not care about physics and set the temperature of the snow layer
-        to -400 °C.  Now, theoretically, the surface temperature must also
-        be (unrealistically) low to prevent from a considerable energy
-        gain of the surface due to an extreme temperature gradient within
-        the snow layer. However, -100 °C is the lowest value allowed, which
-        is why method |lland_model.PegasusTempSSurface| returns this
-        boundary-value.  It is up to the model developer to handle such
-        misleading responses (if possible):
+        Defining proper values for arguments `xmin` and `xmax` provides a way to
+        prevent possible program crashes.  As an example, we do not care about
+        physics and set the snow layer's temperature to -400 °C.  Theoretically,
+        the surface temperature must also be (unrealistically) low to prevent a
+        considerable energy gain of the surface due to an extreme temperature
+        gradient within the snow layer. However, -100 °C is the lowest value allowed,
+        so method |lland_model.PegasusTempSSurface| returns this boundary-value.
+        It is up to the model developer to handle such misleading responses
+        (if possible):
 
         >>> aides.temps = -400
         >>> round_(model.pegasustempssurface.find_x(
@@ -186,9 +185,8 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.return_energygainsnowsurface_v1(-100.0))
         -44.847567
 
-        To demonstrate the functionality of the upper boundary, we set the
-        snow layer temperature to 4'000 °C (also not the most plausible
-        value, of course):
+        To demonstrate the upper boundary's functionality, we set the snow layer
+        temperature to 4'000 °C (also not the most plausible value, of course):
 
         >>> aides.temps = 4000.0
         >>> round_(model.pegasustempssurface.find_x(

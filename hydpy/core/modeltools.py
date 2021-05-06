@@ -16,6 +16,7 @@ import itertools
 import os
 import types
 from typing import *
+from typing_extensions import Final  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -47,7 +48,7 @@ class Method:
 
     __call__: Callable
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.__call__.CYTHONIZE = True
 
 
@@ -194,12 +195,12 @@ a group of masks (at the moment).
 
     element: Optional["devicetools.Element"]
     cymodel: Optional[typingtools.CyModelProtocol]
-    _name: ClassVar[Optional[str]] = None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: "masktools.Masks"
     idx_sim = Idx_Sim()
 
+    _NAME: Final[str]
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -379,7 +380,9 @@ to any sequences: in2.
         `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword
         of different node objects:
 
-        >>> from hydpy import hland_P, hland_Q0, hland_UZ, pub
+        >>> from hydpy import pub
+        >>> from hydpy.inputs import hland_P
+        >>> from hydpy.outputs import hland_Q0, hland_UZ
         >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
         >>> inp1 = Node("inp1", variable=hland_P)
@@ -412,7 +415,9 @@ to any sequences: in2.
         multiple subclasses (see the documentation on class |FusedVariable|
         for more information and a more realistic example):
 
-        >>> from hydpy import FusedVariable, lland_Nied, lland_QDGZ
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import lland_Nied
+        >>> from hydpy.outputs import lland_QDGZ
         >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
         >>> inp2 = Node("inp2", variable=Precip)
         >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
@@ -434,7 +439,7 @@ to any sequences: in2.
         Method |Model.connect| reports if one of the given fused variables
         does not find a fitting sequence:
 
-        >>> from hydpy import lland_TemL
+        >>> from hydpy.inputs import lland_TemL
         >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10",
@@ -631,12 +636,7 @@ but sequence `pc` is 1-dimensional.
         >>> hland.name
         'hland'
         """
-        name = self._name
-        if name is None:
-            substrings = self.__module__.split(".")
-            name = substrings[1] if len(substrings) == 2 else substrings[2]
-            type(self)._name = name
-        return name
+        return self._NAME
 
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
@@ -806,13 +806,14 @@ but sequence `pc` is 1-dimensional.
     def __str__(self) -> str:
         return self.name
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
 
         modulename = cls.__module__
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
         module = importlib.import_module(modulename)
         modelname = modulename.split(".")[-1]
+        cls._NAME = modelname
 
         allsequences = set()
         st = sequencetools
@@ -842,7 +843,7 @@ but sequence `pc` is 1-dimensional.
             if not hasattr(module, classname):
                 members = {
                     "CLASSES": variabletools.sort_variables(sequences),
-                    "__doc__": f"{classname[:-9]} sequences " f"of model {modelname}.",
+                    "__doc__": f"{classname[:-9]} sequences of model {modelname}.",
                     "__module__": modulename,
                 }
                 typesequence = type(classname, (typesequences,), members)
@@ -2102,18 +2103,18 @@ class ELSModel(SolverModel):
             if solversequences and not isinstance(flux, solversequences):
                 continue
             results = getattr(fluxes.fastaccess, f"_{flux.name}_results")
-            absdiff = (
+            absdiff = numpy.abs(
                 results[self.numvars.idx_method] - results[self.numvars.idx_method - 1]
             )
-            self.numvars.abserror = max(
-                self.numvars.abserror, numpy.max(numpy.abs(absdiff))
-            )
+            try:
+                maxdiff = numpy.max(absdiff)
+            except ValueError:
+                continue
+            self.numvars.abserror = max(self.numvars.abserror, maxdiff)
             if self.numvars.use_relerror:
                 idxs = results[self.numvars.idx_method] != 0.0
                 if numpy.any(idxs):
-                    reldiff = numpy.abs(
-                        absdiff[idxs] / results[self.numvars.idx_method][idxs]
-                    )
+                    reldiff = absdiff[idxs] / results[self.numvars.idx_method][idxs]
                 else:
                     reldiff = numpy.inf
                 self.numvars.relerror = max(
@@ -2222,7 +2223,7 @@ class Submodel:
     PYTHONCLASS: ClassVar[Type]
     _cysubmodel: Type
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
 
     def __init__(self, model: Model) -> None:

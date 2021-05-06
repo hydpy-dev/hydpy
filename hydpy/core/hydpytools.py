@@ -15,9 +15,12 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import printtools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
@@ -656,6 +659,12 @@ requested to make any internal data available.
             hydpy.pub.sequencemanager = filetools.SequenceManager()
             hydpy.pub.conditionmanager = filetools.ConditionManager()
 
+    nodes = propertytools.Property[
+        devicetools.NodesConstrArg,
+        devicetools.Nodes,
+    ]()
+
+    @nodes.getter
     def _get_nodes(self) -> devicetools.Nodes:
         """The currently handled |Node| objects.
 
@@ -689,14 +698,20 @@ at the moment.
             )
         return nodes
 
+    @nodes.setter
     def _set_nodes(self, values: devicetools.NodesConstrArg) -> None:
         self._nodes = devicetools.Nodes(values).copy()
 
+    @nodes.deleter
     def _del_nodes(self) -> None:
         self._nodes = None
 
-    nodes = property(_get_nodes, _set_nodes, _del_nodes)
+    elements = propertytools.Property[
+        devicetools.ElementsConstrArg,
+        devicetools.Elements,
+    ]()
 
+    @elements.getter
     def _get_elements(self) -> devicetools.Elements:
         """The currently handled |Element| objects.
 
@@ -728,18 +743,17 @@ at the moment.
         elements = self._elements
         if elements is None:
             raise AttributeError(
-                "The actual HydPy instance does not handle any "
-                "elements at the moment."
+                "The actual HydPy instance does not handle any elements at the moment."
             )
         return elements
 
+    @elements.setter
     def _set_elements(self, values: devicetools.ElementsConstrArg) -> None:
         self._elements = devicetools.Elements(values).copy()
 
+    @elements.deleter
     def _del_elements(self) -> None:
         self._elements = None
-
-    elements = property(_get_elements, _set_elements, _del_elements)
 
     def prepare_everything(self) -> None:
         """Convenience method to make the actual |HydPy| instance runnable.
@@ -1792,12 +1806,21 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.variables
         {'Q': 4}
 
-        >>> from hydpy import FusedVariable, hland_T, Node
+        >>> from hydpy import FusedVariable, Node
+        >>> from hydpy.inputs import hland_T
         >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
         >>> hp.variables
         {'Q': 4, FusedVariable("T", hland_T): 1}
         """
-        variables: Dict[str, int] = collections.defaultdict(lambda: 0)
+        variables: Dict[
+            Union[
+                str,
+                Type[sequencetools.InputSequence],
+                Type[sequencetools.OutputSequence[Any]],
+                devicetools.FusedVariable,
+            ],
+            int,
+        ] = collections.defaultdict(lambda: 0)
         for node in self.nodes:
             variables[node.variable] += 1
         return dict(
@@ -1829,8 +1852,10 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """
         modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
         for element in self.elements:
-            name = str(exceptiontools.getattr_(element, "model", "unprepared"))
-            modeltypes[name] += 1
+            model = exceptiontools.getattr_(
+                element, "model", "unprepared", modeltools.Model
+            )
+            modeltypes[str(model)] += 1
         return dict(sorted(modeltypes.items()))
 
     def open_files(self, idx: int = 0) -> None:
@@ -2025,7 +2050,7 @@ argument at the same time.
         Property |HydPy.methodorder| should be of interest for framework
         developers only.
         """
-        funcs = []
+        funcs: List[Callable[[int], None]] = []
         for node in self.nodes:
             if node.deploymode in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_simdata)
@@ -2415,6 +2440,6 @@ def create_directedgraph(
     for element in devices.elements:
         for node in itertools.chain(element.inlets, element.inputs):
             digraph.add_edge(node, element)
-        for node in element.outlets:
+        for node in itertools.chain(element.outlets, element.outputs):
             digraph.add_edge(element, node)
     return digraph

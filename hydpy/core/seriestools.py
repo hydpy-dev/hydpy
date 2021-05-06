@@ -29,7 +29,7 @@ def aggregate_series(
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
-) -> pandas.DataFrame:
+) -> "pandas.DataFrame":
     """sim and obs as arguments, daily aggregation"""
 
 
@@ -40,7 +40,7 @@ def aggregate_series(
     stepsize: Literal["monthly", "m"],
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
-) -> pandas.DataFrame:
+) -> "pandas.DataFrame":
     """sim and obs as arguments, monthly aggregation"""
 
 
@@ -51,7 +51,7 @@ def aggregate_series(
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
-) -> pandas.DataFrame:
+) -> "pandas.DataFrame":
     """Aggregate the time series on a monthly or daily basis.
 
     Often, we need some kind of aggregation before analysing deviations

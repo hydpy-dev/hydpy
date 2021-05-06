@@ -26,6 +26,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import docs
+from hydpy.docs import autofigs
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
@@ -68,12 +69,18 @@ class StdOutErr:
         self.encoding = sys.stdout.encoding
         self.texts = []
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.encoding = sys.stdout.encoding
-        sys.stdout = self
-        sys.stderr = self
+        # just for testing:
+        sys.stdout = self  # type: ignore[assignment]
+        sys.stderr = self  # type: ignore[assignment]
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback: types.TracebackType,
+    ) -> None:
         if not self.texts:
             self.print_("no failures occurred")
         else:
@@ -113,8 +120,11 @@ class Tester:
     package: str
     ispackage: bool
 
-    def __init__(self):
-        frame = inspect.currentframe().f_back
+    def __init__(self) -> None:
+        frame = inspect.currentframe()
+        assert isinstance(frame, types.FrameType)
+        frame = frame.f_back
+        assert isinstance(frame, types.FrameType)
         self.filepath = frame.f_code.co_filename
         self.package = frame.f_locals["__package__"]
         self.ispackage = os.path.split(self.filepath)[-1] == "__init__.py"
@@ -178,21 +188,21 @@ class Tester:
             if (fn.endswith(".py") and not fn.startswith("_"))
         ]
 
-    def perform_tests(self):
+    def perform_tests(self) -> None:
         """Perform all doctests either in Python or in Cython mode depending
         on the state of |Options.usecython| set in module |pub|.
 
-        Usually, |Tester.perform_tests| is triggered automatically by a
-        |Cythonizer| object assigned to the same base or application
-        model as a |Tester| object.  However, you are free to call
-        it any time when in doubt of the functionality of a particular
-        base or application model.  Doing so might change some of the
-        states of your current configuration, but only temporarily
-        (we pick the |Timegrids| object of module |pub| as an example,
-        which is changed multiple times during testing but finally
-        reset to the original value):
+        Usually, |Tester.perform_tests| is triggered automatically by a |Cythonizer|
+        object assigned to the same base or application model as a |Tester| object.
+        However, you are free to call it any time when in doubt of the functionality
+        of a particular base or application model.  Doing so might change some of the
+        states of your current configuration, but only temporarily (besides
+        "projectname" we pick the |Timegrids| object of module |pub| as an example,
+        which is changed multiple times during testing but finally reset to the
+        original value):
 
         >>> from hydpy import pub
+        >>> pub.projectname = "test"
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
         >>> from hydpy.models import hland, hland_v1
@@ -228,6 +238,8 @@ class Tester:
             * hland_v1:
                 no failures occurred
 
+        >>> pub.projectname
+        'test'
         >>> pub.timegrids
         Timegrids("2000-01-01 00:00:00",
                   "2001-01-01 00:00:00",
@@ -269,6 +281,8 @@ hydpy.models.hland.hland_control.ZoneType
             * hland_states:
                 no failures occurred
 
+        >>> pub.projectname
+        'test'
         >>> pub.timegrids
         Timegrids("2000-01-01 00:00:00",
                   "2001-01-01 00:00:00",
@@ -278,18 +292,13 @@ hydpy.models.hland.hland_control.ZoneType
         color = 34 if hydpy.pub.options.usecython else 36
         with printtools.PrintStyle(color=color, font=4):
             print(
-                "Test %s %s in %sython mode."
-                % (
-                    "package" if self.ispackage else "module",
-                    self.package if self.ispackage else self.modulenames[0],
-                    "C" if hydpy.pub.options.usecython else "P",
-                )
+                f"Test {'package' if self.ispackage else 'module'} "
+                f"{self.package if self.ispackage else self.modulenames[0]} "
+                f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
             )
         with printtools.PrintStyle(color=color, font=2):
             for name in self.modulenames:
-                print(
-                    "    * %s:" % name,
-                )
+                print(f"    * {name}:")
                 # pylint: disable=not-callable
                 # pylint does understand that all options are callable
                 # except option `printincolor`!?
@@ -314,16 +323,10 @@ hydpy.models.hland.hland_control.ZoneType
                 ), devicetools.clear_registries_temporarily():
                     # pylint: enable=not-callable
                     projectname = exceptiontools.getattr_(
-                        hydpy.pub,
-                        "projectname",
-                        None,
+                        hydpy.pub, "projectname", None, str
                     )
                     del hydpy.pub.projectname
-                    timegrids = exceptiontools.getattr_(
-                        hydpy.pub,
-                        "timegrids",
-                        None,
-                    )
+                    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
                     del hydpy.pub.timegrids
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()
@@ -337,7 +340,8 @@ hydpy.models.hland.hland_control.ZoneType
                                 optionflags=doctest.ELLIPSIS,
                             )
                     finally:
-                        hydpy.pub.projectname = projectname
+                        if projectname is not None:
+                            hydpy.pub.projectname = projectname
                         if timegrids is not None:
                             hydpy.pub.timegrids = timegrids
                         IntegrationTest.plotting_options = plotting_options
@@ -387,7 +391,7 @@ class Test:
 
     @property
     @abc.abstractmethod
-    def raw_first_col_strings(self):
+    def raw_first_col_strings(self) -> List[str]:
         """To be implemented by the subclasses of |Test|."""
 
     @staticmethod
@@ -396,12 +400,12 @@ class Test:
         """To be implemented by the subclasses of |Test|."""
 
     @property
-    def nmb_rows(self):
+    def nmb_rows(self) -> int:
         """The number of rows of the table."""
         return len(self.raw_first_col_strings) + 1
 
     @property
-    def nmb_cols(self):
+    def nmb_cols(self) -> int:
         """The number of columns in the table."""
         nmb = 1
         for parseq in self.parseqs:
@@ -409,7 +413,7 @@ class Test:
         return nmb
 
     @property
-    def raw_header_strings(self):
+    def raw_header_strings(self) -> List[str]:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
@@ -422,7 +426,7 @@ class Test:
         return strings
 
     @property
-    def raw_body_strings(self):
+    def raw_body_strings(self) -> List[List[str]]:
         """All raw strings for the body of the table."""
         strings = []
         for (idx, first_string) in enumerate(self.raw_first_col_strings):
@@ -431,20 +435,22 @@ class Test:
                 array = self.get_output_array(parseq)
                 if parseq.NDIM == 0:
                     strings[-1].append(objecttools.repr_(array[idx]))
+                elif len(parseq) == 0:
+                    strings[-1].append("-")
                 else:
                     strings[-1].extend(objecttools.repr_(value) for value in array[idx])
         return strings
 
     @property
-    def raw_strings(self):
+    def raw_strings(self) -> List[List[str]]:
         """All raw strings for the complete table."""
         return [self.raw_header_strings] + self.raw_body_strings
 
     @property
-    def col_widths(self):
+    def col_widths(self) -> List[int]:
         """The widths of all columns of the table."""
         strings = self.raw_strings
-        widths = []
+        widths: List[int] = []
         for jdx in range(self.nmb_cols):
             widths.append(0)
             for idx in range(self.nmb_rows):
@@ -452,7 +458,7 @@ class Test:
         return widths
 
     @property
-    def col_separators(self):
+    def col_separators(self) -> List[str]:
         """The separators for adjacent columns."""
         seps = ["| "]
         for parseq in self.parseqs:
@@ -463,12 +469,16 @@ class Test:
         return seps
 
     @property
-    def row_nmb_characters(self):
+    def row_nmb_characters(self) -> int:
         """The number of characters of a single row of the table."""
         return sum(self.col_widths) + sum((len(sep) for sep in self.col_separators))
 
     @staticmethod
-    def _interleave(separators, strings, widths):
+    def _interleave(
+        separators: Sequence[str],
+        strings: Iterable[str],
+        widths: Iterable[int],
+    ) -> str:
         """Generate a table line from the given arguments."""
         lst = [
             value
@@ -478,7 +488,11 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(self, idx1=None, idx2=None) -> str:
+    def make_table(
+        self,
+        idx1: Optional[int] = None,
+        idx2: Optional[int] = None,
+    ) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -501,7 +515,11 @@ class Test:
             )
         return "\n".join(lines)
 
-    def print_table(self, idx1=None, idx2=None):
+    def print_table(
+        self,
+        idx1: Optional[int] = None,
+        idx2: Optional[int] = None,
+    ) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
 
@@ -509,13 +527,18 @@ class Test:
 class PlottingOptions:
     """Plotting options of class |IntegrationTest|."""
 
-    def __init__(self):
+    width: int
+    height: int
+    axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
+    axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
+
+    def __init__(self) -> None:
         self.width = 600
         self.height = 300
         self.selected = None
         self.activated = None
-        self.axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None
-        self.axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None
+        self.axis1 = None
+        self.axis2 = None
 
 
 class IntegrationTest(Test):
@@ -536,7 +559,12 @@ class IntegrationTest(Test):
 
     plotting_options = PlottingOptions()
 
-    def __init__(self, element, seqs=None, inits=None):
+    def __init__(
+        self,
+        element: devicetools.Element,
+        seqs=None,
+        inits=None,
+    ) -> None:
         """Prepare the element and its nodes and put them into a HydPy object
         and make their sequences ready for use for integration testing."""
         del self.inits
@@ -785,11 +813,11 @@ datetime of the Python standard library for for further information.
             * axis2: sequences to be shown initially on the second axis.
         """
 
-        def _update_act_names(sequence_) -> None:
+        def _update_act_names(sequence_, name_) -> None:
             if isinstance(sequence_, act_types1):
-                act_names1.append(name)
+                act_names1.append(name_)
             if isinstance(sequence_, act_types2):
-                act_names2.append(name)
+                act_names2.append(name_)
 
         if not filename.endswith(".html"):
             filename += ".html"
@@ -820,24 +848,24 @@ datetime of the Python standard library for for further information.
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series))
-                _update_act_names(sequence)
+                _update_act_names(sequence, name)
             elif sequence.shape[0] == 1:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series[:, 0]))
-                _update_act_names(sequence)
+                _update_act_names(sequence, name)
             else:
                 for idx in range(sequence.shape[0]):
                     subname = f"{name}_{idx+1}"
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
                     sel_series.append(list(sequence.series[:, idx]))
-                    _update_act_names(sequence)
+                    _update_act_names(sequence, subname)
 
         fig = subplots.make_subplots(
             rows=1,
             cols=1,
-            specs=[[{"secondary_y": True}]],
+            specs=[[dict(secondary_y=True)]],
         )
         fig.update_xaxes(
             showgrid=False,
@@ -891,62 +919,51 @@ datetime of the Python standard library for for further information.
             ["add all to y-axis 2", [False, True]],
         ):
             subbuttons = [
-                {
-                    "label": label,
-                    "method": "restyle",
-                    "args": [
-                        {
-                            "visible": len(sel_sequences) * visibles,
-                        }
-                    ],
-                }
+                dict(
+                    label=label,
+                    method="restyle",
+                    args=[dict(visible=len(sel_sequences) * visibles)],
+                )
             ]
             for idx, name in enumerate(sel_names):
                 subbuttons.append(
-                    {
-                        "label": name,
-                        "method": "restyle",
-                        "args": [
-                            {
-                                "visible": visibles,
-                            },
-                            [2 * idx, 2 * idx + 1],
-                        ],
-                    }
+                    dict(
+                        label=name,
+                        method="restyle",
+                        args=[dict(visible=visibles), [2 * idx, 2 * idx + 1]],
+                    )
                 )
             buttons.append(subbuttons)
 
         fig.update_layout(
             hovermode="x unified",
             updatemenus=[
-                {
-                    "active": 0,
-                    "xanchor": "left",
-                    "x": 0.0,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[0],
-                },
-                {
-                    "active": 0,
-                    "xanchor": "center",
-                    "x": 0.5,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[1],
-                },
-                {
-                    "active": 0,
-                    "xanchor": "right",
-                    "x": 1.0,
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "buttons": buttons[2],
-                },
+                dict(
+                    active=0,
+                    xanchor="left",
+                    x=0.0,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[0],
+                ),
+                dict(
+                    active=0,
+                    xanchor="center",
+                    x=0.5,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[1],
+                ),
+                dict(
+                    active=0,
+                    xanchor="right",
+                    x=1.0,
+                    yanchor="bottom",
+                    y=1.02,
+                    buttons=buttons[2],
+                ),
             ],
-            legend={
-                "tracegroupgap": 100,
-            },
+            legend=dict(tracegroupgap=100),
         )
 
         docspath = docs.__path__[0]  # type: ignore[attr-defined, name-defined]
@@ -1592,7 +1609,7 @@ def update_integrationtests(
         resultfile.write(docstring)
 
 
-def _enumerate(variables: Iterable[variabletools.Variable]) -> str:
+def _enumerate(variables: Iterable[Type[typingtools.VariableProtocol]]) -> str:
     return objecttools.enumeration(
         v.__name__ for v in variabletools.sort_variables(variables)
     )
@@ -1846,22 +1863,26 @@ def check_selectedvariables(
     # search for variables that are used in the source code but not
     # among the selected variables:
     source = inspect.getsource(method.__call__)
-    vars_source = set()
-    unbound_vars = inspect.getclosurevars(method.__call__).unbound
-    for var, prefix in itertools.product(unbound_vars, prefixes):
-        if f"{prefix}.{var}" in source:
-            if var.startswith("len_"):
-                var = var[4:]
-            vars_source.add(var)
-    vars_selected = set()
+    varnames_source: Set[str] = set()
+    unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
+    for varname, prefix in itertools.product(unbound_vars, prefixes):
+        if f"{prefix}.{varname}" in source:
+            if varname.startswith("len_"):
+                varname = varname[4:]
+            varnames_source.add(varname)
+    varnames_selected: Set[str] = set()
     for group in groups:
-        vars_selected.update(g.__name__.lower() for g in getattr(method, group))
-    diff = vars_source - vars_selected
-    if diff:
-        results.append(f"{blanks}Definitely missing: {objecttools.enumeration(diff)}")
+        varnames_selected.update(g.__name__.lower() for g in getattr(method, group))
+    varnames_diff: List[str] = sorted(varnames_source - varnames_selected)
+    if varnames_diff:
+        results.append(
+            f"{blanks}Definitely missing: {objecttools.enumeration(varnames_diff)}"
+        )
 
     # search for variables selected by at least one submethod
     # but not by the method calling these submethods:
+    vars_method: Set[Type[typingtools.VariableProtocol]]
+    vars_submethods: Set[Type[typingtools.VariableProtocol]]
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
@@ -1882,26 +1903,32 @@ def check_selectedvariables(
 
     # search for selected variables that are neither used within the
     # source code nor selected by any submethod:
-    group2vars_method = {g: set(getattr(method, g)) for g in groups}
-    group2vars_submethods = {g: set() for g in groups}
+    group2vars_method: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+        g: set(getattr(method, g)) for g in groups
+    }
+    group2vars_submethods: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+        g: set() for g in groups
+    }
     for submethod in method.SUBMETHODS:
         for group, vars_submethods in group2vars_submethods.items():
             vars_submethods.update(getattr(submethod, group))
     for group, vars_method in group2vars_method.items():
         vars_submethods = group2vars_submethods[group]
-        diff = [
+        diff_ = [
             method
             for method in vars_method - vars_submethods
-            if method.__name__.lower() not in vars_source
+            if method.__name__.lower() not in varnames_source
         ]
-        if diff:
+        if diff_:
             results.append(
                 f"{blanks}Possibly erroneously selected ({group}): "
-                f"{_enumerate(diff)}"
+                f"{_enumerate(diff_)}"
             )
 
     # search for variables that are selected multiple times:
-    dupl = set()
+    vars1: Tuple[Type[typingtools.VariableProtocol], ...]
+    vars2: Tuple[Type[typingtools.VariableProtocol], ...]
+    dupl: Set[Type[typingtools.VariableProtocol]] = set()
     for group1 in groups:
         vars1 = getattr(method, group1)
         for var in vars1:
@@ -1985,3 +2012,21 @@ not among the result sequences of any of its predecessors: DryAirPressure
             results.append(f"{blanks}Potential consistency problems between methods:")
             results.append(subresult)
     return "\n".join(results)
+
+
+def save_autofig(
+    filename: str,
+    figure: Optional["pyplot.Figure"] = None,
+) -> None:
+    """Save a figure automatically generated during testing in the special `autofig`
+    sub-package so that Sphinx can include it into the documentation later.
+
+    When passing no figure, function |save_autofig| takes the currently active one.
+    """
+    filepath = f"{autofigs.__path__[0]}/{filename}"  # type: ignore[attr-defined]
+    if figure:
+        figure.savefig(filepath)
+        figure.clear()
+    else:
+        pyplot.savefig(filepath)
+        pyplot.close()

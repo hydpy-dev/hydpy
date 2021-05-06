@@ -83,7 +83,6 @@ no inlet node provides data, the outlet nodes receive |numpy.nan| values:
 | 2000-01-02 | nan  2.0     nan | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
 | 2000-01-03 | nan  nan     nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
 
-
 We can restrict the number of considered inlet nodes via parameter
 |MaxNmbInputs|, which can increase computation speed.  However, do not
 set to low values. Otherwise, you might deteriorate accuracy severely or
@@ -109,7 +108,7 @@ class Model(conv_model.Model):
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (conv_model.Calc_Outputs_V2,)
-    ADD_METHODS = ()
+    ADD_METHODS = (conv_model.Interpolate_InverseDistance_V1,)
     OUTLET_METHODS = (conv_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELS = ()

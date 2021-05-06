@@ -23,7 +23,9 @@ from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.cythons.autogen import annutils
+
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -33,43 +35,46 @@ else:
 
 class _ANNArrayProperty(
     propertytools.DependentProperty[
-        numpy.ndarray,
-        numpy.ndarray,
-    ]
+        propertytools.InputType,
+        propertytools.OutputType,
+    ],
 ):
 
-    __obj2cann = weakref.WeakKeyDictionary()
+    _obj2cann: Dict[Any, annutils.ANN] = weakref.WeakKeyDictionary()
 
-    def __init__(self, protected, doc):
-        super().__init__(protected=protected)
-        self.fget = self.__fget
-        self.fset = self.__fset
-        self.fdel = self.__fdel
+    def __init__(
+        self,
+        protected: propertytools.ProtectedProperties,
+        doc: str,
+    ) -> None:
+        super().__init__(
+            protected=protected,
+            fget=self._fget,
+            fset=self._fset,
+            fdel=self._fdel,
+        )
         self.set_doc(doc)
 
     @classmethod
-    def add_cann(cls, obj, cann):
+    def add_cann(cls, obj: Any, cann: annutils.ANN) -> None:
         """Log the given Cython based ANN for the given object."""
-        cls.__obj2cann[obj] = cann
+        cls._obj2cann[obj] = cann
 
     @property
-    def __shape(self):
-        return "shape_%s" % self.name
+    def _shape(self) -> str:
+        return f"shape_{self.name}"
 
-    def __get_array(self, obj):
-        cann = self.__obj2cann[obj]
+    def _fget(self, obj: "ANN") -> propertytools.OutputType:
+        cann = self._obj2cann[obj]
         return numpy.asarray(getattr(cann, self.name))
 
-    def __fget(self, obj):
-        return self.__get_array(obj)
-
-    def __fset(self, obj, value):
+    def _fset(self, obj: "ANN", value: Optional[propertytools.InputType]) -> None:
         if value is None:
             self.fdel(obj)
         else:
             try:
-                cann = self.__obj2cann[obj]
-                shape = getattr(obj, self.__shape)
+                cann = self._obj2cann[obj]
+                shape = getattr(obj, self._shape)
                 if self.name == "activation":
                     array = numpy.full(shape, value, dtype=int)
                 else:
@@ -78,17 +83,16 @@ class _ANNArrayProperty(
             except BaseException:
                 descr = " ".join(reversed(self.name.split("_")))
                 objecttools.augment_excmessage(
-                    "While trying to set the %s of the "
-                    "artificial neural network %s"
-                    % (descr, objecttools.elementphrase(obj))
+                    f"While trying to set the {descr} of the artificial "
+                    f"neural network {objecttools.elementphrase(obj)}"
                 )
 
-    def __fdel(self, obj):
-        cann = self.__obj2cann[obj]
+    def _fdel(self, obj: "ANN") -> None:
+        cann = self._obj2cann[obj]
         if self.name == "activation":
-            array = numpy.ones(getattr(obj, self.__shape), dtype=int)
+            array = numpy.ones(getattr(obj, self._shape), dtype=int)
         else:
-            array = numpy.zeros(getattr(obj, self.__shape), dtype=float)
+            array = numpy.zeros(getattr(obj, self._shape), dtype=float)
         setattr(cann, self.name, array)
 
 
@@ -97,14 +101,15 @@ class BaseANN:
 
     XLABEL: str
     YLABEL: str
+    name: str
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
         subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
         variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
 
-    def _update_labels(self):
+    def _update_labels(self) -> None:
         xlabel = getattr(self, "XLABEL", None)
         if xlabel:
             pyplot.xlabel(xlabel)
@@ -114,7 +119,6 @@ class BaseANN:
 
 
 class ANN(BaseANN):
-    # noinspection PyTypeChecker,PyUnresolvedReferences
     """Multi-layer feed-forward artificial neural network.
 
     By default, class |anntools.ANN| uses the logistic function
@@ -168,10 +172,8 @@ class ANN(BaseANN):
     or to save it to disk (or print it to the screen, in case the
     interactive mode of `matplotlib` is disabled):
 
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + "/ANN_plot.png")
-    >>> pyplot.close()
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("ANN_plot.png")
 
     .. image:: ANN_plot.png
 
@@ -432,11 +434,99 @@ class ANN(BaseANN):
     hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_layers` \
 of object `ann` is not usable so far.  At least, you have to prepare \
 attribute `nmb_inputs` first.
+
+    You can compare |anntools.ANN| objects for equality.  The following exhaustive
+    tests ensure that one |anntools.ANN| is only considered equal with another
+    |anntools.ANN| object with the same network shape and parameter values:
+
+    >>> ann == ann
+    True
+
+    >>> ann == 1
+    False
+
+    >>> ann2 = ANN(None)
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=1,
+    ...      weights_input=[[10.0, 5.0],
+    ...                     [10.0, 5.0]],
+    ...      weights_hidden=[[[10.0],
+    ...                       [-10.0]]],
+    ...      weights_output=[[1.0]],
+    ...      intercepts_hidden=[[-7.5, -7.5],
+    ...                         [-7.5, nan]],
+    ...      intercepts_output=[0.0])
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_input[0, 0] = nan
+    >>> ann == ann2
+    False
+    >>> ann2.weights_input[0, 0] = 10.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_hidden[0, 1, 0] = 5.0
+    >>> ann == ann2
+    False
+    >>> ann2.weights_hidden[0, 1, 0] = -10.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.weights_output[0, 0] = 2.0
+    >>> ann == ann2
+    False
+    >>> ann2.weights_output[0, 0] = 1.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.intercepts_hidden[1, 0] = nan
+    >>> ann == ann2
+    False
+    >>> ann2.intercepts_hidden[1, 0] = -7.5
+    >>> ann == ann2
+    True
+
+    >>> ann2.intercepts_output[0] = 0.1
+    >>> ann == ann2
+    False
+    >>> ann2.intercepts_output[0] = 0.0
+    >>> ann == ann2
+    True
+
+    >>> ann2.activation[0, 0] = 0
+    >>> ann == ann2
+    False
+    >>> ann2.activation[0, 0] = 1
+    >>> ann == ann2
+    True
+
+    >>> ann2(nmb_inputs=1,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=1)
+    >>> ann == ann2
+    False
+
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(1, 1),
+    ...      nmb_outputs=1)
+    >>> ann == ann2
+    False
+
+    >>> ann2(nmb_inputs=2,
+    ...      nmb_neurons=(2, 1),
+    ...      nmb_outputs=2)
+    >>> ann == ann2
+    False
     """
+
     NDIM = 0
     TYPE = "annutils.ANN"
     TIME = None
     SPAN = (None, None)
+
+    __max_nmb_neurons: Optional[int]
 
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
@@ -454,15 +544,16 @@ attribute `nmb_inputs` first.
 
     def __call__(
         self,
-        nmb_inputs=1,
-        nmb_neurons=(1,),
-        nmb_outputs=1,
-        weights_input=None,
-        weights_output=None,
+        *,
+        nmb_inputs: int = 1,
+        nmb_neurons: Tuple[int, ...] = (1,),
+        nmb_outputs: int = 1,
+        weights_input: Optional[MatrixInput[float]] = None,
+        weights_output: Optional[MatrixInput[float]] = None,
         weights_hidden=None,
-        intercepts_hidden=None,
-        intercepts_output=None,
-        activation=None,
+        intercepts_hidden: Optional[MatrixInput[float]] = None,
+        intercepts_output: Optional[VectorInput[float]] = None,
+        activation: Optional[MatrixInput[int]] = None,
     ) -> None:
         self.nmb_inputs = nmb_inputs
         self.nmb_outputs = nmb_outputs
@@ -493,9 +584,7 @@ attribute `nmb_inputs` first.
             del self.neurons
             del self.neuron_derivatives
 
-    @propertytools.ProtectedProperty
-    def nmb_inputs(self) -> int:  # pylint: disable=method-hidden
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    def _get_nmb_inputs(self) -> int:  # pylint: disable=method-hidden
         """The number of input nodes.
 
         >>> from hydpy import ANN
@@ -509,18 +598,22 @@ attribute `nmb_inputs` first.
         """
         return self._cann.nmb_inputs
 
-    @nmb_inputs.setter
-    def nmb_inputs(self, value) -> None:
+    def _set_nmb_inputs(self, value: int) -> None:
         self._cann.nmb_inputs = int(value)
         self.__update_shapes()
 
-    @nmb_inputs.deleter
-    def nmb_inputs(self) -> None:
+    def _del_nmb_inputs(self) -> None:
         pass
 
-    @propertytools.ProtectedProperty
-    def nmb_outputs(self) -> int:  # pylint: disable=method-hidden
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    nmb_inputs = propertytools.ProtectedProperty[int, int](
+        fget=_get_nmb_inputs,
+        fset=_set_nmb_inputs,
+        fdel=_del_nmb_inputs,
+    )
+    nmb_inputs: int  # type: ignore[no-redef]
+    # to improve PyCharm code completion; required until PyCharm is fixed
+
+    def _get_nmb_outputs(self) -> int:
         """The number of output nodes.
 
         >>> from hydpy import ANN
@@ -540,19 +633,22 @@ of object `ann` has not been prepared so far.
         """
         return self._cann.nmb_outputs
 
-    @nmb_outputs.setter
-    def nmb_outputs(self, value) -> None:
-        # pylint: disable=missing-docstring
+    def _set_nmb_outputs(self, value: int) -> None:
         self._cann.nmb_outputs = int(value)
         self.__update_shapes()
 
-    @nmb_outputs.deleter
-    def nmb_outputs(self) -> None:
+    def _del_nmb_outputs(self) -> None:
         pass
 
-    @propertytools.ProtectedProperty
-    def nmb_neurons(self) -> Tuple[int, ...]:  # pylint: disable=method-hidden
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    nmb_outputs = propertytools.ProtectedProperty[int, int](
+        fget=_get_nmb_outputs,
+        fset=_set_nmb_outputs,
+        fdel=_del_nmb_outputs,
+    )
+    nmb_outputs: int  # type: ignore[no-redef]
+    # to improve PyCharm code completion; required until PyCharm is fixed
+
+    def _get_nmb_neurons(self) -> Tuple[int, ...]:  # pylint: disable=method-hidden
         """The number of neurons of the hidden layers.
 
         >>> from hydpy import ANN
@@ -572,26 +668,30 @@ of object `ann` has not been prepared so far.
         """
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
-    @nmb_neurons.setter
-    def nmb_neurons(self, value) -> None:
-        # pylint: disable=missing-docstring
+    def _set_nmb_neurons(self, value: Tuple[int, ...]) -> None:
         self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
         self._cann.nmb_layers = len(value)
         self.__max_nmb_neurons = max(value)
         self.__update_shapes()
 
-    @nmb_neurons.deleter
-    def nmb_neurons(self) -> None:
+    def _del_nmb_neurons(self) -> None:
         pass
 
-    # noinspection PyTypeChecker
+    nmb_neurons = propertytools.ProtectedProperty[Tuple[int, ...], Tuple[int, ...]](
+        fget=_get_nmb_neurons,
+        fset=_set_nmb_neurons,
+        fdel=_del_nmb_neurons,
+    )
+
+    nmb_neurons: Tuple[int, ...]  # type: ignore[no-redef]
+    # to improve PyCharm code completion; required until PyCharm is fixed
+
     __protectedproperties = propertytools.ProtectedProperties(
         nmb_inputs, nmb_outputs, nmb_neurons
     )
 
     @property
     def nmb_weights_input(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of input weights.
 
         >>> from hydpy import ANN
@@ -604,7 +704,6 @@ of object `ann` has not been prepared so far.
 
     @property
     def shape_weights_input(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the input weights.
 
         The first integer value is the number of input nodes; the second
@@ -618,7 +717,7 @@ of object `ann` has not been prepared so far.
         """
         return self.nmb_inputs, self.nmb_neurons[0]
 
-    weights_input = _ANNArrayProperty(
+    weights_input = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
         protected=__protectedproperties,
         doc="""The weights between all input nodes and neurons of the first 
         hidden layer.
@@ -693,7 +792,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_weights_output(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the output weights.
 
         The first integer value is the number of neurons of the first hidden
@@ -709,7 +807,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_weights_output(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of output weights.
 
         >>> from hydpy import ANN
@@ -720,7 +817,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_neurons[-1] * self.nmb_outputs
 
-    weights_output = _ANNArrayProperty(
+    weights_output = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
         protected=__protectedproperties,
         doc="""The weights between all neurons of the last hidden layer and 
         the output nodes.
@@ -732,7 +829,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_weights_hidden(self) -> Tuple[int, int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the activation of the hidden
         neurons.
 
@@ -760,7 +856,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_weights_hidden(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of hidden weights.
 
         >>> from hydpy import ANN
@@ -785,7 +880,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_intercepts_hidden(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the intercepts of neurons of
         the hidden layers.
 
@@ -806,7 +900,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """The number of input intercepts."""
         return sum(self.nmb_neurons)
 
-    intercepts_hidden = _ANNArrayProperty(
+    intercepts_hidden = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
         protected=__protectedproperties,
         doc="""The intercepts of all neurons of the hidden layers.
 
@@ -818,7 +912,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_intercepts_output(self) -> Tuple[int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the intercepts of neurons of
         the hidden layers.
 
@@ -834,7 +927,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_intercepts_output(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of output intercepts.
 
         >>> from hydpy import ANN
@@ -845,7 +937,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_outputs
 
-    intercepts_output = _ANNArrayProperty(
+    intercepts_output = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](
         protected=__protectedproperties,
         doc="""The intercepts of all output nodes.
 
@@ -857,7 +949,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_activation(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array defining the activation function for each
         neuron of the hidden layers.
 
@@ -873,7 +964,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    activation = _ANNArrayProperty(
+    activation = _ANNArrayProperty[Optional[MatrixInput[int]], Matrix[int]](
         protected=__protectedproperties,
         doc="""Indices for selecting suitable activation functions for the
         neurons of the hidden layers.
@@ -1033,7 +1124,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_inputs(self) -> Tuple[int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the input values.
 
         The only integer value is the number of input nodes:
@@ -1046,7 +1136,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_inputs,)
 
-    inputs = _ANNArrayProperty(
+    inputs = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](
         protected=__protectedproperties,
         doc="""The values of the input nodes.
 
@@ -1057,7 +1147,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_outputs(self) -> Tuple[int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the output values.
 
         The only integer value is the number of output nodes:
@@ -1070,7 +1159,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_outputs,)
 
-    outputs = _ANNArrayProperty(
+    outputs = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](
         protected=__protectedproperties,
         doc="""The values of the output nodes.
 
@@ -1081,7 +1170,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_output_derivatives(self) -> Tuple[int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The shape of the array containing the output derivatives.
 
         The only integer value is the number of output nodes:
@@ -1094,7 +1182,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_outputs,)
 
-    output_derivatives = _ANNArrayProperty(
+    output_derivatives = _ANNArrayProperty[Optional[Vector[float]], Vector[float]](
         protected=__protectedproperties,
         doc="""The derivatives of the output nodes.
 
@@ -1104,11 +1192,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """,
     )
 
-    nmb_layers = propertytools.DependentProperty(protected=__protectedproperties)
-
-    @nmb_layers.getter
-    def nmb_layers(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    def _get_nmb_layers(self) -> int:
         """The number of hidden layers.
 
         >>> from hydpy import ANN
@@ -1119,11 +1203,12 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self._cann.nmb_layers
 
-    shape_neurons = propertytools.DependentProperty(protected=__protectedproperties)
+    nmb_layers = propertytools.DependentProperty[int, int](
+        protected=__protectedproperties,
+        fget=_get_nmb_layers,
+    )
 
-    @shape_neurons.getter
-    def shape_neurons(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    def _get_shape_neurons(self) -> Tuple[int, int]:
         """The shape of the array containing the activities of the neurons
         of the hidden layers.
 
@@ -1139,7 +1224,12 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    neurons = _ANNArrayProperty(
+    shape_neurons = propertytools.DependentProperty[Tuple[int, int], Tuple[int, int]](
+        protected=__protectedproperties,
+        fget=_get_shape_neurons,
+    )
+
+    neurons = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
         protected=__protectedproperties,
         doc="""The derivatives of the activation of the neurons of the 
         hidden layers.
@@ -1149,13 +1239,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """,
     )
 
-    shape_neuron_derivatives = propertytools.DependentProperty(
-        protected=__protectedproperties
-    )
-
-    @shape_neuron_derivatives.getter
-    def shape_neuron_derivatives(self) -> Tuple[int, int]:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    def _get_shape_neuron_derivatives(self) -> Tuple[int, int]:
         """The shape of the array containing the derivatives of the activities
         of the neurons of the hidden layers.
 
@@ -1171,7 +1255,14 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    neuron_derivatives = _ANNArrayProperty(
+    shape_neuron_derivatives = propertytools.DependentProperty[
+        Tuple[int, int], Tuple[int, int]
+    ](
+        protected=__protectedproperties,
+        fget=_get_shape_neuron_derivatives,
+    )
+
+    neuron_derivatives = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
         protected=__protectedproperties,
         doc="""The derivatives of the activation of the neurons of the 
         hidden layers.
@@ -1200,7 +1291,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_weights(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of all input, inner, and output weights.
 
         >>> from hydpy import ANN
@@ -1215,7 +1305,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_intercepts(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The number of all inner and output intercepts.
 
         >>> from hydpy import ANN
@@ -1228,7 +1317,6 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_parameters(self) -> int:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """The sum of |anntools.ANN.nmb_weights| and
         |anntools.ANN.nmb_intercepts|.
 
@@ -1241,7 +1329,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_weights + self.nmb_intercepts
 
     def verify(self) -> None:
-        # noinspection PyTypeChecker
         """Raise a |RuntimeError| if the network's shape is not defined
         completely.
 
@@ -1254,9 +1341,8 @@ parameter `ann` of element `?` has not been defined so far.
         """
         if not self.__protectedproperties.allready(self):
             raise RuntimeError(
-                "The shape of the the artificial neural network "
-                "parameter %s has not been defined so far."
-                % objecttools.elementphrase(self)
+                f"The shape of the the artificial neural network parameter "
+                f"{objecttools.elementphrase(self)} has not been defined so far."
             )
 
     def assignrepr(self, prefix, indent=0) -> str:
@@ -1304,10 +1390,10 @@ parameter `ann` of element `?` has not been defined so far.
                 objecttools.assignrepr_list2(self.activation, f"{blanks}activation=")
                 + ","
             )
-        lines.append(f"{indent*' '})")
+        lines.append(f'{indent*" "})')
         return "\n".join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr(prefix="")
 
     def plot(
@@ -1317,7 +1403,7 @@ parameter `ann` of element `?` has not been defined so far.
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
-        **kwargs,
+        **kwargs: Optional[Union[float, str]],
     ) -> None:
         """Plot the relationship between a particular input (`idx_input`)
         and a particular output (`idx_output`) variable described by the
@@ -1340,8 +1426,46 @@ parameter `ann` of element `?` has not been defined so far.
         pyplot.plot(xs_, ys_, **kwargs)
         self._update_labels()
 
+    def __hash__(self) -> int:
+        return id(self)
 
-def ann(**kwargs) -> ANN:
+    def __eq__(self, other: object) -> bool:
+        def _equal_array(
+            x: Union[Vector[float], Matrix[int], Matrix[float]],
+            y: Union[Vector[float], Matrix[int], Matrix[float]],
+        ) -> bool:
+            idxs = ~(numpy.isnan(x) * numpy.isnan(y))
+            return bool(numpy.all(x[idxs] == y[idxs]))
+
+        if id(self) == id(other):
+            return True
+        if isinstance(other, ANN):
+            return (
+                self.shape_inputs == other.shape_inputs
+                and self.shape_neurons == other.shape_neurons
+                and self.shape_outputs == other.shape_outputs
+                and _equal_array(self.weights_input[:], other.weights_input[:])
+                and _equal_array(self.weights_hidden, other.weights_hidden)
+                and _equal_array(self.weights_output, other.weights_output)
+                and _equal_array(self.intercepts_hidden, other.intercepts_hidden)
+                and _equal_array(self.intercepts_output, other.intercepts_output)
+                and _equal_array(self.activation, other.activation)
+            )
+        return NotImplemented
+
+
+def ann(
+    *,
+    nmb_inputs: int = 1,
+    nmb_neurons: Tuple[int, ...] = (1,),
+    nmb_outputs: int = 1,
+    weights_input: Optional[MatrixInput[float]] = None,
+    weights_output: Optional[MatrixInput[float]] = None,
+    weights_hidden=None,
+    intercepts_hidden: Optional[MatrixInput[float]] = None,
+    intercepts_output: Optional[VectorInput[float]] = None,
+    activation: Optional[MatrixInput[int]] = None,
+) -> ANN:
     """Return a new stand-alone |anntools.ANN| object with the given parameter
     values.
 
@@ -1382,12 +1506,21 @@ def ann(**kwargs) -> ANN:
     False
     """
     new_ann = ANN(None)
-    new_ann(**kwargs)
+    new_ann(
+        nmb_inputs=nmb_inputs,
+        nmb_neurons=nmb_neurons,
+        nmb_outputs=nmb_outputs,
+        weights_input=weights_input,
+        weights_output=weights_output,
+        weights_hidden=weights_hidden,
+        intercepts_hidden=intercepts_hidden,
+        intercepts_output=intercepts_output,
+        activation=activation,
+    )
     return new_ann
 
 
 class SeasonalANN(BaseANN):
-    # noinspection PyTypeChecker,PyUnresolvedReferences
     """Handles relationships described by artificial neural networks that
     vary within an annual cycle.
 
@@ -1452,10 +1585,8 @@ class SeasonalANN(BaseANN):
     or to save it to disk (or print it to the screen, in case the
     interactive mode of `matplotlib` is disabled):
 
-    >>> from matplotlib import pyplot
-    >>> from hydpy.docs import figs
-    >>> pyplot.savefig(figs.__path__[0] + "/SeasonalANN_plot.png")
-    >>> pyplot.close()
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("SeasonalANN_plot.png")
 
     .. image:: SeasonalANN_plot.png
 
@@ -1754,10 +1885,16 @@ been given, but a value of type `ANN` is required.
     ...
     AttributeError: 'SeasonalANN' object has no attribute 'temp'
     """
+
     NDIM = 0
     TYPE = "annutils.SeasonalANN"
     TIME = None
     SPAN = (None, None)
+
+    subvars: parametertools.SubParameters
+    subpars: parametertools.SubParameters
+    fastaccess: parametertools.FastAccessParameter
+    __sann: Optional[annutils.SeasonalANN]
 
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
@@ -1767,38 +1904,41 @@ been given, but a value of type `ANN` is required.
         self.__sann = None
         self._do_refresh = True
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, __ann: ANN) -> None:
+        ...
+
+    @overload
+    def __call__(self, **anns: ANN) -> None:
+        ...
+
+    def __call__(self, *ann_: ANN, **anns: ANN) -> None:
         self._toy2ann.clear()
         self._do_refresh = False
         try:
-            if (len(args) > 1) or (args and kwargs):
+            if (len(ann_) > 1) or (ann_ and anns):
                 raise ValueError(
-                    "Type `%s` accepts either a single positional argument or "
-                    "an arbitrary number of keyword arguments, but for the "
-                    "corresponding parameter of element `%s` %d positional "
-                    "and %d keyword arguments have been given."
-                    % (
-                        type(self).__name__,
-                        objecttools.devicename(self),
-                        len(args),
-                        len(kwargs),
-                    )
+                    f"Type `{type(self).__name__}` accepts either a single "
+                    f"positional argument or an arbitrary number of keyword "
+                    f"arguments, but for the corresponding parameter of element "
+                    f"`{objecttools.devicename(self)}` {len(ann_)} positional "
+                    f"and {len(anns)} keyword arguments have been given."
                 )
-            if args:
-                kwargs["_1"] = args[0]
-            for (toystr, value) in kwargs.items():
+            if ann_:
+                anns["_1"] = ann_[0]
+            for (toystr, value) in anns.items():
                 if not isinstance(value, ANN):
                     raise TypeError(
-                        "Type `%s` is not (a subclass of) type `ANN`."
-                        % type(value).__name__
+                        f"Type `{type(value).__name__}` is not "
+                        f"(a subclass of) type `ANN`."
                     )
                 try:
                     setattr(self, str(timetools.TOY(toystr)), value)
                 except BaseException:
                     objecttools.augment_excmessage(
-                        "While trying to add a season specific neural "
-                        "network to parameter `%s` of element `%s`"
-                        % (self.name, objecttools.devicename(self))
+                        f"While trying to add a season specific neural "
+                        f"network to parameter `{self.name}` of element "
+                        f"`{objecttools.devicename(self)}`"
                     )
         except BaseException as exc:
             self._toy2ann.clear()
@@ -1814,7 +1954,6 @@ been given, but a value of type `ANN` is required.
         setattr(self.fastaccess, self.name, self.__sann)
 
     def refresh(self) -> None:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """Prepare the actual |anntools.SeasonalANN| object for calculations.
 
         Class |anntools.SeasonalANN| stores its |anntools.ANN| objects by
@@ -1854,7 +1993,7 @@ been given, but a value of type `ANN` is required.
             if self.anns:
                 self.__sann = annutils.SeasonalANN(self.anns)
                 setattr(self.fastaccess, self.name, self._sann)
-                self._set_shape((None, self._sann.nmb_anns))
+                self._prepare_shape()
                 if self._sann.nmb_anns > 1:
                     self._interp()
                 else:
@@ -1864,7 +2003,6 @@ been given, but a value of type `ANN` is required.
                 self.__sann = None
 
     def verify(self) -> None:
-        # noinspection PyTypeChecker,PyUnresolvedReferences
         """Raise a |RuntimeError| and remove all handled neural networks,
         if they are defined inconsistently.
 
@@ -1929,23 +2067,14 @@ neural network `seasonalann` of element `?` none has been defined so far.
             ):
                 self._toy2ann.clear()
                 raise RuntimeError(
-                    "The number of input and output values of all neural "
-                    "networks contained by a seasonal neural network "
-                    "collection must be identical and be known by the "
-                    "containing object.  But the seasonal neural "
-                    "network collection `%s` of element `%s` assumes "
-                    "`%d` input and `%d` output values, while the network "
-                    "corresponding to the time of year `%s` requires "
-                    "`%d` input and `%d` output values."
-                    % (
-                        self.name,
-                        objecttools.devicename(self),
-                        self.nmb_inputs,
-                        self.nmb_outputs,
-                        toy,
-                        ann_.nmb_inputs,
-                        ann_.nmb_outputs,
-                    )
+                    f"The number of input and output values of all neural networks "
+                    f"contained by a seasonal neural network collection must be "
+                    f"identical and be known by the containing object.  But the "
+                    f"seasonal neural network collection `{self.name}` of element "
+                    f"`{objecttools.devicename(self)}` assumes `{self.nmb_inputs}` "
+                    f"input and `{self.nmb_outputs}` output values, while the "
+                    f"network corresponding to the time of year `{toy}` requires "
+                    f"`{ann_.nmb_inputs}` input and `{ann_.nmb_outputs}` output values."
                 )
 
     def _interp(self) -> None:
@@ -1975,16 +2104,12 @@ neural network `seasonalann` of element `?` none has been defined so far.
         """The shape of array |anntools.SeasonalANN.ratios|."""
         return tuple(int(sub) for sub in self.ratios.shape)
 
-    def _set_shape(self, shape):
+    def _prepare_shape(self) -> None:
         """Private on purpose."""
-        try:
-            shape = (int(shape),)
-        except TypeError:
-            pass
-        shp = list(shape)
-        shp[0] = timetools.Period("366d") / hydpy.pub.options.simulationstep
-        shp[0] = int(numpy.ceil(round(shp[0], 10)))
-        getattr(self.fastaccess, self.name).ratios = numpy.zeros(shp, dtype=float)
+        nmb_weights = timetools.Period("366d") / hydpy.pub.options.simulationstep
+        nmb_weights = int(numpy.ceil(round(nmb_weights, 10)))
+        shape = (nmb_weights, self._sann.nmb_anns)
+        getattr(self.fastaccess, self.name).ratios = numpy.zeros(shape, dtype=float)
 
     @property
     def toys(self) -> Tuple[timetools.TOY, ...]:
@@ -2007,9 +2132,8 @@ neural network `seasonalann` of element `?` none has been defined so far.
         if sann:
             return sann
         raise RuntimeError(
-            "The seasonal neural network collection `%s` of "
-            "element `%s` has not been properly prepared so far."
-            % (self.name, objecttools.devicename(self))
+            f"The seasonal neural network collection `{self.name}` of element "
+            f"`{objecttools.devicename(self)}` has not been properly prepared so far."
         )
 
     @property
@@ -2032,13 +2156,21 @@ neural network `seasonalann` of element `?` none has been defined so far.
         """The weighted output of the individual neural networks."""
         return numpy.asarray(self._sann.outputs)
 
-    def calculate_values(self, idx_toy) -> None:
+    def calculate_values(self, idx_toy: int) -> None:
         """Calculate the network output values based on the input values
         defined previously for the given index referencing the actual
         time of year."""
         self._sann.calculate_values(idx_toy)
 
-    def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100, **kwargs) -> None:
+    def plot(
+        self,
+        xmin: float,
+        xmax: float,
+        idx_input: int = 0,
+        idx_output: int = 0,
+        points: int = 100,
+        **kwargs: Optional[Union[float, str]],
+    ) -> None:
         """Call method |anntools.ANN.plot| of all |anntools.ANN| objects
         handled by the actual |anntools.SeasonalANN| object.
         """
@@ -2055,7 +2187,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
         pyplot.legend()
         self._update_labels()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> ANN:
         if name.startswith("toy_"):
             try:
                 try:
@@ -2073,30 +2205,30 @@ neural network `seasonalann` of element `?` none has been defined so far.
                     f"name `{name}`"
                 )
         else:
-            return object.__getattribute__(self, name)
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         if name.startswith("toy_"):
             try:
                 if not isinstance(value, ANN):
                     raise TypeError(
-                        "%s has been given, but a value of type "
-                        "`ANN` is required."
-                        % objecttools.value_of_type(value).capitalize()
+                        f"{objecttools.value_of_type(value).capitalize()} has been "
+                        f"given, but a value of type `ANN` is required."
                     )
                 self._toy2ann[timetools.TOY(name)] = value
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    "While trying to assign a new neural network to "
-                    "the seasonal neural network collection `%s` of "
-                    "element `%s` based on name `%s`"
-                    % (self.name, objecttools.devicename(self), name)
+                    f"While trying to assign a new neural network to the seasonal "
+                    f"neural network collection `{self.name}` of element "
+                    f"`{objecttools.devicename(self)}` based on name `{name}`"
                 )
         else:
             object.__setattr__(self, name, value)
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         if name.startswith("toy_"):
             try:
                 try:
@@ -2117,10 +2249,10 @@ neural network `seasonalann` of element `?` none has been defined so far.
         else:
             object.__delattr__(self, name)
 
-    def __iter__(self) -> Iterable[Tuple[timetools.TOY, ANN]]:
+    def __iter__(self) -> Iterator[Tuple[timetools.TOY, ANN]]:
         return ((toy, ann_) for (toy, ann_) in sorted(self._toy2ann.items()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self:
             return f"{self.name}()"
         lines = [f"{self.name}("]
@@ -2133,11 +2265,10 @@ neural network `seasonalann` of element `?` none has been defined so far.
         lines.append(")")
         return "\n".join(lines)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._toy2ann)
 
-    def __dir__(self):
-        # noinspection PyTypeChecker,PyUnresolvedReferences
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy import ann, pub, SeasonalANN
         >>> seasonalann = SeasonalANN(None)

@@ -13,7 +13,7 @@ import sys
 import time
 import traceback
 from typing import *
-from typing import IO
+from typing import TextIO
 from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
@@ -27,7 +27,7 @@ def run_subprocess(
     command: str,
     verbose: bool,
     blocking: Literal[True],
-) -> subprocess.CompletedProcess:
+) -> "subprocess.CompletedProcess[str]":
     """non-blocking"""
 
 
@@ -36,15 +36,15 @@ def run_subprocess(
     command: str,
     verbose: bool,
     blocking: Literal[False],
-) -> subprocess.Popen:
+) -> "subprocess.Popen[str]":
     """blocking"""
 
 
 def run_subprocess(
-    command,
-    verbose=True,
-    blocking=True,
-):
+    command: str,
+    verbose: bool = True,
+    blocking: bool = True,
+) -> Union["subprocess.CompletedProcess[str]", "subprocess.Popen[str]"]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess|
@@ -390,16 +390,29 @@ def prepare_logfile(filename: str) -> str:
 
 
 @contextlib.contextmanager
-def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
+def _activate_logfile(
+    filepath: str,
+    logstyle: str,
+    level_stdout: Literal["info", "warning", "exception"],
+    level_stderr: Literal["warning", "exception"],
+) -> Generator[None, None, None]:
     try:
         if filepath == "stdout":
-            sys.stdout = LogFileInterface(sys.stdout, logstyle, level_stdout)
-            sys.stderr = LogFileInterface(sys.stderr, logstyle, level_stderr)
+            sys.stdout = cast(
+                TextIO, LogFileInterface(sys.stdout, logstyle, level_stdout)
+            )
+            sys.stderr = cast(
+                TextIO, LogFileInterface(sys.stderr, logstyle, level_stderr)
+            )
             yield
         else:
             with open(filepath, "a") as logfile:
-                sys.stdout = LogFileInterface(logfile, logstyle, level_stdout)
-                sys.stderr = LogFileInterface(logfile, logstyle, level_stderr)
+                sys.stdout = cast(
+                    TextIO, LogFileInterface(logfile, logstyle, level_stdout)
+                )
+                sys.stderr = cast(
+                    TextIO, LogFileInterface(logfile, logstyle, level_stderr)
+                )
                 yield
     finally:
         sys.stdout = sys.__stdout__
@@ -409,8 +422,8 @@ def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
 def execute_scriptfunction() -> Optional[int]:
     """Execute a HydPy script function.
 
-    Function |execute_scriptfunction| is indirectly applied and
-    explained in the documentation on module |hyd|.
+    Function |execute_scriptfunction| is indirectly applied and explained
+    in the documentation on module |hyd|.
     """
     logstyle = "plain"
     logfilepath = prepare_logfile("stdout")
@@ -421,11 +434,11 @@ def execute_scriptfunction() -> Optional[int]:
             if len(arg) < 3:
                 args_given.append(arg)
             else:
-                try:
-                    key, value = parse_argument(arg)
-                    kwargs_given[key] = value
-                except ValueError:
+                result = parse_argument(arg)
+                if isinstance(result, str):
                     args_given.append(arg)
+                else:
+                    kwargs_given[result[0]] = result[1]
         logfilepath = prepare_logfile(kwargs_given.pop("logfile", "stdout"))
         logstyle = kwargs_given.pop("logstyle", "plain")
         try:
@@ -531,7 +544,15 @@ class LogFileInterface:
         "prefixed": {"info": "info: ", "warning": "warning: ", "exception": "error: "},
     }
 
-    def __init__(self, logfile: IO, logstyle: str, infotype: str):
+    logfile: TextIO
+    infotype: Literal["info", "warning", "exception"]
+
+    def __init__(
+        self,
+        logfile: TextIO,
+        logstyle: str,
+        infotype: Literal["info", "warning", "exception"],
+    ) -> None:
         self.logfile = logfile
         self._infotype = infotype
         try:
@@ -564,7 +585,7 @@ class LogFileInterface:
             )
         )
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.logfile, name)
 
 

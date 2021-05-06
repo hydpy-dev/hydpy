@@ -61,6 +61,8 @@ disable=attribute-defined-outside-init,
         exec-used,
         function-redefined,
         global-statement,
+        inconsistent-return-statements,
+        no-member,
         too-many-function-args,
         trailing-comma-tuple,
         trailing-whitespace,
@@ -234,7 +236,7 @@ indent-string='    '
 max-line-length=88
 
 # Maximum number of lines in a module
-max-module-lines=10000
+max-module-lines=100000
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.

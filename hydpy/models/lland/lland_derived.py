@@ -3,6 +3,10 @@
 # pylint: enable=missing-docstring
 
 # import...
+
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -219,43 +223,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self.value = con.hinz * con.lai
 
 
-# class F1SIMax(lland_parameters.LanduseMonthParameter):
-#     """Faktor zur Berechnung der Schneeinterzeptionskapazität bezogen auf die
-#     Blattoberfläche (factor for the calculation of snow interception capacity
-#     normalized to leaf area index) [mm]."""
-#     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
-#
-#     CONTROLPARAMETERS = (
-#         lland_control.P1SIMax,
-#         lland_control.P2SIMax,
-#         lland_control.LAI,
-#     )
-#
-#     def update(self):
-#         """Update |F1SIMa| based on |P1SIMax|, |P2SIMax| and |LAI|.
-#
-#             Basic equation:
-#
-#                :math:`F1SIMax = P1SIMax + P2SIMax \\cdot LAI`
-#
-#         >>> from hydpy.models.lland import *
-#         >>> parameterstep("1d")
-#         >>> nhru(2)
-#         >>> p1simax(8.0)
-#         >>> p2simax(1.5)
-#         >>> lai.acker_jun = 1.0
-#         >>> lai.vers_dec = 2.0
-#         >>> derived.f1simax.update()
-#         >>> from hydpy import round_
-#         >>> round_(derived.f1simax.acker_jun)
-#         9.5
-#         >>> round_(derived.f1simax.vers_dec)
-#         11.0
-#         """
-#         con = self.subpars.pars.control
-#         self.value = con.p1simax + con.p2simax*con.lai
-
-
 class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content."""
 
@@ -283,43 +250,6 @@ class HeatOfFusion(lland_parameters.ParameterLand):
         """
         fixed = self.subpars.pars.fixed
         self.value = fixed.rschmelz * fixed.bowa2z
-
-
-# class F1SIRate(lland_parameters.LanduseMonthParameter):
-#     """Faktor zur Berechnung der Schneeinterzeptionsrate bezogen auf die
-#     Blattoberfläche (factor for the calculation of snow interception capacity
-#     normalized to leaf area index) [mm]."""
-#     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
-#
-#     CONTROLPARAMETERS = (
-#         lland_control.P1SIRate,
-#         lland_control.P2SIRate,
-#         lland_control.LAI,
-#     )
-#
-#     def update(self):
-#         """Update |F1SIRate| based on |P1SIRate|, |P2SIRate| and |LAI|.
-#
-#             Basic equation:
-#
-#                :math:`F1SIRate = P1SIRate + P2SIRate \\cdot LAI`
-#
-#         >>> from hydpy.models.lland import *
-#         >>> parameterstep("1d")
-#         >>> nhru(2)
-#         >>> p1sirate(0.2)
-#         >>> p2sirate(0.02)
-#         >>> lai.acker_jun = 1.0
-#         >>> lai.vers_dec = 2.0
-#         >>> derived.f1sirate.update()
-#         >>> from hydpy import round_
-#         >>> round_(derived.f1sirate.acker_jun)
-#         0.22
-#         >>> round_(derived.f1sirate.vers_dec)
-#         0.24
-#         """
-#         con = self.subpars.pars.control
-#         self.value = con.p1sirate + con.p2sirate*con.lai
 
 
 class Fr(lland_parameters.LanduseMonthParameter):
@@ -374,158 +304,6 @@ class Fr(lland_parameters.LanduseMonthParameter):
                 values[idx, :] = 1.0
 
 
-class KB(parametertools.Parameter):
-    """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
-    [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.EQB,
-        lland_control.TInd,
-    )
-
-    def update(self):
-        """Update |KB| based on |EQB| and |TInd|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqb(10.0)
-        >>> tind.value = 10.0
-        >>> derived.kb.update()
-        >>> derived.kb
-        kb(100.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.eqb * con.tind
-
-
-class KI1(parametertools.Parameter):
-    """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
-    of the first interflow component) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.EQI1,
-        lland_control.TInd,
-    )
-
-    def update(self):
-        """Update |KI1| based on |EQI1| and |TInd|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqi1(5.0)
-        >>> tind.value = 10.0
-        >>> derived.ki1.update()
-        >>> derived.ki1
-        ki1(50.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.eqi1 * con.tind
-
-
-class KI2(parametertools.Parameter):
-    """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time
-    of the second interflow component) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.EQI2,
-        lland_control.TInd,
-    )
-
-    def update(self):
-        """Update |KI2| based on |EQI2| and |TInd|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqi2(1.0)
-        >>> tind.value = 10.0
-        >>> derived.ki2.update()
-        >>> derived.ki2
-        ki2(10.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.eqi2 * con.tind
-
-
-class KD1(parametertools.Parameter):
-    """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
-    of the slower component of direct runoff) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.EQD1,
-        lland_control.TInd,
-    )
-
-    def update(self):
-        """Update |KD1| based on |EQD1| and |TInd|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqd1(0.5)
-        >>> tind.value = 10.0
-        >>> derived.kd1.update()
-        >>> derived.kd1
-        kd1(5.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.eqd1 * con.tind
-
-
-class KD2(parametertools.Parameter):
-    """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
-    of the faster component of direct runoff) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.EQD2,
-        lland_control.TInd,
-    )
-
-    def update(self):
-        """Update |KD2| based on |EQD2| and |TInd|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> eqd2(0.1)
-        >>> tind.value = 10.0
-        >>> derived.kd2.update()
-        >>> derived.kd2
-        kd2(1.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.eqd2 * con.tind
-
-
-class QFactor(parametertools.Parameter):
-    """Factor for converting mm/stepsize to m³/s."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (lland_control.FT,)
-
-    def update(self):
-        """Update |QFactor| based on |FT| and the current simulation step size.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> simulationstep("1d")
-        >>> ft(10.0)
-        >>> derived.qfactor.update()
-        >>> derived.qfactor
-        qfactor(0.115741)
-        """
-        con = self.subpars.pars.control
-        self.value = con.ft * 1000.0 / hydpy.pub.options.simulationstep.seconds
-
-
 class NFk(lland_parameters.ParameterSoil):
     """Nutzbare Feldkapazität (usable field capacity) [mm]."""
 
@@ -551,3 +329,202 @@ class NFk(lland_parameters.ParameterSoil):
         """
         con = self.subpars.pars.control
         self.value = con.fk - con.pwp
+
+
+class KB(parametertools.Parameter):
+    """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
+    [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQB,
+        lland_control.TInd,
+    )
+
+    def update(self):
+        """Update |KB| based on |EQB| and |TInd|.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> eqb(10.0)
+        >>> tind(10.0)
+        >>> derived.kb.update()
+        >>> derived.kb
+        kb(100.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.eqb * con.tind
+
+
+class KI1(parametertools.Parameter):
+    """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
+    of the first interflow component) [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQI1,
+        lland_control.TInd,
+    )
+
+    def update(self):
+        """Update |KI1| based on |EQI1| and |TInd|.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> eqi1(5.0)
+        >>> tind(10.0)
+        >>> derived.ki1.update()
+        >>> derived.ki1
+        ki1(50.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.eqi1 * con.tind
+
+
+class KI2(parametertools.Parameter):
+    """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time
+    of the second interflow component) [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQI2,
+        lland_control.TInd,
+    )
+
+    def update(self):
+        """Update |KI2| based on |EQI2| and |TInd|.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> eqi2(1.0)
+        >>> tind(10.0)
+        >>> derived.ki2.update()
+        >>> derived.ki2
+        ki2(10.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.eqi2 * con.tind
+
+
+class KD1(parametertools.Parameter):
+    """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
+    of the slower component of direct runoff) [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQD1,
+        lland_control.TInd,
+    )
+
+    def update(self):
+        """Update |KD1| based on |EQD1| and |TInd|.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> eqd1(0.5)
+        >>> tind(10.0)
+        >>> derived.kd1.update()
+        >>> derived.kd1
+        kd1(5.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.eqd1 * con.tind
+
+
+class KD2(parametertools.Parameter):
+    """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
+    of the faster component of direct runoff) [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQD2,
+        lland_control.TInd,
+    )
+
+    def update(self):
+        """Update |KD2| based on |EQD2| and |TInd|.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> eqd2(0.1)
+        >>> tind(10.0)
+        >>> derived.kd2.update()
+        >>> derived.kd2
+        kd2(1.0)
+        """
+        con = self.subpars.pars.control
+        self.value = con.eqd2 * con.tind
+
+
+class QBGAMax(parametertools.Parameter):
+    """Maximaler Abfluss aus dem Basisabfluss-Gebietsspeicher (maximum outflow
+    from the storage compartment for base flow) [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        lland_control.GSBMax,
+        lland_control.VolBMax,
+    )
+    DERIVEDPARAMETERS = (KB,)
+
+    def update(self):
+        r"""Update based on :math:`QBGAMax = (GSBMax \cdot VolBMax) / KB`.
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> volbmax(100.0)
+        >>> gsbmax(2.0)
+        >>> derived.kb(50.0)
+        >>> derived.qbgamax.update()
+        >>> derived.qbgamax
+        qbgamax(4.0)
+
+        For zero runoff concentration time, we generally set |QBGAMax| to zero,
+        even if |VolBMax| is also to zero:
+
+        >>> volbmax(0.0)
+        >>> derived.kb(0.0)
+        >>> derived.qbgamax.update()
+        >>> derived.qbgamax
+        qbgamax(inf)
+        """
+        con = self.subpars.pars.control
+        der = self.subpars
+        if der.kb > 0.0:
+            self.value = (con.gsbmax * con.volbmax) / der.kb
+        else:
+            self.value = numpy.inf
+
+
+class QFactor(parametertools.Parameter):
+    """Factor for converting mm/stepsize to m³/s."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (lland_control.FT,)
+
+    def update(self):
+        """Update |QFactor| based on |FT| and the current simulation step size.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
+        >>> ft(10.0)
+        >>> derived.qfactor.update()
+        >>> derived.qfactor
+        qfactor(0.115741)
+        """
+        con = self.subpars.pars.control
+        self.value = con.ft * 1000.0 / hydpy.pub.options.simulationstep.seconds

@@ -93,7 +93,7 @@ class RelZoneArea(
     """
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
 
 class RelSoilZoneArea(
@@ -112,7 +112,7 @@ class RelSoilZoneArea(
     """
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
 
 class RelLandZoneArea(
@@ -131,7 +131,7 @@ class RelLandZoneArea(
     """
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
 
 class TTM(hland_parameters.ParameterLand):
@@ -197,7 +197,7 @@ class UH(parametertools.Parameter):
     """Unit hydrograph ordinates based on a isosceles triangle [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    strict_valuehandling = False
+    strict_valuehandling: bool = False
 
     CONTROLPARAMETERS = (hland_control.MaxBaz,)
 

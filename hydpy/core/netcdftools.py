@@ -989,7 +989,7 @@ named `state_bowa`.
                 for variable in self.variables.values():
                     variable.read(ncfile, timegrid)
         except FileNotFoundError:
-            pass   # ToDo
+            pass  # ToDo
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to read data from NetCDF file `{self.filepath}`"

@@ -317,9 +317,9 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
         Vergleiche Abbildung 7 in WHM_TipsTricks_5:
 
         >>> from hydpy import pub, print_values
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.whmod import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> for h in range(-1, 11):
         ...     schwerpunktlaufzeit(flurab_probst=h)
         ...     print_values([h, schwerpunktlaufzeit.value])
@@ -339,15 +339,15 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
         >>> schwerpunktlaufzeit
         schwerpunktlaufzeit(2419.99806)
 
-        >>> parameterstep('1h')
+        >>> parameterstep("1h")
         >>> schwerpunktlaufzeit
         schwerpunktlaufzeit(58079.95344)
 
-        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1h'
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1h"
         >>> schwerpunktlaufzeit(flurab_probst=10.0)
         >>> schwerpunktlaufzeit
         schwerpunktlaufzeit(58079.95344)
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> schwerpunktlaufzeit
         schwerpunktlaufzeit(2419.99806)
         """
@@ -357,8 +357,7 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
             if (len(kwargs) == 1) and ("flurab_probst" in kwargs):
                 x = kwargs["flurab_probst"]
                 k_d = 0.6 * (((5.8039 * x - 21.899) * x + 41.933) * x + 0.0001)
-                self.value = max(
-                    60 * 60 * 24 * k_d / pub.timegrids.init.stepsize.seconds, 0.0
-                )
+                k_t = 60 * 60 * 24 * k_d / pub.timegrids.init.stepsize.seconds
+                self.value = max(k_t, 0.0)
             else:
                 raise NotImplementedError('"flurab_probst" oder Zahl.')

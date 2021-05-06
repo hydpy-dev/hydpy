@@ -73,10 +73,10 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     ...     parseqs=(fluxes.niederschlagrichter, fluxes.niednachinterz))
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2001-09-01', '2001-11-01', '1d'
+    >>> pub.timegrids = "2001-09-01", "2001-11-01", "1d"
     >>> derived.moy.update()
 
-    >>> model.idx_sim = pub.timegrids.init['2001-09-30']
+    >>> model.idx_sim = pub.timegrids.init["2001-09-30"]
     >>> test.nexts.niederschlagrichter = range(0, 11, 1)
     >>> test()
     | ex. | niederschlagrichter |           niednachinterz |
@@ -109,7 +109,7 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     |  10 |                90.0 | 86.771258       79.583949 |
     |  11 |               100.0 | 96.815225       88.850667 |
 
-    >>> model.idx_sim = pub.timegrids.init['2001-10-01']
+    >>> model.idx_sim = pub.timegrids.init["2001-10-01"]
     >>> test.nexts.niederschlagrichter = range(0, 11, 1)
     >>> test()
     | ex. | niederschlagrichter |         niednachinterz |
@@ -329,7 +329,7 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
     >>> fluxes.niederschlagrichter = 1.0
@@ -423,7 +423,7 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
     ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
     >>> fluxes.niederschlagrichter = 1.0
@@ -525,8 +525,8 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     """Berechnung Bestandsniederschlag.
 
     >>> from hydpy.models.whmod import *
-    >>> parameterstep('1d')
-    >>> simulationstep('1d')
+    >>> parameterstep("1d")
+    >>> simulationstep("1d")
     >>> nmb_cells(2)
     >>> nutz_nr(GRAS, GRAS)
     >>> gradfaktor(4.5)
@@ -744,7 +744,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     ...                0.31, 0.25, 0.2, 0.13, 0.07, 0.05])
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
     >>> from hydpy import UnitTest
@@ -757,7 +757,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     >>> test.nexts.temp14 = 0.0, 1.0, 10.0, 30.0, 30.0
     >>> test.nexts.saettigungsdampfdruckdefizit = 3.0, 3.0, 12.0, 20.0, 20.0
 
-    >>> model.idx_sim = pub.timegrids.init['2001-06-30']
+    >>> model.idx_sim = pub.timegrids.init["2001-06-30"]
     >>> test()
     | ex. | temp14 | saettigungsdampfdruckdefizit |                         maxverdunstung |
     ----------------------------------------------------------------------------------------
@@ -767,7 +767,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     |   4 |   30.0 |                         20.0 |  5.6   6.8   5.6   7.4             0.0 |
     |   5 |   30.0 |                         20.0 |  5.6   6.8   5.6   7.4             0.0 |
 
-    >>> model.idx_sim = pub.timegrids.init['2001-07-01']
+    >>> model.idx_sim = pub.timegrids.init["2001-07-01"]
     >>> test()
     | ex. | temp14 | saettigungsdampfdruckdefizit |                         maxverdunstung |
     ----------------------------------------------------------------------------------------
@@ -842,17 +842,17 @@ class Calc_MaxVerdunstung_V2(modeltools.Method):
     ...             1.283, 1.283, 1.270, 1.230, 1.165, 1.139])
 
     >>> from hydpy import pub
-    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
     >>> inputs.et0 = 5.0
 
-    >>> model.idx_sim = pub.timegrids.init['2001-06-30']
+    >>> model.idx_sim = pub.timegrids.init["2001-06-30"]
     >>> model.calc_maxverdunstung_v2()
     >>> fluxes.maxverdunstung
     maxverdunstung(6.135, 6.605, 5.28, 6.48, 0.0)
 
-    >>> model.idx_sim = pub.timegrids.init['2001-07-01']
+    >>> model.idx_sim = pub.timegrids.init["2001-07-01"]
     >>> model.calc_maxverdunstung_v2()
     >>> fluxes.maxverdunstung
     maxverdunstung(6.205, 6.675, 5.19, 6.415, 0.0)

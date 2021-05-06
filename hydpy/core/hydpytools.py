@@ -645,7 +645,7 @@ requested to make any internal data available.
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
     deviceorder: List[Union[devicetools.Node, devicetools.Element]]
-    loggers: Dict[str, 'Logger']
+    loggers: Dict[str, "Logger"]
 
     def __init__(self, projectname: Optional[str] = None) -> None:
         self._nodes = None

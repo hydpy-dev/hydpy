@@ -102,75 +102,6 @@ class nFKwe(parametertools.Parameter):
         self(nfk100_mittel * numpy.clip(wurzeltiefe, 0.3, None))
 
 
-class Beta_old(parametertools.Parameter):
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-
-    def update(self):
-        """
-
-        >>> from hydpy.models.whmod import *
-        >>> parameterstep()
-        >>> nmb_cells(26)
-        >>> nutz_nr(GRAS)
-        >>> derived.nfkwe(range(0, 260, 10))
-        >>> derived.beta.update_old()
-        >>> from hydpy import print_values
-        >>> for values in zip(derived.nfkwe, derived.beta):
-        ...     print_values(values)
-        0.0, 1.0
-        10.0, 1.000001
-        20.0, 1.000058
-        30.0, 1.000806
-        40.0, 1.005228
-        50.0, 1.022297
-        60.0, 1.072933
-        70.0, 1.198647
-        80.0, 1.473183
-        90.0, 1.915863
-        100.0, 2.680365
-        110.0, 3.559094
-        120.0, 4.408956
-        130.0, 5.164394
-        140.0, 5.810723
-        150.0, 6.362129
-        160.0, 6.844528
-        170.0, 7.283464
-        180.0, 7.697228
-        190.0, 8.095355
-        200.0, 8.482689
-        210.0, 7.0
-        220.0, 7.0
-        230.0, 7.0
-        240.0, 7.0
-        250.0, 7.0
-
-        >>> nmb_cells(2)
-        >>> nutz_nr(WASSER, VERSIEGELT)
-        >>> derived.nfkwe(100.0)
-        >>> derived.beta.update_old()
-        >>> derived.beta
-        beta(0.0)
-        """
-        nutz_nr = self.subpars.pars.control.nutz_nr
-        nfkwe = self.subpars.nfkwe
-        self(0.0)
-        idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
-        idxs2 = idxs1 * (nfkwe.values > 200.0)
-        self.values[idxs2] = 7.0
-        idxs3 = idxs1 * (nfkwe.values <= 200.0)
-        self.values[idxs3] = 1.0 + 6.0 * (nfkwe[idxs3] / 118.25) ** 6.5
-        idxs4 = idxs3 * (nfkwe.values >= 90.0)
-        sel = nfkwe[idxs4]
-        self.values[idxs4] -= (
-            (
-                ((5.14499665e-9 * sel - 2.54885486e-6) * sel + 5.90669258e-4) * sel
-                - 7.26381809e-2
-            )
-            * sel
-            + 4.47631543
-        ) * sel - 108.1457328
-
-
 class Beta(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -232,3 +163,69 @@ class Beta(parametertools.Parameter):
         self.values[idxs3] = 1.0
         idxs4 = idxs1 * ~idxs2
         self.values[idxs4] = 1.0 + 6.0 / (1 + (nfkwe[idxs4] / 118.25) ** -6.5)
+
+    def update_old(self):
+        """
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmb_cells(26)
+        >>> nutz_nr(GRAS)
+        >>> derived.nfkwe(range(0, 260, 10))
+        >>> derived.beta.update_old()
+        >>> from hydpy import print_values
+        >>> for values in zip(derived.nfkwe, derived.beta):
+        ...     print_values(values)
+        0.0, 1.0
+        10.0, 1.000001
+        20.0, 1.000058
+        30.0, 1.000806
+        40.0, 1.005228
+        50.0, 1.022297
+        60.0, 1.072933
+        70.0, 1.198647
+        80.0, 1.473183
+        90.0, 1.915863
+        100.0, 2.680365
+        110.0, 3.559094
+        120.0, 4.408956
+        130.0, 5.164394
+        140.0, 5.810723
+        150.0, 6.362129
+        160.0, 6.844528
+        170.0, 7.283464
+        180.0, 7.697228
+        190.0, 8.095355
+        200.0, 8.482689
+        210.0, 7.0
+        220.0, 7.0
+        230.0, 7.0
+        240.0, 7.0
+        250.0, 7.0
+
+        >>> nmb_cells(2)
+        >>> nutz_nr(WASSER, VERSIEGELT)
+        >>> derived.nfkwe(100.0)
+        >>> derived.beta.update_old()
+        >>> derived.beta
+        beta(0.0)
+        """
+        nutz_nr = self.subpars.pars.control.nutz_nr
+        nfkwe = self.subpars.nfkwe
+        self(0.0)
+        idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
+        idxs2 = idxs1 * (nfkwe.values > 200.0)
+        self.values[idxs2] = 7.0
+        idxs3 = idxs1 * (nfkwe.values <= 200.0)
+        self.values[idxs3] = 1.0 + 6.0 * (nfkwe[idxs3] / 118.25) ** 6.5
+        idxs4 = idxs3 * (nfkwe.values >= 90.0)
+        subtrahend = 5.14499665e-9
+        for constant in (
+            -2.54885486e-6,
+            5.90669258e-4,
+            -7.26381809e-2,
+            4.47631543,
+            -108.1457328,
+        ):
+            subtrahend = subtrahend * nfkwe[idxs4] + constant
+        self.values[idxs4] -= subtrahend

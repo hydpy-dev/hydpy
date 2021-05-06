@@ -85,3 +85,4 @@ and will have to be discussed later.
    HydPy-L
    HydPy-T
    HydPy-W
+   HydPy-WHMod

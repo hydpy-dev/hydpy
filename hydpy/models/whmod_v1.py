@@ -20,6 +20,7 @@ from hydpy.models.whmod.whmod_constants import *
 
 
 class Model(modeltools.AdHocModel):
+    """Version 1 of WHMod (Dommermuth-Trumpf)."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

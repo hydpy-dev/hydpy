@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
-External (FAO) reference evaporation without any interception evaporation.
+External (FAO) reference evaporation with a change process order in the interception
+module.
+
+Just an experiment.
 """
 
 # import...
@@ -17,6 +20,8 @@ from hydpy.models.whmod.whmod_constants import *
 
 
 class Model(modeltools.AdHocModel):
+    """Version 3 of WHMod (external evapotranspiration, interception experiment)."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

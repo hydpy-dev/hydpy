@@ -2,6 +2,9 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 External (FAO) reference evaporation without any interception evaporation.
+
+Intermediate step, to be removed later.
+
 """
 
 # import...
@@ -15,6 +18,8 @@ from hydpy.models.whmod.whmod_constants import *
 
 
 class Model(modeltools.AdHocModel):
+    """Version 2 of WHMod (intermediate step, to be removed later)."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

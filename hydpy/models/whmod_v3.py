@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
-External (FAO) reference evaporation without any interception evaporation.
+External (FAO) reference evaporation.
+
+This is the new "official" WHMOD version.
 """
 
 # import...
@@ -17,6 +19,7 @@ from hydpy.models.whmod.whmod_constants import *
 
 
 class Model(modeltools.AdHocModel):
+    """Version 3 of WHMod (External PET)."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

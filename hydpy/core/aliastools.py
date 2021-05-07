@@ -241,6 +241,8 @@ def write_sequencealiases() -> None:
                     f"        namespace=locals(),"
                     f"    )"
                 )
+        exports = (f'"{alias}"' for alias in sequence2alias.values())
+        lines.append(f'\n__all__ = [{", ".join(exports)}]')
         text = "\n".join(lines)
         text = black.format_str(text, mode=black.FileMode())
         with open(os.path.join(hydpypath, filename), "w") as file_:

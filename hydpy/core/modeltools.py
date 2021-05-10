@@ -983,7 +983,7 @@ class AdHocModel(Model):
         sim(7.131072)
         sim(6.017787)
         >>> hp.nodes.dill.sequences.sim.series
-        InfoArray([ nan,  nan,  nan,  nan])
+        InfoArray([nan, nan, nan, nan])
 
         The results above are identical to those of method |HydPy.simulate|
         of class |HydPy|, which is the standard method to perform simulation

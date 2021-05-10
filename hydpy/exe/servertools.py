@@ -336,7 +336,7 @@ class ServerState:
     ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
     >>> state.hp.nodes.dill.sequences.sim.series
-    InfoArray([ nan,  nan,  nan,  nan,  nan])
+    InfoArray([nan, nan, nan, nan, nan])
     """
 
     hp: hydpytools.HydPy
@@ -562,11 +562,10 @@ has been extracted but cannot be further processed: `x == y`.
     damp = 0.5
     sfcf_1 = 0.3
     sfcf_2 = 0.2
-    sfcf_3 = [ 0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.2  0.2]
+    sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
     >>> test("query_initialconditionitemvalues")
     sm_lahn_2 = 123.0
-    sm_lahn_1 = [ 110.  120.  130.  140.  150.  160.  170.  180.  190.  200.  210.  220.
-      230.]
+    sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = 10.0
     >>> test("query_initialgetitemvalues")    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
@@ -871,9 +870,9 @@ calculated so far.
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")    # doctest: +ELLIPSIS
-    sm_lahn_2 = [ 99.84802...]
-    sm_lahn_1 = [ 49.92944...]
-    quh = [ 0.00081...]
+    sm_lahn_2 = [99.84802...]
+    sm_lahn_1 = [49.92944...]
+    quh = [0.00081...]
 
     Above, we explained the recommended way to query the initial values of all or
     a subgroup of the available exchange items.  Alternatively, you can first register
@@ -890,10 +889,9 @@ calculated so far.
     damp = 0.5
     sfcf_1 = 0.3
     sfcf_2 = 0.2
-    sfcf_3 = [ 0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.1  0.2  0.2  0.2]
+    sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
     sm_lahn_2 = 123.0
-    sm_lahn_1 = [ 110.  120.  130.  140.  150.  160.  170.  180.  190.  200.  210.  220.
-      230.]
+    sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = 10.0
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]

@@ -712,7 +712,7 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         >>> cfmax
         cfmax(4.0)
         >>> cfmax.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 2.])
 
         When the actual temperature is equal to the threshold temperature for melting
         and refreezing, no melting occurs, and the states remain unchanged:
@@ -824,7 +824,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         >>> cfmax
         cfmax(4.0)
         >>> cfmax.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 2.])
 
         When the actual temperature is equal to the threshold temperature for melting
         and refreezing, neither no refreezing occurs, and the states remain unchanged:
@@ -1049,7 +1049,7 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         >>> gmelt
         gmelt(4.0)
         >>> gmelt.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 2., 2.])
     """
 
     CONTROLPARAMETERS = (
@@ -1198,7 +1198,7 @@ class Calc_CF_SM_V1(modeltools.Method):
         >>> cflux
         cflux(4.0)
         >>> cflux.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 2.])
 
         For fields and forests, the actual capillary return flow depends only on the
         relative soil moisture deficit, provides that either the upper zone layer stores

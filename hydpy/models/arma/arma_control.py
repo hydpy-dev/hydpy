@@ -193,13 +193,13 @@ Most probably, you defined the same threshold value(s) twice.
     be queried as numpy arrays:
 
     >>> responses.thresholds
-    array([ 0.,  1.])
+    array([0., 1.])
     >>> responses.ar_coefs
-    array([[  1.,   2.],
-           [ nan,  nan]])
+    array([[ 1.,  2.],
+           [nan, nan]])
     >>> responses.ma_coefs
-    array([[  3.,   4.,   6.],
-           [  7.,  nan,  nan]])
+    array([[ 3.,  4.,  6.],
+           [ 7., nan, nan]])
 
     Technical notes:
 

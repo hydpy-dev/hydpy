@@ -400,12 +400,12 @@ class InfoArray(numpy.ndarray):
     >>> from hydpy.core.sequencetools import InfoArray
     >>> array = InfoArray([1.0, 2.0], info="this array is short")
     >>> array
-    InfoArray([ 1.,  2.])
+    InfoArray([1., 2.])
     >>> array.info
     'this array is short'
     >>> subarray = array[:1]
     >>> subarray
-    InfoArray([ 1.])
+    InfoArray([1.])
     >>> subarray.info
     'this array is short'
     """
@@ -2475,14 +2475,14 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         >>> with TestIO(), pub.options.checkseries(False):
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1d"),
         ...                       numpy.arange(4, dtype=float))
-        array([ 0.,  1.,  2.,  3.])
+        array([0., 1., 2., 3.])
 
         For "too long" available data, it only returns the relevant one:
 
         >>> with TestIO(), pub.options.checkseries(False):
         ...     obs.adjust_series(Timegrid("1995-12-31", "1996-01-07", "1d"),
         ...                       numpy.arange(7, dtype=float))
-        array([ 1.,  2.,  3.,  4.])
+        array([1., 2., 3., 4.])
 
         For "too short" available data, the behaviour differs depending
         on option |Options.checkseries|.  With |Options.checkseries| being
@@ -2505,7 +2505,7 @@ data file `...dill_obs_q.asc` \
         >>> with TestIO(), pub.options.checkseries(False):
         ...     obs.adjust_series(Timegrid("1996-01-02", "1996-01-04", "1d"),
         ...                       numpy.zeros((2,)))
-        array([ nan,   0.,   0.,  nan])
+        array([nan,  0.,  0., nan])
 
         Additional checks raise errors in case of non-matching shapes
         or time information:
@@ -2603,32 +2603,32 @@ simulation time step is `1d`.
 
         >>> from hydpy import Timegrid
         >>> test(Timegrid("2000.01.05", "2000.01.20", "1d"))
-        array([ 1.,  1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1., 1.])
         >>> test(Timegrid("2000.01.12", "2000.01.15", "1d"))
-        array([ nan,  nan,   1.,   1.,   1.])
+        array([nan, nan,  1.,  1.,  1.])
         >>> test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([ nan,  nan,   1.,   1.,   1.])
+        array([nan, nan,  1.,  1.,  1.])
         >>> test(Timegrid("2000.01.10", "2000.01.13", "1d"))
-        array([  1.,   1.,   1.,  nan,  nan])
+        array([ 1.,  1.,  1., nan, nan])
         >>> test(Timegrid("2000.01.08", "2000.01.13", "1d"))
-        array([  1.,   1.,   1.,  nan,  nan])
+        array([ 1.,  1.,  1., nan, nan])
         >>> test(Timegrid("2000.01.12", "2000.01.13", "1d"))
-        array([ nan,  nan,   1.,  nan,  nan])
+        array([nan, nan,  1., nan, nan])
         >>> test(Timegrid("2000.01.05", "2000.01.10", "1d"))
-        array([ nan,  nan,  nan,  nan,  nan])
+        array([nan, nan, nan, nan, nan])
         >>> test(Timegrid("2000.01.05", "2000.01.08", "1d"))
-        array([ nan,  nan,  nan,  nan,  nan])
+        array([nan, nan, nan, nan, nan])
         >>> test(Timegrid("2000.01.15", "2000.01.18", "1d"))
-        array([ nan,  nan,  nan,  nan,  nan])
+        array([nan, nan, nan, nan, nan])
         >>> test(Timegrid("2000.01.16", "2000.01.18", "1d"))
-        array([ nan,  nan,  nan,  nan,  nan])
+        array([nan, nan, nan, nan, nan])
 
         After enabling option |Options.usedefaultvalues|, the missing
         values are initialised with zero instead of nan:
 
         >>> with pub.options.usedefaultvalues(True):
         ...     test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([ 0.,  0.,  1.,  1.,  1.])
+        array([0., 0., 1., 1., 1.])
         """
         idxs = [
             timegrid[hydpy.pub.timegrids.init.firstdate],
@@ -2780,7 +2780,7 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         >>> import numpy
         >>> sm.series = numpy.array([190.0, 200.0, 210.0])
         >>> sm.average_series()
-        InfoArray([ 190.,  200.,  210.])
+        InfoArray([190., 200., 210.])
 
         For |IOSequence| objects with an increased dimensionality, we
         require a weighting parameter:
@@ -2800,7 +2800,7 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_series()
-        InfoArray([ 390.,  400.,  410.])
+        InfoArray([390., 400., 410.])
 
         The documentation on method |Variable.average_values| provides
         many examples of how to use different masks in different ways.
@@ -2817,7 +2817,7 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
 
         >>> maskvalues = [True, True, False]
         >>> sm.average_series()
-        InfoArray([ 290.,  300.,  310.])
+        InfoArray([290., 300., 310.])
 
         >>> maskvalues = [False, False, False]
         >>> sm.average_series()
@@ -2873,17 +2873,17 @@ dimension is 3 but corresponding boolean dimension is 2
         >>> seq.aggregation_ext
         'none'
         >>> seq.aggregate_series()
-        InfoArray([[ 24.,  25.,  26.],
-                   [ 27.,  28.,  29.],
-                   [ 30.,  31.,  32.],
-                   [ 33.,  34.,  35.]])
+        InfoArray([[24., 25., 26.],
+                   [27., 28., 29.],
+                   [30., 31., 32.],
+                   [33., 34., 35.]])
 
         If |FluxSequence.aggregation_ext| is `mean`, method
         |IOSequence.aggregate_series| is called:
 
         >>> seq.aggregation_ext = "mean"
         >>> seq.aggregate_series()
-        InfoArray([ 25.,  28.,  31.,  34.])
+        InfoArray([25., 28., 31., 34.])
 
         In case the state of the sequence is invalid:
 
@@ -3458,11 +3458,11 @@ class StateSequence(
     >>> sm
     sm(nan, nan)
     >>> sm.values
-    array([ nan,  nan])
+    array([nan, nan])
     >>> sm.new
-    array([ nan,  nan])
+    array([nan, nan])
     >>> sm.old
-    array([ nan,  nan])
+    array([nan, nan])
 
     The typical way to define state values, especially within condition
     files, is to "call" state sequence objects, which sets both the
@@ -3470,11 +3470,11 @@ class StateSequence(
 
     >>> sm(1.0)
     >>> sm.values
-    array([ 1.,  1.])
+    array([1., 1.])
     >>> sm.new
-    array([ 1.,  1.])
+    array([1., 1.])
     >>> sm.old
-    array([ 1.,  1.])
+    array([1., 1.])
 
     Alternatively, one can assign values to property |StateSequence.new|
     or property |StateSequence.old| (note that using |StateSequence.new|
@@ -3484,21 +3484,21 @@ class StateSequence(
     >>> sm
     sm(2.0, 3.0)
     >>> sm.values
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.new
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.old
-    array([ 1.,  1.])
+    array([1., 1.])
 
     >>> sm.old = 200.0
     >>> sm
     sm(2.0, 3.0)
     >>> sm.values
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.new
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.old
-    array([ 200.,  200.])
+    array([200., 200.])
 
     Assigning problematic values to property |StateSequence.old| results
     in very similar error messages as assigning problematic values to
@@ -3522,11 +3522,11 @@ shape (3,) into shape (2,)
 
     >>> sm.new2old()
     >>> sm.values
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.new
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> sm.old
-    array([ 2.,  3.])
+    array([2., 3.])
     """
 
     NOT_DEEPCOPYABLE_MEMBERS = ("subseqs", "fastaccess_old", "fastaccess_new")
@@ -3829,7 +3829,7 @@ when using it, so please be careful).
         >>> model.sequences.outlets.q.value
         2.0
         >>> model.sequences.inlets.q.values
-        array([ 2.])
+        array([2.])
 
         Assigning bad data results in the standard error messages:
 
@@ -4244,7 +4244,7 @@ to make any internal data available.
         >>> obs.activate_ram()
         >>> obs.series[:-1] = 1.0
         >>> obs.series
-        InfoArray([  1.,   1.,   1.,  nan])
+        InfoArray([ 1.,  1.,  1., nan])
         >>> obs.seriescomplete
         False
 
@@ -4297,7 +4297,7 @@ class Sim(NodeSequence):
 `sim` of node `dill`, the following error occurred: [Errno 2] No such file \
 or directory: '...dill_sim_q.asc'
         >>> sim.series
-        InfoArray([ nan,  nan,  nan,  nan,  nan])
+        InfoArray([nan, nan, nan, nan, nan])
 
         >>> sim.series = 1.0
         >>> with TestIO():
@@ -4306,7 +4306,7 @@ or directory: '...dill_sim_q.asc'
         >>> with TestIO():
         ...     sim.load_ext()
         >>> sim.series
-        InfoArray([ 1.,  1.,  1.,  1.,  1.])
+        InfoArray([1., 1., 1., 1., 1.])
 
         >>> import numpy
         >>> sim.series[2] = numpy.nan
@@ -4321,14 +4321,14 @@ or directory: '...dill_sim_q.asc'
 of node `dill`, the following error occurred: The series array of sequence \
 `sim` of node `dill` contains 1 nan value.
         >>> sim.series
-        InfoArray([  1.,   1.,  nan,   1.,   1.])
+        InfoArray([ 1.,  1., nan,  1.,  1.])
 
         >>> sim.series = 0.0
         >>> with TestIO():
         ...     with pub.options.warnmissingsimfile(False):
         ...         sim.load_ext()
         >>> sim.series
-        InfoArray([  1.,   1.,  nan,   1.,   1.])
+        InfoArray([ 1.,  1., nan,  1.,  1.])
 
         .. testsetup::
 
@@ -4404,7 +4404,7 @@ external data of sequence `obs` of node `dill`, the following error occurred: \
         >>> with TestIO():
         ...     obs.load_ext()
         >>> obs.series
-        InfoArray([ 1.,  1.,  1.,  1.,  1.])
+        InfoArray([1., 1., 1., 1., 1.])
 
         Reading incomplete data also results in a warning message, but does
         not disable the |IOSequence.memoryflag|:
@@ -4432,7 +4432,7 @@ of node `dill`, the following error occurred: The series array of sequence \
         ...     with pub.options.warnmissingobsfile(False):
         ...         hp.load_obsseries()
         >>> obs.series
-        InfoArray([  1.,   1.,  nan,   1.,   1.])
+        InfoArray([ 1.,  1., nan,  1.,  1.])
         >>> hp.nodes.lahn_1.sequences.obs.memoryflag
         False
 

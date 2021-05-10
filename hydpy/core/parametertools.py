@@ -1099,7 +1099,7 @@ could not be set based on the given keyword arguments.
     Traceback (most recent call last):
     ...
     TypeError: While trying to set the value(s) of variable `par`, the \
-following error occurred: The given value `[ 1.  2.]` cannot be converted \
+following error occurred: The given value `[1. 2.]` cannot be converted \
 to type `float`.
 
     Passing no argument or both positional and keyword arguments are also
@@ -1151,19 +1151,19 @@ keyword arguments are given, which is ambiguous.
     >>> par
     par(3.0)
     >>> par.values
-    array([ 6.,  6.])
+    array([6., 6.])
 
     >>> par([0.0, 4.0])
     >>> par
     par(0.0, 4.0)
     >>> par.values
-    array([ 0.,  8.])
+    array([0., 8.])
 
     >>> par(1.0, 2.0)
     >>> par
     par(1.0, 2.0)
     >>> par.values
-    array([ 2.,  4.])
+    array([2., 4.])
 
     Using the `call` syntax to set parameter values triggers method
     |trim| automatically:
@@ -1177,7 +1177,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(0.0, 3.0)
     >>> par.values
-    array([ 0.,  6.])
+    array([0., 6.])
 
     You are free to change the parameter step size (temporarily) to change
     the string representation of |Parameter| handling time-dependent values
@@ -1187,11 +1187,11 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     ...     print(par)
     ...     print(repr(par.values))
     par(0.0, 6.0)
-    array([ 0.,  6.])
+    array([0., 6.])
     >>> par
     par(0.0, 3.0)
     >>> par.values
-    array([ 0.,  6.])
+    array([0., 6.])
 
     The highest number of dimensions of |Parameter| subclasses supported
     is currently two.  The following examples repeat some examples from
@@ -1212,8 +1212,8 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(9.0)
     >>> par.values
-    array([[ 4.5,  4.5,  4.5],
-           [ 4.5,  4.5,  4.5]])
+    array([[4.5, 4.5, 4.5],
+           [4.5, 4.5, 4.5]])
 
     >>> par([[1.0, 2.0, 3.0],
     ...      [4.0, 5.0, 6.0]])
@@ -1221,17 +1221,16 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     par([[1.0, 2.0, 3.0],
          [4.0, 5.0, 6.0]])
     >>> par.values
-    array([[ 0.5,  1. ,  1.5],
-           [ 2. ,  2.5,  3. ]])
+    array([[0.5, 1. , 1.5],
+           [2. , 2.5, 3. ]])
 
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `par`, \
-the following error occurred: While trying to convert the value(s) \
-`[ 0.5  1. ]` to a numpy ndarray with shape `(2, 3)` and type `float`, \
-the following error occurred: could not broadcast input array from \
-shape (2,) into shape (2,3)
+    ValueError: While trying to set the value(s) of variable `par`, the following \
+error occurred: While trying to convert the value(s) `[0.5 1. ]` to a numpy ndarray \
+with shape `(2, 3)` and type `float`, the following error occurred: could not \
+broadcast input array from shape (2,) into shape (2,3)
     """
 
     TIME: Optional[bool]
@@ -1241,9 +1240,8 @@ shape (2,) into shape (2,3)
     def __call__(self, *args, **kwargs):
         if args and kwargs:
             raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} "
-                f"both positional and keyword arguments are given, "
-                f"which is ambiguous."
+                f"For parameter {objecttools.elementphrase(self)} both positional "
+                f"and keyword arguments are given, which is ambiguous."
             )
         if not args and not kwargs:
             raise ValueError(
@@ -1254,10 +1252,9 @@ shape (2,) into shape (2,3)
         if auxfile:
             if kwargs:
                 raise ValueError(
-                    f"It is not allowed to combine keyword `auxfile` with "
-                    f"other keywords, but for parameter "
-                    f"{objecttools.elementphrase(self)} also the following "
-                    f"keywords are used: "
+                    f"It is not allowed to combine keyword `auxfile` with other "
+                    f"keywords, but for parameter {objecttools.elementphrase(self)} "
+                    f"also the following keywords are used: "
                     f"{objecttools.enumeration(kwargs.keys())}."
                 )
             self.values = self._get_values_from_auxiliaryfile(auxfile)
@@ -1634,7 +1631,7 @@ implement method `update`.
 
         >>> test(3.0, 3.0, 3.0, 3.0)
         >>> test.values
-        array([ 1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1.])
         >>> test.compress_repr()
         '3.0'
         >>> test
@@ -1950,7 +1947,7 @@ class ZipParameter(Parameter):
     >>> par
     par(2.0)
     >>> par.values
-    array([ 1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1.])
 
     The extended feature of class |ZipParameter| is to allow passing
     values via keywords, each keyword corresponding to one of the
@@ -1961,7 +1958,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=6.0, soil=4.0)
     >>> par.values
-    array([  2.,  nan,   3.,  nan,   2.])
+    array([ 2., nan,  3., nan,  2.])
 
     Use the `default` argument if you want to assign the same value
     to entries with different constants:
@@ -1970,7 +1967,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=8.0, soil=2.0)
     >>> par.values
-    array([  1.,  nan,   4.,  nan,   1.])
+    array([ 1., nan,  4., nan,  1.])
 
     Using a keyword argument corresponding to an existing, but not
     relevant constant (in our example: `WATER`) is silently ignored:
@@ -1979,7 +1976,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=6.0, soil=4.0)
     >>> par.values
-    array([  2.,  nan,   3.,  nan,   2.])
+    array([ 2., nan,  3., nan,  2.])
 
     However, using a keyword not corresponding to any constant raises
     an exception:
@@ -2014,7 +2011,7 @@ The given keywords are incomplete and no default value is available.
     constant via attribute access:
 
     >>> par.soil
-    array([ 0.,  0.])
+    array([0., 0.])
     >>> par.soil = 2.5
     >>> par
     par(glacier=10.0, soil=5.0)
@@ -2374,11 +2371,10 @@ into shape (3,)
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `par`, \
-the following error occurred: While trying to convert the value(s) \
-`[ 1.  2.]` to a numpy ndarray with shape `(366, 3)` and type `float`, \
-the following error occurred: could not broadcast input array from \
-shape (2,) into shape (366,3)
+    ValueError: While trying to set the value(s) of variable `par`, the following \
+error occurred: While trying to convert the value(s) `[1. 2.]` to a numpy ndarray \
+with shape `(366, 3)` and type `float`, the following error occurred: could not \
+broadcast input array from shape (2,) into shape (366,3)
 
     .. testsetup::
 
@@ -2496,12 +2492,12 @@ shape (2,) into shape (366,3)
         >>> par.toy_1_2_12 = 2.0
         >>> par.toy_1_6_12 = 0.0, 2.0, 4.0
         >>> par.values[:6]
-        array([[ nan,  nan,  nan],
-               [ 2. ,  2. ,  2. ],
-               [ 1.5,  2. ,  2.5],
-               [ 1. ,  2. ,  3. ],
-               [ nan,  nan,  nan],
-               [ nan,  nan,  nan]])
+        array([[nan, nan, nan],
+               [2. , 2. , 2. ],
+               [1.5, 2. , 2.5],
+               [1. , 2. , 3. ],
+               [nan, nan, nan],
+               [nan, nan, nan]])
 
         .. testsetup::
 
@@ -2829,7 +2825,7 @@ class KeywordParameter1D(Parameter):
     >>> ishot
     ishot(winter=True, summer=False)
     >>> ishot.values
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
     We check the given keyword arguments for correctness and completeness:
 
@@ -3054,7 +3050,7 @@ class KeywordParameter2D(Parameter):
            south=[False, True])
     >>> iswarm.values
     array([[ True, False],
-           [False,  True]], dtype=bool)
+           [False,  True]])
 
     If a keyword is missing, it raises a |ValueError|:
 
@@ -3069,13 +3065,13 @@ as a keyword, but the following keywords are not: `south`.
 
     >>> iswarm.north = False, False
     >>> iswarm.north
-    array([False, False], dtype=bool)
+    array([False, False])
 
     The same holds for the columns:
 
     >>> iswarm.apr2sep = True, False
     >>> iswarm.apr2sep
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
     Also, combined row-column access is possible:
 

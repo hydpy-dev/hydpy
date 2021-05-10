@@ -186,14 +186,6 @@ pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 
-# Numpy introduced new string representations in version 1.14 affecting
-# our doctests.  Hence, the old style is selected for now:
-try:
-    # pylint: disable=unexpected-keyword-arg
-    numpy.set_printoptions(legacy="1.13")
-except TypeError:  # pragma: no cover
-    pass
-
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands
 pub.scriptfunctions["exec_script"] = exec_script

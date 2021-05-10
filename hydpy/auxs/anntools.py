@@ -347,8 +347,8 @@ class ANN(BaseANN):
     but `H2` (lower left value) is not:
 
     >>> ann.neurons
-    array([[ 1.,  1.],
-           [ 0.,  0.]])
+    array([[1., 1.],
+           [0., 0.]])
 
     Due to sharp response function, the derivatives with respect to both
     inputs are approximately zero:
@@ -733,8 +733,8 @@ of object `ann` has not been prepared so far.
         >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(3,))
         >>> ann.weights_input
-        array([[ 0.,  0.,  0.],
-               [ 0.,  0.,  0.]])
+        array([[0., 0., 0.],
+               [0., 0., 0.]])
         
         The following error occurs when either the number of input nodes or 
         of hidden neurons is unknown:
@@ -752,31 +752,31 @@ you have to prepare attribute `nmb_inputs` first.
         
         >>> ann.weights_input[:, 0] = 1.
         >>> ann.weights_input
-        array([[ 1.,  0.,  0.],
-               [ 1.,  0.,  0.]])
+        array([[1., 0., 0.],
+               [1., 0., 0.]])
 
         If possible, property |anntools.ANN.weights_input| performs type 
         conversions:
 
         >>> ann.weights_input = "2"
         >>> ann.weights_input
-        array([[ 2.,  2.,  2.],
-               [ 2.,  2.,  2.]])
+        array([[2., 2., 2.],
+               [2., 2., 2.]])
 
         One can assign whole matrices directly:
 
         >>> import numpy
         >>> ann.weights_input = numpy.eye(2, 3)
         >>> ann.weights_input
-        array([[ 1.,  0.,  0.],
-               [ 0.,  1.,  0.]])
+        array([[1., 0., 0.],
+               [0., 1., 0.]])
 
         One can also delete the values contained in the array:
 
         >>> del ann.weights_input
         >>> ann.weights_input
-        array([[ 0.,  0.,  0.],
-               [ 0.,  0.,  0.]])
+        array([[0., 0., 0.],
+               [0., 0., 0.]])
 
         Errors like wrong shapes (or unconvertible inputs) result in error
         messages:

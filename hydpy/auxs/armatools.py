@@ -341,7 +341,7 @@ class ARMA:
     >>> from hydpy import MA, ARMA
     >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
     >>> arma.coefs
-    (array([ 0.5]), array([ 0.3,  0.2]))
+    (array([0.5]), array([0.3, 0.2]))
     >>> arma
     ARMA(ar_coefs=(0.5,),
          ma_coefs=(0.3, 0.2))

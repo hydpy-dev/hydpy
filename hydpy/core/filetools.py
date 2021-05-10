@@ -1393,23 +1393,23 @@ class SequenceManager(FileManager):
 
     >>> sim.series = 0.0
     >>> sim.series
-    InfoArray([ 0.,  0.,  0.,  0.])
+    InfoArray([0., 0., 0., 0.])
     >>> nkor.series = 0.0
     >>> nkor.series
-    InfoArray([[ 0.,  0.],
-               [ 0.,  0.],
-               [ 0.,  0.],
-               [ 0.,  0.]])
+    InfoArray([[0., 0.],
+               [0., 0.],
+               [0., 0.],
+               [0., 0.]])
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
     ...     nkor.load_ext()
     >>> sim.series
-    InfoArray([ 64.,  65.,  66.,  67.])
+    InfoArray([64., 65., 66., 67.])
     >>> nkor.series
-    InfoArray([[ 16.,  17.],
-               [ 18.,  19.],
-               [ 20.,  21.],
-               [ 22.,  23.]])
+    InfoArray([[16., 17.],
+               [18., 19.],
+               [20., 21.],
+               [22., 23.]])
 
     Wrongly formatted ASCII files and incomplete data should result in
     understandable error messages:
@@ -1519,12 +1519,12 @@ is not allowed to overwrite the existing file `...`.
     ...     sim.load_ext()
     ...     nkor.load_ext()
     >>> sim.series
-    InfoArray([ 64.,  65.,  66.,  67.])
+    InfoArray([64., 65., 66., 67.])
     >>> nkor.series
-    InfoArray([[ 16.,  17.],
-               [ 18.,  19.],
-               [ 20.,  21.],
-               [ 22.,  23.]])
+    InfoArray([[16., 17.],
+               [18., 19.],
+               [20., 21.],
+               [22., 23.]])
 
     Writing mean values into |numpy| binary files is also supported:
 
@@ -1533,7 +1533,7 @@ is not allowed to overwrite the existing file `...`.
     ...     nkor.save_mean("wasser")
     ...     numpy.load(os.path.join("outputpath",
     ...                             "element2_flux_nkor_mean.npy"))[-4:]
-    array([ 17.,  19.,  21.,  23.])
+    array([17., 19., 21., 23.])
 
     Generally, trying to load data for "deactivated" sequences
     results in the following error message:

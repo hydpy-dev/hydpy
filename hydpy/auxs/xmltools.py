@@ -1641,7 +1641,7 @@ class XMLVar(XMLSelector):
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> item.value
-        array(2.0)
+        array(2.)
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
@@ -1655,7 +1655,7 @@ class XMLVar(XMLSelector):
         >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
         >>> item = var.item
         >>> item.value
-        array(5.0)
+        array(5.)
         >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
         lag(0.0)
         >>> item.update_variables()
@@ -1672,7 +1672,7 @@ class XMLVar(XMLSelector):
         >>> item.name
         'sm_lahn_2'
         >>> item.value
-        array(123.0)
+        array(123.)
         >>> hp.elements.land_lahn_2.model.sequences.states.sm
         sm(138.31396, 135.71124, 147.54968, 145.47142, 154.96405, 153.32805,
            160.91917, 159.62434, 165.65575, 164.63255)
@@ -1689,8 +1689,8 @@ class XMLVar(XMLSelector):
         >>> item.name
         'sm_lahn_1'
         >>> item.value
-        array([ 110.,  120.,  130.,  140.,  150.,  160.,  170.,  180.,  190.,
-                200.,  210.,  220.,  230.])
+        array([110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 210.,
+               220., 230.])
         >>> hp.elements.land_lahn_1.model.sequences.states.sm
         sm(99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
            125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,

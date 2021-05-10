@@ -30,7 +30,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr
     pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
     >>> pcorr.values
-    array([ 2.,  1.,  4.,  3.,  2.])
+    array([2., 1., 4., 3., 2.])
 
     Parameter |ZoneArea| serves for calculating areal means (see the documentation on
     |property| |ParameterComplete.refweights|):

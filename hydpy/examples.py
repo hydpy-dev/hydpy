@@ -88,22 +88,22 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
     >>> nied1.series
-    InfoArray([ 0.,  1.,  2.,  3.])
+    InfoArray([0., 1., 2., 3.])
     >>> nkor1 = elements.element1.model.sequences.fluxes.nkor
     >>> nkor1.series
-    InfoArray([[ 12.],
-               [ 13.],
-               [ 14.],
-               [ 15.]])
+    InfoArray([[12.],
+               [13.],
+               [14.],
+               [15.]])
     >>> bowa3 = elements.element3.model.sequences.states.bowa
     >>> bowa3.series
-    InfoArray([[ 48.,  49.,  50.],
-               [ 51.,  52.,  53.],
-               [ 54.,  55.,  56.],
-               [ 57.,  58.,  59.]])
+    InfoArray([[48., 49., 50.],
+               [51., 52., 53.],
+               [54., 55., 56.],
+               [57., 58., 59.]])
     >>> sim2 = nodes.node2.sequences.sim
     >>> sim2.series
-    InfoArray([ 64.,  65.,  66.,  67.])
+    InfoArray([64., 65., 66., 67.])
 
     (5) All sequences carry |numpy.ndarray| objects with (deep) copies
     of the time series data for testing:
@@ -113,10 +113,10 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     ...  numpy.all(nkor1.series == nkor1.testarray) and
     ...  numpy.all(bowa3.series == bowa3.testarray) and
     ...  numpy.all(sim2.series == sim2.testarray))
-    InfoArray(True, dtype=bool)
+    InfoArray(True)
     >>> bowa3.series[1, 2] = -999.0
     >>> numpy.all(bowa3.series == bowa3.testarray)
-    InfoArray(False, dtype=bool)
+    InfoArray(False)
     """
     testtools.TestIO.clear()
     hydpy.pub.sequencemanager = filetools.SequenceManager()

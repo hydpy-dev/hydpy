@@ -125,12 +125,12 @@ from raising an exception when reading incomplete data from file):
 (10) We check if the data is available via the test sequences again:
 
 >>> nodes.node2.sequences.sim.series
-InfoArray([ 64.,  65.,  66.,  67.])
+InfoArray([64., 65., 66., 67.])
 >>> elements.element2.model.sequences.fluxes.nkor.series
-InfoArray([[ 16.,  17.],
-           [ 18.,  19.],
-           [ 20.,  21.],
-           [ 22.,  23.]])
+InfoArray([[16., 17.],
+           [18., 19.],
+           [20., 21.],
+           [22., 23.]])
 >>> pub.sequencemanager.netcdfreader
 Traceback (most recent call last):
 ...
@@ -149,11 +149,11 @@ node sequence |Sim| is allowed for the sake of consistency):
 >>> with TestIO():
 ...     with netcdf4.Dataset("example/node.nc") as ncfile:
 ...         array(ncfile["sim_q_mean"][:])
-array([[ 60.,  61.,  62.,  63.]])
+array([[60., 61., 62., 63.]])
 >>> with TestIO():
 ...     with netcdf4.Dataset("example/lland_v1.nc") as ncfile:
 ...         array(ncfile["flux_nkor_mean"][:])[1]
-array([ 16.5,  18.5,  20.5,  22.5])
+array([16.5, 18.5, 20.5, 22.5])
 
 The described workflow is, besides the testing related specialities,
 more or less standard and can be modified in many ways, which are
@@ -270,12 +270,10 @@ def str2chars(strings) -> numpy.ndarray:
     >>> from hydpy.core.netcdftools import str2chars
     >>> str2chars(["zeros", "ones"])
     array([[b'z', b'e', b'r', b'o', b's'],
-           [b'o', b'n', b'e', b's', b'']],
-          dtype='|S1')
+           [b'o', b'n', b'e', b's', b'']], dtype='|S1')
 
     >>> str2chars([])
-    array([], shape=(0, 0),
-          dtype='|S1')
+    array([], shape=(0, 0), dtype='|S1')
     """
     maxlen = 0
     for name in strings:
@@ -372,7 +370,7 @@ occurred: ...
     >>> create_variable(ncfile, "var1", "f8", ("dim1",))
     >>> import numpy
     >>> numpy.array(ncfile["var1"][:])
-    array([ nan,  nan,  nan,  nan,  nan])
+    array([nan, nan, nan, nan, nan])
 
     >>> ncfile.close()
     """
@@ -465,7 +463,7 @@ def query_array(ncfile, name) -> numpy.ndarray:
     >>> netcdftools.query_variable(ncfile, "var1")[:].data
     array([-999., -999., -999., -999., -999.])
     >>> netcdftools.query_array(ncfile, "var1")
-    array([ nan,  nan,  nan,  nan,  nan])
+    array([nan, nan, nan, nan, nan])
     >>> import numpy
     >>> netcdftools.fillvalue = numpy.nan
     >>> ncfile.close()
@@ -582,10 +580,10 @@ a member named `lland_v3`.
     >>> with TestIO():
     ...     interface.read()
     >>> nodes.node1.sequences.sim.series
-    InfoArray([ 61.,  62.])
+    InfoArray([61., 62.])
     >>> elements.element2.model.sequences.fluxes.nkor.series
-    InfoArray([[ 18.,  19.],
-               [ 20.,  21.]])
+    InfoArray([[18., 19.],
+               [20., 21.]])
 
     (7) We repeat the above steps, except that we set both
     `flatten` and `isolate` to |True|.  The relevant difference is
@@ -640,10 +638,10 @@ a member named `lland_v3`.
     >>> with TestIO():
     ...     interface.read()
     >>> nodes.node1.sequences.sim.series
-    InfoArray([ 61.,  62.])
+    InfoArray([61., 62.])
     >>> elements.element2.model.sequences.fluxes.nkor.series
-    InfoArray([[ 18.,  19.],
-               [ 20.,  21.]])
+    InfoArray([[18., 19.],
+               [20., 21.]])
 
     (8) We technically confirm that the `isolate` and `timeaxis` arguments
     are passed to the constructor of class |NetCDFFile| correctly:
@@ -812,7 +810,7 @@ class NetCDFFile:
     >>> with TestIO():
     ...     ncfile.read()
     >>> nied.series
-    InfoArray([ 0.,  1.,  2.,  3.])
+    InfoArray([0., 1., 2., 3.])
 
     (6) We show that IO errors and trying to access variables we have not
     logged so far should result in clear error messages:
@@ -910,14 +908,14 @@ named `state_bowa`.
         >>> ncfile.flux_nkor.element2.sequence.descr_device
         'element2'
         >>> ncfile.flux_nkor.element2.array
-        InfoArray([[ 16.,  17.],
-                   [ 18.,  19.],
-                   [ 20.,  21.],
-                   [ 22.,  23.]])
+        InfoArray([[16., 17.],
+                   [18., 19.],
+                   [20., 21.],
+                   [22., 23.]])
         >>> ncfile.flux_nkor_mean.element2.sequence.descr_device
         'element2'
         >>> ncfile.flux_nkor_mean.element2.array
-        InfoArray([ 16.5,  18.5,  20.5,  22.5])
+        InfoArray([16.5, 18.5, 20.5, 22.5])
 
         (7) We again prepare a |NetCDFFile| object, but now with both
         options `flatten` and `isolate` being enabled.  To log test
@@ -934,14 +932,14 @@ named `state_bowa`.
         >>> ncfile.flux_nkor.element2.sequence.descr_device
         'element2'
         >>> ncfile.flux_nkor.element2.array
-        InfoArray([[ 16.,  17.],
-                   [ 18.,  19.],
-                   [ 20.,  21.],
-                   [ 22.,  23.]])
+        InfoArray([[16., 17.],
+                   [18., 19.],
+                   [20., 21.],
+                   [22., 23.]])
         >>> ncfile.flux_nkor_mean.element2.sequence.descr_device
         'element2'
         >>> ncfile.flux_nkor_mean.element2.array
-        InfoArray([ 16.5,  18.5,  20.5,  22.5])
+        InfoArray([16.5, 18.5, 20.5, 22.5])
 
         (8) We technically confirm that the `isolate` argument is passed
         to the constructor of subclasses of |NetCDFVariableBase| correctly:
@@ -1585,7 +1583,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
     >>> seq1.series = 0.0
     >>> var_nied.read(ncfile, pub.timegrids.init)
     >>> seq1.series
-    InfoArray([ 0.,  1.,  2.,  3.])
+    InfoArray([0., 1., 2., 3.])
     >>> ncfile.close()
     """
 
@@ -1674,9 +1672,9 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nied1 = element.model.sequences.inputs.nied
         ...     ncvar.log(nied1, nied1.series)
         >>> ncvar.array
-        array([[  0.,   1.,   2.,   3.],
-               [  4.,   5.,   6.,   7.],
-               [  8.,   9.,  10.,  11.]])
+        array([[ 0.,  1.,  2.,  3.],
+               [ 4.,  5.,  6.,  7.],
+               [ 8.,  9., 10., 11.]])
 
         For higher dimensional sequences, |NetCDFVariableDeep.array|
         can contain missing values.  Such missing values show up for
@@ -1688,10 +1686,10 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[1]
-        array([[ 16.,  17.,  nan],
-               [ 18.,  19.,  nan],
-               [ 20.,  21.,  nan],
-               [ 22.,  23.,  nan]])
+        array([[16., 17., nan],
+               [18., 19., nan],
+               [20., 21., nan],
+               [22., 23., nan]])
 
         When using the first axis for time (`timeaxis=0`) the same data
         can be accessed with slightly different indexing:
@@ -1701,10 +1699,10 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[:, 1]
-        array([[ 16.,  17.,  nan],
-               [ 18.,  19.,  nan],
-               [ 20.,  21.,  nan],
-               [ 22.,  23.,  nan]])
+        array([[16., 17., nan],
+               [18., 19., nan],
+               [20., 21., nan],
+               [22., 23., nan]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, (descr, subarray) in enumerate(self.arrays.items()):
@@ -1812,14 +1810,14 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     ...     ncfile = netcdf4.Dataset("model.nc", "r")
     >>> import numpy
     >>> numpy.array(ncfile["input_nied_mean"][:])
-    array([[ 0.,  1.,  2.,  3.],
-           [ 4.,  5.,  6.,  7.]])
+    array([[0., 1., 2., 3.],
+           [4., 5., 6., 7.]])
 
     >>> numpy.array(ncfile["flux_nkor_mean"][:])
-    array([[ 12. ,  16.5],
-           [ 13. ,  18.5],
-           [ 14. ,  20.5],
-           [ 15. ,  22.5]])
+    array([[12. , 16.5],
+           [13. , 18.5],
+           [14. , 20.5],
+           [15. , 22.5]])
 
     >>> ncfile.close()
     """
@@ -1873,9 +1871,9 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.average_series())
         >>> ncvar.array
-        array([[ 12. ,  13. ,  14. ,  15. ],
-               [ 16.5,  18.5,  20.5,  22.5],
-               [ 25. ,  28. ,  31. ,  34. ]])
+        array([[12. , 13. , 14. , 15. ],
+               [16.5, 18.5, 20.5, 22.5],
+               [25. , 28. , 31. , 34. ]])
 
         When using the first axis as the "timeaxis", the resulting
         |NetCDFVariableAgg.array| is the transposed:
@@ -1885,10 +1883,10 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.average_series())
         >>> ncvar.array
-        array([[ 12. ,  16.5,  25. ],
-               [ 13. ,  18.5,  28. ],
-               [ 14. ,  20.5,  31. ],
-               [ 15. ,  22.5,  34. ]])
+        array([[12. , 16.5, 25. ],
+               [13. , 18.5, 28. ],
+               [14. , 20.5, 31. ],
+               [15. , 22.5, 34. ]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, subarray in enumerate(self.arrays.values()):
@@ -2043,9 +2041,9 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         ...     nied1 = element.model.sequences.inputs.nied
         ...     ncvar.log(nied1, nied1.series)
         >>> ncvar.array
-        array([[  0.,   1.,   2.,   3.],
-               [  4.,   5.,   6.,   7.],
-               [  8.,   9.,  10.,  11.]])
+        array([[ 0.,  1.,  2.,  3.],
+               [ 4.,  5.,  6.,  7.],
+               [ 8.,  9., 10., 11.]])
 
         Due to the flattening of higher dimensional sequences,
         their individual time series (e.g. of different hydrological
@@ -2059,8 +2057,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[1:3]
-        array([[ 16.,  18.,  20.,  22.],
-               [ 17.,  19.,  21.,  23.]])
+        array([[16., 18., 20., 22.],
+               [17., 19., 21., 23.]])
 
         When using the first axis as the "timeaxis", the individual time
         series of the second element are stored in column two and three:
@@ -2070,10 +2068,10 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[:, 1:3]
-        array([[ 16.,  17.],
-               [ 18.,  19.],
-               [ 20.,  21.],
-               [ 22.,  23.]])
+        array([[16., 17.],
+               [18., 19.],
+               [20., 21.],
+               [22., 23.]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         idx0 = 0

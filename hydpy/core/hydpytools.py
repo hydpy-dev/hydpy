@@ -346,23 +346,19 @@ requested to make any internal data available.
     hydrological response units (a |hland| convention):
 
     >>> model.sequences.inputs.t.series
-    InfoArray([ nan,  nan,  nan,  nan])
+    InfoArray([nan, nan, nan, nan])
 
     >>> model.sequences.states.sm.series
-    InfoArray([[ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
-                 nan,  nan],
-               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
-                 nan,  nan],
-               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
-                 nan,  nan],
-               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
-                 nan,  nan]])
+    InfoArray([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
+               [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
+               [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
+               [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
 
     >>> model.sequences.fluxes.qt.series
-    InfoArray([ nan,  nan,  nan,  nan])
+    InfoArray([nan, nan, nan, nan])
 
     >>> hp.nodes.dill.sequences.sim.series
-    InfoArray([ nan,  nan,  nan,  nan])
+    InfoArray([nan, nan, nan, nan])
 
     So far, each time-series array is empty.  The `LahnH` example
     project provides time-series files for the input sequences only,

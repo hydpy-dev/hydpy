@@ -872,7 +872,7 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin
         dmin(0.01008)
         >>> dmin.values
-        array([ 0.24192])
+        array([0.24192])
 
         A wrong keyword results in the right answer:
 
@@ -955,7 +955,7 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax
         dmax(1.008)
         >>> dmax.values
-        array([ 24.192])
+        array([24.192])
 
         A wrong keyword results in the right answer:
 

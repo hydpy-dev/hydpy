@@ -226,10 +226,10 @@ respectively.
 
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
     >>> var.values == (1.0, 2.0, 3.0)
-    array([[False,  True, False]], dtype=bool)
+    array([[False,  True, False]])
     >>> var.trim()
     >>> var.values == (1.0, 2.0, 3.0)
-    array([[ True,  True,  True]], dtype=bool)
+    array([[ True,  True,  True]])
 
     >>> var.values = 0.0, 2.0, 4.0
     >>> var.trim(lower=numpy.nan, upper=numpy.nan)
@@ -668,18 +668,18 @@ For variable `var`, no value has been defined so far.
     >>> var.shape = (2,)
     >>> var.values = 2.0
     >>> var + var
-    array([ 4.,  4.])
+    array([4., 4.])
     >>> var + 3.0
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> [4.0, 0.0] + var
-    array([ 6.,  2.])
+    array([6., 2.])
     >>> var += 1
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 3.0
     >>> var - [1.0, 0.0]
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> [7.0, 0.0] - var
     array([ 4., -3.])
     >>> var -= [2.0, 0.0]
@@ -688,62 +688,62 @@ For variable `var`, no value has been defined so far.
 
     >>> var.values = 2.0
     >>> var * [3.0, 1.0]
-    array([ 6.,  2.])
+    array([6., 2.])
     >>> [4.0, 1.0] * var
-    array([ 8.,  2.])
+    array([8., 2.])
     >>> var *= [0.5, 1.0]
     >>> var
     var(1.0, 2.0)
 
     >>> var.values = 3.0
     >>> var / [2.0, 1.0]
-    array([ 1.5,  3. ])
+    array([1.5, 3. ])
     >>> [7.5, 3.0] / var
-    array([ 2.5,  1. ])
+    array([2.5, 1. ])
     >>> var /= [6.0, 1.]
     >>> var
     var(0.5, 3.0)
 
     >>> var.values = 3.0
     >>> var // [2.0, 1.0]
-    array([ 1.,  3.])
+    array([1., 3.])
     >>> [7.5, 3.0] // var
-    array([ 2.,  1.])
+    array([2., 1.])
     >>> var //= [0.9, 1.0]
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 5.0
     >>> var % [2.0, 5.0]
-    array([ 1.,  0.])
+    array([1., 0.])
     >>> [7.5, 5.0] % var
-    array([ 2.5,  0. ])
+    array([2.5, 0. ])
     >>> var %= [3.0, 5.0]
     >>> var
     var(2.0, 0.0)
 
     >>> var.values = 2.0
     >>> var**[3.0, 1.0]
-    array([ 8.,  2.])
+    array([8., 2.])
     >>> [3.0, 1.0]**var
-    array([ 9.,  1.])
+    array([9., 1.])
     >>> var **= [4.0, 1.0]
     >>> var
     var(16.0, 2.0)
 
     >>> var.value = 5.0
     >>> divmod(var, [3.0, 5.0])
-    (array([ 1.,  1.]), array([ 2.,  0.]))
+    (array([1., 1.]), array([2., 0.]))
     >>> divmod([13.0, 5.0], var)
-    (array([ 2.,  1.]), array([ 3.,  0.]))
+    (array([2., 1.]), array([3., 0.]))
 
     >>> var.values = -5.0
     >>> +var
     array([-5., -5.])
     >>> -var
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> abs(var)
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> ~var
     array([-0.2, -0.2])
     >>> var.value = 2.5
@@ -754,7 +754,7 @@ For variable `var`, no value has been defined so far.
     array([3, 3])
     >>> var.values = 1.67
     >>> round(var, 1)
-    array([ 1.7,  1.7])
+    array([1.7, 1.7])
     >>> bool(var)
     True
     >>> int(var)
@@ -1271,7 +1271,7 @@ variable `var` can only be retrieved after it has been defined.
         >>> var.shape
         (3,)
         >>> var.values
-        array([ 3.,  3.,  3.])
+        array([3., 3., 3.])
 
         For the |Variable.initinfo| flag (second |tuple| entry) being
         |False|, the array is still prepared but not directly accessible
@@ -1291,7 +1291,7 @@ variable `var` can only be retrieved after it has been defined.
 values have been defined so far.
 
         >>> var.fastaccess.var
-        array([ nan,  nan,  nan])
+        array([nan, nan, nan])
 
         Property |Variable.shape| tries to normalise assigned values and
         raises errors like the following, if not possible:

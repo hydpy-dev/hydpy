@@ -425,7 +425,7 @@ class UH(parametertools.Parameter):
         >>> derived.uh
         uh(0.5)
         >>> derived.uh.values
-        array([ 0.5,  0.5])
+        array([0.5, 0.5])
 
         A |MaxBaz| value three times the simulation step size results in the ordinate
         values 2/9, 5/9, and 2/9:

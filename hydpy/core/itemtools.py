@@ -321,7 +321,7 @@ class ChangeItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> item.value = 1
         >>> item.value
-        array(1.0)
+        array(1.)
         >>> item.value = 1, 2
         Traceback (most recent call last):
         ...
@@ -505,7 +505,7 @@ class SetItem(ChangeItem):
         alpha(1.0)
         >>> item.value = 2.0
         >>> item.value
-        array(2.0)
+        array(2.)
         >>> land_dill.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
@@ -670,10 +670,10 @@ class AddItem(MathItem):
         >>> item.update_variables()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: When trying to add the value(s) `[-0.1  0.   0.1]` of \
-AddItem `sfcf` and the value(s) `[ 1.1  1.1]` of variable `rfcf` of element \
-`land_dill`, the following error occurred: operands could not be broadcast \
-together with shapes (2,) (3,)...
+        ValueError: When trying to add the value(s) `[-0.1  0.   0.1]` of AddItem \
+`sfcf` and the value(s) `[1.1 1.1]` of variable `rfcf` of element `land_dill`, the \
+following error occurred: operands could not be broadcast together with shapes \
+(2,) (3,)...
         """
         value = self.value
         for device, target in self.device2target.items():

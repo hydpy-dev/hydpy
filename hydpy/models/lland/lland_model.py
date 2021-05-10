@@ -8736,7 +8736,7 @@ class Calc_QBB_V1(modeltools.Method):
         >>> beta
         beta(0.04)
         >>> beta.values
-        array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
+        array([0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
 
         In the first example, the actual soil water content |BoWa| is set
         to low values.  For values below the threshold |PWP|, no percolation
@@ -8853,7 +8853,7 @@ class Calc_QIB1_V1(modeltools.Method):
         >>> dmin
         dmin(4.0)
         >>> dmin.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 2., 2., 2.])
 
         Compared to the calculation of |QBB|, the following results show
         some relevant differences:
@@ -8926,7 +8926,7 @@ class Calc_QIB2_V1(modeltools.Method):
         >>> dmax
         dmax(10.0)
         >>> dmax.values
-        array([ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.])
+        array([5., 5., 5., 5., 5., 5., 5., 5.])
 
         The following results show that he calculation of |QIB2| both
         resembles those of |QBB| and |QIB1| in some regards:

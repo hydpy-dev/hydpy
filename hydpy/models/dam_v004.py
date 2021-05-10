@@ -499,7 +499,7 @@ relief is already zero):
 >>> required_supply.sequences.sim.series = 0.0
 >>> test.inits.loggedrequiredremoterelease = 0.0
 >>> allowed_relief.sequences.sim.series   # doctest: +ELLIPSIS
-InfoArray([ 0.,  ...  0.])
+InfoArray([0., ..., 0.])
 
 The following results demonstrate that |dam_v003| calculates the same outflow values as
 |dam_v001| and |dam_v003| in situations where the remote locations are inactive:

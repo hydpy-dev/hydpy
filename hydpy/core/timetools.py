@@ -494,7 +494,7 @@ invalid literal for int() with base 10: '0X'
 
         >>> from hydpy import Date
         >>> Date("1992-10-8 15:15:42").to_array()
-        array([ 1992.,    10.,     8.,    15.,    15.,    42.])
+        array([1992.,   10.,    8.,   15.,   15.,   42.])
 
         .. note::
 
@@ -2398,23 +2398,23 @@ are required, but the given array consist of 12 entries/rows only.
         >>> from hydpy import Timegrid
         >>> timegrid = Timegrid("2000-01-01", "2000-01-02", "6h")
         >>> timegrid.to_timepoints()
-        array([  0.,   6.,  12.,  18.])
+        array([ 0.,  6., 12., 18.])
 
         You can define other time units (`days` or `min`) (only the first
         character counts):
 
         >>> timegrid.to_timepoints(unit="d")
-        array([ 0.  ,  0.25,  0.5 ,  0.75])
+        array([0.  , 0.25, 0.5 , 0.75])
 
         Additionally, one can pass an `offset` that must be of type |int|
         or a valid |Period| initialisation argument:
 
         >>> timegrid.to_timepoints(offset=24)
-        array([ 24.,  30.,  36.,  42.])
+        array([24., 30., 36., 42.])
         >>> timegrid.to_timepoints(offset="1d")
-        array([ 24.,  30.,  36.,  42.])
+        array([24., 30., 36., 42.])
         >>> timegrid.to_timepoints(unit="day", offset="1d")
-        array([ 1.  ,  1.25,  1.5 ,  1.75])
+        array([1.  , 1.25, 1.5 , 1.75])
         """
         period = Period.from_cfunits(unit)
         if not isinstance(offset, (float, int)):
@@ -3725,23 +3725,23 @@ has already been set to `31`.
 
         >>> pub.timegrids = "2001-01-03", "2001-01-05", "1d"
         >>> TOY.centred_timegrid()[1][:5]
-        array([False, False,  True,  True, False], dtype=bool)
+        array([False, False,  True,  True, False])
 
         >>> pub.timegrids = "2001-12-30", "2002-01-04", "1d"
         >>> TOY.centred_timegrid()[1][:5]
-        array([ True,  True,  True, False, False], dtype=bool)
+        array([ True,  True,  True, False, False])
         >>> TOY.centred_timegrid()[1][-5:]
-        array([False, False, False,  True,  True], dtype=bool)
+        array([False, False, False,  True,  True])
 
         It makes no difference whether initialisation periods not spanning
         a full year contain the 29th of February or not:
 
         >>> pub.timegrids = "2001-02-27", "2001-03-01", "1d"
         >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False], dtype=bool)
+        array([False, False,  True,  True,  True, False])
         >>> pub.timegrids = "2000-02-27", "2000-03-01", "1d"
         >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False], dtype=bool)
+        array([False, False,  True,  True,  True, False])
         """
         init = hydpy.pub.timegrids.init
         shift = init.stepsize / 2.0

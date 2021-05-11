@@ -3399,6 +3399,55 @@ class Calc_RO_V1(modeltools.Method):
                 flu.ro += der.relzonearea[k] * (flu.rs[k] + flu.ri[k] + flu.rg1[k])
 
 
+class Calc_RA_RT_V1(modeltools.Method):
+    r"""Calculate the actual abstraction and the total discharge in mm.
+
+    Basic equation:
+        :math:`RA = Abstr / QFactor`
+
+        :math:`RT = OutUH - RA`
+
+    Examples:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> abstr(1.0)
+        >>> derived.qfactor(0.5)
+        >>> fluxes.outuh = 3.0
+        >>> model.calc_ra_rt_v1()
+        >>> fluxes.ra
+        ra(2.0)
+        >>> fluxes.rt
+        rt(1.0)
+
+        A requested abstraction larger than the total available discharge does not
+        result in negative outcomes:
+
+        >>> abstr(2.0)
+        >>> model.calc_ra_rt_v1()
+        >>> fluxes.ra
+        ra(3.0)
+        >>> fluxes.rt
+        rt(0.0)
+    """
+
+    CONTROLPARAMETERS = (hland_control.Abstr,)
+    DERIVEDPARAMETERS = (hland_derived.QFactor,)
+    REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
+    RESULTSEQUENCES = (
+        hland_fluxes.RA,
+        hland_fluxes.RT,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.ra = min(con.abstr / der.qfactor, flu.outuh)
+        flu.rt = flu.outuh - flu.ra
+
+
 class Calc_RA_RT_V2(modeltools.Method):
     r"""Calculate the actual abstraction and the total discharge in mm.
 
@@ -3507,57 +3556,6 @@ class Calc_RA_RT_V3(modeltools.Method):
 
 
 class Calc_QT_V1(modeltools.Method):
-    r"""Calculate the total discharge after possible abstractions.
-
-    Basic equation:
-        :math:`QT = max(QFactor \cdot OutUH - Abstr, 0)`
-
-    Examples:
-
-        A requested abstraction larger than the total available discharge does not
-        result in negative outcomes:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> simulationstep("12h")
-        >>> abstr(1.0)
-        >>> derived.qfactor(0.5)
-        >>> fluxes.outuh = 4.0
-        >>> model.calc_qt_v1()
-        >>> fluxes.qt
-        qt(1.0)
-        >>> fluxes.outuh = 2.0
-        >>> model.calc_qt_v1()
-        >>> fluxes.qt
-        qt(0.0)
-        >>> fluxes.outuh = 1.0
-        >>> model.calc_qt_v1()
-        >>> fluxes.qt
-        qt(0.0)
-
-        Note that "negative abstractions" are allowed:
-
-        >>> abstr(-1.0)
-        >>> fluxes.outuh = 2.0
-        >>> model.calc_qt_v1()
-        >>> fluxes.qt
-        qt(2.0)
-    """
-
-    CONTROLPARAMETERS = (hland_control.Abstr,)
-    DERIVEDPARAMETERS = (hland_derived.QFactor,)
-    REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
-    RESULTSEQUENCES = (hland_fluxes.QT,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.qt = max(der.qfactor * flu.outuh - con.abstr, 0.0)
-
-
-class Calc_QT_V2(modeltools.Method):
     r"""Calculate the total discharge in m³/s.
 
     Basic equation:
@@ -3571,7 +3569,7 @@ class Calc_QT_V2(modeltools.Method):
         >>> abstr(0.2)
         >>> derived.qfactor(0.5)
         >>> fluxes.rt = 2.0
-        >>> model.calc_qt_v2()
+        >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(1.0)
     """
@@ -3646,10 +3644,10 @@ class Model(modeltools.AdHocModel):
         Calc_OutUH_QUH_V1,
         Calc_OutUH_SC_V1,
         Calc_RO_V1,
+        Calc_RA_RT_V1,
         Calc_RA_RT_V2,
         Calc_RA_RT_V3,
         Calc_QT_V1,
-        Calc_QT_V2,
     )
     ADD_METHODS = (Calc_QAb_QVs_BW_V1,)
     OUTLET_METHODS = (Pass_Q_v1,)

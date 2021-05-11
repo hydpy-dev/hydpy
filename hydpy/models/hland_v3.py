@@ -516,7 +516,7 @@ class Model(modeltools.AdHocModel):
         hland_model.Calc_EL_SG2_SG3_V1,
         hland_model.Calc_RO_V1,
         hland_model.Calc_RA_RT_V2,
-        hland_model.Calc_QT_V2,
+        hland_model.Calc_QT_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = (hland_model.Pass_Q_v1,)

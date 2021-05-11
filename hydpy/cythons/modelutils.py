@@ -742,6 +742,7 @@ class Cythonizer:
          'parametertools.py',
          'sequencetools.py',
          'testtools.py',
+         'typingtools.py',
          'variabletools.py',
          'modelutils.py',
          'hland_v1.py']

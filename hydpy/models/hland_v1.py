@@ -185,6 +185,12 @@ to be constantly 1 °C below the values of |hland_inputs.T|:
 ...     10.715238, 9.383394, 7.861915, 6.298329, 2.948416, 1.309232,
 ...     0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
+We memorise the initial conditions to check later if |hland_v1| holds the water balance:
+
+>>> derived.uh.update()
+>>> test.reset_inits()
+>>> conditions = sequences.conditions
+
 In the first example, the |RespArea| option is disabled and a
 relatively large value for the accuracy related parameter |RecStep|
 is set:
@@ -303,6 +309,12 @@ amounts of |Q1| only):
     | 04/01 22:00 |  0.0 | 11.7 | 10.7 |    0.0845 |  12.3 | 12.3 |      1.0 | 1.1 | 0.0 |     0.0 |   0.09802 | 0.070574 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043503 |      0.0 |        1.0 |       0.0 |      0.0 |       0.0 | 0.0 | 0.130647 |  0.130647 |  0.131304 | 0.0108 |  0.120504 | 0.033473 |      0.0 | 0.0 | 0.0 |  98.581712 |       0.0 | 25.998665 | 0.033473 |
     | 04/01 23:00 |  0.0 | 11.9 | 10.9 |  0.084864 |  12.5 | 12.5 |      1.0 | 1.1 | 0.0 |     0.0 |  0.098442 | 0.070878 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043671 |      0.0 |        1.0 |       0.0 |      0.0 |       0.0 | 0.0 | 0.129993 |  0.129993 |  0.130647 | 0.0108 |  0.119847 | 0.033291 |      0.0 | 0.0 | 0.0 |  98.538041 |       0.0 | 25.868672 | 0.033291 |
 
+There is no indication of an error in the water balance:
+
+>>> from hydpy import round_
+>>> round_(model.check_waterbalance(conditions))
+0.0
+
 .. _hland_v1_resparea:
 
 contributing area
@@ -417,6 +429,11 @@ initial subperiod when the soil is not saturated yet:
     | 04/01 21:00 |  0.0 | 12.4 | 11.4 |  0.085771 |  13.0 | 13.0 |      1.0 | 1.1 | 0.0 |     0.0 |  0.099494 | 0.071636 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.044194 |      0.0 |   0.243362 |       0.0 |      0.0 |       0.0 | 0.0 | 0.086521 |  0.086521 | 0.086956 | 0.0108 | 0.076156 | 0.021155 |      0.0 | 0.0 | 0.0 |  98.663494 |       0.0 | 17.217677 | 0.021155 |
     | 04/01 22:00 |  0.0 | 11.7 | 10.7 |    0.0845 |  12.3 | 12.3 |      1.0 | 1.1 | 0.0 |     0.0 |   0.09802 | 0.070574 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043519 |      0.0 |   0.243147 |       0.0 |      0.0 |       0.0 | 0.0 | 0.086088 |  0.086088 | 0.086521 | 0.0108 | 0.075721 | 0.021034 |      0.0 | 0.0 | 0.0 |  98.619975 |       0.0 | 17.131589 | 0.021034 |
     | 04/01 23:00 |  0.0 | 11.9 | 10.9 |  0.084864 |  12.5 | 12.5 |      1.0 | 1.1 | 0.0 |     0.0 |  0.098442 | 0.070878 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043688 |      0.0 |   0.242932 |       0.0 |      0.0 |       0.0 | 0.0 | 0.085658 |  0.085658 | 0.086089 | 0.0108 | 0.075289 | 0.020914 |      0.0 | 0.0 | 0.0 |  98.576287 |       0.0 | 17.045931 | 0.020914 |
+
+There is no indication of an error in the water balance:
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 
 .. _hland_v1_low_accuracy:
 
@@ -534,6 +551,11 @@ above the maximum peak of |R|, which is physically impossible:
     | 04/01 21:00 |  0.0 | 12.4 | 11.4 |  0.085771 |  13.0 | 13.0 |      1.0 | 1.1 | 0.0 |     0.0 |  0.099494 | 0.071636 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.044194 |      0.0 |   0.243362 |       0.0 |      0.0 |       0.0 | 0.0 | 0.085779 |  0.085779 |  0.086211 | 0.0108 |  0.075411 | 0.020948 |      0.0 | 0.0 | 0.0 |  98.663494 |      0.0 | 17.070118 | 0.020948 |
     | 04/01 22:00 |  0.0 | 11.7 | 10.7 |    0.0845 |  12.3 | 12.3 |      1.0 | 1.1 | 0.0 |     0.0 |   0.09802 | 0.070574 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043519 |      0.0 |   0.243147 |       0.0 |      0.0 |       0.0 | 0.0 | 0.085351 |  0.085351 |   0.08578 | 0.0108 |   0.07498 | 0.020828 |      0.0 | 0.0 | 0.0 |  98.619975 |      0.0 | 16.984767 | 0.020828 |
     | 04/01 23:00 |  0.0 | 11.9 | 10.9 |  0.084864 |  12.5 | 12.5 |      1.0 | 1.1 | 0.0 |     0.0 |  0.098442 | 0.070878 |      0.0 |       0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.043688 |      0.0 |   0.242932 |       0.0 |      0.0 |       0.0 | 0.0 | 0.084924 |  0.084924 |  0.085351 | 0.0108 |  0.074551 | 0.020709 |      0.0 | 0.0 | 0.0 |  98.576287 |      0.0 | 16.899843 | 0.020709 |
+
+There is no indication of an error in the water balance:
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 
 .. _hland_v1_ilake:
 
@@ -658,6 +680,11 @@ the simulation period:
     | 04/01 21:00 |  0.0 | 12.4 | 11.4 |  0.085771 |  13.0 | 13.0 |      1.0 | 1.1 | 0.0 |     0.0 |  0.099494 | 0.071636 | 0.0 |     0.0 |    0.0 |  0.0 |  0.0 |     0.0 |     0.0 | 0.0 | 0.0 |        1.0 |  0.0 |  0.0 | 0.0 |      0.0 | 0.264798 | 0.264798 | 0.266213 |   0.0108 | 0.255413 | 0.070948 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |  52.694727 | 0.070948 |
     | 04/01 22:00 |  0.0 | 11.7 | 10.7 |    0.0845 |  12.3 | 12.3 |      1.0 | 1.1 | 0.0 |     0.0 |   0.09802 | 0.070574 | 0.0 |     0.0 |    0.0 |  0.0 |  0.0 |     0.0 |     0.0 | 0.0 | 0.0 |        1.0 |  0.0 |  0.0 | 0.0 |      0.0 | 0.263474 | 0.263474 | 0.264799 |   0.0108 | 0.253999 | 0.070555 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |  52.431254 | 0.070555 |
     | 04/01 23:00 |  0.0 | 11.9 | 10.9 |  0.084864 |  12.5 | 12.5 |      1.0 | 1.1 | 0.0 |     0.0 |  0.098442 | 0.070878 | 0.0 |     0.0 |    0.0 |  0.0 |  0.0 |     0.0 |     0.0 | 0.0 | 0.0 |        1.0 |  0.0 |  0.0 | 0.0 |      0.0 | 0.262156 | 0.262156 | 0.263475 |   0.0108 | 0.252675 | 0.070188 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |  52.169097 | 0.070188 |
+
+There is no indication of an error in the water balance:
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 
 .. _hland_v1_glacier:
 
@@ -784,12 +811,21 @@ a larger value than |CFMax|:
     | 04/01 21:00 |  0.0 |  20.0 |  20.0 |  0.085771 |  20.6 |  20.6 |      1.0 | 1.1 | 0.0 |     0.0 |  0.090917 |  0.06546 | 0.0 |     0.0 |   19.6 |    0.0 |  0.0 |     19.6 |     19.6 | 0.0 | 0.0 |        1.0 |     19.6 |  0.5 |      19.1 | 0.0 |  0.12221 |  19.22221 |  19.22031 | 0.0108 |  19.20951 | 5.335975 | 0.0 |      0.0 |      0.0 | 0.0 | 26.539749 | 24.319807 | 5.335975 |
     | 04/01 22:00 |  0.0 |  20.0 |  20.0 |    0.0845 |  20.6 |  20.6 |      1.0 | 1.1 | 0.0 |     0.0 |   0.08957 |  0.06449 | 0.0 |     0.0 |   19.6 |    0.0 |  0.0 |     19.6 |     19.6 | 0.0 | 0.0 |        1.0 |     19.6 |  0.5 |      19.1 | 0.0 | 0.124099 | 19.224099 | 19.222208 | 0.0108 | 19.211408 | 5.336502 | 0.0 |      0.0 |      0.0 | 0.0 | 26.539749 | 24.695708 | 5.336502 |
     | 04/01 23:00 |  0.0 |  20.0 |  20.0 |  0.084864 |  20.6 |  20.6 |      1.0 | 1.1 | 0.0 |     0.0 |  0.089956 | 0.064768 | 0.0 |     0.0 |   19.6 |    0.0 |  0.0 |     19.6 |     19.6 | 0.0 | 0.0 |        1.0 |     19.6 |  0.5 |      19.1 | 0.0 | 0.125979 | 19.225979 | 19.224097 | 0.0108 | 19.213297 | 5.337027 | 0.0 |      0.0 |      0.0 | 0.0 | 26.539749 | 25.069729 | 5.337027 |
+
+There is no indication of an error in the water balance:
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 """
 # import...
+# ...from site-packages
+from typing import *
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland import hland_model
@@ -835,6 +871,59 @@ class Model(modeltools.AdHocModel):
     OUTLET_METHODS = (hland_model.Pass_Q_v1,)
     SENDER_METHODS = ()
     SUBMODELS = ()
+
+    def check_waterbalance(
+        self,
+        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
+    ) -> float:
+        r"""Determine the water balance error of the previous simulation run in mm.
+
+        Method |Model.check_waterbalance| calculates the balance error as follows:
+
+        :math:`
+        \sum_{k=1}^{NmbZones} RelZoneArea^k \cdot \left(
+        \sum_{t=t0}^{t1} \big( PC_t^k + GLMelt_t^k - EI_t^k - EA_t^k - EL_t^k \big)
+        + \big( IC_{t0}^k - IC_{t1}^k \big)
+        + \big( SP_{t0}^k - SP_{t1}^k \big)
+        + \big( WC_{t0}^k - WC_{t1}^k \big)
+        + \big( SM_{t0}^k - SM_{t1}^k \big) \right)
+        + RelLandArea \cdot \big( UZ_{t0}^k - UZ_{t1}^k \big)
+        - \sum_{t=t0}^{t1} \big( RT_t + RA_t \big)
+        + \big( LZ_{t0} - LZ_{t1} \big)
+        + \sum_{i=1}^{Len(UH)} \big( QUH_{t0}^i - QUH_{t1}^i \big)`
+
+        The returned error should always be in scale with numerical precision so
+        that it does not affect the simulation results in any relevant manner.
+
+        Pick the required initial conditions before starting the simulation run
+        via property |Sequences.conditions|.  See the integration tests of the
+        application model |hland_v1| for some examples.
+        """
+        derived = self.parameters.derived
+        fluxes = self.sequences.fluxes
+        last = self.sequences.states
+        first = initial_conditions["states"]
+        areas = derived.relzonearea.value
+        idxs_lake = self.parameters.control.zonetype.values == ILAKE
+        idxs_land = ~idxs_lake
+        idxs_glac = self.parameters.control.zonetype.values == GLACIER
+        idxs_soil = idxs_land * ~idxs_glac
+        return (
+            numpy.sum(fluxes.pc.series * areas)
+            + numpy.sum((fluxes.glmelt.series * areas)[:, idxs_glac])
+            - numpy.sum((fluxes.ei.series * areas)[:, idxs_land])
+            - numpy.sum((fluxes.ea.series * areas)[:, idxs_soil])
+            - numpy.sum((fluxes.el.series * areas)[:, idxs_lake])
+            - numpy.sum(fluxes.rt.series)
+            - numpy.sum(fluxes.ra.series)
+            - numpy.sum((last.ic - first["ic"])[idxs_land] * areas)
+            - numpy.sum((last.wc - first["wc"])[idxs_land] * areas)
+            - numpy.sum((last.sp - first["sp"])[idxs_land] * areas)
+            - numpy.sum((last.sm - first["sm"])[idxs_soil] * areas)
+            - (last.uz - first["uz"]) * derived.rellandarea
+            - (last.lz - first["lz"])
+            - numpy.sum(self.sequences.logs.quh - initial_conditions["logs"]["quh"])
+        )
 
 
 class Masks(masktools.Masks):

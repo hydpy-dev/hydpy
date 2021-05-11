@@ -19,6 +19,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import black
+import numpy
 import wrapt
 
 # ...from HydPy
@@ -642,7 +643,7 @@ def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
     See the documentation on class |ResetAttrFuncs| for further information.
     """
     with ResetAttrFuncs(self):
-        return copy.deepcopy(self, memo)  # type: ignore [return-value]  # ???
+        return copy.deepcopy(self, memo)
 
 
 class _PreserveStrings:
@@ -1525,24 +1526,31 @@ def round_(
 ) -> None:
     """Prints values with a maximum number of digits in doctests.
 
-    See the documentation on function |repr| for more details.  And
-    note thate the option keyword arguments are passed to the print function.
+    See the documentation on function |repr| for more details, and note that the
+    optional keyword arguments are passed to the print function.
 
-    Usually one would apply function |round_| on a single or a vector
-    of numbers:
+    Usually one would apply function |round_| on a single or a vector of numbers:
 
     >>> from hydpy import round_
-    >>> round_(1./3., decimals=6)
+    >>> round_(1.0/3.0, decimals=6)
     0.333333
-    >>> round_((1./2., 1./3., 1./4.), decimals=4)
+    >>> round_((1.0/2.0, 1.0/3.0, 1.0/4.0), decimals=4)
     0.5, 0.3333, 0.25
 
+    The special case of 0-dimensional |numpy| |numpy.ndarray| objects does not cause
+    a problem:
+
+    >>> from numpy import array
+    >>> round_(array(1.0/3.0))
+    0.333333
+
     Additionally, one can supply a `width` and a `rfill` argument:
+
     >>> round_(1.0, width=6, rfill="0")
     1.0000
 
-    Alternatively, one can use the `lfill` arguments, which
-    might e.g. be usefull for aligning different strings:
+    Alternatively, one can use the `lfill` arguments, which might e.g. be usefull for
+    aligning different strings:
 
     >>> round_("test", width=6, lfill="_")
     __test
@@ -1558,7 +1566,9 @@ arguments `lfill` and `rfill`.  This is not allowed.
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
     with hydpy.pub.options.reprdigits(decimals):
-        if isinstance(values, typingtools.IterableNonString):
+        if isinstance(values, numpy.ndarray) and (values.ndim == 0):
+            string = repr_(values.item())
+        elif isinstance(values, typingtools.IterableNonString):
             string = repr_values(values)
         else:
             string = repr_(values)

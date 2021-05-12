@@ -1,38 +1,38 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
-Version 1 of the H-Land model is designed to agree with the HBV96
-configuration of the HBV model used by the German Federal Institute
-of Hydrology (BfG) but offers more flexibility in some regards (e.g. in
-parameterization).  It can briefly be summarized as follows:
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
- * Calculates the *actual* potential evapotranspiration from *reference*
-   potential evaporation values.
- * Applies separate correction factors on the liquid and the frozen
-   amount of precipitation.
- * Implements interception with simple "buckets".
- * Uses the degree-day method for calculating snowmelt.
- * Considers both the melting of ice and the (re)freezing of water
-   within the snow layer.
- * Assumes a linear relationship between soil evaporation and relative soil
-   moisture (as long as a maximum evaporation value is not exceeded).
- * Assumes a saturation excess mechanism for the generation of direct runoff.
- * Provides an optional "response area" option, which modifies the usual
-   calculation of direct runoff and percolation.
- * Distinguishes between an upper zone layer related to direct runoff and a
-   lower zone layer related to base flow.
- * Allows for percolation from the upper to the lower zone layer and allows
-   for a capillary rise from upper zone layer to the soils layer.
- * Considers water areas as "groundwater lakes" being connected with
-   the lower zone layer.
- * In contrast to the original HBV96 implementation, both the upper and
-   the lower zone layer can be handled as nonlinear storages.
- * Conceptualizes the melting of glacial ice with an additional application
-   of the degree-day method.
+Version 1 of the HydPy-H-Land closely emulates the "land components" of HBV96
+:cite:`ref-Lindstrom1997HBV96` while providing some additional functionalities.  We
+implemented it on behalf of the `German Federal Institute of Hydrology (BfG)`_ for
+modelling large river basins in central Europe.
 
-The following figure shows the general structure of H-Land Version 1.
-Note that zones of type |FIELD| and |FOREST| are based on the same set of
-process equations:
+The following list summarises the main components of |hland_v1|:
+
+ * Calculate the current from average potential evapotranspiration values.
+ * Apply different correction factors on the liquid and the frozen amount of
+   precipitation.
+ * Simulate interception via simple "bucket" storages.
+ * Use the degree-day method for calculating snowmelt.
+ * Consider both the melting of ice and the (re)freezing of water within the snow layer.
+ * Assume a linear relationship between soil evaporation and relative soil moisture (as
+   long as actual evaporation does not exceed potential evaporation).
+ * Apply a saturation excess mechanism for the generation of direct runoff.
+ * Provide an optional "response area" option, which modifies the usual calculation of
+   direct runoff and percolation.
+ * Distinguish between an upper zone layer related to direct runoff and a lower zone
+   layer related to base flow.
+ * Pass percolation from the upper to the lower zone layer and capillary rise from the
+   upper zone layer to the soil layer.
+ * Consider water areas as "groundwater lakes" that are part of the lower zone layer.
+ * In contrast to the original HBV96 implementation,handle both the upper and the lower
+   zone layer as nonlinear storages.
+ * Conceptualise the melting of glacial ice with an additional application of the
+   degree-day method.
+
+The following figure shows the general structure of H-Land Version 1.  Note that zones
+of type |FIELD| and |FOREST| are based on the same set of process equations:
 
 .. image:: HydPy-H-Land_Version-1.png
 
@@ -41,18 +41,16 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-The following integration tests are based on the data used for testing
-application model |lland_v2|.  Hopefully, this eases drawing comparisons
-between both models.
+The following integration tests rely on the data used for testing the application model
+|lland_v2|.  Hopefully, this eases drawing comparisons between both models.
 
-All integration tests are performed over a period of five days with
-a simulation step of one hour:
+We perform all integration tests over five days with a simulation step of one hour:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "01.01.2000", "05.01.2000", "1h"
 
-Prepare the model instance and build the connections to element `land`
-and node `outlet`:
+First, we prepare the model instance and build the connections to element `land` and
+node `outlet`:
 
 >>> from hydpy.models.hland_v1 import *
 >>> parameterstep("1h")
@@ -61,23 +59,22 @@ and node `outlet`:
 >>> land = Element("land", outlets=outlet)
 >>> land.model = model
 
-All tests shall be performed using a single zone with a size of one
-square kilometre at an altitude of 100 meter:
+We perform all tests using a single zone with of 1 km³ at an altitude of 100 m:
 
 >>> nmbzones(1)
 >>> area(1.0)
 >>> zonearea(1.0)
 >>> zonez(1.0)
 
-The reference elevation levels for precipitation (|ZRelP|), temperature
-(|ZRelT|), and evaporation (|ZRelE|) are all set to 200 m:
+We set the reference elevation levels for precipitation (|ZRelP|), temperature
+(|ZRelT|), and evaporation (|ZRelE|) all to 200 m:
 
 >>> zrelp(2.0)
 >>> zrelt(2.0)
 >>> zrele(2.0)
 
-Initialize a test function object, which prepares and runs the tests
-and prints their results for the given sequences:
+We initialise a test function object, which prepares and runs the tests and prints
+their results for the given sequences:
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = inputs.p, fluxes.rt, fluxes.qt
@@ -90,15 +87,14 @@ and prints their results for the given sequences:
 field
 _____
 
-In the first example, |FIELD| is selected as the only zone type
-(note that the results for type |FOREST| would be the same):
+In the first example, we select |FIELD| as the only zone type (note that the results
+for the land-use type |FOREST| would be the same):
 
 >>> zonetype(FIELD)
 
-The following set of control parameter values tries to configure
-application model |hland_v1| in a manner that allows to retrace
-the influence of the different implemented methods on the shown
-results:
+The following set of control parameter values tries to configure application model
+|hland_v1| in a manner that allows retracing the influence of the different implemented
+methods on the shown results:
 
 >>> pcorr(1.2)
 >>> pcalt(0.1)
@@ -130,8 +126,8 @@ results:
 >>> maxbaz(3)
 >>> abstr(0.003)
 
-Initially, relative soil moisture is 50 % and the lower zone layer
-contains only 10 mm.  All other storages are empty:
+Initially, relative soil moisture is 50 %, and the lower zone layer contains only 10 mm.
+All other storages are empty:
 
 >>> test.inits = ((states.ic, 0.0),
 ...               (states.sp, 0.0),
@@ -141,49 +137,42 @@ contains only 10 mm.  All other storages are empty:
 ...               (states.lz, 10.0),
 ...               (logs.quh, 0.05))
 
-As mentioned above, the values of the input sequences |P|, |hland_inputs.T|,
-and |EPN| are taken from :ref:`here <lland_v2_acker_summer>`.
-For educational purposes, unrealistically high values of |EPN| are
-used again.  For the sake of simplicity, the values of |TN| are assumed
-to be constantly 1 °C below the values of |hland_inputs.T|:
+As mentioned above, the values of the input sequences |P|, |hland_inputs.T|, and |EPN|
+stem from :ref:`here <lland_v2_acker_summer>`. For educational purposes, we again use
+unrealistically high values of |EPN|.  For the sake of simplicity, we define |TN| to be
+constantly 1 °C below |hland_inputs.T|:
 
 >>> inputs.p.series = (
-...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-...     0.0, 0.0, 0.2, 0.0, 0.0, 1.3, 5.6, 2.9, 4.9, 10.6, 0.1, 0.7, 3.0,
-...     2.1, 10.4, 3.5, 3.4, 1.2, 0.1, 0.0, 0.0, 0.4, 0.1, 3.6, 5.9, 1.1,
-...     20.7, 37.9, 8.2, 3.6, 7.5, 18.5, 15.4, 6.3, 1.9, 4.9, 2.7, 0.5,
-...     0.2, 0.5, 2.4, 0.4, 0.2, 0.0, 0.0, 0.3, 2.6, 0.7, 0.3, 0.3, 0.0,
-...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.3, 0.0,
-...     0.0, 0.0, 0.7, 0.4, 0.1, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     0.2, 0.0, 0.0, 1.3, 5.6, 2.9, 4.9, 10.6, 0.1, 0.7, 3.0, 2.1, 10.4, 3.5, 3.4,
+...     1.2, 0.1, 0.0, 0.0, 0.4, 0.1, 3.6, 5.9, 1.1, 20.7, 37.9, 8.2, 3.6, 7.5, 18.5,
+...     15.4, 6.3, 1.9, 4.9, 2.7, 0.5, 0.2, 0.5, 2.4, 0.4, 0.2, 0.0, 0.0, 0.3, 2.6,
+...     0.7, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     1.3, 0.0, 0.0, 0.0, 0.7, 0.4, 0.1, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 >>> inputs.t.series = (
-...     21.2, 19.4, 18.9, 18.3, 18.9, 22.5, 25.1, 28.3, 27.8, 31.4, 32.2,
-...     35.2, 37.1, 31.2, 24.3, 25.4, 25.9, 23.7, 21.6, 21.2, 20.4, 19.8,
-...     19.6, 19.2, 19.2, 19.2, 18.9, 18.7, 18.5, 18.3, 18.5, 18.8, 18.8,
-...     19.0, 19.2, 19.3, 19.0, 18.8, 18.7, 17.8, 17.4, 17.3, 16.8, 16.5,
-...     16.3, 16.2, 15.5, 14.6, 14.7, 14.6, 14.1, 14.3, 14.9, 15.7, 16.0,
-...     16.7, 17.1, 16.2, 15.9, 16.3, 16.3, 16.4, 16.5, 18.4, 18.3, 18.1,
-...     16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1,
-...     11.9, 12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8,
-...     22.2, 20.1, 17.8, 15.2, 14.5, 12.4, 11.7, 11.9)
+...     21.2, 19.4, 18.9, 18.3, 18.9, 22.5, 25.1, 28.3, 27.8, 31.4, 32.2, 35.2, 37.1,
+...     31.2, 24.3, 25.4, 25.9, 23.7, 21.6, 21.2, 20.4, 19.8, 19.6, 19.2, 19.2, 19.2,
+...     18.9, 18.7, 18.5, 18.3, 18.5, 18.8, 18.8, 19.0, 19.2, 19.3, 19.0, 18.8, 18.7,
+...     17.8, 17.4, 17.3, 16.8, 16.5, 16.3, 16.2, 15.5, 14.6, 14.7, 14.6, 14.1, 14.3,
+...     14.9, 15.7, 16.0, 16.7, 17.1, 16.2, 15.9, 16.3, 16.3, 16.4, 16.5, 18.4, 18.3,
+...     18.1, 16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1, 11.9,
+...     12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8, 22.2, 20.1, 17.8,
+...     15.2, 14.5, 12.4, 11.7, 11.9)
 >>> inputs.tn.series = inputs.t.series-1.0
 >>> inputs.epn.series = (
-...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761,
-...     0.291908, 1.932875, 4.369536, 7.317556, 8.264362, 9.369867,
-...     5.126178, 6.62503, 7.397619, 2.39151, 1.829834, 1.136569,
-...     0.750986, 0.223895, 0.099425, 0.098454, 0.098128, 0.097474,
-...     0.097474, 0.097474, 0.096981, 0.096652, 0.096321, 0.09599,
-...     0.187298, 1.264612, 3.045538, 1.930758, 2.461001, 6.215945,
-...     3.374783, 8.821555, 4.046025, 2.110757, 2.239257, 2.877848,
-...     1.591452, 0.291604, 0.092622, 0.092451, 0.091248, 0.089683,
-...     0.089858, 0.089683, 0.088805, 0.089157, 0.090207, 0.091593,
-...     0.154861, 0.470369, 1.173726, 4.202296, 4.359715, 5.305753,
-...     5.376027, 4.658915, 7.789594, 4.851567, 5.30692, 3.286036,
-...     1.506216, 0.274762, 0.087565, 0.085771, 0.084317, 0.083215,
-...     0.082289, 0.0845, 0.084864, 0.083584, 0.0834, 0.084864, 0.310229,
-...     1.391958, 3.195876, 5.191651, 7.155036, 8.391432, 8.391286,
-...     10.715238, 9.383394, 7.861915, 6.298329, 2.948416, 1.309232,
-...     0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
+...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761, 0.291908, 1.932875,
+...     4.369536, 7.317556, 8.264362, 9.369867, 5.126178, 6.62503, 7.397619, 2.39151,
+...     1.829834, 1.136569, 0.750986, 0.223895, 0.099425, 0.098454, 0.098128, 0.097474,
+...     0.097474, 0.097474, 0.096981, 0.096652, 0.096321, 0.09599, 0.187298, 1.264612,
+...     3.045538, 1.930758, 2.461001, 6.215945, 3.374783, 8.821555, 4.046025, 2.110757,
+...     2.239257, 2.877848, 1.591452, 0.291604, 0.092622, 0.092451, 0.091248, 0.089683,
+...     0.089858, 0.089683, 0.088805, 0.089157, 0.090207, 0.091593, 0.154861, 0.470369,
+...     1.173726, 4.202296, 4.359715, 5.305753, 5.376027, 4.658915, 7.789594, 4.851567,
+...     5.30692, 3.286036, 1.506216, 0.274762, 0.087565, 0.085771, 0.084317, 0.083215,
+...     0.082289, 0.0845, 0.084864, 0.083584, 0.0834, 0.084864, 0.310229, 1.391958,
+...     3.195876, 5.191651, 7.155036, 8.391432, 8.391286, 10.715238, 9.383394, 7.861915,
+...     6.298329, 2.948416, 1.309232, 0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
 We memorise the initial conditions to check later if |hland_v1| holds the water balance:
 
@@ -191,21 +180,18 @@ We memorise the initial conditions to check later if |hland_v1| holds the water 
 >>> test.reset_inits()
 >>> conditions = sequences.conditions
 
-In the first example, the |RespArea| option is disabled and a
-relatively large value for the accuracy related parameter |RecStep|
-is set:
+In the first example, we disable the |RespArea| option and set a relatively large value
+for the accuracy-related parameter |RecStep|:
 
 >>> resparea(False)
 >>> recstep(100)
 
-The following results show the response of application model |hland_v1|
-to the given extreme precipitation event, which is strongly
-attenuated by the large evaporation values.  One striking difference
-to other models like |lland_v2| is the block-like appearance of
-percolation (|Perc|), which is one reason for the unusual transitions
-between event periods (with relevant amounts of both runoff components
-|Q0| and |Q1|) and the subsequent pure base flow periods (with relevant
-amounts of |Q1| only):
+The following results show the response of application model |hland_v1| to the given
+extreme precipitation event, being strongly attenuated by the large evaporation values.
+One striking difference to other models like |lland_v2| is the block-like appearance of
+percolation (|Perc|), which is one reason for the unusual transitions between event
+periods (consisting of both runoff components |Q0| and |Q1|) and the subsequent pure
+base flow periods (consisting of |Q1| only):
 
 .. integration-test::
 
@@ -320,12 +306,11 @@ There is no indication of an error in the water balance:
 contributing area
 _________________
 
-The functionality of |hland_v1| can be changed substantially by
-enabling its |RespArea| option, which decreases |Perc| but increases
-|Q0| in dry periods (regarding relative soil moisture).  Hence the graph
-of |Perc| appears less blocky and reaches its maximum at the same time
-as the graph of |SM|, whereas |Q0| shows more pronounced peaks in the
-initial subperiod when the soil is not saturated yet:
+We can substantially change the functioning of |hland_v1| by enabling its |RespArea|
+option, which decreases |Perc| but increases |Q0| in dry periods (more concretely: in
+periods with dry soils).  Hence the simulated result of |Perc| appears less "block-like"
+and reaches its maximum at the same time as the result of |SM| does, whereas |Q0| shows
+more pronounced peaks in the initial subperiod when the soil is not saturated yet:
 
 .. integration-test::
 
@@ -440,14 +425,11 @@ There is no indication of an error in the water balance:
 low accuracy
 ____________
 
-The next example is supposed to demonstrate that one should be
-careful when reducing the value of |RecStep| in order to save
-computation times.  Setting |RecStep| to one, which is the lowest
-possible value, results in low accuracies in the calculation of |Q0|.
-This can easily be seen when comparing the |Q0| graph of the last example
-and the |Q0| graph of this example.  Obviously, the |Q0| graph of
-this example is (much more) wrong, as its maximum peak is largely
-above the maximum peak of |R|, which is physically impossible:
+The following example indicates caution when reducing the value of |RecStep| to save
+computation time.  Setting |RecStep| to 1, which is the smallest possible value, results
+in low accuracies.  You can see this by comparing the time series of |Q0| calculated in
+this and the last example.  The time series of this example is much more wrong, as the
+peak of |Q0| is high above the peak of |R|, which is physically impossible:
 
 .. integration-test::
 
@@ -562,18 +544,15 @@ There is no indication of an error in the water balance:
 internal lake
 _____________
 
-In the fourth example, the functionality of zones of type |ILAKE| is
-demonstrated.  For these "internal lakes" only the lower zone storage
-(|LZ|) is relevant (all other storage values are zero).  Precipitation
-(|PC|) is directly added to |LZ| and evaporation (|EPC|) is directly
-subtracted from |LZ|.  The latter occurs even when |LZ| is completely
-empty, possibly resulting in negative storage values in drought periods.
-The only case for which lake evaporation (|EL|) is prevented is when
-the actual temperature (|TC|) is below the threshold temperature
-for the occurrence of lake ice (|TTIce|).  In this example, the value
-of |TTIce| is set to the unrealistic value of 13°C, resulting in a
-deviation between the graphs of |EPC| and |EL| for the last day of
-the simulation period:
+In the following example, we demonstrate the functionality of zones of type |ILAKE|.
+For such "internal lakes", only the lower zone storage (|LZ|) is relevant (all other
+storage values are zero).  Precipitation (|PC|) adds directly to, and evaporation
+(|EPC|) subtracts directly from |LZ|.  The latter occurs even when |LZ| is empty,
+possibly resulting in negative storage values in drought periods.  The only condition
+preventing lake evaporation (|EL|) is the occurrence of lake ice, which exists when the
+actual temperature ("TC") is below the threshold temperature (|TTIce|).  In our example,
+we set |TTIce| to the unrealistic value of 13°C, resulting in a deviation between the
+graphs of |EPC| and |EL| for the last day of the simulation period:
 
 .. integration-test::
 
@@ -691,19 +670,16 @@ There is no indication of an error in the water balance:
 glacier
 _______
 
-This example demonstrates the functionality of zones of type |GLACIER|.
-|GLACIER| zones are similar to zones of type |FIELD| or |FOREST|, but
-possess neither an interception storage nor a soil storage.  Instead,
-all precipitation or melting water is passed to the upper zone storage
-(|UZ|) directly. The snow routines of |GLACIER|, |FIELD|, and |FOREST|
-zones are identical.  Additional glacier melt can only occur if the
-glacier is not covered by any snow.  In the following test run,
-the simulation time period can be distinguished into three subperiods.
-On the first two days (-20°C), the snow layer builds up.  On the third
-day (+20°C and |SP| > 0), the snow melts and (with some time delay)
-the melted water is released. On the fourth day (+20°C and |SP| = 0),
-an increased amount of water is passed to |UZ|, as |GMelt| is set to
-a larger value than |CFMax|:
+This example demonstrates the functionality of zones of type |GLACIER|.  |GLACIER| zones
+are similar to zones of type |FIELD| or |FOREST| but possess neither an interception nor
+a soil module.  Instead, precipitation and meltwater are passed to the upper zone
+storage (|UZ|) directly. The snow routines of |GLACIER|, |FIELD|, and |FOREST| zones are
+identical.  Additional glacier melt can only occur if no snow covers the glacier.  In
+the next test run, we distinguish the simulation period into three subperiods.  On the
+first two days (-20°C), the snow layer builds up.  On the third day (+20°C and
+|SP| > 0), the snow melts and (with some time delay) releases meltwater. On the fourth
+day (+20°C and |SP| = 0), an increased amount of water is passed to |UZ| due to |GMelt|
+being larger than |CFMax|:
 
 .. integration-test::
 

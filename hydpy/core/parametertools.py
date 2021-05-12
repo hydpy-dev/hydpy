@@ -3292,29 +3292,6 @@ a normal attribute nor a row or column related attribute named `wrong`.
         )
 
 
-class RelSubweightsMixin:
-    """Mixin class for derived parameters reflecting some absolute
-    values of the referenced weighting parameter in relative terms.
-
-    |RelSubweightsMixin| is supposed to be combined with parameters
-    implementing property `refweights`.
-
-    The documentation on base model |hland| provides some example
-    implementations like class |hland_derived.RelSoilZoneArea|.
-    """
-
-    mask: "masktools.BaseMask"
-    refweights: Parameter
-    __setitem__: Callable
-
-    def update(self) -> None:
-        """Update subclass of |RelSubweightsMixin| based on `refweights`."""
-        mask = self.mask
-        weights = self.refweights[mask]
-        self[~mask] = numpy.nan
-        self[mask] = weights / numpy.sum(weights)
-
-
 class LeftRightParameter(Parameter):
     """Base class for handling two values, a left one and a right one.
 

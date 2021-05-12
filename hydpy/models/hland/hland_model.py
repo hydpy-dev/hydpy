@@ -12,7 +12,7 @@ from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
 
 # ...from hland
-from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
+from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, SEALED
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_derived
 from hydpy.models.hland import hland_fixed
@@ -79,7 +79,7 @@ class Calc_TMean_V1(modeltools.Method):
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(2)
-        >>> derived.relzonearea(2.0/3.0, 1.0/3.0)
+        >>> derived.relzoneareas(2.0/3.0, 1.0/3.0)
 
         With temperature values of 5°C and 8°C for the respective zones, the mean
         temperature is 6°C:
@@ -91,7 +91,7 @@ class Calc_TMean_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (hland_control.NmbZones,)
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas,)
     REQUIREDSEQUENCES = (hland_fluxes.TC,)
     RESULTSEQUENCES = (hland_fluxes.TMean,)
 
@@ -102,7 +102,7 @@ class Calc_TMean_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.tmean = 0.0
         for k in range(con.nmbzones):
-            flu.tmean += der.relzonearea[k] * flu.tc[k]
+            flu.tmean += der.relzoneareas[k] * flu.tc[k]
 
 
 class Calc_FracRain_V1(modeltools.Method):
@@ -157,14 +157,13 @@ class Calc_FracRain_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if flu.tc[k] >= (con.tt[k] + con.ttint[k] / 2.0):
+            d_dt = con.ttint[k] / 2.0
+            if flu.tc[k] >= (con.tt[k] + d_dt):
                 flu.fracrain[k] = 1.0
-            elif flu.tc[k] <= (con.tt[k] - con.ttint[k] / 2.0):
+            elif flu.tc[k] <= (con.tt[k] - d_dt):
                 flu.fracrain[k] = 0.0
             else:
-                flu.fracrain[k] = (
-                    flu.tc[k] - (con.tt[k] - con.ttint[k] / 2.0)
-                ) / con.ttint[k]
+                flu.fracrain[k] = (flu.tc[k] - (con.tt[k] - d_dt)) / con.ttint[k]
 
 
 class Calc_RFC_SFC_V1(modeltools.Method):
@@ -452,50 +451,50 @@ class Calc_TF_Ic_V1(modeltools.Method):
 
     Examples:
 
-        Initialise six zones of different types.  Assume a general interception
+        Initialise seven zones of different types.  Assume a general interception
         capacity of 2 mm. All zones receive a precipitation input of 0.5 mm:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, SEALED, SEALED, SEALED)
         >>> icmax(2.0)
         >>> fluxes.pc = 0.5
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_tf_ic_v1()
 
         The interception routine does not apply to glaciers (first zone) and internal
-        lakes (second zone).  Hence, all precipitation becomes throughfall. For fields
-        and forests, the interception routine works identical, so the results of the
-        third and the second zone are equal.  The last three zones demonstrate that all
-        precipitation is stored until the intercepted water reached the available
+        lakes (second zone).  Hence, all precipitation becomes throughfall. For fields,
+        forests, and sealed areas, the interception routine works identical, so the
+        results of zone three to five are equal.  The last three zones demonstrate that
+        all precipitation is stored until the intercepted water reached the available
         capacity; afterwards, all precipitation becomes throughfall.  Initial storage
         reduces the effective capacity of the respective simulation step:
 
         >>> states.ic
-        ic(0.0, 0.0, 0.5, 0.5, 1.5, 2.0)
+        ic(0.0, 0.0, 0.5, 0.5, 0.5, 1.5, 2.0)
         >>> fluxes.tf
-        tf(0.5, 0.5, 0.0, 0.0, 0.0, 0.5)
+        tf(0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5)
 
         A zero precipitation example:
 
         >>> fluxes.pc = 0.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_tf_ic_v1()
         >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+        ic(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
         >>> fluxes.tf
-        tf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        tf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         A high precipitation example:
 
         >>> fluxes.pc = 5.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_tf_ic_v1()
         >>> states.ic
-        ic(0.0, 0.0, 2.0, 2.0, 2.0, 2.0)
+        ic(0.0, 0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         >>> fluxes.tf
-        tf(5.0, 5.0, 3.0, 3.0, 4.0, 5.0)
+        tf(5.0, 5.0, 3.0, 3.0, 3.0, 4.0, 5.0)
     """
 
     CONTROLPARAMETERS = (
@@ -513,7 +512,7 @@ class Calc_TF_Ic_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] in (FIELD, FOREST):
+            if con.zonetype[k] in (FIELD, FOREST, SEALED):
                 flu.tf[k] = max(flu.pc[k] - (con.icmax[k] - sta.ic[k]), 0.0)
                 sta.ic[k] += flu.pc[k] - flu.tf[k]
             else:
@@ -522,8 +521,8 @@ class Calc_TF_Ic_V1(modeltools.Method):
 
 
 class Calc_EI_Ic_V1(modeltools.Method):
-    r"""Calculate interception evaporation and update the interception
-    storage accordingly.
+    r"""Calculate interception evaporation and update the interception storage
+    accordingly.
 
     Basic equation:
       :math:`EI = \Bigl \lbrace
@@ -540,43 +539,43 @@ class Calc_EI_Ic_V1(modeltools.Method):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, SEALED, SEALED, SEALED)
         >>> fluxes.epc = 0.5
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
 
         The interception routine does not apply to glaciers (first zone) and internal
         lakes (second zone).  Hence, no interception evaporation can occurs.  For
-        fields and forests, the interception routine works identical, so the results
-        of the third and the second zone are equal.  The last three zones demonstrate
-        that interception evaporation equals potential evaporation until the
+        fields, forests, and sealed surfaces, the interception routine works identical,
+        so the results of zone three to five are equal.  The last three zones
+        demonstrate that interception evaporation equals potential evaporation until the
         interception storage is empty; afterwards, interception evaporation is zero:
 
         >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 0.5, 1.5)
+        ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.5)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
+        ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
 
         A zero evaporation example:
 
         >>> fluxes.epc = 0.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
         >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+        ic(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         A high evaporation example:
 
         >>> fluxes.epc = 5.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
         >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+        ei(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
     """
 
     CONTROLPARAMETERS = (
@@ -593,7 +592,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] in (FIELD, FOREST):
+            if con.zonetype[k] in (FIELD, FOREST, SEALED):
                 flu.ei[k] = min(flu.epc[k], sta.ic[k])
                 sta.ic[k] -= flu.ei[k]
             else:
@@ -611,31 +610,31 @@ class Calc_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        Consider the following setting, in which eight zones of different type receive
+        Consider the following setting, in which nine zones of different type receive
         a throughfall of 10mm:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(8)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD, FIELD)
+        >>> nmbzones(9)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD, FIELD, FIELD)
         >>> fluxes.tf = 10.0
-        >>> fluxes.sfc = 0.5, 0.5, 0.5, 0.5, 0.2, 0.8, 1.0, 4.0
-        >>> fluxes.rfc = 0.5, 0.5, 0.5, 0.5, 0.8, 0.2, 4.0, 1.0
+        >>> fluxes.sfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.2, 0.8, 1.0, 4.0
+        >>> fluxes.rfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2, 4.0, 1.0
         >>> states.sp = 0.0
         >>> states.wc = 0.0
         >>> model.calc_sp_wc_v1()
         >>> states.sp
-        sp(0.0, 5.0, 5.0, 5.0, 2.0, 8.0, 2.0, 8.0)
+        sp(0.0, 5.0, 5.0, 5.0, 5.0, 2.0, 8.0, 2.0, 8.0)
         >>> states.wc
-        wc(0.0, 5.0, 5.0, 5.0, 8.0, 2.0, 8.0, 2.0)
+        wc(0.0, 5.0, 5.0, 5.0, 5.0, 8.0, 2.0, 8.0, 2.0)
 
         The snow routine does not apply to internal lakes, which is why both the ice
         storage and the water storage of the first zone remain unchanged.  The snow
-        routine is identical for glaciers, fields, and forests (besides the additional
-        glacier melt), which is why the results of the second, third, and fourth zone
-        are equal.  The last four zones illustrate that method |Calc_SP_WC_V1| applies
-        the corrected snowfall and rainfall fractions "relatively", considering that
-        the throughfall is already corrected.
+        routine is identical for fields, forests, sealed areas, and glaciers (besides
+        the additional glacier melt), which is why the results zone three to five are
+        equal.  The last four zones illustrate that method |Calc_SP_WC_V1| applies the
+        corrected snowfall and rainfall fractions "relatively", considering that the
+        throughfall is already corrected.
 
         When both factors are zero, neither the water nor the ice content of the snow
         layer changes:
@@ -646,9 +645,9 @@ class Calc_SP_WC_V1(modeltools.Method):
         >>> states.wc = 0.0
         >>> model.calc_sp_wc_v1()
         >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -693,17 +692,17 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones with the same threshold temperature and degree-day
+        We initialise seven zones with the same threshold temperature and degree-day
         factor but with different zone types and initial ice contents:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> nmbzones(6)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
         >>> cfmax(4.0)
         >>> derived.ttm = 2.0
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 5.0, 0.0
+        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
 
         Note that the assumed length of the simulation step is a half day.  Hence,
@@ -711,8 +710,8 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
 
         >>> cfmax
         cfmax(4.0)
-        >>> cfmax.values
-        array([2., 2., 2., 2., 2., 2.])
+        >>> cfmax.values[0]
+        2.0
 
         When the actual temperature is equal to the threshold temperature for melting
         and refreezing, no melting occurs, and the states remain unchanged:
@@ -720,40 +719,40 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         >>> fluxes.tc = 2.0
         >>> model.calc_melt_sp_wc_v1()
         >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sp
-        sp(0.0, 10.0, 10.0, 10.0, 5.0, 0.0)
+        sp(0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0)
         >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
 
         The same holds for an actual temperature lower than the threshold temperature:
 
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 5.0, 0.0
+        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
         >>> fluxes.tc = -1.0
         >>> model.calc_melt_sp_wc_v1()
         >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sp
-        sp(0.0, 10.0, 10.0, 10.0, 5.0, 0.0)
+        sp(0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0)
         >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
 
         With an actual temperature of 3°C above the threshold temperature, melting can
         occur. The actual melting is consistent with potential melting, except for the
         first zone, being an internal lake, and the last two zones, for which
         potential melting exceeds the available frozen water content of the snow layer:
 
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 5.0, 0.0
+        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
         >>> fluxes.tc = 5.0
         >>> model.calc_melt_sp_wc_v1()
         >>> fluxes.melt
-        melt(0.0, 6.0, 6.0, 6.0, 5.0, 0.0)
+        melt(0.0, 6.0, 6.0, 6.0, 6.0, 5.0, 0.0)
         >>> states.sp
-        sp(0.0, 4.0, 4.0, 4.0, 0.0, 0.0)
+        sp(0.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0)
         >>> states.wc
-        wc(0.0, 8.0, 8.0, 8.0, 7.0, 2.0)
+        wc(0.0, 8.0, 8.0, 8.0, 8.0, 7.0, 2.0)
     """
 
     CONTROLPARAMETERS = (
@@ -804,27 +803,27 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones with the same threshold temperature, degree-day factor
+        We initialise seven zones with the same threshold temperature, degree-day factor
         and refreezing coefficient but with different zone types and initial states:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> nmbzones(6)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
         >>> cfmax(4.0)
         >>> cfr(0.1)
         >>> derived.ttm = 2.0
         >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 0.5, 0.0
+        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
 
         Note that the assumed length of the simulation step is half a day.  Hence the
         effective value of the degree-day factor is not 4 but 2:
 
         >>> cfmax
         cfmax(4.0)
-        >>> cfmax.values
-        array([2., 2., 2., 2., 2., 2.])
+        >>> cfmax.values[0]
+        2.0
 
         When the actual temperature is equal to the threshold temperature for melting
         and refreezing, neither no refreezing occurs, and the states remain unchanged:
@@ -832,38 +831,38 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         >>> fluxes.tc = 2.0
         >>> model.calc_refr_sp_wc_v1()
         >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
 
         The same holds for an actual temperature higher than the threshold temperature:
 
         >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 0.5, 0.0
+        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
         >>> fluxes.tc = 2.0
         >>> model.calc_refr_sp_wc_v1()
         >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
 
         With an actual temperature of 3°C above the threshold temperature, there is no
         refreezing:
 
         >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 0.5, 0.0
+        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
         >>> fluxes.tc = 5.0
         >>> model.calc_refr_sp_wc_v1()
         >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
 
         With an actual temperature of 3°C below the threshold temperature, refreezing
         can occur. Actual refreezing is consistent with potential refreezing, except
@@ -872,15 +871,15 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         layer:
 
         >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 0.5, 0.0
+        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
         >>> fluxes.tc = -1.0
         >>> model.calc_refr_sp_wc_v1()
         >>> fluxes.refr
-        refr(0.0, 0.6, 0.6, 0.6, 0.5, 0.0)
+        refr(0.0, 0.6, 0.6, 0.6, 0.6, 0.5, 0.0)
         >>> states.sp
-        sp(0.0, 2.6, 2.6, 2.6, 2.5, 2.0)
+        sp(0.0, 2.6, 2.6, 2.6, 2.6, 2.5, 2.0)
         >>> states.wc
-        wc(0.0, 0.4, 0.4, 0.4, 0.0, 0.0)
+        wc(0.0, 0.4, 0.4, 0.4, 0.4, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -907,7 +906,8 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
             if con.zonetype[k] != ILAKE:
                 if flu.tc[k] < der.ttm[k]:
                     flu.refr[k] = min(
-                        con.cfr[k] * con.cfmax[k] * (der.ttm[k] - flu.tc[k]), sta.wc[k]
+                        con.cfr[k] * con.cfmax[k] * (der.ttm[k] - flu.tc[k]),
+                        sta.wc[k],
                     )
                     sta.sp[k] += flu.refr[k]
                     sta.wc[k] -= flu.refr[k]
@@ -930,15 +930,15 @@ class Calc_In_WC_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones of different types with different frozen water contents
-        of the snow layer and set the relative water holding capacity to 20% :
+        We initialise seven zones of different types with different frozen water
+        contents of the snow layer and set the relative water holding capacity to 20%:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
         >>> whc(0.2)
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 5.0, 0.0
+        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
 
         Also, we set the actual value of stand precipitation to 5 mm/d:
 
@@ -950,9 +950,9 @@ class Calc_In_WC_V1(modeltools.Method):
         >>> states.wc = 0.0
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(5.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        in_(5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         When there is a (liquid) water content in the snow layer, the water release
         depends on the frozen water content.  Note the special cases of the first zone
@@ -962,9 +962,9 @@ class Calc_In_WC_V1(modeltools.Method):
         >>> states.wc = 5.0
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(5.0, 3.0, 3.0, 3.0, 4.0, 5.0)
+        in_(5.0, 3.0, 3.0, 3.0, 3.0, 4.0, 5.0)
         >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 1.0, 0.0)
+        wc(0.0, 2.0, 2.0, 2.0, 2.0, 1.0, 0.0)
 
         For a relative water holding capacity of zero, the snow layer releases all
         liquid water immediately:
@@ -973,9 +973,9 @@ class Calc_In_WC_V1(modeltools.Method):
         >>> states.wc = 5.0
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(5.0, 5.0, 5.0, 5.0, 5.0, 5.0)
+        in_(5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0)
         >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         Note that, for the single lake zone, method |Calc_In_WC_V1| passed the stand
         precipitation directly to |In_| in all three examples.
@@ -1022,34 +1022,34 @@ class Calc_GlMelt_In_V1(modeltools.Method):
 
     Examples:
 
-        We prepare seven zones. The first three zones are no glaciers, a snow layer
-        covers the fifth zone, and the last two zones actual temperature is not above
-        the threshold temperature.  Hence, glacier melting occurs only in the fourth
+        We prepare eight zones. The first four zones are no glaciers, a snow layer
+        covers the sixth zone, and the last two zones actual temperature is not above
+        the threshold temperature.  Hence, glacier melting occurs only in the fifth
         zone:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> nmbzones(7)
-        >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, GLACIER, GLACIER, GLACIER)
-        >>> gmelt(4.)
-        >>> derived.ttm(2.)
-        >>> states.sp = 0., 0., 0., 0., .1, 0., 0.
-        >>> fluxes.tc = 3., 3., 3., 3., 3., 2., 1.
-        >>> fluxes.in_ = 3.
+        >>> nmbzones(8)
+        >>> zonetype(FIELD, FOREST, ILAKE, SEALED, GLACIER, GLACIER, GLACIER, GLACIER)
+        >>> gmelt(4.0)
+        >>> derived.ttm(2.0)
+        >>> states.sp = 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0
+        >>> fluxes.tc = 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 1.0
+        >>> fluxes.in_ = 3.0
         >>> model.calc_glmelt_in_v1()
         >>> fluxes.glmelt
-        glmelt(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0)
+        glmelt(0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0)
         >>> fluxes.in_
-        in_(3.0, 3.0, 3.0, 5.0, 3.0, 3.0, 3.0)
+        in_(3.0, 3.0, 3.0, 3.0, 5.0, 3.0, 3.0, 3.0)
 
         Note that the assumed length of the simulation step is half a day.  Hence the
         effective value of the degree-day factor is not 4 but 2:
 
         >>> gmelt
         gmelt(4.0)
-        >>> gmelt.values
-        array([2., 2., 2., 2., 2., 2., 2.])
+        >>> gmelt.values[0]
+        2.0
     """
 
     CONTROLPARAMETERS = (
@@ -1094,41 +1094,41 @@ class Calc_R_SM_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones of different types.  The field capacity of all fields
+        We initialise seven zones of different types.  The field capacity of all fields
         and forests is 200 mm, the input of each zone is 10 mm:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(ILAKE, GLACIER, SEALED, FIELD, FIELD, FOREST, FOREST)
         >>> fc(200.0)
         >>> fluxes.in_ = 10.0
 
         With the typical nonlinearity parameter value of 2, relative soil moisture of
-        50 %  (zones three and four) results in a discharge coefficient of 25 %.  For
-        a completely dried (zone five) or saturated soil (zone six), the discharge
-        coefficient is generally 0 % and 100 %, respectively.  Glaciers and internal
-        lakes always route 100% of their input as effective precipitation:
+        50 % (zones five and six) results in a discharge coefficient of 25 %.  For
+        a completely dried (zone four) or saturated soil (zone seven), the discharge
+        coefficient is generally 0 % and 100 %, respectively.  Glaciers, internal lakes
+        and sealed areas always route 100% of their input as effective precipitation:
 
         >>> beta(2.0)
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 200.0
         >>> model.calc_r_sm_v1()
         >>> fluxes.r
-        r(10.0, 10.0, 2.5, 2.5, 0.0, 10.0)
+        r(10.0, 10.0, 10.0, 0.0, 2.5, 2.5, 10.0)
         >>> states.sm
-        sm(0.0, 0.0, 107.5, 107.5, 10.0, 200.0)
+        sm(0.0, 0.0, 0.0, 10.0, 107.5, 107.5, 200.0)
 
         Through decreasing the nonlinearity parameter, the discharge coefficient
         increases.  A parameter value of zero leads to a discharge coefficient of
         100 % for any soil moisture:
 
         >>> beta(0.0)
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> model.calc_r_sm_v1()
         >>> fluxes.r
-        r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
+        r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
         >>> states.sm
-        sm(0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
+        sm(0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
 
         Also, with a field capacity of zero, the discharge coefficient always equates
         to 100 %:
@@ -1138,9 +1138,9 @@ class Calc_R_SM_V1(modeltools.Method):
         >>> states.sm = 0.0
         >>> model.calc_r_sm_v1()
         >>> fluxes.r
-        r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
+        r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1181,14 +1181,14 @@ class Calc_CF_SM_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones of different types.  For all fields and forests, the
+        We initialise seven zones of different types.  For all fields and forests, the
         field capacity is 200 mm and the maximum capillary flow rate is 4 mm/d:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> nmbzones(6)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+        >>> nmbzones(7)
+        >>> zonetype(ILAKE, GLACIER, SEALED, FIELD, FOREST, FOREST, FOREST)
         >>> fc(200.0)
         >>> cflux(4.0)
 
@@ -1197,44 +1197,44 @@ class Calc_CF_SM_V1(modeltools.Method):
 
         >>> cflux
         cflux(4.0)
-        >>> cflux.values
-        array([2., 2., 2., 2., 2., 2.])
+        >>> cflux.values[0]
+        2.0
 
         For fields and forests, the actual capillary return flow depends only on the
-        relative soil moisture deficit, provides that either the upper zone layer stores
-        enough water or that enough "reroutable" effective precipitation is available:
+        relative soil moisture deficit, provided that the upper zone layer stores
+        enough water or that enough "routable" effective precipitation is available:
 
         >>> fluxes.r = 0.0
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 20.0
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
+        cf(0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
+        sm(0.0, 0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
 
         >>> cflux(4.0)
         >>> fluxes.r = 10.0
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.0
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
+        cf(0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
+        sm(0.0, 0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
 
         If the upper zone layer is empty and no effective precipitation is available,
         capillary flow is zero:
 
         >>> cflux(4.0)
         >>> fluxes.r = 0.0
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.0
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
+        sm(0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
 
         In the following example, both the upper zone layer and effective precipitation
         provide water for the capillary flow, but less than the maximum flow rate times
@@ -1242,37 +1242,36 @@ class Calc_CF_SM_V1(modeltools.Method):
 
         >>> cflux(4.0)
         >>> fluxes.r = 0.1
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.2
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 0.3, 0.3, 0.3, 0.0)
+        cf(0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 100.3, 100.3, 0.3, 200.0)
+        sm(0.0, 0.0, 0.0, 100.3, 100.3, 0.3, 200.0)
 
         Even unrealistic high maximum capillary flow rates do not result in overfilled
         soils:
 
         >>> cflux(1000.0)
         >>> fluxes.r = 200.0
-        >>> states.sm = 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
+        >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 200.0
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 100.0, 100.0, 200.0, 0.0)
+        cf(0.0, 0.0, 0.0, 100.0, 100.0, 200.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 200.0, 200.0, 200.0, 200.0)
+        sm(0.0, 0.0, 0.0, 200.0, 200.0, 200.0, 200.0)
 
-        For soils with zero field capacity ("sealed areas"), capillary flow is always
-        zero:
+        For soils with zero field capacity, capillary flow is always zero:
 
         >>> fc(0.0)
         >>> states.sm = 0.0
         >>> model.calc_cf_sm_v1()
         >>> fluxes.cf
-        cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1325,35 +1324,35 @@ class Calc_EA_SM_V1(modeltools.Method):
 
     Examples:
 
-        We initialise seven zones of different types.  For all fields and forests, the
+        We initialise eight zones of different types.  For all fields and forests, the
         field capacity is 200 mm.  Potential evaporation and interception evaporation
         are 2 mm and 1 mm, respectively:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD)
+        >>> nmbzones(8)
+        >>> zonetype(ILAKE, GLACIER, SEALED, FIELD, FOREST, FIELD, FIELD, FIELD)
         >>> fc(200.0)
-        >>> lp(0.0, 0.0, 0.5, 0.5, 0.0, 0.8, 1.0)
+        >>> lp(0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.8, 1.0)
         >>> ered(0.0)
         >>> fluxes.epc = 2.0
         >>> fluxes.ei = 1.0
         >>> states.sp = 0.0
 
-        Only fields and forests include soils.  Hence, there is no soil evaporation
-        for internal lakes and glaciers.  In the following example, the relative soil
-        moisture is 50 % for all field and forest zones.  Differences in soil
-        evaporation are related to the different soil evaporation parameter values
+        Only fields and forests include soils.  Hence, there is no soil evaporation for
+        internal lakes, glaciers, and sealed areas.  In the following example, the
+        relative soil moisture is 50 % for all field and forest zones.  Differences in
+        soil evaporation are related to the different soil evaporation parameter values
         only (the underlying equations are the same):
 
         >>> states.sm = 100.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 2.0, 2.0, 2.0, 1.25, 1.0)
+        ea(0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 1.25, 1.0)
         >>> states.sm
-        sm(0.0, 0.0, 98.0, 98.0, 98.0, 98.75, 99.0)
+        sm(0.0, 0.0, 0.0, 98.0, 98.0, 98.0, 98.75, 99.0)
 
-        The above calculations resulted in evaporation values of 2 mm for some zones,
+        The above calculations result in evaporation values of 2 mm for some zones,
         although interception evaporation is 1 mm and the (total) potential evaporation
         is only 2 mm. Use parameter |ERed| to reduce or completely exclude such an
         exceedance of the potential evaporation:
@@ -1362,17 +1361,17 @@ class Calc_EA_SM_V1(modeltools.Method):
         >>> ered(0.5)
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 1.5, 1.5, 1.5, 1.125, 1.0)
+        ea(0.0, 0.0, 0.0, 1.5, 1.5, 1.5, 1.125, 1.0)
         >>> states.sm
-        sm(0.0, 0.0, 98.5, 98.5, 98.5, 98.875, 99.0)
+        sm(0.0, 0.0, 0.0, 98.5, 98.5, 98.5, 98.875, 99.0)
 
         >>> states.sm = 100.0
         >>> ered(1.0)
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        ea(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         >>> states.sm
-        sm(0.0, 0.0, 99.0, 99.0, 99.0, 99.0, 99.0)
+        sm(0.0, 0.0, 0.0, 99.0, 99.0, 99.0, 99.0, 99.0)
 
         Any occurrence of snow suppresses soil evaporation completely:
 
@@ -1380,20 +1379,19 @@ class Calc_EA_SM_V1(modeltools.Method):
         >>> states.sm = 100.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
+        sm(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
 
-        For soils with zero field capacity ("sealed areas"), soil evaporation is always
-        zero:
+        For soils with zero field capacity, soil evaporation is always zero:
 
         >>> fc(0.0)
         >>> states.sm = 0.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1440,39 +1438,49 @@ class Calc_InUZ_V1(modeltools.Method):
     r"""Accumulate the total inflow into the upper zone layer.
 
     Basic equation:
-      :math:`InUZ = R - CF`
+      .. math::
+        InUZ = \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelUpperZoneArea} \cdot
+        \begin{cases}
+        R-CF &|\ ZoneType_k \in \{FIELD, FOREST, GLACIER \}
+        \\
+        0 &|\ ZoneType_k \notin \{FIELD, FOREST, GLACIER \}
+        \end{cases}
 
     Examples:
 
-        We initialise three zones of different relative `land sizes` (area related to
-        the total size of the subbasin except for lake areas):
+        We initialise five zones of different land-use type and size.  Method
+        |Calc_InUZ_V1| takes only those of type |FIELD|, |FOREST|, and |GLACIER| into
+        account:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(3)
-        >>> zonetype(FIELD, ILAKE, GLACIER)
-        >>> derived.rellandzonearea = 2.0/3.0, 0.0, 1.0/3.0
-        >>> fluxes.r = 6.0, 0.0, 2.0
-        >>> fluxes.cf = 2.0, 0.0, 1.0
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, SEALED)
+        >>> derived.relzoneareas = 0.25, 0.2, 0.4, 0.05, 0.1
+        >>> derived.relupperzonearea = 0.5
+        >>> fluxes.r = 2.0, 4.0, 1.0, 6.0, 1.0
+        >>> fluxes.cf = 1.0, 2.0, 0.5, 3.0, 0.5
         >>> model.calc_inuz_v1()
         >>> fluxes.inuz
-        inuz(3.0)
+        inuz(1.6)
 
-        Internal lakes do not contribute to the upper zone layer.  Hence, for a
-        subbasin consisting only of such lakes, |InUZ| is zero:
+        Internal lakes and sealed areas do not contribute to the upper zone layer.
+        Hence, for a subbasin consisting only of such zones, |InUZ| is zero:
 
-        >>> zonetype(ILAKE, ILAKE, ILAKE)
+        >>> zonetype(ILAKE, ILAKE, ILAKE, SEALED, SEALED)
         >>> model.calc_inuz_v1()
         >>> fluxes.inuz
         inuz(0.0)
-
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelLandZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelUpperZoneArea,
+    )
     REQUIREDSEQUENCES = (
         hland_fluxes.R,
         hland_fluxes.CF,
@@ -1486,8 +1494,10 @@ class Calc_InUZ_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inuz = 0.0
         for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                flu.inuz += der.rellandzonearea[k] * (flu.r[k] - flu.cf[k])
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
+                flu.inuz += (
+                    der.relzoneareas[k] / der.relupperzonearea * (flu.r[k] - flu.cf[k])
+                )
 
 
 class Calc_SUZ_V1(modeltools.Method):
@@ -1498,18 +1508,18 @@ class Calc_SUZ_V1(modeltools.Method):
 
     Example:
 
-        For internal lakes, method |Calc_SUZ_V1| always sets the value of |SUZ| to
-        zero:
+        For internal lakes and sealed areas, method |Calc_SUZ_V1| always sets the value
+        of |SUZ| to zero:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(3)
-        >>> zonetype(FIELD, ILAKE, GLACIER)
-        >>> states.suz = 1.0, 0.0, 2.0
+        >>> nmbzones(4)
+        >>> zonetype(FIELD, ILAKE, GLACIER, SEALED)
+        >>> states.suz = 1.0, 0.0, 2.0, 0.0
         >>> fluxes.r = 2.0
         >>> model.calc_suz_v1()
         >>> states.suz
-        suz(3.0, 0.0, 4.0)
+        suz(3.0, 0.0, 4.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1525,10 +1535,10 @@ class Calc_SUZ_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.suz[k] = 0.0
-            else:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 sta.suz[k] += flu.r[k]
+            else:
+                sta.suz[k] = 0.0
 
 
 class Calc_ContriArea_V1(modeltools.Method):
@@ -1539,19 +1549,19 @@ class Calc_ContriArea_V1(modeltools.Method):
 
     Examples:
 
-        We initialise four zones. Method |Calc_ContriArea_V1| takes only the first two
+        We initialise five zones. Method |Calc_ContriArea_V1| takes only the first two
         zones of type field and forest into account (even though glaciers also
         contribute to the inflow of the upper zone layer):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> beta(2.0)
         >>> fc(200.0)
         >>> resparea(True)
+        >>> derived.relzoneareas(1.0/6.0, 2.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0)
         >>> derived.relsoilarea(0.5)
-        >>> derived.relsoilzonearea(1.0/3.0, 2.0/3.0, 0.0, 0.0)
 
         With relative soil moisture of 100 % in the whole subbasin, the contributing
         area is also 100 %:
@@ -1607,8 +1617,8 @@ class Calc_ContriArea_V1(modeltools.Method):
         hland_control.Beta,
     )
     DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
         hland_derived.RelSoilArea,
-        hland_derived.RelSoilZoneArea,
     )
     REQUIREDSEQUENCES = (hland_states.SM,)
     RESULTSEQUENCES = (hland_fluxes.ContriArea,)
@@ -1624,9 +1634,8 @@ class Calc_ContriArea_V1(modeltools.Method):
             for k in range(con.nmbzones):
                 if con.zonetype[k] in (FIELD, FOREST):
                     if con.fc[k] > 0.0:
-                        flu.contriarea *= (
-                            sta.sm[k] / con.fc[k]
-                        ) ** der.relsoilzonearea[k]
+                        d_weight = der.relzoneareas[k] / der.relsoilarea
+                        flu.contriarea *= (sta.sm[k] / con.fc[k]) ** d_weight
             flu.contriarea **= con.beta[k]
 
 
@@ -1817,10 +1826,10 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
             flu.perc += d_perc
             if sta.uz > 0.0:
                 if flu.contriarea > 0.0:
-                    d_q0 = (
-                        der.dt * con.k * (sta.uz / flu.contriarea) ** (1.0 + con.alpha)
+                    d_q0 = min(
+                        der.dt * con.k * (sta.uz / flu.contriarea) ** (1.0 + con.alpha),
+                        sta.uz,
                     )
-                    d_q0 = min(d_q0, sta.uz)
                 else:
                     d_q0 = sta.uz
                 sta.uz -= d_q0
@@ -1839,21 +1848,21 @@ class Calc_DP_SUZ_V1(modeltools.Method):
 
     Example:
 
-        For internal lakes, method |Calc_DP_SUZ_V1| always sets the values of |DP|
-        and |SUZ| to zero:
+        For internal lakes and sealed areas, method |Calc_DP_SUZ_V1| always sets the
+        values of |DP| and |SUZ| to zero:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, GLACIER, ILAKE)
+        >>> nmbzones(9)
+        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> percmax(4.8)
-        >>> states.suz = 0.0, 0.1, 0.2, 0.3, 0.4, 0.4, 0.4
+        >>> states.suz = 0.0, 0.1, 0.2, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4
         >>> model.calc_dp_suz_v1()
         >>> fluxes.dp
-        dp(0.0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.0)
+        dp(0.0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0)
         >>> states.suz
-        suz(0.0, 0.0, 0.0, 0.1, 0.2, 0.2, 0.0)
+        suz(0.0, 0.0, 0.0, 0.1, 0.2, 0.2, 0.2, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1870,12 +1879,12 @@ class Calc_DP_SUZ_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.suz[k] = 0.0
-                flu.dp[k] = 0.0
-            else:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 flu.dp[k] = min(sta.suz[k], con.percmax)
                 sta.suz[k] -= flu.dp[k]
+            else:
+                flu.dp[k] = 0.0
+                sta.suz[k] = 0.0
 
 
 class Calc_QAb_QVs_BW_V1(modeltools.Method):
@@ -2139,6 +2148,24 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
         qvs1(2.0, 4.0, 9.0, 11.0, 7.0, 5.1, 2.5, 8.5)
         >>> states.bw1
         bw1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        |Calc_QAb1_QVs1_BW1_V1| process forest and glacier zones like field zones but
+        sets the values of |QAb1|, |QVs1|, and |BW1| to zero for internal lakes and
+        sealed areas:
+
+        >>> zonetype(FOREST, GLACIER, ILAKE, SEALED, FOREST, GLACIER, ILAKE, SEALED)
+        >>> h1(4.0)
+        >>> tab1(1.0)
+        >>> tvs1(2.0)
+        >>> fluxes.r = 2.0, 2.0, 2.0, 2.0, 2.5, 2.5, 2.5, 2.5
+        >>> states.bw1 = 2.0, 2.0, 2.0, 2.0, 6.0, 6.0, 6.0, 6.0
+        >>> model.calc_qab1_qvs1_bw1_v1()
+        >>> fluxes.qab1
+        qab1(0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0)
+        >>> fluxes.qvs1
+        qvs1(0.672805, 0.672805, 0.0, 0.0, 1.5, 1.5, 0.0, 0.0)
+        >>> states.bw1
+        bw1(3.327195, 3.327195, 0.0, 0.0, 6.0, 6.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2164,7 +2191,7 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
         for k in range(con.nmbzones):
             flu.qab1[k] = 0.0
             flu.qvs1[k] = 0.0
-            if con.zonetype[k] != ILAKE:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 model.calc_qab_qvs_bw_v1(
                     k,
                     con.h1,
@@ -2176,6 +2203,8 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
                     flu.qvs1,
                     0.0,
                 )
+            else:
+                sta.bw1[k] = 0.0
 
 
 class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
@@ -2197,7 +2226,7 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
 
     Example:
 
-        We only repeat the first example of the documentation on method
+        We only repeat the first and the last example of the documentation on method
         |Calc_QAb1_QVs1_BW1_V1| to verify that method |Calc_QAb2_QVs2_BW2_V1| calls
         method |Calc_QAb_QVs_BW_V1| correctly:
 
@@ -2219,6 +2248,21 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
              1.5)
         >>> states.bw2
         bw2(1.557602, 3.327195, 5.658322, 7.065344, 5.7463, 3.831437, 2.0, 6.0)
+
+        |Calc_QAb2_QVs2_BW2_V1| process forest and glacier zones like field zones but
+        sets the values of |QAb2|, |QVs2|, and |BW2| to zero for internal lakes and
+        sealed areas:
+
+        >>> zonetype(FOREST, GLACIER, ILAKE, SEALED, FOREST, GLACIER, ILAKE, SEALED)
+        >>> fluxes.qvs1 = 2.0, 2.0, 2.0, 2.0, 2.5, 2.5, 2.5, 2.5
+        >>> states.bw2 = 2.0, 2.0, 2.0, 2.0, 6.0, 6.0, 6.0, 6.0
+        >>> model.calc_qab2_qvs2_bw2_v1()
+        >>> fluxes.qab2
+        qab2(0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0)
+        >>> fluxes.qvs2
+        qvs2(0.672805, 0.672805, 0.0, 0.0, 1.5, 1.5, 0.0, 0.0)
+        >>> states.bw2
+        bw2(3.327195, 3.327195, 0.0, 0.0, 6.0, 6.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2244,7 +2288,7 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
         for k in range(con.nmbzones):
             flu.qab2[k] = 0.0
             flu.qvs2[k] = 0.0
-            if con.zonetype[k] != ILAKE:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 model.calc_qab_qvs_bw_v1(
                     k,
                     con.h2,
@@ -2256,6 +2300,8 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
                     flu.qvs2,
                     0.0,
                 )
+            else:
+                sta.bw2[k] = 0.0
 
 
 class Calc_RS_RI_SUZ_V1(modeltools.Method):
@@ -2271,24 +2317,24 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
 
     Examples:
 
-        For internal lakes, method |Calc_RS_RI_SUZ_V1| always sets the values of |RS|,
-        |RI|, and |SUZ| to zero:
+        For internal lakes and sealed areas, method |Calc_RS_RI_SUZ_V1| always sets the
+        values of |RS|, |RI|, and |SUZ| to zero:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(7)
-        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, GLACIER, ILAKE)
+        >>> nmbzones(9)
+        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> sgr(10.0)
         >>> derived.w0 = 0.4
         >>> derived.w1 = 0.8
-        >>> states.suz = 0.0, 5.0, 10.0, 15.0, 20.0, 20.0, 20.0
+        >>> states.suz = 0.0, 5.0, 10.0, 15.0, 20.0, 20.0, 20.0, 20.0, 20.0
         >>> model.calc_rs_ri_suz_v1()
         >>> fluxes.rs
-        rs(0.0, 0.0, 0.0, 3.0, 6.0, 6.0, 0.0)
+        rs(0.0, 0.0, 0.0, 3.0, 6.0, 6.0, 6.0, 0.0, 0.0)
         >>> fluxes.ri
-        ri(0.0, 1.0, 2.0, 3.0, 4.0, 4.0, 0.0)
+        ri(0.0, 1.0, 2.0, 3.0, 4.0, 4.0, 4.0, 0.0, 0.0)
         >>> states.suz
-        suz(0.0, 4.0, 8.0, 9.0, 10.0, 10.0, 0.0)
+        suz(0.0, 4.0, 8.0, 9.0, 10.0, 10.0, 10.0, 0.0, 0.0)
 
         Theoretically, the parallel calculation of |RS| and |RI| can result in negative
         values of |SUZ|.  The checks implemented for the parameter classes |K0| and
@@ -2299,14 +2345,14 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
 
         >>> derived.w0 = 0.1
         >>> derived.w1 = 0.2
-        >>> states.suz = 0.0, 5.0, 10.0, 15.0, 20.0, 20.0, 20.0
+        >>> states.suz = 0.0, 5.0, 10.0, 15.0, 20.0, 20.0, 20.0, 20.0, 20.0
         >>> model.calc_rs_ri_suz_v1()
         >>> fluxes.rs
-        rs(0.0, 0.0, 0.0, 4.909091, 10.8, 10.8, 0.0)
+        rs(0.0, 0.0, 0.0, 4.909091, 10.8, 10.8, 10.8, 0.0, 0.0)
         >>> fluxes.ri
-        ri(0.0, 4.0, 8.0, 13.090909, 19.2, 19.2, 0.0)
+        ri(0.0, 4.0, 8.0, 13.090909, 19.2, 19.2, 19.2, 0.0, 0.0)
         >>> states.suz
-        suz(0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0)
+        suz(0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2331,11 +2377,7 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.suz[k] = 0.0
-                flu.rs[k] = 0.0
-                flu.ri[k] = 0.0
-            else:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 if sta.suz[k] > con.sgr[k]:
                     flu.rs[k] = (sta.suz[k] - con.sgr[k]) * (1.0 - der.w0[k])
                 else:
@@ -2347,48 +2389,82 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
                     flu.rs[k] *= d_f
                     flu.ri[k] *= d_f
                     sta.suz[k] = 0.0
+            else:
+                sta.suz[k] = 0.0
+                flu.rs[k] = 0.0
+                flu.ri[k] = 0.0
 
 
 class Calc_LZ_V1(modeltools.Method):
     r"""Add the percolation and the lake precipitation to the lower zone storage.
 
     Basic equation:
-      :math:`\frac{dLZ}{dt} = Perc + Pc`
+      .. math::
+        \frac{dLZ}{dt} = \frac{RelUpperZoneArea}{RelLowerZoneArea} \cdot Perc +
+        \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLowerZoneArea} \cdot
+        \begin{cases}
+        Pc &|\ ZoneType_k = ILAKE
+        \\
+        0 &|\ ZoneType_k \neq ILAKE
+        \end{cases}
 
     Examples:
 
-        At first, we define a subbasin with one |FIELD| and one |GLACIER| zone.  Here,
-        the precipitation does not fall directly into the lower zone layer and thus has
-        no impact.  Methods |Calc_LZ_V1| adds only the actual percolation from the
-        upper zone layer to the lower zone storage:
+        We define a subbasin with five zones of different land-use type and size:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(2)
-        >>> zonetype(FIELD, FIELD)
-        >>> derived.rellandarea = 1.0
-        >>> derived.relzonearea = 2.0/3.0, 1.0/3.0
-        >>> fluxes.perc = 2.0
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> area(100.0)
+        >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
+
+        To ensure the consistency of the values of the relevant derived parameters, we
+        apply their |Parameter.update| methods:
+
+        >>> derived.relzoneareas.update()
+        >>> derived.relupperzonearea.update()
+        >>> derived.rellowerzonearea.update()
+
+        First, we set the precipitation intensity to 5 mm/T and the percolation
+        intensity to zero. Only the internal lake zone passes its precipitation directly
+        to the lower zone layer.  The fraction between its size (15 km²) and the extent
+        of the lower zone layer (75 km²) is 1/5.  Hence, precipitation directly reaching
+        the lower zone layer increases its content by 1 mm:
+
         >>> fluxes.pc = 5.0
+        >>> fluxes.perc = 0.0
         >>> states.lz = 10.0
         >>> model.calc_lz_v1()
         >>> states.lz
-        lz(12.0)
+        lz(11.0)
 
-        If the second zone is an internal lake, its precipitation contributes to the
-        lower zone storage directly.  Note that |Calc_LZ_V1| adds only 5/3 mm
-        precipitation due to the relative size of the internal lake within the subbasin.
-        Percolation from the upper zone layer increases the lower zone storage by
-        two-thirds of its original value due to the difference in the lower and upper
-        zone layers' spatial extents:
+        Second, we set the precipitation intensity to zero and the percolation intensity
+        to 5 mm/T.  The fraction between the extents of the upper zone layer (60 km²)
+        and the lower zone layer (75 km³) is 4/5. Hence, percolation released by the
+        upper zone layer increases the content of the lower zone layer by 4 mm:
 
-        >>> zonetype(FOREST, ILAKE)
-        >>> derived.rellandarea = 2.0/3.0
-        >>> derived.relzonearea = 2.0/3.0, 1.0/3.0
-        >>> states.lz = 10.0
+        >>> fluxes.pc = 0.0
+        >>> fluxes.perc = 5.0
         >>> model.calc_lz_v1()
         >>> states.lz
-        lz(13.0)
+        lz(15.0)
+
+        Consequently, setting both intensities to 5 mm/T increases |LZ| by 5 mm:
+
+        >>> fluxes.pc = 5.0
+        >>> fluxes.perc = 5.0
+        >>> model.calc_lz_v1()
+        >>> states.lz
+        lz(20.0)
+
+        In case the extent of the lower zone area is zero, which is possible for
+        completely sealed subbasins only, method |Calc_LZ_V1| sets |LZ| to zero:
+
+        >>> derived.rellowerzonearea(0.0)
+        >>> model.calc_lz_v1()
+        >>> states.lz
+        lz(0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2396,8 +2472,9 @@ class Calc_LZ_V1(modeltools.Method):
         hland_control.ZoneType,
     )
     DERIVEDPARAMETERS = (
-        hland_derived.RelLandArea,
-        hland_derived.RelZoneArea,
+        hland_derived.RelUpperZoneArea,
+        hland_derived.RelLowerZoneArea,
+        hland_derived.RelZoneAreas,
     )
     REQUIREDSEQUENCES = (
         hland_fluxes.Perc,
@@ -2411,10 +2488,13 @@ class Calc_LZ_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.lz += der.rellandarea * flu.perc
-        for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.lz += der.relzonearea[k] * flu.pc[k]
+        if der.rellowerzonearea > 0.0:
+            sta.lz += der.relupperzonearea / der.rellowerzonearea * flu.perc
+            for k in range(con.nmbzones):
+                if con.zonetype[k] == ILAKE:
+                    sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.pc[k]
+        else:
+            sta.lz = 0.0
 
 
 class Calc_LZ_V2(modeltools.Method):
@@ -2422,21 +2502,33 @@ class Calc_LZ_V2(modeltools.Method):
     the lower zone storage.
 
     Basic equation:
-      :math:`\frac{dLZ}{dt} = QVs2 + Pc`
+      .. math::
+        \frac{dLZ}{dt} =
+        \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLowerZoneArea} \cdot
+        \begin{cases}
+        QVs2 &|\ ZoneType_k \in \{ FIELD, FOREST, GLACIER \}
+        \\
+        Pc &|\ ZoneType_k = ILAKE
+        \\
+        0 &|\ ZoneType_k = SEALED
+        \end{cases}
 
     Example:
 
         The first three zones of type |FIELD|, |FOREST|, and |GLACIER| contribute via
         deep percolation to the lower zone reservoir.  For the fourth zone of type
-        |ILAKE|, precipitation contributes to the lower zone storage directly:
+        |ILAKE|, precipitation contributes to the lower zone storage directly.  The
+        fifth zone of type |SEALED| does not contribute to the lower zone storage at
+        all:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-        >>> derived.relzonearea = 0.4, 0.3, 0.2, 0.1
-        >>> fluxes.qvs2 = 1.0, 2.0, 3.0, nan
-        >>> fluxes.pc = nan, nan, nan, 4.0
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas = 0.24, 0.18, 0.12, 0.06, 0.4
+        >>> derived.rellowerzonearea = 0.6
+        >>> fluxes.qvs2 = 1.0, 2.0, 3.0, nan, nan
+        >>> fluxes.pc = nan, nan, nan, 4.0, nan
         >>> states.lz = 5.0
         >>> model.calc_lz_v2()
         >>> states.lz
@@ -2447,7 +2539,10 @@ class Calc_LZ_V2(modeltools.Method):
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
     REQUIREDSEQUENCES = (
         hland_fluxes.QVs2,
         hland_fluxes.PC,
@@ -2462,9 +2557,9 @@ class Calc_LZ_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
-                sta.lz += der.relzonearea[k] * flu.pc[k]
-            else:
-                sta.lz += der.relzonearea[k] * flu.qvs2[k]
+                sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.pc[k]
+            elif con.zonetype[k] != SEALED:
+                sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.qvs2[k]
 
 
 class Calc_GR1_V1(modeltools.Method):
@@ -2475,34 +2570,34 @@ class Calc_GR1_V1(modeltools.Method):
 
     Examples:
 
-        For internal lakes, method |Calc_GR1_V1| always sets the values of |GR1|
-        and |SG1| to zero:
+        For internal lakes and sealed areas, method |Calc_GR1_V1| always sets the values
+        of |GR1| and |SG1| to zero:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, GLACIER, ILAKE)
+        >>> nmbzones(9)
+        >>> zonetype(FIELD, FIELD, FIELD, FIELD, FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> sg1max(10.0)
         >>> k2(10.0/24.0)
         >>> from hydpy import round_
-        >>> round_(k2.values)
-        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0
+        >>> round_(k2.values[0])
+        10.0
         >>> fluxes.dp = 0.5
-        >>> states.sg1 = 0.0, 5.0, 9.0, 9.9, 10.0, 5.0, 5.0
+        >>> states.sg1 = 0.0, 5.0, 9.0, 9.9, 10.0, 5.0, 5.0, 5.0, 5.0
         >>> model.calc_gr1_v1()
         >>> fluxes.gr1
-        gr1(0.5, 0.5, 0.1, 0.01, 0.0, 0.5, 0.0)
+        gr1(0.5, 0.5, 0.1, 0.01, 0.0, 0.5, 0.5, 0.0, 0.0)
 
         For unreasonably low values of parameter |K2|, the sum of |SG1| and |GR1| could
         theoretically become larger than |SG1Max|.  To ensure this does not happen, we
         let method |Calc_GR1_V1| reduce |GR1| when necessary:
 
         >>> k2.values = 0.5
-        >>> states.sg1 = 0.0, 5.0, 9.0, 9.9, 10.0, 5.0, 5.0
+        >>> states.sg1 = 0.0, 5.0, 9.0, 9.9, 10.0, 5.0, 5.0, 5.0, 5.0
         >>> model.calc_gr1_v1()
         >>> fluxes.gr1
-        gr1(0.5, 0.5, 0.5, 0.1, 0.0, 0.5, 0.0)
+        gr1(0.5, 0.5, 0.5, 0.1, 0.0, 0.5, 0.5, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2521,12 +2616,12 @@ class Calc_GR1_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.sg1[k] = 0.0
-                flu.gr1[k] = 0.0
-            else:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 flu.gr1[k] = min(flu.dp[k], (con.sg1max[k] - sta.sg1[k]) / con.k2[k])
                 flu.gr1[k] -= max(sta.sg1[k] + flu.gr1[k] - con.sg1max[k], 0.0)
+            else:
+                sta.sg1[k] = 0.0
+                flu.gr1[k] = 0.0
 
 
 class Calc_RG1_SG1_V1(modeltools.Method):
@@ -2540,26 +2635,26 @@ class Calc_RG1_SG1_V1(modeltools.Method):
 
     Example:
 
-        For internal lakes, method |Calc_RG1_SG1_V1| always sets the values of |GR1|
-        and |SG1| to zero:
+        For internal lakes and sealed areas, method |Calc_RG1_SG1_V1| always sets the
+        values of |GR1| and |SG1| to zero:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(FIELD, FIELD, FIELD, GLACIER, ILAKE)
-        >>> k2(1.0/24, 10.0/24, 100.0/24, 100.0/24, 100.0/24)
+        >>> nmbzones(7)
+        >>> zonetype(FIELD, FIELD, FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> k2(1.0/24, 10.0/24, 100.0/24, 100.0/24, 100.0/24, 100.0/24, 100.0/24)
         >>> from hydpy import round_
         >>> round_(k2.values)
-        1.442695, 10.0, 100.0, 100.0, 100.0
+        1.442695, 10.0, 100.0, 100.0, 100.0, 100.0, 100.0
         >>> derived.w2.update()
         >>> fluxes.gr1 = 2.0
         >>> states.sg1 = 5.0
         >>> model.calc_rg1_sg1_v1()
         >>> fluxes.rg1
-        rg1(3.057305, 0.572561, 0.059718, 0.059718, 0.0)
+        rg1(3.057305, 0.572561, 0.059718, 0.059718, 0.059718, 0.0, 0.0)
         >>> states.sg1
-        sg1(3.942695, 6.427439, 6.940282, 6.940282, 0.0)
+        sg1(3.942695, 6.427439, 6.940282, 6.940282, 6.940282, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2579,56 +2674,66 @@ class Calc_RG1_SG1_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.zonetype[k] == ILAKE:
-                sta.sg1[k] = 0.0
-                flu.rg1[k] = 0.0
-            else:
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
                 d_sg1 = sta.sg1[k]
                 sta.sg1[k] = (
                     der.w2[k] * d_sg1 + (1.0 - der.w2[k]) * con.k2[k] * flu.gr1[k]
                 )
                 flu.rg1[k] = d_sg1 + flu.gr1[k] - sta.sg1[k]
+            else:
+                sta.sg1[k] = 0.0
+                flu.rg1[k] = 0.0
 
 
 class Calc_GR2_GR3_V1(modeltools.Method):
     r"""Calculate the recharge of the first-order and the second-order slow response
     groundwater reservoir.
 
-    Basic equations for land units:
-      :math:`GR2 = (DP - GR1) \cdot FSG`
+    Basic equations:
+      .. math::
+        GRT =
+        \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLowerZoneArea} \cdot
+        \begin{cases}
+        DP - GR1 &|\ ZoneType_k \in \{ FIELD, FOREST, GLACIER \}
+        \\
+        Pc &|\ ZoneType_k = ILAKE
+        \\
+        0 &|\ ZoneType_k = SEALED
+        \end{cases}
 
-      :math:`GR3 = (DP - GR1) \cdot (1 - FSG)`
+      :math:`GR2 = FSG \cdot GRT`
 
-    Basic equations for internal lakes:
-      :math:`GR2 = PC \cdot FSG`
-
-      :math:`GR3 = PC \cdot (1 - FSG)`
+      :math:`GR3 = (1 - FSG) \cdot GRT`
 
     Example:
 
-        Besides applying the given basic equation, method |Calc_GR2_GR3_V1| aggregates
-        the resulting HRU level values to the subbasin level:
+        Method |Calc_GR2_GR3_V1| aggregates the given input (term "GRT" in the given
+        basic equations) divides it between |GR2| and |GR3|:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(3)
-        >>> zonetype(FIELD, GLACIER, ILAKE)
-        >>> derived.relzonearea(0.6, 0.3, 0.1)
-        >>> fluxes.pc = 18.0
-        >>> fluxes.dp = 4.0, 8.0, 0.0
-        >>> fluxes.gr1 = 1.0, 2.0, 0.0
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.24, 0.18, 0.12, 0.06, 0.4)
+        >>> derived.rellowerzonearea(0.6)
+        >>> fluxes.gr1 = 1.0, 2.0, 3.0, nan, nan
+        >>> fluxes.dp = 4.0, 6.0, 8.0, nan, nan
+        >>> fluxes.pc = nan, nan, nan, 11.0, nan
         >>> model.calc_gr2_gr3_v1()
         >>> fluxes.gr2
-        gr2(4.8)
+        gr2(4.0)
         >>> fluxes.gr3
-        gr3(0.6)
+        gr3(0.5)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
     FIXEDPARAMETERS = (hland_fixed.FSG,)
     REQUIREDSEQUENCES = (
         hland_fluxes.PC,
@@ -2649,10 +2754,13 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         flu.gr2 = 0.0
         flu.gr3 = 0.0
         for k in range(con.nmbzones):
+            if con.zonetype[k] == SEALED:
+                continue
+            d_weight = der.relzoneareas[k] / der.rellowerzonearea
             if con.zonetype[k] == ILAKE:
-                d_total = der.relzonearea[k] * flu.pc[k]
+                d_total = d_weight * flu.pc[k]
             else:
-                d_total = der.relzonearea[k] * (flu.dp[k] - flu.gr1[k])
+                d_total = d_weight * (flu.dp[k] - flu.gr1[k])
             flu.gr2 += fix.fsg * d_total
             flu.gr3 += (1.0 - fix.fsg) * d_total
 
@@ -2681,21 +2789,22 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(5)
-        >>> zonetype(ILAKE, ILAKE, ILAKE, ILAKE, FIELD)
+        >>> nmbzones(8)
+        >>> zonetype(ILAKE, ILAKE, ILAKE, ILAKE, FIELD, FOREST, GLACIER, SEALED)
         >>> ttice(1.0)
-        >>> derived.relzonearea(0.1, 0.1, 0.1, 0.6, 0.1)
-        >>> fluxes.tc = 0.0, 1.0, 2.0, 2.0, 2.0
-        >>> fluxes.epc = 1.0, 1.0, 0.9, 1.8, 2.0
+        >>> derived.relzoneareas(0.1, 0.1, 0.1, 0.3, 0.1, 0.1, 0.1, 0.1)
+        >>> derived.rellowerzonearea(0.5)
+        >>> fluxes.tc = 0.0, 1.0, 2.0, 2.0, nan, nan, nan, nan
+        >>> fluxes.epc = 1.0, 1.0, 0.9, 1.8, nan, nan, nan, nan
         >>> states.sg2 = 1.0
         >>> states.sg3 = 1.0
         >>> model.calc_el_sg2_sg3_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.9, 1.8, 0.0)
+        el(0.0, 0.0, 0.9, 1.8, 0.0, 0.0, 0.0, 0.0)
         >>> states.sg2
-        sg2(-0.04)
+        sg2(-0.12)
         >>> states.sg3
-        sg3(0.87)
+        sg3(0.86)
 
         Due to the assumption of internal lakes having a fixed size, they never dry and
         always evaporate water.  The above example shows that this might result in
@@ -2707,7 +2816,10 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.TTIce,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
     FIXEDPARAMETERS = (hland_fixed.FSG,)
     REQUIREDSEQUENCES = (
         hland_fluxes.TC,
@@ -2729,8 +2841,9 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if (con.zonetype[k] == ILAKE) and (flu.tc[k] > con.ttice[k]):
                 flu.el[k] = flu.epc[k]
-                sta.sg2 -= fix.fsg * der.relzonearea[k] * flu.el[k]
-                sta.sg3 -= (1.0 - fix.fsg) * der.relzonearea[k] * flu.el[k]
+                d_weight = der.relzoneareas[k] / der.rellowerzonearea
+                sta.sg2 -= fix.fsg * d_weight * flu.el[k]
+                sta.sg3 -= (1.0 - fix.fsg) * d_weight * flu.el[k]
             else:
                 flu.el[k] = 0.0
 
@@ -2932,24 +3045,25 @@ class Calc_EL_LZ_V1(modeltools.Method):
 
     Examples:
 
-        We initialise six zones of the same size.  The first three zones are no internal
-        lakes, so they do not show any lake evaporation.  Of the last three zones, which
-        are internal lakes, only the last one evaporates water.  The fifth and the sixth
-        zone suppress evaporation due to the assumption that an ice layer prevents any
-        exchange between the water body and the atmosphere:
+        We initialise seven zones of the same size.  The first four zones are no
+        internal lakes, so they do not show any lake evaporation.  Of the last three
+        zones, which are internal lakes, only the last one evaporates water.  The fifth
+        and the sixth zone suppress evaporation due to the assumption that an ice layer
+        prevents any exchange between the water body and the atmosphere:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, ILAKE)
+        >>> nmbzones(7)
+        >>> zonetype(FIELD, FOREST, GLACIER, SEALED, ILAKE, ILAKE, ILAKE)
         >>> ttice(-1.0)
-        >>> derived.relzonearea = 1.0/6.0
+        >>> derived.relzoneareas(1.0/7.0)
+        >>> derived.rellowerzonearea(6.0/7.0)
         >>> fluxes.epc = 0.6
-        >>> fluxes.tc = 0.0, 0.0, 0.0, 0.0, -1.0, -2.0
+        >>> fluxes.tc = 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, -2.0
         >>> states.lz = 10.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+        el(0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
         >>> states.lz
         lz(9.9)
 
@@ -2959,7 +3073,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         >>> states.lz = 0.05
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+        el(0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
         >>> states.lz
         lz(-0.05)
     """
@@ -2969,7 +3083,10 @@ class Calc_EL_LZ_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.TTIce,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
     REQUIREDSEQUENCES = (
         hland_fluxes.TC,
         hland_fluxes.EPC,
@@ -2986,7 +3103,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if (con.zonetype[k] == ILAKE) and (flu.tc[k] > con.ttice[k]):
                 flu.el[k] = flu.epc[k]
-                sta.lz -= der.relzonearea[k] * flu.el[k]
+                sta.lz -= der.relzoneareas[k] / der.rellowerzonearea * flu.el[k]
             else:
                 flu.el[k] = 0.0
 
@@ -2995,14 +3112,15 @@ class Calc_Q1_LZ_V1(modeltools.Method):
     r"""Calculate the slow response of the lower zone layer.
 
     Basic equations:
-        :math:`\frac{dLZ}{dt} = -Q1`
+      .. math::
+        Q1 =
+        \begin{cases}
+        K4 \cdot LZ^{1 + Gamma} &|\ LZ > 0
+        \\
+        0 &|\ LZ \leq 0
+        \end{cases}
 
-        :math:`Q1 = \Bigl \lbrace
-        {
-        {K4 \cdot LZ^{1 + Gamma} \ | \ LZ > 0}
-        \atop
-        {0 \ | \ LZ\leq 0}
-        }`
+      :math:`\frac{dLZ}{dt} = -Q1`
 
     Examples:
 
@@ -3075,30 +3193,61 @@ class Calc_Q1_LZ_V1(modeltools.Method):
 
 
 class Calc_InUH_V1(modeltools.Method):
-    r"""Calculate the unit hydrograph input.
+    r"""Calculate the unit hydrograph or linear storage cascade input.
 
     Basic equation:
-        :math:`InUH = Q0 + Q1`
+        :math:`InUH = RelUpperZoneArea \cdot Q0 + RelLowerZoneArea \cdot Q1`
+
+      .. math::
+        InUH = RelUpperZoneArea \cdot Q0 + RelLowerZoneArea \cdot Q1 +
+        \sum_{k=1}^{NmbZones}  RelZoneAreas_k \cdot \begin{cases}
+        R &|\ ZoneType_k = SEALED
+        \\
+        0 &|\ ZoneType_k \neq SEALED
+        \end{cases}
 
     Example:
 
-        The unit hydrograph receives base flow (|Q1|) from the whole subbasin and direct
-        flow (|Q0|) only from field zones, forest zones, and glacier zones.  In the
-        following example, these occupy only one half of the subbasin, so |Calc_InUH_V1|
-        adds only the half value of |Q0| to |InUH|:
+        We define a subbasin with five zones of different land-use type and size:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> derived.rellandarea = 0.5
-        >>> fluxes.q0 = 4.0
-        >>> fluxes.q1 = 1.0
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> area(100.0)
+        >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
+
+        To ensure the consistency of the values of the relevant derived parameters, we
+        apply their |Parameter.update| methods:
+
+        >>> derived.relzoneareas.update()
+        >>> derived.relupperzonearea.update()
+        >>> derived.rellowerzonearea.update()
+
+        The unit hydrograph receives freshly generated runoff (|R|) directly from the
+        sealed zone (0.5 mm), direct runoff (|Q0|) indirectly from the field, forest,
+        and glacier zones (0.6 mm) and base flow (|Q1|) indirectly from the field,
+        forest, glacier and internal lake zones (3.0 mm):
+
+        >>> fluxes.r = 2.0
+        >>> fluxes.q0 = 1.0
+        >>> fluxes.q1 = 4.0
         >>> model.calc_inuh_v1()
         >>> fluxes.inuh
-        inuh(3.0)
+        inuh(4.1)
     """
 
-    DERIVEDPARAMETERS = (hland_derived.RelLandArea,)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelUpperZoneArea,
+        hland_derived.RelLowerZoneArea,
+    )
     REQUIREDSEQUENCES = (
+        hland_fluxes.R,
         hland_fluxes.Q0,
         hland_fluxes.Q1,
     )
@@ -3106,42 +3255,128 @@ class Calc_InUH_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuh = der.rellandarea * flu.q0 + flu.q1
+        flu.inuh = der.relupperzonearea * flu.q0 + der.rellowerzonearea * flu.q1
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == SEALED:
+                flu.inuh += der.relzoneareas[k] * flu.r[k]
 
 
 class Calc_InUH_V2(modeltools.Method):
     r"""Calculate linear storage cascade input.
 
     Basic equation:
-        :math:`InUH = QAb1 + QAb2`
+      .. math::
+        InUH = RelLowerZoneArea \cdot (RG2 + RG3) +
+        \sum_{k=1}^{NmbZones}
+        \begin{cases}
+        RS + RI + RG1 &|\ ZoneType_k \in \{FIELD, FOREST, GLACIER \}
+        \\
+        R &|\ ZoneType_k = SEALED
+        \\
+        0 &|\ ZoneType_k = ILAKE
+        \end{cases}
 
     Example:
 
-        The unit hydrograph receives base flow (|Q1|) from the whole subbasin and direct
-        flow (|Q0|) only from field zones, forest zones, and glacier zones.  In the
-        following example, these occupy only one half of the subbasin, so |Calc_InUH_V1|
-        adds only the half value of |Q0| to |InUH|:
+        Besides adding all components, method |Calc_InUH_V2| needs to aggregate the HRU
+        level values of |RS|, |RI|, |RG1|, and |R| to the subbasin level:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-        >>> derived.rellandzonearea = 0.5, 0.3, 0.2, nan
-        >>> fluxes.qab1 = 1.0, 2.0, 3.0, nan
-        >>> fluxes.qab2 = 4.0, 5.0, 6.0, nan
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.35, 0.25, 0.15, 0.05, 0.2)
+        >>> derived.rellowerzonearea(0.8)
+        >>> fluxes.rs = 0.1, 0.2, 0.3, nan, nan
+        >>> fluxes.ri = 0.4, 0.6, 0.8, nan, nan
+        >>> fluxes.rg1 = 1.1, 1.4, 1.7, nan, nan
+        >>> fluxes.r = nan, nan, nan, nan, 2.0
+        >>> fluxes.rg2 = 3.0
+        >>> fluxes.rg3 = 4.0
         >>> model.calc_inuh_v2()
         >>> fluxes.inuh
-        inuh(6.4)
+        inuh(7.53)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    DERIVEDPARAMETERS = (hland_derived.RelLandZoneArea,)
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
     REQUIREDSEQUENCES = (
+        hland_fluxes.R,
+        hland_fluxes.RS,
+        hland_fluxes.RI,
+        hland_fluxes.RG1,
+        hland_fluxes.RG2,
+        hland_fluxes.RG3,
+    )
+    RESULTSEQUENCES = (hland_fluxes.InUH,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.inuh = der.rellowerzonearea * (flu.rg2 + flu.rg3)
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST, GLACIER):
+                flu.inuh += der.relzoneareas[k] * (flu.rs[k] + flu.ri[k] + flu.rg1[k])
+            elif con.zonetype[k] == SEALED:
+                flu.inuh += der.relzoneareas[k] * flu.r[k]
+
+
+class Calc_InUH_V3(modeltools.Method):
+    r"""Calculate linear storage cascade input.
+
+    Basic equation:
+      .. math::
+        InUH = \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLandArea} \cdot
+        \begin{cases}
+        QAb1 + QAb2 &|\ ZoneType_k \in \{FIELD, FOREST, GLACIER \}
+        \\
+        R &|\ ZoneType_k = SEALED
+        \\
+        0 &|\ ZoneType_k = ILAKE
+        \end{cases}
+
+    Example:
+
+        The unit hydrograph receives surface flow (|QAb1| and |QAb2|) from the first
+        three zones of type |FIELD|, |FOREST|, and |GLACIER|, receives directly
+        generated runoff from the fifth zone of type |SEALED|, and receives nothing
+        from the fourth zone of type |ILAKE|:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas = 0.35, 0.25, 0.15, 0.2, 0.05
+        >>> derived.rellandarea(0.8)
+        >>> fluxes.qab1 = 1.0, 2.0, 3.0, nan, nan
+        >>> fluxes.qab2 = 3.0, 6.0, 9.0, nan, nan
+        >>> fluxes.r = nan, nan, nan, nan, 8.0
+        >>> model.calc_inuh_v3()
+        >>> fluxes.inuh
+        inuh(7.0)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLandArea,
+    )
+    REQUIREDSEQUENCES = (
+        hland_fluxes.R,
         hland_fluxes.QAb1,
         hland_fluxes.QAb2,
     )
@@ -3154,8 +3389,13 @@ class Calc_InUH_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inuh = 0.0
         for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                flu.inuh += der.rellandzonearea[k] * (flu.qab1[k] + flu.qab2[k])
+            if con.zonetype[k] == ILAKE:
+                continue
+            d_weight = der.relzoneareas[k] / der.rellandarea
+            if con.zonetype[k] == SEALED:
+                flu.inuh += d_weight * flu.r[k]
+            else:
+                flu.inuh += d_weight * (flu.qab1[k] + flu.qab2[k])
 
 
 class Calc_OutUH_QUH_V1(modeltools.Method):
@@ -3348,57 +3588,6 @@ class Calc_OutUH_SC_V1(modeltools.Method):
                 flu.outuh += d_q
 
 
-class Calc_RO_V1(modeltools.Method):
-    r"""Calculate the total output of all upper and lower zone storages.
-
-    Basic equation:
-        :math:`RO = RS + RI + RG1 + RG2 + RG3`
-
-    Example:
-
-        Besides adding all components, method |Calc_RO_V1| needs to aggregate the HRU
-        level values of |RS|, |RI|, and |RG1| to the subbasin level:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep()
-        >>> nmbzones(4)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-        >>> derived.relzonearea(0.1, 0.2, 0.3, 0.4)
-        >>> fluxes.rs = 0.1, 0.2, 0.3, 0.4
-        >>> fluxes.ri = 0.5, 0.6, 0.7, 0.8
-        >>> fluxes.rg1 = 0.9, 1.0, 1.1, 1.2
-        >>> fluxes.rg2 = 1.3
-        >>> fluxes.rg3 = 1.4
-        >>> model.calc_ro_v1()
-        >>> fluxes.ro
-        ro(3.84)
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (hland_derived.RelZoneArea,)
-    REQUIREDSEQUENCES = (
-        hland_fluxes.RS,
-        hland_fluxes.RI,
-        hland_fluxes.RG1,
-        hland_fluxes.RG2,
-        hland_fluxes.RG3,
-    )
-    RESULTSEQUENCES = (hland_fluxes.RO,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.ro = flu.rg2 + flu.rg3
-        for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                flu.ro += der.relzonearea[k] * (flu.rs[k] + flu.ri[k] + flu.rg1[k])
-
-
 class Calc_RA_RT_V1(modeltools.Method):
     r"""Calculate the actual abstraction and the total discharge in mm.
 
@@ -3454,56 +3643,7 @@ class Calc_RA_RT_V2(modeltools.Method):
     Basic equation:
         :math:`RA = Abstr / QFactor`
 
-        :math:`RT = RO - RA`
-
-    Examples:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep()
-        >>> abstr(1.0)
-        >>> derived.qfactor(0.5)
-        >>> fluxes.ro = 3.0
-        >>> model.calc_ra_rt_v2()
-        >>> fluxes.ra
-        ra(2.0)
-        >>> fluxes.rt
-        rt(1.0)
-
-        A requested abstraction larger than the total available discharge does not
-        result in negative outcomes:
-
-        >>> abstr(2.0)
-        >>> model.calc_ra_rt_v2()
-        >>> fluxes.ra
-        ra(3.0)
-        >>> fluxes.rt
-        rt(0.0)
-    """
-
-    CONTROLPARAMETERS = (hland_control.Abstr,)
-    DERIVEDPARAMETERS = (hland_derived.QFactor,)
-    REQUIREDSEQUENCES = (hland_fluxes.RO,)
-    RESULTSEQUENCES = (
-        hland_fluxes.RA,
-        hland_fluxes.RT,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.ra = min(con.abstr / der.qfactor, flu.ro)
-        flu.rt = flu.ro - flu.ra
-
-
-class Calc_RA_RT_V3(modeltools.Method):
-    r"""Calculate the actual abstraction and the total discharge in mm.
-
-    Basic equation:
-        :math:`RA = Abstr / QFactor`
-
-        :math:`RT = RelLandArea \cdot OutUH + Q1 - RA`
+        :math:`RT = RelUpperZoneArea \cdot OutUH + RelLowerZoneArea \cdot Q1 - RA`
 
     Examples:
 
@@ -3511,22 +3651,23 @@ class Calc_RA_RT_V3(modeltools.Method):
         >>> parameterstep()
         >>> abstr(1.0)
         >>> derived.rellandarea(0.8)
+        >>> derived.rellowerzonearea(0.6)
         >>> derived.qfactor(0.5)
         >>> fluxes.outuh = 2.5
         >>> fluxes.q1 = 1.0
-        >>> model.calc_ra_rt_v3()
+        >>> model.calc_ra_rt_v2()
         >>> fluxes.ra
         ra(2.0)
         >>> fluxes.rt
-        rt(1.0)
+        rt(0.6)
 
         A requested abstraction larger than the total available discharge does not
         result in negative outcomes:
 
         >>> abstr(2.0)
-        >>> model.calc_ra_rt_v3()
+        >>> model.calc_ra_rt_v2()
         >>> fluxes.ra
-        ra(3.0)
+        ra(2.6)
         >>> fluxes.rt
         rt(0.0)
     """
@@ -3534,6 +3675,7 @@ class Calc_RA_RT_V3(modeltools.Method):
     CONTROLPARAMETERS = (hland_control.Abstr,)
     DERIVEDPARAMETERS = (
         hland_derived.RelLandArea,
+        hland_derived.RelLowerZoneArea,
         hland_derived.QFactor,
     )
     REQUIREDSEQUENCES = (
@@ -3550,7 +3692,7 @@ class Calc_RA_RT_V3(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.rt = der.rellandarea * flu.outuh + flu.q1
+        flu.rt = der.rellandarea * flu.outuh + der.rellowerzonearea * flu.q1
         flu.ra = min(con.abstr / der.qfactor, flu.rt)
         flu.rt -= flu.ra
 
@@ -3640,13 +3782,12 @@ class Model(modeltools.AdHocModel):
         Calc_EL_LZ_V1,
         Calc_Q1_LZ_V1,
         Calc_InUH_V1,
-        Calc_InUH_V2,
+        Calc_InUH_V3,
         Calc_OutUH_QUH_V1,
         Calc_OutUH_SC_V1,
-        Calc_RO_V1,
+        Calc_InUH_V2,
         Calc_RA_RT_V1,
         Calc_RA_RT_V2,
-        Calc_RA_RT_V3,
         Calc_QT_V1,
     )
     ADD_METHODS = (Calc_QAb_QVs_BW_V1,)

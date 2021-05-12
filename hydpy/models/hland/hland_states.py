@@ -43,7 +43,7 @@ class SP(hland_sequences.State1DSequence):
     """Frozen water stored in the snow layer [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
-    mask = hland_masks.Land()
+    mask = hland_masks.UpperZone()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
@@ -76,7 +76,7 @@ class WC(hland_sequences.State1DSequence):
     """Liquid water content of the snow layer [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = hland_masks.Land()
+    mask = hland_masks.UpperZone()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 

@@ -8,14 +8,15 @@ Each entry represents the value of a different zone.
 In contrast to the original HBV96 model, |hland| allows defining individual parameter
 values for each zone, which provides flexibility but might also be a little overwhelming
 in many use-cases.  Hence, we also support the original HBV96-distinction into the zone
-types "field", "forest", "glacier", and "ilake" (internal lake).  Parameter "ZoneType"
-specifies the type of each response unit via one of the integer constants |FIELD|,
-|FOREST|, |GLACIER|, and |ILAKE|. Through performing a wildcard import, these constants
+types "field", "forest", "glacier", and "ilake" (internal lake).  In addition, we allow
+the designation of the type "sealed" (sealed area).  Parameter "ZoneType" specifies the
+type of each response unit via one of the integer constants |FIELD|, |FOREST|,
+|GLACIER|, |ILAKE|, and |SEALED|. Through performing a wildcard import, these constants
 become available in your local namespace:
 
 >>> from hydpy.models.hland import *
->>> FIELD, FOREST, GLACIER, ILAKE
-(1, 2, 3, 4)
+>>> FIELD, FOREST, GLACIER, ILAKE, SEALED
+(1, 2, 3, 4, 5)
 """
 from hydpy.core import parametertools
 
@@ -27,6 +28,8 @@ GLACIER = parametertools.IntConstant(3)
 """Constant for the zone type `glacier`."""
 ILAKE = parametertools.IntConstant(4)
 """Constant for the zone type `internal lake`."""
+SEALED = parametertools.IntConstant(5)
+"""Constant for the zone type `sealed surface`."""
 
 CONSTANTS = parametertools.Constants()
 """Dictionary containing all constants defined by HydPy-H-Land."""

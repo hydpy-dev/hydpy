@@ -230,25 +230,23 @@ of module `pub` yet but might be required to prepare the model properly.
     >>> pub.options.parameterstep("1h")
     Period("1d")
 
-    The values of the derived parameters, which need to be calculated
-    before starting a simulation run based on the control parameters
-    and eventually based on some other settings (e.g. the initialisation
-    period) are also ready.  Here we show the value of the derived
-    parameter  |hland_derived.RelLandArea|, representing the relative
-    area of "land" units (1.0 means there is no "water" unit at all):
+    The values of the derived parameters, which need to be calculated before starting a
+    simulation run based on the control parameters and eventually based on some other
+    settings (e.g. the initialisation period), are also ready.  Here we show the value
+    of the derived parameter  |hland_derived.UH|, representing the ordinates of a unit
+    hydrograph (the single value of 1.0 means that the unit hydrograph does not cause
+    any time delay):
 
-    >>> model.parameters.derived.rellandarea
-    rellandarea(1.0)
+    >>> model.parameters.derived.uh
+    uh(1.0)
 
-    Note that we define all class names in "CamelCase" letters
-    (which is a Python convention) and, whenever useful, name
-    the related objects identically but in lower case letters.
-    We hope that eases finding the relevant parts of the online
-    documentation when in trouble with a particular object.  Three
-    examples we already encountered are the |Timegrids| instance
-    `timegrids` of module `pub`, the |Nodes| instance `nodes` of
-    class `HydPy`, and the |hland_derived.RelLandArea| instance
-    `rellandarea` of application model |hland_v1|:
+    We define all class names in "CamelCase" letters (which is a Python convention) and,
+    whenever practical, name the related objects identically but in lower case letters.
+    We hope that eases finding the relevant parts of the online documentation when in
+    trouble with a particular object.  Three examples we already encountered are the
+    |Timegrids| instance `timegrids` of module `pub`, the |Nodes| instance `nodes` of
+    class `HydPy`, and the |hland_derived.UH| instance `uh` of application model
+    |hland_v1|:
 
     >>> from hydpy import classname
     >>> classname(pub.timegrids)
@@ -257,8 +255,8 @@ of module `pub` yet but might be required to prepare the model properly.
     >>> classname(hp.nodes)
     'Nodes'
 
-    >>> classname(model.parameters.derived.rellandarea)
-    'RelLandArea'
+    >>> classname(model.parameters.derived.uh)
+    'UH'
 
     As shown above, all |Parameter| objects of the model of element
     `land_dill` are ready to be used. However, all sequences (which

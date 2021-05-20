@@ -69,6 +69,58 @@ class ParameterComplete(parametertools.ZipParameter):
         return self.subpars.pars.control.zonearea
 
 
+class ParameterLand(ParameterComplete):
+    """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|,
+    |GLACIER|, and |SEALED| zones.
+
+    |ParameterLand| works similar to |ParameterComplete|.  Some examples based on the
+    parameter |WHC|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep("1d")
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+    >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> whc
+    whc(field=2.0, forest=1.0, glacier=4.0)
+    >>> whc(field=2.0, default=9.0)
+    >>> whc
+    whc(field=2.0, forest=9.0, glacier=9.0)
+    >>> zonearea(1.0, 1.0, 1.0, nan, 1.0)
+    >>> from hydpy import round_
+    >>> round_(whc.average_values())
+    5.5
+    """
+
+    mask = hland_masks.Land()
+
+
+class ParameterInterception(ParameterComplete):
+    """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
+    |SEALED| zones.
+
+    |ParameterInterception| works similar to |ParameterComplete|. Some examples based
+    on the parameter |IcMax|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep("1d")
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+    >>> icmax(field=2.0, forest=1.0, glacier=4.0, ilake=5.0, sealed=3.0)
+    >>> icmax
+    icmax(field=2.0, forest=1.0, sealed=3.0)
+    >>> icmax(field=2.0, default=8.0, sealed=3.0)
+    >>> icmax
+    icmax(field=2.0, forest=8.0, sealed=3.0)
+    >>> zonearea(1.0, 2.0, nan, nan, 3.0)
+    >>> from hydpy import round_
+    >>> round_(icmax.average_values())
+    4.5
+    """
+
+    mask = hland_masks.Interception()
+
+
 class ParameterSoil(ParameterComplete):
     """Base class for 1-dimensional parameters relevant for |FIELD| and |FOREST| zones.
 
@@ -94,52 +146,26 @@ class ParameterSoil(ParameterComplete):
     mask = hland_masks.Soil()
 
 
-class ParameterLand(ParameterComplete):
-    """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|,
-    |GLACIER|, and |SEALED| zones.
-
-    |ParameterLand| works similar to |ParameterComplete|.  Some examples based on the
-    parameter |WHC|:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep("1d")
-    >>> nmbzones(5)
-    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
-    >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    >>> whc
-    whc(field=2.0, forest=1.0, glacier=4.0)
-    >>> whc(field=2.0, default=9.0)
-    >>> whc
-    whc(field=2.0, forest=9.0, glacier=9.0)
-    >>> zonearea(1.0, 1.0, 1.0, nan, 1.0)
-    >>> from hydpy import round_
-    >>> round_(whc.average_values())
-    5.5
-    """
-
-    mask = hland_masks.UpperZone()
-
-
 class ParameterUpperZone(ParameterComplete):
     """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
     |GLACIER| zones.
 
     |ParameterLand| works similar to |ParameterComplete|.  Some examples based on
-    parameter |WHC|:
+    parameter |H1|:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep("1d")
+    >>> parameterstep()
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD, SEALED)
-    >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0, sealed=5.0)
-    >>> whc
-    whc(field=2.0, forest=1.0, glacier=4.0)
-    >>> whc(field=2.0, default=9.0)
-    >>> whc
-    whc(field=2.0, forest=9.0, glacier=9.0)
+    >>> h1(field=2.0, forest=1.0, glacier=4.0, ilake=3.0, sealed=5.0)
+    >>> h1
+    h1(field=2.0, forest=1.0, glacier=4.0)
+    >>> h1(field=2.0, default=9.0)
+    >>> h1
+    h1(field=2.0, forest=9.0, glacier=9.0)
     >>> zonearea(1.0, 1.0, 1.0, nan, 1.0, nan)
     >>> from hydpy import round_
-    >>> round_(whc.average_values())
+    >>> round_(h1.average_values())
     5.5
     """
 

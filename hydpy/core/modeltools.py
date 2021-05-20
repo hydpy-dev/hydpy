@@ -161,13 +161,14 @@ element `?` is not available at the moment.
     complete of module hydpy.models.hland.hland_masks
     land of module hydpy.models.hland.hland_masks
     upperzone of module hydpy.models.hland.hland_masks
-    noglacier of module hydpy.models.hland.hland_masks
+    snow of module hydpy.models.hland.hland_masks
     soil of module hydpy.models.hland.hland_masks
     field of module hydpy.models.hland.hland_masks
     forest of module hydpy.models.hland.hland_masks
     ilake of module hydpy.models.hland.hland_masks
     glacier of module hydpy.models.hland.hland_masks
     sealed of module hydpy.models.hland.hland_masks
+    noglacier of module hydpy.models.hland.hland_masks
 
     You can use these masks, for example, to average the zone-specific
     precipitation values handled by sequence |hland_fluxes.PC|.

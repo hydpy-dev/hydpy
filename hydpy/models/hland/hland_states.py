@@ -18,7 +18,7 @@ class Ic(hland_sequences.State1DSequence):
     """Interception storage [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = hland_masks.Soil()
+    mask = hland_masks.Interception()
 
     CONTROLPARAMETERS = (hland_control.IcMax,)
 
@@ -43,7 +43,7 @@ class SP(hland_sequences.State1DSequence):
     """Frozen water stored in the snow layer [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
-    mask = hland_masks.UpperZone()
+    mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
@@ -76,7 +76,7 @@ class WC(hland_sequences.State1DSequence):
     """Liquid water content of the snow layer [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = hland_masks.UpperZone()
+    mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
@@ -146,6 +146,7 @@ class BW1(sequencetools.StateSequence):
     """
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    mask = hland_masks.UpperZone()
 
 
 class BW2(sequencetools.StateSequence):
@@ -155,6 +156,7 @@ class BW2(sequencetools.StateSequence):
     """
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    mask = hland_masks.UpperZone()
 
 
 class LZ(sequencetools.StateSequence):
@@ -200,6 +202,7 @@ class SG1(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
     CONTROLPARAMETERS = (hland_control.SG1Max,)
+    mask = hland_masks.UpperZone()
 
     def trim(self, lower=None, upper=None):
         r"""Trim |SG1| following :math:`0  \leq SG1 \leq SG1Max`.

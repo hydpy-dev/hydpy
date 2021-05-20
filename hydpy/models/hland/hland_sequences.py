@@ -5,29 +5,26 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
-from hydpy.models.hland import hland_masks
 
 
 class Flux1DSequence(sequencetools.FluxSequence):
-    """Base class for 1-dimensional flux subclasses that support
-    aggregation with respect to |ZoneArea|.
+    """Base class for 1-dimensional flux subclasses that support aggregation with
+    respect to |ZoneArea|.
 
-    All |Flux1DSequence| subclasses should select mask |Complete|.
+    All |Flux1DSequence| subclasses must implement fitting mask objects individually.
 
     The following example shows how the subclass |PC| works:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
-    >>> nmbzones(4)
-    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-    >>> zonearea(10.0, 20.0, 30.0, 40.0)
-    >>> fluxes.pc(5.0, 2.0, 4.0, 1.0)
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> fluxes.pc(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(fluxes.pc.average_values())
-    2.5
+    2.75
     """
-
-    mask = hland_masks.Complete()
 
     @property
     def refweights(self):
@@ -55,8 +52,6 @@ class State1DSequence(sequencetools.StateSequence):
     >>> round_(states.sm.average_values())
     30.0
     """
-
-    mask = hland_masks.Complete()
 
     @property
     def refweights(self):

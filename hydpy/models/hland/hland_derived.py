@@ -172,7 +172,7 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
         self.values = zonearea / numpy.sum(zonearea)
 
 
-class TTM(hland_parameters.ParameterUpperZone):
+class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)

@@ -31,22 +31,28 @@ class Land(HLandBaseMask):
     RELEVANT_VALUES = (FIELD, FOREST, GLACIER, SEALED)
 
 
-class UpperZone(HLandBaseMask):
-    """Mask including zones of type |FIELD|, |FOREST|, and |GLACIER|."""
+class Interception(HLandBaseMask):
+    """Mask including zones of type |FIELD|, |FOREST|, and |SEALED|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, GLACIER)
+    RELEVANT_VALUES = (FIELD, FOREST, SEALED)
 
 
-class NoGlacier(HLandBaseMask):
-    """Mask including zones of type |FIELD|, |FOREST|, and |ILAKE|."""
+class Snow(HLandBaseMask):
+    """Mask including zones of type |FIELD|, |FOREST|, |GLACIER|, and |SEALED|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, SEALED)
+    RELEVANT_VALUES = (FIELD, FOREST, GLACIER, SEALED)
 
 
 class Soil(HLandBaseMask):
     """Mask including zones of type |FIELD| and |FOREST|."""
 
     RELEVANT_VALUES = (FIELD, FOREST)
+
+
+class UpperZone(HLandBaseMask):
+    """Mask including zones of type |FIELD|, |FOREST|, and |GLACIER|."""
+
+    RELEVANT_VALUES = (FIELD, FOREST, GLACIER)
 
 
 class Field(HLandBaseMask):
@@ -79,6 +85,12 @@ class Sealed(HLandBaseMask):
     RELEVANT_VALUES = (SEALED,)
 
 
+class NoGlacier(HLandBaseMask):
+    """Mask including zones of type |FIELD|, |FOREST|, and |ILAKE|."""
+
+    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, SEALED)
+
+
 class Masks(masktools.Masks):
     """Masks of base model |hland|."""
 
@@ -86,11 +98,12 @@ class Masks(masktools.Masks):
         Complete,
         Land,
         UpperZone,
-        NoGlacier,
+        Snow,
         Soil,
         Field,
         Forest,
         ILake,
         Glacier,
         Sealed,
+        NoGlacier,
     )

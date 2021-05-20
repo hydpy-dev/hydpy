@@ -191,7 +191,7 @@ class TTIce(hland_parameters.ParameterLake):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class IcMax(hland_parameters.ParameterSoil):
+class IcMax(hland_parameters.ParameterInterception):
     """Maximum interception storage [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
@@ -401,13 +401,13 @@ must be defined beforehand.
             self(hq / ((hq / khq) ** (alpha + 1.0)))
 
 
-class SGR(parametertools.Parameter):
+class SGR(hland_parameters.ParameterUpperZone):
     """Threshold content of |SUZ| for the generation of surface runoff [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class K0(parametertools.Parameter):
+class K0(hland_parameters.ParameterUpperZone):
     """Storage time for surface runoff [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
@@ -425,6 +425,7 @@ class K0(parametertools.Parameter):
         >>> simulationstep("1d")
         >>> parameterstep("1h")
         >>> nmbzones(5)
+        >>> zonetype(FIELD)
         >>> k1(48.0, 48.0, 48.0, 48.0, nan)
         >>> k0(24.0, 36.0, 48.0, 72.0, 72.0)
         >>> k0
@@ -440,26 +441,26 @@ class K0(parametertools.Parameter):
         super().trim(lower, upper)
 
 
-class H1(parametertools.Parameter):
+class H1(hland_parameters.ParameterUpperZone):
     """Outlet level of the reservoir for simulating surface flow [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class TAb1(parametertools.Parameter):
+class TAb1(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating surface flow [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
 
-class TVs1(parametertools.Parameter):
+class TVs1(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating percolation from the surface flow module
     [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
 
-class K1(parametertools.Parameter):
+class K1(hland_parameters.ParameterUpperZone):
     """Storage time for interflow [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
@@ -478,6 +479,7 @@ class K1(parametertools.Parameter):
         >>> simulationstep("1d")
         >>> parameterstep("1h")
         >>> nmbzones(9)
+        >>> zonetype(FIELD)
         >>> k1(24.0, 24.0, 72.0, 120.0, 24.0, 24.0, 120.0, nan, nan)
         >>> k1
         k1(34.624681, 34.624681, 72.0, 120.0, 34.624681, 34.624681, 120.0, nan,
@@ -508,25 +510,25 @@ class K1(parametertools.Parameter):
         super().trim(lower, upper)
 
 
-class SG1Max(parametertools.Parameter):
+class SG1Max(hland_parameters.ParameterUpperZone):
     """Maximum content of the fast response groundwater reservoir |SG1| [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class H2(parametertools.Parameter):
+class H2(hland_parameters.ParameterUpperZone):
     """Outlet level of the reservoir for simulating interflow [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class TAb2(parametertools.Parameter):
+class TAb2(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating interflow [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
 
-class TVs2(parametertools.Parameter):
+class TVs2(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating percolation from the interflow module
     [T]."""
 
@@ -539,7 +541,7 @@ class K4(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
 
 
-class K2(parametertools.Parameter):
+class K2(hland_parameters.ParameterUpperZone):
     """Storage time for quick response baseflow [T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
@@ -554,6 +556,7 @@ class K2(parametertools.Parameter):
         >>> simulationstep("1d")
         >>> parameterstep("1h")
         >>> nmbzones(6)
+        >>> zonetype(FIELD)
         >>> k2(12.0, 12.0, 12.0, nan, 96.0, 120.0)
         >>> k2
         k2(34.624681, 34.624681, 34.624681, nan, 96.0, 120.0)

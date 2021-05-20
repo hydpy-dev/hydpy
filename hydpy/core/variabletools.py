@@ -1684,13 +1684,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         complete of module hydpy.models.hland.hland_masks
         land of module hydpy.models.hland.hland_masks
         upperzone of module hydpy.models.hland.hland_masks
-        noglacier of module hydpy.models.hland.hland_masks
+        snow of module hydpy.models.hland.hland_masks
         soil of module hydpy.models.hland.hland_masks
         field of module hydpy.models.hland.hland_masks
         forest of module hydpy.models.hland.hland_masks
         ilake of module hydpy.models.hland.hland_masks
         glacier of module hydpy.models.hland.hland_masks
         sealed of module hydpy.models.hland.hland_masks
+        noglacier of module hydpy.models.hland.hland_masks
 
         >>> hp.nodes.dill.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools

@@ -7,10 +7,11 @@
 from hydpy.core import sequencetools
 
 # ...from hland
+from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
 
 
-class TMean(hland_sequences.Flux1DSequence):
+class TMean(sequencetools.FluxSequence):
     """Mean subbasin temperature [°C]."""
 
     NDIM, NUMERIC = 0, False
@@ -20,78 +21,91 @@ class TC(hland_sequences.Flux1DSequence):
     """Corrected temperature [°C]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Complete()
 
 
 class FracRain(hland_sequences.Flux1DSequence):
     """Fraction rainfall / total precipitation [-]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Complete()
 
 
 class RfC(hland_sequences.Flux1DSequence):
     """Actual precipitation correction related to liquid precipitation [-]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Complete()
 
 
 class SfC(hland_sequences.Flux1DSequence):
     """Actual precipitation correction related to frozen precipitation [-]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Complete()
 
 
 class PC(hland_sequences.Flux1DSequence):
     """Corrected precipitation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Complete()
 
 
 class EP(hland_sequences.Flux1DSequence):
     """Potential evaporation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.NoGlacier()
 
 
 class EPC(hland_sequences.Flux1DSequence):
     """Corrected potential evaporation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.NoGlacier()
 
 
 class EI(hland_sequences.Flux1DSequence):
     """Interception evaporation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Interception()
 
 
 class TF(hland_sequences.Flux1DSequence):
     """Throughfall [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Interception()
 
 
 class GlMelt(hland_sequences.Flux1DSequence):
     """Glacier melt [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Glacier()
 
 
 class Melt(hland_sequences.Flux1DSequence):
     """Actual melting of frozen water stored in the snow layer [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Snow()
 
 
 class Refr(hland_sequences.Flux1DSequence):
     """Actual (re)freezing of liquid water stored in the snow layer [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Snow()
 
 
 class In_(hland_sequences.Flux1DSequence):
     """Snow module release/soil module inflow [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Snow()
 
 
 class R(hland_sequences.Flux1DSequence):
@@ -101,24 +115,28 @@ class R(hland_sequences.Flux1DSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Soil()
 
 
 class EA(hland_sequences.Flux1DSequence):
     """Actual soil evaporation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Soil()
 
 
 class CFPot(hland_sequences.Flux1DSequence):
     """Potential capillary flow [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Soil()
 
 
 class CF(hland_sequences.Flux1DSequence):
     """Actual capillary flow [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.Soil()
 
 
 class ContriArea(sequencetools.FluxSequence):
@@ -148,6 +166,7 @@ class DP(sequencetools.FluxSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class Q0(sequencetools.FluxSequence):
@@ -163,6 +182,7 @@ class QVs1(sequencetools.FluxSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class QAb1(sequencetools.FluxSequence):
@@ -172,6 +192,7 @@ class QAb1(sequencetools.FluxSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class QVs2(sequencetools.FluxSequence):
@@ -181,6 +202,7 @@ class QVs2(sequencetools.FluxSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class QAb2(sequencetools.FluxSequence):
@@ -190,12 +212,14 @@ class QAb2(sequencetools.FluxSequence):
     """
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class EL(sequencetools.FluxSequence):
     """Actual lake evaporation [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.ILake()
 
 
 class Q1(sequencetools.FluxSequence):
@@ -208,24 +232,28 @@ class RS(sequencetools.FluxSequence):
     """Surface runoff [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class RI(sequencetools.FluxSequence):
     """Interflow [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class GR1(sequencetools.FluxSequence):
     """Recharge into the fast response groundwater reservoir [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class RG1(sequencetools.FluxSequence):
     """Discharge from the fast response groundwater reservoir [mm]."""
 
     NDIM, NUMERIC = 1, False
+    mask = hland_masks.UpperZone()
 
 
 class GR2(sequencetools.FluxSequence):

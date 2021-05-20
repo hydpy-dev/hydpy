@@ -1204,7 +1204,6 @@ class Calc_CF_SM_V1(modeltools.Method):
         relative soil moisture deficit, provided that the upper zone layer stores
         enough water or that enough "routable" effective precipitation is available:
 
-        >>> fluxes.r = 0.0
         >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 20.0
         >>> model.calc_cf_sm_v1()
@@ -1213,8 +1212,6 @@ class Calc_CF_SM_V1(modeltools.Method):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
 
-        >>> cflux(4.0)
-        >>> fluxes.r = 10.0
         >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.0
         >>> model.calc_cf_sm_v1()
@@ -1226,7 +1223,6 @@ class Calc_CF_SM_V1(modeltools.Method):
         If the upper zone layer is empty and no effective precipitation is available,
         capillary flow is zero:
 
-        >>> cflux(4.0)
         >>> fluxes.r = 0.0
         >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.0
@@ -1240,7 +1236,6 @@ class Calc_CF_SM_V1(modeltools.Method):
         provide water for the capillary flow, but less than the maximum flow rate times
         the relative soil moisture:
 
-        >>> cflux(4.0)
         >>> fluxes.r = 0.1
         >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
         >>> states.uz = 0.2
@@ -1655,6 +1650,15 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
 
     Examples:
 
+        First, we prepare a small helper function for checking if method
+        |Calc_Q0_Perc_UZ_V1| always complies with the water balance equation, assuming
+        an initial content of the upper zone storage of 1 mm:
+
+        >>> from hydpy import round_
+        >>> def check():
+        ...     error = 1.0 + fluxes.inuz - fluxes.perc - fluxes.q0 - states.uz
+        ...     assert round(error, 12) == 0
+
         The upper zone layer routine is an exception compared to the other subroutines
         of |hland| regarding numerical accuracy.  Method |Calc_Q0_Perc_UZ_V1| divides
         each simulation step into substeps and solves each substep with the explicit
@@ -1681,6 +1685,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.0)
         >>> states.uz
         uz(0.0)
+        >>> check()
 
         Due to the sequential calculation of the upper zone routine, the upper zone
         storage drains completely through percolation, and no water remains for fast
@@ -1697,6 +1702,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.213066)
         >>> states.uz
         uz(0.0)
+        >>> check()
 
         Note that the assumed length of the simulation step is half a day. Hence the
         effective values of the maximum percolation rate and the storage coefficient
@@ -1723,6 +1729,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.565892)
         >>> states.uz
         uz(0.0)
+        >>> check()
 
         Without any contributing area, the complete amount of water stored in the upper
         zone layer is released as direct discharge immediately:
@@ -1736,6 +1743,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(1.0)
         >>> states.uz
         uz(0.0)
+        >>> check()
 
         Resetting |RecStep| leads to more transparent results.  Note that, due to the
         large value of the storage coefficient and the low accuracy  of the numerical
@@ -1752,6 +1760,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.5)
         >>> states.uz
         uz(0.0)
+        >>> check()
 
         Applying a more reasonable storage coefficient leads to the following results:
 
@@ -1764,6 +1773,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.25)
         >>> states.uz
         uz(0.25)
+        >>> check()
 
         Adding an input of 0.3 mm results in the same percolation value (which here is
         determined by the maximum percolation rate only) but increases the direct
@@ -1778,6 +1788,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.64)
         >>> states.uz
         uz(0.16)
+        >>> check()
 
         Due to the same reasons, another increase in numerical accuracy has no impact
         on percolation but decreases the direct response:
@@ -1792,6 +1803,40 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         q0(0.421708)
         >>> states.uz
         uz(0.378292)
+        >>> check()
+
+        If phases of capillary rise, |InUZ| is negative and constant throughout the
+        complete simulation interval.  However, if |UZ| runs dry during the simulation
+        interval, it can no contribute to the capillary rise.  To always comply with
+        the water balance equation, method |Calc_Q0_Perc_UZ_V1| reduces both |Perc|
+        and |Q0| by the same factor in such situations.  Reducing |InUZ| would be more
+        reasonable but would also require modifying |CF| and |SM| (and others?), which
+        is way too much effort given the minor impact of this manipulation on the
+        general simulation results.  The following two examples show how the
+        manipulation works in case the capillary rise requires all available water
+        (first example) or half of it (second example):
+
+        >>> fluxes.inuz = -1.0
+        >>> states.uz = 1.0
+        >>> model.calc_q0_perc_uz_v1()
+        >>> fluxes.perc
+        perc(0.0)
+        >>> fluxes.q0
+        q0(0.0)
+        >>> states.uz
+        uz(0.0)
+        >>> check()
+
+        >>> fluxes.inuz = -0.5
+        >>> states.uz = 1.0
+        >>> model.calc_q0_perc_uz_v1()
+        >>> fluxes.perc
+        perc(0.323912)
+        >>> fluxes.q0
+        q0(0.176088)
+        >>> states.uz
+        uz(0.0)
+        >>> check()
     """
 
     CONTROLPARAMETERS = (
@@ -1817,10 +1862,11 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        d_uz_old = sta.uz
         flu.perc = 0.0
         flu.q0 = 0.0
         for _ in range(con.recstep):
-            sta.uz += der.dt * flu.inuz
+            sta.uz = max(sta.uz + der.dt * flu.inuz, 0.0)
             d_perc = min(der.dt * con.percmax * flu.contriarea, sta.uz)
             sta.uz -= d_perc
             flu.perc += d_perc
@@ -1834,6 +1880,11 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
                     d_q0 = sta.uz
                 sta.uz -= d_q0
                 flu.q0 += d_q0
+        d_error = sta.uz - (d_uz_old + flu.inuz - flu.perc - flu.q0)
+        if d_error > 0.0:
+            d_fac = 1.0 - d_error / (flu.perc + flu.q0)
+            flu.perc *= d_fac
+            flu.q0 *= d_fac
 
 
 class Calc_DP_SUZ_V1(modeltools.Method):
@@ -2896,7 +2947,7 @@ class Calc_RG2_SG2_V1(modeltools.Method):
         >>> states.sg2
         sg2(0.0)
 
-        If the sum of |SG2| and |RG2| is positive, recharge first fills up the deficit.
+        If the sum of |SG2| and |RG2| is positive, recharge first fills the deficit.
         In the remaining time, |Calc_RG2_SG2_V1| handles the remaining recharge as
         implied by the basic equations (with parameters |K3| and |W3| adapted to the
         remaining time interval):

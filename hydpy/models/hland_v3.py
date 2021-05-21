@@ -1,14 +1,44 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+
 Version 3 of the H-Land model combines `HBV96's` :cite:`ref-Lindstrom1997HBV96` and
-`PREVAH's` :cite:`ref-Viviroli2009PREVAH` process equations.
+`PREVAH's` :cite:`ref-Viviroli2009PREVAH` process equations.  We implemented it on
+behalf of the `German Federal Institute of Hydrology (BfG)`_ as an alternative to
+|hland_v1| for modelling large river basins in central Europe.  All processes "above
+the soil" (input data correction, interception, snowmelt) and "inside the soil"
+(evaporation, generation of effective precipitation), as well as the handling of water
+areas, are identical with |hland_v1| (and so with HBV96). Most processes "below the
+soil" agree with PREVAH (runoff generation and runoff concentration).
+
+The following figure shows the general structure of |hland_v3|:
+
+.. image:: HydPy-H-Land_Version-3.png
+
+Comparing the above figure with the analogue figure of |hland_v1| reveals that
+|hland_v3| models five instead of two runoff components, requiring a larger number of
+vertically arranged storages.  The two upper storages (|SUZ|, related to the soil, and
+|SG1|, related to dynamic groundwater aquifers) are zone-specific.  In comparison, the
+upper zone layer (|UZ|) of |hland_v1| is subbasin-specific.  |hland_v3| models the two
+lower storages (|SG2| and |SG3|), dealing with slow and slowest groundwater responses,
+slightly different from PREVAH.  First, their outflows (|RG2| and |RG3|) are
+individually accessible (PREVAH handles their outflow as one runoff component). Second,
+it represents internal lakes as an "extension" of the groundwater (like in
+|hland_v1|/HBV96).  Third, it allows for additional runoff concentration via a linear
+storage cascade (|SC|), like implemented in |hland_v2|.  The latter is supposed to
+improve flexibility when modelling the effects of sealed areas on runoff generation.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
+We define the settings of the following test calculations as similar to the ones of
+application model |hland_v1| as possible.  Hence, comparing the test results gives a
+good impression of the functional differences of both models.
+
+The following settings are identical:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "01.01.2000", "05.01.2000", "1h"
@@ -19,16 +49,13 @@ Integration tests
 >>> outlet = Node("outlet")
 >>> land = Element("land", outlets=outlet)
 >>> land.model = model
-
 >>> nmbzones(1)
 >>> area(1.0)
 >>> zonearea(1.0)
 >>> zonez(1.0)
-
 >>> zrelp(2.0)
 >>> zrelt(2.0)
 >>> zrele(2.0)
-
 >>> recstep(100)
 
 >>> from hydpy import IntegrationTest
@@ -43,8 +70,10 @@ Integration tests
 field
 _____
 
->>> zonetype(FIELD)
+We assign identical values to all parameters, besides those that are specific to
+|hland_v3| (|SGR|, |SG1Max|, |K0|, |K1|, |K2|, and |K3|):
 
+>>> zonetype(FIELD)
 >>> pcorr(1.2)
 >>> pcalt(0.1)
 >>> rfcf(1.1)
@@ -77,6 +106,7 @@ _____
 >>> nmbstorages(5)
 >>> abstr(0.003)
 
+The same holds for the initial conditions.
 
 >>> test.inits = ((states.ic, 0.0),
 ...               (states.sp, 0.0),
@@ -87,6 +117,8 @@ _____
 ...               (states.sg2, 10.0),
 ...               (states.sg3, 10.0),
 ...               (states.sc, 0.05))
+
+All input time series are identical:
 
 >>> inputs.p.series = (
 ...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -131,6 +163,12 @@ _____
 
 .. integration-test::
 
+    |hland_v3| neither implements a special contributing area approach nor an
+    accuray-related substep mechanism concerning the runoff generation or runoff
+    concentration modules.  Hence, we
+    provide only a single field example, that is comparable both with the
+    :ref:`first <hland_v1_field>` and the :ref:`second <hland_v1_resparea>` example of
+    |hland_v1|:
 
     >>> test('hland_v3_field')
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |      pc |        ep |      epc |       ei |        tf | glmelt | melt | refr |       in_ |         r |       ea |       dp |  el |       rs |       ri |      gr1 |      rg1 |      gr2 |      rg2 |      gr3 |      rg3 |     inuh |    outuh |     ra |       rt |       qt |       ic |  sp |  wc |         sm |       suz |       sg1 |       sg2 |       sg3 |                                               sc |   outlet |

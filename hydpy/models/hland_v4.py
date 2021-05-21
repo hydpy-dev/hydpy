@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
-Version 4 of the H-Land model combines `HBV96's` :cite:`ref-Lindstrom1997HBV96` and
-`COSERO's` :cite:`ref-Kling2005` :cite:`ref-Kling2006` process equations.
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
+Version 4 of the H-Land model combines `HBV96's` :cite:`ref-Lindstrom1997HBV96` and
+`COSERO's` :cite:`ref-Kling2005` :cite:`ref-Kling2006` process equations.  We
+implemented it on behalf of the `German Federal Institute of Hydrology (BfG)`_ as an
+alternative to  |hland_v1| for modelling large river basins in central Europe.
+
+The following list summarises the main differences to |hland_v1|:
+
+The following figure shows the general structure of |hland_v4|:
+
+.. image:: HydPy-H-Land_Version-4.png
 
 Integration tests
 =================

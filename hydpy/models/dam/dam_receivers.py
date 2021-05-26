@@ -8,7 +8,7 @@ from hydpy.core import sequencetools
 
 
 class Q(sequencetools.ReceiverSequence):
-    """Discharge [m³/s]."""
+    """Remote discharge [m³/s]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -20,12 +20,12 @@ class D(sequencetools.ReceiverSequence):
 
 
 class S(sequencetools.ReceiverSequence):
-    """Water supply [m³/s]."""
+    """Required water supply [m³/s]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class R(sequencetools.ReceiverSequence):
-    """Water relief [m³/s]."""
+    """Allowed water relief [m³/s]."""
 
     NDIM, NUMERIC = 0, False

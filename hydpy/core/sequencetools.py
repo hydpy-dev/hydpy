@@ -1197,9 +1197,11 @@ class FluxSequences(
         >>> from hydpy import prepare_model
         >>> model = prepare_model("dam_v001")
         >>> len(model.sequences.fluxes)
-        11
+        14
         >>> for seq in model.sequences.fluxes.numericsequences:
         ...     print(seq)
+        adjustedprecipitation(nan)
+        actualevaporation(nan)
         inflow(nan)
         actualrelease(nan)
         flooddischarge(nan)

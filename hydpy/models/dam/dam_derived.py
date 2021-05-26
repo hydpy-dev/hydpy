@@ -14,11 +14,34 @@ from hydpy.models.dam import dam_control
 
 class TOY(parametertools.TOYParameter):
     """References the |Indexer.timeofyear| index array provided by the
-    instance of class |Indexer| available in module |pub|. [-]."""
+    instance of class |Indexer| available in module |pub| [-]."""
 
 
 class Seconds(parametertools.SecondsParameter):
-    """Length of the actual simulation step size in seconds [s]."""
+    """Length of the actual simulation step size [s]."""
+
+
+class InputFactor(parametertools.Parameter):
+    """Factor for converting meteorological input from mm/T to million m³/s."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.SurfaceArea,)
+    DERIVEDPARAMETERS = (Seconds,)
+
+    def update(self):
+        """Update |InputFactor| based on the control parameter |dam_control.SurfaceArea|
+        and the derived parameter |Seconds|:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> surfacearea(36.0)
+        >>> derived.seconds(3600.0)
+        >>> derived.inputfactor.update()
+        >>> derived.inputfactor
+        inputfactor(10.0)
+        """
+        self(self.subpars.pars.control.surfacearea * 1000.0 / self.subpars.seconds)
 
 
 class RemoteDischargeSmoothPar(parametertools.Parameter):
@@ -31,8 +54,8 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter values.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.01", "2000.01.03", "1d"
@@ -54,8 +77,8 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
 
 
 class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
-    """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
-    for smoothing kernel |smooth_logistic1| [m³/s]."""
+    """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
+    smoothing kernel |smooth_logistic1| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -64,8 +87,8 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter values.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.01", "2000.01.03", "1d"
@@ -76,11 +99,9 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
         >>> derived.neardischargeminimumsmoothpar1.update()
         >>> from hydpy.cythons.smoothutils import smooth_logistic1
         >>> from hydpy import round_
-        >>> round_(smooth_logistic1(
-        ...     1.0, derived.neardischargeminimumsmoothpar1[0]))
+        >>> round_(smooth_logistic1(1.0, derived.neardischargeminimumsmoothpar1[0]))
         1.0
-        >>> round_(smooth_logistic1(
-        ...     2.5, derived.neardischargeminimumsmoothpar1[1]))
+        >>> round_(smooth_logistic1(2.5, derived.neardischargeminimumsmoothpar1[1]))
         0.99
         """
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
@@ -89,8 +110,8 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
 
 
 class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
-    """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
-    for smoothing kernel |smooth_logistic2| [m³/s]."""
+    """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
+    smoothing kernel |smooth_logistic2| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -99,8 +120,8 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter values.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.01", "2000.01.03", "1d"
@@ -111,11 +132,9 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
         >>> derived.neardischargeminimumsmoothpar2.update()
         >>> from hydpy.cythons.smoothutils import smooth_logistic2
         >>> from hydpy import round_
-        >>> round_(smooth_logistic2(
-        ...     0.0, derived.neardischargeminimumsmoothpar2[0]))
+        >>> round_(smooth_logistic2(0.0, derived.neardischargeminimumsmoothpar2[0]))
         0.0
-        >>> round_(smooth_logistic2(
-        ...     2.5, derived.neardischargeminimumsmoothpar2[1]))
+        >>> round_(smooth_logistic2(2.5, derived.neardischargeminimumsmoothpar2[1]))
         2.51
         """
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
@@ -124,8 +143,8 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
 
 
 class WaterLevelMinimumSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |WaterLevelMinimumTolerance|
-    for smoothing kernel |smooth_logistic1| [m]."""
+    """Smoothing parameter to be derived from |WaterLevelMinimumTolerance| for
+    smoothing kernel |smooth_logistic1| [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -134,8 +153,8 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -154,9 +173,39 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
         self(smoothtools.calc_smoothpar_logistic1(metapar))
 
 
+class SmoothParEvaporation(parametertools.Parameter):
+    """Smoothing parameter to be derived from |ToleranceEvaporation| for smoothing
+    kernel |smooth_logistic1| [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (dam_control.ToleranceEvaporation,)
+
+    def update(self):
+        """Calculate the smoothing parameter value.
+
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> toleranceevaporation(0.0)
+        >>> derived.smoothparevaporation.update()
+        >>> from hydpy.cythons.smoothutils import smooth_logistic1
+        >>> from hydpy import round_
+        >>> round_(smooth_logistic1(0.1, derived.smoothparevaporation))
+        1.0
+        >>> toleranceevaporation(2.5)
+        >>> derived.smoothparevaporation.update()
+        >>> round_(smooth_logistic1(2.5, derived.smoothparevaporation))
+        0.99
+        """
+        metapar = self.subpars.pars.control.toleranceevaporation
+        self(smoothtools.calc_smoothpar_logistic1(metapar))
+
+
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from
-    |WaterLevelMinimumRemoteTolerance| [m]."""
+    """Smoothing parameter to be derived from |WaterLevelMinimumRemoteTolerance| [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -165,8 +214,8 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -179,52 +228,49 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
         1.0
         >>> waterlevelminimumremotetolerance(2.5)
         >>> derived.waterlevelminimumremotesmoothpar.update()
-        >>> round_(smooth_logistic1(2.5,
-        ...        derived.waterlevelminimumremotesmoothpar))
+        >>> round_(smooth_logistic1(2.5, derived.waterlevelminimumremotesmoothpar))
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelminimumremotetolerance
         self(smoothtools.calc_smoothpar_logistic1(metapar))
 
 
-class WaterLevelRelieveSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |WaterLevelRelieveTolerance|
-    for smoothing kernel |smooth_logistic1| [m³/s]."""
+class WaterLevelReliefSmoothPar(parametertools.Parameter):
+    """Smoothing parameter to be derived from |WaterLevelReliefTolerance| for smoothing
+    kernel |smooth_logistic1| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (dam_control.WaterLevelRelieveTolerance,)
+    CONTROLPARAMETERS = (dam_control.WaterLevelReliefTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter values.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.01", "2000.01.03", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> waterlevelrelievetolerance(0.0)
-        >>> waterlevelrelievetolerance.values[1] = 2.5
-        >>> derived.waterlevelrelievesmoothpar.update()
+        >>> waterlevelrelieftolerance(0.0)
+        >>> waterlevelrelieftolerance.values[1] = 2.5
+        >>> derived.waterlevelreliefsmoothpar.update()
         >>> from hydpy.cythons.smoothutils import smooth_logistic1
         >>> from hydpy import round_
-        >>> round_(smooth_logistic1(
-        ...     1.0, derived.waterlevelrelievesmoothpar[0]))
+        >>> round_(smooth_logistic1(1.0, derived.waterlevelreliefsmoothpar[0]))
         1.0
-        >>> round_(smooth_logistic1(
-        ...     2.5, derived.waterlevelrelievesmoothpar[1]))
+        >>> round_(smooth_logistic1(2.5, derived.waterlevelreliefsmoothpar[1]))
         0.99
         """
-        metapar = self.subpars.pars.control.waterlevelrelievetolerance
+        metapar = self.subpars.pars.control.waterlevelrelieftolerance
         self.shape = metapar.shape
         self(smoothtools.calc_smoothpar_logistic1(metapar.values))
 
 
 class WaterLevelSupplySmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
-    for smoothing kernel |smooth_logistic1| [m³/s]."""
+    """Smoothing parameter to be derived from |WaterLevelSupplyTolerance| for smoothing
+    kernel |smooth_logistic1| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -233,8 +279,8 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter values.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000.01.01", "2000.01.03", "1d"
@@ -245,11 +291,9 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
         >>> derived.waterlevelsupplysmoothpar.update()
         >>> from hydpy.cythons.smoothutils import smooth_logistic1
         >>> from hydpy import round_
-        >>> round_(smooth_logistic1(
-        ...     1.0, derived.waterlevelsupplysmoothpar[0]))
+        >>> round_(smooth_logistic1(1.0, derived.waterlevelsupplysmoothpar[0]))
         1.0
-        >>> round_(smooth_logistic1(
-        ...     2.5, derived.waterlevelsupplysmoothpar[1]))
+        >>> round_(smooth_logistic1(2.5, derived.waterlevelsupplysmoothpar[1]))
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelsupplytolerance
@@ -258,8 +302,8 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
 
 
 class HighestRemoteSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |HighestRemoteTolerance|
-    for smoothing kernel |smooth_min1| [m³/s]."""
+    """Smoothing parameter to be derived from |HighestRemoteTolerance| for smoothing
+    kernel |smooth_min1| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -268,8 +312,8 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -285,31 +329,28 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         >>> round_(smooth_min1(-4.0, -1.5, derived.highestremotesmoothpar))
         -4.01
 
-        Note that the example above corresponds to the example on function
-        |calc_smoothpar_min1|, due to the value of parameter
-        |HighestRemoteDischarge| being 1 m³/s.  Doubling the value of
-        |HighestRemoteDischarge| also doubles the value of
-        |HighestRemoteSmoothPar| proportional.  This leads to the following
-        result:
+        Note that the example above corresponds to the one on function
+        |calc_smoothpar_min1| due to the value of parameter |HighestRemoteDischarge|
+        being 1 m³/s.  Doubling |HighestRemoteDischarge| also doubles
+        |HighestRemoteSmoothPar|, leading to the following result:
 
         >>> highestremotedischarge(2.0)
         >>> derived.highestremotesmoothpar.update()
         >>> round_(smooth_min1(-4.0, 1.0, derived.highestremotesmoothpar))
         -4.02
 
-        This relationship between |HighestRemoteDischarge| and
-        |HighestRemoteSmoothPar| prevents from any smoothing when
-        the value of |HighestRemoteDischarge| is zero:
+        This relationship between |HighestRemoteDischarge| and |HighestRemoteSmoothPar|
+        prevents any smoothing when the value of |HighestRemoteDischarge| is zero:
 
         >>> highestremotedischarge(0.0)
         >>> derived.highestremotesmoothpar.update()
         >>> round_(smooth_min1(1.0, 1.0, derived.highestremotesmoothpar))
         1.0
 
-        In addition, |HighestRemoteSmoothPar| is set to zero if
-        |HighestRemoteDischarge| is infinity (because no actual value
-        will ever come in the vicinit of infinity), which is why no
-        value would be changed through smoothing anyway):
+        In addition, method |HighestRemoteSmoothPar.update| sets the value of parameter
+        |HighestRemoteSmoothPar| to zero if |HighestRemoteDischarge| is |numpy.inf|
+        (no actual value will ever reach vicinity of infinity, hence smoothing would
+        never apply anyway):
 
         >>> highestremotedischarge(inf)
         >>> derived.highestremotesmoothpar.update()
@@ -320,15 +361,13 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         if numpy.isinf(control.highestremotedischarge):
             self(0.0)
         else:
-            self(
-                control.highestremotedischarge
-                * smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
-            )
+            smoothed = smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
+            self(control.highestremotedischarge * smoothed)
 
 
 class VolumeSmoothParLog1(parametertools.Parameter):
-    """Smoothing parameter to be derived from |VolumeTolerance|
-    for smoothing kernel |smooth_logistic1| [Mio. m³]."""
+    """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
+    |smooth_logistic1| [Mio. m³]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -337,8 +376,8 @@ class VolumeSmoothParLog1(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -353,16 +392,13 @@ class VolumeSmoothParLog1(parametertools.Parameter):
         >>> round_(smooth_logistic1(2.5, derived.volumesmoothparlog1))
         0.99
         """
-        self(
-            smoothtools.calc_smoothpar_logistic1(
-                self.subpars.pars.control.volumetolerance
-            )
-        )
+        metapar = self.subpars.pars.control.volumetolerance
+        self(smoothtools.calc_smoothpar_logistic1(metapar))
 
 
 class VolumeSmoothParLog2(parametertools.Parameter):
-    """Smoothing parameter to be derived from |VolumeTolerance|
-    for smoothing kernel |smooth_logistic2| [Mio. m³]."""
+    """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
+    |smooth_logistic2| [Mio. m³]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -371,8 +407,8 @@ class VolumeSmoothParLog2(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -387,16 +423,13 @@ class VolumeSmoothParLog2(parametertools.Parameter):
         >>> round_(smooth_logistic2(2.5, derived.volumesmoothparlog2))
         2.51
         """
-        self(
-            smoothtools.calc_smoothpar_logistic2(
-                self.subpars.pars.control.volumetolerance
-            )
-        )
+        metapar = self.subpars.pars.control.volumetolerance
+        self(smoothtools.calc_smoothpar_logistic2(metapar))
 
 
 class DischargeSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |DischargeTolerance|
-    for smoothing kernels |smooth_min1| and |smooth_max1| [m³/s]."""
+    """Smoothing parameter to be derived from |DischargeTolerance| for smoothing
+    kernels |smooth_min1| and |smooth_max1| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -405,8 +438,8 @@ class DischargeSmoothPar(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following example in
+        some detail:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -425,8 +458,5 @@ class DischargeSmoothPar(parametertools.Parameter):
         >>> round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))
         1.49
         """
-        self(
-            smoothtools.calc_smoothpar_max1(
-                self.subpars.pars.control.dischargetolerance
-            )
-        )
+        metapar = self.subpars.pars.control.dischargetolerance
+        self(smoothtools.calc_smoothpar_max1(metapar))

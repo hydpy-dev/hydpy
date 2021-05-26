@@ -64,13 +64,19 @@ cannot be changed, but this was attempted for element `?`.
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
+class LoggedAdjustedEvaporation(ShapeOne):
+    """Logged adjusted evaporation [m3/s]."""
+
+    NDIM, NUMERIC = 1, False
+
+
 class LoggedRequiredRemoteRelease(ShapeOne):
     """Logged required discharge values computed by another model [m3/s]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class LoggedAllowedRemoteRelieve(ShapeOne):
+class LoggedAllowedRemoteRelief(ShapeOne):
     """Logged allowed discharge values computed by another model [m3/s]."""
 
     NDIM, NUMERIC = 1, False

@@ -8,6 +8,12 @@ from hydpy.core import parametertools
 from hydpy.auxs import anntools
 
 
+class SurfaceArea(parametertools.Parameter):
+    """Average size of the water surface [km²]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the dam [km²]."""
 
@@ -28,8 +34,9 @@ class NmbLogEntries(parametertools.Parameter):
     ...     print(seq)
     loggedtotalremotedischarge(nan, nan, nan)
     loggedoutflow(nan, nan, nan)
+    loggedadjustedevaporation(nan)
     loggedrequiredremoterelease(nan)
-    loggedallowedremoterelieve(nan)
+    loggedallowedremoterelief(nan)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
@@ -43,9 +50,27 @@ class NmbLogEntries(parametertools.Parameter):
                 pass
 
 
+class CorrectionPrecipitation(parametertools.Parameter):
+    """Precipitation correction factor [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class CorrectionEvaporation(parametertools.Parameter):
+    """Evaporation correction factor [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class WeightEvaporation(parametertools.Parameter):
+    """Time weighting factor for evaporation [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, 1.0)
+
+
 class RemoteDischargeMinimum(parametertools.SeasonalParameter):
-    """Discharge threshold of a cross section far downstream that
-    should not be undercut by the actual discharge [m³/s]."""
+    """Discharge threshold of a cross-section far downstream not to be undercut by the
+    actual discharge [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -55,29 +80,29 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
-    """Safety factor to reduce the risk to release not enough water [m³/s]."""
+    """Safety factor for reducing the risk to release not enough water [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
-    """Artificial neural network describing the relationship between
-    water level and the highest possible water release used to relieve
-    the dam during high flow conditions [-]."""
+class WaterLevel2PossibleRemoteRelief(anntools.ANN):
+    """Artificial neural network describing the relationship between water level and
+    the highest possible water release used to relieve the dam during high flow
+    conditions [-]."""
 
     XLABEL = "water level [m]"
     YLABEL = "possible remote relieve [m³/s]"
 
 
-class RemoteRelieveTolerance(parametertools.Parameter):
-    """A tolerance value for the "possible remote relieve" [m³/s]."""
+class RemoteReliefTolerance(parametertools.Parameter):
+    """A tolerance value for |PossibleRemoteRelief| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
-    """Discharge threshold of a cross section in the near of the dam that
-    not be undercut by the actual discharge [m³/s]."""
+    """Discharge threshold of a cross-section near the dam not to be undercut by the
+    actual discharge [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -104,44 +129,58 @@ class WaterVolumeMinimumThreshold(parametertools.SeasonalParameter):
 class WaterLevelMinimumThreshold(parametertools.Parameter):
     """The minimum operating water level of the dam [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 class WaterLevelMinimumTolerance(parametertools.Parameter):
-    """A tolarance value for the minimum operating water level [m]."""
+    """A tolerance value for the minimum operating water level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
+class ThresholdEvaporation(parametertools.Parameter):
+    """The water level at which actual evaporation is 50 % of potential evaporation
+    [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
+class ToleranceEvaporation(parametertools.Parameter):
+    """A tolerance value defining the steepness of the transition of actual evaporation
+    between zero and potential evaporation [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
 class WaterLevelMinimumRemoteThreshold(parametertools.Parameter):
-    """The minimum operating water level of the dam regarding remote
-    water supply [m]."""
+    """The minimum operating water level of the dam regarding remote water supply
+    [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
 class WaterLevelMinimumRemoteTolerance(parametertools.Parameter):
-    """A tolarance value for the minimum operating water level regarding
-    remote water supply [m]."""
+    """A tolerance value for the minimum operating water level regarding remote water
+    supply [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class HighestRemoteRelieve(parametertools.SeasonalParameter):
-    """The highest possible relieve discharge from another location [m³/s]."""
+class HighestRemoteRelief(parametertools.SeasonalParameter):
+    """The highest possible relief discharge from another location [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class WaterLevelRelieveThreshold(parametertools.SeasonalParameter):
-    """The threshold water level of the dam regarding the allowed
-    relieve discharge from another location [m]."""
+class WaterLevelReliefThreshold(parametertools.SeasonalParameter):
+    """The threshold water level of the dam regarding the allowed relief discharge from
+    another location [m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class WaterLevelRelieveTolerance(parametertools.SeasonalParameter):
-    """A tolerance value for parameter |WaterLevelRelieveThreshold| [m]."""
+class WaterLevelReliefTolerance(parametertools.SeasonalParameter):
+    """A tolerance value for parameter |WaterLevelReliefThreshold| [m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
@@ -153,8 +192,8 @@ class HighestRemoteSupply(parametertools.SeasonalParameter):
 
 
 class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
-    """The threshold water level of the dam regarding the requried
-    supply discharge from another location [m]."""
+    """The threshold water level of the dam regarding the required supply discharge
+    from another location [m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
@@ -178,16 +217,16 @@ class HighestRemoteTolerance(parametertools.Parameter):
 
 
 class WaterVolume2WaterLevel(anntools.ANN):
-    """Artificial neural network describing the relationship between
-    water level and water volume [-]."""
+    """Artificial neural network describing the relationship between water level and
+    water volume [-]."""
 
     XLABEL = "water volume [million m³]"
     YLABEL = "water level [m]"
 
 
 class WaterLevel2FloodDischarge(anntools.SeasonalANN):
-    """Artificial neural network describing the relationship between
-    flood discharge and water volume [-]."""
+    """Artificial neural network describing the relationship between flood discharge
+    and water volume [-]."""
 
     XLABEL = "water level [m]"
     YLABEL = "flood discharge [m³/s]"
@@ -200,8 +239,7 @@ class AllowedWaterLevelDrop(parametertools.Parameter):
 
 
 class AllowedDischargeTolerance(parametertools.Parameter):
-    """Smoothing parameter eventually associated with |AllowedWaterLevelDrop|
-    [m³/s]."""
+    """Smoothing parameter eventually associated with |AllowedWaterLevelDrop| [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -213,8 +251,8 @@ class AllowedRelease(parametertools.SeasonalParameter):
 
 
 class TargetVolume(parametertools.SeasonalParameter):
-    """The desired volume of water to be stored within the dam at specific
-    times of the year [Mio. m³]."""
+    """The desired volume of water required within the dam at specific times of the
+    year [Mio. m³]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -227,8 +265,7 @@ class TargetRangeAbsolute(parametertools.Parameter):
 
 
 class TargetRangeRelative(parametertools.Parameter):
-    """The relative interpolation range related to parameter |TargetVolume|
-    [-]."""
+    """The relative interpolation range related to parameter |TargetVolume| [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 

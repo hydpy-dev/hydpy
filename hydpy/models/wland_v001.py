@@ -88,7 +88,7 @@ We divide the land area into three hydrological of type |FIELD|, |CONIFER|, and
 >>> nu(3)
 >>> lt(FIELD, CONIFER, SEALED)
 
-The relative sizes of the response units relate to the land area-fraction of
+The relative sizes of the response units relate to the land area fraction of
 the test catchment.  With the following setting, the total area of the vadose
 zone is :math:`(0.6 + 0.3) \cdot 9.8 km² = 8.82 km²`:
 
@@ -180,7 +180,7 @@ We discuss them later and set both to zero for now:
 >>> inputs.fxg.series = 0.0
 >>> inputs.fxs.series = 0.0
 
-As we want to use method |Model.check_waterbalance| to proof that |wland_v001| keeps
+As we want to use method |Model.check_waterbalance| to prove that |wland_v001| keeps
 the water balance in each example run, we need to store the defined (initial)
 conditions before performing the first simulation run:
 

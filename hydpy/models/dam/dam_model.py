@@ -393,6 +393,10 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
         |   7 |        6.0 |             0.000204 |
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -481,6 +485,10 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         |   7 |        6.0 |             0.000204 |
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -632,6 +640,10 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         |   2 |                    1.0 |          0.0 |
         |   3 |                    2.0 |          0.0 |
         |   4 |                    3.0 |          0.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeMinimum,)
@@ -700,6 +712,10 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(-1.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -808,6 +824,9 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         |   8 |           3.0 |              2.999999 |
         |   9 |           4.0 |                   3.0 |
 
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
@@ -975,6 +994,9 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         |   8 |                   7.0 |        7.000012 |
         |   9 |                   8.0 |             8.0 |
 
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
@@ -1036,6 +1058,10 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         >>> model.calc_requiredrelease_v2()
         >>> fluxes.requiredrelease
         requiredrelease(4.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
@@ -1599,6 +1625,10 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         |  19 |    9.0 |             4.0 |
         |  20 |    9.5 |             4.0 |
         |  21 |   10.0 |             4.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -1856,6 +1886,10 @@ class Calc_ActualRelease_V2(modeltools.Method):
         |   7 |        0.7 |      3.999592 |
         |   8 |        0.8 |      3.999996 |
         |   9 |        0.9 |           4.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -2578,6 +2612,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  19 |         1.3 |           1.0 |
         |  20 |         1.4 |           1.0 |
         |  21 |         1.5 |           1.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (
@@ -3078,6 +3116,10 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         |  19 |      260.6 |        2.79791 |
         |  20 |      260.8 |       3.719725 |
         |  21 |      261.0 |       5.576088 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (dam_control.WaterLevel2FloodDischarge,)
@@ -3240,6 +3282,10 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         |   5 |    2.1 |             2.99 |
         |   6 |    2.5 |         2.999987 |
         |   7 |    3.0 |              3.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     CONTROLPARAMETERS = (

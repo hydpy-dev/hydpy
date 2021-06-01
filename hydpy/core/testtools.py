@@ -1511,7 +1511,7 @@ class NumericalDifferentiator:
 
 def update_integrationtests(
     applicationmodel: Union[types.ModuleType, str],
-    resultfilepath: str,
+    resultfilepath: str = "update_integrationtests.txt",
 ) -> None:
     """Write the docstring of the given application model, updated with
     the current simulation results, to file.

@@ -55,9 +55,8 @@ try:
 except BaseException:
     print("coverage.html could not be moved")
 
-# Import all base and application models, to make sure all substituters
-# are up-to-date. (I am not sure, if this is really necessary, but it
-# does not hurt.)
+# Import all base and application models, to make sure all substituters are up-to-date.
+# (I am not sure if this is really necessary but it does not hurt.)
 modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
 for filename in os.listdir(modelspath):
     if not filename.startswith("_"):
@@ -99,6 +98,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
                     member,
                     (
                         modeltools.Model,
+                        modeltools.Method,
                         parametertools.SubParameters,
                         sequencetools.SubSequences,
                         masktools.Masks,

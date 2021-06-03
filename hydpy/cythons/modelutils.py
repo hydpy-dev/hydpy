@@ -1339,16 +1339,12 @@ class PyxWriter:
         elif isinstance(subseqs, sequencetools.OutputSequences):
             lines.extend(self.set_pointeroutput(subseqs))
         else:
-            for seq in subseqs:
-                if seq.NDIM == 0:
-                    lines.extend(self.set_pointer0d(subseqs))
-                break
-            for seq in subseqs:
-                if seq.NDIM == 1:
-                    lines.extend(self.alloc(subseqs))
-                    lines.extend(self.dealloc(subseqs))
-                    lines.extend(self.set_pointer1d(subseqs))
-                break
+            if any(seq.NDIM == 0 for seq in subseqs):
+                lines.extend(self.set_pointer0d(subseqs))
+            if any(seq.NDIM == 1 for seq in subseqs):
+                lines.extend(self.alloc(subseqs))
+                lines.extend(self.dealloc(subseqs))
+                lines.extend(self.set_pointer1d(subseqs))
         return lines
 
     @staticmethod
@@ -1363,7 +1359,7 @@ class PyxWriter:
         lines.add(
             2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
         )
-        for seq in subseqs:
+        for seq in (seq for seq in subseqs if seq.NDIM == 0):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"self.{seq.name} = pointer.p_value")
         return lines
@@ -1416,7 +1412,7 @@ class PyxWriter:
         print("            . setlength")
         lines = Lines()
         lines.add(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
-        for seq in subseqs:
+        for seq in (seq for seq in subseqs if seq.NDIM == 1):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"self._{seq.name}_length_0 = length")
             lines.add(
@@ -1437,7 +1433,7 @@ class PyxWriter:
         print("            . dealloc")
         lines = Lines()
         lines.add(1, "cpdef inline dealloc(self, name):")
-        for seq in subseqs:
+        for seq in (seq for seq in subseqs if seq.NDIM == 1):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"PyMem_Free(self.{seq.name})")
         return lines
@@ -1455,7 +1451,7 @@ class PyxWriter:
         lines.add(
             2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
         )
-        for seq in subseqs:
+        for seq in (seq for seq in subseqs if seq.NDIM == 1):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"self.{seq.name}[idx] = pointer.p_value")
             lines.add(3, f"self._{seq.name}_ready[idx] = 1")

@@ -31,6 +31,12 @@ class Inflow(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
+class Exchange(sequencetools.FluxSequence):
+    """Water exchange with another location [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
 class TotalRemoteDischarge(sequencetools.FluxSequence):
     """Total discharge at a cross-section far downstream [m³/s]."""
 

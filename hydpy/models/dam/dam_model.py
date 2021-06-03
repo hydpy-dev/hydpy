@@ -310,6 +310,25 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
         log.loggedrequiredremoterelease[0] = rec.s[0]
 
 
+class Pic_Exchange_V1(modeltools.Method):
+    r"""Update the inlet sequence |Exchange|.
+
+    Basic equation:
+      :math:`Exchange = \sum E_{inlets}`
+    """
+
+    REQUIREDSEQUENCES = (dam_inlets.E,)
+    RESULTSEQUENCES = (dam_fluxes.Exchange,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.exchange = 0.0
+        for idx in range(inl.len_e):
+            flu.exchange += inl.e[idx][0]
+
+
 class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
     """Update the receiver sequence |LoggedAllowedRemoteRelief|.
 
@@ -3359,9 +3378,9 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
     r"""Calculate the maximum discharge not leading to exceedance of the
     allowed water level drop.
 
-    Basic (discontinuous) equation:
+    Basic equation:
       :math:`Outflow = AllowedWaterLevelDrop \cdot SurfaceArea
-      + Inflow + AdjustedPrecipitation - AdjustedEvaporation`
+      + Inflow + AdjustedPrecipitation - AdjustedEvaporation + Exchange`
 
     Example:
 
@@ -3373,10 +3392,11 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         >>> fluxes.adjustedprecipitation = 1.0
         >>> fluxes.inflow = 3.0
         >>> fluxes.actualevaporation = 2.0
+        >>> fluxes.exchange = 4.0
         >>> aides.surfacearea = 0.864
         >>> model.calc_alloweddischarge_v1()
         >>> aides.alloweddischarge
-        alloweddischarge(3.0)
+        alloweddischarge(7.0)
     """
 
     CONTROLPARAMETERS = (dam_control.AllowedWaterLevelDrop,)
@@ -3385,6 +3405,7 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         dam_fluxes.AdjustedPrecipitation,
         dam_fluxes.ActualEvaporation,
         dam_fluxes.Inflow,
+        dam_fluxes.Exchange,
         dam_aides.SurfaceArea,
     )
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
@@ -3397,7 +3418,10 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         aid.alloweddischarge = (
             con.allowedwaterleveldrop / der.seconds * aid.surfacearea * 1e6
-            + (flu.adjustedprecipitation + flu.inflow - flu.actualevaporation)
+            + flu.adjustedprecipitation
+            + flu.inflow
+            - flu.actualevaporation
+            + flu.exchange
         )
 
 
@@ -3726,6 +3750,54 @@ class Update_WaterVolume_V3(modeltools.Method):
         )
 
 
+class Update_WaterVolume_V4(modeltools.Method):
+    r"""Update the actual water volume.
+
+    Basic equation:
+      :math:`\frac{d}{dt}WaterVolume = 1e-6 \cdot
+      (AdjustedPrecipitation - AdjustedEvaporation - Inflow - Outflow + Exchange)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.seconds = 2e6
+        >>> states.watervolume.old = 5.0
+        >>> fluxes.adjustedprecipitation = 1.0
+        >>> fluxes.actualevaporation = 2.0
+        >>> fluxes.inflow = 3.0
+        >>> fluxes.outflow = 4.0
+        >>> fluxes.exchange = 5.0
+        >>> model.update_watervolume_v4()
+        >>> states.watervolume
+        watervolume(11.0)
+    """
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.ActualEvaporation,
+        dam_fluxes.Inflow,
+        dam_fluxes.Outflow,
+        dam_fluxes.Exchange,
+    )
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.watervolume = old.watervolume + der.seconds / 1e6 * (
+            flu.adjustedprecipitation
+            - flu.actualevaporation
+            + flu.inflow
+            - flu.outflow
+            + flu.exchange
+        )
+
+
 class Pass_Outflow_V1(modeltools.Method):
     """Update the outlet link sequence |dam_outlets.Q|.
 
@@ -3929,6 +4001,7 @@ class Model(modeltools.ELSModel):
         Update_WaterVolume_V1,
         Update_WaterVolume_V2,
         Update_WaterVolume_V3,
+        Update_WaterVolume_V4,
     )
     OUTLET_METHODS = (
         Pass_Outflow_V1,

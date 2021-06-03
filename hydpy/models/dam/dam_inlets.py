@@ -23,3 +23,9 @@ class R(sequencetools.InletSequence):
     """Actual water relief [m³/s]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class E(sequencetools.InletSequence):
+    """Bidirectional water exchange [m³/s]."""
+
+    NDIM, NUMERIC = 1, False

@@ -13,7 +13,7 @@ Integration tests
 
 We perform the following examples over a simulation period of 3 days:
 
->>> from hydpy import pub, Nodes, Element
+>>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
 |conv_v002| implements no parameter with values depending on the simulation
@@ -27,7 +27,6 @@ Due to the following configuration, |conv_v002| queries its input from the
 inlet nodes `in1`, `in2`, and `in3` and passes the interpolation results to
 the outlet nodes `out1`, `out2`, `out3`, and `out4`:
 
->>> from hydpy import *
 >>> in1, in2, in3 = Node("in1"), Node("in2"), Node("in3")
 >>> element = Element("conv",
 ...                   inlets=(in1, in2, in3),

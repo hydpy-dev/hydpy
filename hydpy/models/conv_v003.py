@@ -37,13 +37,12 @@ application model |conv_v002|.  Hence, we first define identical test settings
 (please see the documentation on application model |conv_v002| for more information):
 
 
->>> from hydpy import pub, Nodes, Element
+>>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
 >>> from hydpy.models.conv_v003 import *
 >>> parameterstep()
 
->>> from hydpy import *
 >>> in1, in2, in3 = Node("in1"), Node("in2"), Node("in3")
 >>> element = Element("conv",
 ...                   inlets=(in1, in2, in3),

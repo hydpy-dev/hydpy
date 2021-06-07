@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for defining and handling different kinds
-of the sequences (time-series) of hydrological models."""
+"""This module implements tools for defining and handling different kinds of the
+sequences (time-series) of hydrological models."""
 # import...
 # ...from standard library
 import abc
@@ -422,8 +422,8 @@ class InfoArray(numpy.ndarray):
 class Sequences:
     """Base class for handling all sequences of a specific model.
 
-    |Sequences| objects handle nine sequence subgroups as attributes
-    such as the `inlets` and  the `receivers` subsequences:
+    |Sequences| objects handle nine sequence subgroups as attributes such as the
+    `inlets` and  the `receivers` subsequences:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -433,24 +433,24 @@ class Sequences:
     >>> bool(sequences.fluxes)
     True
 
-    Iteration makes only the non-empty subgroups available which
-    are handling |Sequence_| objects:
+    Iteration makes only the non-empty subgroups available which are handling
+    |Sequence_| objects:
 
     >>> for subseqs in sequences:
     ...     print(subseqs.name)
     inputs
+    factors
     fluxes
     states
     logs
     outlets
     >>> len(sequences)
-    5
+    6
 
-    Class |Sequences| provides some methods related to reading and
-    writing time-series data, which (directly or indirectly) call the
-    corresponding methods of the handled |IOSequence| objects.
-    In most cases, users should prefer to use the related methods of
-    class |HydPy| but using the ones of class |Sequences| can be more
+    Class |Sequences| provides some methods related to reading and writing time-series
+    data, which (directly or indirectly) call the corresponding methods of the handled
+    |IOSequence| objects.  In most cases, users should prefer to use the related
+    methods of class |HydPy| but using the ones of class |Sequences| can be more
     convenient when analysing a specific model in-depth.
 
     To introduce these methods, we first change two IO-related settings:
@@ -533,6 +533,7 @@ to make any internal data available.
     inlets: "InletSequences"
     receivers: "ReceiverSequences"
     inputs: "InputSequences"
+    factors: "FactorSequences"
     fluxes: "FluxSequences"
     states: "StateSequences"
     logs: "LogSequences"
@@ -546,6 +547,7 @@ to make any internal data available.
         cls_inlets: Optional[Type["InletSequences"]] = None,
         cls_receivers: Optional[Type["ReceiverSequences"]] = None,
         cls_inputs: Optional[Type["InputSequences"]] = None,
+        cls_factors: Optional[Type["FactorSequences"]] = None,
         cls_fluxes: Optional[Type["FluxSequences"]] = None,
         cls_states: Optional[Type["StateSequences"]] = None,
         cls_logs: Optional[Type["LogSequences"]] = None,
@@ -564,6 +566,9 @@ to make any internal data available.
         )
         self.inputs = self.__prepare_subseqs(
             InputSequences, cls_inputs, cymodel, cythonmodule
+        )
+        self.factors = self.__prepare_subseqs(
+            FactorSequences, cls_factors, cymodel, cythonmodule
         )
         self.fluxes = self.__prepare_subseqs(
             FluxSequences, cls_fluxes, cymodel, cythonmodule
@@ -610,6 +615,7 @@ to make any internal data available.
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         inputs
+        factors
         fluxes
         states
 
@@ -624,6 +630,8 @@ to make any internal data available.
         """
         if self.inputs:
             yield self.inputs
+        if self.factors:
+            yield self.factors
         if self.fluxes:
             yield self.fluxes
         if self.states:
@@ -699,6 +707,7 @@ to make any internal data available.
         |sequencetools.FluxSequences| and |sequencetools.StateSequences|
         objects."""
         self.inputs.save_data(idx)
+        self.factors.save_data(idx)
         self.fluxes.save_data(idx)
         self.states.save_data(idx)
 
@@ -710,8 +719,8 @@ to make any internal data available.
 
     @property
     def conditionsequences(self) -> Iterator["ConditionSequence"]:
-        """Generator object yielding all conditions (|StateSequence| and
-        |LogSequence| objects).
+        """Generator object yielding all conditions (|StateSequence| and |LogSequence|
+        objects).
         """
         for state in self.states:
             yield state
@@ -913,6 +922,17 @@ neither a filename is given nor does the model know its master element.
         for seq in self.conditionsequences:
             seq.trim()
 
+    def update_outputs(self) -> None:
+        """Call the method |OutputSequences.update_outputs| of the subattributes
+        |Sequences.factors|, |Sequences.states|, and |Sequences.fluxes|.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        self.factors.update_outputs()
+        self.fluxes.update_outputs()
+        self.states.update_outputs()
+
     def __iter__(self) -> Iterator["ModelSequences"]:
         if self.inlets:
             yield self.inlets
@@ -920,6 +940,8 @@ neither a filename is given nor does the model know its master element.
             yield self.receivers
         if self.inputs:
             yield self.inputs
+        if self.factors:
+            yield self.factors
         if self.fluxes:
             yield self.fluxes
         if self.states:
@@ -941,13 +963,12 @@ neither a filename is given nor does the model know its master element.
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1", "1d")
         >>> dir(model.sequences)
-        ['activate_disk', 'activate_ram', 'aides', 'close_files', \
-'conditions', 'conditionsequences', 'deactivate_disk', 'deactivate_ram', \
-'disk2ram', 'fluxes', 'inlets', 'inputs', 'iosubsequences', \
-'load_conditions', 'load_data', 'load_series', 'logs', 'model', \
-'open_files', 'outlets', 'ram2disk', 'receivers', 'reset', \
-'save_conditions', 'save_data', 'save_series', 'senders', 'states', \
-'trim_conditions']
+        ['activate_disk', 'activate_ram', 'aides', 'close_files', 'conditions', \
+'conditionsequences', 'deactivate_disk', 'deactivate_ram', 'disk2ram', 'factors', \
+'fluxes', 'inlets', 'inputs', 'iosubsequences', 'load_conditions', 'load_data', \
+'load_series', 'logs', 'model', 'open_files', 'outlets', 'ram2disk', 'receivers', \
+'reset', 'save_conditions', 'save_data', 'save_series', 'senders', 'states', \
+'trim_conditions', 'update_outputs']
         """
         return objecttools.dir_(self)
 
@@ -1171,25 +1192,12 @@ class OutputSequences(
         if self:
             self.fastaccess.update_outputs()
 
-
-class FluxSequences(
-    OutputSequences[
-        "FluxSequence",
-    ],
-):
-    """Base class for handling |FluxSequence| objects."""
-
-    @property
-    def name(self) -> str:
-        """Always return the string "fluxes"."""
-        return "fluxes"
-
     @property
     def numericsequences(self) -> Iterator["FluxSequence"]:
-        """Iterator for `numerical` flux sequences.
+        """Iterator for "numerical" sequences.
 
-        `numerical` means that the `NUMERIC` class attribute of the
-        actual sequence is `True`:
+        "numerical" means that the |Sequence_.NUMERIC| class attribute of the actual
+        sequence is `True`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("dam_v001")
@@ -1207,6 +1215,27 @@ class FluxSequences(
         for flux in self:
             if flux.NUMERIC:
                 yield flux
+
+
+class FactorSequences(
+    OutputSequences[
+        "FactorSequence",
+    ],
+):
+    """Base class for handling |FactorSequence| objects."""
+
+
+class FluxSequences(
+    OutputSequences[
+        "FluxSequence",
+    ],
+):
+    """Base class for handling |FluxSequence| objects."""
+
+    @property
+    def name(self) -> str:
+        """Always return the string "fluxes"."""
+        return "fluxes"
 
 
 class StateSequences(
@@ -1653,12 +1682,13 @@ cannot be determined.  Either set it manually or prepare \
     which is a little more complicated but also more flexible when
     scripting complex workflows.
 
-    We use the `LahnH` example project and focus on the `input`
-    and `flux` sequences:
+    We use the `LahnH` example project and focus on the `input`, `factor`, and `flux`
+    sequences:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
+    >>> factors = hp.elements.land_lahn_1.model.sequences.factors
     >>> fluxes = hp.elements.land_lahn_1.model.sequences.fluxes
 
     |IOSequence| objects come with the properties |IOSequence.ramflag|
@@ -1679,39 +1709,37 @@ cannot be determined.  Either set it manually or prepare \
     -0.7, -1.5, -4.2, -7.4
 
     Convenience function |prepare_full_example_2| also activates the
-    |IOSequence.ramflag| of all flux sequences, which is not necessary
-    to perform a successful simulation but is required to query the
-    complete time-series of simulated values afterwards (otherwise,
-    only the last simulated value would available after a simulation run):
+    |IOSequence.ramflag| of all factor and flux sequences, which is not necessary to
+    perform a successful simulation but is required to query the complete time-series
+    of simulated values afterwards (otherwise, only the last simulated value would
+    available after a simulation run):
 
-    >>> fluxes.tc.ramflag
+    >>> factors.tc.ramflag
     True
-    >>> round_(fluxes.tc.series[:, 0])
+    >>> round_(factors.tc.series[:, 0])
     nan, nan, nan, nan
 
-    Use |IOSequence.activate_ram| or |IOSequence.activate_disk| to
-    force a sequence to handle time-series data in RAM or on disk,
-    respectively.  We now activate the |IOSequence.diskflag| of flux
-    sequence |hland_fluxes.TMean| (which automatically disables the
-    |IOSequence.ramflag|).  Note that we need to change the current
-    working directory to the `iotesting` directory temporarily (by
-    using class |TestIO|) to make sure to create that the related
-    file in the right directory:
+    Use |IOSequence.activate_ram| or |IOSequence.activate_disk| to force a sequence to
+    handle time-series data in RAM or on disk, respectively.  We now activate the
+    |IOSequence.diskflag| of factor sequence |hland_factors.TMean| (which automatically
+    disables the |IOSequence.ramflag|).  Note that we need to change the current
+    working directory to the `iotesting` directory temporarily (by using class |TestIO|)
+    to make sure to create that the related file in the correct directory:
 
     >>> with TestIO():
-    ...     fluxes.tmean.activate_disk()
-    ...     repr_(fluxes.tmean.filepath_int)    # doctest: +ELLIPSIS
-    '...iotesting/LahnH/series/temp/land_lahn_1_flux_tmean.bin'
+    ...     factors.tmean.activate_disk()
+    ...     repr_(factors.tmean.filepath_int)    # doctest: +ELLIPSIS
+    '...iotesting/LahnH/series/temp/land_lahn_1_factor_tmean.bin'
 
-    The user can access the time-series data in the same manner as
-    if being handled in RAM:
+    The user can access the time-series data in the same manner as if being handled in
+    RAM:
 
-    >>> fluxes.tmean.ramflag
+    >>> factors.tmean.ramflag
     False
-    >>> fluxes.tmean.diskflag
+    >>> factors.tmean.diskflag
     True
     >>> with TestIO():
-    ...     round_(fluxes.tmean.series)
+    ...     round_(factors.tmean.series)
     nan, nan, nan, nan
 
     For completeness of testing, we also activate the |IOSequence.diskflag|
@@ -1719,9 +1747,9 @@ cannot be determined.  Either set it manually or prepare \
 
     >>> from pprint import pprint
     >>> with TestIO():
-    ...     fluxes.fracrain.activate_disk()
+    ...     factors.fracrain.activate_disk()
     ...     pprint(sorted(os.listdir("LahnH/series/temp")))
-    ['land_lahn_1_flux_fracrain.bin', 'land_lahn_1_flux_tmean.bin']
+    ['land_lahn_1_factor_fracrain.bin', 'land_lahn_1_factor_tmean.bin']
 
     Apply methods |IOSequence.deactivate_ram| or |IOSequence.deactivate_disk|
     for sequences that do not provide data relevant for your analysis:
@@ -1753,13 +1781,13 @@ requested to make any internal data available.
 
     >>> round_(fluxes.q1.series, 1)
     0.4, 0.4, 0.4, 0.4
-    >>> round_(fluxes.tc.series[:, 0], 1)
+    >>> round_(factors.tc.series[:, 0], 1)
     0.2, -0.6, -3.4, -6.6
     >>> with TestIO():
-    ...     round_(fluxes.tmean.series, 1)
+    ...     round_(factors.tmean.series, 1)
     -1.0, -1.8, -4.5, -7.7
     >>> with TestIO():
-    ...     round_(fluxes.fracrain.series[:, 0], 1)
+    ...     round_(factors.fracrain.series[:, 0], 1)
     0.3, 0.0, 0.0, 0.0
 
     You cannot only access the time-series data of individual |IOSequence|
@@ -1792,8 +1820,8 @@ requested to make any internal data available.
     >>> with TestIO():
     ...     inputs.p.ram2disk()
     ...     pprint(sorted(os.listdir("LahnH/series/temp")))
-    ['land_lahn_1_flux_fracrain.bin',
-     'land_lahn_1_flux_tmean.bin',
+    ['land_lahn_1_factor_fracrain.bin',
+     'land_lahn_1_factor_tmean.bin',
      'land_lahn_1_input_p.bin']
     >>> inputs.p.ramflag
     False
@@ -1816,7 +1844,7 @@ requested to make any internal data available.
     >>> with TestIO():
     ...     inputs.p.disk2ram()
     ...     pprint(sorted(os.listdir("LahnH/series/temp")))
-    ['land_lahn_1_flux_fracrain.bin', 'land_lahn_1_flux_tmean.bin']
+    ['land_lahn_1_factor_fracrain.bin', 'land_lahn_1_factor_tmean.bin']
     >>> inputs.p.ramflag
     True
     >>> inputs.p.diskflag
@@ -1828,12 +1856,12 @@ requested to make any internal data available.
     |IOSequence.deactivate_ram|:
 
     >>> with TestIO():
-    ...     fluxes.fracrain.deactivate_disk()
+    ...     factors.fracrain.deactivate_disk()
     ...     pprint(sorted(os.listdir("LahnH/series/temp")))
-    ['land_lahn_1_flux_tmean.bin']
-    >>> fluxes.fracrain.ramflag
+    ['land_lahn_1_factor_tmean.bin']
+    >>> factors.fracrain.ramflag
     False
-    >>> fluxes.fracrain.diskflag
+    >>> factors.fracrain.diskflag
     False
 
     Both methods |IOSequence.deactivate_ram| and |IOSequence.deactivate_disk|
@@ -1841,7 +1869,7 @@ requested to make any internal data available.
 
     >>> fluxes.pc.deactivate_ram()
     >>> with TestIO():
-    ...     fluxes.fracrain.deactivate_disk()
+    ...     factors.fracrain.deactivate_disk()
 
     You can query property |IOSequence.memoryflag|, if you are only
     interested to know if a sequence handles stores its time-series
@@ -1849,7 +1877,7 @@ requested to make any internal data available.
 
     >>> fluxes.pc.memoryflag
     False
-    >>> fluxes.tmean.memoryflag
+    >>> factors.tmean.memoryflag
     True
     >>> inputs.p.memoryflag
     True
@@ -1867,19 +1895,19 @@ requested to make any internal data available.
     does not change how it handles its internal time-series data, but
     results in a loss of current information:
 
-    >>> fluxes.tc.seriesshape
+    >>> factors.tc.seriesshape
     (4, 13)
-    >>> fluxes.fastaccess._tc_length
+    >>> factors.fastaccess._tc_length
     13
-    >>> round_(fluxes.tc.series[:, 0], 1)
+    >>> round_(factors.tc.series[:, 0], 1)
     0.2, -0.6, -3.4, -6.6
 
-    >>> fluxes.tc.shape = (2,)
-    >>> fluxes.tc.seriesshape
+    >>> factors.tc.shape = (2,)
+    >>> factors.tc.seriesshape
     (4, 2)
-    >>> fluxes.fastaccess._tc_length
+    >>> factors.fastaccess._tc_length
     2
-    >>> round_(fluxes.tc.series[:, 0], 1)
+    >>> round_(factors.tc.series[:, 0], 1)
     nan, nan, nan, nan
 
     Resetting the |IOSequence.shape| of |IOSequence| objects which
@@ -3050,6 +3078,7 @@ class InputSequence(
 
     >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
     >>> hp.prepare_inputseries()
+    >>> hp.prepare_factorseries()
     >>> hp.prepare_fluxseries()
     >>> with TestIO():
     ...     hp.load_inputseries()
@@ -3064,7 +3093,7 @@ class InputSequence(
 
     >>> print_values(model.sequences.inputs.t.series)
     1.0, 2.0, 3.0, 4.0, 5.0
-    >>> print_values(model.sequences.fluxes.tc.series[:, 0])
+    >>> print_values(model.sequences.factors.tc.series[:, 0])
     2.05, 3.05, 4.05, 5.05, 6.05
     >>> print_values(model.sequences.inputs.p.series)
     0.0, 4.0, 0.0, 8.0, 0.0
@@ -3122,7 +3151,7 @@ class OutputSequence(
         FastAccessOutputSequence,
     ],
 ):
-    """Base class for |FluxSequence| and |StateSequence|.
+    """Base class for |FactorSequence|, |FluxSequence| and |StateSequence|.
 
     |OutputSequence| subclasses implement an optional output mechanism.
     Generally, as all instances of |ModelSequence| subclasses, output
@@ -3257,17 +3286,12 @@ class OutputSequence(
         return self._get_fastaccessattribute("outputflag")
 
 
-class FluxSequence(
+class DependentSequence(
     OutputSequence[
-        FluxSequences,
+        OutputSequencesType,
     ],
 ):
-    """Base class for flux sequences of |Model| objects."""
-
-    filetype_ext = _FileType()
-    dirpath_ext = _DirPathProperty()
-    aggregation_ext = _AggregationProperty()
-    overwrite_ext = _OverwriteProperty()
+    """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
         super()._finalise_connections()
@@ -3282,47 +3306,32 @@ class FluxSequence(
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
-        |FluxSequence| objects come with some additional `fastaccess`
-        attributes, which should be of interest for framework developers
-        only.  However, model developers should note that we did
-        implement only 0-dimensional |FluxSequence| subclasses with a
-        |True| `NUMERIC` flag so far.  Hence, we still need to prove the
-        complete functionality of our design of 1-dimensional |FluxSequence|
-        subclasses with a |True| `NUMERIC` flag.
-
-        One example of a 0-dimensional sequence is the `results` array,
-        handling the (intermediate or  final) calculation results for
-        flux sequence |dam_fluxes.Inflow| of the |dam| model:
+        |FactorSequence| and |FluxSequence| objects come with some additional
+        `fastaccess` attributes, which should only be of interest to framework
+        developers.  One such attribute is the `results` array, handling the
+        (intermediate or final) calculation results for factor and flux sequences, as
+        shown in the following example for the 0-dimensional flux sequence
+        |wland_fluxes.RH| of the |wland| model:
 
         >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("dam_v001")
-        >>> inflow = model.sequences.fluxes.inflow
-        >>> print_values(inflow.fastaccess._inflow_results)
+        >>> model = prepare_model("wland_v001")
+        >>> print_values(model.sequences.fluxes.rh.fastaccess._rh_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-        We now show the still not thoroughly tested functionality
-        of 1-dimensional numerical flux sequences by changing the
-        dimensionality of class |dam_fluxes.Inflow| and working in
-        pure Python mode.  Now, the `results` attribute is |None|
-        initially, as property |IOSequence.numericshape| is unknown.
-        However, setting the |FluxSequence.shape| attribute of
-        |FluxSequence| objects prepares all "fastaccess attributes"
-        automatically:
+        For 1-dimensional numerical factor and flux sequences, the `results` attribute
+        is |None| initially, as property |IOSequence.numericshape| is unknown.  Setting
+        the |DependentSequence.shape| attribute of the respective |FactorSequence| or
+        |FluxSequence| object (we select |wland_fluxes.EI| as an example) prepares all
+        "fastaccess attributes" automatically:
 
-        >>> from hydpy.models.dam.dam_fluxes import Inflow
-        >>> Inflow.NDIM = 1
-        >>> with pub.options.usecython(False):
-        ...     model = prepare_model("dam_v001")
-        >>> inflow = model.sequences.fluxes.inflow
-        >>> inflow.fastaccess._inflow_results
+        >>> ei = model.sequences.fluxes.ei
+        >>> ei.fastaccess._ei_results
 
-        >>> inflow.shape = (2,)
-        >>> inflow.shape
+        >>> ei.shape = (2,)
+        >>> ei.shape
         (2,)
-        >>> inflow.fastaccess._inflow_results.shape
+        >>> ei.fastaccess._ei_results.shape
         (11, 2)
-
-        >>> Inflow.NDIM = 0
         """
         return super().__hydpy__get_shape__()
 
@@ -3335,6 +3344,35 @@ class FluxSequence(
             self._set_fastaccessattribute("sum", numpy.zeros(self.shape))
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+
+
+class FactorSequence(
+    DependentSequence[
+        FactorSequences,
+    ],
+):
+    """Base class for factor sequences of |Model| objects."""
+
+    NUMERIC = False  # Changing this requires implementing the related functionalites
+    # in modules `modeltools` and `modeltutils`.
+
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
+
+
+class FluxSequence(
+    DependentSequence[
+        FluxSequences,
+    ],
+):
+    """Base class for flux sequences of |Model| objects."""
+
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
 
 
 class ConditionSequence(
@@ -3539,8 +3577,8 @@ shape (3,) into shape (2,)
     fastaccess_old: variabletools.FastAccess
 
     def __call__(self, *args) -> None:
-        """The prefered way to pass values to |Sequence_| instances within
-        initial condition files."""
+        """The prefered way to pass values to |Sequence_| instances within initial
+        condition files."""
         super().__call__(*args)
         self.new2old()
 
@@ -3560,47 +3598,31 @@ shape (3,) into shape (2,)
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
-        |StateSequence| objects come with some additional `fastaccess`
-        attributes, which should be of interest for framework developers
-        only.  However, model developers should note that we did
-        implement only 1-dimensional |StateSequence| subclasses with a
-        |True| `NUMERIC` flag so far.  We still need to prove the
-        complete functionality of our design of 1-dimensional
-        |StateSequence| subclasses with a |True| `NUMERIC` flag.
-
-        One example of a 0-dimensional sequence is the `results` array,
-        handling the (intermediate or  final) calculation results for
-        state sequence |dam_states.WaterVolume| of the |dam| model:
+        |StateSequence| objects come with some additional `fastaccess` attributes,
+        which should only be of interest to framework developers.  One such attribute
+        is the `results` array, handling the (intermediate or final) calculation
+        results for state sequence, as shown in the following example for the
+        0-dimensional sequence |wland_states.HS| of the |wland| model:
 
         >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("dam_v001")
-        >>> watervolume = model.sequences.states.watervolume
-        >>> print_values(watervolume.fastaccess._watervolume_results)
+        >>> model = prepare_model("wland_v001")
+        >>> print_values(model.sequences.states.hs.fastaccess._hs_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-        We now show the still not thoroughly tested functionality
-        of 1-dimensional numerical state sequences by changing the
-        dimensionality of class |dam_states.WaterVolume| and working in
-        pure Python mode.  Now, the `results` attribute is |None|
-        initially, as property |IOSequence.numericshape| is unknown.
-        However, setting the |StateSequence.shape| attribute of
-        |StateSequence| objects prepares all "fastaccess attributes"
+        For 1-dimensional numerical state sequences, the `results` attribute is |None|
+        initially, as property |IOSequence.numericshape| is unknown.  Setting the
+        |StateSequence.shape| attribute of the respective |StateSequence| object (we
+        select |wland_states.IC| as an example) prepares all  "fastaccess attributes"
         automatically:
 
-        >>> from hydpy.models.dam.dam_states import WaterVolume
-        >>> WaterVolume.NDIM = 1
-        >>> with pub.options.usecython(False):
-        ...     model = prepare_model("dam_v001")
-        >>> watervolume = model.sequences.states.watervolume
-        >>> watervolume.fastaccess._watervolume_results
+        >>> ic = model.sequences.states.ic
+        >>> ic.fastaccess._ic_results
 
-        >>> watervolume.shape = (2,)
-        >>> watervolume.shape
+        >>> ic.shape = (2,)
+        >>> ic.shape
         (2,)
-        >>> watervolume.fastaccess._watervolume_results.shape
+        >>> ic.fastaccess._ic_results.shape
         (11, 2)
-
-        >>> WaterVolume.NDIM = 0
         """
         return super().__hydpy__get_shape__()
 

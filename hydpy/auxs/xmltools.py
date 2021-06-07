@@ -11,14 +11,13 @@ the *HydPy* project you want to work with is available in your current
 working directory and contains an XML configuration file (as `single_run.xml`
 in the example project folder `LahnH`).  This configuration file must
 agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
-in the :ref:`configuration` subpackage and also downloadable for each
+in the :ref:`configuration` subpackage and seperately downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing
 models, you have to update this schema file.  *HydPy* does this automatically
 through its setup mechanism (see the documentation on class |XSDWriter|).
 
-To show how to apply |run_simulation| via a command line, we first
-copy the `LahnH` project into the `iotesting` folder via calling
-function |prepare_full_example_1|:
+To show how to apply |run_simulation| via a command line, we first copy the `LahnH`
+project into the `iotesting` folder by calling the function |prepare_full_example_1|:
 
 >>> from hydpy.examples import prepare_full_example_1
 >>> prepare_full_example_1()
@@ -47,7 +46,7 @@ Write the desired condition files (...).
 Write the desired time series files (...).
 
 As defined by the XML configuration file, the simulation started on the
-first and ended at the sixths January 1996.  The following example shows
+first and ended on the sixths January 1996.  The following example shows
 the read initial conditions and the written final conditions of
 sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
@@ -739,8 +738,8 @@ a name or keyword.
 
     @property
     def fullselection(self) -> selectiontools.Selection:
-        """A |Selection| object containing all |Element| and |Node| objects
-        defined by |XMLInterface.selections| and |XMLInterface.devices|.
+        """A |Selection| object that contains all |Element| and |Node| objects defined
+        by |XMLInterface.selections| and |XMLInterface.devices|.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1187,6 +1186,8 @@ class XMLSubseries(XMLSelector):
         ...     series_io.writers[2].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'npy'
+        >>> pub.sequencemanager.factoraggregation
+        'mean'
         >>> pub.sequencemanager.fluxaggregation
         'mean'
         >>> pub.sequencemanager.inputoverwrite
@@ -1198,8 +1199,8 @@ class XMLSubseries(XMLSelector):
             xml_special = self.find(config)
             xml_general = self.master.find(config)
             for name_manager, name_xml in zip(
-                ("input", "flux", "state", "node"),
-                ("inputs", "fluxes", "states", "nodes"),
+                ("input", "factor", "flux", "state", "node"),
+                ("inputs", "factors", "fluxes", "states", "nodes"),
             ):
                 value: Optional[str] = None
                 for xml, attr_xml in zip(
@@ -1227,6 +1228,7 @@ class XMLSubseries(XMLSelector):
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
+        hland_v1 factors ['tc']
         hland_v1 fluxes ['pc', 'tf']
         hland_v1 states ['sm']
         hstream_v1 states ['qjoints']
@@ -1511,6 +1513,7 @@ class XMLExchange(XMLBase):
         ...     interface = XMLInterface("multiple_runs.xml")
         >>> for item in interface.exchange.getitems:
         ...     print(item.target)
+        factors_tmean
         fluxes_qt
         fluxes_qt_series
         states_sm
@@ -1518,7 +1521,15 @@ class XMLExchange(XMLBase):
         nodes_sim_series
         """
         return self._get_items_of_certain_item_types(
-            itemgroups=("control", "inputs", "fluxes", "states", "logs", "nodes"),
+            itemgroups=(
+                "control",
+                "inputs",
+                "factors",
+                "fluxes",
+                "states",
+                "logs",
+                "nodes",
+            ),
             itemtype=itemtools.GetItem,
         )
 
@@ -1727,7 +1738,7 @@ class XMLVar(XMLSelector):
         object queries the actual values of the |hland_states.SM| states
         of all relevant elements:
 
-        >>> var = interface.exchange.itemgroups[3].models[0].subvars[1].vars[0]
+        >>> var = interface.exchange.itemgroups[3].models[0].subvars[2].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
@@ -1739,15 +1750,22 @@ class XMLVar(XMLSelector):
 123.0, 123.0, 123.0, 123.0]
         land_lahn_3_states_sm [101.3124...]
 
-        Another |GetItem| object queries both the actual and the time
-        series values of the |hland_fluxes.QT| flux sequence of element
-        `land_dill`:
+        Another |GetItem| object queries the actual value of the |hland_factors.TMean|
+        factor sequence of element `land_dill`:
 
-        >>> vars_ = interface.exchange.itemgroups[3].models[0].subvars[0].vars
+        >>> hp.elements.land_dill.model.sequences.factors.tmean(1.0)
+        >>> for var in interface.exchange.itemgroups[3].models[0].subvars[0].vars:
+        ...     for name, target in var.item.yield_name2value():
+        ...         print(name, target)    # doctest: +ELLIPSIS
+        land_dill_factors_tmean 1.0
+
+        Another |GetItem| object queries both the actual and the time series values of
+        the |hland_fluxes.QT| flux sequence of element `land_dill`::
+
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
         >>> qt.series = 2.0
-        >>> for var in vars_:
+        >>> for var in interface.exchange.itemgroups[3].models[0].subvars[1].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
@@ -1977,7 +1995,7 @@ class XSDWriter:
             </element>
         """
         texts = []
-        for name in ("inputs", "fluxes", "states"):
+        for name in ("inputs", "factors", "fluxes", "states"):
             subsequences = getattr(model.sequences, name, None)
             if subsequences:
                 texts.append(cls.get_subsequencesinsertion(subsequences, indent))
@@ -1994,8 +2012,8 @@ class XSDWriter:
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")
         >>> print(XSDWriter.get_subsequencesinsertion(
-        ...     model.sequences.fluxes, 1))    # doctest: +ELLIPSIS
-            <element name="fluxes"
+        ...     model.sequences.factors, 1))    # doctest: +ELLIPSIS
+            <element name="factors"
                      minOccurs="0">
                 <complexType>
                     <sequence>
@@ -2007,7 +2025,7 @@ class XSDWriter:
                             minOccurs="0"/>
         ...
                         <element
-                            name="qt"
+                            name="contriarea"
                             minOccurs="0"/>
                     </sequence>
                 </complexType>
@@ -2332,6 +2350,8 @@ class XSDWriter:
             </element>
             <element name="inputs"
         ...
+            <element name="factors"
+        ...
             <element name="fluxes"
         ...
             <element name="states"
@@ -2352,7 +2372,7 @@ class XSDWriter:
         cls, model: "modeltools.Model"
     ) -> Iterator["variabletools.SubVariables"]:
         yield model.parameters.control
-        for name in ("inputs", "fluxes", "states", "logs"):
+        for name in ("inputs", "factors", "fluxes", "states", "logs"):
             subseqs = getattr(model.sequences, name, None)
             if subseqs:
                 yield subseqs
@@ -2365,13 +2385,12 @@ class XSDWriter:
         subgroup: "variabletools.SubVariables",
         indent: int,
     ) -> str:
-        """Return a string defining the required types for the given
-        combination of an exchange item group and a specific variable
-        subgroup of an application model or class |Node|.
+        """Return a string defining the required types for the given combination of an
+        exchange item group and a specific variable subgroup of an application model or
+        class |Node|.
 
-        Note that for `setitems` and `getitems` `setitemType` and
-        `getitemType` are referenced, respectively, and for all others
-        the model-specific `mathitemType`:
+        Note that for `setitems` and `getitems` `setitemType` and `getitemType` are
+        referenced, respectively, and for all others, the model-specific `mathitemType`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")
@@ -2420,8 +2439,8 @@ class XSDWriter:
         For sequence classes, additional "series" elements are added:
 
         >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
-        ...     "setitems", model, model.sequences.fluxes, 1))
-            <element name="fluxes"
+        ...     "setitems", model, model.sequences.factors, 1))
+            <element name="factors"
         ...
                         <element name="tmean"
                                  type="hpcb:setitemType"

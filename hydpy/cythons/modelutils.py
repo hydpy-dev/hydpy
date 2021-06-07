@@ -1159,7 +1159,7 @@ class PyxWriter:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_points")
                     lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_results")
-                    if isinstance(subseqs, sequencetools.FluxSequences):
+                    if isinstance(subseqs, sequencetools.DependentSequence):
                         lines.add(
                             1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals"
                         )
@@ -1621,7 +1621,8 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void simulate(self, int idx) {_nogil}:")
         lines.add(2, "self.idx_sim = idx")
-        if self.model.sequences.inputs:
+        seqs = self.model.sequences
+        if seqs.inputs:
             lines.add(2, "self.load_data()")
         if self.model.INLET_METHODS:
             lines.add(2, "self.update_inlets()")
@@ -1629,11 +1630,11 @@ class PyxWriter:
             lines.add(2, "self.solve()")
         else:
             lines.add(2, "self.run()")
-            if self.model.sequences.states:
+            if seqs.states:
                 lines.add(2, "self.new2old()")
         if self.model.OUTLET_METHODS:
             lines.add(2, "self.update_outlets()")
-        if self.model.sequences.fluxes or self.model.sequences.states:
+        if seqs.factors or seqs.fluxes or seqs.states:
             lines.add(2, "self.update_outputs()")
         return lines
 
@@ -1656,20 +1657,24 @@ class PyxWriter:
                     . save_data
             cpdef inline void open_files(self):
                 self.sequences.inputs.open_files(self.idx_sim)
+                self.sequences.factors.open_files(self.idx_sim)
                 self.sequences.fluxes.open_files(self.idx_sim)
                 self.sequences.states.open_files(self.idx_sim)
             cpdef inline void close_files(self):
                 self.sequences.inputs.close_files()
+                self.sequences.factors.close_files()
                 self.sequences.fluxes.close_files()
                 self.sequences.states.close_files()
             cpdef inline void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
             cpdef inline void save_data(self, int idx) nogil:
                 self.sequences.inputs.save_data(self.idx_sim)
+                self.sequences.factors.save_data(self.idx_sim)
                 self.sequences.fluxes.save_data(self.idx_sim)
                 self.sequences.states.save_data(self.idx_sim)
         <BLANKLINE>
 
+        >>> pyxwriter.model.sequences.factors = None
         >>> pyxwriter.model.sequences.fluxes = None
         >>> pyxwriter.model.sequences.states = None
         >>> pyxwriter.iofunctions
@@ -1693,24 +1698,21 @@ class PyxWriter:
         <BLANKLINE>
         """
         lines = Lines()
-        if not (
-            self.model.sequences.inputs
-            or self.model.sequences.fluxes
-            or self.model.sequences.states
-        ):
+        seqs = self.model.sequences
+        if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
             return lines
         for func in ("open_files", "close_files", "load_data", "save_data"):
-            if (func == "load_data") and not self.model.sequences.inputs:
+            if (func == "load_data") and not seqs.inputs:
                 continue
             print(f"            . {func}")
             nogil = func in ("load_data", "save_data")
             idx_as_arg = func == "save_data"
             lines.add(1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg))
-            for subseqs in self.model.sequences:
+            for subseqs in seqs:
                 if func == "load_data":
                     applyfuncs: Tuple[str, ...] = ("inputs",)
                 else:
-                    applyfuncs = ("inputs", "fluxes", "states")
+                    applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
                     if func == "close_files":
                         lines.add(2, f"self.sequences.{subseqs.name}.{func}()")
@@ -1802,13 +1804,16 @@ class PyxWriter:
             idxarg=False,
         )
         add(1, methodheader)
+        factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
+        if factors:
+            add(2, "self.sequences.factors.update_outputs()")
         if fluxes:
             add(2, "self.sequences.fluxes.update_outputs()")
         if states:
             add(2, "self.sequences.states.update_outputs()")
-        if not (fluxes or states):
+        if not (factors or fluxes or states):
             add(2, "pass")
         return lines
 
@@ -2354,7 +2359,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
-        ('self', 'con', 'inp', 'flu', 'k')
+        ('self', 'con', 'inp', 'fac', 'k')
         """
         # noinspection PyUnresolvedReferences
         return tuple(
@@ -2372,7 +2377,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
-        ['self', 'con', 'inp', 'flu', 'k']
+        ['self', 'con', 'inp', 'fac', 'k']
         """
         return [vn for vn in self.varnames if vn not in self.argnames]
 
@@ -2387,7 +2392,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
-        ['parameters.control', 'sequences.inputs', 'sequences.fluxes']
+        ['parameters.control', 'sequences.inputs', 'sequences.factors']
         """
         names = []
         for groupname in ("parameters", "sequences"):
@@ -2411,7 +2416,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
-        ['con', 'inp', 'flu']
+        ['con', 'inp', 'fac']
         """
         return [name.split(".")[-1][:3] for name in self.subgroupnames]
 

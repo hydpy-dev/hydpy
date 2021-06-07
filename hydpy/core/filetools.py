@@ -1558,6 +1558,8 @@ to make any internal data available.
 
     >>> pub.sequencemanager.inputoverwrite
     True
+    >>> pub.sequencemanager.factoroverwrite
+    True
     >>> pub.sequencemanager.fluxoverwrite
     True
     >>> pub.sequencemanager.stateoverwrite
@@ -1589,6 +1591,8 @@ to make any internal data available.
     >>> del pub.sequencemanager.generaloverwrite
     >>> pub.sequencemanager.inputoverwrite
     False
+    >>> pub.sequencemanager.factoroverwrite
+    False
     >>> pub.sequencemanager.fluxoverwrite
     False
     >>> pub.sequencemanager.stateoverwrite
@@ -1619,38 +1623,61 @@ is not available.  Select one of the following modes: none and mean.
     DEFAULTDIR = None
 
     inputfiletype = _DescriptorType("asc", "input")
+    factorfiletype = _DescriptorType("asc", "factor")
     fluxfiletype = _DescriptorType("asc", "flux")
     statefiletype = _DescriptorType("asc", "state")
     nodefiletype = _DescriptorType("asc", "node")
     tempfiletype = _DescriptorType("asc", "temporary")
     generalfiletype = _GeneralDescriptor[str](
-        inputfiletype, fluxfiletype, statefiletype, nodefiletype, tempfiletype
+        inputfiletype,
+        factorfiletype,
+        fluxfiletype,
+        statefiletype,
+        nodefiletype,
+        tempfiletype,
     )
 
     inputoverwrite = _DescriptorOverwrite(False, "input")
+    factoroverwrite = _DescriptorOverwrite(False, "factor")
     fluxoverwrite = _DescriptorOverwrite(False, "flux")
     stateoverwrite = _DescriptorOverwrite(False, "state")
     nodeoverwrite = _DescriptorOverwrite(False, "node")
     tempoverwrite = _DescriptorOverwrite(False, "temporary")
     generaloverwrite = _GeneralDescriptor[bool](
-        inputoverwrite, fluxoverwrite, stateoverwrite, nodeoverwrite, tempoverwrite
+        inputoverwrite,
+        factoroverwrite,
+        fluxoverwrite,
+        stateoverwrite,
+        nodeoverwrite,
+        tempoverwrite,
     )
 
     inputdirpath = _DescriptorPath("input", "input")
+    factordirpath = _DescriptorPath("output", "factor")
     fluxdirpath = _DescriptorPath("output", "flux")
     statedirpath = _DescriptorPath("output", "state")
     nodedirpath = _DescriptorPath("node", "node")
     tempdirpath = _DescriptorPath("temp", "temporary")
     generaldirpath = _GeneralDescriptor[str](
-        inputdirpath, fluxdirpath, statedirpath, nodedirpath, tempdirpath
+        inputdirpath,
+        factordirpath,
+        fluxdirpath,
+        statedirpath,
+        nodedirpath,
+        tempdirpath,
     )
 
     inputaggregation = _DescriptorAggregate("none", "input")
+    factoraggregation = _DescriptorAggregate("none", "factor")
     fluxaggregation = _DescriptorAggregate("none", "flux")
     stateaggregation = _DescriptorAggregate("none", "state")
     nodeaggregation = _DescriptorAggregate("none", "node")
     generalaggregation = _GeneralDescriptor[str](
-        inputaggregation, fluxaggregation, stateaggregation, nodeaggregation
+        inputaggregation,
+        factoraggregation,
+        fluxaggregation,
+        stateaggregation,
+        nodeaggregation,
     )
 
     def load_file(self, sequence: "sequencetools.IOSequence") -> None:

@@ -138,6 +138,9 @@
                         <obs/>
                     </node>
                     <hland_v1>
+                        <factors>
+                            <tc/>
+                        </factors>
                         <fluxes>
                             <pc/>
                             <tf/>

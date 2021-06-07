@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements features for using *HydPy* as an HTTP server
-application.
+"""This module implements features for using *HydPy* as an HTTP server application.
 
 .. _`OpenDA`: https://www.openda.org/
 .. _`curl`: https://curl.haxx.se/
@@ -311,6 +310,7 @@ class ServerState:
     SetItem("quh", "hland_v1", "logs.quh", 0)
     >>> for item in state.getitems:
     ...     print(item)
+    GetItem("hland_v1", "factors.tmean")
     GetItem("hland_v1", "fluxes.qt")
     GetItem("hland_v1", "fluxes.qt.series")
     GetItem("hland_v1", "states.sm")
@@ -332,8 +332,7 @@ class ServerState:
     The initialisation also prepares all selected series arrays and reads the
     required input data:
 
-    >>> print_values(
-    ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
+    >>> print_values(state.hp.elements.land_dill.model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
     >>> state.hp.nodes.dill.sequences.sim.series
     InfoArray([nan, nan, nan, nan, nan])
@@ -427,8 +426,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     ...     process = run_subprocess(
     ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
     ...         blocking=False, verbose=False)
-    ...     result = run_subprocess(
-    ...         "hyd.py await_server 8080 10", verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     We define a test function simplifying sending the following requests, offering
     two optional arguments.  When passing a value to `id_`, `test` adds this value
@@ -540,6 +538,7 @@ has been extracted but cannot be further processed: `x == y`.
     sm_lahn_1 = Double1D
     quh = Double0D
     >>> test("query_getitemtypes")
+    land_dill_factors_tmean = Double0D
     land_dill_fluxes_qt = Double0D
     land_dill_fluxes_qt_series = TimeSeries0D
     land_dill_states_sm = Double1D
@@ -568,6 +567,7 @@ has been extracted but cannot be further processed: `x == y`.
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = 10.0
     >>> test("query_initialgetitemvalues")    # doctest: +ELLIPSIS
+    land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_states_sm = [185.13164...]
@@ -741,6 +741,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")    # doctest: +ELLIPSIS
+    land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan]
     land_dill_states_sm = [185.13164, ...]
@@ -793,6 +794,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")    # doctest: +ELLIPSIS
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")    # doctest: +ELLIPSIS
+    land_dill_factors_tmean = -0.572053
     land_dill_fluxes_qt = 7.735543
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
@@ -893,6 +895,7 @@ calculated so far.
     sm_lahn_2 = 123.0
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = 10.0
+    land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_states_sm = [185.13164...]

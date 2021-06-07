@@ -11,40 +11,6 @@ from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
 
 
-class TMean(sequencetools.FluxSequence):
-    """Mean subbasin temperature [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class TC(hland_sequences.Flux1DSequence):
-    """Corrected temperature [°C]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = hland_masks.Complete()
-
-
-class FracRain(hland_sequences.Flux1DSequence):
-    """Fraction rainfall / total precipitation [-]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = hland_masks.Complete()
-
-
-class RfC(hland_sequences.Flux1DSequence):
-    """Actual precipitation correction related to liquid precipitation [-]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = hland_masks.Complete()
-
-
-class SfC(hland_sequences.Flux1DSequence):
-    """Actual precipitation correction related to frozen precipitation [-]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = hland_masks.Complete()
-
-
 class PC(hland_sequences.Flux1DSequence):
     """Corrected precipitation [mm]."""
 
@@ -137,12 +103,6 @@ class CF(hland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = hland_masks.Soil()
-
-
-class ContriArea(sequencetools.FluxSequence):
-    """Fraction of the "soil area" contributing to runoff generation [-]."""
-
-    NDIM, NUMERIC = 0, False
 
 
 class InUZ(sequencetools.FluxSequence):

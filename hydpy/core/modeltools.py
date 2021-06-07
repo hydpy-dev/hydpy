@@ -73,7 +73,6 @@ class IndexProperty:
 
 
 class Idx_Sim(IndexProperty):
-    # noinspection PyUnresolvedReferences
     """The simulation step index.
 
     Some model methods require to know the index of the current simulation
@@ -108,7 +107,6 @@ class Idx_HRU(IndexProperty):
 
 
 class Model:
-    # noinspection PyUnresolvedReferences
     """Base class for all hydrological models.
 
     Class |Model| provides everything to create a usable application
@@ -241,7 +239,6 @@ a group of masks (at the moment).
                     setattr(self, shortname, method)
 
     def connect(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Connect all |LinkSequence| objects and the selected |InputSequence|
         and |OutputSequence| objects of the actual model to the corresponding
         |NodeSequence| objects.
@@ -490,7 +487,7 @@ occurred: No input sequence of model hland_v1` is named `q0`.
         ...
         TypeError: While trying to build the node connection of the `output` \
 sequences of the model handled by element `element13`, the following error \
-occurred: No flux or state sequence of model `hland_v1` is named `p`.
+occurred: No factor, flux, or state sequence of model `hland_v1` is named `p`.
 
         So far, you can build connections to 0-dimensional output sequences
         only:
@@ -540,6 +537,7 @@ but sequence `pc` is 1-dimensional.
             for node in self.element.outputs:
                 if isinstance(node.variable, devicetools.FusedVariable):
                     for sequence in itertools.chain(
+                        self.sequences.factors,
                         self.sequences.fluxes,
                         self.sequences.states,
                     ):
@@ -553,12 +551,14 @@ but sequence `pc` is 1-dimensional.
                         )
                 else:
                     name = node.variable.__name__.lower()
-                    sequence = getattr(self.sequences.fluxes, name, None)
+                    sequence = getattr(self.sequences.factors, name, None)
+                    if sequence is None:
+                        sequence = getattr(self.sequences.fluxes, name, None)
                     if sequence is None:
                         sequence = getattr(self.sequences.states, name, None)
                     if sequence is None:
                         raise TypeError(
-                            f"No flux or state sequence of model "
+                            f"No factor, flux, or state sequence of model "
                             f"`{self}` is named `{name}`."
                         )
                 if sequence.NDIM > 0:
@@ -775,14 +775,12 @@ but sequence `pc` is 1-dimensional.
             self.sequences.states.new2old()
 
     def update_outputs(self) -> None:
-        """Call method |OutputSequences.update_outputs| of subattributes
-        `sequences.fluxes` and `sequences.states`.
+        """Call method |Sequences.update_outputs| of attribute |Model.sequences|.
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
         """
-        self.sequences.fluxes.update_outputs()
-        self.sequences.states.update_outputs()
+        self.sequences.update_outputs()
 
     @classmethod
     def get_methods(cls) -> Iterator[Method]:
@@ -825,6 +823,7 @@ but sequence `pc` is 1-dimensional.
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
             (st.FluxSequences, st.FluxSequence, set()),
+            (st.FactorSequences, st.FactorSequence, set()),
             (st.StateSequences, st.StateSequence, set()),
             (st.LogSequences, st.LogSequence, set()),
             (st.AideSequences, st.AideSequence, set()),
@@ -905,25 +904,6 @@ but sequence `pc` is 1-dimensional.
                     "__module__": modulename,
                 },
             )
-
-    # sorting with dependencies, or is the definition order always okay?
-    #
-    # @classmethod
-    # def _sort_derivedparameters(
-    #         cls,
-    #         parameters: Iterable[Type[parametertools.Parameter]]
-    # ) -> Tuple[Type[parametertools.Parameter], ...]:
-    #     dps = []
-    #     for newpar in parameters:
-    #         for idx, oldpar in enumerate(dps):
-    #             print(newpar, oldpar, idx)
-    #             if newpar in getattr(oldpar, "DERIVEDPARAMETERS", ()):
-    #                 dps.insert(idx, newpar)
-    #                 print("done")
-    #                 break
-    #         else:
-    #             dps.append(newpar)
-    #     return tuple(dps)
 
     def __getattr__(self, item):
         if item in ("parameters", "sequences"):
@@ -1178,7 +1158,7 @@ class ELSModel(SolverModel):
     to avoid needlessly long simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.DependentSequence, ...]]
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS = (
@@ -1213,7 +1193,6 @@ class ELSModel(SolverModel):
         self.update_outputs()
 
     def solve(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Solve all `FULL_ODE_METHODS` in parallel.
 
         Implementing numerical integration algorithms that (hopefully)
@@ -1654,7 +1633,6 @@ class ELSModel(SolverModel):
         self.get_sum_fluxes()
 
     def calculate_single_terms(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1670,7 +1648,6 @@ class ELSModel(SolverModel):
             method.__call__(self)
 
     def calculate_full_terms(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
 
         >>> from hydpy.models.test_v1 import *
@@ -1688,8 +1665,6 @@ class ELSModel(SolverModel):
             method.__call__(self)
 
     def get_point_states(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Load the states corresponding to the actual stage.
 
         >>> from hydpy import round_
@@ -1732,8 +1707,6 @@ class ELSModel(SolverModel):
             state.new = temp[idx]
 
     def set_point_states(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Save the states corresponding to the actual stage.
 
         >>> from hydpy import print_values
@@ -1767,8 +1740,6 @@ class ELSModel(SolverModel):
         self._set_states(self.numvars.idx_stage, "points")
 
     def set_result_states(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Save the final states of the actual method.
 
         >>> from hydpy import print_values
@@ -1808,8 +1779,6 @@ class ELSModel(SolverModel):
             temp[idx] = state.new
 
     def get_sum_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Get the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -1836,8 +1805,6 @@ class ELSModel(SolverModel):
             flux(getattr(fluxes.fastaccess, f"_{flux.name}_sum"))
 
     def set_point_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Save the fluxes corresponding to the actual stage.
 
         >>> from hydpy import print_values
@@ -1869,8 +1836,6 @@ class ELSModel(SolverModel):
         self._set_fluxes(self.numvars.idx_stage, "points")
 
     def set_result_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Save the final fluxes of the actual method.
 
         >>> from hydpy import print_values
@@ -1909,8 +1874,6 @@ class ELSModel(SolverModel):
             temp[idx] = flux
 
     def integrate_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Perform a dot multiplication between the fluxes and the
         A coefficients associated with the different stages of the
         actual method.
@@ -1959,8 +1922,6 @@ class ELSModel(SolverModel):
             flux(self.numvars.dt * numpy.dot(coefs, points[: self.numvars.idx_method]))
 
     def reset_sum_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Set the sum of the fluxes calculated so far to zero.
 
         >>> from hydpy.models.test_v1 import *
@@ -1990,8 +1951,6 @@ class ELSModel(SolverModel):
                 setattr(fluxes.fastaccess, f"_{flux.name}_sum", 0.0)
 
     def addup_fluxes(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Add up the sum of the fluxes calculated so far.
 
         >>> from hydpy.models.test_v1 import *
@@ -2021,8 +1980,6 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f"_{flux.name}_sum", sum_)
 
     def calculate_error(self) -> None:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyProtectedMember
         """Estimate the numerical error based on the relevant fluxes
         calculated by the current and the last method.
 
@@ -2125,7 +2082,6 @@ class ELSModel(SolverModel):
                 )
 
     def extrapolate_error(self) -> None:
-        # noinspection PyUnresolvedReferences
         """Estimate the numerical error expected when applying all methods
          available based on the results of the current and the last method.
 

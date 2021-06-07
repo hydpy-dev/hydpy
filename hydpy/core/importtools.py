@@ -106,6 +106,7 @@ def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
         cls_inlets=dict_.get("InletSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
         cls_inputs=dict_.get("InputSequences"),
+        cls_factors=dict_.get("FactorSequences"),
         cls_fluxes=dict_.get("FluxSequences"),
         cls_states=dict_.get("StateSequences"),
         cls_logs=dict_.get("LogSequences"),

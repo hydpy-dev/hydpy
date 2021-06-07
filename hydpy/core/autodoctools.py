@@ -87,6 +87,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict(
     (
         ("sequences", "Sequence tools"),
         ("inputs", "Input sequences"),
+        ("factors", "Factor sequences"),
         ("fluxes", "Flux sequences"),
         ("states", "State sequences"),
         ("logs", "Log sequences"),

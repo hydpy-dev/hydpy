@@ -167,6 +167,11 @@
         </additems>
         <getitems>
             <hland_v1>
+                <factors>
+                    <selections/>
+                    <devices>land_dill</devices>
+                    <tmean/>
+                </factors>
                 <fluxes>
                     <selections/>
                     <devices>land_dill</devices>

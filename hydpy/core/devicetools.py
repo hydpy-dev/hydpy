@@ -359,9 +359,9 @@ class FusedVariable:
     >>> evap.model.sequences.inputs.airtemperature
     airtemperature(-273.15)
 
-    The output sequence |evap_fluxes.ReferenceEvapotranspiration| is also
-    well connected.  Calling method |Model.update_outputs| passes its
-    (manually set) value to node `e`, respectively:
+    The output sequence |evap_fluxes.ReferenceEvapotranspiration| is also well
+    connected.  A call to method |Model.update_outputs| passes its (manually set) value
+    to node `e`, respectively:
 
     >>> evap.model.sequences.fluxes.referenceevapotranspiration = 999.9
     >>> evap.model.update_outputs()
@@ -401,7 +401,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
 
 
     Defining additional fused variables with the same member sequences does
-    not seem advisable, but is allowed:
+    not seem advisable but is allowed:
 
     >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
     >>> T is Temp
@@ -1249,10 +1249,9 @@ class Elements(Devices["Element"]):
     def prepare_models(self) -> None:
         """Call method |Element.prepare_model| of all handle |Element| objects.
 
-        We show, based the `LahnH` example project, that method
-        |Element.init_model| prepares the |Model| objects of all elements,
-        including building the required connections and updating the
-        derived parameters:
+        We show, based on the `LahnH` example project, that method |Element.init_model|
+        prepares the |Model| objects of all elements, including building the required
+        connections and updating the derived parameters:
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1420,6 +1419,13 @@ Use method `prepare_models` instead.
             element.prepare_inputseries(ramflag)
 
     @printtools.print_progress
+    def prepare_factorseries(self, ramflag: bool = True) -> None:
+        """Call method |Element.prepare_factor_series| of all handled |Element|
+        objects."""
+        for element in printtools.progressbar(self):
+            element.prepare_factorseries(ramflag)
+
+    @printtools.print_progress
     def prepare_fluxseries(self, ramflag: bool = True) -> None:
         """Call method |Element.prepare_fluxseries| of all handled
         |Element| objects."""
@@ -1435,9 +1441,10 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def load_allseries(self) -> None:
-        """Call methods |Elements.load_inputseries|,
+        """Call methods |Elements.load_inputseries|, |Elements.load_factorseries|,
         |Elements.load_fluxseries|, and |Elements.load_stateseries|."""
         self.load_inputseries()
+        self.load_factorseries()
         self.load_fluxseries()
         self.load_stateseries()
 
@@ -1446,6 +1453,12 @@ Use method `prepare_models` instead.
         """Call method |IOSequence.load_ext| of all |InputSequence| objects
         with an activated |IOSequence.memoryflag|."""
         self.__load_modelseries("inputs")
+
+    @printtools.print_progress
+    def load_factorseries(self) -> None:
+        """Call method |IOSequence.load_ext| of all |FactorSequence| objects with an
+        activated |IOSequence.memoryflag|."""
+        self.__load_modelseries("factors")
 
     @printtools.print_progress
     def load_fluxseries(self) -> None:
@@ -1468,9 +1481,10 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def save_allseries(self) -> None:
-        """Call methods |Elements.save_inputseries|,
+        """Call methods |Elements.save_inputseries|, |Elements.save_factorseries|,
         |Elements.save_fluxseries|, and |Elements.save_stateseries|."""
         self.save_inputseries()
+        self.save_factorseries()
         self.save_fluxseries()
         self.save_stateseries()
 
@@ -1479,6 +1493,12 @@ Use method `prepare_models` instead.
         """Call method |IOSequence.save_ext| of all |InputSequence| objects
         with an activated |IOSequence.memoryflag|."""
         self.__save_modelseries("inputs")
+
+    @printtools.print_progress
+    def save_factorseries(self) -> None:
+        """Call method |IOSequence.save_ext| of all |FactorSequence| objects with an
+        activated |IOSequence.memoryflag|."""
+        self.__save_modelseries("factors")
 
     @printtools.print_progress
     def save_fluxseries(self) -> None:
@@ -2077,9 +2097,9 @@ the given group name `test`.
         >>> dill = hp.nodes.dill
         >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
 
-        Calling method |Node.plot_allseries| prints the time-series of
-        both sequences to the screen immediately (if not, you need to
-        activate the interactive mode of `matplotlib` first):
+        A call to method |Node.plot_allseries| prints the time-series of both sequences
+        to the screen immediately (if not, you need to activate the interactive mode of
+        `matplotlib` first):
 
         >>> figure = dill.plot_allseries()
 
@@ -2934,18 +2954,18 @@ Use method `prepare_model` instead.
         self.model.sequences.close_files()
 
     def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of all `input`, `flux` and
-        `state` sequences of the model handled by this element.
+        """Prepare the |IOSequence.series| objects of all `input`, `factor`, `flux`,
+        and `state` sequences of the model handled by this element.
 
-        Call this method before a simulation run, if you need access to
-        (nearly) all simulated series of the handled model after the
-        simulation run is finished.
+        Call this method before a simulation run, if you need access to (nearly) all
+        simulated series of the handled model after the simulation run is finished.
 
-        By default, the time-series are stored in RAM, which is the faster
-        option.  If your RAM is limited, pass |False| to function argument
-        `ramflag` to store the series on disk.
+        By default, the time-series are stored in RAM, which is the faster option.  If
+        your RAM is limited, pass |False| to function argument `ramflag` to store the
+        series on disk.
         """
         self.prepare_inputseries(ramflag)
+        self.prepare_factorseries(ramflag)
         self.prepare_fluxseries(ramflag)
         self.prepare_stateseries(ramflag)
 
@@ -2956,6 +2976,14 @@ Use method `prepare_model` instead.
         See method |Element.prepare_allseries| for further information.
         """
         self.__prepare_series("inputs", ramflag)
+
+    def prepare_factorseries(self, ramflag: bool = True) -> None:
+        """Prepare the |IOSequence.series| objects of the `factor` sequences of the
+        model handled by this element.
+
+        See method |Element.prepare_allseries| for further information.
+        """
+        self.__prepare_series("factors", ramflag)
 
     def prepare_fluxseries(self, ramflag: bool = True) -> None:
         """Prepare the |IOSequence.series| objects of the `flux` sequences
@@ -3096,9 +3124,10 @@ Use method `prepare_model` instead.
 
         .. image:: Element_plot_inputseries.png
 
-        Methods |Element.plot_fluxseries| and |Element.plot_stateseries| work in the
-        same manner.  Before applying them, one has to calculate the time-series of
-        the |FluxSequence| and |StateSequence| objects first:
+        Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and
+        |Element.plot_stateseries| work in the same manner.  Before applying them, one
+        has to calculate the time-series of the |FactorSequence|, |FluxSequence|, and
+        |StateSequence| objects:
 
         >>> hp.simulate()
 
@@ -3122,23 +3151,50 @@ Use method `prepare_model` instead.
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
         ...     figure = land.plot_stateseries(["sp", "wc"])
-        >>> save_autofig("Element_plot_stateseries1.png", figure)
+        >>> save_autofig("Element_plot_stateseries.png", figure)
 
-        .. image:: Element_plot_stateseries1.png
+        .. image:: Element_plot_stateseries.png
 
-        Alternatively, you can print the averaged time-series by assigning |True| to
-        argument `average`.  We demonstrate this functionality for the state sequence
-        |hland_states.SM| (this time, without focusing on the time-series y-extent:
+        Alternatively, you can print the averaged time-series by assigning |True| to the
+        argument `average`.  We demonstrate this functionality for the factor sequence
+        |hland_factors.TC| (this time, without focusing on the time-series y-extent):
 
-        >>> figure = land.plot_stateseries(["sm"], colors=("grey",))
-        >>> figure = land.plot_stateseries(
-        ...     ["sm"], average=True, focus=False, colors="black", linewidths=3)
-        >>> save_autofig("Element_plot_stateseries2.png", figure)
+        >>> figure = land.plot_factorseries(["tc"], colors=("grey",))
+        >>> figure = land.plot_factorseries(
+        ...     ["tc"], average=True, focus=False, colors="black", linewidths=3)
+        >>> save_autofig("Element_plot_factorseries.png", figure)
 
-        .. image:: Element_plot_stateseries2.png
+        .. image:: Element_plot_factorseries.png
         """
         return self._plot_series(
             subseqs=self.model.sequences.inputs,
+            names=names,
+            average=average,
+            labels=labels,
+            colors=colors,
+            linestyles=linestyles,
+            linewidths=linewidths,
+            focus=focus,
+        )
+
+    def plot_factorseries(
+        self,
+        names: Optional[Sequence[str]] = None,
+        *,
+        average: bool = False,
+        labels: Optional[Tuple[str, ...]] = None,
+        colors: Optional[Union[str, Tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        focus: bool = True,
+    ) -> "pyplot.Figure":
+        """Plot the `factor` series of the handled model.
+
+        See the documentation on method |Element.plot_inputseries| for additional
+        information.
+        """
+        return self._plot_series(
+            subseqs=self.model.sequences.factors,
             names=names,
             average=average,
             labels=labels,

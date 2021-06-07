@@ -140,6 +140,7 @@ class Tester:
          'hland_constants.py',
          'hland_control.py',
          'hland_derived.py',
+         'hland_factors.py',
          'hland_fixed.py',
          'hland_fluxes.py',
          'hland_inputs.py',
@@ -171,6 +172,7 @@ class Tester:
         ['hland_constants',
          'hland_control',
          'hland_derived',
+         'hland_factors',
          'hland_fixed',
          'hland_fluxes',
          'hland_inputs',
@@ -215,6 +217,8 @@ class Tester:
             * hland_control:
                 no failures occurred
             * hland_derived:
+                no failures occurred
+            * hland_factors:
                 no failures occurred
             * hland_fixed:
                 no failures occurred
@@ -751,10 +755,10 @@ datetime of the Python standard library for for further information.
             seq.activate_ram()
 
     def extract_print_sequences(self):
-        """Return a list of all input, flux and state sequences of the model
-        as well as the simulation sequences of all nodes."""
+        """Return a list of all input, factor, flux, and state sequences of the model
+        and the simulation sequences of all nodes."""
         seqs = []
-        for name in ("inputs", "fluxes", "states"):
+        for name in ("inputs", "factors", "fluxes", "states"):
             subseqs = getattr(self.element.model.sequences, name, ())
             for seq in subseqs:
                 seqs.append(seq)
@@ -771,6 +775,7 @@ datetime of the Python standard library for for further information.
         series and set the initial conditions."""
         if update_parameters:
             self.model.parameters.update()
+        self.element.prepare_factorseries()
         self.element.prepare_fluxseries()
         self.element.prepare_stateseries()
         self.reset_outputs()

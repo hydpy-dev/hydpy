@@ -19,6 +19,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
@@ -3721,6 +3722,51 @@ class LogSequence(
     """
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
+
+
+class LogSequenceFixed(LogSequence):
+    """Base class for log sequences with a fixed shape."""
+
+    NDIM = 1
+    SHAPE: int
+
+    def _finalise_connections(self):
+        self.shape = (self.SHAPE,)
+
+    def __hydpy__get_shape__(self):
+        """Parameter derived from |LogSequenceFixed| are generally initialised with a
+        fixed shape.
+
+        We take parameter |dam_logs.LoggedRequiredRemoteRelease| of base model |dam| as
+        an example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedrequiredremoterelease.shape
+        (1,)
+
+        Trying to set a new shape results in the following exceptions:
+
+        >>> logs.loggedrequiredremoterelease.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of parameter `loggedrequiredremoterelease` cannot \
+be changed, but this was attempted for element `?`.
+
+        See the documentation on property |Variable.shape| of class |Variable| for
+        further information.
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
+        if exceptiontools.attrready(self, "shape"):
+            raise AttributeError(
+                f"The shape of parameter `{self.name}` cannot be changed, but this "
+                f"was attempted for element `{objecttools.devicename(self)}`."
+            )
+        super().__hydpy__set_shape__(shape)
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class AideSequence(

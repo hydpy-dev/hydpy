@@ -1159,7 +1159,7 @@ class PyxWriter:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_points")
                     lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_results")
-                    if isinstance(subseqs, sequencetools.DependentSequence):
+                    if isinstance(subseqs, sequencetools.FluxSequences):
                         lines.add(
                             1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals"
                         )

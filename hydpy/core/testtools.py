@@ -1847,6 +1847,7 @@ def check_selectedvariables(
         "der",
         "fix",
         "inp",
+        "fac",
         "flu",
         "sta",
         "old",

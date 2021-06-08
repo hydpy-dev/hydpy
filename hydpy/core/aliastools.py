@@ -169,20 +169,21 @@ def write_sequencealiases() -> None:
     >>> from hydpy.core.aliastools import write_sequencealiases
     >>> write_sequencealiases()
     """
+    sqt = sequencetools
     modelpath: str = models.__path__[0]  # type: ignore[attr-defined, modelname-defined]
     for groupnames, sequencetypes, filename in (
         (
             ("inputs",),
-            (sequencetools.InputSequence,),
+            (sqt.InputSequence,),
             "inputs.py",
         ),
         (
-            ("fluxes", "states"),
-            (sequencetools.FluxSequence, sequencetools.StateSequence),
+            ("factors", "fluxes", "states"),
+            (sqt.FactorSequence, sqt.FluxSequence, sqt.StateSequence),
             "outputs.py",
         ),
     ):
-        sequence2alias: Dict[sequencetools.TypesInOutSequence, str] = {}
+        sequence2alias: Dict[sqt.TypesInOutSequence, str] = {}
         for moduleinfo in pkgutil.walk_packages([modelpath]):
             if not moduleinfo.ispkg:
                 continue

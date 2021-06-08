@@ -10,6 +10,7 @@ from hydpy.cythons.autogen import smoothutils
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
+from hydpy.models.dam import dam_factors
 from hydpy.models.dam import dam_fluxes
 from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
@@ -153,7 +154,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualevaporation_v1,
         ...                 last_example=10,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.actualevaporation))
         >>> test.nexts.waterlevel = [value / 1000.0 for value in range(-1, 9)]
 
@@ -206,7 +207,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
     DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
     REQUIREDSEQUENCES = (
         dam_fluxes.AdjustedEvaporation,
-        dam_aides.WaterLevel,
+        dam_factors.WaterLevel,
     )
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
@@ -214,10 +215,10 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         flu.actualevaporation = flu.adjustedevaporation * smoothutils.smooth_logistic1(
-            aid.waterlevel - con.thresholdevaporation, der.smoothparevaporation
+            fac.waterlevel - con.thresholdevaporation, der.smoothparevaporation
         )
 
 
@@ -414,7 +415,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
         >>> test = UnitTest(
         ...     model, model.calc_waterlevel_v1,
         ...     last_example=10,
-        ...     parseqs=(states.watervolume, aides.waterlevel))
+        ...     parseqs=(states.watervolume, factors.waterlevel))
         >>> test.nexts.watervolume = range(10)
         >>> test()
         | ex. | watervolume | waterlevel |
@@ -436,16 +437,16 @@ class Calc_WaterLevel_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterVolume2WaterLevel,)
     REQUIREDSEQUENCES = (dam_states.WaterVolume,)
-    RESULTSEQUENCES = (dam_aides.WaterLevel,)
+    RESULTSEQUENCES = (dam_factors.WaterLevel,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         new = model.sequences.states.fastaccess_new
-        aid = model.sequences.aides.fastaccess
+        fac = model.sequences.factors.fastaccess
         con.watervolume2waterlevel.inputs[0] = new.watervolume
         con.watervolume2waterlevel.calculate_values()
-        aid.waterlevel = con.watervolume2waterlevel.outputs[0]
+        fac.waterlevel = con.watervolume2waterlevel.outputs[0]
 
 
 class Calc_SurfaceArea_V1(modeltools.Method):
@@ -494,7 +495,7 @@ class Calc_SurfaceArea_V1(modeltools.Method):
         >>> from hydpy import NumericalDifferentiator, round_
         >>> numdiff = NumericalDifferentiator(
         ...     xsequence=states.watervolume,
-        ...     ysequences=[aides.waterlevel],
+        ...     ysequences=[factors.waterlevel],
         ...     methods=[model.calc_waterlevel_v1])
         >>> numdiff()
         d_waterlevel/d_watervolume: 0.005433
@@ -564,7 +565,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.calc_allowedremoterelief_v2,
         ...                 last_example=9,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.allowedremoterelief))
         >>> test.nexts.waterlevel = range(9)
 
@@ -617,19 +618,19 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelReliefSmoothPar,
     )
-    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         toy = der.toy[model.idx_sim]
         flu.allowedremoterelief = (
             smoothutils.smooth_logistic1(
-                con.waterlevelreliefthreshold[toy] - aid.waterlevel,
+                con.waterlevelreliefthreshold[toy] - fac.waterlevel,
                 der.waterlevelreliefsmoothpar[toy],
             )
             * con.highestremoterelief[toy]
@@ -670,7 +671,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.calc_requiredremotesupply_v1,
         ...                 last_example=9,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.requiredremotesupply))
         >>> test.nexts.waterlevel = range(9)
         >>> model.idx_sim = pub.timegrids.init["2001.03.30"]
@@ -708,19 +709,19 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelSupplySmoothPar,
     )
-    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         toy = der.toy[model.idx_sim]
         flu.requiredremotesupply = (
             smoothutils.smooth_logistic1(
-                con.waterlevelsupplythreshold[toy] - aid.waterlevel,
+                con.waterlevelsupplythreshold[toy] - fac.waterlevel,
                 der.waterlevelsupplysmoothpar[toy],
             )
             * con.highestremotesupply[toy]
@@ -792,14 +793,12 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
     Examples:
 
-        Low water elevation is often restricted to specific month of the year.
-        Sometimes the pursued lowest discharge value varies over the year
-        to allow for a low flow variability that is in some agreement with
-        the natural flow regime.  The HydPy-Dam model supports such
-        variations.  Hence we define a short simulation time period first.
-        This enables us to show how the related parameters values can be
-        defined and how the calculation of the `remote` water demand
-        throughout the year actually works:
+        Low water elevation is often restricted to specific months of the year.
+        Sometimes the pursued lowest discharge value varies over the year to allow for
+        a low flow variability in some agreement with the natural flow regime.  The
+        HydPy-Dam model supports such variations.  Hence we define a short simulation
+        period first, allowing us to show how we can define the corresponding parameter
+        values and how calculating the `remote` water demand throughout the year works:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
@@ -1308,7 +1307,7 @@ class Calc_PossibleRemoteRelief_V1(modeltools.Method):
         >>> test = UnitTest(
         ...     model, model.calc_possibleremoterelief_v1,
         ...     last_example=21,
-        ...     parseqs=(aides.waterlevel, fluxes.possibleremoterelief))
+        ...     parseqs=(factors.waterlevel, fluxes.possibleremoterelief))
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
         >>> test()
         | ex. | waterlevel | possibleremoterelief |
@@ -1337,15 +1336,15 @@ class Calc_PossibleRemoteRelief_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.WaterLevel2PossibleRemoteRelief,)
-    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.PossibleRemoteRelief,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
-        con.waterlevel2possibleremoterelief.inputs[0] = aid.waterlevel
+        fac = model.sequences.factors.fastaccess
+        con.waterlevel2possibleremoterelief.inputs[0] = fac.waterlevel
         con.waterlevel2possibleremoterelief.calculate_values()
         flu.possibleremoterelief = con.waterlevel2possibleremoterelief.outputs[0]
 
@@ -1900,7 +1899,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualrelease_v1,
         ...                 last_example=7,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.actualrelease))
         >>> test.nexts.waterlevel = range(-1, 6)
 
@@ -1997,7 +1996,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.TargetedRelease,
-        dam_aides.WaterLevel,
+        dam_factors.WaterLevel,
     )
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
@@ -2005,10 +2004,10 @@ class Calc_ActualRelease_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         flu.actualrelease = flu.targetedrelease * smoothutils.smooth_logistic1(
-            aid.waterlevel - con.waterlevelminimumthreshold,
+            fac.waterlevel - con.waterlevelminimumthreshold,
             der.waterlevelminimumsmoothpar,
         )
 
@@ -2049,7 +2048,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualrelease_v2,
         ...                 last_example=9,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.actualrelease))
         >>> test.nexts.waterlevel = 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
 
@@ -2107,19 +2106,19 @@ class Calc_ActualRelease_V2(modeltools.Method):
         dam_derived.TOY,
         dam_derived.WaterLevelMinimumSmoothPar,
     )
-    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         flu.actualrelease = con.allowedrelease[
             der.toy[model.idx_sim]
         ] * smoothutils.smooth_logistic1(
-            aid.waterlevel - con.waterlevelminimumthreshold,
+            fac.waterlevel - con.waterlevelminimumthreshold,
             der.waterlevelminimumsmoothpar,
         )
 
@@ -2972,7 +2971,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualremoterelease_v1,
         ...                 last_example=7,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.actualremoterelease))
         >>> test.nexts.waterlevel = range(-1, 6)
 
@@ -3030,7 +3029,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumRemoteSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.RequiredRemoteRelease,
-        dam_aides.WaterLevel,
+        dam_factors.WaterLevel,
     )
     RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
@@ -3038,12 +3037,12 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
         flu.actualremoterelease = (
             flu.requiredremoterelease
             * smoothutils.smooth_logistic1(
-                aid.waterlevel - con.waterlevelminimumremotethreshold,
+                fac.waterlevel - con.waterlevelminimumremotethreshold,
                 der.waterlevelminimumremotesmoothpar,
             )
         )
@@ -3288,7 +3287,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.calc_flooddischarge_v1,
         ...                 last_example=21,
-        ...                 parseqs=(aides.waterlevel,
+        ...                 parseqs=(factors.waterlevel,
         ...                          fluxes.flooddischarge))
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
         >>> test()
@@ -3323,16 +3322,16 @@ class Calc_FloodDischarge_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterLevel2FloodDischarge,)
     DERIVEDPARAMETERS = (dam_derived.TOY,)
-    REQUIREDSEQUENCES = (dam_aides.WaterLevel,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.FloodDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
-        con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
+        con.waterlevel2flooddischarge.inputs[0] = fac.waterlevel
         con.waterlevel2flooddischarge.calculate_values(der.toy[model.idx_sim])
         flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 

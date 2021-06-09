@@ -370,8 +370,14 @@ class ArrayDescriptor:
     def __set__(self, obj, values):
         self.__delete__(obj)
         if values is not None:
+            names = tuple(value[0].name for value in values)
+            duplicates = any(names.count(name) > 1 for name in names)
             for (key, value) in values:
-                setattr(self.values, key.name, value)
+                if duplicates:
+                    name = objecttools.devicename(key)
+                    setattr(self.values, f"{name}_{key.name}", value)
+                else:
+                    setattr(self.values, key.name, value)
 
     def __get__(self, obj, type_=None):
         return self.values
@@ -795,13 +801,15 @@ datetime of the Python standard library for for further information.
     def reset_inits(self):
         """Set all initial conditions of all models."""
         with hydpy.pub.options.trimvariables(False):
+            inits = self.inits
             for subname in ("states", "logs"):
                 for element in self.elements:
                     for seq in getattr(element.model.sequences, subname, ()):
-                        try:
-                            seq(getattr(self.inits, seq.name))
-                        except AttributeError:
-                            pass
+                        value = getattr(inits, seq.name, None)
+                        if value is None:
+                            value = getattr(inits, f"{element.name}_{seq.name}", None)
+                        if value is not None:
+                            seq(value)
 
     def plot(
         self,

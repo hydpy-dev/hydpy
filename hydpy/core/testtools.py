@@ -1053,7 +1053,9 @@ class UnitTest(Test):
     def memorise_inits(self):
         """Memorise all initial conditions."""
         for parseq in self.parseqs:
-            setattr(self.inits, parseq.name, parseq.values)
+            value = exceptiontools.getattr_(parseq, "value", None)
+            if value is not None:
+                setattr(self.inits, parseq.name, value)
 
     def prepare_output_arrays(self):
         """Prepare arrays for storing the calculated results for the

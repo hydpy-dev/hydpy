@@ -3268,9 +3268,8 @@ class OutputSequence(
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
 
-        Method |OutputSequence.set_pointer| should be of relevance for
-        framework developers and eventually for some model developers
-        only.
+        Method |OutputSequence.set_pointer| should be of relevance for framework
+        developers and eventually for some model developers only.
         """
         pdouble = pointerutils.PDouble(double)
         self.fastaccess.set_pointeroutput(self.name, pdouble)
@@ -3278,11 +3277,10 @@ class OutputSequence(
 
     @property
     def outputflag(self) -> bool:
-        """A flag telling if the actual |OutputSequence| object passes its
-        data to an output node (|True|) or not (|False|).
+        """A flag telling if the actual |OutputSequence| object passes its data to an
+        output node (|True|) or not (|False|).
 
-        See the main documentation on class |OutputSequence| for further
-        information.
+        See the main documentation on class |OutputSequence| for further information.
         """
         return self._get_fastaccessattribute("outputflag")
 
@@ -3361,6 +3359,50 @@ class FactorSequence(
     dirpath_ext = _DirPathProperty()
     aggregation_ext = _AggregationProperty()
     overwrite_ext = _OverwriteProperty()
+
+
+class MixinFixedShape:
+    """Mixin class for defining sequences with a fixed shape."""
+
+    SHAPE: Union[Tuple[int, ...]]
+
+    def _finalise_connections(self):
+        super()._finalise_connections()
+        self.shape = self.SHAPE
+
+    def __hydpy__get_shape__(self):
+        """Sequences that mix in |MixinFixedShape| are generally initialised with a
+        fixed shape.
+
+        We take parameter |exch_factors.WaterLevel| of base model |exch| as an example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> factors.waterlevel.shape
+        (2,)
+
+        Trying to set a new shape results in the following exceptions:
+
+        >>> factors.waterlevel.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of sequence `waterlevel` cannot be changed but this \
+was attempted for element `?`.
+
+        See the documentation on property |Variable.shape| of class |Variable| for
+        further information.
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
+        if exceptiontools.attrready(self, "shape"):
+            raise AttributeError(
+                f"The shape of sequence `{self.name}` cannot be changed but this "
+                f"was attempted for element `{objecttools.devicename(self)}`."
+            )
+        super().__hydpy__set_shape__(shape)
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class FluxSequence(
@@ -3734,7 +3776,7 @@ class LogSequenceFixed(LogSequence):
         self.shape = (self.SHAPE,)
 
     def __hydpy__get_shape__(self):
-        """Parameter derived from |LogSequenceFixed| are generally initialised with a
+        """Sequences derived from |LogSequenceFixed| are generally initialised with a
         fixed shape.
 
         We take parameter |dam_logs.LoggedRequiredRemoteRelease| of base model |dam| as
@@ -3750,8 +3792,8 @@ class LogSequenceFixed(LogSequence):
         >>> logs.loggedrequiredremoterelease.shape = 2
         Traceback (most recent call last):
         ...
-        AttributeError: The shape of parameter `loggedrequiredremoterelease` cannot \
-be changed, but this was attempted for element `?`.
+        AttributeError: The shape of sequence `loggedrequiredremoterelease` cannot be \
+changed, but this was attempted for element `?`.
 
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
@@ -3761,7 +3803,7 @@ be changed, but this was attempted for element `?`.
     def __hydpy__set_shape__(self, shape):
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
-                f"The shape of parameter `{self.name}` cannot be changed, but this "
+                f"The shape of sequence `{self.name}` cannot be changed, but this "
                 f"was attempted for element `{objecttools.devicename(self)}`."
             )
         super().__hydpy__set_shape__(shape)

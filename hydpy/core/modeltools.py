@@ -476,7 +476,7 @@ is among the sequences of the fused variable `Wrong` of node `outp4`.
         ...
         TypeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `element12`, the following error \
-occurred: No input sequence of model hland_v1` is named `q0`.
+occurred: No input sequence of model `hland_v1` is named `q0`.
 
         >>> inp5 = Node("inp5", variable=hland_P)
         >>> element13 = Element("element13",
@@ -513,69 +513,93 @@ but sequence `pc` is 1-dimensional.
         """
         group = "inputs"
         try:
-            for node in self.element.inputs:
-                if isinstance(node.variable, devicetools.FusedVariable):
-                    for sequence in self.sequences.inputs:
-                        if sequence in node.variable:
-                            break
-                    else:
-                        raise TypeError(
-                            f"None of the input sequences of model `{self}` "
-                            f"is among the sequences of the fused variable "
-                            f"`{node.variable}` of node `{node.name}`."
-                        )
-                else:
-                    name = node.variable.__name__.lower()
-                    try:
-                        sequence = getattr(self.sequences.inputs, name)
-                    except AttributeError:
-                        raise TypeError(
-                            f"No input sequence of model " f"{self}` is named `{name}`."
-                        ) from None
-                sequence.set_pointer(node.get_double(group))
+            self._connect_inputs()
             group = "outputs"
-            for node in self.element.outputs:
-                if isinstance(node.variable, devicetools.FusedVariable):
-                    for sequence in itertools.chain(
-                        self.sequences.factors,
-                        self.sequences.fluxes,
-                        self.sequences.states,
-                    ):
-                        if sequence in node.variable:
-                            break
-                    else:
-                        raise TypeError(
-                            f"None of the output sequences of model `{self}` "
-                            f"is among the sequences of the fused variable "
-                            f"`{node.variable}` of node `{node.name}`."
-                        )
-                else:
-                    name = node.variable.__name__.lower()
-                    sequence = getattr(self.sequences.factors, name, None)
-                    if sequence is None:
-                        sequence = getattr(self.sequences.fluxes, name, None)
-                    if sequence is None:
-                        sequence = getattr(self.sequences.states, name, None)
-                    if sequence is None:
-                        raise TypeError(
-                            f"No factor, flux, or state sequence of model "
-                            f"`{self}` is named `{name}`."
-                        )
-                if sequence.NDIM > 0:
-                    raise TypeError(
-                        f"Only connections with 0-dimensional output "
-                        f"sequences are supported, but sequence "
-                        f"`{sequence.name}` is {sequence.NDIM}-dimensional."
-                    )
-                sequence.set_pointer(node.get_double(group))
-            for group in ("inlets", "receivers", "outlets", "senders"):
-                self._connect_subgroup(group)
+            self._connect_outputs()
+            group = "inlets"
+            self._connect_inlets()
+            group = "receivers"
+            self._connect_receivers()
+            group = "outlets"
+            self._connect_outlets()
+            group = "senders"
+            self._connect_senders()
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to build the node connection of "
-                f"the `{group[:-1]}` sequences of the model handled "
-                f"by element `{objecttools.devicename(self)}`"
+                f"While trying to build the node connection of the `{group[:-1]}` "
+                f"sequences of the model handled by element "
+                f"`{objecttools.devicename(self)}`"
             )
+
+    def _connect_inputs(self) -> None:
+        for node in self.element.inputs:
+            if isinstance(node.variable, devicetools.FusedVariable):
+                for sequence in self.sequences.inputs:
+                    if sequence in node.variable:
+                        break
+                else:
+                    raise TypeError(
+                        f"None of the input sequences of model `{self}` is among the "
+                        f"sequences of the fused variable `{node.variable}` of node "
+                        f"`{node.name}`."
+                    )
+            else:
+                name = node.variable.__name__.lower()
+                try:
+                    sequence = getattr(self.sequences.inputs, name)
+                except AttributeError:
+                    raise TypeError(
+                        f"No input sequence of model `{self}` is named `{name}`."
+                    ) from None
+            sequence.set_pointer(node.get_double("inputs"))
+
+    def _connect_outputs(self) -> None:
+        for node in self.element.outputs:
+            if isinstance(node.variable, devicetools.FusedVariable):
+                for sequence in itertools.chain(
+                    self.sequences.factors,
+                    self.sequences.fluxes,
+                    self.sequences.states,
+                ):
+                    if sequence in node.variable:
+                        break
+                else:
+                    raise TypeError(
+                        f"None of the output sequences of model `{self}` is among the "
+                        f"sequences of the fused variable `{node.variable}` of node "
+                        f"`{node.name}`."
+                    )
+            else:
+                name = node.variable.__name__.lower()
+                sequence = getattr(self.sequences.factors, name, None)
+                if sequence is None:
+                    sequence = getattr(self.sequences.fluxes, name, None)
+                if sequence is None:
+                    sequence = getattr(self.sequences.states, name, None)
+                if sequence is None:
+                    raise TypeError(
+                        f"No factor, flux, or state sequence of model `{self}` is "
+                        f"named `{name}`."
+                    )
+            if sequence.NDIM > 0:
+                raise TypeError(
+                    f"Only connections with 0-dimensional output sequences are "
+                    f"supported, but sequence `{sequence.name}` is "
+                    f"{sequence.NDIM}-dimensional."
+                )
+            sequence.set_pointer(node.get_double("outputs"))
+
+    def _connect_inlets(self) -> None:
+        self._connect_subgroup("inlets")
+
+    def _connect_receivers(self) -> None:
+        self._connect_subgroup("receivers")
+
+    def _connect_outlets(self) -> None:
+        self._connect_subgroup("outlets")
+
+    def _connect_senders(self) -> None:
+        self._connect_subgroup("senders")
 
     def _connect_subgroup(self, group: str) -> None:
         available_nodes = getattr(self.element, group)

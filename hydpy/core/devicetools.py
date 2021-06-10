@@ -9,19 +9,17 @@ cannot initialise objects of class |Device| directly).  On the other hand,
 "nodes", for example, does not necessarily mean an object of class |Nodes|,
 but any other group of |Node| objects as well.
 
-Each element handles a single |Model| object and represents, for example,
-a subbasin or a channel segment.  The purpose of a node is to connect
-different elements, and, for example, to pass the discharge calculated
-for a subbasin outlet (from a first element) to the top of a channel
-segment (to second element).  Class |Node| and |Element| come with
-specialised container classes (|Nodes| and |Elements|).  The names of
-individual nodes and elements serve as identity values, which is why
-duplicate names are not permitted.
+Each element handles a single |Model| object and represents, for example, a subbasin or
+a channel segment.  The purpose of a node is to connect different elements and, for
+example, to pass the discharge calculated for a subbasin outlet (from a first element)
+to the top of a channel segment (to second element).  Class |Node| and |Element| come
+with specialised container classes (|Nodes| and |Elements|).  The names of individual
+nodes and elements serve as identity values, so duplicate names are not permitted.
 
-Note that module |devicetools| implements a registry mechanism both
-for nodes and elements, preventing from instantiating an object with an
-already assigned name.  This mechanism allows to address the same node
-or element in different network files (see module |selectiontools|).
+Note that module |devicetools| implements a registry mechanism both for nodes and
+elements, preventing instantiating an object with an already assigned name.  This
+mechanism allows to address the same node or element in different network files (see
+module |selectiontools|).
 
 Let us take class |Node| as an example.  One can call its constructor
 with the same name multiple times, but it returns already existing
@@ -51,15 +49,14 @@ recovered after its last invocation:
 >>> Node.extract_new()
 Nodes("test1", "test3")
 
-For a complete list of all available nodes, use method |Device.query_all|:
+For a complete list of all available nodes, use the method |Device.query_all|:
 
 >>> Node.query_all()
 Nodes("test1", "test2", "test3")
 
-When working interactively in the Python interpreter, it might be useful
-to clear the registry completely, sometimes.  Do this with care, because
-defining nodes with already assigned names might result in surprises
-due to using their names for identification:
+When working interactively in the Python interpreter, it might be useful to clear the
+registry completely, sometimes.  Do this with care because defining nodes with already
+assigned names might result in surprises due to using their names for identification:
 
 >>> nodes = Node.query_all()
 >>> Node.clear_all()
@@ -107,6 +104,8 @@ if TYPE_CHECKING:
 else:
     pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+
+_default_variable = "Q"
 
 DeviceType = TypeVar("DeviceType", "Node", "Element")
 DevicesTypeBound = TypeVar("DevicesTypeBound", bound="Devices")
@@ -260,8 +259,8 @@ _registry_fusedvariable: Dict[str, "FusedVariable"] = {}
 
 class FusedVariable:
     # noinspection PyUnresolvedReferences
-    """Combines |InputSequence| and |OutputSequence| subclasses of different
-    models, dealing with the same property, into a single variable.
+    """Combines |InputSequence| and |OutputSequence| subclasses of different models
+    dealing with the same property into a single variable.
 
     Class |FusedVariable| is one possible type of the property |Node.variable|
     of class |Node|.  We need it in some *HydPy* projects where the involved
@@ -271,7 +270,7 @@ class FusedVariable:
     models correlate and are thus connectable with each other.
 
     Using class |FusedVariable| is easiest to explain by a concrete example.
-    Assume, we use |conv_v001| to interpolate the air temperature for a
+    Assume we use |conv_v001| to interpolate the air temperature for a
     specific location.  We use this temperature as input to the |evap_v001|
     model, which requires this and other meteorological data to calculate
     potential evapotranspiration.  Further, we pass the calculated potential
@@ -377,12 +376,11 @@ class FusedVariable:
     >>> lland.model.sequences.inputs.pet
     pet(999.9)
 
-    When defining fused variables, class |FusedVariable| performs some
-    registration behind the scenes, similar as classes |Node| and |Element|
-    do.  Again, the name works as the identifier, and we force the same fused
-    variable to exist only once, even when defined in different selection
-    files repeatedly.  Hence, when we repeat the definition from above,
-    we get the same object:
+    When defining fused variables, class |FusedVariable| performs some registration
+    behind the scenes, similar to classes |Node| and |Element| do.  Again, the name
+    works as the identifier, and we force the same fused variable to exist only once,
+    even when defined in different selection files repeatedly.  Hence, when we repeat
+    the definition from above, we get the same object:
 
     >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
     >>> T is Test
@@ -1143,9 +1141,40 @@ which is in conflict with using their names as identifiers.
 class Nodes(Devices["Node"]):
     """A container class for handling |Node| objects.
 
-    For the general usage of |Nodes| objects, please see the documentation
-    on its base class |Devices|.
+    For the general usage of |Nodes| objects, please see the documentation on its base
+    class |Devices|.
+
+    Class |Nodes| provides the additional keyword argument `defaultvariable`.  Use it
+    to temporarily change the default variable "Q" to another value during the
+    initialisation of new |Node| objects:
+
+    >>> from hydpy import Nodes
+    >>> a1, t2 = Nodes("a1", "a2", defaultvariable="A")
+    >>> a1
+    Node("a1", variable="A")
+
+    Be aware that changing the default variable does not affect already existing nodes:
+
+    >>> a1, b1 = Nodes("a1", "b1", defaultvariable="B")
+    >>> a1
+    Node("a1", variable="A")
+    >>> b1
+    Node("b1", variable="B")
     """
+
+    def __new__(
+        cls,
+        *values: MayNonerable2[DeviceType, str],
+        mutable: bool = True,
+        defaultvariable: NodeVariableType = "Q",
+    ):
+        global _default_variable
+        _default_variable_copy = _default_variable
+        try:
+            _default_variable = defaultvariable
+            return super().__new__(cls, *values, mutable=mutable)
+        finally:
+            _default_variable = _default_variable_copy
 
     @staticmethod
     def get_contentclass() -> Type["Node"]:
@@ -1420,7 +1449,7 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def prepare_factorseries(self, ramflag: bool = True) -> None:
-        """Call method |Element.prepare_factor_series| of all handled |Element|
+        """Call method |Element.prepare_factorseries| of all handled |Element|
         objects."""
         for element in printtools.progressbar(self):
             element.prepare_factorseries(ramflag)
@@ -1581,8 +1610,8 @@ class Device(Generic[DevicesTypeUnbound]):
     def name(self) -> str:
         """Name of the actual |Node| or |Element| object.
 
-        Device names serve as identifiers, as explained in the main
-        documentation on module |devicetools|. So define them carefully:
+        Device names serve as identifiers, as explained in the main documentation on
+        module |devicetools|. Hence, define them carefully:
 
         >>> from hydpy import Node
         >>> Node.clear_all()
@@ -1593,7 +1622,7 @@ class Device(Generic[DevicesTypeUnbound]):
         False
 
         Each device name must be a valid variable identifier (see function
-        |valid_variable_identifier|), to allow for attribute access:
+        |valid_variable_identifier|) to allow for attribute access:
 
         >>> from hydpy import Nodes
         >>> nodes = Nodes(node1, "n2")
@@ -1749,7 +1778,7 @@ immutable Elements objects is not allowed.
         # required for consistincy with Device.__new__
         if "new_instance" in vars(self):
             if variable is None:
-                vars(self)["variable"] = "Q"
+                vars(self)["variable"] = _default_variable
             else:
                 vars(self)["variable"] = variable
             vars(self)["entries"] = Elements(None, mutable=False)
@@ -1802,9 +1831,8 @@ immutable Elements objects is not allowed.
         >>> node.variable
         'Q'
 
-        Each other string, as well as each |InputSequence| subclass, is
-        acceptable (for further information see the documentation on
-        method |Model.connect|):
+        Each other string, as well as each |InputSequence| subclass, is acceptable (for
+        further information, see the documentation on method |Model.connect|):
 
         >>> Node("test2", variable="H")
         Node("test2", variable="H")
@@ -1968,9 +1996,9 @@ the value `oldobs` was given, but only the following values are allowed: \
         outlets 1.0
         senders 1.0
 
-        Setting |Node.deploymode| to `obs` means that a node receives
-        simulated values (from group `outlets` or `senders`), but provides
-        observed values (to group `inlets` or `receivers`):
+        Setting |Node.deploymode| to `obs` means that a node receives simulated values
+        (from group `outlets` or `senders`) but provides observed values (to group
+        `inlets` or `receivers`):
 
         >>> test("obs")
         inlets 2.0
@@ -1978,11 +2006,10 @@ the value `oldobs` was given, but only the following values are allowed: \
         outlets 1.0
         senders 1.0
 
-        With |Node.deploymode| set to `oldsim`, the node provides
-        (previously) simulated values (to group `inlets` or `receivers`)
-        but does not receive any values.  Method |Node.get_double| just
-        returns a dummy |Double| object with value 0.0 in this case
-        (for group `outlets` or `senders`):
+        With |Node.deploymode| set to `oldsim`, the node provides (previously)
+        simulated values (to group `inlets` or `receivers`) but does not receive any
+        values.  Method |Node.get_double| just returns a dummy |Double| object
+        initialised to 0.0 in this case (for group `outlets` or `senders`):
 
         >>> test("oldsim")
         inlets 1.0
@@ -1995,8 +2022,8 @@ the value `oldobs` was given, but only the following values are allowed: \
         >>> node.get_double("test")
         Traceback (most recent call last):
         ...
-        ValueError: Function `get_double` of class `Node` does not support \
-the given group name `test`.
+        ValueError: Function `get_double` of class `Node` does not support the given \
+group name `test`.
         """
         if group in ("inlets", "receivers", "inputs"):
             if not self.deploymode.startswith("obs"):
@@ -2327,9 +2354,8 @@ class Element(Device[Elements]):
     """Handles a |Model| object and connects it to other models via
     |Node| objects.
 
-    When preparing |Element| objects one links them to nodes of different
-    "groups", each group of nodes implemented as an immutable |Nodes|
-    object:
+    When preparing |Element| objects, one links them to nodes of different "groups",
+    each group of nodes implemented as an immutable |Nodes| object:
 
      * |Element.inlets| and |Element.outlets| nodes handle, for
        example, the inflow to and the outflow from the respective element.
@@ -2342,9 +2368,8 @@ class Element(Device[Elements]):
      * |Element.outputs| nodes query optional output information, for example,
        the water level of a dam.
 
-    You can select the relevant nodes either by passing them explicitly or
-    through passing their name both as single objects or as objects contained
-    within an iterable object:
+    You can select the relevant nodes either by passing them explicitly or passing
+    their name both as single objects or as objects contained within an iterable object:
 
     >>> from hydpy import Element, Node
     >>> Element("test",

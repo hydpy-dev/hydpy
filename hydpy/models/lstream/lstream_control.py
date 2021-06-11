@@ -64,8 +64,7 @@ class BM(parametertools.Parameter):
 
 
 class BNM(parametertools.Parameter):
-    """Böschungsneigung Hauptgerinne (slope of both main channel embankments)
-    [-]."""
+    """Böschungsneigung Hauptgerinne (slope of both main channel embankments) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -95,22 +94,21 @@ class BNVR(parametertools.LeftRightParameter):
 
 
 class SKM(parametertools.Parameter):
-    """Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main
-    channel) [m^(1/3)/s]."""
+    """Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main channel)
+    [m^(1/3)/s]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class SKV(parametertools.LeftRightParameter):
-    """Rauigkeitsbeiwert Vorländer (roughness coefficient of both
-    forelands) [m^(1/3)/s]."""
+    """Rauigkeitsbeiwert Vorländer (roughness coefficient of both forelands)
+    [m^(1/3)/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class EKM(parametertools.Parameter):
-    """Kalibrierfaktor Hauptgerinne (calibration factor for the main
-    channel) [-]."""
+    """Kalibrierfaktor Hauptgerinne (calibration factor for the main channel) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -122,8 +120,8 @@ class EKV(parametertools.LeftRightParameter):
 
 
 class HR(parametertools.Parameter):
-    """Allgemeiner Glättungsparameter für den Wasserstand (general smoothing
-    parameter for the water stage) [mm]."""
+    """Allgemeiner Glättungsparameter für den Wasserstand (general smoothing parameter
+    for the water stage) [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 

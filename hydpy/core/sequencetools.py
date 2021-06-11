@@ -1427,7 +1427,6 @@ variable `evpo` can only be retrieved after it has been defined.
         self._set_fastaccessattribute("length", 0)
         for idx in range(self.NDIM):
             self._set_fastaccessattribute(f"length_{idx}", 0)
-        self._finalise_connections()
 
     def _get_fastaccessattribute(self, suffix: str) -> Any:
         return getattr(self.fastaccess, f"_{self.name}_{suffix}")
@@ -1438,7 +1437,7 @@ variable `evpo` can only be retrieved after it has been defined.
     def _finalise_connections(self) -> None:
         """A hook method, called at the end of method
         `__hydpy__connect_variable2subgroup__` for initialising
-        values and some related attributes, eventually."""
+        values and some related attributes."""
         if not self.NDIM:
             self.shape = ()
 
@@ -3359,50 +3358,6 @@ class FactorSequence(
     dirpath_ext = _DirPathProperty()
     aggregation_ext = _AggregationProperty()
     overwrite_ext = _OverwriteProperty()
-
-
-class MixinFixedShape:
-    """Mixin class for defining sequences with a fixed shape."""
-
-    SHAPE: Union[Tuple[int, ...]]
-
-    def _finalise_connections(self):
-        super()._finalise_connections()
-        self.shape = self.SHAPE
-
-    def __hydpy__get_shape__(self):
-        """Sequences that mix in |MixinFixedShape| are generally initialised with a
-        fixed shape.
-
-        We take parameter |exch_factors.WaterLevel| of base model |exch| as an example:
-
-        >>> from hydpy.models.exch import *
-        >>> parameterstep()
-        >>> factors.waterlevel.shape
-        (2,)
-
-        Trying to set a new shape results in the following exceptions:
-
-        >>> factors.waterlevel.shape = 2
-        Traceback (most recent call last):
-        ...
-        AttributeError: The shape of sequence `waterlevel` cannot be changed but this \
-was attempted for element `?`.
-
-        See the documentation on property |Variable.shape| of class |Variable| for
-        further information.
-        """
-        return super().__hydpy__get_shape__()
-
-    def __hydpy__set_shape__(self, shape):
-        if exceptiontools.attrready(self, "shape"):
-            raise AttributeError(
-                f"The shape of sequence `{self.name}` cannot be changed but this "
-                f"was attempted for element `{objecttools.devicename(self)}`."
-            )
-        super().__hydpy__set_shape__(shape)
-
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class FluxSequence(

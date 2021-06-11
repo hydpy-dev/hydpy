@@ -1316,13 +1316,16 @@ broadcast input array from shape (2,) into shape (2,3)
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM:
+            if exceptiontools.attrready(self, "shape"):
+                return
             setattr(self.fastaccess, self.name, None)
-        else:
-            initvalue, initflag = self.initinfo
-            if initflag:
-                setattr(self, "value", initvalue)
-            else:
-                setattr(self.fastaccess, self.name, initvalue)
+            return
+        initvalue, initflag = self.initinfo
+        if initflag:
+            setattr(self, "value", initvalue)
+            return
+        setattr(self.fastaccess, self.name, initvalue)
+        return
 
     @property
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
@@ -3292,7 +3295,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         )
 
 
-class LeftRightParameter(Parameter):
+class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     """Base class for handling two values, a left one and a right one.
 
     The original purpose of class |LeftRightParameter| is to make the
@@ -3358,6 +3361,7 @@ parameter value must be given, but is not.
     """
 
     NDIM = 1
+    SHAPE = (2,)
     strict_valuehandling: bool = False
 
     def __call__(self, *args, **kwargs) -> None:
@@ -3382,10 +3386,6 @@ parameter value must be given, but is not.
                     f"parameter value must be given, but is not."
                 ) from None
             self.right = right
-
-    def __hydpy__connect_variable2subgroup__(self) -> None:
-        super().__hydpy__connect_variable2subgroup__()
-        self.shape = 2
 
     @property
     def left(self) -> float:

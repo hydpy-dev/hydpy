@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""This module implements general features for defining and working with
-model parameters and sequences.
+"""This module implements general features for defining and working with model
+parameters and sequences.
 
-Features more specific to either parameters or sequences are implemented
-in modules |parametertools| and |sequencetools| respectively.
+Features more specific to either parameters or sequences are implemented in modules
+|parametertools| and |sequencetools|, respectively.
 """
 # import...
 # ...from standard library
@@ -13,6 +13,7 @@ import inspect
 import textwrap
 import warnings
 from typing import *
+from typing import NoReturn
 from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
@@ -53,8 +54,8 @@ FastAccessType = TypeVar(
 )
 
 INT_NAN: int = -999999
-"""Surrogate for `nan`, which is available for floating point values
-but not for integer values."""
+"""Surrogate for `nan`, which is available for floating-point values but not for 
+integer values."""
 
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
@@ -62,21 +63,18 @@ TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 def trim(self: "Variable", lower=None, upper=None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
-    Usually, users do not need to apply function |trim| directly.
-    Instead, some |Variable| subclasses implement their own `trim`
-    methods relying on function |trim|.  Model developers should
-    implement individual `trim` methods for their |Parameter| or
-    |Sequence_| subclasses when their boundary values depend on the
-    actual project configuration (one example is soil moisture;
-    its lowest possible value should possibly be zero in all cases,
-    but its highest possible value could depend on another parameter
-    defining the maximum storage capacity).
+    Usually, users do not need to apply the |trim| function directly. Instead, some
+    |Variable| subclasses implement their own `trim` methods relying on function |trim|.
+    Model developers should implement individual `trim` methods for their |Parameter|
+    or |Sequence_| subclasses when their boundary values depend on the actual project
+    configuration (one example is soil moisture; its lowest possible value should
+    possibly be zero in all cases, but its highest possible value could depend on
+    another parameter defining the maximum storage capacity).
 
-    For the following examples, we prepare a simple (not fully
-    functional) |Variable| subclass, making use of function |trim|
-    without any modifications.  Function |trim| works slightly
-    different for variables handling |float|, |int|, and |bool|
-    values.  We start with the most common content type |float|:
+    For the following examples, we prepare a simple (not fully functional) |Variable|
+    subclass, making use of function |trim| without any modifications.  Function |trim|
+    works slightly different for variables handling |float|, |int|, and |bool| values.
+    We start with the most common content type, |float|:
 
     >>> from hydpy.core.variabletools import trim, Variable
     >>> class Var(Variable):
@@ -346,9 +344,8 @@ is not valid.
     >>> var.values = 2, 4, 4
     >>> var.trim(upper=[2, INT_NAN, 4])
 
-    For |bool| values, defining outliers does not make much sense,
-    which is why function |trim| does nothing when applied on
-    variables handling |bool| values:
+    For |bool| values, defining outliers does not make much sense, which is why
+    function |trim| does nothing when applied to variables handling |bool| values:
 
     >>> Var.TYPE = bool
     >>> var.trim()
@@ -360,9 +357,9 @@ is not valid.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    NotImplementedError: Method `trim` can only be applied on parameters \
-handling floating point, integer, or boolean values, but the "value type" \
-of parameter `var` is `str`.
+    NotImplementedError: Method `trim` can only be applied on parameters handling \
+floating-point, integer, or boolean values, but the "value type" of parameter `var` \
+is `str`.
 
     >>> pub.options.warntrim = False
     """
@@ -386,10 +383,9 @@ of parameter `var` is `str`.
             pass
         else:
             raise NotImplementedError(
-                f"Method `trim` can only be applied on parameters "
-                f"handling floating point, integer, or boolean values, "
-                f'but the "value type" of parameter `{self.name}` is '
-                f"`{self.TYPE.__name__}`."
+                f"Method `trim` can only be applied on parameters handling "
+                f'floating-point, integer, or boolean values, but the "value type" of '
+                f"parameter `{self.name}` is `{self.TYPE.__name__}`."
             )
 
 
@@ -468,7 +464,7 @@ def _trim_int_nd(self, lower, upper):
 
 def get_tolerance(values):
     """Return some "numerical accuracy" to be expected for the
-    given floating point value(s).
+    given floating-point value(s).
 
     The documentation on function |trim| explains also function
     |get_tolerance|.  However, note the special case of infinite
@@ -801,10 +797,9 @@ with key `1`, the following error occurred: The only allowed keys for \
 with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
-    Comparisons with |Variable| objects containing multiple values
-    return a single boolean value.  Two objects are equal if all of
-    their value-pairs are equal, and they are unequal if at least
-    one of their value-pairs is unequal:
+    Comparisons with |Variable| objects containing multiple values return a single
+    boolean value.  Two objects are equal if all of their value pairs are equal, and
+    they are unequal if at least one of their value pairs is unequal:
 
     >>> var.shape = (2,)
     >>> var.values = 1.0, 3.0
@@ -1048,6 +1043,12 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         """To be called by the |SubVariables| object when preparing a
         new |Variable| object."""
         self.fastaccess = self.subvars.fastaccess
+        self._finalise_connections()
+
+    def _finalise_connections(self) -> None:
+        """A hook method, called at the end of method
+        `__hydpy__connect_variable2subgroup__` for initialising
+        values and some related attributes."""
 
     @property
     @abc.abstractmethod
@@ -1378,9 +1379,8 @@ as `var` can only be `()`, but `(2,)` is given.
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
             raise exceptiontools.AttributeNotReady(
-                f"Shape information for variable "
-                f"{objecttools.devicephrase(self)} can only "
-                f"be retrieved after it has been defined."
+                f"Shape information for variable {objecttools.devicephrase(self)} can "
+                f"only be retrieved after it has been defined."
             )
         return ()
 
@@ -1424,9 +1424,9 @@ as `var` can only be `()`, but `(2,)` is given.
         )
 
     def verify(self) -> None:
-        """Raises a |RuntimeError| if at least one of the required values
-        of a |Variable| object is |None| or |numpy.nan|. The descriptor
-        `mask` defines, which values are considered to be necessary.
+        """Raises a |RuntimeError| if at least one of the required values of a
+        |Variable| object is |None| or |numpy.nan|. The descriptor `mask` defines which
+        values are considered to be necessary.
 
         Example on a 0-dimensional |Variable|:
 
@@ -1489,10 +1489,9 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
     @property
     def refweights(self) -> "Variable":
-        """Reference to a |Parameter| object that defines weighting
-        coefficients (e.g. fractional areas) for applying function
-        |Variable.average_values|.  Must be overwritten by subclasses,
-        when required."""
+        """Reference to a |Parameter| object that defines weighting coefficients (e.g.
+        fractional areas) for applying function |Variable.average_values|.  Must be
+        overwritten by subclasses when required."""
         raise AttributeError(
             f"Variable {objecttools.devicephrase(self)} does "
             f"not define any weighting coefficients."
@@ -1534,10 +1533,9 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 of variable `soilmoisture`, the following error occurred: Variable \
 `soilmoisture` does not define any weighting coefficients.
 
-        So model developers have to define another (in this case
-        1-dimensional) |Variable| subclass (usually a |Parameter|
-        subclass), and make the relevant object available via property
-        |Variable.refweights|:
+        So model developers have to define another (in this case 1-dimensional)
+        |Variable| subclass (usually a |Parameter| subclass) and make the relevant
+        object available via property |Variable.refweights|:
 
         >>> class Area(Variable):
         ...     NDIM = 1
@@ -1550,14 +1548,13 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values()
         400.0
 
-        In the examples above, all single entries of `values` are relevant,
-        which is the default case.  However, subclasses of |Variable| can
-        define an alternative mask, allowing to make some entries
-        irrelevant. Assume for example, that our `SoilMoisture` object
-        contains three single values, each one associated with a specific
-        hydrological response unit (hru).  To indicate that soil moisture
-        is undefined for the third unit, (maybe because it is a water area),
-        we set the third entry of the verification mask to |False|:
+        In the examples above, all single entries of `values` are relevant, which is
+        the default case.  However, subclasses of |Variable| can define an alternative
+        mask, allowing to make some entries irrelevant. Assume, for example, that our
+        `SoilMoisture` object contains three single values, each one associated with a
+        specific hydrological response unit (hru).  To indicate that soil moisture is
+        undefined for the third unit (maybe because it is a water area), we set the
+        third entry of the verification mask to |False|:
 
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
@@ -2019,11 +2016,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def commentrepr(self) -> List[str]:
-        """A list with comments for making string representations
-        more informative.
+        """A list with comments for making string representations more informative.
 
-        With option |Options.reprcomments| being disabled,
-        |Variable.commentrepr| is empty.
+        With the |Options.reprcomments| option disabled, |Variable.commentrepr| is
+        empty.
         """
         if hydpy.pub.options.reprcomments:
             return [
@@ -2038,6 +2034,54 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def __repr__(self):
         return to_repr(self, self.value)
+
+
+class MixinFixedShape:
+    """Mixin class for defining variables with a fixed shape."""
+
+    SHAPE: Union[Tuple[int, ...]]
+
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
+        self.shape = self.SHAPE
+
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """Variables that mix in |MixinFixedShape| are generally initialised with a
+        fixed shape.
+
+        We take parameter |lstream_control.BV| of base model |lstream| and sequence
+        |exch_factors.WaterLevel| of base model |exch| as examples:
+
+        >>> from hydpy import prepare_model
+        >>> prepare_model("lstream").parameters.control.bv.shape
+        (2,)
+        >>> waterlevel = prepare_model("exch").sequences.factors.waterlevel
+        >>> waterlevel.shape
+        (2,)
+
+        If we try to set a new shape, |MixinFixedShape| responds with the following
+        exceptions:
+
+        >>> waterlevel.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of variable `waterlevel` cannot be changed but this \
+was attempted for element `?`.
+
+        See the documentation on property |Variable.shape| of class |Variable| for
+        further information.
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Tuple[int, ...]) -> NoReturn:
+        if exceptiontools.attrready(self, "shape"):
+            raise AttributeError(
+                f"The shape of variable `{self.name}` cannot be changed but this "
+                f"was attempted for element `{objecttools.devicename(self)}`."
+            )
+        super().__hydpy__set_shape__(shape)
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 @overload
@@ -2090,13 +2134,13 @@ def sort_variables(
 class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    Each subclass of class |SubVariables| is thought for handling a certain
-    group of |Parameter| or |Sequence_| objects.  One specific example is
-    subclass |sequencetools.InputSequences|, collecting all |InputSequence|
-    objects of a specific hydrological model.
+    Each subclass of class |SubVariables| is thought for handling a certain group of
+    |Parameter| or |Sequence_| objects.  One specific example is subclass
+    |sequencetools.InputSequences|, collecting all |InputSequence| objects of a
+    specific hydrological model.
 
-    For the following examples, we first prepare a (not fully
-    functional) |Variable| subclass:
+    For the following examples, we first prepare a (not fully functional) |Variable|
+    subclass:
 
     >>> from hydpy.core.variabletools import FastAccess, SubVariables, Variable
     >>> class TestVar(Variable):
@@ -2138,9 +2182,8 @@ class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     testvar(?)
     >>> pub.options.reprcomments = False
 
-    Class |SubVariables| provides attribute access to the handled
-    |Variable| objects, and protects |Variable| objects from
-    accidental overwriting:
+    Class |SubVariables| provides attribute access to the handled |Variable| objects
+    and protects |Variable| objects from accidental overwriting:
 
     >>> subvars.testvar = 3.0
     >>> subvars.testvar

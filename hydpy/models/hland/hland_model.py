@@ -186,9 +186,8 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         >>> factors.fracrain = 0.0, 0.25, 0.5, 0.75, 1.0
 
         With no rainfall and no snowfall correction (due to the respective factors
-        being one), the corrected fraction related to rain is identical with the
-        original fraction, while the corrected fraction related to snow behaves
-        oppositely:
+        being one), the corrected fraction related to rain is identical to the original
+        fraction, while the corrected fraction related to snow behaves opposite:
 
         >>> rfcf(1.0)
         >>> sfcf(1.0)
@@ -683,6 +682,99 @@ class Calc_SP_WC_V1(modeltools.Method):
                 sta.sp[k] = 0.0
 
 
+class Calc_CFAct_V1(modeltools.Method):
+    r"""Adjust the day degree factor for snow to the current day of the year.
+
+    Basic equations:
+      :math:`CFAct = max( CFMax + f \cdot CFVar, 0 )`
+
+      :math:`f = sin(2 \cdot  Pi \cdot (DOY + 1) / 366) / 2`
+
+    Examples:
+
+        We initialise five zones of different types but the same values for |CFMax| and
+        |CFVar|.  For internal lakes, |CFAct| is always zero.  In all other cases,
+        results are identical and follow a sinusoid curve throughout the year (of which
+        we show only selected points as the maximum around June 20 and the minimum
+        around December 20):
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> nmbzones(5)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
+        >>> cfmax(4.0)
+        >>> cfvar(3.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model=model,
+        ...                 method=model.calc_cfact_v1,
+        ...                 last_example=10,
+        ...                 parseqs=(derived.doy, factors.cfact))
+        >>> test.nexts.doy = 0, 1, 170, 171, 172, 353, 354, 355, 364, 365
+        >>> test()
+        | ex. |                     doy |                                       cfact |
+        -------------------------------------------------------------------------------
+        |   1 |   0    0    0    0    0 | 0.0  1.264648  1.264648  1.264648  1.264648 |
+        |   2 |   1    1    1    1    1 | 0.0  1.267289  1.267289  1.267289  1.267289 |
+        |   3 | 170  170  170  170  170 | 0.0  2.749762  2.749762  2.749762  2.749762 |
+        |   4 | 171  171  171  171  171 | 0.0  2.749976  2.749976  2.749976  2.749976 |
+        |   5 | 172  172  172  172  172 | 0.0  2.749969  2.749969  2.749969  2.749969 |
+        |   6 | 353  353  353  353  353 | 0.0  1.250238  1.250238  1.250238  1.250238 |
+        |   7 | 354  354  354  354  354 | 0.0  1.250024  1.250024  1.250024  1.250024 |
+        |   8 | 355  355  355  355  355 | 0.0  1.250031  1.250031  1.250031  1.250031 |
+        |   9 | 364  364  364  364  364 | 0.0  1.260018  1.260018  1.260018  1.260018 |
+        |  10 | 365  365  365  365  365 | 0.0  1.262224  1.262224  1.262224  1.262224 |
+
+        Now, we convert all zones to type |FIELD| and vary |CFVar|.  If we set |CFVar|
+        to zero, |CFAct| always equals |CFMax| (see zone one).  If we change the sign
+        of |CFVar|, the sinusoid curve shifts a half year to reflect the southern
+        hemisphere's annual cycle of radiation (compare zone two and three).  Finally,
+        |Calc_CFAct_V1| prevents negative values of |CFAct| by setting them to zero
+        (see zone four and five):
+
+        >>> zonetype(FIELD)
+        >>> cfvar(0.0, 3.0, -3.0, 10.0, -10.0)
+        >>> test()
+        | ex. |                     doy |                                       cfact |
+        -------------------------------------------------------------------------------
+        |   1 |   0    0    0    0    0 | 2.0  1.264648  2.735352       0.0  4.451173 |
+        |   2 |   1    1    1    1    1 | 2.0  1.267289  2.732711       0.0  4.442371 |
+        |   3 | 170  170  170  170  170 | 2.0  2.749762  1.250238  4.499206       0.0 |
+        |   4 | 171  171  171  171  171 | 2.0  2.749976  1.250024  4.499919       0.0 |
+        |   5 | 172  172  172  172  172 | 2.0  2.749969  1.250031  4.499896       0.0 |
+        |   6 | 353  353  353  353  353 | 2.0  1.250238  2.749762       0.0  4.499206 |
+        |   7 | 354  354  354  354  354 | 2.0  1.250024  2.749976       0.0  4.499919 |
+        |   8 | 355  355  355  355  355 | 2.0  1.250031  2.749969       0.0  4.499896 |
+        |   9 | 364  364  364  364  364 | 2.0  1.260018  2.739982       0.0  4.466606 |
+        |  10 | 365  365  365  365  365 | 2.0  1.262224  2.737776       0.0  4.459252 |
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.CFMax,
+        hland_control.CFVar,
+    )
+    FIXEDPARAMETERS = (hland_fixed.Pi,)
+    DERIVEDPARAMETERS = (hland_derived.DOY,)
+    RESULTSEQUENCES = (hland_factors.CFAct,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        d_factor = 0.5 * modelutils.sin(
+            2 * fix.pi * (der.doy[model.idx_sim] + 1) / 366 - 1.39
+        )
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                fac.cfact[k] = max(con.cfmax[k] + d_factor * con.cfvar[k], 0.0)
+            else:
+                fac.cfact[k] = 0.0
+
+
 class Calc_Melt_SP_WC_V1(modeltools.Method):
     r"""Calculate the melting of the ice content within the snow layer and update both
     the snow layers' ice and the water content.
@@ -692,7 +784,7 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
 
       :math:`\frac{dWC}{dt} = + Melt`
 
-      :math:`Melt = min(cfmax \cdot (TC - TTM), SP)`
+      :math:`Melt = min(CFAct \cdot (TC - TTM), SP)`
 
     Examples:
 
@@ -704,18 +796,10 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> nmbzones(7)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> cfmax(4.0)
         >>> derived.ttm = 2.0
+        >>> factors.cfact(2.0)
         >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
-
-        Note that the assumed length of the simulation step is a half day.  Hence,
-        the effective value of the degree-day factor is not 4 but 2:
-
-        >>> cfmax
-        cfmax(4.0)
-        >>> cfmax.values[0]
-        2.0
 
         When the actual temperature is equal to the threshold temperature for melting
         and refreezing, no melting occurs, and the states remain unchanged:
@@ -744,8 +828,8 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
 
         With an actual temperature of 3°C above the threshold temperature, melting can
         occur. The actual melting is consistent with potential melting, except for the
-        first zone, being an internal lake, and the last two zones, for which
-        potential melting exceeds the available frozen water content of the snow layer:
+        first zone, an internal lake, and the last two zones, for which potential
+        melting exceeds the available frozen water content of the snow layer:
 
         >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
@@ -762,10 +846,12 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.CFMax,
     )
     DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (hland_factors.TC,)
+    REQUIREDSEQUENCES = (
+        hland_factors.TC,
+        hland_factors.CFAct,
+    )
     UPDATEDSEQUENCES = (
         hland_states.WC,
         hland_states.SP,
@@ -783,7 +869,7 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
             if con.zonetype[k] != ILAKE:
                 if fac.tc[k] > der.ttm[k]:
                     flu.melt[k] = min(
-                        con.cfmax[k] * (fac.tc[k] - der.ttm[k]), sta.sp[k]
+                        fac.cfact[k] * (fac.tc[k] - der.ttm[k]), sta.sp[k]
                     )
                     sta.sp[k] -= flu.melt[k]
                     sta.wc[k] += flu.melt[k]
@@ -871,7 +957,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
 
         With an actual temperature of 3°C below the threshold temperature, refreezing
         can occur. Actual refreezing is consistent with potential refreezing, except
-        for the first zone, being an internal lake, and the last two zones, for which
+        for the first zone, an internal lake, and the last two zones, for which
         potential refreezing exceeds the available liquid water content of the snow
         layer:
 
@@ -1013,6 +1099,90 @@ class Calc_In_WC_V1(modeltools.Method):
                 sta.wc[k] = 0.0
 
 
+class Calc_GAct_V1(modeltools.Method):
+    r"""Adjust the day degree factor for glacier ice to the current day of the year.
+
+    Basic equations:
+      :math:`GAct = max( GMelt + f \cdot GVar, 0 )`
+
+      :math:`f = sin(2 \cdot  Pi \cdot (DOY + 1) / 366) / 2`
+
+    Examples:
+
+        The following examples agree with the ones |Calc_CFAct_V1|, except that method
+        |Calc_GAct_V1| applies the given basic equations only for zones of types
+        |GLACIER| and sets |GAct| to zero for all other zone types:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> nmbzones(5)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
+        >>> gmelt(4.0)
+        >>> gvar(3.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model=model,
+        ...                 method=model.calc_gact_v1,
+        ...                 last_example=10,
+        ...                 parseqs=(derived.doy, factors.gact))
+        >>> test.nexts.doy = 0, 1, 170, 171, 172, 353, 354, 355, 364, 365
+        >>> test()
+        | ex. |                     doy |                          gact |
+        -----------------------------------------------------------------
+        |   1 |   0    0    0    0    0 | 0.0  1.264648  0.0  0.0   0.0 |
+        |   2 |   1    1    1    1    1 | 0.0  1.267289  0.0  0.0   0.0 |
+        |   3 | 170  170  170  170  170 | 0.0  2.749762  0.0  0.0   0.0 |
+        |   4 | 171  171  171  171  171 | 0.0  2.749976  0.0  0.0   0.0 |
+        |   5 | 172  172  172  172  172 | 0.0  2.749969  0.0  0.0   0.0 |
+        |   6 | 353  353  353  353  353 | 0.0  1.250238  0.0  0.0   0.0 |
+        |   7 | 354  354  354  354  354 | 0.0  1.250024  0.0  0.0   0.0 |
+        |   8 | 355  355  355  355  355 | 0.0  1.250031  0.0  0.0   0.0 |
+        |   9 | 364  364  364  364  364 | 0.0  1.260018  0.0  0.0   0.0 |
+        |  10 | 365  365  365  365  365 | 0.0  1.262224  0.0  0.0   0.0 |
+
+        >>> zonetype(GLACIER)
+        >>> gvar(0.0, 3.0, -3.0, 10.0, -10.0)
+        >>> test()
+        | ex. |                     doy |                                        gact |
+        -------------------------------------------------------------------------------
+        |   1 |   0    0    0    0    0 | 2.0  1.264648  2.735352       0.0  4.451173 |
+        |   2 |   1    1    1    1    1 | 2.0  1.267289  2.732711       0.0  4.442371 |
+        |   3 | 170  170  170  170  170 | 2.0  2.749762  1.250238  4.499206       0.0 |
+        |   4 | 171  171  171  171  171 | 2.0  2.749976  1.250024  4.499919       0.0 |
+        |   5 | 172  172  172  172  172 | 2.0  2.749969  1.250031  4.499896       0.0 |
+        |   6 | 353  353  353  353  353 | 2.0  1.250238  2.749762       0.0  4.499206 |
+        |   7 | 354  354  354  354  354 | 2.0  1.250024  2.749976       0.0  4.499919 |
+        |   8 | 355  355  355  355  355 | 2.0  1.250031  2.749969       0.0  4.499896 |
+        |   9 | 364  364  364  364  364 | 2.0  1.260018  2.739982       0.0  4.466606 |
+        |  10 | 365  365  365  365  365 | 2.0  1.262224  2.737776       0.0  4.459252 |
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.GMelt,
+        hland_control.GVar,
+    )
+    FIXEDPARAMETERS = (hland_fixed.Pi,)
+    DERIVEDPARAMETERS = (hland_derived.DOY,)
+    RESULTSEQUENCES = (hland_factors.GAct,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        d_factor = 0.5 * modelutils.sin(
+            2 * fix.pi * (der.doy[model.idx_sim] + 1) / 366 - 1.39
+        )
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == GLACIER:
+                fac.gact[k] = max(con.gmelt[k] + d_factor * con.gvar[k], 0.0)
+            else:
+                fac.gact[k] = 0.0
+
+
 class Calc_GlMelt_In_V1(modeltools.Method):
     r"""Calculate the melting of non-snow-covered glaciers and add it to the water
     release of the snow module.
@@ -1038,8 +1208,8 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> nmbzones(8)
         >>> zonetype(FIELD, FOREST, ILAKE, SEALED, GLACIER, GLACIER, GLACIER, GLACIER)
-        >>> gmelt(4.0)
         >>> derived.ttm(2.0)
+        >>> factors.gact(2.0)
         >>> states.sp = 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0
         >>> factors.tc = 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 1.0
         >>> fluxes.in_ = 3.0
@@ -1048,25 +1218,17 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         glmelt(0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0)
         >>> fluxes.in_
         in_(3.0, 3.0, 3.0, 3.0, 5.0, 3.0, 3.0, 3.0)
-
-        Note that the assumed length of the simulation step is half a day.  Hence the
-        effective value of the degree-day factor is not 4 but 2:
-
-        >>> gmelt
-        gmelt(4.0)
-        >>> gmelt.values[0]
-        2.0
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.GMelt,
     )
     DERIVEDPARAMETERS = (hland_derived.TTM,)
     REQUIREDSEQUENCES = (
         hland_states.SP,
         hland_factors.TC,
+        hland_factors.GAct,
     )
     UPDATEDSEQUENCES = (hland_fluxes.In_,)
     RESULTSEQUENCES = (hland_fluxes.GlMelt,)
@@ -1084,7 +1246,7 @@ class Calc_GlMelt_In_V1(modeltools.Method):
                 and (sta.sp[k] <= 0.0)
                 and (fac.tc[k] > der.ttm[k])
             ):
-                flu.glmelt[k] = con.gmelt[k] * (fac.tc[k] - der.ttm[k])
+                flu.glmelt[k] = fac.gact[k] * (fac.tc[k] - der.ttm[k])
                 flu.in_[k] += flu.glmelt[k]
             else:
                 flu.glmelt[k] = 0.0
@@ -1125,9 +1287,9 @@ class Calc_R_SM_V1(modeltools.Method):
         >>> states.sm
         sm(0.0, 0.0, 0.0, 10.0, 107.5, 107.5, 200.0)
 
-        Through decreasing the nonlinearity parameter, the discharge coefficient
-        increases.  A parameter value of zero leads to a discharge coefficient of
-        100 % for any soil moisture:
+        By decreasing the nonlinearity parameter, the discharge coefficient increases.
+        A parameter value of zero leads to a discharge coefficient of 100 % for any
+        soil moisture:
 
         >>> beta(0.0)
         >>> states.sm = 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0
@@ -1240,7 +1402,7 @@ class Calc_CF_SM_V1(modeltools.Method):
         sm(0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
 
         In the following example, both the upper zone layer and effective precipitation
-        provide water for the capillary flow, but less than the maximum flow rate times
+        provide water for the capillary flow but less than the maximum flow rate times
         the relative soil moisture:
 
         >>> fluxes.r = 0.1
@@ -1510,8 +1672,8 @@ class Calc_SUZ_V1(modeltools.Method):
 
     Example:
 
-        For internal lakes and sealed areas, method |Calc_SUZ_V1| always sets the value
-        of |SUZ| to zero:
+        For internal lakes and sealed areas, method |Calc_SUZ_V1| always sets |SUZ| to
+        zero:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
@@ -1820,8 +1982,8 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         reasonable but would also require modifying |CF| and |SM| (and others?), which
         is way too much effort given the minor impact of this manipulation on the
         general simulation results.  The following two examples show how the
-        manipulation works in case the capillary rise requires all available water
-        (first example) or half of it (second example):
+        manipulation works if the capillary rise requires all (first example) or half
+        (second example) of the available water.
 
         >>> fluxes.inuz = -1.0
         >>> states.uz = 1.0
@@ -2107,7 +2269,7 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
         bw1(1.557602, 3.327195, 7.009207, 8.778801, 5.981586, 3.982484, 2.0,
             6.884797)
 
-        Setting |TAb1| to zero enforces all water exceeding |H1| becomes surface
+        Setting |TAb1| to zero enforces that all water exceeding |H1| becomes surface
         runoff immediately:
 
         >>> tab1(zero)
@@ -2517,8 +2679,8 @@ class Calc_LZ_V1(modeltools.Method):
         >>> states.lz
         lz(20.0)
 
-        In case the extent of the lower zone area is zero, which is possible for
-        completely sealed subbasins only, method |Calc_LZ_V1| sets |LZ| to zero:
+        In case the extent of the lower zone area is zero (which is possible for
+        completely sealed subbasins only) method |Calc_LZ_V1| sets |LZ| to zero:
 
         >>> derived.rellowerzonearea(0.0)
         >>> model.calc_lz_v1()
@@ -2649,8 +2811,8 @@ class Calc_GR1_V1(modeltools.Method):
         gr1(0.5, 0.5, 0.1, 0.01, 0.0, 0.5, 0.5, 0.0, 0.0)
 
         For unreasonably low values of parameter |K2|, the sum of |SG1| and |GR1| could
-        theoretically become larger than |SG1Max|.  To ensure this does not happen, we
-        let method |Calc_GR1_V1| reduce |GR1| when necessary:
+        theoretically become larger than |SG1Max|.  We let method |Calc_GR1_V1| reduce
+        |GR1| when necessary to ensure this does not happen:
 
         >>> k2.values = 0.5
         >>> states.sg1 = 0.0, 5.0, 9.0, 9.9, 10.0, 5.0, 5.0, 5.0, 5.0
@@ -3047,7 +3209,7 @@ class Calc_RG3_SG3_V1(modeltools.Method):
         >>> states.sg3
         sg3(0.0)
 
-        If the sum of |SG3| and |RG3| is positive, recharge first fills up the deficit.
+        If the sum of |SG3| and |RG3| is positive, recharge first fills the deficit.
         In the remaining time, |Calc_RG3_SG3_V1| handles the remaining recharge as
         implied by the basic equations (with parameters |hland_derived.K4| and |W4|
         adapted to the remaining time interval):
@@ -3817,9 +3979,11 @@ class Model(modeltools.AdHocModel):
         Calc_TF_Ic_V1,
         Calc_EI_Ic_V1,
         Calc_SP_WC_V1,
+        Calc_CFAct_V1,
         Calc_Melt_SP_WC_V1,
         Calc_Refr_SP_WC_V1,
         Calc_In_WC_V1,
+        Calc_GAct_V1,
         Calc_GlMelt_In_V1,
         Calc_R_SM_V1,
         Calc_CF_SM_V1,

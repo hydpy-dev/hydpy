@@ -216,15 +216,37 @@ class DTTM(hland_parameters.ParameterLand):
 
 
 class CFMax(hland_parameters.ParameterLand):
-    """Degree day factor for snow (on glaciers or not) [mm/°C/T]."""
+    """Average degree day factor for snow (on glaciers or not) [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+
+
+class CFVar(hland_parameters.ParameterLand):
+    """Annual variability of |CFMax| [mm/°C/T].
+
+    Use positive values for the northern and negative values for the southern
+    hemisphere.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    INIT = 0.0
 
 
 class GMelt(hland_parameters.ParameterGlacier):
     """Degree day factor for glacial ice [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+
+
+class GVar(hland_parameters.ParameterGlacier):
+    """Annual variability of |GMelt| [mm/°C/T].
+
+    Use positive values for the northern and negative values for the southern
+    hemisphere.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    INIT = 0.0
 
 
 class CFR(hland_parameters.ParameterLand):

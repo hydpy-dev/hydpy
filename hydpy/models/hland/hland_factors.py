@@ -41,6 +41,18 @@ class SfC(hland_sequences.Factor1DSequence):
     mask = hland_masks.Complete()
 
 
+class CFAct(hland_sequences.Factor1DSequence):
+    """Actual degree day factor for snow (on glaciers or not) [mm/°C/T]."""
+
+    mask = hland_masks.Land()
+
+
+class GAct(hland_sequences.Factor1DSequence):
+    """Actual degree day factor for glacier ice [mm/°C/T]."""
+
+    mask = hland_masks.Glacier()
+
+
 class ContriArea(sequencetools.FactorSequence):
     """Fraction of the "soil area" contributing to runoff generation [-]."""
 

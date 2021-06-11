@@ -21,6 +21,11 @@ from hydpy.models.hland.hland_constants import ILAKE, GLACIER, SEALED
 _ZERO_DIVISION_MESSAGE = "divide by zero encountered in true_divide"
 
 
+class DOY(parametertools.DOYParameter):
+    """References the |Indexer.dayofyear| index array provided by the instance of
+    class |Indexer| available in module |pub| [-]."""
+
+
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
 
@@ -403,7 +408,7 @@ class UH(parametertools.Parameter):
 
         .. note::
 
-            This method also updates the shape of log sequence |QUH|.
+            This method also updates the shape of the log sequence |QUH|.
 
         |MaxBaz| determines the endpoint of the triangle.  A value of |MaxBaz| being
         not larger than the simulation step size is identical with applying no unit

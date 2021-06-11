@@ -7,6 +7,13 @@
 from hydpy.core import parametertools
 
 
+class Pi(parametertools.FixedParameter):
+    """π [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 3.141592653589793
+
+
 class FSG(parametertools.FixedParameter):
     """Fraction between the spatial extents of the first-order and the second-order
     slow response groundwater reservoir [-]."""

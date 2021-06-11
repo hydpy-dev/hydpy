@@ -380,7 +380,7 @@ class Calc_EI_V1(modeltools.Method):
         ...     last_example=9,
         ...     parseqs=(states.ic, fluxes.ei)
         ... )
-        >>> test.nexts.ic= -4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0
+        >>> test.nexts.ic = -4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0
 
         Without smoothing:
 

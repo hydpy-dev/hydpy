@@ -2,7 +2,7 @@
 .. _Travis CI: https://travis-ci.com/
 .. _AppVeyor: https://www.appveyor.com/
 .. _hydpy repository: https://github.com/hydpy-dev/hydpy
-.. _Travis log-page: https://travis-ci.org/hydpy-dev/hydpy
+.. _Travis log-page: https://travis-ci.com/hydpy-dev/hydpy
 .. _AppVeyor log-page: https://ci.appveyor.com/project/tyralla/hydpy/history
 .. _travis.yml: https://github.com/hydpy-dev/hydpy/blob/master/.travis.yml
 .. _setup.py: https://github.com/hydpy-dev/hydpy/blob/master/setup.py

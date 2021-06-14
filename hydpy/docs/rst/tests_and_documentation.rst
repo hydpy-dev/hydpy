@@ -9,7 +9,7 @@
 .. _tests: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests
 .. _coverage library: https://coverage.readthedocs.io
 .. _Travis CI: https://travis-ci.com/
-.. _Travis log-page: https://travis-ci.org/hydpy-dev/hydpy
+.. _Travis log-page: https://travis-ci.com/hydpy-dev/hydpy
 .. _Pylint: https://www.pylint.org/
 
 .. _tests_and_documentation:

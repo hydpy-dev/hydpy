@@ -6,7 +6,7 @@
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
-.. _`Travis CI`: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. _`Travis CI`: https://travis-ci.com/hydpy-dev/hydpy/branches
 .. _`AppVeyor`: https://ci.appveyor.com/project/tyralla/hydpy/history
 .. _`example 13`: https://hydpy-dev.github.io/hydpy/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/

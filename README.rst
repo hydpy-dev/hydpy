@@ -48,10 +48,10 @@
 
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
    :alt: Travis (.org) branch
-   :target: https://travis-ci.org/hydpy-dev/hydpy/branches
+   :target: https://travis-ci.com/hydpy-dev/hydpy/branches
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
    :alt: Travis (.org)
-   :target: https://travis-ci.org/hydpy-dev/hydpy
+   :target: https://travis-ci.com/hydpy-dev/hydpy
 
 \
 

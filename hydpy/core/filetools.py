@@ -1714,7 +1714,11 @@ is not available.  Select one of the following modes: none and mean.
         with open(filepath_ext) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
-        values = numpy.loadtxt(filepath_ext, skiprows=3, ndmin=sequence.NDIM + 1)
+        values = numpy.loadtxt(
+            filepath_ext, skiprows=3, ndmin=min(sequence.NDIM + 1, 2)
+        )
+        if sequence.NDIM == 2:
+            values = values.reshape(*sequence.seriesshape)
         return timegrid_data, values
 
     def _load_nc(self, sequence: "sequencetools.IOSequence") -> None:
@@ -1725,8 +1729,8 @@ is not available.  Select one of the following modes: none and mean.
         sequence: "sequencetools.IOSequence",
         array: Optional[numpy.ndarray] = None,
     ) -> None:
-        """Write the data stored in the |IOSequence.series| property of
-        the given |IOSequence| into an "external" data file."""
+        """Write the data stored in the |IOSequence.series| property of the given
+        |IOSequence| into an "external" data file."""
         if array is None:
             array = sequence.aggregate_series()
         try:
@@ -1765,6 +1769,8 @@ is not available.  Select one of the following modes: none and mean.
                 )
                 + "\n"
             )
+        if array.ndim == 3:
+            array = array.reshape(array.shape[0], -1)
         with open(filepath, "a") as file_:
             numpy.savetxt(file_, array, delimiter="\t")
 

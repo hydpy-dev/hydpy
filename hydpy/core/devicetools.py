@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-"""This modules implements the fundamental features for structuring
-*HydPy* projects.
+"""This modules implements the fundamental features for structuring *HydPy* projects.
 
-Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.
-In this documentation, "node" stands for an object of class |Node|, "element"
-for an object of class |Element|, and "device" for either of them (you
-cannot initialise objects of class |Device| directly).  On the other hand,
-"nodes", for example, does not necessarily mean an object of class |Nodes|,
-but any other group of |Node| objects as well.
+Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
+documentation, "node" stands for an object of class |Node|, "element" for an object of
+class |Element|, and "device" for either of them (you cannot initialise objects of
+class |Device| directly).  On the other hand, "nodes", for example, does not
+necessarily mean an object of class |Nodes|, but any other group of |Node| objects as
+well.
 
 Each element handles a single |Model| object and represents, for example, a subbasin or
 a channel segment.  The purpose of a node is to connect different elements and, for
@@ -21,9 +20,8 @@ elements, preventing instantiating an object with an already assigned name.  Thi
 mechanism allows to address the same node or element in different network files (see
 module |selectiontools|).
 
-Let us take class |Node| as an example.  One can call its constructor
-with the same name multiple times, but it returns already existing
-nodes when available:
+Let us take class |Node| as an example.  One can call its constructor with the same
+name multiple times, but it returns already existing nodes when available:
 
 >>> from hydpy import Node
 >>> node1 = Node("test1")
@@ -575,7 +573,7 @@ other attributes is not supported.
 in confusion whether a new attribute should be handled as a Node object or \
 as a "normal" attribute and is thus not support, hence `NF` is rejected.
 
-    |Nodes| and |Elements| objects support iteration:
+    |Nodes| and |Elements| instances support iteration:
 
     >>> len(nodes)
     4
@@ -614,8 +612,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     >>> nodes - Node("na")
     Nodes("nb", "nc", "nd", "ne")
 
-    Comparisons are supported, with "x < y" being |True|, if "x" is
-    a subset of "y":
+    Comparisons are supported, with "x < y" being |True| if "x" is a subset of "y":
 
     >>> subgroup = Nodes("nc", "ne")
     >>> subgroup < nodes, nodes < subgroup, nodes < nodes
@@ -631,16 +628,16 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     >>> subgroup > nodes, nodes > subgroup, nodes > nodes
     (False, True, False)
 
-    Passing wrong arguments to the constructor of class |Node| results
-    in errors like the following:
+    Passing wrong arguments to the constructor of class |Node| results in errors like
+    the following:
 
     >>> from hydpy import Element
     >>> Nodes("na", Element("ea"))
     Traceback (most recent call last):
     ...
-    TypeError: While trying to initialise a `Nodes` object, the following \
-error occurred: The given (sub)value `Element("ea")` is not an instance \
-of the following classes: Node and str.
+    TypeError: While trying to initialise a `Nodes` object, the following error \
+occurred: The given (sub)value `Element("ea")` is not an instance of the following \
+classes: Node and str.
     """
 
     _name2device: Dict[str, DeviceType]
@@ -823,9 +820,8 @@ immutable Nodes objects is not allowed.
         >>> subgroup
         Nodes("nc", "ne")
 
-        You can further restrict the search by also selecting the devices
-        belonging to `group_b`, which holds only for node "e", in the given
-        example:
+        You can further restrict the search by also selecting the devices belonging to
+        `group_b`, which holds only for node "e", in the discussed example:
 
         >>> subsubgroup = subgroup.group_b
         >>> subsubgroup
@@ -899,8 +895,8 @@ immutable Nodes objects is not allowed.
     def copy(self: DevicesTypeBound) -> DevicesTypeBound:
         """Return a shallow copy of the actual |Nodes| or |Elements| object.
 
-        Method |Devices.copy| returns a semi-flat copy of |Nodes| or
-        |Elements| objects, due to their devices being not copyable:
+        Method |Devices.copy| returns a semi-flat copy of |Nodes| or |Elements| objects
+        due to their devices being not copyable:
 
         >>> from hydpy import Nodes
         >>> old = Nodes("x", "y")
@@ -1315,24 +1311,23 @@ parameter `zonetype` of element `?` is not valid.
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        FileNotFoundError: While trying to initialise the model object of \
-element `land_dill`, the following error occurred: While trying to load the \
-control file `...land_dill.py`, the following error occurred: ...
+        FileNotFoundError: While trying to initialise the model object of element \
+`land_dill`, the following error occurred: While trying to load the control file \
+`...land_dill.py`, the following error occurred: ...
         >>> attrready(hp.elements.land_dill, "model")
         False
 
-        When building new, still incomplete *HydPy* projects, this behaviour
-        can be annoying.  After setting the option
-        |Options.warnmissingcontrolfile| to |False|, missing control files
-        only result in a warning:
+        When building new, still incomplete *HydPy* projects, this behaviour can be
+        annoying.  After setting the option |Options.warnmissingcontrolfile| to |False|,
+        missing control files result in a warning only:
 
         >>> with TestIO():
         ...     with pub.options.warnmissingcontrolfile(True):
         ...         hp.prepare_models()
         Traceback (most recent call last):
         ...
-        UserWarning: Due to a missing or no accessible control file, \
-no model could be initialised for element `land_dill`
+        UserWarning: Due to a missing or no accessible control file, no model could \
+be initialised for element `land_dill`
         >>> attrready(hp.elements.land_dill, "model")
         False
         """
@@ -1417,11 +1412,10 @@ Use method `prepare_models` instead.
     def conditions(
         self,
     ) -> Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
-        """A nested dictionary containing the values of all
-        |ConditionSequence| objects of all currently handled models.
+        """A nested dictionary that contains the values of all |ConditionSequence|
+        objects of all currently handled models.
 
-        See the documentation on property |HydPy.conditions| for further
-        information.
+        See the documentation on property |HydPy.conditions| for further information.
         """
         return {element.name: element.model.sequences.conditions for element in self}
 
@@ -1858,7 +1852,7 @@ immutable Elements objects is not allowed.
         >>> Node("test5", variable=Precipitation)
         Node("test5", variable=Precip)
 
-        To avoid confusion, one cannot change property |Node.variable|:
+        To avoid confusion, one cannot change |Node.variable|:
 
         >>> node.variable = "H"
         Traceback (most recent call last):
@@ -1881,39 +1875,33 @@ Keep in mind, that `name` is the unique identifier of node objects.
 
         *HydPy* supports the following modes:
 
-          * newsim: Deploy the simulated values calculated just recently.
-            `newsim` is the default mode, used, for example, when a node
-            receives a discharge value from an upstream element and passes
-            it to the downstream element directly.
-          * obs: Deploy observed values instead of simulated values.  The
-            node still receives the simulated values from its upstream
-            element(s).  However, it deploys values to its downstream
-            element(s), which are defined externally.  Usually, these values
-            are observations made available within a time-series file. See
-            the documentation on module |sequencetools| for further
+          * newsim: Deploy the simulated values calculated just recently.  `newsim` is
+            the default mode, used, for example, when a node receives a discharge value
+            from an upstream element and passes it to the downstream element directly.
+          * obs: Deploy observed values instead of simulated values.  The node still
+            receives the simulated values from its upstream element(s).  However, it
+            deploys values to its downstream element(s), which are defined externally.
+            Usually, these values are observations made available within a time-series
+            file. See the documentation on module |sequencetools| for further
             information on file specifications.
-          * oldsim: Similar to mode `obs`.  However, it is usually applied when
-            a node is supposed to deploy simulated values which have been
-            calculated in a previous simulation run and stored in a sequence
-            file.
-          * obs_newsim: Combination of mode `obs` and `newsim`.  Mode
-            `obs_newsim` gives priority to the provision of observation
-            values.  New simulation values serve as a replacement for
-            missing observed values.
-          * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode
-            `obs_oldsim` gives priority to the provision of observation
-            values.  Old simulation values serve as a replacement for
-            missing observed values.
+          * oldsim: Similar to mode `obs`.  However, it is usually applied when a node
+            is supposed to deploy simulated values that have been calculated in a
+            previous simulation run and stored in a sequence file.
+          * obs_newsim: Combination of mode `obs` and `newsim`.  Mode `obs_newsim`
+            gives priority to the provision of observation values.  New simulation
+            values serve as a replacement for missing observed values.
+          * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode `obs_oldsim`
+            gives priority to the provision of observation values.  Old simulation
+            values serve as a replacement for missing observed values.
 
-        One relevant difference between modes `obs` and `oldsim` is that
-        the external values are either handled by the `obs` or the `sim`
-        sequence object.  Hence, if you select the `oldsim` mode, the
-        values of the upstream elements calculated within the current
-        simulation are not available (e.g. for parameter calibration)
+        One relevant difference between modes `obs` and `oldsim` is that the external
+        values are either handled by the `obs` or the `sim` sequence object.  Hence,
+        if you select the `oldsim` mode, the values of the upstream elements calculated
+        within the current simulation are not available (e.g. for parameter calibration)
         after the simulation finishes.
 
-        Please refer to the documentation on method |HydPy.simulate| of
-        class |HydPy|, which provides for some application examples.
+        Please refer to the documentation on method |HydPy.simulate| of class |HydPy|,
+        which provides some application examples.
 
         >>> from hydpy import Node
         >>> node = Node("test")
@@ -1937,9 +1925,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
         >>> node.deploymode = "oldobs"
         Traceback (most recent call last):
         ...
-        ValueError: When trying to set the routing mode of node `test`, \
-the value `oldobs` was given, but only the following values are allowed: \
-`newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`.
+        ValueError: When trying to set the routing mode of node `test`, the value \
+`oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
+`obs`, `obs_newsim`, and `obs_oldsim`.
         """
         return vars(self)["deploymode"]
 
@@ -1986,9 +1974,8 @@ the value `oldobs` was given, but only the following values are allowed: \
         ...     for group in ("inlets", "receivers", "outlets", "senders"):
         ...         print(group, node.get_double(group))
 
-        In the default mode, nodes (passively) route simulated values
-        through offering the |Double| object of sequence |Sim| to all
-        |Element| input and output groups:
+        In the default mode, nodes (passively) route simulated values by offering the
+        |Double| object of sequence |Sim| to all |Element| input and output groups:
 
         >>> test("newsim")
         inlets 1.0
@@ -2063,16 +2050,16 @@ group name `test`.
         self.sequences.close_files()
 
     def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| object both of the |Sim| and the
-        |Obs| sequence.
+        """Prepare the |IOSequence.series| object both of the |Sim| and the |Obs|
+        sequence.
 
-        Call this method before a simulation run if you need access to the
-        whole time-series of the simulated and the observed series after the
-        simulation run is finished.
+        Call this method before a simulation run if you need access to the whole
+        time-series of the simulated and the observed series after the simulation run
+        is finished.
 
-        By default, the time-series are stored in RAM, which is the faster
-        option.  If your RAM is limited, pass |False| to function argument
-        `ramflag` to store the series on disk.
+        By default, the time-series are kept in RAM, which is the faster option.  If
+        your RAM is limited, pass |False| to function argument `ramflag` to store the
+        series on disk.
         """
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
@@ -2108,17 +2095,16 @@ group name `test`.
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
     ) -> "pyplot.Figure":
-        """Plot the |IOSequence.series| data of both the |Sim| and
-        the |Obs| sequence object.
+        """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
+        object.
 
-        We demonstrate the functionalities of method |Node.plot_allseries|
-        based on the `Lahn` example project:
+        We demonstrate the functionalities of method |Node.plot_allseries| based on the
+        `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        We perform a simulation run and calculate "observed" values for
-        node `dill`:
+        We perform a simulation run and calculate "observed" values for node `dill`:
 
         >>> hp.simulate()
         >>> dill = hp.nodes.dill
@@ -2131,21 +2117,20 @@ group name `test`.
         >>> figure = dill.plot_allseries()
 
         Subsequent calls to |Node.plot_allseries| or the related methods
-        |Node.plot_simseries| and |Node.plot_obsseries| of nodes add
-        further time-series data to the existing plot:
+        |Node.plot_simseries| and |Node.plot_obsseries| of nodes add further
+        time-series data to the existing plot:
 
         >>> lahn_1 = hp.nodes.lahn_1
         >>> figure = lahn_1.plot_simseries()
 
-        You can modify the appearance of the lines by passing different
-        arguments:
+        You can modify the appearance of the lines by passing different arguments:
 
         >>> lahn_1.sequences.obs.series = lahn_1.sequences.sim.series + 10.0
         >>> figure = lahn_1.plot_obsseries(color="black", linestyle="dashed")
 
-        All mentioned plotting functions return a |matplotlib| |figure.Figure|
-        object.  Use it to for further plot handling, e.g. for adding a title
-        and saving the current figure to disk:
+        All mentioned plotting functions return a |matplotlib| |figure.Figure| object.
+        Use it for further plot handling, e.g. adding a title and saving the current
+        figure to disk:
 
         >>> from hydpy.core.testtools import save_autofig
         >>> text = figure.axes[0].set_title('daily')
@@ -2153,7 +2138,7 @@ group name `test`.
 
         .. image:: Node_plot_allseries_1.png
 
-        You can plot the data in an aggregated manner (see the documentation on
+        You can plot the data in an aggregated manner (see the documentation on the
         function |aggregate_series| for the supported step sizes and further details):
 
         >>> figure = dill.plot_allseries(stepsize="monthly")
@@ -2577,9 +2562,9 @@ is not allowed.
     >>> test.inlets.mutable = True
     >>> test.inlets.add_device("inl3")
 
-    However, then it is up to you to make sure that the added node also
-    handles the relevant element in the suitable group.  In the given
-    example, only node `inl2` has been added properly but not node `inl3`:
+    However, it is up to you to make sure that the added node also handles the relevant
+    element in the suitable group.  In the discussed example, only node `inl2` has been
+    added properly but not node `inl3`:
 
     >>> test.inlets.inl2.exits
     Elements("test")
@@ -2845,10 +2830,10 @@ of element `hland` has been requested but not been prepared so far.
         >>> parameters.update()
         >>> element.model = model
 
-        To show that the inlet and outlet connections are built properly,
-        we assign a new value to the inlet node `inp` and verify that the
-        suitable fractions of this value are passed to the outlet nodes
-        out1` and `out2` by calling method |Model.simulate|:
+        To show that the inlet and outlet connections are built properly, we assign a
+        new value to the inlet node `inp` and verify that the suitable fractions of
+        this value are passed to the outlet nodes out1` and `out2` by calling the
+        method |Model.simulate|:
 
         >>> inp.sequences.sim = 999.0
         >>> model.simulate(0)
@@ -3054,6 +3039,17 @@ Use method `prepare_model` instead.
                 return input_
             return nmb_entries * (input_,)
 
+        def _make_vectors(
+            array: Union[Vector[float], Matrix[float]],
+        ) -> List[Vector[float]]:
+            vectors = []
+            for idxs in itertools.product(*(range(shp) for shp in array.shape[1:])):
+                vector = array
+                for idx in idxs:
+                    vector = vector[:, idx]
+                vectors.append(vector)
+            return vectors
+
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         index = _get_pandasindex()[idx0:idx1]
         selseqs: Iterable[sequencetools.IOSequence[Any, Any]]
@@ -3093,21 +3089,20 @@ Use method `prepare_model` instead.
             if series.ndim == 1:
                 ps = pandas.Series(series, index=index)
                 ps.plot(**kwargs)
-            if series.ndim == 2 and series.shape[1] > 0:
-                ps = pandas.Series(series[:, 0], index=index)
+            elif all(length > 0 for length in series.shape[1:]):
+                vectors = _make_vectors(series)
+                ps = pandas.Series(vectors[0], index=index)
                 axessubplot = ps.plot(**kwargs)
                 kwargs["label"] = "None"
                 kwargs["color"] = axessubplot.get_lines()[-1].get_color()
-                for j in range(1, series.shape[1]):
-                    ps = pandas.Series(series[:, j], index=index)
+                for vector in vectors:
+                    ps = pandas.Series(vector, index=index)
                     ps.plot(**kwargs)
                 if color:
                     kwargs["color"] = color
                 else:
                     del kwargs["color"]
-        lines = [
-            line for line in pyplot.legend().get_lines() if line.get_label() != "None"
-        ]
+        lines = [l for l in pyplot.legend().get_lines() if l.get_label() != "None"]
         pyplot.legend(handles=lines)
         if not focus:
             pyplot.ylim((0.0, None))
@@ -3168,8 +3163,8 @@ Use method `prepare_model` instead.
 
         .. image:: Element_plot_fluxseries.png
 
-        For 1-dimensional |IOSequence| objects, all three methods plot the individual
-        time-series in the same colour.  We demonstrate this for the frozen
+        For 1- and 2-dimensional |IOSequence| objects, all three methods plot the
+        individual time-series in the same colour.  We demonstrate this for the frozen
         (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
         snow cover of different hydrological response units.  Therefore, we restrict
         the shown period to February and March via the |Timegrids.eval_| time-grid:

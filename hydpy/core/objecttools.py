@@ -1129,6 +1129,7 @@ test = [10,]
 def assignrepr_values2(
     values: Iterable[Iterable[object]],
     prefix: str,
+    width: Optional[int] = None,
 ) -> str:
     """Return a prefixed and properly aligned string representation
     of the given 2-dimensional value matrix using function |repr|.
@@ -1149,9 +1150,9 @@ def assignrepr_values2(
     blanks = " " * len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(f"{prefix}{repr_values(subvalues)},")
+            lines.append(f"{assignrepr_values(subvalues, prefix=prefix, width=width)},")
         else:
-            lines.append(f"{blanks}{repr_values(subvalues)},")
+            lines.append(f"{assignrepr_values(subvalues, prefix=blanks, width=width)},")
     lines[-1] = lines[-1][:-1]
     return "\n".join(lines)
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements functions for preparing tutorial projects and
-other test data.
+"""This module provides functions for preparing tutorial projects and other test data.
 
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 """
@@ -22,21 +21,28 @@ from hydpy.core import filetools
 from hydpy.core import hydpytools
 from hydpy.core import testtools
 from hydpy.tests import iotesting
+from hydpy.models import hland
 from hydpy.models import lland
 
 if TYPE_CHECKING:
     from hydpy.core import pubtools
+    from hydpy.core import sequencetools
     from hydpy.core import timetools
+
+    class TestIOSequence(sequencetools.IOSequence[Any, Any]):
+        """|IOSequence| subclass for testing purposes."""
+
+        testarray: numpy.ndarray
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
 
-    Function |prepare_io_example_1| is thought for testing the functioning
-    of *HydPy* and thus should be of interest for framework developers only.
-    It uses the application models |lland_v1| and |lland_v2|.  Here, we
-    apply |prepare_io_example_1| and shortly discuss different aspects of
-    the data it generates.
+    Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
+    and thus should be of interest for framework developers only.  It uses the
+    application models |lland_v1|, |lland_v2|, and |hland_v1|.  Here, we apply
+    |prepare_io_example_1| and shortly discuss different aspects of the data it
+    generates.
 
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
@@ -66,25 +72,25 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     ...                  if not filename.startswith("_")))
     ['inputpath', 'nodepath', 'outputpath']
 
-    (3) It returns three |Element| objects handling either application model
-    |lland_v1| or |lland_v2|, and two |Node| objects handling variables
-    `Q` and `T`:
+    (3) It returns four |Element| objects handling either application model |lland_v1|
+    |lland_v2|, or |hland_v1|, and two |Node| objects handling variables `Q` and `T`:
 
     >>> for element in elements:
     ...     print(element.name, element.model)
     element1 lland_v1
     element2 lland_v1
     element3 lland_v2
+    element4 hland_v1
     >>> for node in nodes:
     ...     print(node.name, node.variable)
     node1 Q
     node2 T
 
-    (4) It generates artificial time series data of the input sequence
-    |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the
-    state sequence |lland_states.BoWa| of each model instance, and the
-    |Sim| sequence of each node instance.  For unambiguous test results,
-    all generated values are unique:
+    (4) It generates artificial time series data for the input sequence
+    |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
+    |lland_states.BoWa| of each |lland| model instance, the state sequence
+    |hland_states.SP| of the |hland_v1| model instance, and the |Sim| sequence of each
+    node instance.  For precise test results, all generated values are unique:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
     >>> nied1.series
@@ -104,15 +110,29 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> sim2 = nodes.node2.sequences.sim
     >>> sim2.series
     InfoArray([64., 65., 66., 67.])
+    >>> sp4 = elements.element4.model.sequences.states.sp
+    >>> sp4.series
+    InfoArray([[[68., 69., 70.],
+                [71., 72., 73.]],
+    <BLANKLINE>
+               [[74., 75., 76.],
+                [77., 78., 79.]],
+    <BLANKLINE>
+               [[80., 81., 82.],
+                [83., 84., 85.]],
+    <BLANKLINE>
+               [[86., 87., 88.],
+                [89., 90., 91.]]])
 
-    (5) All sequences carry |numpy.ndarray| objects with (deep) copies
-    of the time series data for testing:
+    (5) All sequences carry |numpy.ndarray| objects with (deep) copies of the
+    time-series data for testing:
 
     >>> import numpy
     >>> (numpy.all(nied1.series == nied1.testarray) and
     ...  numpy.all(nkor1.series == nkor1.testarray) and
     ...  numpy.all(bowa3.series == bowa3.testarray) and
-    ...  numpy.all(sim2.series == sim2.testarray))
+    ...  numpy.all(sim2.series == sim2.testarray) and
+    ...  numpy.all(sp4.series == sp4.testarray))
     InfoArray(True)
     >>> bowa3.series[1, 2] = -999.0
     >>> numpy.all(bowa3.series == bowa3.testarray)
@@ -134,17 +154,25 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     element1 = devicetools.Element("element1", outlets=node1)
     element2 = devicetools.Element("element2", outlets=node1)
     element3 = devicetools.Element("element3", outlets=node1)
-    elements = devicetools.Elements(element1, element2, element3)
+    element4 = devicetools.Element("element4", outlets=node1)
+    elements_lland = devicetools.Elements(element1, element2, element3)
+    elements = elements_lland + element4
 
     element1.model = importtools.prepare_model("lland_v1")
     element2.model = importtools.prepare_model("lland_v1")
     element3.model = importtools.prepare_model("lland_v2")
+    element4.model = importtools.prepare_model("hland_v1")
 
-    for idx, element in enumerate(elements):
+    for idx, element in enumerate(elements_lland):
         parameters = element.model.parameters
         parameters.control.nhru(idx + 1)
         parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
+    control = element4.model.parameters.control
+    control.nmbzones(3)
+    control.sclass(2)
+    control.zonetype(hland.FIELD)
+    control.zonearea(10.0)
 
     # pylint: disable=not-callable
     # pylint usually understands that all options are callable
@@ -152,26 +180,28 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries()
         elements.prepare_inputseries()
+        elements.prepare_factorseries()
         elements.prepare_fluxseries()
         elements.prepare_stateseries()
     # pylint: enable=not-callable
 
-    def init_values(seq, value1_):
+    def init_values(seq: "TestIOSequence", value1_: float) -> float:
         value2_ = value1_ + len(seq.series.flatten())
         values_ = numpy.arange(value1_, value2_, dtype=float)
         seq.testarray = values_.reshape(seq.seriesshape)
         seq.series = seq.testarray.copy()
         return value2_
 
-    value1 = 0
+    value1 = 0.0
     for subname, seqname in zip(
         ["inputs", "fluxes", "states"], ["nied", "nkor", "bowa"]
     ):
-        for element in elements:
+        for element in elements_lland:
             subseqs = getattr(element.model.sequences, subname)
             value1 = init_values(getattr(subseqs, seqname), value1)
     for node in nodes:
-        value1 = init_values(node.sequences.sim, value1)
+        value1 = init_values(cast("TestIOSequence", node.sequences.sim), value1)
+    init_values(cast("TestIOSequence", element4.model.sequences.states.sp), value1)
 
     return nodes, elements
 
@@ -179,21 +209,19 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     """Prepare the `LahnH` example project on disk.
 
-    *HydPy* comes with a complete project data set for the German river
-    Lahn, provided by the `German Federal Institute of Hydrology (BfG)`_.
-    The Lahn is a medium-sized tributary to the Rhine.  The given project
-    configuration agrees with the BfG's forecasting model, using HBV96
-    to simulate the inflow of the Rhine's tributaries.
-    The catchment is subdivided into four sub-catchments, each one with a
-    river gauge (Marburg, Asslar, Leun, Kalkofen) at its outlet.  The
-    sub-catchments are further subdivided into a different number of zones.
+    *HydPy* comes with a complete project data set for the German river Lahn, provided
+    by the `German Federal Institute of Hydrology (BfG)`_.  The Lahn is a medium-sized
+    tributary to the Rhine.  The given project configuration agrees with the BfG's
+    forecasting model, using HBV96 to simulate the inflow of the Rhine's tributaries.
+    The catchment consists of four sub-catchments, each one with a river gauge (Marburg,
+    Asslar, Leun, Kalkofen) at its outlet.  The sub-catchments consists of a different
+    number of zones.
 
     .. image:: LahnH.png
 
-    By default, function |prepare_full_example_1| copies the original
-    project data into the `iotesting` directory, thought for performing
-    automated tests on real-world data.  The following doctest shows
-    the generated folder structure:
+    By default, function |prepare_full_example_1| copies the original project data into
+    the `iotesting` directory, thought for performing automated tests on real-world
+    data.  The following doctest shows the generated folder structure:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -241,11 +269,10 @@ def prepare_full_example_2(
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function
-    |prepare_full_example_1|.  Besides preparing the project data of
-    the `LahnH` example project, it performs all necessary steps to
-    start a simulation run.  Therefore, it returns a readily prepared
-    |HydPy| instance, as well as, for convenience, module |pub| and
-    class |TestIO|:
+    |prepare_full_example_1|.  Besides preparing the project data of the `LahnH`
+    example project, it performs all necessary steps to start a simulation run.
+    Therefore, it returns a readily prepared |HydPy| instance, as well as, for
+    convenience, module |pub| and class |TestIO|:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -263,9 +290,9 @@ def prepare_full_example_2(
     >>> classname(TestIO)
     'TestIO'
 
-    Function |prepare_full_example_2| is primarily thought for testing
-    and thus does not allow for many configurations except changing the
-    end date of the initialisation period:
+    Function |prepare_full_example_2| is primarily thought for testing and thus does
+    not allow for many configurations except changing the end date of the
+    initialisation period:
 
     >>> hp, pub, TestIO = prepare_full_example_2("1996-02-01")
     >>> pub.timegrids

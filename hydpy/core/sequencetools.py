@@ -1498,8 +1498,8 @@ variable `evpo` can only be retrieved after it has been defined.
         return numpy.nan, False
 
     def __repr__(self) -> str:
-        islong = len(self) > 255
-        return variabletools.to_repr(self, self.value, islong)
+        brackets = (len(self) > 255) or ((self.NDIM == 2) and (self.shape[0] != 1))
+        return variabletools.to_repr(self, self.value, brackets)
 
     def __dir__(self) -> List[str]:
         """
@@ -1516,9 +1516,9 @@ variable `evpo` can only be retrieved after it has been defined.
         filename_int, filepath_ext, filepath_int, filetype_ext, get_submask,
         initinfo, load_ext, mask, memoryflag, name, numericshape, outputflag,
         overwrite_ext, ram2disk, ramflag, rawfilename, refweights, save_ext,
-        save_mean, series, seriesshape, set_pointer, shape, simseries,
-        strict_valuehandling, subseqs, subvars, unit, update_fastaccess,
-        value, values, verify
+        save_mean, series, seriesmatrix, seriesshape, set_pointer, shape,
+        simseries, strict_valuehandling, subseqs, subvars, unit,
+        update_fastaccess, value, values, valuevector, verify
         """
         return objecttools.dir_(self)
 
@@ -2780,21 +2780,58 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
     def _save_int(self, values: numpy.ndarray) -> None:
         values.tofile(self.filepath_int)
 
+    @property
+    def seriesmatrix(self) -> Matrix[float]:
+        """The time series of the actual |Sequence_| object arranged in a 2-dimensional
+        matrix.
+
+        For a 1-dimensional sequence object, property |IOSequence.seriesmatrix| returns
+        the original values without any modification:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(2)
+        >>> fluxes.pc.activate_ram()
+        >>> fluxes.pc.series = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
+        >>> from hydpy import print_values
+        >>> for values in fluxes.pc.seriesmatrix:
+        ...     print_values(values)
+        1.0, 2.0
+        3.0, 4.0
+        5.0, 6.0
+
+        For all other sequences, |IOSequence.seriesmatrix| raises the following error
+        by default:
+
+        >>> inputs.p.seriesmatrix
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Sequence `p` does not implement a method for converting \
+its series to a 2-dimensional matrix.
+        """
+        if self.NDIM == 1:
+            return self.series
+        raise NotImplementedError(
+            f"Sequence {objecttools.devicephrase(self)} does not implement a method "
+            f"for converting its series to a 2-dimensional matrix."
+        )
+
     def average_series(self, *args, **kwargs) -> InfoArray:
-        """Average the actual time-series of the |Variable| object for all
-        time points.
+        """Average the actual time-series of the |Variable| object for all time points.
 
         Method |IOSequence.average_series| works similarly as method
-        |Variable.average_values| of class |Variable|, from which we
-        borrow some examples. However, firstly, we have to prepare a
-        |Timegrids| object to define the |IOSequence.series| length:
+        |Variable.average_values| of class |Variable|, from which we borrow some
+        examples. However, firstly, we have to prepare a |Timegrids| object to define
+        the |IOSequence.series| length:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
-        As shown for method |Variable.average_values|, for 0-dimensional
-        |IOSequence| objects the result of method |IOSequence.average_series|
-        equals |IOSequence.series| itself:
+        As shown for method |Variable.average_values|, for 0-dimensional |IOSequence|
+        objects the result of method |IOSequence.average_series| equals
+        |IOSequence.series| itself:
 
         >>> from hydpy.core.sequencetools import StateSequence, StateSequences
         >>> class SoilMoisture(StateSequence):
@@ -2810,16 +2847,15 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         >>> sm.average_series()
         InfoArray([190., 200., 210.])
 
-        For |IOSequence| objects with an increased dimensionality, we
-        require a weighting parameter:
+        For |IOSequence| objects with an increased dimensionality, we require a
+        weighting parameter:
 
         >>> SoilMoisture.NDIM = 1
         >>> sm.shape = 3
         >>> sm.activate_ram()
-        >>> sm.series = (
-        ...     [190.0, 390.0, 490.0],
-        ...     [200.0, 400.0, 500.0],
-        ...     [210.0, 410.0, 510.0])
+        >>> sm.series = ([190.0, 390.0, 490.0],
+        ...              [200.0, 400.0, 500.0],
+        ...              [210.0, 410.0, 510.0])
         >>> from hydpy.core.parametertools import Parameter
         >>> class Area(Parameter):
         ...     NDIM = 1
@@ -2830,11 +2866,10 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         >>> sm.average_series()
         InfoArray([390., 400., 410.])
 
-        The documentation on method |Variable.average_values| provides
-        many examples of how to use different masks in different ways.
-        Here, we only show the results of method |IOSequence.average_series|
-        for a mask selecting the first two entries, for a mask selecting
-        no entry at all, and for an ill-defined mask:
+        The documentation on method |Variable.average_values| provides many examples of
+        how to use different masks in different ways.  Here, we only show the results
+        of method |IOSequence.average_series| for a mask selecting the first two
+        entries, for a mask selecting no entry at all, and for an ill-defined mask:
 
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
@@ -2856,11 +2891,10 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         Traceback (most recent call last):
         ...
         IndexError: While trying to calculate the mean value of the internal \
-time-series of sequence `soilmoisture`, the following error occurred: \
-While trying to access the value(s) of variable `area` with key \
-`[ True  True]`, the following error occurred: \
-boolean index did not match indexed array along dimension 0; \
-dimension is 3 but corresponding boolean dimension is 2
+time-series of sequence `soilmoisture`, the following error occurred: While trying to \
+access the value(s) of variable `area` with key `[ True  True]`, the following error \
+occurred: boolean index did not match indexed array along dimension 0; dimension is 3 \
+but corresponding boolean dimension is 2
         """
         try:
             if not self.NDIM:
@@ -2870,9 +2904,8 @@ dimension is 3 but corresponding boolean dimension is 2
                 if numpy.any(mask):
                     weights = self.refweights[mask]
                     weights /= numpy.sum(weights)
-                    series = self.series[:, mask]
-                    axes = tuple(range(1, self.NDIM + 1))
-                    array = numpy.sum(weights * series, axis=axes)
+                    series = self.seriesmatrix[:, mask]
+                    array = numpy.sum(weights * series, axis=1)
                 else:
                     array = numpy.full(len(self.series), numpy.nan, dtype=float)
             return InfoArray(array, info={"type": "mean"})
@@ -3421,7 +3454,7 @@ class ConditionSequence(
         >>> wet0 = model.sequences.logs.wet0
         >>> wet0.shape = 2
         >>> wet0
-        wet0([[nan, nan]])
+        wet0(nan, nan)
 
         Before "calling" the sequences, method |ConditionSequence.reset|
         does nothing:
@@ -3433,7 +3466,7 @@ class ConditionSequence(
         >>> wet0.values = 0.0
         >>> wet0.reset()
         >>> wet0
-        wet0([[0.0, 0.0]])
+        wet0(0.0, 0.0)
 
         After "calling" the sequences, method |ConditionSequence.reset|
         reuses the respective arguments:
@@ -3450,10 +3483,10 @@ class ConditionSequence(
         >>> wet0(1.0, 2.0)
         >>> wet0.values = 3.0
         >>> wet0
-        wet0([[3.0, 3.0]])
+        wet0(3.0, 3.0)
         >>> wet0.reset()
         >>> wet0
-        wet0([[1.0, 2.0]])
+        wet0(1.0, 2.0)
         """
         if self._oldargs:
             self(*self._oldargs)

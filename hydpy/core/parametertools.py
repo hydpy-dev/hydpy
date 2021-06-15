@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module provides tools for defining and handling different kinds
-of parameters of hydrological models."""
+"""This module provides tools for defining and handling different kinds of parameters
+of hydrological models."""
 # import...
 # ...from standard library
 import copy
@@ -26,7 +26,6 @@ from hydpy.core.typingtools import *
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import devicetools
-    from hydpy.core import masktools
     from hydpy.core import modeltools
 
 # The import of `_strptime` is not thread save.  The following call of
@@ -41,11 +40,11 @@ def get_controlfileheader(
 ) -> str:
     """Return the header of a regular or auxiliary parameter control file.
 
-    The header contains the default coding information, the import command
-    for the given model and the actual parameter and simulation step sizes.
+    The header contains the default coding information, the import command for the
+    given model and the actual parameter and simulation step sizes.
 
-    If you pass the model argument as a string, you have to take care that this
-    string makes sense:
+    If you pass the model argument as a string, you have to take care that this string
+    makes sense:
 
     >>> from hydpy.core.parametertools import get_controlfileheader
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
@@ -1596,14 +1595,13 @@ implement method `update`.
         return KeywordArguments(False)
 
     def compress_repr(self) -> Optional[str]:
-        """Try to find a compressed parameter value representation and
-        return it.
+        """Try to find a compressed parameter value representation and return it.
 
-        |Parameter.compress_repr| raises a |NotImplementedError| when
-        failing to find a compressed representation.
+        |Parameter.compress_repr| raises a |NotImplementedError| when failing to find a
+        compressed representation.
 
-        For the following examples, we define a 1-dimensional sequence
-        handling time-dependent floating-point values:
+        For the following examples, we define a 1-dimensional sequence handling
+        time-dependent floating-point values:
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Test(Parameter):
@@ -1612,8 +1610,7 @@ implement method `update`.
         ...     TIME = True
         >>> test = Test(None)
 
-        Before and directly after defining the parameter shape, `nan`
-        is returned:
+        Before and directly after defining the parameter shape, `nan` is returned:
 
         >>> test.compress_repr()
         '?'
@@ -1623,8 +1620,8 @@ implement method `update`.
         >>> test
         test(?)
 
-        Due to the time-dependence of the values of our test class,
-        we need to specify a parameter and a simulation time step:
+        Due to the time-dependence of the values of our test class, we need to specify
+        a parameter and a simulation time step:
 
         >>> from hydpy import pub
         >>> pub.options.parameterstep = "1d"
@@ -1640,16 +1637,15 @@ implement method `update`.
         >>> test
         test(3.0)
 
-        Method |Parameter.compress_repr| returns |None| in case the
-        required values are not identical:
+        Method |Parameter.compress_repr| returns |None| in case the required values are
+        not identical:
 
         >>> test(1.0, 2.0, 3.0, 3.0)
         >>> test.compress_repr()
         >>> test
         test(1.0, 2.0, 3.0, 3.0)
 
-        If some values are not required, indicate this by the `mask`
-        descriptor:
+        If some values are not required, indicate this by the `mask` descriptor:
 
         >>> import numpy
         >>> test(3.0, 3.0, 3.0, numpy.nan)
@@ -1678,9 +1674,9 @@ implement method `update`.
         >>> test
         test([])
 
-        Method |Parameter.compress_repr| works similarly for different
-        |Parameter| subclasses.  The following examples focus on a
-        2-dimensional parameter handling integer values:
+        Method |Parameter.compress_repr| works similarly for different |Parameter|
+        subclasses.  The following examples focus on a 2-dimensional parameter handling
+        integer values:
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Test(Parameter):
@@ -1739,8 +1735,12 @@ implement method `update`.
             values = self.compress_repr()
             if values is None:
                 values = self.revert_timefactor(self.values)
-            islong = (len(self) > 255) if (values is None) else False
-            return variabletools.to_repr(self, values, islong)
+            brackets = (
+                (isinstance(values, str) and (values == "?"))
+                or (len(self) > 255)
+                or ((self.NDIM == 2) and (self.shape[0] != 1))
+            )
+            return variabletools.to_repr(self, values, brackets)
         lines = self.commentrepr
         if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
@@ -1759,7 +1759,7 @@ implement method `update`.
 'availablemasks', 'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
 'get_submask', 'get_timefactor', 'initinfo', 'keywordarguments', 'mask', 'name', \
 'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', 'subpars', \
-'subvars', 'trim', 'unit', 'update', 'value', 'values', 'verify']
+'subvars', 'trim', 'unit', 'update', 'value', 'values', 'valuevector', 'verify']
         """
         return objecttools.dir_(self)
 
@@ -2209,7 +2209,7 @@ error occurred: could not convert string to float: 'test'
 'keywordarguments', 'laubw', 'mask', 'mischw', 'nadelw', 'name', 'obstb', \
 'refweights', 'revert_timefactor', 'see', 'shape', 'sied_d', 'sied_l', \
 'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', 'value', \
-'values', 'verify', 'vers', 'wasser', 'weinb']
+'values', 'valuevector', 'verify', 'vers', 'wasser', 'weinb']
         """
         return list(
             itertools.chain(

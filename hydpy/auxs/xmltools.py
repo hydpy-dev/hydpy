@@ -1742,12 +1742,11 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
-        land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
-1.0, 1.0, 1.0]
-        land_lahn_1_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, \
-170.0, 180.0, 190.0, 200.0, 206.0, 206.0, 206.0]
-        land_lahn_2_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
-123.0, 123.0, 123.0, 123.0]
+        land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        land_lahn_1_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, \
+190.0, 200.0, 206.0, 206.0, 206.0]
+        land_lahn_2_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
+123.0, 123.0]
         land_lahn_3_states_sm [101.3124...]
 
         Another |GetItem| object queries the actual value of the |hland_factors.TMean|
@@ -1760,7 +1759,7 @@ class XMLVar(XMLSelector):
         land_dill_factors_tmean 1.0
 
         Another |GetItem| object queries both the actual and the time series values of
-        the |hland_fluxes.QT| flux sequence of element `land_dill`::
+        the |hland_fluxes.QT| flux sequence of element `land_dill`:
 
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
@@ -1771,8 +1770,8 @@ class XMLVar(XMLSelector):
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
 
-        Last but not least, one |GetItem| queries the simulated time
-        series values avaiable through node `dill`:
+        Last but not least, one |GetItem| queries the simulated time series values
+        avaiable through node `dill`:
 
         >>> var = interface.exchange.itemgroups[3].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)

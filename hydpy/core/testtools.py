@@ -451,7 +451,9 @@ class Test:
                 elif len(parseq) == 0:
                     strings[-1].append("-")
                 else:
-                    strings[-1].extend(objecttools.repr_(value) for value in array[idx])
+                    strings[-1].extend(
+                        objecttools.repr_(value) for value in array[idx].flatten()
+                    )
         return strings
 
     @property
@@ -630,11 +632,11 @@ class IntegrationTest(Test):
         get_conditions=None,
         use_conditions=None,
     ):
-        """Prepare and perform an integration test and print and eventually
-        plot its results.
+        """Prepare and perform an integration test and print and eventually plot its
+        results.
 
-        Note that the conditions defined under |IntegrationTest.inits|
-        override the ones given via keyword `use_conditions`.
+        Note that the conditions defined under |IntegrationTest.inits| override the
+        ones given via keyword `use_conditions`.
         """
         self.prepare_model(
             update_parameters=update_parameters,
@@ -643,11 +645,7 @@ class IntegrationTest(Test):
         seq2value = self._perform_simulation(get_conditions)
         self.print_table()
         if filename:
-            self.plot(
-                filename=filename,
-                axis1=axis1,
-                axis2=axis2,
-            )
+            self.plot(filename=filename, axis1=axis1, axis2=axis2)
         return seq2value
 
     def _perform_simulation(self, get_conditions):
@@ -865,35 +863,27 @@ datetime of the Python standard library for for further information.
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series))
                 _update_act_names(sequence, name)
-            elif sequence.shape[0] == 1:
+            elif all(length == 1 for length in sequence.shape):
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series[:, 0]))
                 _update_act_names(sequence, name)
             else:
-                for idx in range(sequence.shape[0]):
-                    subname = f"{name}_{idx+1}"
+                ranges = (range(length) for length in sequence.shape)
+                for idxs in itertools.product(*ranges):
+                    subname = f"{name}_{'-'.join(str(idx+1) for idx in idxs)}"
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
-                    sel_series.append(list(sequence.series[:, idx]))
+                    series = sequence.series
+                    for idx in idxs:
+                        series = series[:, idx]
+                    sel_series.append(list(series))
                     _update_act_names(sequence, subname)
 
-        fig = subplots.make_subplots(
-            rows=1,
-            cols=1,
-            specs=[[dict(secondary_y=True)]],
-        )
-        fig.update_xaxes(
-            showgrid=False,
-            zeroline=False,
-        )
-        fig.update_yaxes(
-            showgrid=False,
-            zeroline=False,
-        )
-        fig.update_layout(
-            showlegend=True,
-        )
+        fig = subplots.make_subplots(rows=1, cols=1, specs=[[dict(secondary_y=True)]])
+        fig.update_xaxes(showgrid=False, zeroline=False)
+        fig.update_yaxes(showgrid=False, zeroline=False)
+        fig.update_layout(showlegend=True)
 
         cmap = pyplot.get_cmap("tab20", 2 * len(sel_names))
         dates = list(
@@ -1303,13 +1293,17 @@ class TestIO:
     reported as uncovered.
     """
 
-    def __init__(self, clear_own=False, clear_all=False):
+    def __init__(
+        self,
+        clear_own: bool = False,
+        clear_all: bool = False,
+    ) -> None:
         self._clear_own = clear_own
         self._clear_all = clear_all
         self._path = None
         self._olds = None
 
-    def __enter__(self):
+    def __enter__(self) -> "TestIO":
         self._path = os.getcwd()
         iotestingpath: str = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
         os.chdir(os.path.join(iotestingpath))
@@ -1317,7 +1311,12 @@ class TestIO:
             self._olds = os.listdir(".")
         return self
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
         for file in os.listdir("."):
             if file.startswith(".coverage"):
                 shutil.move(file, os.path.join(self._path, file))
@@ -1332,7 +1331,7 @@ class TestIO:
         os.chdir(self._path)
 
     @classmethod
-    def clear(cls):
+    def clear(cls) -> None:
         """Remove all files from the `iotesting` folder."""
         with cls(clear_all=True):
             pass

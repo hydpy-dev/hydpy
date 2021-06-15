@@ -1259,7 +1259,7 @@ class PyxWriter:
             else:
                 lines.add(
                     3,
-                    f"fread(&self.{seq.name}[0], 8, "
+                    f"fread(&self.{seq.name}[{', '.join(seq.NDIM * ['0'])}], 8, "
                     f"self._{seq.name}_length, self._{seq.name}_file)",
                 )
             lines.add(2, f"elif self._{seq.name}_ramflag:")
@@ -1302,7 +1302,7 @@ class PyxWriter:
             else:
                 lines.add(
                     indent + 1,
-                    f"fwrite(&self.{seq.name}[0], 8, "
+                    f"fwrite(&self.{seq.name}[{', '.join(seq.NDIM * ['0'])}], 8, "
                     f"self._{seq.name}_length, self._{seq.name}_file)",
                 )
             lines.add(indent, f"elif self._{seq.name}_ramflag:")

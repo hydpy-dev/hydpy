@@ -210,7 +210,7 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
 The old and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, \
 respectively.
     >>> var
-    var([[1.0, 1.0, 2.0]])
+    var(1.0, 1.0, 2.0)
 
     >>> var.values = 2.0, 3.0, 4.0
     >>> var.trim()
@@ -220,7 +220,7 @@ respectively.
 The old and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, \
 respectively.
     >>> var
-    var([[2.0, 3.0, 3.0]])
+    var(2.0, 3.0, 3.0)
 
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
     >>> var.values == (1.0, 2.0, 3.0)
@@ -232,7 +232,7 @@ respectively.
     >>> var.values = 0.0, 2.0, 4.0
     >>> var.trim(lower=numpy.nan, upper=numpy.nan)
     >>> var
-    var([[0.0, 2.0, 4.0]])
+    var(0.0, 2.0, 4.0)
 
     >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
     Traceback (most recent call last):
@@ -327,7 +327,7 @@ respectively.
     ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
     >>> var
-    var([[0, 1, 2]])
+    var(0, 1, 2)
     >>> var.values = 2, 3, 4
     >>> var.trim()
     Traceback (most recent call last):
@@ -335,7 +335,7 @@ is not valid.
     ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
     >>> var
-    var([[2, 3, 4]])
+    var(2, 3, 4)
 
 
     >>> var.values = 0, 0, 2
@@ -1207,24 +1207,23 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 value = numpy.full(self.shape, value, dtype=self.TYPE)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to convert the value(s) `{value}` "
-                    f"to a numpy ndarray with shape `{self.shape}` "
-                    f"and type `{self.TYPE.__name__}`"
+                    f"While trying to convert the value(s) `{value}` to a numpy "
+                    f"ndarray with shape `{self.shape}` and type `{self.TYPE.__name__}`"
                 )
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
                     raise ValueError(
-                        f"{len(value)} values are assigned to the scalar "
-                        f"variable {objecttools.devicephrase(self)}."
+                        f"{len(value)} values are assigned to the scalar variable "
+                        f"{objecttools.devicephrase(self)}."
                     )
                 value = value[0]
             try:
                 value = self.TYPE(value)
             except BaseException:
                 raise TypeError(
-                    f"The given value `{value}` cannot be converted "
-                    f"to type `{self.TYPE.__name__}`."
+                    f"The given value `{value}` cannot be converted to type "
+                    f"`{self.TYPE.__name__}`."
                 ) from None
         return value
 
@@ -1488,6 +1487,53 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
             )
 
     @property
+    def valuevector(self) -> Vector:
+        """The values of the actual |Variable| object arranged in a 1-dimensional
+        vector.
+
+        For a 1-dimensional variable object, property |Variable.valuevector| returns
+        the original values without any modification:
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(3)
+        >>> sclass(2)
+        >>> states.sm.values = 1.0, 2.0, 3.0
+        >>> from hydpy import print_values
+        >>> print_values(states.sm.valuevector)
+        1.0, 2.0, 3.0
+
+        For all other variables, |Variable.valuevector| raises the following error by
+        default:
+
+        >>> states.uz.valuevector
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Variable `uz` does not implement a method for converting \
+its values to a 1-dimensional vector.
+
+        If considered appropriate, model developers should override
+        |Variable.valuevector| for individual multidimensional variables, to support
+        methods like |Variable.average_values|, which rely on 1-dimensional data.  One
+        example is the state sequence |hland_states.SP| of base model |hland|, which
+        handles values for individual zones (second axis) and snow classes (first axis).
+        Here we decided to let |hland_sequences.State2DSequence.valuevector| return the
+        sums of all snow classes for each zone so that the content of the returned
+        vector agrees with the contents of most 1-dimensional sequences of |hland|:
+
+        >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        >>> print_values(states.sp.valuevector)
+        2.5, 3.5, 4.5
+        """
+        if self.NDIM == 1:
+            return self.value
+        raise NotImplementedError(
+            f"Variable {objecttools.devicephrase(self)} does not implement a method "
+            f"for converting its values to a 1-dimensional vector."
+        )
+
+    @property
     def refweights(self) -> "Variable":
         """Reference to a |Parameter| object that defines weighting coefficients (e.g.
         fractional areas) for applying function |Variable.average_values|.  Must be
@@ -1501,9 +1547,8 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         """Average the actual values of the |Variable| object.
 
         For 0-dimensional |Variable| objects, the result of method
-        |Variable.average_values| equals |Variable.value|.  The
-        following example shows this for the sloppily defined class
-        `SoilMoisture`:
+        |Variable.average_values| equals |Variable.value|.  The following example shows
+        this for the sloppily defined class `SoilMoisture`:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class SoilMoisture(Variable):
@@ -1513,14 +1558,13 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         ...     availablemasks = None
         ...     initinfo = None
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        ...     value = 200.0
         >>> sm = SoilMoisture(None)
-        >>> sm.value = 200.0
         >>> sm.average_values()
         200.0
 
-        When the dimensionality of this class is increased to one,
-        applying method |Variable.average_values| results in the
-        following error:
+        When the dimensionality of this class is increased to one, applying method
+        |Variable.average_values| results in the following error:
 
         >>> SoilMoisture.NDIM = 1
         >>> import numpy
@@ -1529,9 +1573,9 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> sm.average_values()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to calculate the mean value \
-of variable `soilmoisture`, the following error occurred: Variable \
-`soilmoisture` does not define any weighting coefficients.
+        AttributeError: While trying to calculate the mean value of variable \
+`soilmoisture`, the following error occurred: Variable `soilmoisture` does not define \
+any weighting coefficients.
 
         So model developers have to define another (in this case 1-dimensional)
         |Variable| subclass (usually a |Parameter| subclass) and make the relevant
@@ -1565,14 +1609,12 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values()
         300.0
 
-        Alternatively, method |Variable.average_values| accepts additional
-        masking information as positional or keyword arguments.  Therefore,
-        the corresponding model must implement some alternative masks,
-        which are provided by property |Variable.availablemasks|.
-        We mock this property with a new |Masks| object, handling one
-        mask for flat soils (only the first hru), one mask for deep soils
-        (only the second hru), and one mask for water areas (only the
-        third hru):
+        Alternatively, method |Variable.average_values| accepts additional masking
+        information as positional or keyword arguments.  Therefore, the corresponding
+        model must implement some alternative masks, which are provided by property
+        |Variable.availablemasks|.  We mock this property with a new |Masks| object,
+        handling one mask for flat soils (only the first hru), one mask for deep soils
+        (only the second hru), and one mask for water areas (only the third hru):
 
         >>> class FlatSoil(DefaultMask):
         ...     @classmethod
@@ -1616,8 +1658,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
 `('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
 has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
-        Applying masks with custom options is also supported.  One can change
-        the behaviour of the following mask via the argument `complete`:
+        Applying masks with custom options is also supported.  One can change the
+        behaviour of the following mask via the argument `complete`:
 
         >>> class AllOrNothing(DefaultMask):
         ...     @classmethod
@@ -1634,8 +1676,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ...                AllOrNothing)
         >>> SoilMoisture.availablemasks = Masks()
 
-        Again, one can apply the mask class directly (but note that one
-        has to pass the relevant variable as the first argument.):
+        Again, one can apply the mask class directly (but note that one has to pass the
+        relevant variable as the first argument):
 
         >>> sm.average_values(   # doctest: +ELLIPSIS
         ...     sm.availablemasks.allornothing(sm, complete=True))
@@ -1643,8 +1685,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ...
         ValueError: While trying to...
 
-        Alternatively, one can pass the mask name as a keyword and pack
-        the mask's options into a |dict| object:
+        Alternatively, one can pass the mask name as a keyword and pack the mask's
+        options into a |dict| object:
 
         >>> sm.average_values(allornothing={"complete": False})
         nan
@@ -1655,12 +1697,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         300.0
         """
         try:
-            if not self.NDIM:
+            if self.NDIM == 0:
                 return self.value
             mask = self.get_submask(*args, **kwargs)
             if numpy.any(mask):
                 weights = self.refweights[mask]
-                return numpy.sum(weights * self[mask]) / numpy.sum(weights)
+                values = self.valuevector[mask]
+                return numpy.sum(weights * values) / numpy.sum(weights)
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
@@ -1670,9 +1713,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def availablemasks(self) -> masktools.Masks:
-        """For |ModelSequence| objects, a |Masks| object provided by the
-        corresponding |Model| object; for |NodeSequence| object, a suitable
-        |DefaultMask|.
+        """For |ModelSequence| objects, a |Masks| object provided by the corresponding
+        |Model| object; for |NodeSequence| object, a suitable |DefaultMask|.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2033,7 +2075,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return []
 
     def __repr__(self):
-        return to_repr(self, self.value)
+        brackets = (len(self) > 255) or ((self.NDIM == 2) and (self.shape[0] != 1))
+        return to_repr(self, self.value, brackets)
 
 
 class MixinFixedShape:
@@ -2337,14 +2380,13 @@ named `wrong`.
 def to_repr(
     self: Variable,
     values,
-    brackets1d: Optional[bool] = False,
+    brackets: bool = False,
 ) -> str:
-    """Return a valid string representation for the given |Variable|
-    object.
+    """Return a valid string representation for the given |Variable| object.
 
-    Function |to_repr| is thought for internal purposes only, more
-    specifically for defining string representations of subclasses
-    of class |Variable| like the following:
+    Function |to_repr| is thought for internal purposes only, more specifically for
+    defining string representations of subclasses of class |Variable| like the
+    following:
 
     >>> from hydpy.core.variabletools import to_repr, Variable
     >>> class Var(Variable):
@@ -2357,10 +2399,9 @@ def to_repr(
     >>> var
     var(2)
 
-    The following examples demonstrate all covered cases.  Note that
-    option `brackets1d` allows choosing between a "vararg" and an
-    "iterable" string representation for 1-dimensional variables
-    (the first one being the default):
+    The following examples demonstrate all covered cases.  Note that option `brackets`
+    allows choosing between a "vararg" and an "iterable" string representation for
+    multidimensional variables:
 
     >>> print(to_repr(var, 2))
     var(2)
@@ -2383,13 +2424,21 @@ def to_repr(
     >>> var = Var(None)
     >>> var.shape = (2, 3)
     >>> print(to_repr(var, [range(3), range(3, 6)]))
+    var(0, 1, 2,
+        3, 4, 5)
+    >>> print(to_repr(var, [range(3), range(3, 6)], True))
     var([[0, 1, 2],
          [3, 4, 5]])
-    >>> print(to_repr(var, [range(30), range(30, 60)]))
+    >>> print(to_repr(var, [range(30), range(30, 60)], True))
     var([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
           19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
          [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
           46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
+    >>> print(to_repr(var, [range(30), range(30, 60)]))
+    var(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+        19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+        47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59)
     """
     prefix = f"{self.name}("
     if isinstance(values, str):
@@ -2397,10 +2446,13 @@ def to_repr(
     elif self.NDIM == 0:
         string = f"{self.name}({objecttools.repr_(values)})"
     elif self.NDIM == 1:
-        if brackets1d:
+        if brackets:
             string = objecttools.assignrepr_list(values, prefix, 72) + ")"
         else:
             string = objecttools.assignrepr_values(values, prefix, 72) + ")"
     else:
-        string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
+        if brackets:
+            string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
+        else:
+            string = objecttools.assignrepr_values2(values, prefix, 72) + ")"
     return "\n".join(self.commentrepr + [string])

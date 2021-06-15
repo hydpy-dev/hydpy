@@ -70,8 +70,8 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wet0([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
+        wet0(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+             nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                    nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
@@ -96,8 +96,8 @@ class NmbLogEntries(parametertools.Parameter):
         >>> logs.loggedrelativehumidity = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wet0([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]])
+        wet0(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,

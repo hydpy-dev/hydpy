@@ -17,7 +17,7 @@ from hydpy.models.hland.hland_constants import ILAKE
 class Ic(hland_sequences.State1DSequence):
     """Interception storage [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = hland_masks.Interception()
 
     CONTROLPARAMETERS = (hland_control.IcMax,)
@@ -39,10 +39,10 @@ class Ic(hland_sequences.State1DSequence):
         super().trim(lower, upper)
 
 
-class SP(hland_sequences.State1DSequence):
+class SP(hland_sequences.State2DSequence):
     """Frozen water stored in the snow layer [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    SPAN = (None, None)
     mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
@@ -53,14 +53,20 @@ class SP(hland_sequences.State1DSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(7)
+        >>> sclass(2)
         >>> whc(0.1)
-        >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
+        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
         >>> states.sp
-        sp(0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0)
-        >>> states.wc.values = -1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0
-        >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
+        sp([[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+            [0.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
+        >>> states.wc.values = [[-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0],
+        ...                     [-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0]]
+        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
         >>> states.sp
-        sp(0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0)
+        sp([[0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0],
+            [0.0, 0.0, 10.0, 6.0, 6.0, 6.0, 10.0]])
         """
         whc = self.subseqs.seqs.model.parameters.control.whc
         wc = self.subseqs.wc
@@ -72,10 +78,10 @@ class SP(hland_sequences.State1DSequence):
         super().trim(lower, upper)
 
 
-class WC(hland_sequences.State1DSequence):
+class WC(hland_sequences.State2DSequence):
     """Liquid water content of the snow layer [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
@@ -86,11 +92,15 @@ class WC(hland_sequences.State1DSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(7)
+        >>> sclass(2)
         >>> whc(0.1)
-        >>> states.sp = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
-        >>> states.wc(-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0)
+        >>> states.sp = [[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+        ...              [0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0]]
+        >>> states.wc([[-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0],
+        ...            [-0.2, 0.0, 0.2, -0.2, 0.0, 0.1, 0.2]])
         >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
+        wc([[0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.2]])
         """
         whc = self.subseqs.seqs.model.parameters.control.whc
         sp = self.subseqs.sp
@@ -106,7 +116,7 @@ class SM(hland_sequences.State1DSequence):
     `BW0ZON` instead of the HBV96 abbreviation `SM`.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = hland_masks.Soil()
 
     CONTROLPARAMETERS = (hland_control.FC,)
@@ -133,29 +143,29 @@ class UZ(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
-class SUZ(sequencetools.StateSequence):
+class SUZ(hland_sequences.State1DSequence):
     """Upper storage reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class BW1(sequencetools.StateSequence):
+class BW1(hland_sequences.State1DSequence):
     """Water stored in the surface flow reservoir [mm].
 
     Note that COSERO uses the abbreviation `BW1ZON` instead.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = False, (0.0, None)
     mask = hland_masks.UpperZone()
 
 
-class BW2(sequencetools.StateSequence):
+class BW2(hland_sequences.State1DSequence):
     """Water stored in the interflow reservoir [mm].
 
     Note that COSERO uses the abbreviation `BW2ZON` instead.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = hland_masks.UpperZone()
 
 
@@ -196,10 +206,10 @@ class LZ(sequencetools.StateSequence):
         super().trim(lower, upper)
 
 
-class SG1(sequencetools.StateSequence):
+class SG1(hland_sequences.State1DSequence):
     """Fast response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (hland_control.SG1Max,)
     mask = hland_masks.UpperZone()

@@ -4,7 +4,9 @@
 """
 # import...
 # from standard library
+import functools
 import warnings
+from typing import *
 
 # from site-packages
 import numpy
@@ -13,11 +15,19 @@ import numpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_fixed
 from hydpy.models.hland import hland_parameters
+
+if TYPE_CHECKING:
+    from scipy import integrate
+    from scipy import stats
+else:
+    integrate = exceptiontools.OptionalImport("scipy", ["scipy.integrate"], locals())
+    stats = exceptiontools.OptionalImport("stats", ["scipy.stats"], locals())
 
 
 class Area(parametertools.Parameter):
@@ -29,20 +39,20 @@ class Area(parametertools.Parameter):
 class NmbZones(parametertools.Parameter):
     """Number of zones (hydrological response units) in a subbasin [-].
 
-    Note that |NmbZones| determines the length of most 1-dimensional parameters and
-    sequences.  Usually, you should first prepare |NmbZones| and define the values of
-    all 1-dimensional parameters and sequences afterwards:
+    |NmbZones| determines the length of most 1-dimensional parameters and sequences.
+    Usually, you should first prepare |NmbZones| and define the values of all
+    1-dimensional parameters and sequences afterwards:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep("1d")
+    >>> parameterstep()
     >>> nmbzones(5)
     >>> icmax.shape
     (5,)
     >>> states.ic.shape
     (5,)
 
-    Changing the value of "N" later reshapes the affected parameters and sequences and
-    makes it necessary the reset their values:
+    Changing the value of |NmbZones| later reshapes the affected parameters and
+    sequences and makes it necessary the reset their values:
 
     >>> icmax(2.0)
     >>> icmax
@@ -50,25 +60,114 @@ class NmbZones(parametertools.Parameter):
     >>> nmbzones(3)
     >>> icmax
     icmax(?)
+
+    Re-defining the same value does not delete the already available data:
+
+    >>> icmax(2.0)
+    >>> nmbzones(3)
+    >>> icmax
+    icmax(2.0)
+
+    Some 2-dimensional sequences reflect differences in snow accumulation within each
+    zone. |NmbZones| prepares their shapes also, but therefore requires parameter
+    |SClass| to provide the number of snow classes within each zone:
+
+    >>> states.sp
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \
+can only be retrieved after it has been defined.
+
+    >>> sclass.value = 2
+    >>> nmbzones(4)
+    >>> states.sp.shape
+    (2, 4)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass a value to |NmbZones| instances within
-        parameter control files.  Sets the shape of most 1-dimensional
-        parameter objects (except |UH|) and sequence objects (except |QUH|)
-        additionally.
-        """
+        old_value = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        for subpars in self.subpars.pars.model.parameters:
-            for par in subpars:
-                if (par.NDIM > 0) and (par.name != "uh"):
-                    par.shape = self.value
-        for subseqs in self.subpars.pars.model.sequences:
-            for seq in subseqs:
-                if (seq.NDIM > 0) and (seq.name not in ("quh", "sc")):
-                    seq.shape = self.value
+        new_value = self.value
+        if new_value != old_value:
+            sclass = exceptiontools.getattr_(self.subpars.sclass, "value", None)
+            for subpars in self.subpars.pars:
+                for par in subpars:
+                    if (par.NDIM == 1) and (par.name not in ("uh", "sfdist")):
+                        par.shape = new_value
+            for subseqs in self.subpars.pars.model.sequences:
+                for seq in subseqs:
+                    if (seq.NDIM == 1) and (seq.name not in ("quh", "sc")):
+                        seq.shape = new_value
+                    elif seq.NDIM == 2:
+                        if sclass is not None:
+                            seq.shape = sclass, new_value
+
+
+class SClass(parametertools.Parameter):
+    """Number of snow classes in each zone [-].
+
+    |SClass| determines the length of the first axis of those 2-dimensional sequences
+    reflecting differences in snow accumulation within each zone.  Therefore, it
+    requires parameter |NmbZones| to provide the number of zones within the subbasin:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep()
+    >>> sclass(1)
+    >>> states.sp
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \
+can only be retrieved after it has been defined.
+
+    >>> nmbzones.value = 2
+    >>> sclass(3)
+    >>> states.sp.shape
+    (3, 2)
+
+    Changing the value of |SClass| later reshapes the affected sequences and makes it
+    necessary to reset their values:
+
+    >>> states.sp = 2.0
+    >>> states.sp
+    sp([[2.0, 2.0],
+        [2.0, 2.0],
+        [2.0, 2.0]])
+    >>> sclass(2)
+    >>> states.sp
+    sp([[nan, nan],
+        [nan, nan]])
+
+    Re-defining the same value does not delete the already available data:
+
+    >>> states.sp = 2.0
+    >>> sclass(2)
+    >>> states.sp
+    sp([[2.0, 2.0],
+        [2.0, 2.0]])
+
+    Additionally, |SClass| determines the shape of the control parameter |SFDist|:
+
+    >>> sfdist.shape
+    (2,)
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    INIT = 1
+
+    def __call__(self, *args, **kwargs):
+        old_value = exceptiontools.getattr_(self, "value", None)
+        super().__call__(*args, **kwargs)
+        new_value = self.value
+        if new_value != old_value:
+            self.subpars.sfdist.shape = new_value
+            nmbzones = exceptiontools.getattr_(self.subpars.nmbzones, "value", None)
+            for subseqs in self.subpars.pars.model.sequences:
+                for seq in subseqs:
+                    if seq.NDIM == 2:
+                        if nmbzones is not None:
+                            seq.shape = new_value, nmbzones
 
 
 class ZoneType(parametertools.NameParameter):
@@ -195,6 +294,175 @@ class IcMax(hland_parameters.ParameterInterception):
     """Maximum interception storage [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class SFDist(parametertools.Parameter):
+    """Distribution of snowfall [-].
+
+    Parameter |SFDist| handles multiple adjustment factors for snowfall, one for each
+    snow class, to introduce spatial heterogeneity to the snow depth within each zone.
+    If we, for example, define three snow classes per zone but assign the neutral value
+    1.0 to |SFDist|, all snow classes will receive the same amount of liquid and frozen
+    snowfall (everything else will also be identical, so defining three snow classes
+    instead of one is just a waste of computation time):
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep()
+    >>> sclass(3)
+    >>> sfdist(1.0)
+    >>> sfdist
+    sfdist(1.0)
+
+    |SFDist| norms the given values. If we assign 0.1, 0.2, and 0.3, the snow classes
+    receive 50 %, 100 %, and 150 % of the average snowfall of their respective zone:
+
+    >>> sfdist(0.1, 0.2, 0.3)
+    >>> sfdist
+    sfdist(0.5, 1.0, 1.5)
+
+    |SFDist| provides two convenient alternatives for defining multiple factors with
+    single keyword arguments.  To illustrate how they work, we first define a test
+    function that accepts a keyword argument, passes it to a |SFDist| instance for the
+    cases of one to five snow classes, and prints the respective snow class-specific
+    factors:
+
+    >>> from hydpy import print_values
+    >>> def test(**kwargs):
+    ...     for nmb in range(1, 6):
+    ...         sclass(nmb)
+    ...         sfdist(**kwargs)
+    ...         print_values(sfdist.values)
+
+    The first available keyword is `linear`.  If we use it, |SFDist| calculates its
+    factors in agreement with the original *HBV96* implementation.  For the lowest
+    possible value, 0.0, all adjustment factors are one:
+
+    >>> test(linear=0.0)
+    1.0
+    1.0, 1.0
+    1.0, 1.0, 1.0
+    1.0, 1.0, 1.0, 1.0
+    1.0, 1.0, 1.0, 1.0, 1.0
+
+    For the highest possible value, 1.0, the first snow class receives no snowfall,
+    while the last snow class receives twice the zone's average snowfall.  |SFDist|
+    interpolates the factors of the other snow classes linearly:
+
+    >>> test(linear=1.0)
+    1.0
+    0.0, 2.0
+    0.0, 1.0, 2.0
+    0.0, 0.666667, 1.333333, 2.0
+    0.0, 0.5, 1.0, 1.5, 2.0
+
+    For a value of 0.5, the first and the last snow class receive 50 % and 150 % of the
+    zone's average snowfall:
+
+    >>> test(linear=0.5)
+    1.0
+    0.5, 1.5
+    0.5, 1.0, 1.5
+    0.5, 0.833333, 1.166667, 1.5
+    0.5, 0.75, 1.0, 1.25, 1.5
+
+    The first available keyword is `lognormal`.  Here, |SFDist| calculates factors
+    resulting in a lognormal distribution of snowfall, similarly as implemented in
+    the COSERO model :cite:`ref-Frey2015CoseroSnow`.   Again, the lowest possible value,
+    0.0, results in uniform snow distributions:
+
+    >>> test(lognormal=0.0)
+    1.0
+    1.0, 1.0
+    1.0, 1.0, 1.0
+    1.0, 1.0, 1.0, 1.0
+    1.0, 1.0, 1.0, 1.0, 1.0
+
+    In the following examples, we increase the scale factor from 0.01 to 0.1 to 1.0.
+    The higher the scale factor, the more snow concentrates in the last snow class:
+
+    >>> test(lognormal=0.01)
+    1.0
+    0.992021, 1.007979
+    0.989116, 0.999953, 1.010931
+    0.987332, 0.996711, 1.003204, 1.012754
+    0.986061, 0.994647, 0.999951, 1.005284, 1.014057
+
+    >>> test(lognormal=0.1)
+    1.0
+    0.920344, 1.079656
+    0.893412, 0.995313, 1.111276
+    0.877282, 0.963406, 1.028038, 1.131273
+    0.865966, 0.943604, 0.995118, 1.049519, 1.145792
+
+    >>> test(lognormal=1.0)
+    1.0
+    0.317311, 1.682689
+    0.228763, 0.624994, 2.146243
+    0.188069, 0.446552, 0.854969, 2.51041
+    0.163826, 0.361372, 0.612984, 1.047213, 2.814604
+
+    Theoretically, higher scale factors are allowed. However, 1.0 results in highly
+    heterogeneous snow distributions already.
+
+    Wrong usage results in the usual error messages:
+
+    >>> sfdist(normal=1.0)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \
+be set based on the given keyword arguments.
+
+    >>> sfdist(linear=1.0, lognormal=1.0)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \
+be set based on the given keyword arguments.
+
+    >>> sfdist(1.0, lognormal=1.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `sfdist` of element `?` both positional and keyword \
+arguments are given, which is ambiguous.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
+
+    def __call__(self, *args, **kwargs) -> None:
+        if (args and kwargs) or (len(kwargs) > 1):
+            super().__call__(*args, **kwargs)
+        sclass = self.shape[0]
+        if kwargs:
+            if "linear" in kwargs:
+                args = self._linear(kwargs.pop("linear"), sclass)
+            elif "lognormal" in kwargs:
+                args = self._lognormal(sclass, kwargs.pop("lognormal"))
+        super().__call__(*args, **kwargs)
+        self.value /= sum(self.value) / sclass
+
+    @staticmethod
+    @functools.lru_cache()
+    def _linear(factor, sclass):
+        if sclass == 1:
+            values = (1.0,)
+        else:
+            values = (
+                factor * 2.0 * numpy.arange(sclass) / (sclass - 1) + (1.0 - factor)
+            ) / sclass
+        return values
+
+    @staticmethod
+    @functools.lru_cache()
+    def _lognormal(sclass, scale: float) -> Vector[float]:
+        values = numpy.ones(sclass, dtype=float)
+        if scale > 0.0:
+            for idx in range(sclass):
+                values[idx] = integrate.quad(
+                    lambda x: stats.lognorm.ppf(x, scale),
+                    idx / sclass,
+                    (idx + 1) / sclass,
+                )[0]
+        return values
 
 
 class TT(hland_parameters.ParameterComplete):

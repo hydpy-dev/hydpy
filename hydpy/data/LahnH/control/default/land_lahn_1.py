@@ -7,6 +7,7 @@ parameterstep("1d")
 
 area(1660.2)
 nmbzones(13)
+sclass(1)
 zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD,
          FOREST, FIELD, FOREST, FOREST)
 zonearea(25.61, 1.9, 467.41, 183.0, 297.12, 280.53, 81.8, 169.66, 36.0,
@@ -27,6 +28,7 @@ etf(0.1)
 ered(0.0)
 ttice(nan)
 icmax(auxfile="land")
+sfdist(1.0)
 tt(0.59365)
 ttint(2.0)
 dttm(0.0)

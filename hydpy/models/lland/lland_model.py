@@ -1824,7 +1824,7 @@ class Calc_ET0_WET0_V1(modeltools.Method):
         >>> fluxes.et0
         et0(1.6, 2.4, 1.96, 2.04)
         >>> logs.wet0
-        wet0([[1.6, 2.4, 1.96, 2.04]])
+        wet0(1.6, 2.4, 1.96, 2.04)
     """
 
     CONTROLPARAMETERS = (

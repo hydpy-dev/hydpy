@@ -14,63 +14,54 @@ from hydpy.models.hland import hland_sequences
 class PC(hland_sequences.Flux1DSequence):
     """Corrected precipitation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Complete()
 
 
 class EP(hland_sequences.Flux1DSequence):
     """Potential evaporation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.NoGlacier()
 
 
 class EPC(hland_sequences.Flux1DSequence):
     """Corrected potential evaporation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.NoGlacier()
 
 
 class EI(hland_sequences.Flux1DSequence):
     """Interception evaporation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Interception()
 
 
 class TF(hland_sequences.Flux1DSequence):
     """Throughfall [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Interception()
 
 
 class GlMelt(hland_sequences.Flux1DSequence):
     """Glacier melt [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Glacier()
 
 
-class Melt(hland_sequences.Flux1DSequence):
+class Melt(hland_sequences.Flux2DSequence):
     """Actual melting of frozen water stored in the snow layer [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Snow()
 
 
-class Refr(hland_sequences.Flux1DSequence):
+class Refr(hland_sequences.Flux2DSequence):
     """Actual (re)freezing of liquid water stored in the snow layer [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Snow()
 
 
 class In_(hland_sequences.Flux1DSequence):
     """Snow module release/soil module inflow [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Snow()
 
 
@@ -80,28 +71,24 @@ class R(hland_sequences.Flux1DSequence):
     Note that PREVAH uses the abbreviation `DSUZ` instead of the HBV96 abbreviation `R`.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Soil()
 
 
 class EA(hland_sequences.Flux1DSequence):
     """Actual soil evaporation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Soil()
 
 
 class CFPot(hland_sequences.Flux1DSequence):
     """Potential capillary flow [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Soil()
 
 
 class CF(hland_sequences.Flux1DSequence):
     """Actual capillary flow [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.Soil()
 
 
@@ -117,7 +104,7 @@ class Perc(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class DP(sequencetools.FluxSequence):
+class DP(hland_sequences.Flux1DSequence):
     """Deep percolation rate [mm].
 
     Note that PREVAH uses the abbreviation `Perc`, which is also the abbreviation used
@@ -125,7 +112,6 @@ class DP(sequencetools.FluxSequence):
     why we need to define separate sequence classes with different names.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
@@ -135,50 +121,45 @@ class Q0(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class QVs1(sequencetools.FluxSequence):
+class QVs1(hland_sequences.Flux1DSequence):
     """Percolation from the surface flow reservoir [mm].
 
     Note that COSERO uses the abbreviation `QVS1ZON` instead.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class QAb1(sequencetools.FluxSequence):
+class QAb1(hland_sequences.Flux1DSequence):
     """Surface flow [mm].
 
     Note that COSERO uses the abbreviation `QAB1ZON` instead.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class QVs2(sequencetools.FluxSequence):
+class QVs2(hland_sequences.Flux1DSequence):
     """Percolation from the interflow reservoir [mm].
 
     Note that COSERO uses the abbreviation `QVS2ZON` instead.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class QAb2(sequencetools.FluxSequence):
+class QAb2(hland_sequences.Flux1DSequence):
     """Interflow [mm].
 
     Note that COSERO uses the abbreviation `QAB2ZON` instead.
     """
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class EL(sequencetools.FluxSequence):
+class EL(hland_sequences.Flux1DSequence):
     """Actual lake evaporation [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.ILake()
 
 
@@ -188,89 +169,95 @@ class Q1(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class RS(sequencetools.FluxSequence):
+class RS(hland_sequences.Flux1DSequence):
     """Surface runoff [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class RI(sequencetools.FluxSequence):
+class RI(hland_sequences.Flux1DSequence):
     """Interflow [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class GR1(sequencetools.FluxSequence):
+class GR1(hland_sequences.Flux1DSequence):
     """Recharge into the fast response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
-class RG1(sequencetools.FluxSequence):
+class RG1(hland_sequences.Flux1DSequence):
     """Discharge from the fast response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 1, False
     mask = hland_masks.UpperZone()
 
 
 class GR2(sequencetools.FluxSequence):
     """Recharge into the first-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RG2(sequencetools.FluxSequence):
     """Discharge from the first-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class GR3(sequencetools.FluxSequence):
     """Recharge into the second-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RG3(sequencetools.FluxSequence):
     """Discharge from the second-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class InUH(sequencetools.FluxSequence):
     """Input of the triangle unit hydrograph  [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class OutUH(sequencetools.FluxSequence):
     """Output of the triangle unit hydrograph  [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RO(sequencetools.FluxSequence):
     """Sum of all flow components [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RA(sequencetools.FluxSequence):
     """Actual abstraction from runoff [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RT(sequencetools.FluxSequence):
     """Total model outflow [mm]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class QT(sequencetools.FluxSequence):
     """Total model outflow [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False

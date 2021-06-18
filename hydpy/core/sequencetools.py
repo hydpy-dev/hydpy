@@ -2849,7 +2849,7 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
 
         >>> maskvalues = [False, False, False]
         >>> sm.average_series()
-        nan
+        InfoArray([nan, nan, nan])
 
         >>> maskvalues = [True, True]
         >>> sm.average_series()
@@ -2874,7 +2874,7 @@ dimension is 3 but corresponding boolean dimension is 2
                     axes = tuple(range(1, self.NDIM + 1))
                     array = numpy.sum(weights * series, axis=axes)
                 else:
-                    return numpy.nan
+                    array = numpy.full(len(self.series), numpy.nan, dtype=float)
             return InfoArray(array, info={"type": "mean"})
         except BaseException:
             objecttools.augment_excmessage(

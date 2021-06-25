@@ -24,7 +24,7 @@ install:
   - pip install netCDF4
   - pip install pandas
   - pip install plotly
-  - pip install pylint astroid!=2.5.3,!=2.5.4,!=2.5.5,!=2.5.6,!=2.5.7,!=2.5.8
+  - pip install pylint astroid!=2.5.3,!=2.5.4,!=2.5.5,!=2.5.6,!=2.5.7,!=2.5.8,!=2.6.0
   - pip install typing_extensions
   - pip install wrapt
   - pip install xmlschema

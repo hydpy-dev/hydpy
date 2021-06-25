@@ -444,9 +444,10 @@ class Sequences:
     fluxes
     states
     logs
+    aides
     outlets
     >>> len(sequences)
-    6
+    7
 
     Class |Sequences| provides some methods related to reading and writing time-series
     data, which (directly or indirectly) call the corresponding methods of the handled

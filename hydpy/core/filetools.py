@@ -912,6 +912,8 @@ class ControlManager(FileManager):
         ttice(nan)
         icmax(field=1.0, forest=1.5)
         sfdist(1.0)
+        smax(inf)
+        sred(0.0)
         tt(0.55824)
         ttint(2.0)
         dttm(0.0)

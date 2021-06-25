@@ -11,7 +11,7 @@ in many use-cases.  Hence, we also support the original HBV96-distinction into t
 types "field", "forest", "glacier", and "ilake" (internal lake).  In addition, we allow
 the designation of the type "sealed" (sealed area).  Parameter "ZoneType" specifies the
 type of each response unit via one of the integer constants |FIELD|, |FOREST|,
-|GLACIER|, |ILAKE|, and |SEALED|. Through performing a wildcard import, these constants
+|GLACIER|, |ILAKE|, and |SEALED|. By performing a wildcard import, these constants
 become available in your local namespace:
 
 >>> from hydpy.models.hland import *

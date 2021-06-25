@@ -7,10 +7,12 @@
 import warnings
 
 # ...from site-packages
+import networkx
 import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from hland
@@ -175,6 +177,172 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
         """
         zonearea = self.subpars.pars.control.zonearea.values
         self.values = zonearea / numpy.sum(zonearea)
+
+
+class ZoneAreaRatios(parametertools.Parameter):
+    """Ratios of all zone combinations [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (hland_control.ZoneArea,)
+
+    def update(self) -> None:
+        """Update the zone area ratios based on the parameter |ZoneArea|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(3)
+        >>> zonearea(1.0, 5.0, 10.0)
+        >>> derived.zonearearatios.update()
+        >>> derived.zonearearatios
+        zonearearatios([[1.0, 0.2, 0.1],
+                        [5.0, 1.0, 0.5],
+                        [10.0, 2.0, 1.0]])
+        """
+        zonearea = self.subpars.pars.control.zonearea.values
+        self.values = zonearea[:, numpy.newaxis] / zonearea
+
+
+class SRedOrder(parametertools.Parameter):
+    """Processing order for the snow redistribution routine [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 2, int, None, (0, None)
+
+    CONTROLPARAMETERS = (hland_control.SRed,)
+
+    def update(self) -> None:
+        """Update the processing order based on the weighting factors defined by
+        parameter |SRed|.
+
+        An example for well-sorted data:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(6)
+        >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
+        ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+        >>> derived.sredorder.update()
+        >>> derived.sredorder
+        sredorder([[0, 5],
+                   [0, 4],
+                   [0, 3],
+                   [0, 2],
+                   [0, 1],
+                   [1, 2],
+                   [2, 3],
+                   [3, 5],
+                   [3, 4]])
+
+        An erroneous example including a cycle:
+
+        >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+        ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+        >>> derived.sredorder.update()
+        Traceback (most recent call last):
+        ...
+        ValueError: The weighting factors of parameter `sred` of element `?` define \
+at least one cycle: (1, 4), (4, 5), and (5, 1).
+
+        A "no redistribution" example:
+
+        >>> sred(0.0)
+        >>> derived.sredorder.update()
+        >>> derived.sredorder
+        sredorder([[]])
+
+        An example or unsorted data:
+
+        >>> nmbzones(5)
+        >>> sred([[0.0, 0.5, 0.0, 0.5, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 1.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [1.0, 0.0, 0.0, 0.0, 0.0]])
+        >>> derived.sredorder.update()
+        >>> derived.sredorder
+        sredorder([[2, 4],
+                   [4, 0],
+                   [0, 3],
+                   [0, 1]])
+        """
+        sred = self.subpars.pars.control.sred
+        idxs, jdxs = numpy.nonzero(sred.values)
+        self.shape = len(idxs), 2
+        if len(idxs):
+            dg = networkx.DiGraph(zip(idxs, jdxs))
+            try:
+                first_cycle = networkx.find_cycle(dg)
+                raise ValueError(
+                    f"The weighting factors of parameter "
+                    f"{objecttools.elementphrase(sred)} define at least one cycle: "
+                    f"{objecttools.enumeration(first_cycle)}."
+                )
+            except networkx.NetworkXNoCycle:
+                self.values = tuple(networkx.topological_sort(networkx.line_graph(dg)))
+        else:
+            self.values = 0.0
+
+
+class SRedEnd(parametertools.Parameter):
+    """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
+
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (False, True)
+
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
+    DERIVEDPARAMETERS = (SRedOrder,)
+
+    def update(self) -> None:
+        """Update the dead-end flags based on parameter |SRedOrder|.
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep("1d")
+        >>> nmbzones(6)
+        >>> derived.sredorder.shape = 9, 2
+        >>> derived.sredorder([[0, 1],
+        ...                    [0, 2],
+        ...                    [1, 2],
+        ...                    [0, 3],
+        ...                    [2, 3],
+        ...                    [0, 4],
+        ...                    [3, 4],
+        ...                    [0, 5],
+        ...                    [3, 5]])
+        >>> derived.sredend.update()
+        >>> derived.sredend
+        sredend(0, 0, 0, 0, 1, 1)
+        """
+        nmbzones = self.subpars.pars.control.nmbzones.value
+        sredorder = self.subpars.sredorder.values
+        self.values = ~numpy.isin(numpy.arange(nmbzones), sredorder[:, 0])
+
+
+class SRedNumber(parametertools.Parameter):
+    """The total number of snow redistribution paths [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    CONTROLPARAMETERS = (hland_control.SRed,)
+    DERIVEDPARAMETERS = (ZoneAreaRatios,)
+
+    def update(self) -> None:
+        """Update the number of redistribution paths based on the parameter |SRedOrder|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> derived.sredorder.shape = 8, 3
+        >>> derived.srednumber.update()
+        >>> derived.srednumber
+        srednumber(8)
+        """
+        self.value = self.subpars.sredorder.shape[0]
 
 
 class TTM(hland_parameters.ParameterLand):

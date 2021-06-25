@@ -21,6 +21,7 @@ from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_fixed
 from hydpy.models.hland import hland_parameters
+from hydpy.models.hland.hland_constants import ILAKE
 
 if TYPE_CHECKING:
     from scipy import integrate
@@ -68,6 +69,11 @@ class NmbZones(parametertools.Parameter):
     >>> icmax
     icmax(2.0)
 
+    The length of both axes of the 2-dimensional sequence |SRed| agree with |NmbZones|:
+
+    >>> sred.shape
+    (3, 3)
+
     Some 2-dimensional sequences reflect differences in snow accumulation within each
     zone. |NmbZones| prepares their shapes also, but therefore requires parameter
     |SClass| to provide the number of snow classes within each zone:
@@ -96,6 +102,8 @@ can only be retrieved after it has been defined.
                 for par in subpars:
                     if (par.NDIM == 1) and (par.name not in ("uh", "sfdist")):
                         par.shape = new_value
+                    if par.NDIM == 2:
+                        par.shape = new_value, new_value
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if (seq.NDIM == 1) and (seq.name not in ("quh", "sc")):
@@ -463,6 +471,342 @@ arguments are given, which is ambiguous.
                     (idx + 1) / sclass,
                 )[0]
         return values
+
+
+class SMax(parametertools.Parameter):
+    """Maximum snow water equivalent [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = numpy.inf
+
+
+class SRed(parametertools.Parameter):
+    """Snow redistribution paths [-].
+
+    |SRed| is a 2-dimensional parameter that handles weighting factors for all possible
+    zone connections.  The source zones vary on the rows and the target zones on
+    the columns.  In the following example, zone one sends all snow available for
+    redistribution to zone three.  Zone two sends 50 % to zone four and 50 % to zone
+    five.  Zone six sends 40 % to zone two, 40 % to zone three, and 20 % to zone four:
+
+    >>> from hydpy.models.hland import *
+    >>> simulationstep("12h")
+    >>> parameterstep("1d")
+    >>> nmbzones(6)
+    >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+    >>> sred
+    sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+
+    A zone can either redistribute no snow at all (we then call it a "dead end") or
+    needs to send 100 % of the snow available for redistribution.  Hence, the sums of
+    the individual rows must be either 0.0 or 1.0.  Parameter |SRed| checks for
+    possible violations of this requirement:
+
+    >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.4, 0.5],
+    ...       [0.0, 0.1, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+    Traceback (most recent call last):
+    ...
+    ValueError: The sum(s) of the following row(s) of parameter `sred` of element `?` \
+are neither 0.0 nor 1.0: 3 and 4.
+
+    The snow redistribution routine of |hland| does not allow for any cycles.  When in
+    doubt, use the |SRed.check_order| method to check this:
+
+    >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+    >>> sred.check_order()
+    Traceback (most recent call last):
+    ...
+    ValueError: The weighting factors of parameter `sred` of element `?` define at \
+least one cycle: (1, 5) and (5, 1).
+
+    Note that method |SRed.check_order| relies on the |SRedOrder.update| method of
+    parameter |SRedOrder| but resets its values afterwards:
+
+    >>> derived.sredorder.shape = (1, 2)
+    >>> derived.sredorder.values = [[0, 1]]
+    >>> old_values = derived.sredorder.values.copy()
+    >>> sred.values[1, -2:] = 1.0, 0.0
+    >>> sred.check_order()
+    Traceback (most recent call last):
+    ...
+    ValueError: The weighting factors of parameter `sred` of element `?` define at \
+least one cycle: (3, 5) and (5, 3).
+    >>> derived.sredorder
+    sredorder(0, 1)
+
+    Parameter |SRed| provides two options to define the weighting factors with little
+    effort.  The first option works by specifying the number of target zones.  If we
+    set the number of target zones to one, |SRed| determines the next lower target for
+    each zone that is not a dead-end:
+
+    >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
+    >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
+    >>> zonearea(1.0)
+
+    >>> sred(n_zones=1)
+    >>> sred
+    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    For two target zones (and identical zone areas), the weights to the next two lower
+    zones are 0.5:
+
+    >>> sred(n_zones=2)
+    >>> sred
+    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    You can specify an arbitrarily high numbes of target zones.  Parameter |SRed|
+    adjusts the given value to the number of actually available target zones:
+
+    >>> sred(n_zones=999)
+    >>> sred
+    sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
+          [0.0, 0.0, 0.25, 0.25, 0.25, 0.25],
+          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
+          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    After defining the same elevation for the second and the third zone, the first zone
+    redistributes the same snow amount to both of them.  Additionally, both zones
+    redistribute their own snow to the fourth zone:
+
+    >>> zonez(6.0, 5.0, 5.0, 3.0, 2.0, 1.0)
+
+    >>> sred.test = None
+    >>> sred(n_zones=1)
+    >>> sred
+    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    >>> sred(n_zones=2)
+    >>> sred
+    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    >>> sred(n_zones=999)
+    >>> sred
+    sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
+          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
+          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
+          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+
+    For all zones lying on the same elevation, no redistribution occurs:
+
+    >>> zonez(1.0)
+
+    >>> sred(n_zones=1)
+    >>> sred
+    sred(0.0)
+
+    >>> sred(n_zones=2)
+    >>> sred
+    sred(0.0)
+
+    >>> sred(n_zones=999)
+    >>> sred
+    sred(0.0)
+
+    The following examples demonstrate that the weights' calculation works well for
+    unsorted elevations:
+
+    >>> zonetype(FIELD, FOREST, FOREST, ILAKE, GLACIER, SEALED)
+    >>> zonez(5.0, 4.0, 1.0, 2.0, 6.0, 3.0)
+
+    >>> sred(n_zones=1)
+    >>> sred
+    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+
+    >>> sred(n_zones=2)
+    >>> sred
+    sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.5, 0.5, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0]])
+
+    >>> sred(n_zones=999)
+    >>> sred
+    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
+          [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.2, 0.2, 0.2, 0.2, 0.0, 0.2],
+          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0]])
+
+    For unequal zone areas, the calculated weights reflect the relations between the
+    respective source and target zones.  The idea is that larger target zones have
+    larger contact surfaces with their source zones than smaller ones.  This approach
+    prevents building extreme snow towers in small target zones:
+
+    >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+
+    >>> sred(n_zones=1)
+    >>> sred
+    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+
+    >>> sred(n_zones=2)
+    >>> sred
+    sred([[0.0, 0.25, 0.0, 0.0, 0.0, 0.75],
+          [0.0, 0.0, 0.0, 0.4, 0.0, 0.6],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+
+    >>> sred(n_zones=999)
+    >>> sred
+    sred([[0.0, 0.133333, 0.2, 0.266667, 0.0, 0.4],
+          [0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0625, 0.125, 0.1875, 0.25, 0.0, 0.375],
+          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+
+    Instead of supplying the number of target zones directly, on can define the maximum
+    height of redistribution.  For a source zone at an elevation `x`, parameter |SRed|
+    searches for zones that lie within the interval :math:`[x - d\\_height, x)`.  If it
+    does not find one, it selects at least the next lower target zone(s), if existing:
+
+    >>> zonez(5.0, 5.0, 1.0, 2.0, 6.0, 3.0)
+
+    >>> sred(d_height=0.0)
+    >>> sred
+    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+
+    >>> sred(d_height=2.0)
+    >>> sred
+    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+
+    >>> sred(d_height=10.0)
+    >>> sred
+    sred([[0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
+          [0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0625, 0.125, 0.1875, 0.25, 0.0, 0.375],
+          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+    """
+
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    INIT = 0.0
+
+    def __call__(self, *args, **kwargs) -> None:
+        if "n_zones" in kwargs:
+            args = [self._prepare_nzones(kwargs.pop("n_zones"))]
+        if "d_height" in kwargs:
+            args = [self._prepare_dheight(kwargs.pop("d_height"))]
+        super().__call__(*args, **kwargs)
+        self.check_sums()
+
+    def _prepare_nzones(self, nzones: int) -> Matrix[float]:
+        return self._prepare(self.subpars.nmbzones.value * (nzones,))
+
+    def _prepare_dheight(self, dheight: float) -> Matrix[float]:
+        zonez = self.subpars.zonez.values
+        nzones = (numpy.sum((z > zonez) * (zonez >= (z - dheight))) for z in zonez)
+        return self._prepare(tuple(max(n, 1) for n in nzones))
+
+    def _prepare(self, nzones: Tuple[int, ...]) -> Matrix[float]:
+        nmbzones = self.subpars.nmbzones.value
+        zonearea = self.subpars.zonearea.value
+        types_ = self.subpars.zonetype.value
+        zonez = self.subpars.zonez.value
+        zonez_sorted = numpy.sort(numpy.unique(zonez))[::-1]
+        values = numpy.zeros((nmbzones, nmbzones), dtype=float)
+        zonez_min = numpy.min(zonez)
+        for idx, (z_upper, type_, nzone) in enumerate(zip(zonez, types_, nzones)):
+            if (type_ != ILAKE) and (z_upper > zonez_min):
+                for z_lower in zonez_sorted:
+                    if z_upper > z_lower:
+                        jdxs = numpy.where((z_upper > zonez) * (zonez >= z_lower))[0]
+                        if len(jdxs) >= nzone:
+                            break
+                values[idx, jdxs] = zonearea[jdxs] / numpy.sum(zonearea[jdxs])
+        return values
+
+    def check_sums(self) -> None:
+        """Check if the sums of all rows are either 0.0 (for dead-end zones) or 1.0
+        (for redistributing zones)."""
+        values = self.values
+        sums = numpy.round(numpy.sum(values, axis=1), 12)
+        errors = ~numpy.isin(sums, (0.0, 1.0))
+        if numpy.any(errors):
+            raise ValueError(
+                f"The sum(s) of the following row(s) of parameter "
+                f"{objecttools.elementphrase(self)} are neither 0.0 nor 1.0: "
+                f"{objecttools.enumeration(numpy.where(errors)[0])}."
+            )
+
+    def check_order(self) -> None:
+        """Check if the weighting factors define any cycles."""
+        sredorder = self.subpars.pars.derived.sredorder
+        values = exceptiontools.getattr_(sredorder, "values", None)
+        try:
+            sredorder.update()
+        finally:
+            if values is not None:
+                sredorder.shape = values.shape
+                sredorder.values = values
 
 
 class TT(hland_parameters.ParameterComplete):

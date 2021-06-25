@@ -137,6 +137,7 @@ class Tester:
         >>> from pprint import pprint
         >>> pprint(hland.tester.filenames)
         ['__init__.py',
+         'hland_aides.py',
          'hland_constants.py',
          'hland_control.py',
          'hland_derived.py',
@@ -169,7 +170,8 @@ class Tester:
         >>> from hydpy.models import hland, hland_v1
         >>> from pprint import pprint
         >>> pprint(hland.tester.modulenames)
-        ['hland_constants',
+        ['hland_aides',
+         'hland_constants',
          'hland_control',
          'hland_derived',
          'hland_factors',
@@ -212,6 +214,8 @@ class Tester:
         >>> from hydpy.models import hland, hland_v1
         >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
+            * hland_aides:
+                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:
@@ -263,6 +267,8 @@ class Tester:
         ...     return_value="damaged"):
         ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
+            * hland_aides:
+                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:

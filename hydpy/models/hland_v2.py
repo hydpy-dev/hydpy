@@ -1,14 +1,35 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
-Version 2 of the H-Land model is still under development.
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+
+Version 2 of H-Land is very similar to |hland_v1|.  The only difference is in runoff
+concentration.  |hland_v2| uses a linear storage cascade instead of a triangle Unit
+Hydrograph to route both runoff components to the subbasin's outlet.  In some cases,
+the results of |hland_v2| should look more natural than the ones of |hland_v1|.  On the
+whole, however, the differences should be minor.  The real reason for the modification
+lies in the availability of "physical" storage contents instead of purely mathematical
+intermediate Unit Hydrograph results as initial conditions, which can simplify data
+assimilation.  We implemented |hland_v2| on behalf of the `German Federal Institute of
+Hydrology (BfG)`_ for runoff forecasting in large river basins in central Europe.
+
+
+The following figure shows the general structure of H-Land Version 2:
+
+.. image:: HydPy-H-Land_Version-2.png
+
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Only difference to |hland_v1|: |NmbStorages| = 5
+The following configurations agree with the documentation on |hland_v1|.  The only
+difference lies in the additional parameter |NmbStorages|.  In |hland_v1|, we can
+modify runoff concentration by parameter |MaxBaz| only, which corresponds to the
+response function's width.  In |hland_v2|, we can also alter the response function's
+shape.  Here, we set |NmbStorages| to five, which results in the highest similarity
+with the fixed-shape triangular response function of |hland_v1|:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "01.01.2000", "05.01.2000", "1h"
@@ -78,6 +99,8 @@ _____
 >>> maxbaz(3.0)
 >>> nmbstorages(5)
 >>> abstr(0.003)
+>>> resparea(False)
+>>> recstep(100)
 
 >>> test.inits = ((states.ic, 0.0),
 ...               (states.sp, 0.0),
@@ -88,53 +111,45 @@ _____
 ...               (states.sc, 0.05))
 
 >>> inputs.p.series = (
-...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-...     0.0, 0.0, 0.2, 0.0, 0.0, 1.3, 5.6, 2.9, 4.9, 10.6, 0.1, 0.7, 3.0,
-...     2.1, 10.4, 3.5, 3.4, 1.2, 0.1, 0.0, 0.0, 0.4, 0.1, 3.6, 5.9, 1.1,
-...     20.7, 37.9, 8.2, 3.6, 7.5, 18.5, 15.4, 6.3, 1.9, 4.9, 2.7, 0.5,
-...     0.2, 0.5, 2.4, 0.4, 0.2, 0.0, 0.0, 0.3, 2.6, 0.7, 0.3, 0.3, 0.0,
-...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.3, 0.0,
-...     0.0, 0.0, 0.7, 0.4, 0.1, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     0.2, 0.0, 0.0, 1.3, 5.6, 2.9, 4.9, 10.6, 0.1, 0.7, 3.0, 2.1, 10.4, 3.5, 3.4,
+...     1.2, 0.1, 0.0, 0.0, 0.4, 0.1, 3.6, 5.9, 1.1, 20.7, 37.9, 8.2, 3.6, 7.5, 18.5,
+...     15.4, 6.3, 1.9, 4.9, 2.7, 0.5, 0.2, 0.5, 2.4, 0.4, 0.2, 0.0, 0.0, 0.3, 2.6,
+...     0.7, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...     1.3, 0.0, 0.0, 0.0, 0.7, 0.4, 0.1, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 >>> inputs.t.series = (
-...     21.2, 19.4, 18.9, 18.3, 18.9, 22.5, 25.1, 28.3, 27.8, 31.4, 32.2,
-...     35.2, 37.1, 31.2, 24.3, 25.4, 25.9, 23.7, 21.6, 21.2, 20.4, 19.8,
-...     19.6, 19.2, 19.2, 19.2, 18.9, 18.7, 18.5, 18.3, 18.5, 18.8, 18.8,
-...     19.0, 19.2, 19.3, 19.0, 18.8, 18.7, 17.8, 17.4, 17.3, 16.8, 16.5,
-...     16.3, 16.2, 15.5, 14.6, 14.7, 14.6, 14.1, 14.3, 14.9, 15.7, 16.0,
-...     16.7, 17.1, 16.2, 15.9, 16.3, 16.3, 16.4, 16.5, 18.4, 18.3, 18.1,
-...     16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1,
-...     11.9, 12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8,
-...     22.2, 20.1, 17.8, 15.2, 14.5, 12.4, 11.7, 11.9)
->>> inputs.tn.series = inputs.t.series-1.0
+...     21.2, 19.4, 18.9, 18.3, 18.9, 22.5, 25.1, 28.3, 27.8, 31.4, 32.2, 35.2, 37.1,
+...     31.2, 24.3, 25.4, 25.9, 23.7, 21.6, 21.2, 20.4, 19.8, 19.6, 19.2, 19.2, 19.2,
+...     18.9, 18.7, 18.5, 18.3, 18.5, 18.8, 18.8, 19.0, 19.2, 19.3, 19.0, 18.8, 18.7,
+...     17.8, 17.4, 17.3, 16.8, 16.5, 16.3, 16.2, 15.5, 14.6, 14.7, 14.6, 14.1, 14.3,
+...     14.9, 15.7, 16.0, 16.7, 17.1, 16.2, 15.9, 16.3, 16.3, 16.4, 16.5, 18.4, 18.3,
+...     18.1, 16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1, 11.9,
+...     12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8, 22.2, 20.1, 17.8,
+...     15.2, 14.5, 12.4, 11.7, 11.9)
+>>> inputs.tn.series = inputs.t.series - 1.0
 >>> inputs.epn.series = (
-...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761,
-...     0.291908, 1.932875, 4.369536, 7.317556, 8.264362, 9.369867,
-...     5.126178, 6.62503, 7.397619, 2.39151, 1.829834, 1.136569,
-...     0.750986, 0.223895, 0.099425, 0.098454, 0.098128, 0.097474,
-...     0.097474, 0.097474, 0.096981, 0.096652, 0.096321, 0.09599,
-...     0.187298, 1.264612, 3.045538, 1.930758, 2.461001, 6.215945,
-...     3.374783, 8.821555, 4.046025, 2.110757, 2.239257, 2.877848,
-...     1.591452, 0.291604, 0.092622, 0.092451, 0.091248, 0.089683,
-...     0.089858, 0.089683, 0.088805, 0.089157, 0.090207, 0.091593,
-...     0.154861, 0.470369, 1.173726, 4.202296, 4.359715, 5.305753,
-...     5.376027, 4.658915, 7.789594, 4.851567, 5.30692, 3.286036,
-...     1.506216, 0.274762, 0.087565, 0.085771, 0.084317, 0.083215,
-...     0.082289, 0.0845, 0.084864, 0.083584, 0.0834, 0.084864, 0.310229,
-...     1.391958, 3.195876, 5.191651, 7.155036, 8.391432, 8.391286,
-...     10.715238, 9.383394, 7.861915, 6.298329, 2.948416, 1.309232,
-...     0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
+...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761, 0.291908, 1.932875,
+...     4.369536, 7.317556, 8.264362, 9.369867, 5.126178, 6.62503, 7.397619, 2.39151,
+...     1.829834, 1.136569, 0.750986, 0.223895, 0.099425, 0.098454, 0.098128, 0.097474,
+...     0.097474, 0.097474, 0.096981, 0.096652, 0.096321, 0.09599, 0.187298, 1.264612,
+...     3.045538, 1.930758, 2.461001, 6.215945, 3.374783, 8.821555, 4.046025, 2.110757,
+...     2.239257, 2.877848, 1.591452, 0.291604, 0.092622, 0.092451, 0.091248, 0.089683,
+...     0.089858, 0.089683, 0.088805, 0.089157, 0.090207, 0.091593, 0.154861, 0.470369,
+...     1.173726, 4.202296, 4.359715, 5.305753, 5.376027, 4.658915, 7.789594, 4.851567,
+...     5.30692, 3.286036, 1.506216, 0.274762, 0.087565, 0.085771, 0.084317, 0.083215,
+...     0.082289, 0.0845, 0.084864, 0.083584, 0.0834, 0.084864, 0.310229, 1.391958,
+...     3.195876, 5.191651, 7.155036, 8.391432, 8.391286, 10.715238, 9.383394, 7.861915,
+...     6.298329, 2.948416, 1.309232, 0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
 
 >>> test.reset_inits()
 >>> conditions = sequences.conditions
 
->>> resparea(False)
->>> recstep(100)
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_field` experiment of |hland_v1| exactly:
 
 .. integration-test::
-
-very similar results
 
     >>> test("hland_v2_field")
     |        date |    p |    t |   tn |       epn | tmean |   tc | fracrain | rfc | sfc |    cfact | gact | contriarea |      pc |        ep |      epc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |       ea |       cf |      inuz |     perc |        q0 |  el |       q1 |      inuh |    outuh |     ra |       rt |       qt |       ic |  sp |  wc |         sm |        uz |        lz |                                               sc |   outlet |
@@ -246,6 +261,9 @@ There is no indication of an error in the water balance:
 
 contributing area
 _________________
+
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_resparea` experiment of |hland_v1| exactly:
 
 .. integration-test::
 
@@ -360,7 +378,11 @@ There is no indication of an error in the water balance:
 low accuracy
 ____________
 
-worse results, as to be expected
+The :ref:`hland_v1_low_accuracy` example of |hland_v1| illustrates how decreasing
+|RecStep| for gaining computational speed might result in too low numerical accuracies.
+For |hland_v2|, such inaccuracies can be even more severe, as |RecStep| controls the
+accuracy of the numerical solution both of the upper zone layer and the linear storage
+cascade:
 
 .. integration-test::
 
@@ -475,6 +497,8 @@ There is no indication of an error in the water balance:
 sealed area
 ___________
 
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_sealed` experiment of |hland_v1| exactly:
 
 .. integration-test::
 
@@ -589,6 +613,9 @@ There is no indication of an error in the water balance:
 
 internal lake
 _____________
+
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_ilake` experiment of |hland_v1| exactly:
 
 .. integration-test::
 
@@ -705,18 +732,20 @@ There is no indication of an error in the water balance:
 snow classes
 ____________
 
->>> sclass(2)
->>> sfdist(linear=0.2)
-
->>> zonetype(FIELD)
->>> t_series = inputs.t.series.copy()
->>> tn_series = inputs.tn.series.copy()
->>> inputs.t.series[:48] = -20.0
->>> inputs.t.series[48:] = 20.0
->>> inputs.tn.series = inputs.t.series
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_snow_classes` experiment of |hland_v1|
+exactly:
 
 .. integration-test::
 
+    >>> sclass(2)
+    >>> sfdist(linear=0.2)
+    >>> zonetype(FIELD)
+    >>> t_series = inputs.t.series.copy()
+    >>> tn_series = inputs.tn.series.copy()
+    >>> inputs.t.series[:48] = -20.0
+    >>> inputs.t.series[48:] = 20.0
+    >>> inputs.tn.series = inputs.t.series
     >>> test("hland_v2_snow_classes")
     |        date |    p |     t |    tn |       epn | tmean |    tc | fracrain | rfc | sfc |    cfact | gact | contriarea |      pc |        ep |      epc |       ei |        tf | spl | wcl | spg | wcg | glmelt |               melt |      refr |       in_ |        r |       ea |       cf |      inuz |     perc |       q0 |  el |       q1 |     inuh |    outuh |     ra |       rt |       qt |       ic |                     sp |                   wc |         sm |        uz |        lz |                                               sc |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -826,6 +855,9 @@ There is no indication of an error in the water balance:
 
 glacier
 _______
+
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_glacier` experiment of |hland_v1| exactly:
 
 .. integration-test::
 
@@ -939,6 +971,10 @@ There is no indication of an error in the water balance:
 
 multiple zones
 ______________
+
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_multiple_zones` experiment of |hland_v1|
+exactly:
 
 .. integration-test::
 
@@ -1066,13 +1102,16 @@ There is no indication of an error in the water balance:
 snow redistribution
 ___________________
 
->>> zonez(0.0, 10.0, 30.0, 0.0, 20.0)
->>> smax(100.0)
->>> sred(n_zones=1)
->>> inputs.t.series = 5.0
+Besides slight differences in runoff concentration, the following calculation
+reproduces the results of the :ref:`hland_v1_snow_redistribution_1` experiment of
+|hland_v1| exactly:
 
 .. integration-test::
 
+    >>> zonez(0.0, 10.0, 30.0, 0.0, 20.0)
+    >>> smax(100.0)
+    >>> sred(n_zones=1)
+    >>> inputs.t.series = 5.0
     >>> test("hland_v2_snow_redistribution")
     |        date |    p |   t |   tn |       epn | tmean |                         tc |                     fracrain |                      rfc |                      sfc |                                       cfact |                          gact | contriarea |                                             pc |                                               ep |                                              epc |                                     ei |                                              tf |                                     spl |                           wcl |                                      spg |                                 wcg |                     glmelt |                          melt |                      refr |                                    in_ |                                     r |                      ea |                                cf |      inuz |     perc |       q0 |                           el |       q1 |     inuh |    outuh |      ra |       rt |       qt |                                     ic |                                           sp |                                   wc |                                    sm |        uz |         lz |                                               sc |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1195,7 +1234,7 @@ from hydpy.models.hland.hland_constants import *
 
 
 class Model(modeltools.AdHocModel):
-    """ToDo"""
+    """HBV96-SC version of HydPy-H-Land (|hland_v2|)."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -1258,12 +1297,12 @@ class Model(modeltools.AdHocModel):
             - \sum_{t=t0}^{t1} \big( RT_t + RA_t \big)
             + \sum_{i=1}^{NmbStorages} \big( SC_{t0}^i - SC_{t1}^i \big)
 
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
+        The returned error should always be in scale with numerical precision so that
+        it does not affect the simulation results in any relevant manner.
 
-        Pick the required initial conditions before starting the simulation run
-        via property |Sequences.conditions|.  See the integration tests of the
-        application model |hland_v1| for some examples.
+        Pick the required initial conditions before starting the simulation run via
+        property |Sequences.conditions|.  See the integration tests of the application
+        model |hland_v2| for some examples.
         """
         derived = self.parameters.derived
         fluxes = self.sequences.fluxes

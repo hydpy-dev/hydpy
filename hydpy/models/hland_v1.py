@@ -137,7 +137,7 @@ methods on the shown results:
 >>> k(0.001)
 >>> k4(0.005)
 >>> gamma(0.0)
->>> maxbaz(3)
+>>> maxbaz(3.0)
 >>> abstr(0.003)
 
 Initially, relative soil moisture is 50 %, the lower zone layer contains only 10 mm,

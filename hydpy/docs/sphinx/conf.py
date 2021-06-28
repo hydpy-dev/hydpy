@@ -67,7 +67,10 @@ intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
 }
 
-mathjax_config = {"displayAlign": "left"}
+mathjax_path = (
+    "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+)
+mathjax3_config = {"displayAlign": "left"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

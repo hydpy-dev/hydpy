@@ -28,7 +28,7 @@ try:
 
     pyversion = f"cp{sys.version_info.major}{sys.version_info.minor}"
 
-    if pyversion == "cp36":
+    if pyversion == "cp37":
         subprocess.run([python, "setup.py", "sdist"])
     subprocess.run([python, "setup.py", "bdist_wheel"])
 

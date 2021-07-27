@@ -190,7 +190,6 @@ setup(
         "License :: OSI Approved :: " "GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -205,7 +204,7 @@ setup(
     scripts=[os.path.join("hydpy", "exe", "hyd.py")],
     package_data=package_data,
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         "black",
         "bokeh",

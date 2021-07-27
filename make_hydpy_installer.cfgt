@@ -41,7 +41,6 @@ pypi_wheels = numpy==[auto]
 	decorator==[auto]
 	appdirs==[auto]
 	click==[auto]
-	dataclasses==[auto]
 	mypy_extensions==0.4.3
 	pathspec==[auto]
 	toml==[auto]

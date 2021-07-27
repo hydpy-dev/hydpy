@@ -1,6 +1,6 @@
 
 .. _Python Package Index: https://pypi.org/project/HydPy/
-.. _Python 3.6, 3.7, 3.8, or 3.9: https://www.python.org/downloads/
+.. _Python 3.7, 3.8, or 3.9: https://www.python.org/downloads/
 .. _numpy: http://www.numpy.org/
 .. _Kalypso: https://kalypso.bjoernsen.de/index.php?id=382&L=1
 .. _Delft-FEWS: https://oss.deltares.nl/web/delft-fews
@@ -22,8 +22,8 @@ Installation Instructions
 =========================
 
 Starting with version 3.0 *HydPy* is available on the `Python Package Index`_.
-That means, with `Python 3.6, 3.7, 3.8, or 3.9`_ on your computer and having
-access to the internet you only have to type::
+That means, with `Python 3.7, 3.8, or 3.9`_ on your computer and having access
+to the internet you only have to type::
 
   pip install hydpy
 
@@ -48,11 +48,11 @@ for the latest version of the *HydPy* installer.
 Selecting a Python distribution
 --------------------------------
 
-Using *HydPy* requires installing `Python 3.6, 3.7, 3.8, or 3.9`_ first.
-You should favour the latest Python version unless you plan to use other
-libraries still only available for earlier versions.  Alternatively, consider
-installing a more comprehensive Python distribution like `Anaconda`_, already
-containing many scientific and mathematical tools.
+Using *HydPy* requires installing `Python 3.7, 3.8, or 3.9`_ first.  You should
+favour the latest Python version unless you plan to use other libraries still
+only available for earlier versions.  Alternatively, consider installing a more
+comprehensive Python distribution like `Anaconda`_, already containing many
+scientific and mathematical tools.
 
 Note that these Python distributions do not include the most powerful
 integrated development environments.  For simple tasks, the lightweight IDE
@@ -77,7 +77,7 @@ consist of three separate numbers. In "X.Y.Z.", "X" is the major number.
 There can be substantial differences between *HydPy* versions with
 different major numbers, possibly resulting in incompatibility issues
 with interfacing systems.  "Y" is the minor revision number, indicating
-some improvements, but no potentially problematic changes, e.g. the
+some improvements, but no potentially problematic changes, e. g. the
 implementation of additional models.  "Z" is the revision number,
 indicating some necessary corrections of the framework or its implemented
 models.  In any case, you should make sure to select the highest revision

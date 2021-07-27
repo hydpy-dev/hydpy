@@ -7,8 +7,6 @@ environment:
   PYPIPA:
     secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
   matrix:
-    - PYTHON: "C:\\Python36-x64"
-      make_exe: false
     - PYTHON: "C:\\Python37-x64"
       make_exe: false
     - PYTHON: "C:\\Python38-x64"

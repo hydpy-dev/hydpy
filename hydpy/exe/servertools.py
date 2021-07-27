@@ -1472,7 +1472,7 @@ def start_server(
     filepath = os.path.join(confpath, "mimetypes.txt")
     try:
         with open(filepath) as file_:
-            types_map: Dict[str, str] = eval(str(open(file_.read())))
+            types_map: Dict[str, str] = eval(str(file_.read()))
     except BaseException:
         mimetypes.init()
         types_map = mimetypes.types_map.copy()

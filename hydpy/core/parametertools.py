@@ -1735,10 +1735,8 @@ implement method `update`.
             values = self.compress_repr()
             if values is None:
                 values = self.revert_timefactor(self.values)
-            brackets = (
-                (isinstance(values, str) and (values == "?"))
-                or (len(self) > 255)
-                or ((self.NDIM == 2) and (self.shape[0] != 1))
+            brackets = (isinstance(values, str) and (values == "?")) or (
+                (self.NDIM == 2) and (self.shape[0] != 1)
             )
             return variabletools.to_repr(self, values, brackets)
         lines = self.commentrepr
@@ -1819,18 +1817,6 @@ class NameParameter(Parameter):
     landtype(WATER, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
              SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
              SOIL, GLACIER)
-
-    For very high numbers of entries, the string representation puts the
-    names of the constants within a list (to make the string representations
-    executable under Python 3.6; this behaviour will change as soon
-    as Python 3.7 becomes the oldest supported version):
-
-    >>> landtype.shape = 256
-    >>> landtype(SOIL)
-    >>> landtype.values[0] = WATER
-    >>> landtype.values[-1] = GLACIER
-    >>> landtype   # doctest: +ELLIPSIS
-    landtype([WATER, SOIL, ..., SOIL, GLACIER])
     """
 
     NDIM = 1
@@ -1848,18 +1834,11 @@ class NameParameter(Parameter):
             values = [int(string)]
         get = self.CONSTANTS.value2name.get
         names = tuple(get(value, repr(value)) for value in values)
-        if len(self) > 255:
-            string = objecttools.assignrepr_list(
-                values=names,
-                prefix=f"{self.name}(",
-                width=70,
-            )
-        else:
-            string = objecttools.assignrepr_values(
-                values=names,
-                prefix=f"{self.name}(",
-                width=70,
-            )
+        string = objecttools.assignrepr_values(
+            values=names,
+            prefix=f"{self.name}(",
+            width=70,
+        )
         return f"{string})"
 
 

@@ -2075,7 +2075,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return []
 
     def __repr__(self):
-        brackets = (len(self) > 255) or ((self.NDIM == 2) and (self.shape[0] != 1))
+        brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return to_repr(self, self.value, brackets)
 
 

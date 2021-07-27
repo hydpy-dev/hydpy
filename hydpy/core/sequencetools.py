@@ -1354,14 +1354,14 @@ class Sequence_(
 ):
     """Base class for defining different kinds of sequences.
 
-    Note that model developers should not derive their model-specific
-    sequence classes from |Sequence_| directly but from the "final"
-    subclasses provided in module |sequencetools| (e.g. |FluxSequence|).
+    Note that model developers should not derive their model-specific sequence classes
+    from |Sequence_| directly but from the "final" subclasses provided in module
+    |sequencetools| (e.g. |FluxSequence|).
 
-    From the model developer perspective and especially from the user
-    perspective, |Sequence_| is only a small extension of its base class
-    |Variable|.  One relevant extension is that (only the) 0-dimensional
-    sequence objects come with a predefined shape:
+    From the model developer perspective and especially from the user perspective,
+    |Sequence_| is only a small extension of its base class |Variable|.  One relevant
+    extension is that (only the) 0-dimensional sequence objects come with a predefined
+    shape:
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model("lland_v1", "1d")
@@ -1371,46 +1371,32 @@ class Sequence_(
     >>> evpo.shape
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
-variable `evpo` can only be retrieved after it has been defined.
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `evpo` \
+can only be retrieved after it has been defined.
 
-    For high numbers of entries, the string representation puts the
-    names of the constants within a list (to make the string representations
-    executable under Python 3.6; this behaviour changes as soon
-    as Python 3.7 becomes the oldest supported version):
+    For consistency with the usage of |Parameter| subclasses, |Sequence_| objects are
+    also "callable" for setting their values (but in a much less and flexible manner):
 
-    >>> evpo.shape = (255,)
-    >>> evpo    # doctest: +ELLIPSIS
-    evpo(nan, nan, ..., nan, nan)
-    >>> evpo.shape = (256,)
-    >>> evpo    # doctest: +ELLIPSIS
-    evpo([nan, nan, ..., nan, nan])
-
-    For consistency with the usage of |Parameter| subclasses, |Sequence_|
-    objects are also "callable" for setting their values (but in a much
-    less and flexible manner):
-
+    >>> evpo.shape = 3
     >>> evpo(2.0)
-    >>> evpo    # doctest: +ELLIPSIS
-    evpo([2.0, 2.0, ..., 2.0, 2.0])
+    >>> evpo
+    evpo(2.0, 2.0, 2.0)
 
-    Under the hood, class |Sequence_| also prepares some attributes
-    of its |FastAccess| object, used for performing the actual simulation
-    calculations.   Framework developers should note that the respective
-    `fastaccess` attributes contain both the name of the sequence and the
-    name of the original attribute in lower case letters.  We take `NDIM`
-    as an example:
+    Under the hood, class |Sequence_| also prepares some attributes of its |FastAccess|
+    object, used for performing the actual simulation calculations.   Framework
+    developers should note that the respective `fastaccess` attributes contain both the
+    name of the sequence and the name of the original attribute in lower case letters.
+    We take `NDIM` as an example:
 
     >>> evpo.fastaccess._evpo_ndim
     1
 
-    Some of these attributes require updating under some situations.
-    For example, other sequences than |AideSequence| objects require
-    a "length" attribute, which needs to be updated each time the
-    sequence's shape changes:
+    Some of these attributes require updating under some situations.  For example,
+    other sequences than |AideSequence| objects require a "length" attribute, which
+    needs to be updated each time the sequence's shape changes:
 
     >>> evpo.fastaccess._evpo_length
-    256
+    3
     """
 
     TYPE: Type[float] = float
@@ -1501,7 +1487,7 @@ variable `evpo` can only be retrieved after it has been defined.
         return numpy.nan, False
 
     def __repr__(self) -> str:
-        brackets = (len(self) > 255) or ((self.NDIM == 2) and (self.shape[0] != 1))
+        brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return variabletools.to_repr(self, self.value, brackets)
 
     def __dir__(self) -> List[str]:

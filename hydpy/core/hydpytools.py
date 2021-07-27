@@ -1882,19 +1882,19 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """Determine the order in which method |HydPy.simulate| processes the currently
         relevant |Node| and |Element| objects.
 
-        Eventually passed |Node| and |Element| objects (for example,
-        contained within a |Selection| object) replace existing ones.
+        Eventually passed |Node| and |Element| objects (for example, contained within a
+        |Selection| object) replace existing ones.
 
-        As described in the documentation on the method
-        |HydPy.prepare_network|, a |HydPy| object usually starts with
-        the "complete" network of the considered project:
+        As described in the documentation on the method |HydPy.prepare_network|, a
+        |HydPy| object usually starts with the "complete" network of the considered
+        project:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        The safest approach to "activate" another selection is to use
-        the method |HydPy.update_devices|.  The first option is to pass
-        a complete |Selection| object:
+        The safest approach to "activate" another selection is to use the method
+        |HydPy.update_devices|.  The first option is to pass a complete |Selection|
+        object:
 
         >>> pub.selections.headwaters
         Selection("headwaters",
@@ -1907,19 +1907,18 @@ one value needed to be trimmed.  The old and the new value(s) are \
         >>> hp.elements
         Elements("land_dill", "land_lahn_1")
 
-        Method |HydPy.update_devices| automatically updates the `deviceorder`,
-        assuring method |HydPy.simulate| processes "upstream" model
-        instances before it processes their "downstream" neighbours:
+        Method |HydPy.update_devices| automatically updates the `deviceorder`, assuring
+        method |HydPy.simulate| processes "upstream" model instances before it processes
+        their "downstream" neighbours:
 
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_lahn_1
-        lahn_1
         land_dill
+        land_lahn_1
         dill
+        lahn_1
 
-        Second, you can pass some nodes only, which by the way removes the
-        old elements:
+        Second, you can pass some nodes only, which by the way removes the old elements:
 
         >>> hp.update_devices(nodes="dill")
         >>> hp.nodes
@@ -1930,8 +1929,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         ...     print(device)
         dill
 
-        Third, you can pass some elements only, which by the way removes the
-        old nodes:
+        Third, you can pass some elements only, which by the way removes the old nodes:
 
         >>> hp.update_devices(elements=["land_lahn_1", "land_dill"])
         >>> hp.nodes
@@ -1940,8 +1938,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Elements("land_dill", "land_lahn_1")
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_lahn_1
         land_dill
+        land_lahn_1
 
         Fourth, you can pass nodes and elements at the same time:
 
@@ -1953,43 +1951,42 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Elements("land_dill", "land_lahn_1")
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_lahn_1
         land_dill
+        land_lahn_1
         dill
 
-        Fifth, you can pass no argument at all, which only updates the
-        device order:
+        Fifth, you can pass no argument at all, which only updates the device order:
 
         >>> del hp.nodes.dill
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_lahn_1
         land_dill
+        land_lahn_1
         dill
         >>> hp.update_devices()
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_lahn_1
         land_dill
+        land_lahn_1
 
-        Method |HydPy.update_devices| does not allow to pass single devices
-        and devices contained within a selection at the same time:
+        Method |HydPy.update_devices| does not allow to pass single devices and devices
+        contained within a selection at the same time:
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
         ...                   nodes="dill")
         Traceback (most recent call last):
         ...
-        ValueError: Method `update_devices` of class `HydPy` does not allow \
-to use both the `selection` argument and the `nodes` or  the `elements` \
-argument at the same time.
+        ValueError: Method `update_devices` of class `HydPy` does not allow to use \
+both the `selection` argument and the `nodes` or  the `elements` argument at the same \
+time.
 
         >>> hp.update_devices(selection=pub.selections.headwaters,
         ...                   elements=["land_lahn_1", "land_dill"])
         Traceback (most recent call last):
         ...
-        ValueError: Method `update_devices` of class `HydPy` does not allow \
-to use both the `selection` argument and the `nodes` or  the `elements` \
-argument at the same time.
+        ValueError: Method `update_devices` of class `HydPy` does not allow to use \
+both the `selection` argument and the `nodes` or  the `elements` argument at the same \
+time.
         """
         if (nodes is not None) or (elements is not None):
             if selection is not None:

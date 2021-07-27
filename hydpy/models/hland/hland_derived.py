@@ -227,15 +227,15 @@ class SRedOrder(parametertools.Parameter):
         ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
         >>> derived.sredorder.update()
         >>> derived.sredorder
-        sredorder([[0, 5],
-                   [0, 4],
-                   [0, 3],
+        sredorder([[0, 1],
                    [0, 2],
-                   [0, 1],
+                   [0, 3],
+                   [0, 4],
+                   [0, 5],
                    [1, 2],
                    [2, 3],
-                   [3, 5],
-                   [3, 4]])
+                   [3, 4],
+                   [3, 5]])
 
         An erroneous example including a cycle:
 
@@ -270,8 +270,8 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
         >>> derived.sredorder
         sredorder([[2, 4],
                    [4, 0],
-                   [0, 3],
-                   [0, 1]])
+                   [0, 1],
+                   [0, 3]])
         """
         sred = self.subpars.pars.control.sred
         idxs, jdxs = numpy.nonzero(sred.values)

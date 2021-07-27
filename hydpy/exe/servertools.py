@@ -1533,8 +1533,8 @@ the following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            urllib.request.urlopen(f"http://localhost:{port}/status")
-            break
+            with urllib.request.urlopen(f"http://localhost:{port}/status"):
+                break
         except urllib.error.URLError:
             time.sleep(0.1)
             now = time.perf_counter()

@@ -141,7 +141,9 @@ class FastAccessIOSequence(variabletools.FastAccess):
         indicated by the given index."""
         for name in self:
             if self._get_attribute(name, "diskflag"):
-                file_ = open(self._get_attribute(name, "path"), "rb+")
+                file_ = open(  # pylint: disable=consider-using-with
+                    self._get_attribute(name, "path"), "rb+"
+                )
                 position = 8 * idx
                 for idim in range(self._get_attribute(name, "ndim")):
                     position *= self._get_attribute(name, f"length_{idim}")

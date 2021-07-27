@@ -89,7 +89,7 @@ def run_subprocess(
                     print(output)
         return result1
     stdouterr = None if verbose else subprocess.DEVNULL
-    result2 = subprocess.Popen(
+    result2 = subprocess.Popen(  # pylint: disable=consider-using-with
         command,
         stdout=stdouterr,
         stderr=stdouterr,

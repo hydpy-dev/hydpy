@@ -28,10 +28,6 @@ if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import modeltools
 
-# The import of `_strptime` is not thread save.  The following call of
-# `strptime` is supposed to prevent possible problems arising from this bug.
-time.strptime("1999", "%Y")
-
 
 def get_controlfileheader(
     model: Union[str, "modeltools.Model"],

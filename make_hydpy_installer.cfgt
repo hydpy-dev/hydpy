@@ -38,7 +38,6 @@ pypi_wheels = numpy==[auto]
 	plotly==[auto]
 	tornado==[auto]
 	networkx==[auto]
-	decorator==[auto]
 	appdirs==[auto]
 	click==[auto]
 	mypy_extensions==0.4.3

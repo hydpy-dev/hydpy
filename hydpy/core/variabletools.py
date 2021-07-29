@@ -7,6 +7,7 @@ Features more specific to either parameters or sequences are implemented in modu
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import copy
 import inspect
@@ -1534,10 +1535,10 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> "Variable":
-        """Reference to a |Parameter| object that defines weighting coefficients (e.g.
-        fractional areas) for applying function |Variable.average_values|.  Must be
-        overwritten by subclasses when required."""
+    def refweights(self) -> Union[parametertools.Parameter, Vector[float]]:
+        """Reference to a |Parameter| object or a simple vector that defines weighting
+        coefficients (e.g. fractional areas) for applying function
+        |Variable.average_values|.  Must be overwritten by subclasses when required."""
         raise AttributeError(
             f"Variable {objecttools.devicephrase(self)} does "
             f"not define any weighting coefficients."
@@ -1548,7 +1549,7 @@ its values to a 1-dimensional vector.
 
         For 0-dimensional |Variable| objects, the result of method
         |Variable.average_values| equals |Variable.value|.  The following example shows
-        this for the sloppily defined class `SoilMoisture`:
+        this for the poorly defined class `SoilMoisture`:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class SoilMoisture(Variable):

@@ -11,6 +11,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class QUH(sequencetools.LogSequence):
@@ -48,12 +49,10 @@ type `float`, the following error occurred: could not broadcast input array from
 
     def __call__(self, *args):
         try:
-            sequencetools.LogSequence.__call__(self, *args)
+            super().__call__(*args)
             self.values[-1] = 0.0
         except BaseException as exc:
-            sequencetools.LogSequence.__call__(
-                self, numpy.sum(args) / (self.shape[0] - 1)
-            )
+            super().__call__(numpy.sum(args) / (self.shape[0] - 1))
             self.values[-1] = 0.0
             warnings.warn(
                 f"Due to the following problem, log sequence "
@@ -61,3 +60,16 @@ type `float`, the following error occurred: could not broadcast input array from
                 f"`{self.subseqs.seqs.model}` could be initialised "
                 f"with a averaged value only: {exc}"
             )
+
+    @property
+    def refweights(self) -> Vector[float]:
+        """A vector with identical values (so that averaging the values of |QUH|
+        results in the arithmetic mean value).
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> logs.quh.shape = 3
+        >>> logs.quh.refweights
+        array([1., 1., 1.])
+        """
+        return numpy.ones(self.shape, dtype=float)

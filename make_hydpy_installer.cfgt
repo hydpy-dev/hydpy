@@ -42,7 +42,7 @@ pypi_wheels = numpy==[auto]
 	click==[auto]
 	mypy_extensions==0.4.3
 	pathspec==[auto]
-	toml==[auto]
+	tomli==[auto]
 
 local_wheels = dist/*.whl
 

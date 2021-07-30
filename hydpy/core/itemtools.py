@@ -3,6 +3,7 @@
 |Parameter| and |Sequence_| objects."""
 # import...
 # ...from standard library
+import itertools
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
 
@@ -299,13 +300,37 @@ handle a parameter or sequence subgroup named `wrong_group.
                     self.selection2targets[selection.name] = tuple(variables)
 
 
+def _make_subunit_name(
+    device: devicetools.Device[Any],
+    target: variabletools.Variable[Any, Any],
+) -> Mayberable1[str]:
+    """
+    >>> from hydpy.core.itemtools import _make_subunit_name as make
+    >>> device = type("D", (), {"name": "dev"})()
+    >>> make(device, type("V", (), {"NDIM": 0, "shape": 0})())
+    'dev'
+    >>> print(*make(device, type("V", (), {"NDIM": 1, "shape": (2,)})()))
+    dev_1 dev_2
+    >>> print(*make(device, type("V", (), {"NDIM": 3, "shape": (1, 2, 3)})()))
+    dev_1-1-1 dev_1-1-2 dev_1-1-3 dev_1-2-1 dev_1-2-2 dev_1-2-3
+    """
+    name = device.name
+    if target.NDIM == 0:
+        return name
+    ranges = (range(length) for length in target.shape)
+    return (
+        f"{name}_{'-'.join(str(idx+1) for idx in idxs)}"
+        for idxs in itertools.product(*ranges)
+    )
+
+
 class ChangeItem(ExchangeItem):
     """Base class for changing the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""
 
     level: LevelType
     """The level at which the values of the change item are valid."""
-    _shape: Optional[Union[Tuple[()], Tuple[(int, ...)]]]
+    _shape: Optional[Union[Tuple[()], Tuple[int, ...]]]
     _value: Optional[numpy.ndarray]
 
     @property
@@ -314,7 +339,7 @@ class ChangeItem(ExchangeItem):
         return (self.level != "global") + self.targetspecs.series
 
     @property
-    def shape(self) -> Union[Tuple[()], Tuple[(int, ...)]]:
+    def shape(self) -> Union[Tuple[()], Tuple[int, ...]]:
         """The shape of the target variables.
 
         Trying to access property |ChangeItem.shape| before calling method
@@ -334,6 +359,30 @@ class ChangeItem(ExchangeItem):
             f"The shape of {type(self).__name__} `{self.name}` "
             f"has not been determined so far."
         )
+
+    @property
+    def subnames(self) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
+        """Artificial subnames of all values of all target variables.
+
+        Property |ChangeItem.subnames| offers a way to identify specific entries of the
+        vector returned by property |ChangeItem.value|.  See method
+        |ChangeItem.collect_variables| for further information.
+        """
+        if self.level == "global":
+            return None
+        if self.level == "selection":
+            return tuple(self.selection2targets)
+        if self.level == "device":
+            return tuple(device.name for device in self.device2target)
+        if self.level == "subunit":
+            subnames: List[str] = []
+            for device, target in self.device2target.items():
+                subsubnames = _make_subunit_name(device, target)
+                if isinstance(subsubnames, str):
+                    subnames.append(subsubnames)
+                else:
+                    subnames.extend(subsubnames)
+            return tuple(subnames)
 
     @property
     def value(self) -> numpy.ndarray:
@@ -385,8 +434,8 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         selections: selectiontools.Selections,
     ) -> None:
         """Apply method |ExchangeItem.collect_variables| of the base class
-        |ExchangeItem| and determine the |ChangeItem.shape| of the current
-        |ChangeItem| object afterwards.
+        |ExchangeItem| and determine the |ChangeItem.shape| of the current |ChangeItem|
+        object afterwards.
 
         For the following examples, we prepare the `LahnH` example project and remove
         the "complete" selection from the |Selections| object available in module |pub|:
@@ -417,36 +466,63 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         headwaters (ic(0.9694, ..., 1.47487), ic(0.96404, ..., 1.46719))
         nonheadwaters (ic(0.96159, ..., 1.46393), ic(0.96064, ..., 1.46444))
 
-        The |ChangeItem.shape| of a |ChangeItem| object depends on the intended
-        aggregation |ChangeItem.level|.  For the "global" level, we need only one
-        scalar value for all target variables.  Property |ChangeItem.shape| indicates
-        this by returning an empty tuple:
+        The properties |ChangeItem.shape| and |ChangeItem.subnames| of a |ChangeItem|
+        object depend on the intended aggregation |ChangeItem.level|.  For the "global"
+        level, we need only one scalar value for all target variables.  Property
+        |ChangeItem.shape| indicates this by returning an empty tuple and property
+        |ChangeItem.subnames| by returning |None|:
 
         >>> item.shape
         ()
+        >>> item.subnames
 
-        For the "selection" level, we need one value for each relevant selection:
+        For the "selection" level, we need one value for each relevant selection.  We
+        use the plain selection names as sub names:
 
         >>> item = SetItem("ic", "hland", "states.ic", "selection")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (2,)
+        >>> item.subnames
+        ('headwaters', 'nonheadwaters')
 
-        For the "device" level, we need one value for each relevant device:
+        For the "device" level, we need one value for each relevant device.  We use the
+        plain device names as sub names:
 
         >>> item = SetItem("ic", "hland", "states.ic", "device")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (4,)
+        >>> item.subnames
+        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
 
         For the "subunit" level, we need one value for each vector entry of all target
-        variables (for parameter |hland_states.IC| of base model |hland|, this agrees
-        with the total number of hydrological response units):
+        variables. When using the 1-dimensional parameter |hland_states.IC| of the base
+        model |hland| as an example, property |ChangeItem.shape| agrees with the total
+        number of hydrological response units.  Property |ChangeItem.subnames| combines
+        the device names with the index numbers of the vector entries of the respective
+        target variables:
 
         >>> item = SetItem("ic", "hland", "states.ic", "subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (49,)
+        >>> item.subnames  # doctest: +ELLIPSIS
+        ('land_dill_1', 'land_dill_2', ..., 'land_lahn_3_13', 'land_lahn_3_14')
+
+        For 2-dimensional sequences, |ChangeItem.shape| returns the total number
+        of matrix entries and each sub name indicates the row and the column of a
+        specific matrix entry:
+
+        >>> dill = hp.elements.land_dill.model
+        >>> dill.parameters.control.sclass(2)
+        >>> item = SetItem("sp", "hland", "states.sp", "subunit")
+        >>> item.collect_variables(pub.selections)
+        >>> item.shape
+        (61,)
+        >>> item.subnames  # doctest: +ELLIPSIS
+        ('land_dill_1-1', 'land_dill_1-2', ..., \
+'land_dill_2-11', 'land_dill_2-12', ..., 'land_lahn_3_1-13', 'land_lahn_3_1-14')
         """
         super().collect_variables(selections)
         if self.level == "global":
@@ -479,7 +555,7 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         >>> item.selection2targets = {}
         >>> item._value = "wrong"
         >>> item.collect_variables(pub.selections)
-        >>> item.update_variables()    # doctest: +ELLIPSIS
+        >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         TypeError: When trying to update a target variable of ChangeItem `alpha` with \
@@ -564,11 +640,11 @@ value `wrong` cannot be converted to type `float`.
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", "selection")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill.model.sequences.states.ic    # doctest: +ELLIPSIS
+        >>> land_dill.model.sequences.states.ic  # doctest: +ELLIPSIS
         ic(0.9694, ..., 1.47487)
         >>> item.value = 0.5, 1.0
         >>> item.update_variables()
-        >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+        >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
         land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
         land_lahn_1 ic(0.5, 0.5, ..., 0.5, 0.5)
@@ -584,7 +660,7 @@ value `wrong` cannot be converted to type `float`.
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
-        >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+        >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
         land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
         land_lahn_1 ic(1.0, 1.0, ... 1.0, 1.0)
@@ -599,7 +675,7 @@ value `wrong` cannot be converted to type `float`.
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(49)]
         >>> item.update_variables()
-        >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+        >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
         land_dill ic(0.0, 0.01, ..., 0.1, 0.11)
         land_lahn_1 ic(0.12, 0.13, ... 0.23, 0.24)
@@ -616,7 +692,7 @@ value `wrong` cannot be converted to type `float`.
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(61)]
         >>> item.update_variables()
-        >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+        >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.sp)
         land_dill sp([[0.0, ...0.11],
             [0.12, ...0.23]])
@@ -920,7 +996,7 @@ class AddItem(MathItem):
     ...     for idx in range(len(rfcf)):
     ...         rfcf[idx] = value
     ...         value += 0.01
-    ...     print(element, rfcf)    # doctest: +ELLIPSIS
+    ...     print(element, rfcf)  # doctest: +ELLIPSIS
     land_dill rfcf(0.8, ... 0.91)
     land_lahn_1 rfcf(0.92, ... 1.04)
     land_lahn_2 rfcf(1.05, ... 1.14)
@@ -936,7 +1012,7 @@ class AddItem(MathItem):
     >>> item.collect_variables(pub.selections)
     >>> item.value = 0.1
     >>> item.update_variables()
-    >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+    >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
     land_dill sfcf(0.9, ... 1.01)
     land_lahn_1 sfcf(1.02, ... 1.14)
@@ -947,7 +1023,7 @@ class AddItem(MathItem):
     >>> item.collect_variables(pub.selections)
     >>> item.value = -0.1, 0.0
     >>> item.update_variables()
-    >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+    >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
     land_dill sfcf(0.7, ... 0.81)
     land_lahn_1 sfcf(0.82, ... 0.94)
@@ -959,7 +1035,7 @@ class AddItem(MathItem):
     >>> item.collect_variables(pub.selections)
     >>> item.value = -0.1, 0.0, 0.1, 0.2
     >>> item.update_variables()
-    >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+    >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
     land_dill sfcf(0.7, ... 0.81)
     land_lahn_1 sfcf(0.92, ... 1.04)
@@ -971,7 +1047,7 @@ class AddItem(MathItem):
     >>> item.collect_variables(pub.selections)
     >>> item.value = [idx/100 for idx in range(-20, 29)]
     >>> item.update_variables()
-    >>> for element in hp.elements.catchment:    # doctest: +ELLIPSIS
+    >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
     land_dill sfcf(0.6, ... 0.82)
     land_lahn_1 sfcf(0.84, ... 1.08)
@@ -997,7 +1073,7 @@ class AddItem(MathItem):
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item._value = 0.1, 0.2
-        >>> item.update_variables()    # doctest: +ELLIPSIS
+        >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
@@ -1093,6 +1169,74 @@ class GetItem(ExchangeItem):
                 self._ndim += 1
             break
 
+    def yield_name2subnames(
+        self,
+    ) -> Iterator[Tuple[Name, Union[str, Tuple[()], Tuple[str, ...]]]]:
+        """Sequentially return pairs of the item name and its artificial sub names.
+
+        The purpose and definition of the sub names are similar to those returned by
+        property |ChangeItem.subnames| of class |ChangeItem| described in the
+        documentation on method |ChangeItem.collect_variables|.  However, class
+        |GetItem| does not support different aggregation levels and each |GetItem|
+        object operates on the device level.  Therefore, the returned sub names rely on
+        the device names; and, for non-scalar target variables, additionally on the
+        individual vector or matrix indices.
+
+        Each item name is automatically generated and contains the name of the
+        respective |Variable| object's |Device| and the target description.
+
+        For 0-dimensional variables, there is only one sub name that is identical to
+        the device name:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> from hydpy import SetItem
+        >>> item = GetItem("lz", "hland_v1", "states.lz")
+        >>> item.collect_variables(pub.selections)
+        >>> for name, subnames in item.yield_name2subnames():
+        ...     print(name, subnames)
+        land_dill_states_lz land_dill
+        land_lahn_1_states_lz land_lahn_1
+        land_lahn_2_states_lz land_lahn_2
+        land_lahn_3_states_lz land_lahn_3
+
+        >>> item = GetItem("sim", "nodes", "sim.series")
+        >>> item.collect_variables(pub.selections)
+        >>> for name, subnames in item.yield_name2subnames():
+        ...     print(name, subnames)
+        dill_sim_series dill
+        lahn_1_sim_series lahn_1
+        lahn_2_sim_series lahn_2
+        lahn_3_sim_series lahn_3
+
+        For non-scalar variables, the sub names combine the device name and all
+        possible index combinations for the current shape of the target variable:
+
+        >>> item = GetItem("sm", "hland_v1", "states.sm")
+        >>> item.collect_variables(pub.selections)
+        >>> for name, subnames in item.yield_name2subnames():
+        ...     print(name, subnames)  # doctest: +ELLIPSIS
+        land_dill_states_sm ('land_dill_1', ..., 'land_dill_12')
+        land_lahn_1_states_sm ('land_lahn_1_1', ..., 'land_lahn_1_13')
+        land_lahn_2_states_sm ('land_lahn_2_1', ..., 'land_lahn_2_10')
+        land_lahn_3_states_sm ('land_lahn_3_1', ..., 'land_lahn_3_14')
+
+        >>> item = GetItem("sp", "hland_v1", "states.sp")
+        >>> item.collect_variables(pub.selections)
+        >>> for name, subnames in item.yield_name2subnames():
+        ...     print(name, subnames)  # doctest: +ELLIPSIS
+        land_dill_states_sp ('land_dill_1-1', ..., 'land_dill_1-12')
+        land_lahn_1_states_sp ('land_lahn_1_1-1', ..., 'land_lahn_1_1-13')
+        land_lahn_2_states_sp ('land_lahn_2_1-1', ..., 'land_lahn_2_1-10')
+        land_lahn_3_states_sp ('land_lahn_3_1-1', ..., 'land_lahn_3_1-14')
+        """
+        for device, name in self._device2name.items():
+            subnames = _make_subunit_name(device, self.device2target[device])
+            if isinstance(subnames, str):
+                yield name, subnames
+            else:
+                yield name, tuple(subnames)
+
     def yield_name2value(
         self,
         idx1: Optional[int] = None,
@@ -1101,8 +1245,8 @@ class GetItem(ExchangeItem):
         """Sequentially return name-value pairs describing the current state of the
         target variables.
 
-        The names are automatically generated and contain both the name of the |Device|
-        of the respective |Variable| object and the target description:
+        The item names are automatically generated and contain both the name of the
+        |Device| of the respective |Variable| object and the target description:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1120,7 +1264,7 @@ class GetItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():
-        ...     print(name, value)    # doctest: +ELLIPSIS
+        ...     print(name, value)  # doctest: +ELLIPSIS
         land_dill_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0, 2.0, 2.0]
         land_lahn_1_states_sm [99.27505, ..., 142.84148]
@@ -1133,12 +1277,12 @@ class GetItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> hp.nodes.dill.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
         >>> for name, value in item.yield_name2value():
-        ...     print(name, value)    # doctest: +ELLIPSIS
+        ...     print(name, value)  # doctest: +ELLIPSIS
         dill_sim_series [1.0, 2.0, 3.0, 4.0]
         lahn_1_sim_series [nan, ...
         ...
         >>> for name, value in item.yield_name2value(2, 3):
-        ...     print(name, value)    # doctest: +ELLIPSIS
+        ...     print(name, value)  # doctest: +ELLIPSIS
         dill_sim_series [3.0]
         lahn_1_sim_series [nan]
         ...

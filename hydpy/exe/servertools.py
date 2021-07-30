@@ -565,7 +565,7 @@ has been extracted but cannot be further processed: `x == y`.
     sm_lahn_2 = [123.]
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = [10.]
-    >>> test("query_initialgetitemvalues")    # doctest: +ELLIPSIS
+    >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
@@ -575,6 +575,37 @@ has been extracted but cannot be further processed: `x == y`.
     land_lahn_3_states_sm = [101.31248...]
     land_lahn_3_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
     dill_nodes_sim_series = [nan, nan, nan, nan, nan]
+
+    Some external tools require ways to identify specific sub-values of different
+    exchange items.  For example, they need to map those sub-values to location data
+    available in a separate database. Method |HydPyServer.GET_query_itemsubnames|
+    provides artificial sub names suitable for such a mapping. See property
+    |ChangeItem.subnames| of class |ChangeItem| and method |GetItem.yield_name2subnames|
+    of class |GetItem| for the specification of the sub names. Here, note the special
+    handling for change items addressing the `global` level, for which we cannot define
+    a meaningful sub name.  Method |HydPyServer.GET_query_itemsubnames| returns the
+    string `*global*` in such cases:
+
+    >>> test("query_itemsubnames") # doctest: +ELLIPSIS
+    alpha = *global*
+    beta = *global*
+    lag = *global*
+    damp = *global*
+    sfcf_1 = *global*
+    sfcf_2 = *global*
+    sfcf_3 = [land_lahn_3_1, ..., land_lahn_3_14]
+    sm_lahn_2 = [land_lahn_2]
+    sm_lahn_1 = [land_lahn_1_1, ..., land_lahn_1_13]
+    quh = [land_lahn_2]
+    land_dill_factors_tmean = land_dill
+    land_dill_fluxes_qt = land_dill
+    land_dill_fluxes_qt_series = land_dill
+    land_dill_states_sm = ('land_dill_1', ..., 'land_dill_12')
+    land_lahn_1_states_sm = ('land_lahn_1_1', ..., 'land_lahn_1_13')
+    land_lahn_2_states_sm = ('land_lahn_2_1', ..., 'land_lahn_2_10')
+    land_lahn_3_states_sm = ('land_lahn_3_1', ..., 'land_lahn_3_14')
+    land_lahn_3_states_sm_series = ('land_lahn_3_1', ..., 'land_lahn_3_14')
+    dill_nodes_sim_series = dill
 
     The |Timegrids.init| time grid is immutable once the server is ready.  Method
     |HydPyServer.GET_query_initialisationtimegrid| returns the fixed first date,
@@ -1139,6 +1170,46 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
             type_ = self._get_query_itemtype(item)
             for name, _ in item.yield_name2value():
                 self._outputs[name] = type_
+
+    def GET_query_itemsubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects."""
+        self.GET_query_changesubnames()
+        self.GET_query_getitemsubnames()
+
+    def GET_query_changesubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |Parameter|, |StateSequence|,
+        or |LogSequence| objects."""
+        self.GET_query_parameteritemnames()
+        self.GET_query_conditionitemnames()
+
+    def GET_query_parameteritemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |Parameter| objects."""
+        self._query_changeitemsubnames(self.state.parameteritems)
+
+    def GET_query_conditionitemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |StateSequence| or
+        |LogSequence| objects."""
+        self._query_changeitemsubnames(self.state.conditionitems)
+
+    def GET_query_getitemsubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to return the values of |Parameter| or |Sequence_|
+        objects or the time series of |IOSequence| objects."""
+        for item in self.state.getitems:
+            for name, subnames in item.yield_name2subnames():
+                self._outputs[name] = subnames
+
+    def _query_changeitemsubnames(self, items: Iterable[itemtools.ChangeItem]) -> None:
+        for item in items:
+            subnames = item.subnames
+            if subnames is None:
+                self._outputs[item.name] = "*global*"
+            else:
+                self._outputs[item.name] = f"[{', '.join(subnames)}]"
 
     def GET_query_initialitemvalues(self) -> None:
         """Get the initial values of all current exchange items."""

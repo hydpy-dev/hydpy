@@ -308,7 +308,7 @@ if config.USEAUTODOC:
         substituter = autodoctools.prepare_mainsubstituter()
         for subpackage in (auxs, core, cythons, exe):
             subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
-            for filename in os.listdir(subpackagepath):
+            for filename in sorted(os.listdir(subpackagepath)):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
                         f"{subpackage.__name__}.{filename[:-3]}"
@@ -317,12 +317,12 @@ if config.USEAUTODOC:
         autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         with pub.options.autocompile(False):
             modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]  # pylint: disable=line-too-long
-            for filename in os.listdir(modelpath):
+            for filename in sorted(os.listdir(modelpath)):
                 path = os.path.join(modelpath, filename)
                 if os.path.isdir(path) and not filename.startswith("_"):
                     module = importlib.import_module(f"{models.__name__}.{filename}")
                     autodoctools.autodoc_basemodel(module)
-            for filename in os.listdir(modelpath):
+            for filename in sorted(os.listdir(modelpath)):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
                         f"{models.__name__}.{filename[:-3]}"

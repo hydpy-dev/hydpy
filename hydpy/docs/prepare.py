@@ -58,7 +58,7 @@ except BaseException:
 # Import all base and application models, to make sure all substituters are up-to-date.
 # (I am not sure if this is really necessary but it does not hurt.)
 modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
-for filename in os.listdir(modelspath):
+for filename in sorted(os.listdir(modelspath)):
     if not filename.startswith("_"):
         filename = filename.split(".")[0]
         importlib.import_module(f"{models.__name__}.{filename}")
@@ -75,7 +75,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
     if subpackage is hydpy:
         filenames = ["examples.py"]
     else:
-        filenames = os.listdir(subpackagepath)
+        filenames = sorted(os.listdir(subpackagepath))
     substituter = hydpy.substituter
     for filename in filenames:
         is_module = (filename.endswith("py") or filename.endswith("pyx")) and (
@@ -109,7 +109,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
         if is_package:
             sources = []
             path = os.path.join(subpackagepath, filename)
-            for subfilename in os.listdir(path):
+            for subfilename in sorted(os.listdir(path)):
                 if subfilename.endswith(".py"):
                     subpath = os.path.join(path, subfilename)
                     with open(subpath, encoding="utf-8") as file_:
@@ -157,7 +157,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
 # required substitution replacement commands.
 for subpackage in (autofigs, bibliography, figs, sphinx, rst):
     subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
-    for filename in os.listdir(subpackagepath):
+    for filename in sorted(os.listdir(subpackagepath)):
         path_in = os.path.join(subpackagepath, filename)
         path_out = os.path.join(AUTOPATH, filename)
         if os.path.isfile(path_in) and (filename != "__init__.py"):

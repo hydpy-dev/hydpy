@@ -326,7 +326,7 @@ the following error:
     wait += now
     filenames = []
     while now <= wait:
-        for filename in os.listdir(dirpath):
+        for filename in sorted(os.listdir(dirpath)):
             if filename.startswith("hydpy_") and filename.endswith(".log"):
                 filenames.append(filename)
         if filenames:

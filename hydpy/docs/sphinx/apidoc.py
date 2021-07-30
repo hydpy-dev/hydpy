@@ -6,8 +6,8 @@ os.system(r"make clean")
 os.system(r"make html")
 
 folder = "../_built/html"
-paths = [os.path.join(folder, fn) for fn in os.listdir(folder) if fn.endswith(".html")]
-for path in paths:
+filenames = sorted(fn for fn in os.listdir(folder) if fn.endswith(".html"))
+for path in (os.path.join(folder, fn) for fn in filenames):
     lines = []
     with open(path) as file_:
         for line in file_.readlines():

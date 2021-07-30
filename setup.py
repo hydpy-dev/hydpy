@@ -52,7 +52,7 @@ int_ = "numpy." + str(numpy.array([1]).dtype) + "_t"
 print_("\nCollect HydPy packages:")
 # Select all framework packages.
 packages = ["hydpy"]
-for name in os.listdir("hydpy"):
+for name in sorted(os.listdir("hydpy")):
     if not (name.startswith("_") or os.path.isfile(os.path.join("hydpy", name))):
         packages.append(".".join(("hydpy", name)))
 packages.append("hydpy.conf")
@@ -65,7 +65,7 @@ packages.append("hydpy.docs.sphinx")
 packages.append("hydpy.exe")
 packages.append("hydpy.tests.iotesting")
 # Additionally, select all base model packages.
-for name in os.listdir(os.path.join("hydpy", "models")):
+for name in sorted(os.listdir(os.path.join("hydpy", "models"))):
     if not (
         name.startswith("_") or os.path.isfile(os.path.join("hydpy", "models", name))
     ):
@@ -101,7 +101,7 @@ else:
     # Select the required extension modules, except those directly related
     # to the hydrological models.
     ext_names = []
-    for name in os.listdir(os.path.join("hydpy", "cythons")):
+    for name in sorted(os.listdir(os.path.join("hydpy", "cythons"))):
         if name.split(".")[-1] == "pyx":
             ext_names.append(name.split(".")[0])
     for ext_name in ext_names:
@@ -287,7 +287,7 @@ if install:
     # main folder
     print_("\n:Copy automatically generated Python files backwards:")
     path_hydpy = os.path.join(oldpath, "hydpy")
-    for filename in os.listdir(hydpy.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.__path__[0])):  # type: ignore[attr-defined]
         if filename.endswith(".py"):
             path_in = prep(hydpy.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_hydpy, filename)
@@ -297,7 +297,7 @@ if install:
     # into the original `autogen` folder.
     print_("\nCopy extension files and dlls backwards:")
     path_autogen = os.path.join(oldpath, "hydpy", "cythons", "autogen")
-    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.cythons.autogen.__path__[0])):  # type: ignore[attr-defined]
         ending = filename.split(".")[-1]
         if ending in ("pyd", "so", "pyx", "pxd"):
             path_in = prep(hydpy.cythons.autogen.__path__[0], filename)  # type: ignore[attr-defined]
@@ -309,7 +309,7 @@ if install:
     path_html = os.path.join(oldpath, "hydpy", "docs", "html_")
     import hydpy.docs.html_
 
-    for filename in os.listdir(hydpy.docs.html_.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.docs.html_.__path__[0])):  # type: ignore[attr-defined]
         if filename.endswith(".html"):
             path_in = prep(hydpy.docs.html_.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_html, filename)
@@ -320,7 +320,7 @@ if install:
     path_figs = os.path.join(oldpath, "hydpy", "docs", "figs")
     import hydpy.docs.figs
 
-    for filename in os.listdir(hydpy.docs.figs.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.docs.figs.__path__[0])):  # type: ignore[attr-defined]
         if filename.endswith(".png"):
             path_in = prep(hydpy.docs.figs.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_figs, filename)
@@ -331,7 +331,7 @@ if install:
     path_autofigs = os.path.join(oldpath, "hydpy", "docs", "autofigs")
     import hydpy.docs.autofigs
 
-    for filename in os.listdir(hydpy.docs.autofigs.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.docs.autofigs.__path__[0])):  # type: ignore[attr-defined]
         if filename.endswith(".png"):
             path_in = prep(hydpy.docs.autofigs.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_autofigs, filename)
@@ -340,7 +340,7 @@ if install:
     # Copy the (possibly new) configuration files into the original subpackage.
     print_("\nCopy configuration data backwards:")
     path_conf = os.path.join(oldpath, "hydpy", "conf")
-    for filename in os.listdir(hydpy.conf.__path__[0]):  # type: ignore[attr-defined]
+    for filename in sorted(os.listdir(hydpy.conf.__path__[0])):  # type: ignore[attr-defined]
         if not filename.startswith("_"):
             path_in = prep(hydpy.conf.__path__[0], filename)  # type: ignore[attr-defined]
             path_out = prep(path_conf, filename)

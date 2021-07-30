@@ -61,7 +61,7 @@ with pub.options.forcecompiling(forcecompiling), pub.options.skipdoctests(True):
     import hydpy.models
 
     path_: str = hydpy.models.__path__[0]  # type: ignore[attr-defined, name-defined]
-    for name in [fn.split(".")[0] for fn in os.listdir(path_)]:
+    for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
         if name != "__init__":
             modulename = "hydpy.models." + name
             alreadyimported = modulename in sys.modules

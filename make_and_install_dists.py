@@ -10,7 +10,7 @@ try:
     python = sys.executable
 
     sitepackagepath = os.path.split(numpy.__path__[0])[0]
-    for name in os.listdir(sitepackagepath):
+    for name in sorted(os.listdir(sitepackagepath)):
         if "hydpy" in name.lower():
             path = os.path.join(sitepackagepath, name)
             try:

@@ -156,11 +156,8 @@ class Tester:
         ['hland_v1.py']
         """
         if self.ispackage:
-            return sorted(
-                fn
-                for fn in os.listdir(os.path.dirname(self.filepath))
-                if fn.endswith(".py")
-            )
+            filenames = os.listdir(os.path.dirname(self.filepath))
+            return sorted(fn for fn in filenames if fn.endswith(".py"))
         return [os.path.split(self.filepath)[1]]
 
     @property
@@ -1314,7 +1311,7 @@ class TestIO:
         iotestingpath: str = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
         os.chdir(os.path.join(iotestingpath))
         if self._clear_own:
-            self._olds = os.listdir(".")
+            self._olds = sorted(os.listdir("."))
         return self
 
     def __exit__(
@@ -1323,7 +1320,7 @@ class TestIO:
         exception_value: BaseException,
         traceback_: types.TracebackType,
     ) -> None:
-        for file in os.listdir("."):
+        for file in sorted(os.listdir(".")):
             if file.startswith(".coverage"):
                 shutil.move(file, os.path.join(self._path, file))
             if (file != "__init__.py") and (

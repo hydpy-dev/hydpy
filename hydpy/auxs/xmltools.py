@@ -1984,7 +1984,7 @@ class XSDWriter:
         modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
         return sorted(
             str(fn.split(".")[0])
-            for fn in os.listdir(modelspath)
+            for fn in sorted(os.listdir(modelspath))
             if (fn.endswith(".py") and (fn != "__init__.py"))
         )
 

@@ -260,7 +260,7 @@ of object `filemanager` has not been prepared so far.
                     folder3=.../projectname/basename/folder3.zip)
         """
         directories = Folder2Path()
-        for directory in os.listdir(self.basepath):
+        for directory in sorted(os.listdir(self.basepath)):
             if not directory.startswith("_"):
                 path = os.path.join(self.basepath, directory)
                 if os.path.isdir(path):

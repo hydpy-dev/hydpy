@@ -710,7 +710,7 @@ class Substituter:
 
     def add_modules(self, package):
         """Add the modules of the given package without their members."""
-        for name in os.listdir(package.__path__[0]):
+        for name in sorted(os.listdir(package.__path__[0])):
             if name.startswith("_"):
                 continue
             name = name.split(".")[0]

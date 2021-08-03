@@ -126,9 +126,17 @@ else:
     )
     xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
 
-_SetOrAddItem = TypeVar("_SetOrAddItem", itemtools.SetItem, itemtools.AddItem)
+_SetOrAddOrMultiplyItem = TypeVar(
+    "_SetOrAddOrMultiplyItem",
+    itemtools.SetItem,
+    itemtools.AddItem,
+    itemtools.MultiplyItem,
+)
 _GetOrChangeItem = TypeVar(
-    "_GetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem, itemtools.SetItem
+    "_GetOrChangeItem",
+    itemtools.GetItem,
+    itemtools.ChangeItem,
+    itemtools.SetItem,
 )
 
 namespace = (
@@ -138,6 +146,7 @@ namespace = (
 _ITEMGROUP2ITEMCLASS = {
     "setitems": itemtools.SetItem,
     "additems": itemtools.AddItem,
+    "multiplyitems": itemtools.MultiplyItem,
     "getitems": itemtools.GetItem,
 }
 
@@ -1099,9 +1108,8 @@ Please make sure your XML file follows the relevant XML schema.
             master = getattr(master, "master", None)
             if master is None:
                 raise AttributeError(
-                    'Unable to find a XML element named "selections".  '
-                    "Please make sure your XML file follows the "
-                    "relevant XML schema."
+                    'Unable to find a XML element named "selections".  Please make '
+                    "sure your XML file follows the relevant XML schema."
                 )
             selections = master.find("selections")
         return _query_selections(selections)
@@ -1522,6 +1530,7 @@ class XMLExchange(XMLBase):
         sfcf_1
         sfcf_2
         sfcf_3
+        k4
         """
         return self._get_items_of_certain_item_types(
             itemgroups=("control",),
@@ -1591,8 +1600,8 @@ class XMLExchange(XMLBase):
         )
 
     def prepare_series(self) -> None:
-        """Prepare all required |IOSequence.series| arrays via calling method
-        |IOSequence.activate_ram|.
+        """Prepare all required |IOSequence.series| arrays via the
+        |IOSequence.activate_ram| method.
         """
         for item in itertools.chain(self.conditionitems, self.getitems):
             for target in item.device2target.values():
@@ -1612,7 +1621,7 @@ class XMLExchange(XMLBase):
 
 class XMLItemgroup(XMLBase):
     """Helper class for |XMLExchange| responsible for handling the exchange items
-    related to model parameter and sequences separately from the exchange items of
+    related to model parameters and sequences separately from the exchange items of
     node sequences."""
 
     def __init__(
@@ -1702,7 +1711,7 @@ class XMLVar(XMLSelector):
 
     @property
     def item(self) -> itemtools.ExchangeItem:
-        """The actually defined |ExchangeItem| object.
+        """The defined |ExchangeItem| object.
 
         We first prepare the `LahnH` example project and then create the related
         |XMLInterface| object defined by the XML configuration file `multiple_runs`:
@@ -1732,7 +1741,7 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(2.0)
 
-        The second example is comparable but focusses on a |SetItem| modifying control
+        The second example is comparable but focuses on a |SetItem| modifying control
         parameter |hstream_control.Lag| of application model |hstream_v1|:
 
         >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
@@ -1746,7 +1755,7 @@ class XMLVar(XMLSelector):
         lag(5.0)
 
         The third discussed |SetItem| assigns the same value to all entries of state
-        sequence |hland_states.SM|, resulting in the some soil moisture for all
+        sequence |hland_states.SM|, resulting in the same soil moisture for all
         individual hydrological response units of element `land_lahn_2`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
@@ -1762,9 +1771,9 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_lahn_2.model.sequences.states.sm
         sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0)
 
-        The fourth |SetItem| is, in contrast to the last example, 1-dimensional and
-        thus allows to assign different values to the individual hydrological response
-        units of element `land_lahn_1`:
+        In contrast to the last example, the fourth |SetItem| is 1-dimensional and thus
+        allows to assign different values to the individual hydrological response units
+        of element `land_lahn_1`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
         >>> item = var.item
@@ -1804,11 +1813,27 @@ class XMLVar(XMLSelector):
         land_lahn_2 sfcf(1.2)
         land_lahn_3 sfcf(field=1.1, forest=1.2)
 
+        |MultiplyItem| `k4` works similar to the described add items but multiplies
+        the current values of the base parameter objects of type |hland_control.K|
+        with 10 to gain new values for the target parameter objects of type
+        |hland_control.K4|:
+
+        >>> for subvars in interface.exchange.itemgroups[3].models[0].subvars:
+        ...     for var in subvars.vars:
+        ...         var.item.update_variables()
+        >>> for element in hp.elements.catchment:
+        ...     control = element.model.parameters.control
+        ...     print(element, repr(control.k), repr(control.k4))
+        land_dill k(0.005618) k4(0.056177)
+        land_lahn_1 k(0.005325) k4(0.053247)
+        land_lahn_2 k(0.005948) k4(0.059481)
+        land_lahn_3 k(0.002571) k4(0.025712)
+
         The final three examples focus on |GetItem| objects.  One |GetItem| object
         queries the actual values of the |hland_states.SM| states of all relevant
         elements:
 
-        >>> var = interface.exchange.itemgroups[3].models[0].subvars[2].vars[0]
+        >>> var = interface.exchange.itemgroups[4].models[0].subvars[2].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
@@ -1823,7 +1848,7 @@ class XMLVar(XMLSelector):
         factor sequence of element `land_dill`:
 
         >>> hp.elements.land_dill.model.sequences.factors.tmean(1.0)
-        >>> for var in interface.exchange.itemgroups[3].models[0].subvars[0].vars:
+        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[0].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_factors_tmean 1.0
@@ -1834,16 +1859,16 @@ class XMLVar(XMLSelector):
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
         >>> qt.series = 2.0
-        >>> for var in interface.exchange.itemgroups[3].models[0].subvars[1].vars:
+        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[1].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
 
         Last but not least, one |GetItem| queries the simulated time series values
-        avaiable through node `dill`:
+        available through node `dill`:
 
-        >>> var = interface.exchange.itemgroups[3].nodes[0].vars[0]
+        >>> var = interface.exchange.itemgroups[4].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
@@ -1885,8 +1910,8 @@ class XMLVar(XMLSelector):
         self,
         target: str,
         master: str,
-        itemtype: Type[_SetOrAddItem],
-    ) -> _SetOrAddItem:
+        itemtype: Type[_SetOrAddOrMultiplyItem],
+    ) -> _SetOrAddOrMultiplyItem:
         name = cast(Name, self.find("name", optional=False).text)
         assert name is not None
         level = self.find("level", optional=False).text
@@ -1894,9 +1919,9 @@ class XMLVar(XMLSelector):
         init = self.find("init", optional=False).text
         assert init is not None
         init = ",".join(init.split())
-        item: _SetOrAddItem
-        if issubclass(itemtype, itemtools.AddItem):
-            assert not issubclass(itemtype, itemtools.SetItem)
+        item: _SetOrAddOrMultiplyItem
+        # Simplify the following if-clauses after Mypy issue 10989 is fixed?
+        if not issubclass(itemtype, itemtools.SetItem):
             item = itemtype(
                 name=name,
                 master=master,
@@ -1904,7 +1929,7 @@ class XMLVar(XMLSelector):
                 base=strip(list(self)[-1].tag),
                 level=cast(itemtools.LevelType, level),
             )
-        else:
+        elif not issubclass(itemtype, (itemtools.AddItem, itemtools.MultiplyItem)):
             item = itemtype(
                 name=name,
                 master=master,
@@ -1935,18 +1960,18 @@ class XSDWriter:
 
     @classmethod
     def write_xsd(cls) -> None:
-        """Write the complete base schema file `HydPyConfigBase.xsd` based
-        on the template file `HydPyConfigBase.xsdt`.
+        """Write the complete base schema file `HydPyConfigBase.xsd` based on the
+        template file `HydPyConfigBase.xsdt`.
 
-        Method |XSDWriter.write_xsd| adds model-specific information to the
-        general information of template file `HydPyConfigBase.xsdt` regarding
-        reading and writing of time series data and exchanging parameter
-        and sequence values, e. g. during calibration.
+        Method |XSDWriter.write_xsd| adds model-specific information to the general
+        information of template file `HydPyConfigBase.xsdt` regarding reading and
+        writing of time series data and exchanging parameter and sequence values, e. g.
+        during calibration.
 
-        The following example shows that after writing a new schema file,
-        method |XMLInterface.validate_xml| does not raise an error when
-        either applied on the XML configuration files `single_run.xml` or
-        `multiple_runs.xml` of the `LahnH` example project:
+        The following example shows that after writing a new schema file, method
+        |XMLInterface.validate_xml| does not raise an error when either applied on the
+        XML configuration files `single_run.xml` or `multiple_runs.xml` of the `LahnH`
+        example project:
 
         >>> import os
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
@@ -2172,12 +2197,14 @@ class XSDWriter:
         ...
             <element name="additems">
         ...
+            <element name="multiplyitems">
+        ...
             <element name="getitems">
         ...
         """
         indent = 1
         subs = [cls.get_mathitemsinsertion(indent)]
-        for groupname in ("setitems", "additems", "getitems"):
+        for groupname in ("setitems", "additems", "multiplyitems", "getitems"):
             subs.append(cls.get_itemsinsertion(groupname, indent))
             subs.append(cls.get_itemtypesinsertion(groupname, indent))
         return "\n".join(subs)
@@ -2528,6 +2555,16 @@ class XSDWriter:
 
         >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
         ...     "additems", model, model.parameters.control, 1))
+            <element name="control"
+        ...
+                        <element name="area"
+                                 type="hpcb:hland_v1_mathitemType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
+        ...
+
+        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        ...     "multiplyitems", model, model.parameters.control, 1))
             <element name="control"
         ...
                         <element name="area"

@@ -194,6 +194,19 @@
                 </control>
             </hland_v1>
         </additems>
+        <multiplyitems>
+            <selections>complete</selections>
+            <hland_v1>
+                <control>
+                    <k4>
+                        <name>k4</name>
+                        <level>global</level>
+                        <init>10.0</init>
+                        <control.k/>
+                    </k4>
+                </control>
+            </hland_v1>
+        </multiplyitems>
         <getitems>
             <hland_v1>
                 <factors>

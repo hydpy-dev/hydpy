@@ -301,6 +301,7 @@ class ServerState:
     AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", "global")
     AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", "global")
     AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", "subunit")
+    MultiplyItem("k4", "hland_v1", "control.k4", "control.k", "global")
     >>> for item in state.conditionitems:
     ...     print(item)
     SetItem("sm_lahn_2", "hland_v1", "states.sm", "device")
@@ -532,6 +533,7 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_1 = Double0D
     sfcf_2 = Double0D
     sfcf_3 = Double1D
+    k4 = Double0D
     >>> test("query_conditionitemtypes")
     sm_lahn_2 = Double1D
     sm_lahn_1 = Double1D
@@ -561,6 +563,7 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_1 = 0.3
     sfcf_2 = 0.2
     sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
+    k4 = 10.0
     >>> test("query_initialconditionitemvalues")
     sm_lahn_2 = [123.]
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
@@ -594,6 +597,7 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_1 = *global*
     sfcf_2 = *global*
     sfcf_3 = [land_lahn_3_1, ..., land_lahn_3_14]
+    k4 = *global*
     sm_lahn_2 = [land_lahn_2]
     sm_lahn_1 = [land_lahn_1_1, ..., land_lahn_1_13]
     quh = [land_lahn_2]
@@ -679,7 +683,8 @@ Nothing registered under the id `1`.  The available ids are: 0.
     ...            "damp = 0.5\\n"
     ...            "sfcf_1 = 0.3\\n"
     ...            "sfcf_2 = 0.2\\n"
-    ...            "sfcf_3 = 0.1\\n"))
+    ...            "sfcf_3 = 0.1\\n"
+    ...            "k4 = 10.0\\n"))
     <BLANKLINE>
     >>> control = "HydPyServer.state.hp.elements.land_dill.model.parameters.control"
     >>> test("evaluate",
@@ -719,6 +724,7 @@ A value for parameter item `lag` is missing.
     sfcf_1 = 0.3
     sfcf_2 = 0.2
     sfcf_3 = 0.1
+    k4 = 10.0
 
     The condition-related methods |HydPyServer.POST_register_conditionitemvalues|,
     |HydPyServer.GET_activate_conditionitemvalues|, and
@@ -800,6 +806,7 @@ under the id `0`.  There is nothing registered, so far.
     ...            "sfcf_1 = 0.0\\n"
     ...            "sfcf_2 = 0.0\\n"
     ...            "sfcf_3 = 0.0\\n"
+    ...            "k4 = 5.0\\n"
     ...            "sm_lahn_2 = 100.0\\n"
     ...            "sm_lahn_1 = 50.\\n"
     ...            "quh = .0\\n"))
@@ -814,6 +821,7 @@ under the id `0`.  There is nothing registered, so far.
     sfcf_1 = 0.0
     sfcf_2 = 0.0
     sfcf_3 = 0.0
+    k4 = 5.0
     sm_lahn_2 = 100.0
     sm_lahn_1 = 50.0
     quh = 0.0
@@ -832,11 +840,11 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")    # doctest: +ELLIPSIS
     land_dill_factors_tmean = -0.572053
-    land_dill_fluxes_qt = 7.735543
+    land_dill_fluxes_qt = 5.515321
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
     ...
-    dill_nodes_sim_series = [7.735543]
+    dill_nodes_sim_series = [5.515321]
 
     So far, we have explained how the *HydPy* server memorises different exchange
     item values for different values of query parameter `id`.  Complicating matters,
@@ -912,7 +920,7 @@ calculated so far.
     >>> test("query_conditionitemvalues", id_="0")    # doctest: +ELLIPSIS
     sm_lahn_2 = [99.84802...]
     sm_lahn_1 = [49.92944...]
-    quh = [0.00040...]
+    quh = [0.00038...]
 
     Above, we explained the recommended way to query the initial values of all or
     a subgroup of the available exchange items.  Alternatively, you can first register
@@ -930,6 +938,7 @@ calculated so far.
     sfcf_1 = 0.3
     sfcf_2 = 0.2
     sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
+    k4 = 10.0
     sm_lahn_2 = [123.]
     sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
     quh = [10.]

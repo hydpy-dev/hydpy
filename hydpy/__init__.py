@@ -69,6 +69,7 @@ from hydpy.core.importtools import (
 from hydpy.core.itemtools import (
     AddItem,
     GetItem,
+    MultiplyItem,
     SetItem,
 )
 from hydpy.core.objecttools import (
@@ -214,6 +215,7 @@ __all__ = [
     "reverse_model_wildcard_import",
     "AddItem",
     "GetItem",
+    "MultiplyItem",
     "SetItem",
     "print_values",
     "classname",

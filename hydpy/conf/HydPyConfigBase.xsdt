@@ -369,6 +369,9 @@
                 <element ref="hpcb:additems"
                          minOccurs="0"
                          maxOccurs="unbounded"/>
+                <element ref="hpcb:multiplyitems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
                 <element ref="hpcb:getitems"
                          minOccurs="0"
                          maxOccurs="unbounded"/>

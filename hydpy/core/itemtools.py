@@ -1093,6 +1093,81 @@ the following error occurred: operands could not be broadcast together with shap
         super().update_variable(variable, result)
 
 
+class MultiplyItem(MathItem):
+    """|MathItem| subclass performing multiplications.
+
+    Besides performing a multiplication instead of an addition, class |MultiplyItem|
+    behaves exactly like class |AddItem|.  We adopt a single example of the
+    documentation on class |AddItem| to demonstrate this difference:
+
+    >>> from hydpy.examples import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> del pub.selections["complete"]
+
+    >>> value = 0.8
+    >>> for element in hp.elements.catchment:
+    ...     rfcf = element.model.parameters.control.rfcf
+    ...     for idx in range(len(rfcf)):
+    ...         rfcf[idx] = value
+    ...         value += 0.01
+    ...     print(element, rfcf)  # doctest: +ELLIPSIS
+    land_dill rfcf(0.8, ... 0.91)
+    land_lahn_1 rfcf(0.92, ... 1.04)
+    land_lahn_2 rfcf(1.05, ... 1.14)
+    land_lahn_3 rfcf(1.15, ... 1.28)
+
+    >>> from hydpy.core.itemtools import MultiplyItem
+    >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    ...                     base="control.rfcf", level="global")
+    >>> item.collect_variables(pub.selections)
+    >>> item.value = 2.0
+    >>> item.update_variables()
+    >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
+    ...     print(element, element.model.parameters.control.sfcf)
+    land_dill sfcf(1.6, ... 1.82)
+    land_lahn_1 sfcf(1.84, ... 2.08)
+    land_lahn_2 sfcf(2.1, ... 2.28)
+    land_lahn_3 sfcf(2.3, ... 2.56)
+    """
+
+    def update_variable(
+        self,
+        variable: variabletools.Variable[Any, Any],
+        value: numpy.ndarray,
+    ) -> None:
+        """Assign the product of the given value(s) and the value(s) of the base
+        variable to the given target variable.
+
+        If the multiplication fails, |MultiplyItem.update_variable| raises an error
+        like the following:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> from hydpy.core.itemtools import MultiplyItem
+        >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+        ...                     base="control.rfcf", level="global")
+        >>> item.collect_variables(pub.selections)
+        >>> item._value = 0.1, 0.2
+        >>> item.update_variables()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        ValueError: When trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
+`sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
+`land_dill`, the following error occurred: operands could not be broadcast together \
+with shapes (12,) (2,)...
+        """
+        base = self.target2base[variable]
+        try:
+            result = base.value * value
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"When trying to multiply the value(s) `{value}` of AddItem "
+                f"`{self.name}` and the value(s) `{base.value}` of variable "
+                f"{objecttools.devicephrase(base)}"
+            )
+        super().update_variable(variable, result)
+
+
 class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""

@@ -79,6 +79,7 @@ for dir_, _, _ in os.walk(os.path.join("hydpy", "data")):
 
 # Add package data.
 package_data = {
+    "hydpy": ["py.typed"],
     "hydpy.conf": ["*.npy", "*.xsd", "*.xsdt"],
     "hydpy.cythons": ["*.pyi"],
     "hydpy.docs.autofigs": ["*.png"],

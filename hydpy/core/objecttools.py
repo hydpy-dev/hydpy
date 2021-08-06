@@ -1399,7 +1399,7 @@ def flatten_repr(self: object) -> str:
     given object.
 
     Complex string representations like the following one convenient when working
-    interactively, but cause line breaks when included in strings like in exception
+    interactively but cause line breaks when included in strings like in exception
     messages:
 
     >>> from hydpy import Node
@@ -1784,8 +1784,8 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     ...         print(testfile1.read())
     printtarget = testfile1
 
-    When receiving a file name, it creates a new file and closes it after leaving
-    the `with` block:
+    It creates a new file and closes it after leaving the `with` block when receiving a
+    file name:
 
     >>> with TestIO():
     ...     with get_printtarget("testfile2.txt") as printtarget:
@@ -1848,3 +1848,15 @@ string=f"a {10*'very '}long test"))
         f"{name}({arguments})",
         mode=_black_filemode,
     )[:-1]
+
+
+def assert_never(value: NoReturn) -> NoReturn:
+    """Function |assert_never| serves for exhaustiveness checking.
+
+    >>> from hydpy.core.objecttools import assert_never
+    >>> assert_never(1.0)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Cannot handle value `1.0` of type `float`.
+    """
+    assert False, f"Cannot handle {value_of_type(value)}."

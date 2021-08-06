@@ -15,3 +15,5 @@ exclude_lines =
     if typing.TYPE_CHECKING
     \.\.\.
     assert False
+    assert_never
+    objecttools.assert_never

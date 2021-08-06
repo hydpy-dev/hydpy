@@ -383,6 +383,7 @@ class ChangeItem(ExchangeItem):
                 else:
                     subnames.extend(subsubnames)
             return tuple(subnames)
+        objecttools.assert_never(self.level)
 
     @property
     def value(self) -> numpy.ndarray:
@@ -533,6 +534,8 @@ occurred: could not broadcast input array from shape (2,) into shape ()
             self._shape = (len(self.device2target),)
         elif self.level == "subunit":
             self._shape = (sum(len(target) for target in self.device2target.values()),)
+        else:
+            objecttools.assert_never(self.level)
 
     def update_variable(
         self,
@@ -720,6 +723,8 @@ value `wrong` cannot be converted to type `float`.
                     subvalues = subvalues.reshape(variable.shape)
                 self.update_variable(variable, subvalues)
                 idx0 = idx1
+        else:
+            objecttools.assert_never(self.level)
 
 
 class SetItem(ChangeItem):
@@ -865,11 +870,13 @@ elements so far.  So, it is not possible to aggregate to the selection level.
                     targetvalues = targetvalues.flatten()
                 itemvalues[idx0:idx1] = targetvalues
                 idx0 = idx1
-        else:
+        elif (self.level == "selection") or (self.level == "global"):
             raise NotImplementedError(
                 f"HydPy does not support averaging values across different elements so "
                 f"far.  So, it is not possible to aggregate to the {self.level} level."
             )
+        else:
+            objecttools.assert_never(self.level)
         self.value = itemvalues
 
     def __repr__(self) -> str:

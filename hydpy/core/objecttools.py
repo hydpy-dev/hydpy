@@ -4,6 +4,7 @@ of the different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
 import builtins
+import collections
 import contextlib
 import copy
 import inspect
@@ -24,7 +25,6 @@ import wrapt
 
 # ...from HydPy
 import hydpy
-from hydpy.core import typingtools
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -1569,7 +1569,9 @@ arguments `lfill` and `rfill`.  This is not allowed.
     with hydpy.pub.options.reprdigits(decimals):
         if isinstance(values, numpy.ndarray) and (values.ndim == 0):
             string = repr_(values.item())
-        elif isinstance(values, typingtools.IterableNonString):
+        elif isinstance(values, str):
+            string = repr_(values)
+        elif isinstance(values, collections.abc.Iterable):
             string = repr_values(values)
         else:
             string = repr_(values)

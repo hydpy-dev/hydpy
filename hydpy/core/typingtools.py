@@ -3,7 +3,6 @@
 eventually dynamical) typing."""
 # import...
 # ...from standard library
-import abc
 from typing import *
 from typing_extensions import Protocol  # type: ignore[misc]
 
@@ -412,27 +411,6 @@ ArrayFloat = TypeVar(
 )
 
 
-class IterableNonString(Iterable[object], abc.ABC):
-    """Abstract base class for checking if an object is iterable but not a string.
-
-    >>> from hydpy.core.typingtools import IterableNonString
-    >>> isinstance("asdf", IterableNonString)
-    False
-    >>> isinstance(["asdf"], IterableNonString)
-    True
-    >>> issubclass(str, IterableNonString)
-    False
-    >>> issubclass(list, IterableNonString)
-    True
-    """
-
-    @classmethod
-    def __subclasshook__(cls, subclass: Type[object]) -> bool:
-        return hasattr(subclass, "__iter__") and not (
-            isinstance(subclass, str) or issubclass(subclass, str)
-        )
-
-
 class VariableProtocol(Protocol):
     """Protocol to identify objects as "variables"."""
 
@@ -485,7 +463,6 @@ class ScriptFunction(Protocol):
 __all__ = [
     "ArrayFloat",
     "CyModelProtocol",
-    "IterableNonString",
     "MatrixInput",
     "Matrix",
     "Mayberable1",

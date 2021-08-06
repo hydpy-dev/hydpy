@@ -5,7 +5,6 @@ os:
 
 matrix:
   include:
-    - python: 3.6
     - python: 3.7
     - python: 3.8
     - python: 3.9
@@ -29,22 +28,21 @@ install:
   - pip install wrapt
   - pip install xmlschema
   - pip install docutils
-  - pip install sphinx!=3.5.0
+  - pip install sphinx
   - pip install sphinxcontrib-fulltoc
   - pip install sphinxprettysearchresults
   - pip install "sphinxcontrib.bibtex<2"
 
 script:
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then travis_wait 20 pylint hydpy ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python setup.py install ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then sphinx-build hydpy/docs/auto hydpy/docs/auto/build ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python combine_docversions.py ; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python setup.py install ; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/tests/check_consistency.py ; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then black hydpy --exclude=hydpy/data/ --check ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then black hydpy --exclude=hydpy/data/ --check ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then travis_wait 30 pylint hydpy ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then python setup.py install ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then python hydpy/tests/check_consistency.py ; fi
 
 env:
   global:

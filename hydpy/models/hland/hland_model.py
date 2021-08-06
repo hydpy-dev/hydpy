@@ -969,8 +969,6 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         hland_control.SRed,
     )
     DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
         hland_derived.ZoneAreaRatios,
         hland_derived.SRedNumber,
         hland_derived.SRedOrder,
@@ -3170,6 +3168,8 @@ class Calc_LZ_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         hland_fluxes.Perc,
         hland_fluxes.PC,
+        hland_fluxes.SPG,
+        hland_fluxes.WCG,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
@@ -3241,6 +3241,8 @@ class Calc_LZ_V2(modeltools.Method):
     REQUIREDSEQUENCES = (
         hland_fluxes.QVs2,
         hland_fluxes.PC,
+        hland_fluxes.SPG,
+        hland_fluxes.WCG,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
@@ -3438,6 +3440,8 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         hland_fluxes.PC,
         hland_fluxes.DP,
         hland_fluxes.GR1,
+        hland_fluxes.SPG,
+        hland_fluxes.WCG,
     )
     RESULTSEQUENCES = (
         hland_fluxes.GR2,

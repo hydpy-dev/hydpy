@@ -1023,7 +1023,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.__valueready = False
         self.__shapeready = False
 
-    def __init_subclass__(cls) -> None:
+    # We do not want to implement the signature of Generic.__init_subclass__ here:
+    def __init_subclass__(cls) -> None:  # pylint: disable=arguments-differ
         super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()

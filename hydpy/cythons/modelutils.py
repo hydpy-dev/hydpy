@@ -2547,14 +2547,14 @@ class FuncConverter:
         ['    x = x + (1*1)']
         """
         for idx, line in enumerate(lines):
-            for operator in ("+=", "-=", "**=", "*=", "//=", "/=", "%="):
-                sublines = line.split(operator)
+            for operator_ in ("+=", "-=", "**=", "*=", "//=", "/=", "%="):
+                sublines = line.split(operator_)
                 if len(sublines) > 1:
                     indent = line.count(" ") - line.lstrip().count(" ")
                     sublines = [sl.strip() for sl in sublines]
                     line = (
                         f"{indent*' '}{sublines[0]} = "
-                        f"{sublines[0]} {operator[:-1]} ({sublines[1]})"
+                        f"{sublines[0]} {operator_[:-1]} ({sublines[1]})"
                     )
                     lines[idx] = line
 

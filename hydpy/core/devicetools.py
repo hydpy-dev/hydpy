@@ -645,7 +645,12 @@ classes: Node and str.
     _shadowed_keywords: Set[str]
     forceiterable: bool = False
 
-    def __new__(cls, *values: MayNonerable2[DeviceType, str], mutable: bool = True):
+    # We do not want to implement the signature of Generic.__new__ here:
+    def __new__(  # pylint: disable=arguments-differ
+        cls,
+        *values: MayNonerable2[DeviceType, str],
+        mutable: bool = True,
+    ):
         if len(values) == 1 and isinstance(values[0], Devices):
             return values[0]
         self = super().__new__(cls)
@@ -1777,7 +1782,6 @@ immutable Elements objects is not allowed.
                 vars(self)["variable"] = variable
             vars(self)["entries"] = Elements(None, mutable=False)
             vars(self)["exits"] = Elements(None, mutable=False)
-            self.__connections = (self.entries, self.exits)
             self.sequences = sequencetools.NodeSequences(self)
             vars(self)["deploymode"] = "newsim"
             self.__blackhole = pointerutils.Double(0.0)

@@ -5,6 +5,7 @@
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import os
 import shutil
 from typing import *
@@ -33,6 +34,8 @@ if TYPE_CHECKING:
         """|IOSequence| subclass for testing purposes."""
 
         testarray: numpy.ndarray
+        descr_device = "just_for_testing"
+        descr_sequence = "just_for_testing"
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
@@ -185,7 +188,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         elements.prepare_stateseries()
     # pylint: enable=not-callable
 
-    def init_values(seq: "TestIOSequence", value1_: float) -> float:
+    def init_values(seq: TestIOSequence, value1_: float) -> float:
         value2_ = value1_ + len(seq.series.flatten())
         values_ = numpy.arange(value1_, value2_, dtype=float)
         seq.testarray = values_.reshape(seq.seriesshape)
@@ -200,8 +203,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
             subseqs = getattr(element.model.sequences, subname)
             value1 = init_values(getattr(subseqs, seqname), value1)
     for node in nodes:
-        value1 = init_values(cast("TestIOSequence", node.sequences.sim), value1)
-    init_values(cast("TestIOSequence", element4.model.sequences.states.sp), value1)
+        value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
+    init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
 
     return nodes, elements
 

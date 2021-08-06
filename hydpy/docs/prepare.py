@@ -91,7 +91,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
             with open(path, encoding="utf-8") as file_:
                 sources = [file_.read()]
             module = importlib.import_module(
-                f'{subpackage.__name__}.{filename.split(".")[0]}'
+                f'{subpackage.__name__}.{filename.partition(".")[0]}'
             )
             for member in getattr(module, "__dict__", {}).values():
                 if inspect.isclass(member) and issubclass(
@@ -115,10 +115,9 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
                     with open(subpath, encoding="utf-8") as file_:
                         sources.append(file_.read())
             source = "\n".join(sources)
-            module = importlib.import_module(
-                f'{subpackage.__name__}.{filename.split(".")[0]}'
-            )
-        filename = filename.split(".")[0]
+            modulename = f'{subpackage.__name__}.{filename.partition(".")[0]}'
+            module = importlib.import_module(modulename)
+        filename = filename.partition(".")[0]
         if (is_module and (subpackage is models)) or is_package:
             module = importlib.import_module(f"{models.__name__}.{filename}")
             substituter = module.substituter  # type: ignore[attr-defined]

@@ -58,10 +58,12 @@ class VectorInput(Protocol[Float_co]):
     ) -> Union[Float_co, "VectorInput[Float_co]"]:
         ...
 
-    def __len__(self) -> int:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         ...
 
-    def __iter__(self) -> Iterator[Float_co]:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __iter__(self) -> Iterator[Float_co]:  # pylint: disable=non-iterator-returned
         ...
 
 
@@ -294,10 +296,14 @@ class Matrix(MatrixInput[Float1]):
     ) -> None:
         ...
 
-    def __len__(self) -> int:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         ...
 
-    def __iter__(self) -> Iterator[Vector[Float1]]:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __iter__(  # pylint: disable=non-iterator-returned
+        self,
+    ) -> Iterator[Vector[Float1]]:
         ...
 
     def __invert__(self) -> "Matrix[Float1]":

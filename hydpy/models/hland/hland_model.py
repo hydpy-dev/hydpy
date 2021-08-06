@@ -1006,8 +1006,6 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         for i in range(der.srednumber):
             # f: from, t: to
             f, t = der.sredorder[i, 0], der.sredorder[i, 1]
-            if con.sred[f, t] <= 0.0:
-                continue
             d_f = der.zonearearatios[f, t] * con.sred[f, t]
             d_gain_frozen = d_f * (flu.spl[f] + aid.spe[f])
             d_gain_liquid = d_f * (flu.wcl[f] + aid.wce[f])

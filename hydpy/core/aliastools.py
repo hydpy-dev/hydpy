@@ -15,6 +15,7 @@ import black
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy import models
 from hydpy.core import sequencetools
 
@@ -217,5 +218,6 @@ def write_sequencealiases() -> None:
         lines.append(f'\n__all__ = [{", ".join(exports)}]')
         text = "\n".join(lines)
         text = black.format_str(text, mode=black.FileMode())
-        with open(os.path.join(hydpypath, filename), "w") as file_:
+        filepath = os.path.join(hydpypath, filename)
+        with open(filepath, "w", encoding=config.ENCODING) as file_:
             file_.write(text)

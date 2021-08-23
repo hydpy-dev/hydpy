@@ -18,6 +18,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 import hydpy
+from hydpy import config
 from hydpy import tests
 from hydpy.core import objecttools
 
@@ -280,7 +281,7 @@ def start_shell(filepath: str = "") -> None:
         filepath_ = filepath
     else:
         filepath_ = "__hydpy_temp__"
-        with open("__hydpy_temp__", "w") as file_:
+        with open("__hydpy_temp__", "w", encoding=config.ENCODING) as file_:
             file_.write("from hydpy import *")
     subprocess.run([sys.executable, "-i", filepath_], check=True)
     if not filepath:
@@ -338,7 +339,7 @@ the following error:
             f"Cannot find a default HydPy log file in directory "
             f"{os.path.abspath(dirpath)}."
         )
-    with open(sorted(filenames)[-1]) as logfile:
+    with open(sorted(filenames)[-1], encoding=config.ENCODING) as logfile:
         print(logfile.read())
 
 
@@ -384,7 +385,7 @@ def prepare_logfile(filename: str) -> str:
         return filename
     if filename == "default":
         filename = datetime.datetime.now().strftime("hydpy_%Y-%m-%d_%H-%M-%S.log")
-    with open(filename, "w"):
+    with open(filename, "w", encoding=config.ENCODING):
         pass
     return os.path.abspath(filename)
 
@@ -406,7 +407,7 @@ def _activate_logfile(
             )
             yield
         else:
-            with open(filepath, "a") as logfile:
+            with open(filepath, "a", encoding=config.ENCODING) as logfile:
                 sys.stdout = cast(
                     TextIO, LogFileInterface(logfile, logstyle, level_stdout)
                 )

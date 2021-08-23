@@ -79,6 +79,7 @@ XSDWriter().write_xsd()
 
 # Perform all tests (first in Python mode, then in Cython mode)
 import hydpy
+from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import testtools
 
@@ -179,7 +180,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                 if name[-4:] in (".rst", ".pyx"):
                     name = name[name.find("hydpy" + os.sep) :]
                 with warnings.catch_warnings(), open(
-                    os.devnull, "w"
+                    os.devnull, "w", encoding=config.ENCODING
                 ) as file_, devicetools.clear_registries_temporarily():
                     warnings.filterwarnings(
                         action="error",

@@ -9,7 +9,7 @@ folder = "../_built/html"
 filenames = sorted(fn for fn in os.listdir(folder) if fn.endswith(".html"))
 for path in (os.path.join(folder, fn) for fn in filenames):
     lines = []
-    with open(path) as file_:
+    with open(path, encoding="utf-8") as file_:
         for line in file_.readlines():
             if line.startswith("<dd><p>alias of <a " 'class="reference external"'):
                 line = line.split("span")[1]
@@ -20,5 +20,5 @@ for path in (os.path.join(folder, fn) for fn in filenames):
                 )
             else:
                 lines.append(line)
-    with open(path, "w") as file_:
+    with open(path, "w", encoding="utf-8") as file_:
         file_.write("".join(lines))

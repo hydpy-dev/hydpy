@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 
 
@@ -164,7 +165,7 @@ for marker `e4`.
         print(f"template file: {templatename}")
         print(f"target file: {targetname}")
         print("replacements:")
-    with open(templatename) as templatefile:
+    with open(templatename, encoding=config.ENCODING) as templatefile:
         templatebody = templatefile.read()
     parts = templatebody.replace("<!--|", "|-->").split("|-->")
     defaults = {}
@@ -205,7 +206,7 @@ for marker `e4`.
                 f"Keyword(s) `{objecttools.enumeration(unused_keywords)}` "
                 f"cannot be used."
             )
-        with open(targetname, "w") as targetfile:
+        with open(targetname, "w", encoding=config.ENCODING) as targetfile:
             targetfile.write(targetbody)
     except BaseException:
         objecttools.augment_excmessage(

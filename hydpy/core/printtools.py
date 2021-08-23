@@ -13,6 +13,7 @@ from typing import TextIO
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
@@ -230,7 +231,7 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     nmbitems = len(tuple(iterable))
     if hydpy.pub.options.printprogress and (nmbitems > 1):
         temp_name = os.path.join(tempfile.gettempdir(), "HydPy_progressbar_stdout")
-        temp_stdout = open(temp_name, "w")
+        temp_stdout = open(temp_name, "w", encoding=config.ENCODING)
         real_stdout = sys.stdout
         try:
             sys.stdout = temp_stdout
@@ -255,7 +256,7 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
             temp_stdout.close()
             sys.stdout = real_stdout
             print()
-            with open(temp_name, "r") as temp_stdout:
+            with open(temp_name, "r", encoding=config.ENCODING) as temp_stdout:
                 sys.stdout.write(temp_stdout.read())
             sys.stdout.flush()
     else:

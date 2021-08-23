@@ -21,6 +21,7 @@ import numpy
 
 # ...from hydpy
 import hydpy
+from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import masktools
@@ -1983,7 +1984,7 @@ objects via argument `selections`.
         further information.
         """
         self._logfilepath = logfilepath
-        with open(logfilepath, "w") as logfile:
+        with open(logfilepath, "w", encoding=config.ENCODING) as logfile:
             if documentation:
                 lines = (f"# {line}" for line in documentation.split("\n"))
                 logfile.write("\n".join(lines))
@@ -2005,7 +2006,7 @@ objects via argument `selections`.
         further information.
         """
         if self._logfilepath:
-            with open(self._logfilepath, "a") as logfile:
+            with open(self._logfilepath, "a", encoding=config.ENCODING) as logfile:
                 logfile.write(f"{objecttools.repr_(self.result)}\t")
                 logfile.write(
                     "\t".join(objecttools.repr_(value) for value in self.values)
@@ -2023,7 +2024,7 @@ objects via argument `selections`.
         See the main documentation on class |CalibrationInterface| for
         further information.
         """
-        with open(logfilepath) as logfile:
+        with open(logfilepath, encoding=config.ENCODING) as logfile:
             # pylint: disable=not-an-iterable
             # because pylint is wrong!?
             lines = tuple(

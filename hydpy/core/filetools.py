@@ -16,6 +16,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
@@ -985,7 +986,7 @@ pass its name or the responsible Element object.
         with hydpy.pub.options.parameterstep(None):
             try:
                 if path not in cls._registry:
-                    with open(path) as file_:
+                    with open(path, encoding=config.ENCODING) as file_:
                         cls._registry[path] = compile(
                             source=file_.read(),
                             filename=filename,
@@ -1713,7 +1714,7 @@ is not available.  Select one of the following modes: none and mean.
         sequence: "sequencetools.IOSequence",
     ) -> Tuple[timetools.Timegrid, numpy.array]:
         filepath_ext = sequence.filepath_ext
-        with open(filepath_ext) as file_:
+        with open(filepath_ext, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
         values = numpy.loadtxt(
@@ -1764,7 +1765,7 @@ is not available.  Select one of the following modes: none and mean.
 
     @staticmethod
     def _save_asc(array: numpy.ndarray, filepath: str) -> None:
-        with open(filepath, "w") as file_:
+        with open(filepath, "w", encoding=config.ENCODING) as file_:
             file_.write(
                 hydpy.pub.timegrids.init.assignrepr(
                     prefix="", style="iso2", utcoffset=hydpy.pub.options.utcoffset
@@ -1773,7 +1774,7 @@ is not available.  Select one of the following modes: none and mean.
             )
         if array.ndim == 3:
             array = array.reshape(array.shape[0], -1)
-        with open(filepath, "a") as file_:
+        with open(filepath, "a", encoding=config.ENCODING) as file_:
             numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(

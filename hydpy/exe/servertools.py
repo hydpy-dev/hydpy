@@ -240,6 +240,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 # ...from HydPy
 import hydpy
 from hydpy import conf
+from hydpy import config
 from hydpy.auxs import xmltools
 from hydpy.core import hydpytools
 from hydpy.core import itemtools
@@ -1558,7 +1559,7 @@ def start_server(
     confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
     filepath = os.path.join(confpath, "mimetypes.txt")
     try:
-        with open(filepath) as file_:
+        with open(filepath, encoding=config.ENCODING) as file_:
             types_map: Dict[str, str] = eval(str(file_.read()))
     except BaseException:
         mimetypes.init()
@@ -1571,7 +1572,7 @@ def start_server(
                 ".h": "text/plain",
             }
         )
-        with open(filepath, "w") as file_:
+        with open(filepath, "w", encoding=config.ENCODING) as file_:
             file_.write(str(types_map))
     HydPyServer.extensions_map = types_map
     HydPyServer.state = ServerState(

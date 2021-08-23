@@ -100,6 +100,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 # ...from HydPy
 import hydpy
 from hydpy import conf
+from hydpy import config
 from hydpy import models
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
@@ -1249,9 +1250,9 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.inputdirpath
         'LahnH/series/input'
         """
-        for config in ("filetype", "aggregation", "overwrite", "dirpath"):
-            xml_special = self.find(config)
-            xml_general = self.master.find(config)
+        for opt in ("filetype", "aggregation", "overwrite", "dirpath"):
+            xml_special = self.find(opt)
+            xml_general = self.master.find(opt)
             for name_manager, name_xml in zip(
                 ("input", "factor", "flux", "state", "node"),
                 ("inputs", "factors", "fluxes", "states", "nodes"),
@@ -1267,8 +1268,8 @@ class XMLSubseries(XMLSelector):
                             assert txt is not None
                             setattr(
                                 hydpy.pub.sequencemanager,
-                                f"{name_manager}{config}",
-                                txt.lower() == "true" if config == "overwrite" else txt,
+                                f"{name_manager}{opt}",
+                                txt.lower() == "true" if opt == "overwrite" else txt,
                             )
                             break
 
@@ -1987,7 +1988,7 @@ class XSDWriter:
         >>> for configfile in ("single_run.xml", "multiple_runs.xml"):
         ...     XMLInterface(configfile, make_filepath("LahnH")).validate_xml()
         """
-        with open(cls.filepath_source) as file_:
+        with open(cls.filepath_source, encoding=config.ENCODING) as file_:
             template = file_.read()
         template = template.replace(
             "<!--include model sequence groups-->", cls.get_insertion()
@@ -1995,7 +1996,7 @@ class XSDWriter:
         template = template.replace(
             "<!--include exchange items-->", cls.get_exchangeinsertion()
         )
-        with open(cls.filepath_target, "w") as file_:
+        with open(cls.filepath_target, "w", encoding=config.ENCODING) as file_:
             file_.write(template)
 
     @staticmethod

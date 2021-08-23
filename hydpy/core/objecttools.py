@@ -25,6 +25,7 @@ import wrapt
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -1800,7 +1801,7 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     if file_ is None:
         yield sys.stdout
     elif isinstance(file_, str):
-        with open(file_, "w") as printobject:
+        with open(file_, "w", encoding=config.ENCODING) as printobject:
             yield printobject
     else:
         yield file_

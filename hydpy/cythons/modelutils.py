@@ -976,7 +976,7 @@ class PyxWriter:
     def write(self) -> None:
         """Collect the source code and write it into a Cython extension
         file ("pyx")."""
-        with open(self.pyxpath, "w") as pxf:
+        with open(self.pyxpath, "w", encoding=config.ENCODING) as pxf:
             print("    * cython options")
             pxf.write(repr(self.cythondistutilsoptions))
             print("    * C imports")
@@ -2232,7 +2232,7 @@ class PyxWriter:
         hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
         filepath = os.path.join(hydpypath, f"{self.model.name}.py")
         base = ".".join(self.model.__module__.split(".")[:3])
-        with open(filepath, "w") as stubfile:
+        with open(filepath, "w", encoding=config.ENCODING) as stubfile:
             stubfile.write(
                 f"# -*- coding: utf-8 -*-\n\n"
                 f"import hydpy\n"

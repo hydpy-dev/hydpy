@@ -47,19 +47,19 @@
 \
 
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
-   :alt: Travis (.org) branch
-   :target: https://travis-ci.com/hydpy-dev/hydpy/branches
+   :alt: Travis master
+   :target: https://app.travis-ci.com/github/hydpy-dev/hydpy/branches
 .. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
-   :alt: Travis (.org)
-   :target: https://travis-ci.com/hydpy-dev/hydpy
+   :alt: Travis latest
+   :target: https://app.travis-ci.com/hydpy-dev/hydpy
 
 \
 
 .. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
-   :alt: AppVeyor branch
+   :alt: AppVeyor master
    :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
 .. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest
-   :alt: AppVeyor
+   :alt: AppVeyor latest
    :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s
 
 \

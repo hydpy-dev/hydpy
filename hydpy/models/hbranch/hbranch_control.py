@@ -14,11 +14,25 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 
-class XPoints(parametertools.Parameter):
-    """Supporting points for the independent input variable [eg. m³/s].
+class Delta(parametertools.MonthParameter):
+    """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
 
-    There must be at least two supporting points, and they must be
-    strictly monotonous.  If not, the following errors are raised:
+    TYPE, TIME, SPAN = float, None, (None, None)
+    INIT = 0.0
+
+
+class Minimum(parametertools.Parameter):
+    """The allowed minimum value of the adjusted input [e.g. m³/s]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 0.0
+
+
+class XPoints(parametertools.Parameter):
+    """Supporting points for the independent input variable [e.g. m³/s].
+
+    There must be at least two supporting points, and they must be strictly monotonous.
+    If not, |XPoints| raises the following errors:
 
     >>> from hydpy.models.hbranch import *
     >>> parameterstep()
@@ -43,34 +57,30 @@ arranged strictly monotonous, which is not the case for the given values \
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         # pylint: disable=unsubscriptable-object
         # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
         self.shape = len(args)
         if self.shape[0] < 2:
             raise ValueError(
-                f"Branching via linear interpolation requires "
-                f"at least two supporting points, but "
-                f"parameter {objecttools.elementphrase(self)} "
-                f"received {self.shape[0]} value(s)."
+                f"Branching via linear interpolation requires at least two supporting "
+                f"points, but parameter {objecttools.elementphrase(self)} received "
+                f"{self.shape[0]} value(s)."
             )
         super().__call__(*args, **kwargs)
         if min(numpy.diff(self)) <= 0.0:
             raise ValueError(
-                f"The values of parameter {objecttools.elementphrase(self)} "
-                f"must be arranged strictly monotonous, which is "
-                f"not the case for the given values "
-                f"`{objecttools.enumeration(self)}`."
+                f"The values of parameter {objecttools.elementphrase(self)} must be "
+                f"arranged strictly monotonous, which is not the case for the given "
+                f"values `{objecttools.enumeration(self)}`."
             )
 
 
 class YPoints(parametertools.Parameter):
-    """Supporting points for the dependent output variables [eg. m³/s].
+    """Supporting points for the dependent output variables [e.g. m³/s].
 
-    Setting the values of parameter |YPoints| correctly requires consistency
-    both with the values of parameter |XPoints| and the currently available
-    |Node| objects.  Read two following error messages to see what can go
-    wrong, and how to prepare parameter |YPoints| correctly.
+    Preparing parameter |YPoints| requires consistency with parameter |XPoints| and the
+    currently available |Node| objects.
 
     .. testsetup::
 
@@ -82,24 +92,23 @@ class YPoints(parametertools.Parameter):
     >>> ypoints
     ypoints(?)
 
-    Parameter |XPoints| must be prepared first:
+    You need to prepare the parameter |XPoints| first:
 
     >>> ypoints(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    RuntimeError: The shape of parameter `ypoints` of element `?` depends \
-on the shape of parameter `xpoints`, which has not been defined so far.
+    RuntimeError: The shape of parameter `ypoints` of element `?` depends on the \
+shape of parameter `xpoints`, which has not been defined so far.
 
     >>> xpoints(1.0, 2.0, 3.0)
 
-    The names of the |Node| objects the |hbranch| model is supposed to
-    branch to must be supplied as keyword arguments:
+    You need to supply the names of the output |Node| objects as keyword arguments:
 
     >>> ypoints(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `ypoints` of element `?` no branches are \
-defined.  Do this via keyword arguments as explained in the documentation.
+    ValueError: For parameter `ypoints` of element `?` no branches are defined.  Do \
+this via keyword arguments as explained in the documentation.
 
     The number of x and y supporting points must agree for all branches:
 
@@ -107,14 +116,14 @@ defined.  Do this via keyword arguments as explained in the documentation.
     ...         branch2=[2.0, 4.0])
     Traceback (most recent call last):
     ...
-    ValueError: Each branch requires the same number of supporting points \
-as given for parameter `xpoints`, which is 3, but for branch `branch1` of \
-parameter `ypoints` of element `?` 2 values are given.
+    ValueError: Each branch requires the same number of supporting points as given for \
+parameter `xpoints`, which is 3, but for branch `branch1` of parameter `ypoints` of \
+element `?` 2 values are given.
 
     >>> xpoints(1.0, 2.0)
 
-    When working in an actual project (indicated by an predefined project
-    name) each branch name must correspond to a |Node| name:
+    When working in on actual project (indicated by a predefined project name), each
+    branch name must correspond to a |Node| name:
 
     >>> from hydpy import pub, Nodes
     >>> pub.projectname = "test"
@@ -123,19 +132,19 @@ parameter `ypoints` of element `?` 2 values are given.
     ...         branch2=[2.0, 4.0])
     Traceback (most recent call last):
     ...
-    RuntimeError: Parameter `ypoints` of element `?` is supposed to branch \
-to node `branch2`, but such a node is not available.
+    RuntimeError: Parameter `ypoints` of element `?` is supposed to branch to node \
+`branch2`, but such a node is not available.
 
-    A general exception message for some unexpected errors:
+    We use the following general exception message for some unexpected errors:
 
     >>> nodes = Nodes("branch1", "branch2")
     >>> ypoints(branch1=[1.0, 2.0],
     ...         branch2="xy")
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the values for branch `branch2` of \
-parameter `ypoints` of element `?`, the following error occurred: \
-could not convert string to float: 'xy'
+    ValueError: While trying to set the values for branch `branch2` of parameter \
+`ypoints` of element `?`, the following error occurred: could not convert string to \
+float: 'xy'
 
     Changing the number of branches during runtime might result in erroneous
     connections to the |Node| objects:
@@ -148,9 +157,9 @@ could not convert string to float: 'xy'
     >>> ypoints(branch1=[1.0, 2.0])
     Traceback (most recent call last):
     ...
-    RuntimeError: The number of branches of the hbranch model should not be \
-changed during run time.  If you really need to do this, first initialize a \
-new `branched` sequence and connect it to the respective outlet nodes properly.
+    RuntimeError: The number of branches of the hbranch model should not be changed \
+during run time.  If you really need to do this, first initialize a new `branched` \
+sequence and connect it to the respective outlet nodes properly.
     """
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
@@ -215,17 +224,17 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
             setattr(self, key, self.values[idx])
             self.subpars.pars.model.nodenames.append(key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             lines = self.commentrepr
-            nodenames = self.subpars.pars.model.nodenames
-            for (idx, values) in enumerate(self):
-                line = "%s=%s," % (nodenames[idx], repr(list(values)))
+            names = self.subpars.pars.model.nodenames
+            for idx, (name, values) in enumerate(zip(names, self)):
+                line = f"{name}={repr(list(values))},"
                 if not idx:
-                    lines.append("ypoints(" + line)
+                    lines.append(f"ypoints({line}")
                 else:
-                    lines.append("        " + line)
-            lines[-1] = lines[-1][:-1] + ")"
+                    lines.append(f"        {line}")
+            lines[-1] = f"{lines[-1][:-1]})"
             return "\n".join(lines)
         except BaseException:
             return "ypoints(?)"

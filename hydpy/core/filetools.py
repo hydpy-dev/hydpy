@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for handling the folder structure of
-*HydPy*  projects as well as loading data from and storing data to files."""
+"""This module provides features for handling the folder structure of *HydPy*  projects
+as well as loading data from and storing data to files."""
 # import...
 # ...from standard library
 import abc
@@ -31,11 +31,10 @@ class Folder2Path:
     # noinspection PyUnresolvedReferences
     """Map folder names to their path names.
 
-    You can both pass positional arguments and keyword arguments when
-    initialising |Folder2Path|.  For positional arguments, the folder
-    and its path are assumed to be identical.  For keyword arguments,
-    the keyword corresponds to the folder name and its value to the
-    path name:
+    You can both pass positional arguments and keyword arguments when initialising
+    |Folder2Path|.  For positional arguments, the folder and its path are assumed to be
+    identical.  For keyword arguments, the keyword corresponds to the folder name and
+    its value to the path name:
 
     >>> from hydpy.core.filetools import Folder2Path
     >>> Folder2Path()
@@ -935,7 +934,6 @@ class ControlManager(FileManager):
         k4(0.05646)
         gamma(0.0)
         maxbaz(0.36728)
-        abstr(0.0)
 
         >>> results["percmax"].values
         0.69818

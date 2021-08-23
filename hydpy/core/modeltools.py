@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for applying and implementing
-hydrological models.
+"""This module provides features for applying and implementing hydrological models.
 
 .. _`thorough description`: http://www.hydrology.ruhr-uni-bochum.de/\
 hydrolgy/mam/download/schriftenreihe_29.pdf

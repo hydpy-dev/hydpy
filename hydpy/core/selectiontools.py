@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for defining subsets of |Node| and
-|Element| objects of large *HydPy* projects, called "selections"."""
+"""This module implements tools for defining subsets of |Node| and |Element| objects of
+large *HydPy* projects, called "selections"."""
 # import...
 # ...from standard library
 import collections
@@ -33,8 +33,8 @@ ModelTypesArg = Union[
 class Selections:
     """Collection class for |Selection| objects.
 
-    You can pass an arbitrary number of |Selection| objects to the
-    constructor of class |Selections|:
+    You can pass an arbitrary number of |Selection| objects to the constructor of class
+    |Selections|:
 
     >>> sel1 = Selection("sel1", ["node1", "node2"], ["element1"])
     >>> sel2 = Selection("sel2", ["node1", "node3"], ["element2"])
@@ -42,8 +42,7 @@ class Selections:
     >>> selections
     Selections("sel1", "sel2")
 
-    Also, you can query, add, and remove |Selection| objects via attribute
-    access:
+    Also, you can query, add, and remove |Selection| objects via attribute access:
 
     >>> selections.sel3
     Traceback (most recent call last):

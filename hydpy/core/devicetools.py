@@ -2785,19 +2785,19 @@ is not allowed.
         # noinspection PyUnresolvedReferences
         """The |Model| object handled by the actual |Element| object.
 
-        Directly after their initialisation, elements do not know
-        which model they require:
+        Directly after their initialisation, elements do not know which model they
+        require:
 
         >>> from hydpy import attrready, Element
         >>> hland = Element("hland", outlets="outlet")
         >>> hland.model
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The model object \
-of element `hland` has been requested but not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The model object of element \
+`hland` has been requested but not been prepared so far.
 
-        During scripting and when working interactively in the Python
-        shell, it is often convenient to assign a |model| directly.
+        During scripting and when working interactively in the Python shell, it is
+        often convenient to assign a |model| directly.
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep("1d")
@@ -2812,16 +2812,16 @@ of element `hland` has been requested but not been prepared so far.
         For the "usual" approach to prepare models, please see the method
         |Element.prepare_model|.
 
-        The following examples show that assigning |Model| objects
-        to property |Element.model| creates some connection required by
-        the respective model type automatically .  These
-        examples  should be relevant for developers only.
+        The following examples show that assigning |Model| objects to property
+        |Element.model| creates some connection required by the respective model type
+        automatically.  These examples should be relevant for developers only.
 
-        The following |hbranch| model branches a single input value
-        (from to node `inp`) to multiple outputs (nodes `out1` and `out2`):
+        The following |hbranch| model branches a single input value (from to node
+        `inp`) to multiple outputs (nodes `out1` and `out2`):
 
-        >>> from hydpy import Element, Node, reverse_model_wildcard_import
+        >>> from hydpy import Element, Node, reverse_model_wildcard_import, pub
         >>> reverse_model_wildcard_import()
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> element = Element("a_branch",
         ...                   inlets="branch_input",
         ...                   outlets=("branch_output_1", "branch_output_2"))
@@ -2829,6 +2829,8 @@ of element `hland` has been requested but not been prepared so far.
         >>> out1, out2 = element.outlets
         >>> from hydpy.models.hbranch import *
         >>> parameterstep()
+        >>> delta(0.0)
+        >>> minimum(0.0)
         >>> xpoints(0.0, 3.0)
         >>> ypoints(branch_output_1=[0.0, 1.0], branch_output_2=[0.0, 2.0])
         >>> parameters.update()
@@ -2841,12 +2843,16 @@ of element `hland` has been requested but not been prepared so far.
 
         >>> inp.sequences.sim = 999.0
         >>> model.simulate(0)
-        >>> fluxes.input
-        input(999.0)
+        >>> fluxes.originalinput
+        originalinput(999.0)
         >>> out1.sequences.sim
         sim(333.0)
         >>> out2.sequences.sim
         sim(666.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         model = vars(self).get("model")
         if model:

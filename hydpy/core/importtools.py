@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """This module implements features related to importing models.
 
-The implemented tools are primarily designed for hiding model initialisation
-routines from model users and for allowing writing readable doctests.
+The implemented tools are primarily designed for hiding model initialisation routines
+from model users and for allowing writing readable doctests.
 """
 # import...
 # ...from standard library
@@ -30,15 +30,14 @@ if TYPE_CHECKING:
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
-    Function |parameterstep| should usually be applied in a line immediately
-    behind the model import or behind calling function |simulationstep|.
-    Defining the step size of time-dependent parameters is a prerequisite to
-    access any model-specific parameter.
+    Function |parameterstep| should usually be applied in a line immediately behind the
+    model import or behind calling function |simulationstep|.  Defining the step size
+    of time-dependent parameters is a prerequisite to access any model-specific
+    parameter.
 
-    Note that |parameterstep| implements some namespace magic utilising
-    the module |inspect|, which makes things a little complicated for
-    framework developers.  Still it eases the definition of parameter
-    control files for framework users.
+    Note that |parameterstep| implements some namespace magic utilising the module
+    |inspect|, which makes things a little complicated for framework developers.  Still
+    it eases the definition of parameter control files for framework users.
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timestep

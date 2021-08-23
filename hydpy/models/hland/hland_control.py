@@ -1273,8 +1273,8 @@ class MaxBaz(parametertools.Parameter):
 class NmbStorages(parametertools.Parameter):
     """Number of storages of the linear storage cascade [-].
 
-    Defining a value for parameter |NmbStorages| automatically sets the
-    shape of state sequence |SC|:
+    Defining a value for parameter |NmbStorages| automatically sets the shape of state
+    sequence |SC|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep()
@@ -1288,12 +1288,6 @@ class NmbStorages(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.sequences.states.sc.shape = self
-
-
-class Abstr(parametertools.Parameter):
-    """Abstraction of water from computed outflow [m³/s]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 K0.CONTROLPARAMETERS = (K1,)

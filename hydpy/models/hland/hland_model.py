@@ -4301,115 +4301,64 @@ class Calc_OutUH_SC_V1(modeltools.Method):
                 flu.outuh += d_q
 
 
-class Calc_RA_RT_V1(modeltools.Method):
-    r"""Calculate the actual abstraction and the total discharge in mm.
+class Calc_RT_V1(modeltools.Method):
+    r"""Calculate the total discharge in mm.
 
     Basic equation:
-        :math:`RA = Abstr / QFactor`
-
-        :math:`RT = OutUH - RA`
+        :math:`RT = OutUH`
 
     Examples:
 
         >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> abstr(1.0)
-        >>> derived.qfactor(0.5)
+        >>> parameterstep()
         >>> fluxes.outuh = 3.0
-        >>> model.calc_ra_rt_v1()
-        >>> fluxes.ra
-        ra(2.0)
+        >>> model.calc_rt_v1()
         >>> fluxes.rt
-        rt(1.0)
-
-        A requested abstraction larger than the total available discharge does not
-        result in negative outcomes:
-
-        >>> abstr(2.0)
-        >>> model.calc_ra_rt_v1()
-        >>> fluxes.ra
-        ra(3.0)
-        >>> fluxes.rt
-        rt(0.0)
+        rt(3.0)
     """
-
-    CONTROLPARAMETERS = (hland_control.Abstr,)
-    DERIVEDPARAMETERS = (hland_derived.QFactor,)
     REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
-    RESULTSEQUENCES = (
-        hland_fluxes.RA,
-        hland_fluxes.RT,
-    )
+    RESULTSEQUENCES = (hland_fluxes.RT,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.ra = min(con.abstr / der.qfactor, flu.outuh)
-        flu.rt = flu.outuh - flu.ra
+        flu.rt = flu.outuh
 
 
-class Calc_RA_RT_V2(modeltools.Method):
-    r"""Calculate the actual abstraction and the total discharge in mm.
+class Calc_RT_V2(modeltools.Method):
+    r"""Calculate the total discharge in mm.
 
     Basic equation:
-        :math:`RA = Abstr / QFactor`
+        :math:`RT = RelUpperZoneArea \cdot OutUH + RelLowerZoneArea \cdot Q1`
 
-        :math:`RT = RelUpperZoneArea \cdot OutUH + RelLowerZoneArea \cdot Q1 - RA`
-
-    Examples:
+    Example:
 
         >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> abstr(1.0)
+        >>> parameterstep()
         >>> derived.rellandarea(0.8)
         >>> derived.rellowerzonearea(0.6)
-        >>> derived.qfactor(0.5)
         >>> fluxes.outuh = 2.5
         >>> fluxes.q1 = 1.0
-        >>> model.calc_ra_rt_v2()
-        >>> fluxes.ra
-        ra(2.0)
+        >>> model.calc_rt_v2()
         >>> fluxes.rt
-        rt(0.6)
-
-        A requested abstraction larger than the total available discharge does not
-        result in negative outcomes:
-
-        >>> abstr(2.0)
-        >>> model.calc_ra_rt_v2()
-        >>> fluxes.ra
-        ra(2.6)
-        >>> fluxes.rt
-        rt(0.0)
+        rt(2.6)
     """
 
-    CONTROLPARAMETERS = (hland_control.Abstr,)
     DERIVEDPARAMETERS = (
         hland_derived.RelLandArea,
         hland_derived.RelLowerZoneArea,
-        hland_derived.QFactor,
     )
     REQUIREDSEQUENCES = (
         hland_fluxes.OutUH,
         hland_fluxes.Q1,
     )
-    RESULTSEQUENCES = (
-        hland_fluxes.RA,
-        hland_fluxes.RT,
-    )
+    RESULTSEQUENCES = (hland_fluxes.RT,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.rt = der.rellandarea * flu.outuh + der.rellowerzonearea * flu.q1
-        flu.ra = min(con.abstr / der.qfactor, flu.rt)
-        flu.rt -= flu.ra
 
 
 class Calc_QT_V1(modeltools.Method):
@@ -4423,7 +4372,6 @@ class Calc_QT_V1(modeltools.Method):
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> abstr(0.2)
         >>> derived.qfactor(0.5)
         >>> fluxes.rt = 2.0
         >>> model.calc_qt_v1()
@@ -4505,8 +4453,8 @@ class Model(modeltools.AdHocModel):
         Calc_OutUH_QUH_V1,
         Calc_OutUH_SC_V1,
         Calc_InUH_V2,
-        Calc_RA_RT_V1,
-        Calc_RA_RT_V2,
+        Calc_RT_V1,
+        Calc_RT_V2,
         Calc_QT_V1,
     )
     ADD_METHODS = (Calc_QAb_QVs_BW_V1,)

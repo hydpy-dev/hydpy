@@ -48,7 +48,7 @@ class BaseDescriptor:
         self.module = inspect.getmodule(objtype)
         if self.module is not None:
             if not hasattr(self.module, "__test__"):
-                self.module.__dict__["__test__"] = dict()
+                self.module.__dict__["__test__"] = {}
         self.name = name
         doc = getattr(self, "__doc__")
         if doc:

@@ -231,7 +231,9 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     nmbitems = len(tuple(iterable))
     if hydpy.pub.options.printprogress and (nmbitems > 1):
         temp_name = os.path.join(tempfile.gettempdir(), "HydPy_progressbar_stdout")
-        temp_stdout = open(temp_name, "w", encoding=config.ENCODING)
+        temp_stdout = open(  # pylint: disable=consider-using-with
+            temp_name, "w", encoding=config.ENCODING
+        )
         real_stdout = sys.stdout
         try:
             sys.stdout = temp_stdout
@@ -240,8 +242,7 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
             indentation = " " * max(_printprogress_indentation, 0)
             with PrintStyle(color=36, font=1, file=real_stdout):
                 print(
-                    "    %s|%s|\n%s    "
-                    % (indentation, "-" * (nmbstars - 2), indentation),
+                    f"    {indentation}|{'-' * (nmbstars - 2)}|\n{indentation}    ",
                     end="",
                     file=real_stdout,
                 )

@@ -1956,8 +1956,7 @@ class Calc_QG_V2(modeltools.Method):
         >>> gts(2)
         >>> laen(10.0)
         >>> ek(0.5)
-        >>> vg2fg(weights_input=1.0, weights_output=1.0,
-        ...       intercepts_hidden=0.0, intercepts_output=0.0, activation=0)
+        >>> vg2fg(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qg_v2,

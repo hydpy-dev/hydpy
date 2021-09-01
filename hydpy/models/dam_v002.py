@@ -66,11 +66,8 @@ we define identical (for now, constant) input time series:
 |dam_v002| implements fewer parameters than |dam_v001|.  Besides that, all parameter
 settings are identical:
 
->>> watervolume2waterlevel(weights_input=1.0, weights_output=0.25,
-...                        intercepts_hidden=0.0, intercepts_output=0.0,
-...                        activation=0)
->>> waterlevel2flooddischarge(ann(weights_input=0.0, weights_output=0.0,
-...                               intercepts_hidden=0.0, intercepts_output=0.0))
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> neardischargeminimumthreshold(0.2)
 >>> neardischargeminimumtolerance(0.2)
@@ -281,9 +278,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> neardischargeminimumtolerance(0.0)
 >>> waterlevelminimumthreshold(0.0)
 >>> waterlevelminimumtolerance(0.0)
->>> waterlevel2flooddischarge(ann(weights_input=1.0, weights_output=2.5,
-...                               intercepts_hidden=0.0, intercepts_output=0.0,
-...                               activation=0))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
 >>> neardischargeminimumthreshold(0.0)
 >>> inputs.precipitation.series = [0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -325,7 +320,8 @@ The recalculation results confirm the equality of both models for high flow cond
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 
 # ...from dam
 from hydpy.models.dam import dam_model

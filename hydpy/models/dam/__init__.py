@@ -6,7 +6,8 @@ dams, weirs, lakes, or polders.
 """
 # import...
 # ...from HydPy
-from hydpy.auxs.anntools import ann
+from hydpy.auxs.anntools import ANN
+from hydpy.auxs.ppolytools import Poly, PPoly
 from hydpy.exe.modelimports import *
 
 # ...from dam

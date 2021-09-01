@@ -19,7 +19,7 @@ Integration tests
 
 We perform all integration tests over a month with a simulation step of one day:
 
->>> from hydpy import ann, Element, FusedVariable, Nodes, prepare_model, pub
+>>> from hydpy import Element, FusedVariable, Nodes, PPoly, prepare_model, pub
 >>> pub.timegrids = "2000-01-01", "2000-02-01", "1d"
 
 The following examples demonstrate how |exch_v001| interacts with lake models like
@@ -106,9 +106,7 @@ the documentation on |dam_v006|.  We will use them in all examples:
 ...     control.dischargetolerance(0.1)
 ...     control.toleranceevaporation(0.001)
 ...     control.allowedwaterleveldrop(inf)
-...     control.watervolume2waterlevel(weights_input=1.0, weights_output=1.0,
-...                                    intercepts_hidden=0.0, intercepts_output=0.0,
-...                                    activation=0)
+...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 ...     control.pars.update()
 
 Now we prepare the exchange model.  We will use common values for the flow coefficient
@@ -168,9 +166,7 @@ We define a linear relationship between the water level and the outflow for both
 
 >>> for model_ in (lake1.model, lake2.model):
 ...     model_.parameters.control.waterlevel2flooddischarge(
-...         ann(weights_input=1.0, weights_output=2.0,
-...         intercepts_hidden=0.0, intercepts_output=0.0,
-...         activation=0))
+...         PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
 
 The following results show that the first lake's water level drops fast due to releasing
 water to the second lake and its outlet.  The second lake receives this overflow through
@@ -230,8 +226,8 @@ clarification, we disallow both lakes to release any water:
 
 >>> for model_ in (lake1.model, lake2.model):
 ...     model_.parameters.control.waterlevel2flooddischarge(
-...         ann(weights_input=0.0, weights_output=0.0,
-...             intercepts_hidden=0.0, intercepts_output=0.0))
+...         PPoly.from_data(xs=[0.0], ys=[0.0]))
+
 
 Due to the identical parameter values of both models and the symmetrical initial
 conditions of 0.0 and 1.0 million m³, both water levels move towards the defined crest

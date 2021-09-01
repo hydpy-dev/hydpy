@@ -50,10 +50,7 @@ stage and volume:
 ...     (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
 >>> conditions = sequences.conditions
->>> watervolume2waterlevel(
-...     weights_input=1.0, weights_output=1.0,
-...     intercepts_hidden=0.0, intercepts_output=0.0,
-...     activation=0)
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
 >>> correctionprecipitation(1.2)
@@ -74,14 +71,11 @@ stage and volume:
 base scenario
 _____________
 
-First, we again use the quasi-linear relation between discharge and stage used
+First, we again use the linear relation between discharge and stage used
 throughout the integration tests of |dam_v006| and in the :ref:`base example
 <dam_v007_base_scenario>` of |dam_v007|:
 
->>> waterlevel2flooddischarge(ann(
-...     weights_input=1.0, weights_output=10.0,
-...     intercepts_hidden=0.0, intercepts_output=0.0,
-...     activation=0))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
 
 Additionally, we set some of the remaining parameter values extremely high or low to
 ensure the reservoir stores all water except the one activating the spillway, which
@@ -145,9 +139,8 @@ discharge time series:
 
 .. integration-test::
 
-    >>> waterlevel2flooddischarge(ann(
-    ...     weights_input=10.0, weights_output=50.0,
-    ...     intercepts_hidden=-20.0, intercepts_output=0.0))
+    >>> waterlevel2flooddischarge(ANN(weights_input=10.0, weights_output=50.0,
+    ...                               intercepts_hidden=-20.0, intercepts_output=0.0))
     >>> test("dam_v008_spillway")
     |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -464,7 +457,9 @@ from typing import *
 
 # ...from HydPy
 import hydpy
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
+
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

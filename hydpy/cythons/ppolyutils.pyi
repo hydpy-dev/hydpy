@@ -1,7 +1,7 @@
-from numpy import float_
+from numpy import float_, int_
 from numpy.typing import NDArray
 
-class ANN:
+class PPoly:
     # required for usage as an "algorithm" by interputils:
     nmb_inputs: int
     nmb_outputs: int
@@ -11,12 +11,7 @@ class ANN:
     def calculate_values(self) -> None: ...
     def calculate_derivatives(self, __idx_input: int) -> None: ...
     # algorithm-specific requirements:
-    nmb_layers: int
-    nmb_neurons: NDArray[float_]
-    weights_input: NDArray[float_]
-    weights_output: NDArray[float_]
-    weights_hidden: NDArray[float_]
-    intercepts_hidden: NDArray[float_]
-    intercepts_output: NDArray[float_]
-    activation: NDArray[float_]
-    neurons: NDArray[float_]
+    nmb_x0s: int
+    nmb_cs: NDArray[int_]
+    ps: NDArray[float_]
+    cs: NDArray[float_]

@@ -365,7 +365,7 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
         ...                 last_example=4,
         ...                 parseqs=(fluxes.totalremotedischarge,
         ...                          logs.loggedtotalremotedischarge))
-        >>> test.nexts.totalremotedischarge = [1., 3., 2., 4]
+        >>> test.nexts.totalremotedischarge = [1.0, 3.0, 2.0, 4.0]
         >>> del test.inits.loggedtotalremotedischarge
         >>> test()
         | ex. | totalremotedischarge |           loggedtotalremotedischarge |
@@ -391,7 +391,7 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
 
 
 class Calc_WaterLevel_V1(modeltools.Method):
-    """Determine the water level based on an artificial neural network describing the
+    """Determine the water level based on an interpolation approach approximating the
     relationship between water volume and water level.
 
     Example:
@@ -401,12 +401,10 @@ class Calc_WaterLevel_V1(modeltools.Method):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-
-
         >>> watervolume2waterlevel(
-        ...         nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...     ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...         weights_input=0.5, weights_output=1.0,
-        ...         intercepts_hidden=0.0, intercepts_output=-0.5)
+        ...         intercepts_hidden=0.0, intercepts_output=-0.5))
 
         At least in the water volume range used in the following examples, the shape of
         the relationship looks acceptable:
@@ -431,8 +429,8 @@ class Calc_WaterLevel_V1(modeltools.Method):
         |   9 |         8.0 |   0.482014 |
         |  10 |         9.0 |   0.489013 |
 
-        Larger neural networks allow for more realistic approximations of measured
-        relationships between water volume and water level.
+        Larger neural networks or piecewise polynomials allow for more realistic
+        approximations of measured relationships between water volume and water level.
     """
 
     CONTROLPARAMETERS = (dam_control.WaterVolume2WaterLevel,)
@@ -450,7 +448,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
 
 
 class Calc_SurfaceArea_V1(modeltools.Method):
-    r"""Determine the surface area based on an artificial neural network describing the
+    r"""Determine the surface area based on an interpolation approach approximating the
     relationship between water level and the surface area.
 
     Basic equation:
@@ -465,9 +463,9 @@ class Calc_SurfaceArea_V1(modeltools.Method):
         >>> parameterstep()
 
         >>> watervolume2waterlevel(
-        ...         nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...     ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...         weights_input=0.5, weights_output=1.0,
-        ...         intercepts_hidden=0.0, intercepts_output=-0.5)
+        ...         intercepts_hidden=0.0, intercepts_output=-0.5))
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
@@ -1283,26 +1281,25 @@ class Calc_RequiredRelease_V2(modeltools.Method):
 
 
 class Calc_PossibleRemoteRelief_V1(modeltools.Method):
-    """Calculate the highest possible water release that can be routed to
-    a remote location based on an artificial neural network describing the
-    relationship between possible release and water stage.
+    """Calculate the highest possible water release that can be routed to a remote
+    location based on an interpolation approach approximating the relationship between
+    possible release and water stage.
 
     Example:
 
-        For simplicity, the example of method |Calc_FloodDischarge_V1|
-        is reused.  See the documentation on the mentioned method for
-        further information:
+        For simplicity, the example of method |Calc_FloodDischarge_V1| is reused.  See
+        the documentation on the mentioned method for further information:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> waterlevel2possibleremoterelief(
-        ...     nmb_inputs=1,
-        ...     nmb_neurons=(2,),
-        ...     nmb_outputs=1,
-        ...     weights_input=[[50., 4]],
-        ...     weights_output=[[2.], [30]],
-        ...     intercepts_hidden=[[-13000, -1046]],
-        ...     intercepts_output=[0.])
+        ...     ANN(nmb_inputs=1,
+        ...         nmb_neurons=(2,),
+        ...         nmb_outputs=1,
+        ...         weights_input=[[50.0, 4]],
+        ...         weights_output=[[2.0], [30]],
+        ...         intercepts_hidden=[[-13000, -1046]],
+        ...         intercepts_output=[0.0]))
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model, model.calc_possibleremoterelief_v1,
@@ -3236,51 +3233,48 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
 
 
 class Calc_FloodDischarge_V1(modeltools.Method):
-    """Calculate the discharge during and after a flood event based on an
-    |anntools.SeasonalANN| describing the relationship(s) between discharge
-    and water stage.
+    """Calculate the discharge during and after a flood event based on seasonally
+    varying interpolation approaches approximating the relationship(s) between
+    discharge and water stage.
 
     Example:
 
         The control parameter |WaterLevel2FloodDischarge| is derived from
-        |SeasonalParameter|.  This allows to simulate different seasonal
-        dam control schemes.  To show that the seasonal selection mechanism
-        is implemented properly, we define a short simulation period of
-        three days:
+        |SeasonalInterpolator|.  This allows to simulate different seasonal dam control
+        schemes.  To show that the seasonal selection mechanism is implemented properly,
+        we define a short simulation period of three days:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001.01.01", "2001.01.04", "1d"
 
-        Now we prepare a dam model and define two different relationships
-        between water level and flood discharge.  The first relatively
-        simple relationship (for January, 2) is based on two neurons
-        contained in a single hidden layer and is used in the following
-        example.  The second neural network (for January, 3) is not
-        applied at all, which is why we do not need to assign any parameter
-        values to it:
+        Now we prepare a dam model and define two different relationships between water
+        level and flood discharge using artificial neural networks as interpolators.
+        The first relatively simple relationship (for January 2) is based on two
+        neurons contained in a single hidden layer and is used in the following example.
+        The second neural network (for January 3) is not applied at all, which is why
+        we do not need to assign any parameter values to it:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> waterlevel2flooddischarge(
-        ...     _01_02_12 = ann(nmb_inputs=1,
+        ...     _01_02_12 = ANN(nmb_inputs=1,
         ...                     nmb_neurons=(2,),
         ...                     nmb_outputs=1,
-        ...                     weights_input=[[50., 4]],
-        ...                     weights_output=[[2.], [30]],
+        ...                     weights_input=[[50.0, 4]],
+        ...                     weights_output=[[2.0], [30]],
         ...                     intercepts_hidden=[[-13000, -1046]],
-        ...                     intercepts_output=[0.]),
-        ...     _01_03_12 = ann(nmb_inputs=1,
+        ...                     intercepts_output=[0.0]),
+        ...     _01_03_12 = ANN(nmb_inputs=1,
         ...                     nmb_neurons=(2,),
         ...                     nmb_outputs=1))
         >>> derived.toy.update()
         >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
 
-        The following example shows two distinct effects of both neurons
-        in the first network.  One neuron describes a relatively sharp
-        increase between 259.8 and 260.2 meters from about 0 to 2 m³/s.
-        This could describe a release of water through a bottom outlet
-        controlled by a valve.  The add something like an exponential
-        increase between 260 and 261 meters, which could describe the
+        The following example shows two distinct effects of both neurons in the first
+        network.  One neuron describes a relatively sharp increase between 259.8 and
+        260.2 meters from about 0 to 2 m³/s.  This could describe a release of water
+        through a bottom outlet controlled by a valve.  The add something like an
+        exponential increase between 260 and 261 meters, which could describe the
         uncontrolled flow over a spillway:
 
         >>> from hydpy import UnitTest

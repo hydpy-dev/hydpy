@@ -31,7 +31,7 @@ Hence, simulation speed, robustness, and accuracy depend on the configuration of
 parameters of the model equations and the underlying solver.  We discuss these topics
 in more detail in the documentation on the application model |dam_v001|.  Before the
 first usage of any HydPy-Dam model, you should at least read how to set proper smoothing
-parameter values and how to configure the artificial neural networks used to model the
+parameter values and how to configure |InterpAlgorithm| objects for interpolating the
 relationships between stage and volume (|WaterVolume2WaterLevel|) and between discharge
 and stage (|WaterLevel2FloodDischarge|).
 
@@ -84,33 +84,26 @@ performing the first simulation run:
 >>> conditions = sequences.conditions
 
 |dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume| to be
-constant over time.  It uses parameter |WaterVolume2WaterLevel| to allow maximum
-flexibility, extending the artificial neural network parameter |anntools.ANN|.  For
-simplicity, we enforce a linear relationship between |WaterLevel| and |WaterVolume|
-(as shown in the following graph):
+constant over time.  For simplicity, we define a linear relationship by using |PPoly|:
 
->>> watervolume2waterlevel(weights_input=1.0, weights_output=1.0,
-...                        intercepts_hidden=0.0, intercepts_output=0.0,
-...                        activation=0)
->>> watervolume2waterlevel.plot(0.0, 1.0)
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> figure = watervolume2waterlevel.plot(0.0, 1.0)
 >>> from hydpy.core.testtools import save_autofig
->>> save_autofig("dam_v006_watervolume2waterlevel.png")
+>>> save_autofig("dam_v006_watervolume2waterlevel.png", figure=figure)
 
 .. image:: dam_v006_watervolume2waterlevel.png
    :width: 400
 
 |dam_v006| uses parameter |WaterLevel2FloodDischarge| (which extends parameter
-|anntools.SeasonalANN|) to allow for annual changes in the relationship between
+|SeasonalInterpolator|) to allow for annual changes in the relationship between
 |FloodDischarge| and |WaterLevel|.  Please read the documentation on class
-|anntools.SeasonalANN| on how to model seasonal patterns.  Here, we keep things as
+|SeasonalInterpolator| on how to model seasonal patterns.  Here, we keep things as
 simple as possible and define a single linear relationship that applies for the whole
 year:
 
->>> waterlevel2flooddischarge(ann(weights_input=1.0, weights_output=10.0,
-...                               intercepts_hidden=0.0, intercepts_output=0.0,
-...                               activation=0))
->>> waterlevel2flooddischarge.plot(0.0, 1.0)
->>> save_autofig("dam_v006_waterlevel2flooddischarge.png")
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
+>>> figure = waterlevel2flooddischarge.plot(0.0, 1.0)
+>>> figure = save_autofig("dam_v006_waterlevel2flooddischarge.png", figure=figure)
 
 .. image:: dam_v006_waterlevel2flooddischarge.png
    :width: 400
@@ -412,7 +405,8 @@ volumes at the end of the simulation period:
 from typing import *
 
 # ...from HydPy
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 import hydpy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools

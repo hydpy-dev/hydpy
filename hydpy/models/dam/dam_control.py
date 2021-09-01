@@ -5,7 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
-from hydpy.auxs import anntools
+from hydpy.auxs import interptools
 
 
 class SurfaceArea(parametertools.Parameter):
@@ -85,7 +85,7 @@ class RemoteDischargeSafety(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class WaterLevel2PossibleRemoteRelief(anntools.ANN):
+class WaterLevel2PossibleRemoteRelief(interptools.SimpleInterpolator):
     """Artificial neural network describing the relationship between water level and
     the highest possible water release used to relieve the dam during high flow
     conditions [-]."""
@@ -216,7 +216,7 @@ class HighestRemoteTolerance(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class WaterVolume2WaterLevel(anntools.ANN):
+class WaterVolume2WaterLevel(interptools.SimpleInterpolator):
     """Artificial neural network describing the relationship between water level and
     water volume [-]."""
 
@@ -224,7 +224,7 @@ class WaterVolume2WaterLevel(anntools.ANN):
     YLABEL = "water level [m]"
 
 
-class WaterLevel2FloodDischarge(anntools.SeasonalANN):
+class WaterLevel2FloodDischarge(interptools.SeasonalInterpolator):
     """Artificial neural network describing the relationship between flood discharge
     and water volume [-]."""
 

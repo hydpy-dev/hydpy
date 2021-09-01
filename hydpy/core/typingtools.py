@@ -405,6 +405,7 @@ class Matrix(MatrixInput[Float1]):
     ) -> "Matrix[bool]":
         ...
 
+    @property
     def shape(self) -> Tuple[int, int]:
         """Length of both matrix axes."""
 

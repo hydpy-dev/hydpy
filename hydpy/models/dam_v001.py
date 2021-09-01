@@ -11,18 +11,24 @@ latter requires that |dam_v001| receives information from downstream via a "rece
 node".  To achieve reliable drought control, |dam_v001| stores some low-flow related
 information for a certain number of simulation steps.
 
-During high flow conditions, |dam_v001| is controlled by two fixed relationships: one
+During high flow conditions, |dam_v001| is controlled by two relationships: one
 between water volume and water level, the other one between discharge and water level.
+While the first one is stationary, the second one can vary seasonally.  In both cases,
+one defines these relationships via interpolators.  See the documentation on the
+classes |PPoly| and |ANN|, which explains how to configure stepwise linear, spline, or
+neural network-based interpolations.
 
 |dam_v001| solves its differential equation with an adaptive Runge-Kutta method that
 only works well on continuous equations.  Hence, we defined most threshold-based
-low-flow equations in a "smoothable" manner and selected an artificial neural network
-for specifying the relationship between discharge and water level.  (Additionally,
-smoothed equations allow for a finer, less abrupt control of the dam.)  Defining
-realistic and computationally efficient configurations of the related smoothing and
-neural network parameters requires some experience.  It seems advisable to investigate
-the functioning of each new model parameterisation on several synthetic or measured
-drought events.
+low-flow equations in a "smoothable" manner.  However, defining realistic and
+computationally efficient configurations of the related smoothing parameters requires
+some experience.  Therefore, it seems advisable to investigate the functioning of each
+new model parameterisation on several synthetic or measured drought events.
+
+
+and selected an artificial neural network
+for specifying the relationship between discharge and water level.
+
 
 The applied solver is an explicit Runge-Kutta method that is not best-suited for stiff
 initial value problems.  Its adaptive order and stepsize control prevent inaccurate
@@ -75,7 +81,7 @@ We use these nodes to connect the following three elements:
 
 Next, we prepare the three model instances.  We begin with the `stream2` model.
 Setting the |arma_control.Responses| parameter in the following manner defines a pure
-Moving Average model that neither results in translation nor retention processes:
+Moving Average model that neither results in translation nor retention:
 
 >>> from hydpy import prepare_model
 >>> stream2.model = prepare_model("arma_v1")
@@ -122,31 +128,27 @@ The inflow into the dam remains constant for the whole simulation period:
 >>> inflow.sequences.sim.series = 1.0
 
 For the sake of simplicity, we define a linear relationship between the stored water
-volume and the water level.  The easiest way to do this is to select the identity
-function as the |anntools.ANN.activation| function of the |WaterVolume2WaterLevel|
-parameter:
+volume and the water level.  One can accomplish this most easily via method
+|PPoly.from_data| of class |PPoly|:
 
->>> watervolume2waterlevel(weights_input=1.0, weights_output=0.25,
-...                        intercepts_hidden=0.0, intercepts_output=0.0,
-...                        activation=0)
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
 
 The following figure confirms the linearity of the defined relationship:
 
->>> watervolume2waterlevel.plot(0.0, 100.0)
+>>> figure = watervolume2waterlevel.plot(0.0, 100.0)
 >>> from hydpy.core.testtools import save_autofig
->>> save_autofig("dam_v001_watervolume2waterlevel.png")
+>>> save_autofig("dam_v001_watervolume2waterlevel.png", figure=figure)
 
 .. image:: dam_v001_watervolume2waterlevel.png
    :width: 400
 
 To focus on the drought-related algorithms only, we turn off the flood-related
-processes.  Therefore, we set all weights and intercepts of the
-|WaterLevel2FloodDischarge| parameter to zero:
+processes.  Therefore, we let parameter |WaterLevel2FloodDischarge| return zero for all
+possible input values:
 
->>> waterlevel2flooddischarge(ann(weights_input=0.0, weights_output=0.0,
-...                               intercepts_hidden=0.0, intercepts_output=0.0))
->>> waterlevel2flooddischarge.plot(0.0, 25.0)
->>> save_autofig("dam_v001_waterlevel2flooddischarge_1.png")
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
+>>> save_autofig("dam_v001_waterlevel2flooddischarge_1.png", figure=figure)
 
 .. image:: dam_v001_waterlevel2flooddischarge_1.png
    :width: 400
@@ -630,8 +632,8 @@ around |WaterLevelMinimumThreshold|:
 
 >>> waterlevelminimumtolerance(0.01)
 
-To avoid the fluctuation and the negative water volumes, one must also increase
-|WaterLevelMinimumThreshold| a little:
+To avoid the fluctuation and the negative water volumes, one must also slightly
+increase |WaterLevelMinimumThreshold|:
 
 >>> waterlevelminimumthreshold(0.005)
 
@@ -666,10 +668,10 @@ example, but this would not be the case if the low flow period were prolonged:
     | 19.01. |           0.0 |         0.0 |   0.000798 |                   0.0 |                 0.0 |               0.0 | 0.010526 |              1.71612 |               1.613695 |          0.0 |     -0.226481 |              0.055458 |        0.055458 |        0.055458 |      0.006918 |            0.0 | 0.006918 |    0.003191 | 0.010526 |     1.7 | 0.006918 |  1.71612 |
     | 20.01. |           0.0 |         0.0 |   0.000763 |                   0.0 |                 0.0 |               0.0 |      0.0 |             1.808953 |               1.709201 |          0.0 |      -0.31612 |              0.025948 |        0.025948 |        0.012974 |      0.001631 |            0.0 | 0.001631 |     0.00305 |      0.0 |     1.8 | 0.001631 | 1.808953 |
 
-There is still some inaccuracy in the results.  The last outflow value is smaller than
-|dam_solver.AbsErrorMax|.  However, the smoothing of the discontinuous relationship
-would now allow defining a smaller local truncation error without increasing computation
-times too much.
+There is still some inaccuracy in the results.  For example, the last outflow value is
+smaller than |dam_solver.AbsErrorMax|.  However, the smoothing of the discontinuous
+relationship would now allow defining a smaller local truncation error without
+increasing computation times too much.
 
 .. _dam_v001_evaporation:
 
@@ -822,11 +824,11 @@ significantly reduces these problems:
     | 20.01. |           0.0 |         0.0 |   0.220371 |                   0.0 |                 0.0 |               0.0 |    1.0 |             1.022657 |                    1.0 |          0.4 |     -0.122278 |              0.522657 |        0.522657 |        0.522657 |      0.522657 |            0.0 | 0.522657 |    0.881483 |    1.0 |     0.5 | 0.522657 | 1.022657 |
 
 We cannot circumvent the general problem of a time delay of one simulation step for the
-information flow from the cross-section to the dam. To solve it, we would have to handle
-the differential equations of all models involved simultaneously, which is currently not
-supported by *HydPy* and impossible for most of the implemented models.  However, due
-to the low dynamics of drought events, the resulting inaccuracies should rarely be
-substantial.
+information flow from the cross-section to the dam. To solve it, we would have to
+handle the differential equations of all models involved simultaneously, which is
+currently not supported by *HydPy* and is impossible for most implemented models.
+However, due to the low dynamics of drought events, the resulting inaccuracies should
+rarely be substantial.
 
 .. _dam_v001_flood_retention:
 
@@ -850,11 +852,9 @@ we define a linear storage retention process.  The relationship between water vo
 and level is already linear, and we adjust the relationship between water level and
 flood discharge accordingly:
 
->>> waterlevel2flooddischarge(ann(weights_input=1.0, weights_output=2.5,
-...                               intercepts_hidden=0.0, intercepts_output=0.0,
-...                               activation=0))
->>> waterlevel2flooddischarge.plot(0.0, 25.0)
->>> save_autofig("dam_v001_waterlevel2flooddischarge_2.png")
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys= [0.0, 2.5]))
+>>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
+>>> save_autofig("dam_v001_waterlevel2flooddischarge_2.png", figure=figure)
 
 .. image:: dam_v001_waterlevel2flooddischarge_2.png
    :width: 400
@@ -997,12 +997,9 @@ We reset the local error tolerance to the more practical value but configure the
 |WaterLevel2FloodDischarge| parameter in a highly dynamic manner:
 
 >>> solver.abserrormax(0.01)
->>> waterlevel2flooddischarge(ann(
-...     weights_input=1.0, weights_output=250.0,
-...     intercepts_hidden=0.0, intercepts_output=0.0,
-...     activation=0))
->>> waterlevel2flooddischarge.plot(0.0, 25.0)
->>> save_autofig("dam_v001_waterlevel2flooddischarge_3.png")
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 250.0]))
+>>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
+>>> save_autofig("dam_v001_waterlevel2flooddischarge_3.png", figure=figure)
 
 .. image:: dam_v001_waterlevel2flooddischarge_3.png
    :width: 400
@@ -1064,7 +1061,8 @@ durations might occur.
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 
 # ...from dam
 from hydpy.models.dam import dam_model

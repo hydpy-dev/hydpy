@@ -2390,7 +2390,7 @@ parameterstep="1d"
         return "\n".join(repr(rule) for rule in self)
 
     def __str__(self) -> str:
-        return objecttools.classname(self)
+        return type(self).__name__
 
     def __dir__(self) -> List[str]:
         """

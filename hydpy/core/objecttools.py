@@ -1692,8 +1692,7 @@ def enumeration(
 ) -> str:
     """Return an enumeration string based on the given values.
 
-    The following four examples show the standard output of function
-    |enumeration|:
+    The following four examples show the standard output of function |enumeration|:
 
     >>> from hydpy.core.objecttools import enumeration
     >>> enumeration(("text", 3, []))
@@ -1705,16 +1704,15 @@ def enumeration(
     >>> enumeration(())
     ''
 
-    All given objects are converted to strings by function |str|, as shown
-    by the first two examples.  This behaviour can be changed by another
-    function expecting a single argument and returning a string:
+    All given objects are converted to strings by function |str|, as shown by the first
+    two examples.  This behaviour can be changed by another function expecting a single
+    argument and returning a string:
 
     >>> from hydpy import classname
     >>> enumeration(("text", 3, []), converter=classname)
     'str, int, and list'
 
-    You can define a default string that is returned in case an empty
-    iterable is given:
+    You can define a default string that is returned in case an empty iterable is given:
 
     >>> enumeration((), default="nothing")
     'nothing'

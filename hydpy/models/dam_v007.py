@@ -42,10 +42,7 @@ input series and an identical relationship between stage and volume:
 ...     (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
 >>> conditions = sequences.conditions
->>> watervolume2waterlevel(
-...     weights_input=1.0, weights_output=1.0,
-...     intercepts_hidden=0.0, intercepts_output=0.0,
-...     activation=0)
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
 >>> correctionprecipitation(1.2)
@@ -75,10 +72,7 @@ example of |dam_v006| (where |AllowedWaterLevelDrop| is |numpy.inf|):
 
 .. integration-test::
 
-    >>> waterlevel2flooddischarge(ann(
-    ...     weights_input=1.0, weights_output=10.0,
-    ...     intercepts_hidden=0.0, intercepts_output=0.0,
-    ...     activation=0))
+    >>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
     >>> waterlevelminimumthreshold(0.0)
@@ -117,16 +111,15 @@ There is no indication of an error in the water balance:
 spillway
 ________
 
-Now, we introduce a more realistic relationship between flood discharge and stage,
-where the spillway of the retention basin starts to become relevant when the water
-volume exceeds about 1.4 million m³:
+Now, we introduce a more realistic relationship between flood discharge and stage based
+on class |ANN|, where the spillway of the retention basin starts to become relevant
+when the water volume exceeds about 1.4 million m³:
 
->>> waterlevel2flooddischarge(ann(
-...     weights_input=10.0, weights_output=50.0,
-...     intercepts_hidden=-20.0, intercepts_output=0.0))
->>> waterlevel2flooddischarge.plot(0.0, 2.0)
+>>> waterlevel2flooddischarge(ANN(weights_input=10.0, weights_output=50.0,
+...                               intercepts_hidden=-20.0, intercepts_output=0.0))
+>>> figure = waterlevel2flooddischarge.plot(0.0, 2.0)
 >>> from hydpy.core.testtools import save_autofig
->>> save_autofig("dam_v007_waterlevel2flooddischarge.png")
+>>> save_autofig("dam_v007_waterlevel2flooddischarge.png", figure=figure)
 
 .. image:: dam_v007_waterlevel2flooddischarge.png
    :width: 400
@@ -263,7 +256,8 @@ from typing import *
 
 # ...from HydPy
 import hydpy
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

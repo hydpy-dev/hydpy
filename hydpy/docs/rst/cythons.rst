@@ -36,8 +36,10 @@ offers other strategies to decrease computation times.
 
    annutils
    configutils
+   interputils
    modelutils
    pointerutils
+   ppolyutils
    quadutils
    rootutils
    sequenceutils

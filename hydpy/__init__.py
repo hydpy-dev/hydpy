@@ -114,8 +114,6 @@ from hydpy.auxs.armatools import (
 )
 from hydpy.auxs.anntools import (
     ANN,
-    ann,
-    SeasonalANN,
 )
 from hydpy.auxs.calibtools import (
     Add,
@@ -131,6 +129,9 @@ from hydpy.auxs.calibtools import (
     SumAdaptor,
     TargetFunction,
 )
+from hydpy.auxs.interptools import (
+    SeasonalInterpolator,
+)
 from hydpy.auxs.iuhtools import (
     LinearStorageCascade,
     TranslationDiffusionEquation,
@@ -139,6 +140,10 @@ from hydpy.auxs.networktools import (
     RiverBasinNumber,
     RiverBasinNumbers,
     RiverBasinNumbers2Selection,
+)
+from hydpy.auxs.ppolytools import (
+    Poly,
+    PPoly,
 )
 from hydpy.auxs.statstools import (
     bias_abs,
@@ -242,8 +247,6 @@ __all__ = [
     "ARMA",
     "MA",
     "ANN",
-    "ann",
-    "SeasonalANN",
     "Adaptor",
     "Add",
     "CalibrationInterface",
@@ -256,11 +259,14 @@ __all__ = [
     "Rule",
     "SumAdaptor",
     "TargetFunction",
+    "SeasonalInterpolator",
     "LinearStorageCascade",
     "TranslationDiffusionEquation",
     "RiverBasinNumber",
     "RiverBasinNumbers",
     "RiverBasinNumbers2Selection",
+    "Poly",
+    "PPoly",
     "nan",
     "bias_abs",
     "bias_rel",

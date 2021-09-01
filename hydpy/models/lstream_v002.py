@@ -2,14 +2,15 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 2 of HydPy-L-Stream is a computationally more efficient alternative to
 application model |lstream_v001|.  The higher efficiency is due to not calculating
-discharges based on channel geometries but based on preprocessed relationships
-between velocity and storage, similar to the "V/Q-BEZIEHUNG EXTERN" option of
-`LARSIM`_.
+discharges based on channel geometries but preprocessed relationships between velocity
+and storage, similar to the "V/Q-BEZIEHUNG EXTERN" option of `LARSIM`_.
 
-An artificial neural network, available as "parameter" |VG2FG|, describes this
-relationship.  Principally, the neural network can fit any relationship provided by
-|lstream_v001| very accurately.  However, high accuracy might require a considerable
-number of neurons, which also can come with a relevant performance cost.
+The "parameter" |VG2FG| describes this relationship.  You can configure it to either
+use a piecewise linear, a spline, or a neural network-based interpolation technique.
+See modules |anntools| and |ppolytools| for further information.  Principally, |VG2FG|
+can fit any relationship provided by |lstream_v001| very accurately.  However, high
+accuracy might require a considerable number of polynomials or neurons.  At least the
+latter can come with a relevant performance cost.
 
 For simple use cases, one can assign a single value to parameter |VG2FG|, either a
 constant flow velocity or a constant delay time.  |lstream_v002| then works like the
@@ -31,7 +32,7 @@ The following integration test repeats the :ref:`lstream_v001_main_channel_flow`
 example of the documentation on application model |lstream_v001|.  The spatial and
 temporal settings are identical:
 
->>> from hydpy import pub, Nodes, Element
+>>> from hydpy import ANN, pub, Nodes, Element
 >>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 >>> from hydpy.models.lstream_v002 import *
 >>> parameterstep("30m")
@@ -48,17 +49,17 @@ We again divide a channel of 100 km length into eight subsections:
 >>> ek(1.0)
 
 Next, we define a relatively small neural network consisting of three neurons in a
-single hidden layer.  This network roughly approximates the flow velocity calculated
-by the Gauckler-Manning-Strickler equation on the triple trapezoid profile defined
-in the :ref:`lstream_v001_main_channel_flow` example:
+single hidden layer.  This network roughly approximates the flow velocity calculated by
+the Gauckler-Manning-Strickler equation on the triple trapezoid profile defined in the
+:ref:`lstream_v001_main_channel_flow` example:
 
->>> vg2fg(nmb_neurons=(3,),
-...       weights_input=[[1.239962, 8.434961, 0.116195]],
-...       weights_output=[[28.031913],
-...                       [22.114402],
-...                       [85.802384]],
-...       intercepts_hidden=[[4.346762, 4.553889, 4.197525]],
-...       intercepts_output=[-134.031566])
+>>> vg2fg(ANN(nmb_neurons=(3,),
+...           weights_input=[[1.239962, 8.434961, 0.116195]],
+...           weights_output=[[28.031913],
+...                           [22.114402],
+...                           [85.802384]],
+...           intercepts_hidden=[[4.346762, 4.553889, 4.197525]],
+...           intercepts_output=[-134.031566]))
 
 In contrast to application model |lstream_v001|, |lstream_v002| uses the stored water
 volume (|VG|) as its state variable instead of the water stage (|H|).  Hence, we now
@@ -719,6 +720,8 @@ set the number of subchannels to zero:
 """
 # import...
 # ...from HydPy
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 
 # ...from lstream

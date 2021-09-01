@@ -9,10 +9,11 @@ from typing import *
 from typing_extensions import Literal
 
 # ...from HydPy
-from hydpy.auxs import anntools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.auxs import anntools
+from hydpy.auxs import interptools
 
 
 class Laen(parametertools.Parameter):
@@ -126,57 +127,44 @@ class HR(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class VG2FG(anntools.ANN):
-    """Künstliches Neuronales Netz zur Berechnung der Fließgeschwindigkeit in
-    Abhängigkeit zur aktuellen Wasserspeicherung einer Gewässerteilstrecke (artificial
-    neural network describing the relationship between the flow velocity and the
-    water storage of individual channel subsections) [m/s].
+class VG2FG(interptools.SimpleInterpolator):
+    """Flexibler Interpolator zur Berechnung der Fließgeschwindigkeit in Abhängigkeit
+    zur aktuellen Wasserspeicherung einer Gewässerteilstrecke (flexible interpolator
+    describing the relationship between the flow velocity and the water storage of
+    individual channel subsections) [m/s].
 
     You can configure the velocity-storage relationship with all functionalities
-    provided by (and explained in the documentation of) base class |anntools.ANN|:
+    provided by classes |ANN| and |PPoly|.  Here, we define a small neural network:
 
     >>> from hydpy.models.lstream import *
     >>> parameterstep()
-    >>> vg2fg(weights_input=-1.0, weights_output=0.4,
-    ...       intercepts_hidden=0.0, intercepts_output=0.2)
+    >>> vg2fg(ANN(weights_input=-1.0, weights_output=0.4,
+    ...           intercepts_hidden=0.0, intercepts_output=0.2))
     >>> vg2fg
     vg2fg(
-        weights_input=[[-1.0]],
-        weights_output=[[0.4]],
-        intercepts_hidden=[[0.0]],
-        intercepts_output=[0.2],
+        ANN(
+            weights_input=[[-1.0]],
+            weights_output=[[0.4]],
+            intercepts_hidden=[[0.0]],
+            intercepts_output=[0.2],
+        )
     )
-
-    >>> from hydpy import round_
-    >>> vg2fg.inputs[0] = 0.0
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    0.4
-    >>> vg2fg.inputs[0] = 1.0
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    0.307577
-    >>> vg2fg.inputs[0] = inf
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    0.2
+    >>> vg2fg.print_table([0.0, 1.0, inf])
+    x    y         dy/dx
+    0.0  0.4       -0.1
+    1.0  0.307577  -0.078645
+    inf  0.2       0.0
 
     If you prefer a constant velocity, you can set it directly via the keyword
     `velocity` (its unit must be m/s):
 
     >>> vg2fg(velocity=1.0)
-
     >>> vg2fg
     vg2fg(velocity=1.0)
-
-    >>> vg2fg.inputs[0] = 0.0
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    1.0
-    >>> vg2fg.inputs[0] = 1.0
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    1.0
+    >>> vg2fg.print_table([0.0, 1.0])
+    x    y    dy/dx
+    0.0  1.0  0.0
+    1.0  1.0  0.0
 
     Alternatively, the keyword `timedelay` allows defining the flow velocity via the
     number of hours it takes for a flood wave to travel through the whole channel:
@@ -188,8 +176,10 @@ class VG2FG(anntools.ANN):
 
     >>> vg2fg.inputs[0] = 0.0
     >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    1.0
+    >>> vg2fg.print_table([0.0, 1.0])
+    x    y    dy/dx
+    0.0  1.0  0.0
+    1.0  1.0  0.0
 
     For a ten times shorter channel, the same time delay implies a ten times slower
     flow velocity:
@@ -198,19 +188,18 @@ class VG2FG(anntools.ANN):
     >>> vg2fg(timedelay=27.77778)
     >>> vg2fg
     vg2fg(timedelay=27.77778)
-
-    >>> vg2fg.inputs[0] = 0.0
-    >>> vg2fg.calculate_values()
-    >>> round_(vg2fg.outputs[0])
-    0.1
+    >>> vg2fg.print_table([0.0, 1.0])
+    x    y    dy/dx
+    0.0  0.1  0.0
+    1.0  0.1  0.0
     """
 
     XLABEL = "VG [million m³]"
     YLABEL = "FG [m/s]"
 
-    _simple_ann = anntools.ann(
-        weights_input=((0.0,),),
-        weights_output=((0.0,),),
+    _simple_ann = anntools.ANN(
+        weights_input=(0.0,),
+        weights_output=(0.0,),
         intercepts_hidden=((0.0,),),
         intercepts_output=(0.0,),
     )
@@ -225,48 +214,39 @@ class VG2FG(anntools.ANN):
         ...
 
     @overload
-    def __call__(
-        self,
-        *,
-        nmb_inputs: int = 1,
-        nmb_neurons: Tuple[int, ...] = (1,),
-        nmb_outputs: int = 1,
-        weights_input: Optional[MatrixInput[float]] = None,
-        weights_output: Optional[MatrixInput[float]] = None,
-        weights_hidden=None,
-        intercepts_hidden: Optional[MatrixInput[float]] = None,
-        intercepts_output: Optional[VectorInput[float]] = None,
-        activation: Optional[MatrixInput[int]] = None,
-    ) -> None:
+    def __call__(self, algorithm: interptools.InterpAlgorithm) -> None:
         ...
 
-    def __call__(self, **kwargs) -> None:
+    def __call__(
+        self,
+        algorithm: Optional[float] = None,
+        velocity: Optional[float] = None,
+        timedelay: Optional[interptools.InterpAlgorithm] = None,
+    ) -> None:
         self._keyword = None
-        velocity = None
-        if "velocity" in kwargs:
+        if velocity is not None:
             self._keyword = "velocity"
-            velocity = float(kwargs["velocity"])
-        elif "timedelay" in kwargs:
+        elif timedelay is not None:
             self._keyword = "timedelay"
-            timedelay = float(kwargs["timedelay"])
             velocity = self._convert_velocity_timedelay(timedelay)
         if velocity is not None:
-            kwargs = dict(
-                weights_input=0.0,
-                weights_output=0.0,
-                intercepts_hidden=0.0,
-                intercepts_output=velocity,
+            algorithm = anntools.ANN(
+                weights_input=(0.0,),
+                weights_output=(0.0,),
+                intercepts_hidden=((0.0,),),
+                intercepts_output=(velocity,),
             )
-        super().__call__(**kwargs)
+        super().__call__(algorithm)
 
     def _convert_velocity_timedelay(self, value: float) -> float:
         return (self.subpars.laen * 1000.0) / (value * 60.0 * 60.0)
 
     def __repr__(self) -> str:
-        if self.shape_outputs == (1,):
-            self._simple_ann.intercepts_output = self.intercepts_output
-            if (self._keyword is not None) and (self == self._simple_ann):
-                value = self.intercepts_output[0]
+        algorithm = self.algorithm
+        if (self.nmb_outputs == 1) and isinstance(algorithm, anntools.ANN):
+            self._simple_ann.intercepts_output = algorithm.intercepts_output
+            if (self._keyword is not None) and (algorithm == self._simple_ann):
+                value = algorithm.intercepts_output[0]
                 if self._keyword == "velocity":
                     return f"{self.name}(velocity={objecttools.repr_(value)})"
                 if self._keyword == "timedelay":

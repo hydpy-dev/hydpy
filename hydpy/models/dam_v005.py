@@ -30,11 +30,10 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-ToDo The following integration tests build on some of the examples
-demonstrating the functionality of model |dam_v001|.
-To achieve comparability, we define identical parameter values, initial
-conditions, and input time series.  The following explanations
-focus on the differences between applications models |dam_v005| and
+The following integration tests build on some of the examples demonstrating the
+functionality of model |dam_v001|.  To achieve comparability, we define identical
+parameter values, initial conditions, and input time series.  The following
+explanations focus on the differences between applications models |dam_v005| and
 |dam_v001|.
 
 The following time-related setup is identical to the one of |dam_v001|:
@@ -122,11 +121,8 @@ conditions precisely as in the |dam_v001| examples:
 
 The following control parameters are common to both models.  We apply the same values:
 
->>> watervolume2waterlevel(weights_input=1.0, weights_output=0.25,
-...                        intercepts_hidden=0.0, intercepts_output=0.0,
-...                        activation=0)
->>> waterlevel2flooddischarge(ann(weights_input=0.0, weights_output=0.0,
-...                               intercepts_hidden=0.0, intercepts_output=0.0))
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> nmblogentries(1)
 >>> remotedischargeminimum(1.4)
@@ -355,10 +351,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> remotedischargesafety(0.0)
 >>> waterlevelminimumthreshold(0.0)
 >>> waterlevelminimumtolerance(0.0)
->>> waterlevel2flooddischarge(ann(
-...     weights_input=1.0, weights_output=2.5,
-...     intercepts_hidden=0.0, intercepts_output=0.0,
-...     activation=0))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys= [0.0, 2.5]))
 >>> neardischargeminimumthreshold(0.0)
 >>> inputs.precipitation.series = [0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -405,7 +398,8 @@ similar to the one of |RequiredRemoteSupply| discussed in the
 from hydpy.core import modeltools
 
 # ...from HydPy
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 
 # ...from dam

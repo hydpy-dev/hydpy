@@ -76,11 +76,8 @@ the input time series, and the parameter values exactly as for |dam_v002|:
 >>> inputs.precipitation.series = 0.0
 >>> inputs.evaporation.series = 0.0
 
->>> watervolume2waterlevel(weights_input=1.0, weights_output=0.25,
-...                        intercepts_hidden=0.0, intercepts_output=0.0,
-...                        activation=0)
->>> waterlevel2flooddischarge(ann(weights_input=0.0, weights_output=0.0,
-...                               intercepts_hidden=0.0, intercepts_output=0.0))
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> neardischargeminimumthreshold(0.2)
 >>> neardischargeminimumtolerance(0.2)
@@ -312,9 +309,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> waterlevelminimumtolerance(0.0)
 >>> waterlevelminimumremotethreshold(0.0)
 >>> waterlevelminimumremotetolerance(0.0)
->>> waterlevel2flooddischarge(ann(weights_input=1.0, weights_output=2.5,
-...                               intercepts_hidden=0.0, intercepts_output=0.0,
-...                               activation=0))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
 >>> inputs.precipitation.series = [0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 >>> inflow.sequences.sim.series = [0.0, 0.0, 5.0, 9.0, 8.0, 5.0, 3.0, 2.0, 1.0, 0.0,
@@ -358,7 +353,8 @@ The following results demonstrate that |dam_v003| calculates the same outflow va
 from hydpy.core import modeltools
 
 # ...from HydPy
-from hydpy.auxs.anntools import ann  # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 
 # ...from dam

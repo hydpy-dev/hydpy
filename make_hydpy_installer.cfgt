@@ -16,7 +16,7 @@ bitness = 64
 [Include]
 pypi_wheels = numpy==[auto]
 	scipy==[auto]
-	typing_extensions==3.7.4
+	typing_extensions==3.10.0.2
 	matplotlib==[auto]
 	cycler==[auto]
 	six==[auto]

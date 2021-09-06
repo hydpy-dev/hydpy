@@ -157,7 +157,7 @@ defined by the MA coefficients 1.0, 1.0, 1.0.
 
     >>> ma.iuh = lambda x: 10.0 if 4.2 < x <= 4.3 else 0.0
     >>> ma.iuh.moment1 = 4.25
-    >>> ma.update_coefs()
+    >>> ma.update_coefs()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     UserWarning: During the determination of the MA coefficients \
@@ -196,12 +196,12 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
     MA(coefs=(1.0,))
     """
 
-    smallest_coeff = 1e-9
+    smallest_coeff: float = 1e-9
     """Smalles MA coefficient to be determined at the end of the response."""
 
     _coefs = None
 
-    def __init__(self, iuh=None, coefs=None):
+    def __init__(self, iuh=None, coefs=None) -> None:
         self.iuh = iuh
         if coefs is not None:
             self.coefs = coefs
@@ -255,9 +255,8 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
                     self._raise_integrationwarning(self.coefs)
                     break  # pragma: no cover
                 raise RuntimeError(
-                    f"Cannot determine the MA coefficients "
-                    f"corresponding to the instantaneous unit "
-                    f"hydrograph `{repr(self.iuh)}`."
+                    f"Cannot determine the MA coefficients corresponding to the "
+                    f"instantaneous unit hydrograph `{repr(self.iuh)}`."
                 )
             if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
                 coefs = numpy.array(coefs)
@@ -268,17 +267,16 @@ integration problem occurred.  Please check the calculated coefficients: 1.0.
 
     def _raise_integrationwarning(self, coefs):
         warnings.warn(
-            f"During the determination of the MA coefficients "
-            f"corresponding to the instantaneous unit hydrograph "
-            f"`{repr(self.iuh)}` a numerical integration problem "
-            f"occurred.  Please check the calculated coefficients: "
+            f"During the determination of the MA coefficients corresponding to the "
+            f"instantaneous unit hydrograph `{repr(self.iuh)}` a numerical integration "
+            f"problem occurred.  Please check the calculated coefficients: "
             f"{objecttools.repr_values(coefs)}."
         )
 
     @property
     def turningpoint(self):
-        """Turning point (index and value tuple) in the recession part of the
-        MA approximation of the instantaneous unit hydrograph."""
+        """Turning point (index and value tuple) in the recession part of the MA
+        approximation of the instantaneous unit hydrograph."""
         coefs = self.coefs
         old_dc = coefs[1] - coefs[0]
         for idx in range(self.order - 2):
@@ -523,7 +521,7 @@ coefficients.
     _ma_coefs = None
     _ar_coefs = None
 
-    def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None):
+    def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None) -> None:
         self.ma = ma_model
         if ar_coefs is not None:
             self.ar_coefs = ar_coefs

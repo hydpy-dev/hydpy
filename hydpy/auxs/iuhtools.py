@@ -445,7 +445,6 @@ keywords were given: d and u.
     def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
         t = numpy.array(t)
         t = numpy.clip(t, 1e-10, numpy.inf)
-        # pylint: disable=invalid-unary-operand-type
         return (
             self.a
             / (t * (numpy.pi * t) ** 0.5)
@@ -478,18 +477,22 @@ class LinearStorageCascade(IUH):
     >>> from hydpy import round_
     >>> round_(lsc.c)
     0.376126
-    >>> import numpy
-    >>> round_(lsc(numpy.array([0.0, 5.0, 10.0, 15.0, 20.0])))
+    >>> round_(lsc([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
 
     Note that we do not use the above equation directly.  Instead, we apply a
-    logarithmic transformation, which allows defining values for parameter
-    |LinearStorageCascade.n|:
+    logarithmic transformation, which allows defining extremely high values for
+    parameter |LinearStorageCascade.n|, resulting in spiky response functions:
 
     >>> round_(LinearStorageCascade(n=10, k=1.0/10)(1.0))
     1.2511
     >>> round_(LinearStorageCascade(n=10000, k=1.0/10000)(1.0))
     39.893896
+
+    >>> round_(LinearStorageCascade(n=10, k=1.0/10)([0.9, 1.0, 1.1]))
+    1.317556, 1.2511, 1.085255
+    >>> round_(LinearStorageCascade(n=10000, k=1.0/10000)([0.9, 1.0, 1.1]))
+    0.0, 39.893896, 0.0
     """
 
     n = PrimaryParameterIUH("n", doc="Number of linear storages [-].")
@@ -516,9 +519,12 @@ class LinearStorageCascade(IUH):
         ...
 
     def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
-        return numpy.exp(
-            self.log_c + (self.n - 1.0) * (numpy.log(t) - self.log_k) - t / self.k
-        )
+        with numpy.errstate(divide="ignore"):
+            return numpy.exp(
+                self.log_c
+                + (self.n - 1.0) * (numpy.log(t) - self.log_k)
+                - numpy.asarray(t) / self.k
+            )
 
     @property
     def moment1(self) -> float:

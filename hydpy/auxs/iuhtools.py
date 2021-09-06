@@ -56,18 +56,18 @@ class ParameterIUH:
             return self.type_(value)
         except BaseException:
             raise TypeError(
-                f"The value `{value}` of type `{type(value).__name__}` could "
-                f"not be converted to type `{self.type_.__name__}` of the "
-                f"instantaneous unit hydrograph parameter `{self.name}`."
+                f"The value `{value}` of type `{type(value).__name__}` could not be "
+                f"converted to type `{self.type_.__name__}` of the instantaneous unit "
+                f"hydrograph parameter `{self.name}`."
             ) from None
 
 
 class PrimaryParameterIUH(ParameterIUH):
-    """Descriptor base class for parameters of instantaneous unit hydrograph
-    functions to be defined by the user.
+    """Descriptor base class for parameters of instantaneous unit hydrograph functions
+    to be defined by the user.
 
-    When a primary parameter value is set or deleted, the master instance is
-    instructed to |IUH.update| all secondary parameter values.
+    When a primary parameter value is set or deleted, the master instance is instructed
+    to |IUH.update| all secondary parameter values.
     """
 
     def __set__(self, obj, value):
@@ -81,8 +81,8 @@ class PrimaryParameterIUH(ParameterIUH):
 
 
 class SecondaryParameterIUH(ParameterIUH):
-    """Descriptor base class for parameters of instantaneous unit hydrograph
-    functions which can be determined automatically."""
+    """Descriptor base class for parameters of instantaneous unit hydrograph functions
+    which can be determined automatically."""
 
     def __set__(self, obj, value):
         value = self._convert_type(value)
@@ -119,11 +119,10 @@ _MetaIUH = MetaIUH("_MetaIUH", (), {})
 class IUH(_MetaIUH):
     """Base class for instantaneous unit hydrograph function objects.
 
-    See class |TranslationDiffusionEquation| for explanations and
-    application examples.
+    See class |TranslationDiffusionEquation| for explanations and application examples.
 
-    For developers: The string representation does also work for
-    parameter-free |IUH| subclasses:
+    For developers: The string representation does also work for parameter-free |IUH|
+    subclasses:
 
     >>> from hydpy.auxs.iuhtools import IUH
     >>> class Test(IUH):
@@ -137,8 +136,7 @@ class IUH(_MetaIUH):
     """Relative stepsize for plotting and analyzing iuh functions."""
 
     smallest_response = 1e-9
-    """Smallest value taken into account for plotting and analyzing iuh
-    functions."""
+    """Smallest value taken into account for plotting and analyzing iuh functions."""
 
     # Overwritten by metaclass:
     _PRIMARY_PARAMETERS = {}

@@ -6,6 +6,7 @@
 
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import itertools
 import types
@@ -29,29 +30,25 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
-from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.auxs import iuhtools
+from hydpy.models.arma import arma_control
+from hydpy.core.typingtools import *
 
-RuleType1 = TypeVar(
-    "RuleType1",
-    bound="Rule",
-)
-RuleType2 = TypeVar(
-    "RuleType2",
-    bound="Rule",
-)
+ParameterType = TypeVar("ParameterType", bound=parametertools.Parameter)
+ParameterAlias = Union[parametertools.Parameter, arma_control.Responses]
+RuleType1 = TypeVar("RuleType1", bound="Rule[ParameterAlias]")
+RuleType2 = TypeVar("RuleType2", bound="Rule[ParameterAlias]")
 
 
 class TargetFunction(Protocol):
-    """Protocol class for the target function required by class
-    |CalibrationInterface|.
+    """Protocol class for the target function required by class |CalibrationInterface|.
 
-    The target functions must calculate and return a floating-point number
-    reflecting the quality of the current parameterisation of the models of
-    the current project.  Often, as in the following example, the target
-    function relies on objective functions as |nse|, applied on the time
-    series of the |Sim| and |Obs| sequences handled by the |HydPy| object:
+    The target functions must calculate and return a floating-point number reflecting
+    the quality of the current parameterisation of the models of the current project.
+    Often, as in the following example, the target function relies on objective
+    functions as |nse|, applied on the time series of the |Sim| and |Obs| sequences
+    handled by the |HydPy| object:
 
     >>> from hydpy import HydPy, nse, TargetFunction
     >>> class Target(TargetFunction):
@@ -71,11 +68,10 @@ class TargetFunction(Protocol):
 class Adaptor(Protocol):
     """Protocol class for defining adoptors required by |Replace| objects.
 
-    Often, one calibration parameter (represented by one |Replace| object)
-    depends on other calibration parameters (represented by other |Replace|
-    objects) or other "real" parameter values.  Please select an existing
-    or define an individual adaptor and assign it to a |Replace| object to
-    introduce such dependencies.
+    Often, one calibration parameter (represented by one |Replace| object) depends on
+    other calibration parameters (represented by other |Replace| objects) or other
+    "real" parameter values.  Please select an existing or define a new adaptor and
+    assign it to a |Replace| object to introduce such dependencies.
 
     See class |SumAdaptor| or class |FactorAdaptor| for concrete examples.
     """
@@ -88,22 +84,21 @@ class Adaptor(Protocol):
 
 
 class SumAdaptor(Adaptor):
-    """Adaptor which calculates the sum of the values of multiple |Rule|
-    objects and assigns it to the value(s) of the target |Parameter| object.
+    """Adaptor, which calculates the sum of the values of multiple |Rule| objects and
+    assigns it to the value(s) of the target |Parameter| object.
 
     Class |SumAdaptor| helps to introduce "larger than" relationships between
-    calibration parameters.  A common use-case is the time of concentration
-    of different runoff components.  The time of concentration of base flow
-    should be larger than the one of direct runoff.  Accordingly, when
-    modelling runoff concentration with linear storages, the recession
-    coefficient of direct runoff should be larger. Principally, we could
-    ensure this during a calibration process by defining two |Rule| objects
-    with fixed non-overlapping parameter ranges.  For example, we could
-    search for the best direct runoff delay between 1 and 5 days and the
-    base flow delay between 5 and 100 days.  We demonstrate this for the
-    recession coefficient parameters |hland_control.K| and |hland_control.K4|
-    of application model |hland_v1| (assuming the nonlinearity parameter
-    |hland_control.Alpha| to be zero):
+    calibration parameters.  A common use case is the time of concentration of
+    different runoff components.  For example, the time of concentration of base flow
+    should be larger than the one of direct runoff.  Accordingly, when modelling runoff
+    concentration with linear storages, the recession coefficient of direct runoff
+    should be larger. Principally, we could ensure this during a calibration process by
+    defining two |Rule| objects with fixed non-overlapping parameter ranges.  For
+    example, we could search for the best direct runoff delay between 1 and 5 days and
+    the base flow delay between 5 and 100 days.  We demonstrate this for the recession
+    coefficient parameters |hland_control.K| and |hland_control.K4| of application
+    model |hland_v1| (assuming the nonlinearity parameter |hland_control.Alpha| to be
+    zero):
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -127,17 +122,15 @@ class SumAdaptor(Adaptor):
     ...     model="hland_v1",
     ... )
 
-    To allow for non-fixed non-overlapping ranges, we can prepare a
-    |SumAdaptor| object, knowing both our |Rule| objects, assign it
-    the direct runoff-related |Rule| object, and, for example, set its
-    lower boundary to zero:
+    To allow for non-fixed non-overlapping ranges, we can prepare a |SumAdaptor| object,
+    knowing both our |Rule| objects, assign it the direct runoff-related |Rule| object,
+    and, for example, set its lower boundary to zero:
 
     >>> k.adaptor = SumAdaptor(k, k4)
     >>> k.lower = 0.0
 
-    Calling method |Replace.apply_value| of the |Replace| objects makes
-    our |SumAdaptor| object apply the sum of the values of all of its
-    |Rule| objects:
+    Calling method |Replace.apply_value| of the |Replace| objects makes our
+    |SumAdaptor| object apply the sum of the values of all of its |Rule| objects:
 
     >>> control = hp.elements.land_dill.model.parameters.control
     >>> k.apply_value()
@@ -146,11 +139,11 @@ class SumAdaptor(Adaptor):
     k(0.6)
     """
 
-    _rules: Tuple["Rule", ...]
+    _rules: Tuple[Rule[parametertools.Parameter], ...]
 
     def __init__(
         self,
-        *rules: "Rule",
+        *rules: Rule[parametertools.Parameter],
     ):
         super().__init__()
         self._rules = tuple(rules)
@@ -163,39 +156,35 @@ class SumAdaptor(Adaptor):
 
 
 class FactorAdaptor(Adaptor):
-    """Adaptor which calculates the product of the value of the parent
-    |Replace| object and the value(s) of a given reference |Parameter| object
-    and assigns it to the value(s) of the target |Parameter| object.
+    """Adaptor, which calculates the product of the value of the parent |Replace|
+    object and the value(s) of a given reference |Parameter| object and assigns it to
+    the value(s) of the target |Parameter| object.
 
-    Class |FactorAdaptor| helps to respect dependencies between model
-    parameters.  If you, for example, aim at calibrating the permanent
-    wilting point (|lland_control.PWP|) of model |lland_v1|, you need to
-    make sure it always agrees with the maximum soil water storage
-    (|lland_control.WMax|).  Especially, one should avoid permanent wilting
-    points larger than total porosity.  Due to the high variability
-    of soil properties within most catchments, it is no real option to
-    define a fixed upper threshold for |lland_control.PWP|.  By using
-    class |FactorAdaptor| you can instead calibrate a multiplication
-    factor.  Setting the bounds of such a factor to 0.0 and 0.5, for example,
-    would result in |lland_control.PWP| values ranging from zero up to half
-    of |lland_control.WMax| for each respective response unit.
+    Class |FactorAdaptor| helps to respect dependencies between model parameters.  If
+    you, for example, aim at calibrating the permanent wilting point
+    (|lland_control.PWP|) of model |lland_v1|, you need to make sure it always agrees
+    with the maximum soil water storage (|lland_control.WMax|).  Especially, one should
+    avoid permanent wilting points larger than total porosity.  Due to the high
+    variability of soil properties within most catchments, it is no real option to
+    define a fixed upper threshold for |lland_control.PWP|.  By using class
+    |FactorAdaptor|, you can instead calibrate a multiplication factor.  Setting the
+    bounds of such a factor to 0.0 and 0.5, for example, would result in
+    |lland_control.PWP| values ranging from zero up to half of |lland_control.WMax| for
+    each respective response unit.
 
-    To show how class |FactorAdaptor| works, we select another use-case
-    based on the `Lahn` example project prepared by function
-    |prepare_full_example_2|:
+    To show how class |FactorAdaptor| works, we select another use-case based on the
+    `Lahn` example project prepared by function |prepare_full_example_2|:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    |hland_v1| calculates the "normal" potential snow-melt with the
-    degree-day factor |hland_control.CFMax|.  For glacial zones, it
-    also calculates a separate potential glacier-melt with the additional
-    degree-day factor |hland_control.GMelt|.  Suppose, we have
-    |hland_control.CFMax| readily available for the different hydrological
-    response units of the Lahn catchment.  We might find it useful to
-    calibrate |hland_control.GMelt| based on the spatial pattern of
-    |hland_control.CFMax|.  Therefore, we first define a |Replace| rule
-    for parameter |hland_control.GMelt|:
+    |hland_v1| calculates the "normal" potential snow-melt with the degree-day factor
+    |hland_control.CFMax|.  For glacial zones, it also calculates a separate potential
+    glacier-melt with the additional degree-day factor |hland_control.GMelt|.  Suppose
+    we have |hland_control.CFMax| readily available for the different hydrological
+    response units of the Lahn catchment.  We might find it useful to calibrate
+    |hland_control.GMelt| based on the spatial pattern of |hland_control.CFMax|.
+    Therefore, we first define an |Replace| rule for parameter |hland_control.GMelt|:
 
     >>> from hydpy import Replace, FactorAdaptor
     >>> gmelt = Replace(
@@ -208,17 +197,15 @@ class FactorAdaptor(Adaptor):
     ...     model="hland_v1",
     ... )
 
-    Second, we initialise a |FactorAdaptor| object based on target
-    rule `gmelt` and our reference parameter |hland_control.CFMax| and
-    assign it our rule object:
+    Second, we initialise a |FactorAdaptor| object based on target rule `gmelt` and our
+    reference parameter |hland_control.CFMax| and assign it our rule object:
 
     >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
 
-    The `Dill` subcatchment, as the whole `Lahn` basin, does not contain
-    any glaciers.  Hence it defines (identical) |hland_control.CFMax|
-    values for the zones of type |hland_constants.FIELD| and
-    |hland_constants.FOREST|, but must not specify any value for
-    |hland_control.GMelt|:
+    The `Dill` subcatchment, as the whole `Lahn` basin, does not contain any glaciers.
+    Hence it defines (identical) |hland_control.CFMax| values for the zones of type
+    |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify any
+    value for |hland_control.GMelt|:
 
     >>> control = hp.elements.land_dill.model.parameters.control
     >>> control.cfmax
@@ -226,75 +213,74 @@ class FactorAdaptor(Adaptor):
     >>> control.gmelt
     gmelt(nan)
 
-    Next, we call method |Replace.apply_value| of the |Replace| object to
-    apply the |FactorAdaptor| object on all relevant |hland_control.GMelt|
-    instances of the `Lahn` catchment:
+    Next, we call method |Replace.apply_value| of the |Replace| object to apply the
+    |FactorAdaptor| object on all relevant |hland_control.GMelt| instances of the `Lahn`
+    catchment:
 
     >>> gmelt.adaptor(control.gmelt)
 
-    The string representation of the |hland_control.GMelt| instance of `Dill`
-    catchment seems to indicate nothing happened:
+    The string representation of the |hland_control.GMelt| instance of the Dill
+    catchment indicates nothing happened:
 
     >>> control.gmelt
     gmelt(nan)
 
-    However, inspecting the individual values of the respective response
-    units reveals the multiplication was successful:
+    However, inspecting the individual values of the respective response units reveals
+    the multiplication was successful:
 
     >>> from hydpy import print_values
     >>> print_values(control.gmelt.values)
     9.11706, 5.470236, 9.11706, 5.470236, 9.11706, 5.470236, 9.11706,
     5.470236, 9.11706, 5.470236, 9.11706, 5.470236
 
-    Calculating values for response units that do not require these
-    values can be misleading.  We can improve the situation by using
-    the masks provided by the respective model, in our example mask
-    |hland_masks.Glacier|.  To make this clearer, we set the  first six
-    response units to |hland_control.ZoneType| |hland_constants.GLACIER|:
+    Calculating values for response units that do not require these values can be
+    misleading.  We can improve the situation by using the masks provided by the
+    respective model, in our example mask |hland_masks.Glacier|.  To make this clearer,
+    we set the  first six response units to |hland_control.ZoneType|
+    |hland_constants.GLACIER|:
 
     >>> from hydpy.models.hland_v1 import *
     >>> control.zonetype(GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER,
     ...                  FIELD, FOREST, ILAKE, FIELD, FOREST, ILAKE)
 
-    We now can assign the |SumAdaptor| object to the direct runoff-related
-    |Replace| object and, for example, set its lower boundary to zero:
+    We now can assign the |SumAdaptor| object to the direct runoff-related |Replace|
+    object and, for example, set its lower boundary to zero:
 
-    Now we create a new |FactorAdaptor| object, handling the same parameters
-    but also the |hland_masks.Glacier| mask:
+    Now we create a new |FactorAdaptor| object, handling the same parameters but also
+    the |hland_masks.Glacier| mask:
 
     >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax", "glacier")
 
-    To be able to see the results of our new adaptor object, we change the
-    values both of our reference parameter and our rule object:
+    To see the results of our new adaptor object, we change the values both of our
+    reference parameter and our rule object:
 
     >>> control.cfmax(field=5.0, forest=3.0, glacier=6.0)
     >>> gmelt.value = 0.5
 
-    The string representation of our target parameter shows that the
-    glacier-related day degree factor of all glacier zones is now half as
-    large as the snow-related one:
+    The string representation of our target parameter shows that the glacier-related
+    day degree factor of all glacier zones is now half as large as the snow-related one:
 
     >>> gmelt.apply_value()
     >>> control.gmelt
     gmelt(3.0)
 
     Note that all remaining values (for zone types |hland_constants.FIELD|,
-    |hland_constants.FOREST|, and |hland_constants.ILAKE| are still the same.
-    This intended behaviour allows calibrating, for example, hydrological
-    response units of different types with different rule objects:
+    |hland_constants.FOREST|, and |hland_constants.ILAKE| are still the same.  This
+    intended behaviour allows calibrating, for example, hydrological response units of
+    different types with different rule objects:
 
     >>> print_values(control.gmelt.values)
     3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 9.11706, 5.470236, 9.11706, 5.470236,
     9.11706, 5.470236
     """
 
-    _rule: "Rule"
+    _rule: Rule[parametertools.Parameter]
     _reference: str
     _mask: Optional[str]
 
     def __init__(
         self,
-        rule: "Rule",
+        rule: Rule[parametertools.Parameter],
         reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
         mask: Optional[
             Union[
@@ -321,21 +307,21 @@ class FactorAdaptor(Adaptor):
             target.value = self._rule.value * ref.value
 
 
-class Rule(abc.ABC):
+class Rule(abc.ABC, Generic[ParameterType]):
     """Base class for defining calibration rules.
 
-    Each |Rule| object relates one calibration parameter with some
-    model parameters.  We select the class |Replace| as a concrete example
-    for the following explanations and use the `Lahn` example project,
-    which we prepare by calling function |prepare_full_example_2|:
+    Each |Rule| object relates one calibration parameter with some model parameters.
+    We select the class |Replace| as a concrete example for the following explanations
+    and use the `Lahn` example project, which we prepare by calling function
+    |prepare_full_example_2|:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     We define a |Rule| object supposed to replace the values of parameter
-    |hland_control.FC| of application model |lland_v1|.  Note that argument
-    `name` is the name of the rule itself, whereas the argument `parameter`
-    is the name of the parameter:
+    |hland_control.FC| of application model |lland_v1|.  Note that argument `name` is
+    the name of the rule itself, whereas the argument `parameter` is the parameter's
+    name:
 
     >>> from hydpy import Replace
     >>> rule = Replace(
@@ -345,8 +331,7 @@ class Rule(abc.ABC):
     ...     model="hland_v1",
     ... )
 
-    The following string representation shows us the full list of available
-    arguments:
+    The following string representation shows us the full list of available arguments:
 
     >>> rule
     Replace(
@@ -379,34 +364,33 @@ class Rule(abc.ABC):
     >>> fc
     fc(200.0)
 
-    Sometimes, one needs to make a difference between the original value
-    to be calibrated and the actually applied value.  Therefore, (only)
-    the |Replace| class allows defining custom "adaptors". Prepare an
-    |Adaptor| function and assign it to the relevant |Replace| object (see
-    the documentation on class |SumAdaptor| or |FactorAdaptor| for more
-    realistic examples):
+    Sometimes, one needs to differentiate between the original value to be calibrated
+    and the actually applied value.  Therefore, (only) the |Replace| class allows
+    defining custom "adaptors". Prepare an |Adaptor| function and assign it to the
+    relevant |Replace| object (see the documentation on class |SumAdaptor| or
+    |FactorAdaptor| for more realistic examples):
 
     >>> rule.adaptor = lambda target: target(2.0*rule.value)
 
-    Now, our rule does not apply the original but the adapted calibration
-    parameter value:
+    Now, our rule does not apply the original but the adapted calibration parameter
+    value:
 
     >>> rule.apply_value()
     >>> fc
     fc(400.0)
 
-    Use method |Rule.reset_parameters| to restore the original states of the
-    affected parameters ("original" here means at the time of initialisation
-    of the |Rule| object):
+    Use method |Rule.reset_parameters| to restore the original states of the affected
+    parameters ("original" here means at the time of initialisation of the |Rule|
+    object):
 
     >>> rule.reset_parameters()
     >>> fc
     fc(206.0)
 
-    The value of parameter |hland_control.FC| is not time-dependent.
-    Any |Options.parameterstep| information given to its |Rule| object
-    is ignored (note that we pass an example parameter object of
-    type |hland_control.FC| instead of the string `fc` this time):
+    The value of parameter |hland_control.FC| is not time-dependent.  Therefore, any
+    |Options.parameterstep| information given to its |Rule| object is ignored (note
+    that we pass an example parameter object of type |hland_control.FC| instead of the
+    string `fc` this time):
 
     >>> Replace(
     ...     name="fc",
@@ -427,9 +411,8 @@ class Rule(abc.ABC):
     )
 
     For time-dependent parameters, the rule queries the current global
-    |Options.parameterstep| value, if you do not specify one explicitly
-    (note that we pass the parameter type |hland_control.PercMax| this
-    time):
+    |Options.parameterstep| value if you do not specify one explicitly (note that we
+    pass the parameter type |hland_control.PercMax| this time):
 
     >>> from hydpy.models.hland.hland_control import PercMax
     >>> rule = Replace(
@@ -485,14 +468,13 @@ class Rule(abc.ABC):
     ... )
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to initialise the `Replace` rule object \
-`percmax`, the following error occurred: Rules which handle time-dependent \
-parameters require information on the parameter timestep size.  Either \
-assign it directly or define it via option `parameterstep`.
+    RuntimeError: While trying to initialise the `Replace` rule object `percmax`, the \
+following error occurred: Rules which handle time-dependent parameters require \
+information on the parameter timestep size.  Either assign it directly or define it \
+via option `parameterstep`.
 
-    With the following definition, the |Rule| object queries all |Element|
-    objects handling |hland_v1| instances from the global |Selections|
-    object `pub.selections`:
+    With the following definition, the |Rule| object queries all |Element| objects
+    handling |hland_v1| instances from the global |Selections| object `pub.selections`:
 
     >>> rule = Replace(
     ...     name="fc",
@@ -503,8 +485,8 @@ assign it directly or define it via option `parameterstep`.
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
-    Alternatively, you can specify selections by passing themselves or their
-    names (the latter requires them to be a member of `pub.selections`):
+    Alternatively, you can specify selections by passing themselves or their names (the
+    latter requires them to be a member of `pub.selections`):
 
     >>> rule = Replace(
     ...     name="fc",
@@ -515,8 +497,8 @@ assign it directly or define it via option `parameterstep`.
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
-    Without using the `model` argument, you must make sure the selected
-    elements handle the correct model instance yourself:
+    Without using the `model` argument, you must ensure the selected elements handle
+    the correct model instance yourself:
 
     >>> Replace(
     ...     name="fc",
@@ -525,9 +507,9 @@ assign it directly or define it via option `parameterstep`.
     ... )
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to initialise the `Replace` rule object \
-`fc`, the following error occurred: Model `hstream_v1` of element \
-`stream_dill_lahn_2` does not define a control parameter named `fc`.
+    RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
+following error occurred: Model `hstream_v1` of element `stream_dill_lahn_2` does not \
+define a control parameter named `fc`.
 
     >>> Replace(
     ...     name="fc",
@@ -538,15 +520,13 @@ assign it directly or define it via option `parameterstep`.
     ... )
     Traceback (most recent call last):
     ...
-    ValueError: While trying to initialise the `Replace` rule object `fc`, \
-the following error occurred: Object `Selections("headwaters", \
-"nonheadwaters")` does not handle any `hstream_v1` model instances.
+    ValueError: While trying to initialise the `Replace` rule object `fc`, the \
+following error occurred: Object `Selections("headwaters", "nonheadwaters")` does not \
+handle any `hstream_v1` model instances.
     """
 
     name: str
-    """The name of the |Rule| object.
-
-    Often, the name of the target parameter, but this is arbitrary."""
+    """The name of the |Rule| object."""
 
     lower: float
     """Lower boundary value.
@@ -563,12 +543,11 @@ the following error occurred: Object `Selections("headwaters", \
     parametername: str
     """The name of the addressed |Parameter| objects."""
 
-    parametertype: Type[parametertools.Parameter]
+    parametertype: Type[ParameterType]
     """The type of the addressed |Parameter| objects."""
 
     elements: devicetools.Elements
-    """The |Element| objects which handle the relevant target |Parameter|
-    instances."""
+    """The |Element| objects which handle the relevant target |Parameter| instances."""
 
     selections: Tuple[str, ...]
     """The names of all relevant |Selection| objects."""
@@ -576,13 +555,13 @@ the following error occurred: Object `Selections("headwaters", \
     _value: float
     _model: Optional[str]
     _parameterstep: Optional[timetools.Period]
-    _original_parameter_values: Tuple[Union[float, numpy.ndarray], ...]
+    _original_parameter_values: Tuple[Union[float, Vector[float], Matrix[float]], ...]
 
     def __init__(
         self,
         *,
         name: str,
-        parameter: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
+        parameter: Union[Type[ParameterType], ParameterType, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -624,32 +603,30 @@ the following error occurred: Object `Selections("headwaters", \
                 )
             if not self.elements:
                 raise ValueError(
-                    f"Object `{selections}` does not handle "
-                    f"any `{self._model}` model instances."
+                    f"Object `{selections}` does not handle any `{self._model}` model "
+                    f"instances."
                 )
             for element in self.elements:
                 control = element.model.parameters.control
                 if not hasattr(control, self.parametername):
                     raise RuntimeError(
-                        f"Model {objecttools.elementphrase(element.model)} "
-                        f"does not define a control parameter named "
-                        f"`{self.parametername}`."
+                        f"Model {objecttools.elementphrase(element.model)} does not "
+                        f"define a control parameter named `{self.parametername}`."
                     )
-            self.parametertype = type(
+            self.parametertype = type(  # type: ignore[assignment]
                 tuple(self.elements)[0].model.parameters.control[self.parametername]
             )
             self.parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to initialise the `{type(self).__name__}` "
-                f"rule object `{name}`"
+                f"While trying to initialise the `{type(self).__name__}` rule object "
+                f"`{name}`"
             )
 
     def _get_original_parameter_values(
         self,
-    ) -> Tuple[Union[float, numpy.ndarray], ...]:
-        # pylint: disable=not-callable
+    ) -> Tuple[Union[float, Vector[float], Matrix[float]], ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
             return tuple(par.revert_timefactor(par.value) for par in self)
 
@@ -657,8 +634,8 @@ the following error occurred: Object `Selections("headwaters", \
     def value(self) -> float:
         """The calibration parameter value.
 
-        Property |Rule.value| ensures that the given value adheres to the
-        defined lower and upper boundaries:
+        Property |Rule.value| ensures that the given value adheres to the defined lower
+        and upper boundaries:
 
         >>> from hydpy import Replace
         >>> from hydpy.examples import prepare_full_example_2
@@ -676,16 +653,16 @@ the following error occurred: Object `Selections("headwaters", \
         >>> rule.value
         50.0
 
-        With option |Options.warntrim| enabled (the default), property
-        |Rule.value| also emits a warning like the following:
+        With option |Options.warntrim| enabled (the default), property |Rule.value|
+        also emits a warning like the following:
 
         >>> with pub.options.warntrim(True):
         ...     rule.value = 300.0
         Traceback (most recent call last):
         ...
-        UserWarning: The value of the `Replace` object `fc` must not be \
-smaller than `50.0` or larger than `200.0`, but the given value is `300.0`.  \
-Applying the trimmed value `200.0` instead.
+        UserWarning: The value of the `Replace` object `fc` must not be smaller than \
+`50.0` or larger than `200.0`, but the given value is `300.0`.  Applying the trimmed \
+value `200.0` instead.
         >>> rule.value
         200.0
         """
@@ -703,11 +680,10 @@ Applying the trimmed value `200.0` instead.
             if hydpy.pub.options.warntrim:
                 repr_ = objecttools.repr_
                 warnings.warn(
-                    f"The value of the `{type(self).__name__}` object "
-                    f"`{self}` must not be smaller than `{repr_(self.lower)}` "
-                    f"or larger than `{repr_(self.upper)}`, but the "
-                    f"given value is `{repr_(value)}`.  Applying the trimmed "
-                    f"value `{repr_(self._value)}` instead."
+                    f"The value of the `{type(self).__name__}` object `{self}` must "
+                    f"not be smaller than `{repr_(self.lower)}` or larger than "
+                    f"`{repr_(self.upper)}`, but the given value is `{repr_(value)}`.  "
+                    f"Applying the trimmed value `{repr_(self._value)}` instead."
                 )
 
     @abc.abstractmethod
@@ -739,7 +715,6 @@ Applying the trimmed value `200.0` instead.
         >>> fc
         fc(206.0)
         """
-        # pylint: disable=not-callable
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
                 parameter(orig)
@@ -747,8 +722,8 @@ Applying the trimmed value `200.0` instead.
     def _get_parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
-        For non-time-dependent parameters, property |Rule.parameterstep|
-        is (usually) |None|.
+        For non-time-dependent parameters, property |Rule.parameterstep| is (usually)
+        |None|.
         """
         return self._parameterstep
 
@@ -765,10 +740,9 @@ Applying the trimmed value `200.0` instead.
                     value.check()
                 except RuntimeError:
                     raise RuntimeError(
-                        "Rules which handle time-dependent parameters "
-                        "require information on the parameter timestep "
-                        "size.  Either assign it directly or define "
-                        "it via option `parameterstep`."
+                        "Rules which handle time-dependent parameters require "
+                        "information on the parameter timestep size.  Either assign "
+                        "it directly or define it via option `parameterstep`."
                     ) from None
             self._parameterstep = timetools.Period(value)
 
@@ -779,8 +753,8 @@ Applying the trimmed value `200.0` instead.
         prefix: str,
         indent: int = 0,
     ) -> str:
-        """Return a string representation of the actual |Rule| object
-        prefixed with the given string."""
+        """Return a string representation of the actual |Rule| object prefixed with the
+        given string."""
 
         def _none_or_string(obj: object) -> str:
             return f'"{obj}"' if obj else str(obj)
@@ -810,7 +784,7 @@ Applying the trimmed value `200.0` instead.
     def __str__(self) -> str:
         return self.name
 
-    def __iter__(self) -> Iterator[parametertools.Parameter]:
+    def __iter__(self) -> Iterator[ParameterType]:
         for element in self.elements:
             yield getattr(
                 element.model.parameters.control,
@@ -818,19 +792,18 @@ Applying the trimmed value `200.0` instead.
             )
 
 
-class Replace(Rule):
-    """|Rule| class which simply replaces the current model parameter
-    value(s) with the current calibration parameter value.
+class Replace(Rule[parametertools.Parameter]):
+    """|Rule| class, which simply replaces the current model parameter value(s) with
+    the current calibration parameter value.
 
     See the documentation on class |Rule| for further information.
     """
 
     adaptor: Optional[Adaptor] = None
-    """An optional function object for customising individual calibration
-    strategies.
+    """An optional function object for customising individual calibration strategies.
 
-    See the documentation on the classes |Rule|, |SumAdaptor|, and 
-    |FactorAdaptor| for further information.
+    See the documentation on the classes |Rule|, |SumAdaptor|, and |FactorAdaptor| for 
+    further information.
     """
 
     def apply_value(self) -> None:
@@ -847,17 +820,16 @@ class Replace(Rule):
                     parameter(self.value)
 
 
-class Add(Rule):
-    """|Rule| class which adds its calibration delta to the original model
-    parameter value(s).
+class Add(Rule[parametertools.Parameter]):
+    """|Rule| class, which adds its calibration delta to the original model parameter
+    value(s).
 
-    Please read the examples of the documentation on class |Rule| first.
-    Here, we modify some of these examples to show the unique features
-    of class |Add|.
+    Please read the examples of the documentation on class |Rule| first.  Here, we
+    modify some of these examples to show the unique features of class |Add|.
 
-    The first example deals with the non-time-dependent parameter
-    |hland_control.FC|.  The following |Add| object adds its current
-    value to the original value of the parameter:
+    The first example deals with the non-time-dependent parameter |hland_control.FC|.
+    The following |Add| object adds its current value to the original value of the
+    parameter:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -876,10 +848,9 @@ class Add(Rule):
     >>> fc
     fc(306.0)
 
-    The second example deals with the time-dependent parameter
-    |hland_control.PercMax| and shows that everything works even for
-    situations where the actual |Options.parameterstep| (2 days) differs
-    from the current |Options.simulationstep| (1 day):
+    The second example deals with the time-dependent parameter |hland_control.PercMax|
+    and shows that everything works even when the actual |Options.parameterstep| (2
+    days) differs from the current |Options.simulationstep| (1 day):
 
     >>> rule = Add(
     ...     name="percmax",
@@ -897,25 +868,22 @@ class Add(Rule):
     """
 
     def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter|
-        objects."""
-        # pylint: disable=not-callable
+        """Apply the current (adapted) value on the relevant |Parameter| objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
                 parameter(self.value + orig)
 
 
-class Multiply(Rule):
-    """|Rule| class which multiplies the original model parameter value(s)
-    by its calibration factor.
+class Multiply(Rule[parametertools.Parameter]):
+    """|Rule| class, which multiplies the original model parameter value(s) by its
+    calibration factor.
 
-    Please read the examples of the documentation on class |Rule| first.
-    Here, we modify some of these examples to show the unique features
-    of class |Multiply|.
+    Please read the examples of the documentation on class |Rule| first.  Here, we
+    modify some of these examples to show the unique features of class |Multiply|.
 
-    The first example deals with the non-time-dependent parameter
-    |hland_control.FC|.  The following |Multiply| object multiplies the
-    original value of the parameter by its current calibration factor:
+    The first example deals with the non-time-dependent parameter |hland_control.FC|.
+    The following |Multiply| object multiplies the original value of the parameter by
+    its current calibration factor:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -933,10 +901,10 @@ class Multiply(Rule):
     >>> fc
     fc(412.0)
 
-    The second example deals with the time-dependent parameter
-    |hland_control.PercMax| and shows that everything works even for
-    situations where the actual |Options.parameterstep| (2 days) differs
-    from the current |Options.simulationstep| (1 day):
+    The second example deals with the time-dependent parameter |hland_control.PercMax|
+    and shows that everything works even for situations where the actual
+    |Options.parameterstep| (2 days) differs from the current |Options.simulationstep|
+    (1 day):
 
     >>> rule = Multiply(
     ...     name="percmax",
@@ -954,33 +922,30 @@ class Multiply(Rule):
     """
 
     def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter|
-        objects."""
-        # pylint: disable=not-callable
+        """Apply the current (adapted) value on the relevant |Parameter| objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
                 parameter(self.value * orig)
 
 
 class CalibrationInterface(Generic[RuleType1]):
-    """Interface for the coupling of *HydPy* to optimisation libraries like
-    `NLopt`_.
+    """Interface for the coupling of *HydPy* to optimisation libraries like `NLopt`_.
 
-    Essentially, class |CalibrationInterface| is supposed for the structured
-    handling of multiple objects of the different |Rule| subclasses.  Hence,
-    please read the documentation on class |Rule| before continuing, on
-    which we base the following explanations.
+    Essentially, class |CalibrationInterface| is supposed for the structured handling
+    of multiple objects of the different |Rule| subclasses.  Hence, please read the
+    documentation on class |Rule| before continuing, on which we base the following
+    explanations.
 
     We work with the `Lahn` example project again:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    First, we create a |CalibrationInterface| object.  Initially, it needs
-    to know the relevant |HydPy| object and the target or objective function
-    (here, we define the target function sloppily via the `lambda` statement;
-    see the documentation on the protocol class |TargetFunction| for a more
-    formal definition and further explanations):
+    First, we create a |CalibrationInterface| object.  Initially, it needs to know the
+    relevant |HydPy| object and the target or objective function (here, we define the
+    target function sloppily via the `lambda` statement; see the documentation on the
+    protocol class |TargetFunction| for a more formal definition and further
+    explanations):
 
     >>> from hydpy import CalibrationInterface, nse
     >>> ci = CalibrationInterface(
@@ -988,9 +953,9 @@ class CalibrationInterface(Generic[RuleType1]):
     ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
     ... )
 
-    Next, we use method |CalibrationInterface.make_rules|, which generates
-    one |Replace| rule related to parameter |hland_control.FC| and another
-    one related to parameter |hland_control.PercMax| in one step:
+    Next, we use method |CalibrationInterface.make_rules|, which generates one
+    |Replace| rule related to parameter |hland_control.FC| and another one related to
+    parameter |hland_control.PercMax| in one step:
 
     >>> from hydpy import Replace
     >>> ci.make_rules(
@@ -1028,9 +993,9 @@ class CalibrationInterface(Generic[RuleType1]):
         selections=("complete",),
     )
 
-    You can also add existing rules via method |CalibrationInterface.add_rules|.
-    We add one for calibrating parameter |hstream_control.Damp| of application
-    model |hstream_v1|:
+    You can also add existing rules via method |CalibrationInterface.add_rules|.  We
+    add one for calibrating parameter |hstream_control.Damp| of application model
+    |hstream_v1|:
 
     >>> len(ci)
     2
@@ -1065,8 +1030,8 @@ class CalibrationInterface(Generic[RuleType1]):
     >>> ci.FC
     Traceback (most recent call last):
     ...
-    AttributeError: The actual calibration interface does neither \
-handle a normal attribute nor a rule object named `FC`.
+    AttributeError: The actual calibration interface does neither handle a normal \
+attribute nor a rule object named `FC`.
 
     >>> ci["damp"]
     Replace(
@@ -1083,11 +1048,11 @@ handle a normal attribute nor a rule object named `FC`.
     >>> ci["Damp"]
     Traceback (most recent call last):
     ...
-    KeyError: 'The actual calibration interface does not handle a \
-rule object named `Damp`.'
+    KeyError: 'The actual calibration interface does not handle a rule object named \
+`Damp`.'
 
-    The following properties return consistently sorted information on
-    the handles |Rule| objects:
+    The following properties return consistently sorted information on the handles
+    |Rule| objects:
 
     >>> ci.names
     ('fc', 'percmax', 'damp')
@@ -1104,8 +1069,8 @@ rule object named `Damp`.'
     >>> ci.values
     (100.0, 5.0, 0.3)
 
-    For the following examples, we perform a simulation run and assign
-    the values of the simulated time-series to the observed series:
+    For the following examples, we perform a simulation run and assign the values of
+    the simulated time series to the observed series:
 
     >>> conditions = hp.conditions
     >>> hp.simulate()
@@ -1113,10 +1078,10 @@ rule object named `Damp`.'
     ...     node.sequences.obs.series = node.sequences.sim.series
     >>> hp.conditions = conditions
 
-    As the agreement between the simulated and the "observed" time-series is
-    perfect all four gauges, method |CalibrationInterface.calculate_likelihood|
-    returns the highest possible sum of four |nse| values and also stores it
-    under the attribute `result`:
+    As the agreement between the simulated and the "observed" time-series is perfect
+    for all four gauges, method |CalibrationInterface.calculate_likelihood| returns the
+    highest possible sum of four |nse| values and also stores it under the attribute
+    `result`:
 
     >>> from hydpy import round_
     >>> round_(ci.calculate_likelihood())
@@ -1124,10 +1089,9 @@ rule object named `Damp`.'
     >>> round_(ci.result)
     4.0
 
-    When performing a manual calibration, it might be convenient to use
-    method |CalibrationInterface.apply_values|.  To explain how it works,
-    we first show the values of the relevant parameters of some randomly
-    selected model instances:
+    When performing a manual calibration, it might be convenient to use method
+    |CalibrationInterface.apply_values|.  To explain how it works, we first show the
+    values of the relevant parameters of some randomly selected model instances:
 
     >>> stream = hp.elements.stream_lahn_1_lahn_2.model
     >>> stream.parameters.control
@@ -1144,12 +1108,11 @@ rule object named `Damp`.'
     >>> land.parameters.control.percmax
     percmax(1.02978)
 
-    Method |CalibrationInterface.apply_values| of class |CalibrationInterface|
-    calls the method |Rule.apply_value| of all handled |Rule| objects, performs
-    some preparations (for example, it derives the values of the secondary
-    parameters (see parameter |hstream_derived.NmbSegments|), executes a
-    simulation run, calls method |CalibrationInterface.calculate_likelihood|,
-    and returns the result:
+    Method |CalibrationInterface.apply_values| of class |CalibrationInterface| calls
+    the method |Rule.apply_value| of all handled |Rule| objects, performs some
+    preparations (for example, it derives the values of the secondary parameters (see
+    parameter |hstream_derived.NmbSegments|), executes a simulation run, calls method
+    |CalibrationInterface.calculate_likelihood|, and returns the result:
 
     >>> result = ci.apply_values()
     >>> stream.parameters.control
@@ -1165,14 +1128,13 @@ rule object named `Damp`.'
     >>> land.parameters.control.percmax
     percmax(5.0)
 
-    Due to the changes in our parameter values, our simulation is not
-    "perfect" anymore:
+    Due to the changes in our parameter values, our simulation is not "perfect" anymore:
 
     >>> round_(ci.result)
     1.605136
 
-    Use method |CalibrationInterface.reset_parameters| to restore the initial
-    states of all affected parameters:
+    Use method |CalibrationInterface.reset_parameters| to restore the initial states of
+    all affected parameters:
 
     >>> ci.reset_parameters()
     >>> stream.parameters.control
@@ -1198,7 +1160,7 @@ rule object named `Damp`.'
 
     Note the `perform_simulation` argument of method
     |CalibrationInterface.apply_values|, which allows changing the model parameter
-    values and updating the |HydPy| object only without to trigger a simulation run
+    values and updating the |HydPy| object only without triggering a simulation run
     (and to calculate and return a new likelihood value):
 
     >>> ci.apply_values(perform_simulation=False)
@@ -1215,11 +1177,11 @@ rule object named `Damp`.'
     >>> land.parameters.control.percmax
     percmax(5.0)
 
-    Optimisers, like those implemented in `NLopt`_, often provide their new
-    parameter estimates via vectors.  Method
-    |CalibrationInterface.perform_calibrationstep| accepts such vectors and
-    updates the handled |Rule| objects accordingly.  After that, it performs
-    the same steps as described for method |CalibrationInterface.apply_values|:
+    Optimisers, like those implemented in `NLopt`_, often provide their new parameter
+    estimates via vectors.  Method |CalibrationInterface.perform_calibrationstep|
+    accepts such vectors and updates the handled |Rule| objects accordingly.  After
+    that, it performs the same steps as described for method
+    |CalibrationInterface.apply_values|:
 
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3]))
     1.605136
@@ -1238,8 +1200,8 @@ rule object named `Damp`.'
     >>> land.parameters.control.percmax
     percmax(5.0)
 
-    Method |CalibrationInterface.perform_calibrationstep| writes intermediate
-    results into a log file, if available.  Prepares it beforehand via method
+    Method |CalibrationInterface.perform_calibrationstep| writes intermediate results
+    into a log file, if available.  Prepares it beforehand via method
     |CalibrationInterface.prepare_logfile|:
 
     >>> with TestIO():
@@ -1248,9 +1210,8 @@ rule object named `Damp`.'
     ...                        documentation="Just a doctest example.")
 
     To continue "manually", we now can call method
-    |CalibrationInterface.update_logfile| to write the lastly calculated
-    efficiency and the corresponding calibration parameter values to the
-    log file:
+    |CalibrationInterface.update_logfile| to write the lastly calculated efficiency and
+    the corresponding calibration parameter values to the log file:
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
     ...     ci.update_logfile()
@@ -1262,9 +1223,9 @@ rule object named `Damp`.'
     1.605136      100.0 5.0     0.3
     <BLANKLINE>
 
-    For automatic calibration, one needs a calibration algorithm like the
-    following, which simply checks the lower and upper boundaries as well
-    as the initial values of all |Rule| objects:
+    For automatic calibration, one needs a calibration algorithm like the following,
+    which simply checks the lower and upper boundaries and the initial values of all
+    |Rule| objects:
 
     >>> def find_max(function, lowers, uppers, inits):
     ...     best_result = -999.0
@@ -1276,9 +1237,9 @@ rule object named `Damp`.'
     ...             best_parameters = values
     ...     return best_parameters
 
-    Now we can assign method |CalibrationInterface.perform_calibrationstep|
-    to this oversimplified optimiser, which then returns the best examined
-    calibration parameter values:
+    Now we can assign method |CalibrationInterface.perform_calibrationstep| to this
+    oversimplified optimiser, which then returns the best examined calibration
+    parameter values:
 
     >>> with TestIO():
     ...     find_max(function=ci.perform_calibrationstep,
@@ -1287,8 +1248,8 @@ rule object named `Damp`.'
     ...              inits=ci.values)
     (200.0, 10.0, 0.5)
 
-    The log file now contains one line for our old result and three lines
-    for the results of our optimiser:
+    The log file now contains one line for our old result and three lines for the
+    results of our optimiser:
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
     ...     print(open("example_calibration.log").read())
@@ -1303,10 +1264,9 @@ rule object named `Damp`.'
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
-    |CalibrationInterface.read_logfile|, which automatically selects the
-    best calibration result.  Therefore, it needs to know that the highest
-    result is the best, which we indicate by setting argument `maximisation`
-    to |True|:
+    |CalibrationInterface.read_logfile|, which automatically selects the best
+    calibration result.  Therefore, it needs to know that the highest result is the
+    best, which we indicate by setting argument `maximisation` to |True|:
 
     >>> with TestIO():
     ...     ci.read_logfile(
@@ -1325,8 +1285,7 @@ rule object named `Damp`.'
     2.313934
 
     On the contrary, if we set argument `maximisation` to |False|, method
-    |CalibrationInterface.read_logfile| returns the worst result in our
-    example:
+    |CalibrationInterface.read_logfile| returns the worst result in our example:
 
     >>> with TestIO():
     ...     ci.read_logfile(
@@ -1345,8 +1304,8 @@ rule object named `Damp`.'
     -0.710211
 
     To prevent errors due to different parameter step-sizes, method
-    |CalibrationInterface.read_logfile| raises the following error whenever
-    it detects inconsistencies:
+    |CalibrationInterface.read_logfile| raises the following error whenever it detects
+    inconsistencies:
 
     >>> ci.percmax.parameterstep = "2d"
     >>> with TestIO():
@@ -1356,12 +1315,11 @@ rule object named `Damp`.'
     ...     )
     Traceback (most recent call last):
     ...
-    RuntimeError: The current parameterstep of the `Replace` rule \
-`percmax` (`2d`) does not agree with the one documentated in log file \
-`example_calibration.log` (`1d`).
+    RuntimeError: The current parameterstep of the `Replace` rule `percmax` (`2d`) \
+does not agree with the one documentated in log file `example_calibration.log` (`1d`).
 
-    Method |CalibrationInterface.read_logfile| reports inconsistent rule
-    names as follows:
+    Method |CalibrationInterface.read_logfile| reports inconsistent rule names as
+    follows:
 
     >>> ci.remove_rules(ci.percmax)
     >>> with TestIO():
@@ -1371,13 +1329,13 @@ rule object named `Damp`.'
     ...     )
     Traceback (most recent call last):
     ...
-    RuntimeError: The names of the rules handled by the actual calibration \
-interface (damp and fc) do not agree with the names in the header of logfile \
+    RuntimeError: The names of the rules handled by the actual calibration interface \
+(damp and fc) do not agree with the names in the header of logfile \
 `example_calibration.log` (damp, fc, and percmax).
 
-    The last consistency check is optional.  Set argument `check` to |False|
-    to force method |CalibrationInterface.read_logfile| to query all available
-    data instead of raising an error:
+    The last consistency check is optional.  Set argument `check` to |False| to force
+    method |CalibrationInterface.read_logfile| to query all available data instead of
+    raising an error:
 
     >>> ci.add_rules(
     ...     Replace(
@@ -1407,13 +1365,12 @@ interface (damp and fc) do not agree with the names in the header of logfile \
     """
 
     result: Optional[float]
-    """The last result calculated by the target function."""
+    """The last result, calculated by the target function."""
     conditions: hydpytools.ConditionsType
     """The |HydPy.conditions| of the given |HydPy| object.
 
-    |CalibrationInterface| queries the conditions during its initialisation 
-    and uses them later to reset all relevant conditions before each new 
-    simulation run.
+    |CalibrationInterface| queries the conditions during its initialisation and uses 
+    them later to reset all relevant conditions before each new simulation run.
     """
     _logfilepath: Optional[str]
     _hp: hydpytools.HydPy
@@ -1463,9 +1420,8 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         ...     ),
         ... )
 
-        Note that method |CalibrationInterface.add_rules| might change the
-        number of |Element| objects relevant for the |CalibrationInterface|
-        object:
+        Note that method |CalibrationInterface.add_rules| might change the number of
+        |Element| objects relevant for the |CalibrationInterface| object:
 
         >>> damp = Replace(
         ...     name="damp",
@@ -1503,12 +1459,12 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         self,
         name: str,
         type_: Optional[Type[RuleType2]] = None,
-    ) -> Rule:
+    ) -> Rule[ParameterAlias]:
         """Return a |Rule| object (of a specific type).
 
         Method |CalibrationInterface.get_rule| is a more typesafe alternative to
         simple keyword access. Besides the name of the required |Rule| object, pass
-        its subclass, to convince your IDE (and yourself) that the returned rule
+        its subclass to convince your IDE (and yourself) that the returned rule
         follows this more specific type:
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1535,8 +1491,8 @@ interface (damp and fc) do not agree with the names in the header of logfile \
         >>> ci.get_rule("Fc", Replace).name
         Traceback (most recent call last):
         ...
-        RuntimeError: The actual calibration interface does not handle a rule \
-object named `Fc`.
+        RuntimeError: The actual calibration interface does not handle a rule object \
+named `Fc`.
 
         >>> ci.get_rule("fc", Replace).name
         'fc'
@@ -1544,26 +1500,25 @@ object named `Fc`.
         >>> ci.get_rule("fc", Add).name
         Traceback (most recent call last):
         ...
-        RuntimeError: The actual calibration interface does not handle a rule \
-object named `fc` of type `Add`.
+        RuntimeError: The actual calibration interface does not handle a rule object \
+named `fc` of type `Add`.
         """
         try:
             rule = self._rules[name]
         except KeyError:
             raise RuntimeError(
-                f"The actual calibration interface does not handle "
-                f"a rule object named `{name}`."
+                f"The actual calibration interface does not handle a rule object "
+                f"named `{name}`."
             ) from None
         if (type_ is None) or isinstance(rule, type_):
             return rule
         raise RuntimeError(
-            f"The actual calibration interface does not handle a "
-            f"rule object named `{name}` of type `{type_.__name__}`."
+            f"The actual calibration interface does not handle a rule object named "
+            f"`{name}` of type `{type_.__name__}`."
         )
 
     def remove_rules(self, *rules: Union[str, RuleType1]) -> None:
-        """Remove some |Rule| objects from the actual |CalibrationInterface|
-        object.
+        """Remove some |Rule| objects from the actual |CalibrationInterface| object.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1594,10 +1549,9 @@ object named `fc` of type `Add`.
         ...     )
         ... )
 
-        You can remove each rule either by passing itself or its name (note
-        that method |CalibrationInterface.remove_rules| might change the
-        number of |Element| objects relevant for the |CalibrationInterface|
-        object):
+        You can remove each rule either by passing itself or its name (note that method
+        |CalibrationInterface.remove_rules| might change the number of |Element|
+        objects relevant for the |CalibrationInterface| object):
 
         >>> len(ci._elements)
         7
@@ -1619,8 +1573,8 @@ object named `fc` of type `Add`.
         >>> ci.remove_rules("fc")
         Traceback (most recent call last):
         ...
-        RuntimeError: The actual calibration interface object does not handle \
-a rule object named `fc`.
+        RuntimeError: The actual calibration interface object does not handle a rule \
+object named `fc`.
         """
         for rule in rules:
             rulename = getattr(rule, "name", rule)
@@ -1628,8 +1582,8 @@ a rule object named `fc`.
                 del self._rules[rulename]
             except KeyError:
                 raise RuntimeError(
-                    f"The actual calibration interface object does "
-                    f"not handle a rule object named `{rulename}`."
+                    f"The actual calibration interface object does not handle a rule "
+                    f"object named `{rulename}`."
                 ) from None
         self._update_elements_when_deleting_a_rule()
 
@@ -1643,9 +1597,7 @@ a rule object named `fc`.
         values: Sequence[float],
         lowers: Sequence[float],
         uppers: Sequence[float],
-        parametersteps: typingtools.Sequence1[
-            Optional[timetools.PeriodConstrArg]
-        ] = None,
+        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
         model: Optional[Union[types.ModuleType, str]] = None,
         selections: Literal[None] = None,
     ) -> None:
@@ -1661,9 +1613,7 @@ a rule object named `fc`.
         values: Sequence[float],
         lowers: Sequence[float],
         uppers: Sequence[float],
-        parametersteps: typingtools.Sequence1[
-            Optional[timetools.PeriodConstrArg]
-        ] = None,
+        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
         model: Optional[Union[types.ModuleType, str]] = None,
         selections: Iterable[Union[selectiontools.Selection, str]],
         product: bool = False,
@@ -1713,17 +1663,15 @@ a rule object named `fc`.
         values: Optional[Sequence[float]] = None,
         lowers: Optional[Sequence[float]] = None,
         uppers: Optional[Sequence[float]] = None,
-        parametersteps: typingtools.Sequence1[
-            Optional[timetools.PeriodConstrArg]
-        ] = None,
+        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
         model: Optional[Union[types.ModuleType, str]] = None,
         selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
         product: bool = False,
     ) -> None:
         """Create and store new |Rule| objects.
 
-        Please see the main documentation on class |CalibrationInterface| first,
-        from which we borrow the general setup:
+        Please see the main documentation on class |CalibrationInterface| first, from
+        which we borrow the general setup:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1737,8 +1685,8 @@ a rule object named `fc`.
         Here, we show only the supplemental features of method
         |CalibrationInterface.make_rules| in some brevity.
 
-        Method |CalibrationInterface.make_rules| checks that all given
-        sequences have the same length:
+        Method |CalibrationInterface.make_rules| checks that all given sequences have
+        the same length:
 
         >>> from hydpy import Replace
         >>> ci.make_rules(
@@ -1753,11 +1701,11 @@ a rule object named `fc`.
         ... )
         Traceback (most recent call last):
         ...
-        ValueError: When creating rules via method `make_rules`, all given \
-sequences must be of equal length.
+        ValueError: When creating rules via method `make_rules`, all given sequences \
+must be of equal length.
 
-        The separate handling of the specifications of all calibration parameters
-        is error-prone.  For more safety and convenience, you can bundle all
+        The separate handling of the specifications of all calibration parameters is
+        error-prone.  For more safety and convenience, you can bundle all
         specifications within a |CalibSpecs| object instead and pass them at once:
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -1788,8 +1736,8 @@ parameterstep="1d"
         )
         >>> ci.remove_rules("fc", "percmax")
 
-        You are free also to use the individual arguments (e.g. `names`) to
-        override the related specifications defined by the |CalibSpecs| object:
+        You are free also to use the individual arguments (e.g. `names`) to override
+        the related specifications defined by the |CalibSpecs| object:
 
         >>> ci.make_rules(
         ...     rule=Replace,
@@ -1811,8 +1759,8 @@ parameterstep="1d"
         )
         >>> ci.remove_rules("FC", "PERCMAX")
 
-        Method |CalibrationInterface.make_rules| raises the following error if
-        you neither pass a |CalibSpecs| object nor the complete list of individual
+        Method |CalibrationInterface.make_rules| raises the following error if you
+        neither pass a |CalibSpecs| object nor the complete list of individual
         calibration parameter specifications:
 
         >>> ci.make_rules(
@@ -1830,9 +1778,9 @@ parameterstep="1d"
 `CalibSpecs` object or provide complete information for the following arguments: \
 names, parameters, values, lowers, and uppers.
 
-        You can run method |CalibrationInterface.make_rules| in "product mode",
-        meaning that its execution results in distinct |Rule| objects for all
-        combinations of the given calibration parameters and selections:
+        You can run method |CalibrationInterface.make_rules| in "product mode", meaning
+        that its execution results in distinct |Rule| objects for all combinations of
+        the given calibration parameters and selections:
 
         >>> ci.make_rules(
         ...     rule=Replace,
@@ -1863,8 +1811,8 @@ names, parameters, values, lowers, and uppers.
         >>> ci["fc_nonheadwaters"].selections
         ('nonheadwaters',)
 
-        Trying to run in "product mode" without defining the target selections
-        results in the following error message:
+        Trying to run in "product mode" without defining the target selections results
+        in the following error message:
 
         >>> ci.make_rules(
         ...     rule=Replace,
@@ -1888,10 +1836,10 @@ objects via argument `selections`.
                 or (uppers is None)
             ):
                 raise TypeError(
-                    "When creating rules via method `make_rules`, you must pass "
-                    "a `CalibSpecs` object or provide complete information for "
-                    "the following arguments: names, parameters, values, lowers, "
-                    "and uppers."
+                    "When creating rules via method `make_rules`, you must pass a "
+                    "`CalibSpecs` object or provide complete information for the "
+                    "following arguments: names, parameters, values, lowers, and "
+                    "uppers."
                 )
         else:
             if names is None:
@@ -1924,8 +1872,8 @@ objects via argument `selections`.
             == len(parametersteps)
         ):
             raise ValueError(
-                "When creating rules via method `make_rules`, all "
-                "given sequences must be of equal length."
+                "When creating rules via method `make_rules`, all given sequences "
+                "must be of equal length."
             )
         nmb_parameters = len(parameters_)
         selections2: Iterable[Optional[Iterable[Union[selectiontools.Selection, str]]]]
@@ -1933,8 +1881,8 @@ objects via argument `selections`.
             if selections is None:
                 raise TypeError(
                     'When creating rules via method `make_rules` in "product mode" '
-                    "(with the argument `product` being `True`), you must supply "
-                    "all target selection objects via argument `selections`."
+                    "(with the argument `product` being `True`), you must supply all "
+                    "target selection objects via argument `selections`."
                 )
             selections = tuple(selections)
             names = tuple(
@@ -1976,12 +1924,12 @@ objects via argument `selections`.
     ) -> None:
         """Prepare a log file.
 
-        Use argument `objectivefunction` to describe the |TargetFunction| used
-        for calculating the efficiency and argument `documentation` to add
-        some information to the header of the logfile.
+        Use argument `objectivefunction` to describe the |TargetFunction| used for
+        calculating the efficiency and argument `documentation` to add some information
+        to the header of the logfile.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         self._logfilepath = logfilepath
         with open(logfilepath, "w", encoding=config.ENCODING) as logfile:
@@ -2002,8 +1950,8 @@ objects via argument `selections`.
     ) -> None:
         """Update the current log file, if available.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         if self._logfilepath:
             with open(self._logfilepath, "a", encoding=config.ENCODING) as logfile:
@@ -2021,8 +1969,8 @@ objects via argument `selections`.
     ) -> None:
         """Read the log file with the given file path.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         with open(logfilepath, encoding=config.ENCODING) as logfile:
             # pylint: disable=not-an-iterable
@@ -2044,10 +1992,9 @@ objects via argument `selections`.
                     parameterstep = timetools.Period(parameterstep)
                 if parameterstep != rule.parameterstep:
                     raise RuntimeError(
-                        f"The current parameterstep of the "
-                        f"`{type(rule).__name__}` rule `{rule.name}` "
-                        f"(`{rule.parameterstep}`) does not agree with the "
-                        f"one documentated in log file `{self._logfilepath}` "
+                        f"The current parameterstep of the `{type(rule).__name__}` "
+                        f"rule `{rule.name}` (`{rule.parameterstep}`) does not agree "
+                        f"with the one documentated in log file `{self._logfilepath}` "
                         f"(`{parameterstep}`)."
                     )
                 idx2rule[idx] = rule
@@ -2059,9 +2006,9 @@ objects via argument `selections`.
                 enumeration = objecttools.enumeration
                 raise RuntimeError(
                     f"The names of the rules handled by the actual calibration "
-                    f"interface ({enumeration(sorted(names_int))}) do not agree "
-                    f"with the names in the header of logfile "
-                    f"`{self._logfilepath}` ({enumeration(sorted(names_ext))})."
+                    f"interface ({enumeration(sorted(names_int))}) do not agree with "
+                    f"the names in the header of logfile `{self._logfilepath}` "
+                    f"({enumeration(sorted(names_ext))})."
                 )
         jdx_best = 0
         result_best = -numpy.inf if maximisation else numpy.inf
@@ -2080,7 +2027,7 @@ objects via argument `selections`.
 
     def _update_elements_when_adding_a_rule(
         self,
-        rule: Rule,
+        rule: Rule[ParameterAlias],
     ) -> None:
         self._elements += rule.elements
 
@@ -2093,8 +2040,8 @@ objects via argument `selections`.
     def names(self) -> Tuple[str, ...]:
         """The names of all handled |Rule| objects.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         return tuple(rule.name for rule in self)
 
@@ -2102,8 +2049,8 @@ objects via argument `selections`.
     def values(self) -> Tuple[float, ...]:
         """The values of all handled |Rule| objects.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         return tuple(rule.value for rule in self)
 
@@ -2111,8 +2058,8 @@ objects via argument `selections`.
     def lowers(self) -> Tuple[float, ...]:
         """The lower boundaries of all handled |Rule| objects.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         return tuple(rule.lower for rule in self)
 
@@ -2120,18 +2067,18 @@ objects via argument `selections`.
     def uppers(self) -> Tuple[float, ...]:
         """The upper boundaries of all handled |Rule| objects.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         return tuple(rule.upper for rule in self)
 
     @property
     def selections(self) -> Tuple[str, ...]:
-        """The names of all |Selection| objects addressed at least one of the
-        handled |Rule| objects.
+        """The names of all |Selection| objects addressed at least one of the handled
+        |Rule| objects.
 
-        See the documentation on method |CalibrationInterface.make_rules| for
-        further information.
+        See the documentation on method |CalibrationInterface.make_rules| for further
+        information.
         """
         return tuple(
             sorted(set(itertools.chain.from_iterable(rule.selections for rule in self)))
@@ -2142,8 +2089,8 @@ objects via argument `selections`.
         """The types of all |Parameter| objects addressed by at least one of the
         handled |Rule| objects.
 
-        See the documentation on method |CalibrationInterface.make_rules| for
-        further information.
+        See the documentation on method |CalibrationInterface.make_rules| for further
+        information.
         """
         return variabletools.sort_variables(set(rule.parametertype for rule in self))
 
@@ -2168,15 +2115,14 @@ objects via argument `selections`.
         ...
 
     def apply_values(self, perform_simulation: bool = True) -> Optional[float]:
-        """Apply all current calibration parameter values on all relevant
-        parameters.
+        """Apply all current calibration parameter values on all relevant parameters.
 
-        Set argument `perform_simulation` to |False| to only change the
-        actual parameter values and update the |HydPy| object without
-        performing a simulation run.
+        Set argument `perform_simulation` to |False| to only change the actual
+        parameter values and update the |HydPy| object without performing a simulation
+        run.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         for rule in self:
             rule.apply_value()
@@ -2189,8 +2135,8 @@ objects via argument `selections`.
     def reset_parameters(self) -> None:
         """Reset all relevant parameters to their original states.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+         information.
         """
         for rule in self:
             rule.reset_parameters()
@@ -2199,8 +2145,8 @@ objects via argument `selections`.
     def calculate_likelihood(self) -> float:
         """Apply the defined |TargetFunction| and return the result.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         self.result = self._targetfunction()
         return self.result
@@ -2213,12 +2159,12 @@ objects via argument `selections`.
     ) -> float:
         # pylint: disable=unused-argument
         # for optimisers that pass additional informative data
-        """Update all calibration parameters with the given values, update
-        the |HydPy| object, perform a simulation run, and calculate and
-        return the achieved efficiency.
+        """Update all calibration parameters with the given values, update the |HydPy|
+        object, perform a simulation run, and calculate and return the achieved
+        efficiency.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |CalibrationInterface| for further
+        information.
         """
         self._update_values(values)
         likelihood = self.apply_values()
@@ -2236,8 +2182,8 @@ objects via argument `selections`.
     ) -> None:
         """Print the current calibration parameter values in a table format.
 
-        Please see the documentation on method |CalibrationInterface.make_rules|
-        first, from which we borrow the general setup:
+        Please see the documentation on method |CalibrationInterface.make_rules| first,
+        from which we borrow the general setup:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2261,17 +2207,17 @@ parameterstep="1d"
         ...     product=True,
         ... )
 
-        First, we change the values of two |Rule| objects to clarify that all
-        values appear in the correct table cells:
+        First, we change the values of two |Rule| objects to clarify that all values
+        appear in the correct table cells:
 
         >>> ci["fc_headwaters"].value = 200.0
         >>> ci["percmax_nonheadwaters"].value = 10.0
 
-        By default, method |CalibrationInterface.print_table| prints the values
-        of all handled |Rule| objects.  We varies the target control parameters on
-        the first axis and the target selections on the second axis.  Row two and
-        three contain the (identical) lower and upper boundary values corresponding
-        to the respective control parameters:
+        By default, method |CalibrationInterface.print_table| prints the values of all
+        handled |Rule| objects.  We varies the target control parameters on the first
+        axis and the target selections on the second axis.  Row two and three contain
+        the (identical) lower and upper boundary values corresponding to the respective
+        control parameters:
 
         >>> ci.print_table()  # doctest: +NORMALIZE_WHITESPACE
                  lower  upper  headwaters  nonheadwaters
@@ -2279,8 +2225,8 @@ parameterstep="1d"
         PercMax  1.0    10.0   5.0         10.0
 
         For non-identical boundary values, method |CalibrationInterface.print_table|
-        prints fill values in the relevant cells.  Besides this, the following
-        example shows how to define alternative titles for the boundary value columns:
+        prints fill values in the relevant cells.  Besides this, the following example
+        shows how to define alternative titles for the boundary value columns:
 
         >>> ci["fc_headwaters"].lower = 60.0
         >>> ci["percmax_nonheadwaters"].upper = 20.0
@@ -2296,10 +2242,10 @@ parameterstep="1d"
         FC       200.0       100.0
         PercMax  5.0         10.0
 
-        The next example shows how to change the tabulated target parameters
-        and selections.  Method |CalibrationInterface.print_table| uses the
-        (given alternative) fill value for each parameter-selection-combination
-        not met by any of the available |Rule| objects:
+        The next example shows how to change the tabulated target parameters and
+        selections.  Method |CalibrationInterface.print_table| uses the (given
+        alternative) fill value for each parameter-selection-combination not met by any
+        of the available |Rule| objects:
 
         >>> from hydpy.models.hland.hland_control import CFlux, PercMax
         >>> ci.print_table(  # doctest: +NORMALIZE_WHITESPACE
@@ -2311,8 +2257,8 @@ parameterstep="1d"
         PercMax  -        5.0
         CFlux    -        -
 
-        Note that the value of the same calibration parameter might appear
-        multiple times when targeting multiple |Selection| objects:
+        Note that the value of the same calibration parameter might appear multiple
+        times when targeting multiple |Selection| objects:
 
         >>> ci["fc_headwaters"].selections = ("headwaters", "streams")
         >>> ci.print_table(bounds=None)  # doctest: +NORMALIZE_WHITESPACE
@@ -2370,8 +2316,8 @@ parameterstep="1d"
             return self._rules[item]
         except KeyError:
             raise AttributeError(
-                f"The actual calibration interface does neither handle a "
-                f"normal attribute nor a rule object named `{item}`."
+                f"The actual calibration interface does neither handle a normal "
+                f"attribute nor a rule object named `{item}`."
             ) from None
 
     def __getitem__(self, key: str) -> RuleType1:
@@ -2379,11 +2325,11 @@ parameterstep="1d"
             return self._rules[key]
         except KeyError:
             raise KeyError(
-                f"The actual calibration interface does not handle "
-                f"a rule object named `{key}`."
+                f"The actual calibration interface does not handle a rule object "
+                f"named `{key}`."
             ) from None
 
-    def __contains__(self, item: Union[str, Rule]) -> bool:
+    def __contains__(self, item: Union[str, Rule[ParameterAlias]]) -> bool:
         return (item in self._rules) or (item in self._rules.values())
 
     def __repr__(self) -> str:
@@ -2413,8 +2359,8 @@ parameterstep="1d"
         ...     model="hland_v1",
         ... )
         >>> dir(ci)   # doctest: +ELLIPSIS
-        ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', \
-'fc', 'get_rule', 'lowers', 'make_rules', 'names', 'parametertypes', 'percmax', \
+        ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', 'fc', \
+'get_rule', 'lowers', 'make_rules', 'names', 'parametertypes', 'percmax', \
 'perform_calibrationstep', 'prepare_logfile', 'print_table', 'read_logfile', \
 'remove_rules', 'reset_parameters', 'result', 'selections', 'update_logfile', \
 'uppers', 'values']
@@ -2422,25 +2368,114 @@ parameterstep="1d"
         return objecttools.dir_(self) + list(self._rules.keys())
 
 
-class ReplaceIUH(Rule):
-    """A |Rule| class specialised for |IUH| parameters.
+class RuleIUH(Rule[arma_control.Responses]):
+    """A |Rule|, class specialised for |IUH| parameters.
 
-    Usually, it is not a good idea to calibrate the AR and MA coefficients
-    of parameters like |arma_control.Responses| of model |arma_v1| individually.
-    Instead, we need to calibrate the few coefficients of the underlying |IUH|
-    objects, which calculate the ARMA coefficients.  Class |ReplaceIUH| helps
-    to accomplish this task.
+    |RuleIUH| serves as a base class only.  Please see the concrete implementation
+    |ReplaceIUH| for further information.
+    """
+
+    target: str
+    """Name of the addressed property of the relevant |IUH| subclass."""
+
+    update_parameters: bool = True
+    """Flag indicating whether method |ReplaceIUH.apply_value| should calculate the 
+    |ARMA.coefs| and pass them to the relevant model parameter or not.
+
+    Set this flag to |False| for the first |ReplaceIUH| object when another handles the 
+    same elements and is applied afterwards.
+    """
+    _element2iuh: Optional[Dict[str, iuhtools.IUH]] = None
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        target: str,
+        parameter: Union[Type[arma_control.Responses], arma_control.Responses, str],
+        value: float,
+        lower: float = -numpy.inf,
+        upper: float = numpy.inf,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
+        model: Optional[Union[types.ModuleType, str]] = None,
+    ) -> None:
+        super().__init__(
+            name=name,
+            parameter=parameter,
+            value=value,
+            lower=lower,
+            upper=upper,
+            parameterstep=parameterstep,
+            selections=selections,
+            model=model,
+        )
+        self.target = target
+
+    def _get_original_parameter_values(
+        self,
+    ) -> Tuple[Tuple[Vector[float], Vector[float]], ...]:
+        return tuple(
+            (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
+        )
+
+    def add_iuhs(self, **iuhs: iuhtools.IUH) -> None:
+        """Add one |IUH| object for each relevant |Element| object.
+
+        See the main documentation on class |ReplaceIUH| for further information.
+        """
+        try:
+            names_int = set(self.elements.names)
+            names_ext = set(iuhs.keys())
+            if names_int != names_ext:
+                enumeration = objecttools.enumeration
+                raise RuntimeError(
+                    f"The given elements ({enumeration(sorted(names_ext))}) do not "
+                    f"agree with the complete set of relevant elements "
+                    f"({enumeration(sorted(names_int))})."
+                )
+            element2iuh = self._element2iuh = {}
+            for element in self.elements:
+                element2iuh[element.name] = iuhs[element.name]
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to add `IUH` objects to the `{type(self).__name__}` "
+                f"rule `{self}`"
+            )
+
+    @property
+    def _iuhs(self) -> Iterable[iuhtools.IUH]:
+        element2iuh = {} if self._element2iuh is None else self._element2iuh
+        for iuh in element2iuh.values():
+            yield iuh
+
+    def reset_parameters(self) -> None:
+        """Reset all relevant parameter objects to their original states.
+
+        See the main documentation on class |ReplaceIUH| for further information.
+        """
+        for parameter, orig in zip(self, self._original_parameter_values):
+            parameter(orig)
+
+
+class ReplaceIUH(RuleIUH):
+    """A |RuleIUH| class for replacing |IUH| parameter values with the current
+    calibration parameter values.
+
+    Usually, it is not a good idea to calibrate the AR and MA coefficients of
+    parameters like |arma_control.Responses| of model |arma_v1| individually.  Instead,
+    we need to calibrate the few coefficients of the underlying |IUH| objects, which
+    calculate the ARMA coefficients.  Class |ReplaceIUH| helps to accomplish this task.
 
     .. note::
 
-        Class |ReplaceIUH| is still under development.  For example, it
-        does not address the possibility of different ARMA coefficients
-        related to different discharge thresholds.  Hence, the usage
-        of class |ReplaceIUH| might change in the future.
+        Class |ReplaceIUH| is still under development.  For example, it does not
+        address the possibility of different ARMA coefficients related to different
+        discharge thresholds.  Hence, the usage of class |ReplaceIUH| might change in
+        the future.
 
-    So far, there is no example project containing |arma_v1| models
-    instances.  Therefore, we generate a simple one consisting of two
-    |Element| objects only:
+    So far, there is no example project containing |arma_v1| models instances.
+    Therefore, we generate a simple one consisting of two |Element| objects only:
 
     >>> from hydpy import Element, prepare_model, Selection
     >>> element1 = Element("element1", inlets="in1", outlets="out1")
@@ -2449,9 +2484,9 @@ class ReplaceIUH(Rule):
     >>> element1.model = prepare_model("arma_v1")
     >>> element2.model = prepare_model("arma_v1")
 
-    We focus on class |TranslationDiffusionEquation| in the following.
-    We create two separate instances and use to calculate the response
-    coefficients of both |arma_v1| instances:
+    We focus on class |TranslationDiffusionEquation| in the following.  First, we
+    create two separate instances and use them to calculate the response coefficients
+    of both |arma_v1| instances:
 
     >>> from hydpy import TranslationDiffusionEquation
     >>> tde1 = TranslationDiffusionEquation(u=5.0, d=15.0, x=1.0)
@@ -2471,51 +2506,47 @@ class ReplaceIUH(Rule):
     |TranslationDiffusionEquation.d|:
 
     >>> from hydpy import ReplaceIUH
-    >>> u = ReplaceIUH(
-    ...     name="u",
-    ...     parameter="responses",
-    ...     value=5.0,
-    ...     lower=1.0,
-    ...     upper=10.0,
-    ...     selections=[complete],
-    ... )
-    >>> d = ReplaceIUH(
-    ...     name="d",
-    ...     parameter="responses",
-    ...     value=15.0,
-    ...     lower=5.0,
-    ...     upper=50.0,
-    ...     selections=[complete],
-    ... )
+    >>> u = ReplaceIUH(name="U",
+    ...                target="u",
+    ...                parameter="responses",
+    ...                value=5.0,
+    ...                lower=1.0,
+    ...                upper=10.0,
+    ...                selections=[complete])
+    >>> d = ReplaceIUH(name="D",
+    ...                target="d",
+    ...                parameter="responses",
+    ...                value=15.0,
+    ...                lower=5.0,
+    ...                upper=50.0,
+    ...                selections=[complete])
 
-    We add and thereby connect the |Element| and |TranslationDiffusionEquation|
-    objects to both |ReplaceIUH| objects via method |ReplaceIUH.add_iuhs|:
+    We add and thereby connect the |Element| and |TranslationDiffusionEquation| objects
+    to both |ReplaceIUH| objects via method |RuleIUH.add_iuhs|:
 
     >>> u.add_iuhs(element1=tde1, element2=tde2)
     >>> d.add_iuhs(element1=tde1, element2=tde2)
 
-    Note that method |ReplaceIUH.add_iuhs| enforces to add all |IUH| objects
-    at ones to avoid inconsistencies that might be hard to track later:
+    Note that method |RuleIUH.add_iuhs| enforces to add all |IUH| objects at ones to
+    avoid inconsistencies that might be hard to track later:
 
     >>> d.add_iuhs(element1=tde1)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to add `IUH` objects to the `ReplaceIUH` rule \
-`d`, the following error occurred: The given elements (element1) do not \
-agree with the complete set of relevant elements (element1 and element2).
+    RuntimeError: While trying to add `IUH` objects to the `ReplaceIUH` rule `D`, the \
+following error occurred: The given elements (element1) do not agree with the \
+complete set of relevant elements (element1 and element2).
 
-    By default, each |ReplaceIUH| objects triggers the calculation of the ARMA
-    coefficients during the execution of its method |ReplaceIUH.apply_value|,
-    which can be a waste of computation time if we want to calibrate multiple
-    |IUH| coefficients.  To save computation time in such cases, set option
-    |ReplaceIUH.update_parameters| to |False| for all except the lastly
-    executed |ReplaceIUH| objects:
+    By default, each |ReplaceIUH| object triggers the calculation of the ARMA
+    coefficients during the execution of its method |ReplaceIUH.apply_value|, which can
+    be a waste of computation time if we want to calibrate multiple |IUH| coefficients.
+    To save computation time in such cases, set option |ReplaceIUH.update_parameters|
+    to |False| for all except the lastly executed |ReplaceIUH| objects:
 
     >>> u.update_parameters = False
 
-    Now, changing the value of rule `u` and calling method
-    |ReplaceIUH.apply_value| does not affect the coefficients of both
-    |arma_control.Responses| parameters:
+    Now, changing the value of rule `U` and calling method |ReplaceIUH.apply_value|
+    does not affect the coefficients of both |arma_control.Responses| parameters:
 
     >>> u.value = 10.0
     >>> u.apply_value()
@@ -2531,9 +2562,9 @@ agree with the complete set of relevant elements (element1 and element2).
     responses(th_0_0=((1.298097, -0.536702, 0.072903, -0.001207, -0.00004),
                       (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
 
-    On the other side, calling method |ReplaceIUH.apply_value| of rule `d`
-    does activate the freshly set value of rule `d` and the previously set
-    value of rule `u`, as well:
+    On the other side, calling method |ReplaceIUH.apply_value| of rule `D` does
+    activate the freshly set value of rule `D` and the previously set value of rule
+    `U`, as well:
 
     >>> d.value = 50.0
     >>> d.apply_value()
@@ -2548,8 +2579,7 @@ agree with the complete set of relevant elements (element1 and element2).
     responses(th_0_0=((0.832237, -0.167205, 0.002007, 0.000184),
                       (0.836513, -0.555399, 0.037628, 0.014035)))
 
-    Use method |ReplaceIUH.reset_parameters| to restore the original
-    ARMA coefficients:
+    Use method |RuleIUH.reset_parameters| to restore the original ARMA coefficients:
 
     >>> d.reset_parameters()
     >>> element1.model.parameters.control.responses
@@ -2561,94 +2591,136 @@ agree with the complete set of relevant elements (element1 and element2).
                       (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
     """
 
-    update_parameters: bool = True
-    """Flag indicating whether method |ReplaceIUH.apply_value| should 
-    calculate the |ARMA.coefs| and pass them to the relevant model parameter
-    or not.
-
-    Set this flag to |False| for the first |ReplaceIUH| object when another
-    one handles the same elements and is applied afterwards.
-    """
-    _element2iuh: Optional[Dict[str, iuhtools.IUH]] = None
-
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Union[float, numpy.ndarray], ...]:
-        return tuple(
-            (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
-        )
-
-    def add_iuhs(
-        self,
-        **iuhs: iuhtools.IUH,
-    ) -> None:
-        """Add one |IUH| object for each relevant |Element| objects.
-
-        See the main documentation on class |ReplaceIUH| for further
-        information.
-        """
-        try:
-            names_int = set(self.elements.names)
-            names_ext = set(iuhs.keys())
-            if names_int != names_ext:
-                enumeration = objecttools.enumeration
-                raise RuntimeError(
-                    f"The given elements ({enumeration(sorted(names_ext))}) "
-                    f"do not agree with the complete set of relevant "
-                    f"elements ({enumeration(sorted(names_int))})."
-                )
-            element2iuh = self._element2iuh = {}
-            for element in self.elements:
-                element2iuh[element.name] = iuhs[element.name]
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to add `IUH` objects to the "
-                f"`{type(self).__name__}` rule `{self}`"
-            )
-
-    @property
-    def _iuhs(self) -> Iterable[iuhtools.IUH]:
-        element2iuh = {} if self._element2iuh is None else self._element2iuh
-        for iuh in element2iuh.values():
-            yield iuh
-
     def apply_value(self) -> None:
-        """Apply all current calibration parameter values on all relevant
-        |IUH| objects and eventually update the ARMA coefficients of the
-        related parameter.
+        """Apply all current calibration parameter values to all relevant |IUH| objects
+        and eventually update the related parameter's ARMA coefficients.
 
-        See the main documentation on class |CalibrationInterface| for
-        further information.
+        See the main documentation on class |ReplaceIUH| for further information.
         """
         for parameter, iuh in zip(self, self._iuhs):
-            # entries = self.name.split("_")
-            # name = entries[0]
-            # threshold = "_".join(entries[1:])
-            # setattr(iuh, self.name, self.value)
-            # if self.update_parameters:
-            #     try:
-            #         parameter(iuh.arma.coefs)
-            #     except RuntimeError:
-            #         parameter(((), iuh.ma.coefs))
-            setattr(iuh, self.name, self.value)
+            setattr(iuh, self.target, self.value)
             if self.update_parameters:
                 parameter(iuh.arma.coefs)
 
-    def reset_parameters(self) -> None:
-        """Reset all relevant parameter objects to their original states.
 
-        See the main documentation on class |ReplaceIUH| for further
-        information.
+class MultiplyIUH(RuleIUH):
+    """A |RuleIUH| class for replacing |IUH| parameter values with the current
+    calibration parameter values, applied on the original |IUH| values as factors.
+
+    Please read the documentation on class |ReplaceIUH| first, from which we take the
+    following test configuration:
+
+    >>> from hydpy import Element, prepare_model, Selection
+    >>> element1 = Element("element1", inlets="in1", outlets="out1")
+    >>> element2 = Element("element2", inlets="in2", outlets="out2")
+    >>> complete = Selection("complete", elements=[element1, element2])
+    >>> element1.model = prepare_model("arma_v1")
+    >>> element2.model = prepare_model("arma_v1")
+
+    >>> from hydpy import TranslationDiffusionEquation
+    >>> tde1 = TranslationDiffusionEquation(u=5.0, d=15.0, x=1.0)
+    >>> tde2 = TranslationDiffusionEquation(u=5.0, d=15.0, x=2.0)
+    >>> element1.model.parameters.control.responses(tde1.arma.coefs)
+    >>> element1.model.parameters.control.responses
+    responses(th_0_0=((0.906536, -0.197555, 0.002128, 0.000276),
+                      (0.842788, -0.631499, 0.061685, 0.015639, 0.0, 0.0, 0.0,
+                       -0.000001, 0.0, 0.0, 0.0, 0.0)))
+    >>> element2.model.parameters.control.responses(tde2.arma.coefs)
+    >>> element2.model.parameters.control.responses
+    responses(th_0_0=((1.298097, -0.536702, 0.072903, -0.001207, -0.00004),
+                      (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
+
+    Initialising |MultiplyIUH| works exactly as for |ReplaceIUH|, except for the
+    semantic difference that `value`, `lower`, and `upper` now represent factors:
+
+    >>> from hydpy import MultiplyIUH
+    >>> u = MultiplyIUH(name="U",
+    ...                 target="u",
+    ...                 parameter="responses",
+    ...                 value=2.0,
+    ...                 lower=1.0,
+    ...                 upper=4.0,
+    ...                 selections=[complete])
+    >>> d = MultiplyIUH(name="D",
+    ...                 target="d",
+    ...                 parameter="responses",
+    ...                 value=0.5,
+    ...                 lower=0.2,
+    ...                 upper=2.0,
+    ...                 selections=[complete])
+
+    >>> u.add_iuhs(element1=tde1, element2=tde2)
+    >>> d.add_iuhs(element1=tde1, element2=tde2)
+    >>> u.update_parameters = False
+
+    The following examples demonstrate that the current calibration values actually
+    as factors, applied to the original  values of the relevant |IUH| properties:
+
+    >>> u.value = 3.0
+    >>> u.apply_value()
+    >>> d.value = 1.0/3.0
+    >>> d.apply_value()
+    >>> tde1
+    TranslationDiffusionEquation(d=5.0, u=15.0, x=1.0)
+    >>> element1.model.parameters.control.responses
+    responses(th_0_0=((0.0, 0.0),
+                      (0.933333, 0.066667)))
+    >>> tde2
+    TranslationDiffusionEquation(d=5.0, u=15.0, x=2.0)
+    >>> element2.model.parameters.control.responses
+    responses(th_0_0=((0.0, 0.0),
+                      (0.866667, 0.133333)))
+
+    >>> u.value = 1.0
+    >>> u.apply_value()
+    >>> d.value = 1.0
+    >>> d.apply_value()
+    >>> tde1
+    TranslationDiffusionEquation(d=15.0, u=5.0, x=1.0)
+    >>> element1.model.parameters.control.responses
+    responses(th_0_0=((0.906536, -0.197555, 0.002128, 0.000276),
+                      (0.842788, -0.631499, 0.061685, 0.015639, 0.0, 0.0, 0.0,
+                       -0.000001, 0.0, 0.0, 0.0, 0.0)))
+    >>> tde2
+    TranslationDiffusionEquation(d=15.0, u=5.0, x=2.0)
+    >>> element2.model.parameters.control.responses
+    responses(th_0_0=((1.298097, -0.536702, 0.072903, -0.001207, -0.00004),
+                      (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
+    """
+
+    _original_iuh_values: List[float]
+
+    def add_iuhs(self, **iuhs: iuhtools.IUH) -> None:
+        """Add one |IUH| object for each relevant |Element| object.
+
+        See the main documentation on class |ReplaceIUH| for further information.
         """
-        for parameter, orig in zip(self, self._original_parameter_values):
-            parameter(orig)
+        super().add_iuhs(**iuhs)
+        target = self.target
+        original_iuh_values: List[float] = []
+        assert self._element2iuh is not None  # ensured by `RuleIUH.add_iuhs`
+        for iuh in self._element2iuh.values():
+            original_iuh_values.append(getattr(iuh, target))
+        self._original_iuh_values = original_iuh_values
+
+    def apply_value(self) -> None:
+        """Apply all current calibration parameter values to all relevant |IUH| objects
+        and eventually update the related parameter's ARMA coefficients.
+
+        See the main documentation on class |MultiplyIUH| for further information.
+        """
+        target = self.target
+        for parameter, iuh, orig in zip(self, self._iuhs, self._original_iuh_values):
+            setattr(iuh, target, self.value * orig)
+            if self.update_parameters:
+                parameter(iuh.arma.coefs)
 
 
 class CalibSpec:
     """Helper class for specifying the properties of a single calibration parameter.
 
-    So far, class |CalibSpec| does not provide much functionality, besides checking
-    upon initialisation that the given default and boundary values are consistent:
+    So far, class |CalibSpec| does not provide much functionality besides checking upon
+    initialisation that the given default and boundary values are consistent:
 
     >>> from hydpy import CalibSpec
     >>> CalibSpec(
@@ -2711,8 +2783,8 @@ parameterstep="1d"
     upper: float
     """Upper bound of the allowed calibration parameter value."""
     parameterstep: Optional[timetools.Period]
-    """The parameter step size to be set before applying the defined 
-    calibration parameter values."""
+    """The parameter step size to be set before applying the defined calibration 
+    parameter values."""
 
     def __init__(
         self,
@@ -2761,10 +2833,10 @@ parameterstep="1d"
 class CalibSpecs:
     """Collection class for handling |CalibSpec| objects.
 
-    The primary purpose of class |CalibSpecs| is to handle multiple |CalibSpec|
-    objects and to make all their attributes accessible in the same order. See
-    property |CalibSpecs.names| as one example.  Note that all such properties are
-    sorted in the order or the attachment of the different |CalibSpec| objects:
+    The primary purpose of class |CalibSpecs| is to handle multiple |CalibSpec| objects
+    and to make all their attributes accessible in the same order. See property
+    |CalibSpecs.names| as one example.  Note that all such properties are sorted in the
+    order or the attachment of the different |CalibSpec| objects:
 
     >>> from hydpy import CalibSpec, CalibSpecs
     >>> calibspecs = CalibSpecs(
@@ -2824,8 +2896,8 @@ object named `second`.
     >>> len(calibspecs)
     1
 
-    Now we can re-append the previously removed |CalibSpec| objects (and thereby
-    bring the order of attachment in agreement with the |CalibSpec| names):
+    Now we can re-append the previously removed |CalibSpec| objects (and thereby bring
+    the order of attachment in agreement with the |CalibSpec| names):
 
     >>> calibspecs.append(second, third)
     >>> for calibspec in calibspecs:

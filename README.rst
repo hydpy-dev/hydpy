@@ -1,16 +1,11 @@
-.. _online documentation: https://hydpy-dev.github.io/hydpy/
+.. _`online documentation`: https://hydpy-dev.github.io/hydpy/
 .. _Python: http://www.python.org/
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
-.. _`German Federal Institute of Hydrology`: http://www.bafg.de/EN/Home/homepage_en_node.html;jsessionid=E48E3BA5184A678BB2D23AD16AD5FC09.live21304
 .. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
-.. _`HydPy release`: https://github.com/hydpy-dev/hydpy/releases
-.. _`installation instructions`: https://hydpy-dev.github.io/hydpy/install.html#install
-.. _FEWS: https://www.deltares.nl/en/software/flood-forecasting-system-delft-fews-2
-.. _`NetCDF-CF`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html
 
 .. figure:: hydpy/docs/figs/HydPy_Logo_Text.png
    :alt: HydPy logo

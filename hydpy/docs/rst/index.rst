@@ -8,7 +8,7 @@
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
 .. _`Travis CI`: https://travis-ci.com/hydpy-dev/hydpy/branches
 .. _`AppVeyor`: https://ci.appveyor.com/project/tyralla/hydpy/history
-.. _`example 13`: https://hydpy-dev.github.io/hydpy/dam_v001.html#dam-v001-ex13
+.. _`example 13`: https://hydpy-dev.github.io/hydpy/master/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/
 .. _`GitHub issue`: https://github.com/hydpy-dev/hydpy/issues
 .. _`Pull Request`: https://github.com/pulls

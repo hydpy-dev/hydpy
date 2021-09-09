@@ -24,8 +24,8 @@ The following list summarises the main components of |hland_v1|:
    long as actual evaporation does not exceed potential evaporation).
  * Apply a saturation excess mechanism for the generation of direct runoff.
  * Calculate a (nearly) complete and immediate runoff response for sealed areas.
- * Provide an optional "response area" option, which modifies the usual calculation of
-   direct runoff and percolation.
+ * Provide an optional "response area" option, which modifies the usual direct runoff
+   and percolation calculation.
  * Distinguish between an upper zone layer related to direct runoff and a lower zone
    layer related to base flow.
  * Pass percolation from the upper to the lower zone layer and capillary rise from the
@@ -81,6 +81,10 @@ We set the reference elevation levels for precipitation (|ZRelP|), temperature
 >>> zrelp(2.0)
 >>> zrelt(2.0)
 >>> zrele(2.0)
+
+We assume a runoff coefficient of one for zones defined as |SEALED|:
+
+>>> psi(1.0)
 
 We initialise a test function object, which prepares and runs the tests and prints
 their results for the given sequences:
@@ -1072,7 +1076,7 @@ of them is suitable to check if, for instance, the aggregation of fluxes address
 different spatial extents does not introduce errors into the water balance.  The
 following example fills this gap.  We restore the initial
 :ref:`field example <hland_v1_field>` settings, except defining five zones of different
-land-use type and size.  The variations between the responses of the land-use
+land-use types and sizes.  The variations between the responses of the land-use
 types are as to be expected:
 
 .. integration-test::
@@ -1220,9 +1224,9 @@ deposits in the zone(s) directly below:
 
 >>> sred(n_zones=1)
 
-We define a constant air temperature of 5 °C for the subbasin.  However, due to the
-high elevation differences, there is a substantial difference in the individual zone
-temperatures:
+We define a constant air temperature of 5 °C for the subbasin.  However, there is a
+substantial difference in the individual zone temperatures due to the high elevation
+differences:
 
 >>> inputs.t.series = 5.0
 
@@ -1235,7 +1239,7 @@ and it then starts releasing equal amounts of snow to both sea level zones, taki
 differences in the zone areas into account.
 
 The |FOREST| zone's temperature is around 0 °C.  Hence, its snow cover holds a
-considerable amount of water (|WC|).  Accordingly, it loses both frozen and liquid snow
+considerable amount of water (|WC|).  Accordingly, it loses frozen and liquid snow
 (|WCL|) to the sea level zones.
 
 The sea level zone of the |FIELD| land-use type is a dead-end for snow redistribution.
@@ -1366,10 +1370,10 @@ for each zone:
 >>> sclass(2)
 >>> sfdist(linear=0.2)
 
-Inspecting the snow pack's evolution within the highest zone reveals that we apply the
-threshold parameter |SRed| for each snow class individually.  Hence, the first snow
-class still receives snowfall while the second snow class already routes it to the next
-lower zone.
+Inspecting the snow pack's evolution within the highest zone reveals that we
+individuallyapply the threshold parameter |SRed| for each snow class.  Hence, the first
+snow class still receives snowfall while the second snow class already routes it to the
+next lower zone.
 
 Inspecting the snow pack's evolution within the sea level zone of type |FIELD| reveals
 that we apply the snowfall distribution parameter |SFDist| also for snow redistribution.

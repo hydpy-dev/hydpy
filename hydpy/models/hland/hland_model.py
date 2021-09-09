@@ -33,8 +33,8 @@ class Calc_TC_V1(modeltools.Method):
 
     Examples:
 
-        Prepare two zones, the first one lying at the reference height and the second
-        one 200 meters above:
+        Prepare two zones, the first lying at the reference height and the second 200
+        meters above:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -331,7 +331,7 @@ class Calc_EP_V1(modeltools.Method):
         >>> inputs.epn = 2.0
 
         With mean temperature equal to norm temperature, actual (uncorrected)
-        evaporation is equal to norm evaporation:
+        evaporation equals norm evaporation:
 
         >>> factors.tmean = 20.0
         >>> model.calc_ep_v1()
@@ -478,7 +478,7 @@ class Calc_TF_Ic_V1(modeltools.Method):
         lakes (second zone).  Hence, all precipitation becomes throughfall. For fields,
         forests, and sealed areas, the interception routine works identical, so the
         results of zone three to five are equal.  The last three zones demonstrate that
-        all precipitation is stored until the intercepted water reached the available
+        all precipitation is stored until the intercepted water reaches the available
         capacity; afterwards, all precipitation becomes throughfall.  Initial storage
         reduces the effective capacity of the respective simulation step:
 
@@ -623,7 +623,7 @@ class Calc_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        Consider the following setting, in which nine zones of different type receive
+        Consider the following setting, in which nine zones of different types receive
         a throughfall of 10 mm:
 
         >>> from hydpy.models.hland import *
@@ -862,6 +862,7 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         >>> sclass(1)
         >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
         >>> zonearea(1.0)
+        >>> psi(1.0)
         >>> sfdist(1.0)
         >>> smax(500.0)
         >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
@@ -1140,7 +1141,7 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
     Examples:
 
         We initialise seven zones with the same threshold temperature and degree-day
-        factor but with different zone types and initial ice contents:
+        factor but different zone types and initial ice contents:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -1153,8 +1154,8 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
         >>> states.wc = 2.0
 
-        When the actual temperature is equal to the threshold temperature for melting
-        and refreezing, no melting occurs, and the states remain unchanged:
+        When the actual temperature equals the threshold temperature for melting and
+        refreezing, no melting occurs, and the states remain unchanged:
 
         >>> factors.tc = 2.0
         >>> model.calc_melt_sp_wc_v1()
@@ -1271,7 +1272,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
     Examples:
 
         We initialise seven zones with the same threshold temperature, degree-day factor
-        and refreezing coefficient but with different zone types and initial states:
+        and refreezing coefficient but different zone types and initial states:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -1293,8 +1294,8 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         >>> cfmax.values[0]
         2.0
 
-        When the actual temperature is equal to the threshold temperature for melting
-        and refreezing, neither no refreezing occurs, and the states remain unchanged:
+        When the actual temperature equals the threshold temperature for melting and
+        refreezing, no refreezing occurs, and the states remain unchanged:
 
         >>> factors.tc = 2.0
         >>> model.calc_refr_sp_wc_v1()
@@ -1451,7 +1452,7 @@ class Calc_In_WC_V1(modeltools.Method):
         When there is a (liquid) water content in the snow layer, the water release
         depends on the frozen water content.  Note the special cases of the first zone
         being an internal lake, for which the snow routine does not apply, and of the
-        last zone, which has no ice content and thus effectively not a snow layer:
+        last zone, which has no ice content and thus effectively is not a snow layer:
 
         >>> states.wc = 5.0
         >>> model.calc_in_wc_v1()
@@ -1486,8 +1487,8 @@ class Calc_In_WC_V1(modeltools.Method):
         wc([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-        Note that, for the single lake zone, method |Calc_In_WC_V1| passed the stand
-        precipitation directly to |In_| in all examples.
+        For the single lake zone, method |Calc_In_WC_V1| passed the stand precipitation
+        directly to |In_| in all examples.
     """
 
     CONTROLPARAMETERS = (
@@ -1949,8 +1950,8 @@ class Calc_EA_SM_V1(modeltools.Method):
         Only fields and forests include soils.  Hence, there is no soil evaporation for
         internal lakes, glaciers, and sealed areas.  In the following example, the
         relative soil moisture is 50 % for all field and forest zones.  Differences in
-        soil evaporation are related to the different soil evaporation parameter values
-        only (the underlying equations are the same):
+        soil evaporation are only related to the different soil evaporation parameter
+        values (the underlying equations are the same):
 
         >>> states.sm = 100.0
         >>> model.calc_ea_sm_v1()
@@ -2076,7 +2077,7 @@ class Calc_InUZ_V1(modeltools.Method):
 
     Examples:
 
-        We initialise five zones of different land-use type and size.  Method
+        We initialise five zones of different land-use types and sizes.  Method
         |Calc_InUZ_V1| takes only those of type |FIELD|, |FOREST|, and |GLACIER| into
         account:
 
@@ -2381,9 +2382,9 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         uz(0.0)
         >>> check()
 
-        Resetting |RecStep| leads to more transparent results.  Note that, due to the
-        large value of the storage coefficient and the low accuracy  of the numerical
-        approximation, direct discharge drains the rest of the upper zone storage:
+        Resetting |RecStep| leads to more transparent results.  Note that direct
+        discharge drains the rest of the upper zone storage due to the storage
+        coefficient's large value and the numerical approximation's low accuracy:
 
         >>> recstep(2)
         >>> factors.contriarea = 0.5
@@ -2676,12 +2677,12 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
     equation, its solution is quite complicated due to the threshold |H1| used
     (:cite:`ref-Kling2005` and :cite:`ref-Kling2006` explain the math in some detail).
     Additionally, we allow setting either |TAb1| or |TVs1| to |numpy.inf| or zero,
-    which allows for disabling certain functionalities of the surface flow reservoir.
-    Consequently, our source code includes many branches, and much testing is required
-    to get some confidence in its robustness.  We verified each of the following tests
-    with numerical integration results.  You can find this independent test code in
-    `issue 68`_.  Please tell us if you encounter a plausible combination of parameter
-    values not adequately covered by our tests or source code.
+    allowing for disabling certain surface flow reservoir functionalities.
+    Consequently, our source code includes many branches, and extensive testing is
+    required to get some confidence in its robustness.  We verified each of the
+    following tests with numerical integration results.  You can find this independent
+    test code in `issue 68`_.  Please tell us if you encounter a plausible combination
+    of parameter values not adequately covered by our tests or source code.
 
     Examples:
 
@@ -2837,7 +2838,7 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
         >>> states.bw1
         bw1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-        |Calc_QAb1_QVs1_BW1_V1| process forest and glacier zones like field zones but
+        |Calc_QAb1_QVs1_BW1_V1| processes forest and glacier zones like field zones but
         sets the values of |QAb1|, |QVs1|, and |BW1| to zero for internal lakes and
         sealed areas:
 
@@ -2937,7 +2938,7 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
         >>> states.bw2
         bw2(1.557602, 3.327195, 5.658322, 7.065344, 5.7463, 3.831437, 2.0, 6.0)
 
-        |Calc_QAb2_QVs2_BW2_V1| process forest and glacier zones like field zones but
+        |Calc_QAb2_QVs2_BW2_V1| processes forest and glacier zones like field zones but
         sets the values of |QAb2|, |QVs2|, and |BW2| to zero for internal lakes and
         sealed areas:
 
@@ -3100,7 +3101,7 @@ class Calc_LZ_V1(modeltools.Method):
 
     Examples:
 
-        We define a subbasin with five zones of different land-use type and size:
+        We define a subbasin with five zones of different land-use types and sizes:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -3109,6 +3110,7 @@ class Calc_LZ_V1(modeltools.Method):
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> area(100.0)
         >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
+        >>> psi(1.0)
 
         To ensure the consistency of the values of the relevant derived parameters, we
         apply their |Parameter.update| methods:
@@ -3510,9 +3512,9 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
         >>> states.sg3
         sg3(0.86)
 
-        Due to the assumption of internal lakes having a fixed size, they never dry and
+        Due to the assumption that internal lakes have a fixed size, they never dry and
         always evaporate water.  The above example shows that this might result in
-        negative values for |SG2| or |SG3|.
+        negative |SG2| or |SG3| values.
     """
 
     CONTROLPARAMETERS = (
@@ -3917,7 +3919,7 @@ class Calc_InUH_V1(modeltools.Method):
 
     Example:
 
-        We define a subbasin with five zones of different land-use type and size:
+        We define a subbasin with five zones of different land-use types and sizes:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -3926,6 +3928,7 @@ class Calc_InUH_V1(modeltools.Method):
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> area(100.0)
         >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
+        >>> psi(1.0)
 
         To ensure the consistency of the values of the relevant derived parameters, we
         apply their |Parameter.update| methods:

@@ -58,6 +58,8 @@ good impression of the functional differences of both models.
 >>> zrelt(2.0)
 >>> zrele(2.0)
 
+>>> psi(1.0)
+
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = (
 ...     inputs.p, fluxes.qab1, fluxes.qab2, fluxes.q1, fluxes.rt)

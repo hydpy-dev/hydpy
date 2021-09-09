@@ -160,23 +160,85 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
     CONTROLPARAMETERS = (
         hland_control.ZoneArea,
         hland_control.ZoneType,
+        hland_control.Psi,
     )
 
     def update(self) -> None:
-        """Update the relative area based on the parameter |ZoneArea|.
+        """Update the relative area based on the parameters |ZoneArea|, |ZoneType|,
+         and |Psi|.
+
+        In the simplest case, |RelZoneAreas| provides the fractions of the zone areas
+        available via the control parameter |ZoneArea|:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(5)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> zonearea(10.0, 40.0, 20.0, 25.0, 5.0)
+        >>> psi(1.0)
         >>> derived.relzoneareas.update()
         >>> derived.relzoneareas
         relzoneareas(field=0.1, forest=0.4, glacier=0.2, ilake=0.25,
                      sealed=0.05)
+
+        |hland| assumes complete sealing for zones classified as land-use type
+        |SEALED|.  Hence, besides interception losses, their runoff coefficient is
+        always one.  When deriving zone types from available land-use classifications,
+        we are likely to identify zones as |SEALED| that actually have lower runoff
+        coefficients due to incomplete sealing, infiltration of sealed surface runoff
+        on adjacent unsealed areas, retention of surface runoff in sewage treatment
+        plants, and many other issues.  Parameter |Psi| allows decreasing the effective
+        relative area of zones of type |SEALED|. Method |RelZoneAreas.update| divides
+        the remaining "uneffective" sealed area to all zones of different land-use
+        types (proportionally to their sizes), except those of type |GLACIER|:
+
+        >>> psi(0.6)
+        >>> derived.relzoneareas.update()
+        >>> derived.relzoneareas
+        relzoneareas(field=0.102667, forest=0.410667, glacier=0.2,
+                     ilake=0.256667, sealed=0.03)
+
+        For subbasins without |SEALED| zones, the value of |Psi| is irrelevant:
+
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE)
+        >>> derived.relzoneareas.update()
+        >>> derived.relzoneareas
+        relzoneareas(0.1, 0.4, 0.2, 0.25, 0.05)
+
+        The same holds for subbasins consisting only of |SEALED| and |GLACIER| zones:
+
+        >>> zonetype(SEALED)
+        >>> derived.relzoneareas.update()
+        >>> derived.relzoneareas
+        relzoneareas(0.1, 0.4, 0.2, 0.25, 0.05)
+        >>> zonetype(GLACIER, GLACIER, SEALED, SEALED, SEALED)
+        >>> derived.relzoneareas.update()
+        >>> derived.relzoneareas
+        relzoneareas(0.1, 0.4, 0.2, 0.25, 0.05)
+
+        The last example demonstrates that the underlying algorithm also works when
+        multiple |SEALED| or |GLACIER| zones are involved:
+
+        >>> zonetype(FIELD, GLACIER, GLACIER, SEALED, SEALED)
+        >>> derived.relzoneareas.update()
+        >>> derived.relzoneareas
+        relzoneareas(0.22, 0.4, 0.2, 0.15, 0.03)
         """
-        zonearea = self.subpars.pars.control.zonearea.values
-        self.values = zonearea / numpy.sum(zonearea)
+        control = self.subpars.pars.control
+        zonearea = control.zonearea.values
+        zonetype = control.zonetype.values
+        psi = control.psi.value
+        idxs_source = zonetype == SEALED
+        idxs_sink = ~idxs_source * (zonetype != GLACIER)
+        if (psi < 1.0) and numpy.any(idxs_source) and numpy.any(idxs_sink):
+            adjusted_area = zonearea.copy()
+            adjusted_area[idxs_source] *= psi
+            delta = numpy.sum(zonearea) - numpy.sum(adjusted_area)
+            weights = adjusted_area[idxs_sink] / numpy.sum(adjusted_area[idxs_sink])
+            adjusted_area[idxs_sink] += weights * delta
+            self.values = adjusted_area / numpy.sum(adjusted_area)
+        else:
+            self.values = zonearea / numpy.sum(zonearea)
 
 
 class ZoneAreaRatios(parametertools.Parameter):

@@ -13,6 +13,7 @@ zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD,
 zonearea(213.62, 56.98, 308.62, 304.89, 163.41, 320.46, 105.06, 176.22,
          9.83, 57.47, 0.2, 11.75, 3.55, 0.94)
 zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0, 8.0, 9.0)
+psi(1.0)
 zrelp(3.18)
 zrelt(3.18)
 zrele(3.665)

@@ -208,6 +208,13 @@ class ZoneArea(hland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
+class Psi(parametertools.Parameter):
+    """Fraction of the actual sealing of zones classified as |SEALED| [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.01, 1.0)
+    INIT = 1.0
+
+
 class ZoneZ(hland_parameters.ParameterComplete):
     """Zone elevation [100m]."""
 
@@ -341,9 +348,9 @@ class SFDist(parametertools.Parameter):
     ...         sfdist(**kwargs)
     ...         print_values(sfdist.values)
 
-    The first available keyword is `linear`.  If we use it, |SFDist| calculates its
-    factors in agreement with the original *HBV96* implementation.  For the lowest
-    possible value, 0.0, all adjustment factors are one:
+    The first available keyword is `linear`.  Using it, |SFDist| calculates its factors
+    in agreement with the original *HBV96* implementation.  For the lowest possible
+    value, 0.0, all adjustment factors are one:
 
     >>> test(linear=0.0)
     1.0
@@ -353,7 +360,7 @@ class SFDist(parametertools.Parameter):
     1.0, 1.0, 1.0, 1.0, 1.0
 
     For the highest possible value, 1.0, the first snow class receives no snowfall,
-    while the last snow class receives twice the zone's average snowfall.  |SFDist|
+    while the last snow receives twice the zone's average snowfall.  |SFDist|
     interpolates the factors of the other snow classes linearly:
 
     >>> test(linear=1.0)

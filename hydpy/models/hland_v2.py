@@ -46,10 +46,10 @@ with the fixed-shape triangular response function of |hland_v1|:
 >>> area(1.0)
 >>> zonearea(1.0)
 >>> zonez(1.0)
-
 >>> zrelp(2.0)
 >>> zrelt(2.0)
 >>> zrele(2.0)
+>>> psi(1.0)
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = inputs.p, fluxes.rt, fluxes.qt

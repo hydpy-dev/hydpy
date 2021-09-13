@@ -31,17 +31,17 @@ class Responses(parametertools.Parameter):
 
     One can assign ARMA models as attributes to it:
 
-    >>> responses.th_0_0 = ((1, 2), (3, 4, 6))
+    >>> responses.th_0_0 = ((1.0, 2.0), (3.0, 4.0, 6.0))
 
     `th_0_0` stands for a threshold discharge value of 0.0 m³/s, which the
     given ARMA model corresponds to.  For integer discharge values, one can
     omit the decimal digit:
 
-    >>> responses.th_1 = ((), (7,))
+    >>> responses.th_1 = ((), (7.0,))
 
     One can also omit the leading letters, but not the underscore:
 
-    >>> responses.th_2_5 = ([8], range(9, 20))
+    >>> responses.th_2_5 = ([8.0], range(9, 20))
 
     Internally, all threshold keys are brought into the standard format:
 
@@ -65,7 +65,7 @@ class Responses(parametertools.Parameter):
 
     >>> responses.th_1[1][0]
     7.0
-    >>> responses.th_1_0[1][0] = 77
+    >>> responses.th_1_0[1][0] = 77.0
     Traceback (most recent call last):
     ...
     TypeError: 'tuple' object does not support item assignment
@@ -73,7 +73,7 @@ class Responses(parametertools.Parameter):
     Instead, one can delete and or overwrite existing ARMA models:
 
     >>> del responses.th_2_5
-    >>> responses.th_1 = ((), (77,))
+    >>> responses.th_1 = ((), (77.0,))
     >>> responses
     responses(th_0_0=((1.0, 2.0),
                       (3.0, 4.0, 6.0)),
@@ -128,9 +128,9 @@ occurred: tuple index out of range
     Storage Cascade:
 
     >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
-    >>> tde = TranslationDiffusionEquation(d=5., u=2., x=4.)
+    >>> tde = TranslationDiffusionEquation(d=5.0, u=2.0, x=4.0)
     >>> from hydpy.auxs.iuhtools import LinearStorageCascade
-    >>> lsc = LinearStorageCascade(n=2.5, k=1.)
+    >>> lsc = LinearStorageCascade(n=2.5, k=1.0)
 
     The following line deletes the coefficients defined above and assigns the
     ARMA approximations of both iuh models:
@@ -141,7 +141,7 @@ occurred: tuple index out of range
     assign it to the `responses` parameter, without affecting the ARMA
     coefficients of the first tde parametrization:
 
-    >>> tde.u = 1.
+    >>> tde.u = 1.0
     >>> responses._5 = tde
     >>> responses
     responses(th_0_0=((1.001744, -0.32693, 0.034286),

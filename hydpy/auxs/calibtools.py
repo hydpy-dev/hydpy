@@ -43,6 +43,7 @@ RuleType2 = TypeVar(
     "RuleType2", "Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"
 )
 RuleType = TypeVar("RuleType", "Replace", "Add", "Multiply")
+Target = Optional[str]
 
 
 class TargetFunction(Protocol):
@@ -107,24 +108,20 @@ class SumAdaptor(Adaptor):
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Replace, SumAdaptor
-    >>> k = Replace(
-    ...     name="k",
-    ...     parameter="k",
-    ...     value=2.0**-1,
-    ...     lower=5.0**-1,
-    ...     upper=1.0**-1,
-    ...     parameterstep="1d",
-    ...     model="hland_v1",
-    ... )
-    >>> k4 = Replace(
-    ...     name="k4",
-    ...     parameter="k4",
-    ...     value=10.0**-1,
-    ...     lower=100.0**-1,
-    ...     upper=5.0**-1,
-    ...     parameterstep="1d",
-    ...     model="hland_v1",
-    ... )
+    >>> k = Replace(name="k",
+    ...             parameter="k",
+    ...             value=2.0**-1,
+    ...             lower=5.0**-1,
+    ...             upper=1.0**-1,
+    ...             parameterstep="1d",
+    ...             model="hland_v1")
+    >>> k4 = Replace(name="k4",
+    ...             parameter="k4",
+    ...             value=10.0**-1,
+    ...             lower=100.0**-1,
+    ...             upper=5.0**-1,
+    ...             parameterstep="1d",
+    ...             model="hland_v1")
 
     To allow for non-fixed non-overlapping ranges, we can prepare a |SumAdaptor| object,
     knowing both our |Rule| objects, assign it the direct runoff-related |Rule| object,
@@ -191,15 +188,13 @@ class FactorAdaptor(Adaptor):
     Therefore, we first define an |Replace| rule for parameter |hland_control.GMelt|:
 
     >>> from hydpy import Replace, FactorAdaptor
-    >>> gmelt = Replace(
-    ...     name="gmelt",
-    ...     parameter="gmelt",
-    ...     value=2.0,
-    ...     lower=0.5,
-    ...     upper=2.0,
-    ...     parameterstep="1d",
-    ...     model="hland_v1",
-    ... )
+    >>> gmelt = Replace(name="gmelt",
+    ...                 parameter="gmelt",
+    ...                 value=2.0,
+    ...                 lower=0.5,
+    ...                 upper=2.0,
+    ...                 parameterstep="1d",
+    ...                 model="hland_v1")
 
     Second, we initialise a |FactorAdaptor| object based on target rule `gmelt` and our
     reference parameter |hland_control.CFMax| and assign it our rule object:
@@ -626,14 +621,12 @@ handle any `hstream_v1` model instances.
         >>> from hydpy import Replace
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> rule = Replace(
-        ...     name="fc",
-        ...     parameter="fc",
-        ...     value=100.0,
-        ...     lower=50.0,
-        ...     upper=200.0,
-        ...     model="hland_v1",
-        ... )
+        >>> rule = Replace(name="fc",
+        ...                parameter="fc",
+        ...                value=100.0,
+        ...                lower=50.0,
+        ...                upper=200.0,
+        ...                model="hland_v1")
 
         >>> rule.value = 0.0
         >>> rule.value
@@ -685,12 +678,10 @@ value `200.0` instead.
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import Replace
-        >>> rule = Replace(
-        ...     name="fc",
-        ...     parameter="fc",
-        ...     value=100.0,
-        ...     model="hland_v1",
-        ... )
+        >>> rule = Replace(name="fc",
+        ...                parameter="fc",
+        ...                value=100.0,
+        ...                model="hland_v1")
         >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
         >>> fc
         fc(206.0)
@@ -1188,7 +1179,8 @@ attribute nor a rule object named `FC`.
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
     ...     ci.update_logfile()
-    ...     print(open("example_calibration.log").read())
+    ...     with open("example_calibration.log") as file_:
+    ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
     NSE           fc    percmax damp
@@ -1225,7 +1217,8 @@ attribute nor a rule object named `FC`.
     results of our optimiser:
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
-    ...     print(open("example_calibration.log").read())
+    ...     with open("example_calibration.log") as file_:
+    ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
     NSE           fc    percmax damp
@@ -1310,17 +1303,13 @@ does not agree with the one documentated in log file `example_calibration.log` (
     method |CalibrationInterface.read_logfile| to query all available data instead of
     raising an error:
 
-    >>> ci.add_rules(
-    ...     Replace(
-    ...         name="beta",
-    ...         parameter="beta",
-    ...         value=2.0,
-    ...         lower=1.0,
-    ...         upper=4.0,
-    ...         selections=["complete"],
-    ...         model="hland_v1",
-    ...     )
-    ... )
+    >>> ci.add_rules(Replace(name="beta",
+    ...                      parameter="beta",
+    ...                      value=2.0,
+    ...                      lower=1.0,
+    ...                      upper=4.0,
+    ...                      selections=["complete"],
+    ...                      model="hland_v1"))
     >>> ci.fc.value = 0.0
     >>> ci.damp.value = 0.0
     >>> with TestIO():
@@ -1373,36 +1362,24 @@ does not agree with the one documentated in log file `example_calibration.log` (
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface
-        >>> ci = CalibrationInterface(
-        ...     hp=hp,
-        ...     targetfunction=lambda: None,
-        ... )
+        >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: None)
         >>> from hydpy import Replace
-        >>> ci.add_rules(
-        ...     Replace(
-        ...         name="fc",
-        ...         parameter="fc",
-        ...         value=100.0,
-        ...         model="hland_v1",
-        ...     ),
-        ...     Replace(
-        ...         name="percmax",
-        ...         parameter="percmax",
-        ...         value=5.0,
-        ...         model="hland_v1",
-        ...     ),
-        ... )
+        >>> ci.add_rules(Replace(name="fc",
+        ...                      parameter="fc",
+        ...                      value=100.0,
+        ...                      model="hland_v1"),
+        ...              Replace(name="percmax",
+        ...                      parameter="percmax",
+        ...                      value=5.0,
+        ...                      model="hland_v1"))
 
         Note that method |CalibrationInterface.add_rules| might change the number of
         |Element| objects relevant for the |CalibrationInterface| object:
 
-        >>> damp = Replace(
-        ...     name="damp",
-        ...     parameter="damp",
-        ...     value=0.2,
-        ...     model="hstream_v1",
-        ... )
-
+        >>> damp = Replace(name="damp",
+        ...                parameter="damp",
+        ...                value=0.2,
+        ...                model="hstream_v1")
         >>> len(ci._elements)
         4
         >>> ci.add_rules(damp)
@@ -1445,8 +1422,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         >>> from hydpy import Add, CalibrationInterface, make_rules, nse, Replace
         >>> ci = CalibrationInterface(
         ...     hp=hp,
-        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
-        ... )
+        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
         >>> ci.add_rules(*make_rules(rule=Replace,
         ...                          names=["fc", "percmax"],
         ...                          parameters=["fc", "percmax"],
@@ -1494,31 +1470,20 @@ named `fc` of type `Add`.
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface
-        >>> ci = CalibrationInterface(
-        ...     hp=hp,
-        ...     targetfunction=lambda: None,
-        ... )
+        >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: None)
         >>> from hydpy import Replace
-        >>> ci.add_rules(
-        ...     Replace(
-        ...         name="fc",
-        ...         parameter="fc",
-        ...         value=100.0,
-        ...         model="hland_v1",
-        ...     ),
-        ...     Replace(
-        ...         name="percmax",
-        ...         parameter="percmax",
-        ...         value=5.0,
-        ...         model="hland_v1",
-        ...     ),
-        ...     Replace(
-        ...         name="damp",
-        ...         parameter="damp",
-        ...         value=0.2,
-        ...         model="hstream_v1",
-        ...     )
-        ... )
+        >>> ci.add_rules(Replace(name="fc",
+        ...                      parameter="fc",
+        ...                      value=100.0,
+        ...                      model="hland_v1"),
+        ...              Replace(name="percmax",
+        ...                      parameter="percmax",
+        ...                      value=5.0,
+        ...                      model="hland_v1"),
+        ...              Replace(name="damp",
+        ...                      parameter="damp",
+        ...                      value=0.2,
+        ...                      model="hstream_v1"))
 
         You can remove each rule either by passing itself or its name (note that method
         |CalibrationInterface.remove_rules| might change the number of |Element|
@@ -1726,13 +1691,21 @@ object named `fc`.
         )
 
     @property
-    def parametertypes(self) -> Tuple[Type[parametertools.Parameter], ...]:
+    def parametertypes(
+        self,
+    ) -> Tuple[Tuple[Type[parametertools.Parameter], Target], ...]:
         """The types of all |Parameter| objects addressed by at least one of the
         handled |Rule| objects.
 
         See the documentation on function |make_rules| for further information.
         """
-        return variabletools.sort_variables(set(rule.parametertype for rule in self))
+        parametertypes: List[Tuple[Type[parametertools.Parameter], Target]] = []
+        for rule in self:
+            if isinstance(rule, RuleIUH):
+                parametertypes.append((rule.parametertype, rule.target))
+            else:
+                parametertypes.append((rule.parametertype, None))
+        return variabletools.sort_variables(set(parametertypes))
 
     def _update_values(
         self,
@@ -1813,7 +1786,14 @@ object named `fc`.
 
     def print_table(
         self,
-        parametertypes: Optional[Sequence[Type[parametertools.Parameter]]] = None,
+        parametertypes: Optional[
+            Sequence[
+                Union[
+                    Type[parametertools.Parameter],
+                    Tuple[Type[parametertools.Parameter], Target],
+                ]
+            ]
+        ] = None,
         selections: Optional[Sequence[str]] = None,
         bounds: Optional[Tuple[str, str]] = ("lower", "upper"),
         fillvalue: str = "/",
@@ -1822,16 +1802,32 @@ object named `fc`.
     ) -> None:
         """Print the current calibration parameter values in a table format.
 
-        Please see the documentation on class |CalibrationInterface| first, from which
-        we borrow the general setup:
+        The following examples combine the base examples of the documentation on class
+        |CalibrationInterface| and class |ReplaceIUH|, so please make sure to
+        understand them before proceeding.
+
+        We again use the `Lahn` example project but replace the |hstream_v1| model
+        instances with those of application model |arma_v1|, which allows discussing
+        some special cases concerning the handling of |RuleIUH|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import CalibSpec, CalibSpecs, CalibrationInterface, make_rules, \
-nse
-        >>> ci = CalibrationInterface(
-        ...     hp=hp,
-        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
+        >>> from hydpy import prepare_model
+        >>> for element in hp.elements.river:
+        ...     element.model = prepare_model("arma_v1")
+        ...     element.model.parameters.control.responses([[], [1.0]])
+        ...     element.model.parameters.update()
+
+        We pass a (useless) dummy target function to the |CalibrationInterface| object:
+
+        >>> from hydpy import CalibrationInterface
+        >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: 1.0)
+
+        Regarding |hland_v1|, we intend to calibrate the parameters |hland_control.FC|
+        and |hland_control.PercMax| with different values for the selections
+        `headwaters` and `nonheadwaters`:
+
+        >>> from hydpy import CalibSpec, CalibSpecs, make_rules, Replace
         >>> calibspecs = CalibSpecs(
         ...     CalibSpec(name="fc", default=100.0, lower=50.0, upper=200.0),
         ...     CalibSpec(name="percmax", default=5.0, lower=1.0, upper=10.0, \
@@ -1842,8 +1838,34 @@ parameterstep="1d"))
         ...                          selections=("headwaters", "nonheadwaters"),
         ...                          product=True))
 
-        First, we change the values of two |Rule| objects to clarify that all values
-        appear in the correct table cells:
+        Regarding |arma_v1|, we cannot calibrate the values of parameter
+        |arma_control.Responses| in a meaningful way.  So instead, we use the
+        |LinearStorageCascade| as a meta-model and calibrate its parameters
+        |LinearStorageCascade.k| and |LinearStorageCascade.n|:
+
+        >>> from hydpy import LinearStorageCascade, ReplaceIUH
+        >>> k = ReplaceIUH(name="k_global",
+        ...                target="k",
+        ...                parameter="responses",
+        ...                value=2.0,
+        ...                lower=1.0,
+        ...                parameterstep="1d",
+        ...                selections=("streams",))
+        >>> n = ReplaceIUH(name="n_global",
+        ...                target="n",
+        ...                parameter="responses",
+        ...                value=4.0,
+        ...                lower=1.0,
+        ...                upper=100.0,
+        ...                selections=("streams",))
+        >>> name2lsc = {element.name: LinearStorageCascade(k=1.0, n=1.0)
+        ...             for element in hp.elements.river}
+        >>> k.add_iuhs(**name2lsc)
+        >>> n.add_iuhs(**name2lsc)
+        >>> ci.add_rules(k, n)
+
+        We change the values of two |Rule| objects related to |hland_v1| to clarify
+        that all values appear in the correct table cells:
 
         >>> ci["fc_headwaters"].value = 200.0
         >>> ci["percmax_nonheadwaters"].value = 10.0
@@ -1855,9 +1877,11 @@ parameterstep="1d"))
         control parameters:
 
         >>> ci.print_table()  # doctest: +NORMALIZE_WHITESPACE
-                 lower  upper  headwaters  nonheadwaters
-        FC       50.0   200.0  200.0       100.0
-        PercMax  1.0    10.0   5.0         10.0
+    	              lower  upper  headwaters  nonheadwaters  streams
+        k->Responses  1.0   inf     /           /              2.0
+        n->Responses  1.0   100.0   /           /              4.0
+        FC            50.0   200.0  200.0       100.0          /
+        PercMax       1.0    10.0   5.0         10.0           /
 
         For non-identical boundary values, method |CalibrationInterface.print_table|
         prints fill values in the relevant cells.  Besides this, the following example
@@ -1866,61 +1890,83 @@ parameterstep="1d"))
         >>> ci["fc_headwaters"].lower = 60.0
         >>> ci["percmax_nonheadwaters"].upper = 20.0
         >>> ci.print_table(bounds=("min", "max"))  # doctest: +NORMALIZE_WHITESPACE
-                 min  max    headwaters  nonheadwaters
-        FC       /    200.0  200.0       100.0
-        PercMax  1.0  /      5.0         10.0
+    	              min    max    headwaters  nonheadwaters  streams
+        k->Responses  1.0    inf    /          /               2.0
+        n->Responses  1.0    100.0  /          /               4.0
+        FC              /    200.0  200.0      100.0           /
+        PercMax       1.0    /      5.0        10.0            /
 
         Pass |None| to argument `bounds` to omit writing any boundary value column:
 
         >>> ci.print_table(bounds=None)  # doctest: +NORMALIZE_WHITESPACE
-                 headwaters  nonheadwaters
-        FC       200.0       100.0
-        PercMax  5.0         10.0
+                      headwaters  nonheadwaters  streams
+        k->Responses  /           /              2.0
+        n->Responses  /           /              4.0
+        FC            200.0       100.0          /
+        PercMax       5.0         10.0           /
 
         The next example shows how to change the tabulated target parameters and
         selections.  Method |CalibrationInterface.print_table| uses the (given
         alternative) fill value for each parameter-selection-combination not met by any
-        of the available |Rule| objects:
+        of the available |Rule| objects.  For |RuleIUH|-related parameters, we must
+        specify both the control parameter (as a type, in our example
+        |arma_control.Responses|) and the meta-parameter (as a string, in our example
+        |LinearStorageCascade.k|) within a |tuple|:
 
         >>> from hydpy.models.hland.hland_control import CFlux, PercMax
+        >>> from hydpy.models.arma.arma_control import Responses
         >>> ci.print_table(  # doctest: +NORMALIZE_WHITESPACE
-        ...     parametertypes=(PercMax, CFlux),
+        ...     parametertypes=(PercMax, CFlux, (Responses, "k")),
         ...     selections=("streams", "headwaters"),
         ...     bounds=None,
         ...     fillvalue="-")
-    	         streams  headwaters
-        PercMax  -        5.0
-        CFlux    -        -
+    	              streams  headwaters
+        PercMax       -        5.0
+        CFlux         -        -
+        k->Responses  2.0      -
 
         Note that the value of the same calibration parameter might appear multiple
         times when targeting multiple |Selection| objects:
 
         >>> ci["fc_headwaters"].selections = ("headwaters", "streams")
         >>> ci.print_table(bounds=None)  # doctest: +NORMALIZE_WHITESPACE
-    	         headwaters  nonheadwaters  streams
-        FC       200.0       100.0	        200.0
-        PercMax  5.0	     10.0	        /
+    	              headwaters  nonheadwaters  streams
+        k->Responses  /           /              2.0
+        n->Responses  /           /              4.0
+        FC            200.0       100.0	         200.0
+        PercMax       5.0	      10.0	         /
         """
         none = type("_None", (), {})()
         if parametertypes is None:
-            parametertypes = self.parametertypes
+            parametertypes_ = self.parametertypes
+        else:
+            parametertypes_ = tuple(
+                item if isinstance(item, tuple) else (item, None)
+                for item in parametertypes
+            )
         if selections is None:
             selections = self.selections
         delta = 3 if bounds else 1
         table = numpy.full(
-            shape=(len(parametertypes) + 1, (len(selections)) + delta),
+            shape=(len(parametertypes_) + 1, (len(selections)) + delta),
             fill_value=fillvalue,
             dtype=object,
         )
         table[0, 0] = ""
-        table[1:, 0] = tuple(par.__name__ for par in parametertypes)
+        table[1:, 0] = tuple(
+            f"{target}->{par.__name__}" if target else par.__name__
+            for par, target in parametertypes_
+        )
         if bounds:
             table[0, 1:3] = bounds
         table[0, delta:] = selections
-        par2idx = {par: idx + 1 for idx, par in enumerate(parametertypes)}
+        par2idx = {par: idx + 1 for idx, par in enumerate(parametertypes_)}
         sel2jdx = {sel: jdx + delta for jdx, sel in enumerate(selections)}
         for rule in self:
-            idx = par2idx.get(rule.parametertype)
+            if isinstance(rule, RuleIUH):
+                idx = par2idx.get((rule.parametertype, rule.target))
+            else:
+                idx = par2idx.get((rule.parametertype, None))
             if idx is not None:
                 if bounds:
                     if table[idx, 1] in (fillvalue, rule.lower):
@@ -1979,10 +2025,7 @@ parameterstep="1d"))
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface, make_rules, Replace
-        >>> ci = CalibrationInterface[Replace](
-        ...     hp=hp,
-        ...     targetfunction=lambda: None,
-        ... )
+        >>> ci = CalibrationInterface[Replace](hp=hp, targetfunction=lambda: None)
         >>> ci.add_rules(*make_rules(rule=Replace,
         ...                          names=["fc", "percmax"],
         ...                          parameters=["fc", "percmax"],
@@ -2355,49 +2398,28 @@ class CalibSpec:
     initialisation that the given default and boundary values are consistent:
 
     >>> from hydpy import CalibSpec
-    >>> CalibSpec(
-    ...     name="par1",
-    ...     default=1.0,
-    ... )
+    >>> CalibSpec(name="par1", default=1.0)
     CalibSpec(name="par1", default=1.0)
 
-    >>> CalibSpec(
-    ...     name="par1",
-    ...     default=1.0,
-    ...     lower=2.0,
-    ... )
+    >>> CalibSpec(name="par1", default=1.0, lower=2.0)
     Traceback (most recent call last):
     ...
     ValueError: The following values given for calibration parameter `par1` are not \
 consistent: default=1.0, lower=2.0, upper=inf.
 
-    >>> CalibSpec(
-    ...     name="par1",
-    ...     default=1.0,
-    ...     upper=0.5,
-    ... )
+    >>> CalibSpec(name="par1", default=1.0, upper=0.5)
     Traceback (most recent call last):
     ...
     ValueError: The following values given for calibration parameter `par1` are not \
 consistent: default=1.0, lower=-inf, upper=0.5.
 
-    >>> CalibSpec(
-    ...     name="par1",
-    ...     default=1.0,
-    ...     lower=0.0,
-    ...     upper=2.0,
-    ... )
+    >>> CalibSpec(name="par1", default=1.0, lower=0.0, upper=2.0)
     CalibSpec(name="par1", default=1.0, lower=0.0, upper=2.0)
 
     Use the `parameterstep` argument for time-dependent calibration parameters:
 
-    >>> CalibSpec(
-    ...     name="par1",
-    ...     default=1.0/3.0,
-    ...     lower=1.0/3.0,
-    ...     upper=1.0/3.0,
-    ...     parameterstep="1d",
-    ... )
+    >>> CalibSpec(name="par1", default=1.0/3.0, lower=1.0/3.0, upper=1.0/3.0,
+    ...           parameterstep="1d")
     CalibSpec(
         name="par1", default=0.333333, lower=0.333333, upper=0.333333, \
 parameterstep="1d"
@@ -2476,8 +2498,7 @@ class CalibSpecs:
     ...         name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
     ...     ),
     ...     CalibSpec(name="second", default=1.0, lower=0.0),
-    ...     CalibSpec(name="first",default=2.0, upper=2.0),
-    ... )
+    ...     CalibSpec(name="first",default=2.0, upper=2.0))
     >>> calibspecs
     CalibSpecs(
         CalibSpec(name="third", default=3.0, lower=-10.0, upper=10.0, \
@@ -2598,8 +2619,7 @@ object named `second`.
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> first = CalibSpec(name="first", default=1.0, lower=0.0)
         >>> second = CalibSpec(name="second",default=2.0, upper=2.0)
         >>> calibspecs = CalibSpecs()
@@ -2622,8 +2642,7 @@ parameterstep="1d"),
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
         ...                         CalibSpec(name="second",default=2.0, upper=2.0))
         >>> calibspecs.append(third)
@@ -2638,8 +2657,7 @@ parameterstep="1d"),
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
         ...                         CalibSpec(name="second",default=2.0, upper=2.0))
         >>> calibspecs.append(third)
@@ -2655,8 +2673,7 @@ parameterstep="1d"),
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
         ...                         CalibSpec(name="second",default=2.0, upper=2.0))
         >>> calibspecs.append(third)
@@ -2672,8 +2689,7 @@ parameterstep="1d"),
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
         ...                         CalibSpec(name="second",default=2.0, upper=2.0))
         >>> calibspecs.append(third)
@@ -2688,8 +2704,7 @@ parameterstep="1d"),
 
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
-        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
-        ... )
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
         ...                         CalibSpec(name="second",default=2.0, upper=2.0))
         >>> calibspecs.append(third)
@@ -2817,7 +2832,7 @@ def make_rules(
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import CalibrationInterface, make_rules, nse
-    >>> ci = CalibrationInterface(  # ToDo: remove?
+    >>> ci = CalibrationInterface(
     ...     hp=hp,
     ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
 

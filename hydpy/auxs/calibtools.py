@@ -36,9 +36,13 @@ from hydpy.models.arma import arma_control
 from hydpy.core.typingtools import *
 
 ParameterType = TypeVar("ParameterType", bound=parametertools.Parameter)
-ParameterAlias = Union[parametertools.Parameter, arma_control.Responses]
-RuleType1 = TypeVar("RuleType1", bound="Rule[ParameterAlias]")
-RuleType2 = TypeVar("RuleType2", bound="Rule[ParameterAlias]")
+RuleType1 = TypeVar(
+    "RuleType1", "Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"
+)
+RuleType2 = TypeVar(
+    "RuleType2", "Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"
+)
+RuleType = TypeVar("RuleType", "Replace", "Add", "Multiply")
 
 
 class TargetFunction(Protocol):
@@ -320,18 +324,16 @@ class Rule(abc.ABC, Generic[ParameterType]):
 
     We define a |Rule| object supposed to replace the values of parameter
     |hland_control.FC| of application model |lland_v1|.  Note that argument `name` is
-    the name of the rule itself, whereas the argument `parameter` is the parameter's
-    name:
+    the rule's name, whereas the argument `parameter` is the parameter's name:
 
     >>> from hydpy import Replace
-    >>> rule = Replace(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ...     model="hland_v1",
-    ... )
+    >>> rule = Replace(name="fc",
+    ...                parameter="fc",
+    ...                value=100.0,
+    ...                model="hland_v1")
 
-    The following string representation shows us the full list of available arguments:
+    The following string representation shows us the complete list of available
+    arguments:
 
     >>> rule
     Replace(
@@ -392,13 +394,11 @@ class Rule(abc.ABC, Generic[ParameterType]):
     that we pass an example parameter object of type |hland_control.FC| instead of the
     string `fc` this time):
 
-    >>> Replace(
-    ...     name="fc",
-    ...     parameter=fc,
-    ...     value=100.0,
-    ...     model="hland_v1",
-    ...     parameterstep="1d",
-    ... )
+    >>> Replace(name="fc",
+    ...         parameter=fc,
+    ...         value=100.0,
+    ...         model="hland_v1",
+    ...         parameterstep="1d")
     Replace(
         name="fc",
         parameter="fc",
@@ -415,12 +415,10 @@ class Rule(abc.ABC, Generic[ParameterType]):
     pass the parameter type |hland_control.PercMax| this time):
 
     >>> from hydpy.models.hland.hland_control import PercMax
-    >>> rule = Replace(
-    ...     name="percmax",
-    ...     parameter=PercMax,
-    ...     value=5.0,
-    ...     model="hland_v1",
-    ... )
+    >>> rule = Replace(name="percmax",
+    ...                parameter=PercMax,
+    ...                value=5.0,
+    ...                model="hland_v1")
 
     The |Rule| object internally handles, to avoid confusion, a copy of
     |Options.parameterstep|.
@@ -446,13 +444,11 @@ class Rule(abc.ABC, Generic[ParameterType]):
 
     Alternatively, you can pass a parameter step size yourself:
 
-    >>> rule = Replace(
-    ...     name="percmax",
-    ...     parameter="percmax",
-    ...     value=5.0,
-    ...     model="hland_v1",
-    ...     parameterstep="2d",
-    ... )
+    >>> rule = Replace(name="percmax",
+    ...                parameter="percmax",
+    ...                value=5.0,
+    ...                model="hland_v1",
+    ...                parameterstep="2d")
     >>> rule.apply_value()
     >>> with pub.options.parameterstep("1d"):
     ...     percmax
@@ -460,12 +456,10 @@ class Rule(abc.ABC, Generic[ParameterType]):
 
     Missing parameter step-size information results in the following error:
 
-    >>> Replace(
-    ...     name="percmax",
-    ...     parameter="percmax",
-    ...     value=5.0,
-    ...     model="hland_v1",
-    ... )
+    >>> Replace(name="percmax",
+    ...         parameter="percmax",
+    ...         value=5.0,
+    ...         model="hland_v1")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `percmax`, the \
@@ -476,48 +470,40 @@ via option `parameterstep`.
     With the following definition, the |Rule| object queries all |Element| objects
     handling |hland_v1| instances from the global |Selections| object `pub.selections`:
 
-    >>> rule = Replace(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ...     model="hland_v1",
-    ... )
+    >>> rule = Replace(name="fc",
+    ...                parameter="fc",
+    ...                value=100.0,
+    ...                model="hland_v1")
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
     Alternatively, you can specify selections by passing themselves or their names (the
     latter requires them to be a member of `pub.selections`):
 
-    >>> rule = Replace(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ...     selections=[pub.selections.headwaters, "nonheadwaters"],
-    ... )
+    >>> rule = Replace(name="fc",
+    ...                parameter="fc",
+    ...                value=100.0,
+    ...                selections=[pub.selections.headwaters, "nonheadwaters"])
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
     Without using the `model` argument, you must ensure the selected elements handle
     the correct model instance yourself:
 
-    >>> Replace(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ... )
+    >>> Replace(name="fc",
+    ...         parameter="fc",
+    ...         value=100.0)
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
 following error occurred: Model `hstream_v1` of element `stream_dill_lahn_2` does not \
 define a control parameter named `fc`.
 
-    >>> Replace(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ...     model="hstream_v1",
-    ...     selections=[pub.selections.headwaters, "nonheadwaters"],
-    ... )
+    >>> Replace(name="fc",
+    ...         parameter="fc",
+    ...         value=100.0,
+    ...         model="hstream_v1",
+    ...         selections=[pub.selections.headwaters, "nonheadwaters"])
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise the `Replace` rule object `fc`, the \
@@ -547,7 +533,7 @@ handle any `hstream_v1` model instances.
     """The type of the addressed |Parameter| objects."""
 
     elements: devicetools.Elements
-    """The |Element| objects which handle the relevant target |Parameter| instances."""
+    """The |Element| objects, which handle the relevant target |Parameter| instances."""
 
     selections: Tuple[str, ...]
     """The names of all relevant |Selection| objects."""
@@ -834,12 +820,10 @@ class Add(Rule[parametertools.Parameter]):
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
-    >>> rule = Add(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=100.0,
-    ...     model="hland_v1",
-    ... )
+    >>> rule = Add(name="fc",
+    ...            parameter="fc",
+    ...            value=100.0,
+    ...            model="hland_v1")
     >>> rule.adaptor = lambda parameter: 2.0*rule.value
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
@@ -852,13 +836,11 @@ class Add(Rule[parametertools.Parameter]):
     and shows that everything works even when the actual |Options.parameterstep| (2
     days) differs from the current |Options.simulationstep| (1 day):
 
-    >>> rule = Add(
-    ...     name="percmax",
-    ...     parameter="percmax",
-    ...     value=5.0,
-    ...     model="hland_v1",
-    ...     parameterstep="2d",
-    ... )
+    >>> rule = Add(name="percmax",
+    ...            parameter="percmax",
+    ...            value=5.0,
+    ...            model="hland_v1",
+    ...            parameterstep="2d")
     >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
     >>> percmax
     percmax(1.02978)
@@ -888,12 +870,10 @@ class Multiply(Rule[parametertools.Parameter]):
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
-    >>> rule = Multiply(
-    ...     name="fc",
-    ...     parameter="fc",
-    ...     value=2.0,
-    ...     model="hland_v1",
-    ... )
+    >>> rule = Multiply(name="fc",
+    ...                 parameter="fc",
+    ...                 value=2.0,
+    ...                 model="hland_v1")
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
@@ -906,13 +886,11 @@ class Multiply(Rule[parametertools.Parameter]):
     |Options.parameterstep| (2 days) differs from the current |Options.simulationstep|
     (1 day):
 
-    >>> rule = Multiply(
-    ...     name="percmax",
-    ...     parameter="percmax",
-    ...     value=2.0,
-    ...     model="hland_v1",
-    ...     parameterstep="2d",
-    ... )
+    >>> rule = Multiply(name="percmax",
+    ...                 parameter="percmax",
+    ...                 value=2.0,
+    ...                 model="hland_v1",
+    ...                 parameterstep="2d")
     >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
     >>> percmax
     percmax(1.02978)
@@ -950,24 +928,23 @@ class CalibrationInterface(Generic[RuleType1]):
     >>> from hydpy import CalibrationInterface, nse
     >>> ci = CalibrationInterface(
     ...     hp=hp,
-    ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
-    ... )
+    ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
 
-    Next, we use method |CalibrationInterface.make_rules|, which generates one
-    |Replace| rule related to parameter |hland_control.FC| and another one related to
-    parameter |hland_control.PercMax| in one step:
+    Next, we use function |make_rules|, which creates one |Replace| rule related to
+    parameter |hland_control.FC| and another one related to parameter
+    |hland_control.PercMax| in one step, and add them via method
+    |CalibrationInterface.add_rules|:
 
     >>> from hydpy import Replace
-    >>> ci.make_rules(
-    ...     rule=Replace,
-    ...     names=["fc", "percmax"],
-    ...     parameters=["fc", "percmax"],
-    ...     values=[100.0, 5.0],
-    ...     lowers=[50.0, 1.0],
-    ...     uppers=[200.0, 10.0],
-    ...     parametersteps="1d",
-    ...     model="hland_v1",
-    ... )
+    >>> from hydpy.auxs.calibtools import make_rules
+    >>> ci.add_rules(*make_rules(rule=Replace,
+    ...                          names=["fc", "percmax"],
+    ...                          parameters=["fc", "percmax"],
+    ...                          values=[100.0, 5.0],
+    ...                          lowers=[50.0, 1.0],
+    ...                          uppers=[200.0, 10.0],
+    ...                          parametersteps="1d",
+    ...                          model="hland_v1"))
 
     >>> print(ci)
     CalibrationInterface
@@ -993,23 +970,19 @@ class CalibrationInterface(Generic[RuleType1]):
         selections=("complete",),
     )
 
-    You can also add existing rules via method |CalibrationInterface.add_rules|.  We
+    Adding rules later does not remove already available ones.  For demonstration, we
     add one for calibrating parameter |hstream_control.Damp| of application model
     |hstream_v1|:
 
     >>> len(ci)
     2
-    >>> ci.add_rules(
-    ...     Replace(
-    ...         name="damp",
-    ...         parameter="damp",
-    ...         value=0.2,
-    ...         lower=0.0,
-    ...         upper=0.5,
-    ...         selections=["complete"],
-    ...         model="hstream_v1",
-    ...     )
-    ... )
+    >>> ci.add_rules(Replace(name="damp",
+    ...                      parameter="damp",
+    ...                      value=0.2,
+    ...                      lower=0.0,
+    ...                      upper=0.5,
+    ...                      selections=["complete"],
+    ...                      model="hstream_v1"))
     >>> len(ci)
     3
 
@@ -1459,31 +1432,29 @@ does not agree with the one documentated in log file `example_calibration.log` (
         self,
         name: str,
         type_: Optional[Type[RuleType2]] = None,
-    ) -> Rule[ParameterAlias]:
+    ) -> Union[RuleType1, RuleType2]:
         """Return a |Rule| object (of a specific type).
 
-        Method |CalibrationInterface.get_rule| is a more typesafe alternative to
-        simple keyword access. Besides the name of the required |Rule| object, pass
-        its subclass to convince your IDE (and yourself) that the returned rule
-        follows this more specific type:
+        Method |CalibrationInterface.get_rule| is a more typesafe alternative to simple
+        keyword access. Besides the name of the required |Rule| object, pass its
+        subclass to convince your IDE (and yourself) that the returned rule follows
+        this more specific type:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import Add, CalibrationInterface, nse, Replace
+        >>> from hydpy import Add, CalibrationInterface, make_rules, nse, Replace
         >>> ci = CalibrationInterface(
         ...     hp=hp,
         ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
         ... )
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     names=["fc", "percmax"],
-        ...     parameters=["fc", "percmax"],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     uppers=[200.0, 10.0],
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
+        >>> ci.add_rules(*make_rules(rule=Replace,
+        ...                          names=["fc", "percmax"],
+        ...                          parameters=["fc", "percmax"],
+        ...                          values=[100.0, 5.0],
+        ...                          lowers=[50.0, 1.0],
+        ...                          uppers=[200.0, 10.0],
+        ...                          parametersteps="1d",
+        ...                          model="hland_v1"))
 
         >>> ci.get_rule("fc", Replace).name
         'fc'
@@ -1586,335 +1557,6 @@ object named `fc`.
                     f"object named `{rulename}`."
                 ) from None
         self._update_elements_when_deleting_a_rule()
-
-    @overload
-    def make_rules(
-        self,
-        *,
-        rule: Type[RuleType1],
-        names: Sequence[str],
-        parameters: Sequence[Union[parametertools.Parameter, str]],
-        values: Sequence[float],
-        lowers: Sequence[float],
-        uppers: Sequence[float],
-        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
-        model: Optional[Union[types.ModuleType, str]] = None,
-        selections: Literal[None] = None,
-    ) -> None:
-        ...
-
-    @overload
-    def make_rules(
-        self,
-        *,
-        rule: Type[RuleType1],
-        names: Sequence[str],
-        parameters: Sequence[Union[parametertools.Parameter, str]],
-        values: Sequence[float],
-        lowers: Sequence[float],
-        uppers: Sequence[float],
-        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
-        model: Optional[Union[types.ModuleType, str]] = None,
-        selections: Iterable[Union[selectiontools.Selection, str]],
-        product: bool = False,
-    ) -> None:
-        ...
-
-    @overload
-    def make_rules(
-        self,
-        *,
-        rule: Type[RuleType1],
-        calibspecs: "CalibSpecs",
-        names: Optional[Sequence[str]] = None,
-        parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
-        values: Optional[Sequence[float]] = None,
-        lowers: Optional[Sequence[float]] = None,
-        uppers: Optional[Sequence[float]] = None,
-        model: Optional[Union[types.ModuleType, str]] = None,
-        selections: Literal[None] = None,
-    ) -> None:
-        ...
-
-    @overload
-    def make_rules(
-        self,
-        *,
-        rule: Type[RuleType1],
-        calibspecs: "CalibSpecs",
-        names: Optional[Sequence[str]] = None,
-        parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
-        values: Optional[Sequence[float]] = None,
-        lowers: Optional[Sequence[float]] = None,
-        uppers: Optional[Sequence[float]] = None,
-        model: Optional[Union[types.ModuleType, str]] = None,
-        selections: Iterable[Union[selectiontools.Selection, str]],
-        product: bool = False,
-    ) -> None:
-        ...
-
-    def make_rules(
-        self,
-        *,
-        rule: Type[RuleType1],
-        calibspecs: Optional["CalibSpecs"] = None,
-        names: Optional[Sequence[str]] = None,
-        parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
-        values: Optional[Sequence[float]] = None,
-        lowers: Optional[Sequence[float]] = None,
-        uppers: Optional[Sequence[float]] = None,
-        parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
-        model: Optional[Union[types.ModuleType, str]] = None,
-        selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
-        product: bool = False,
-    ) -> None:
-        """Create and store new |Rule| objects.
-
-        Please see the main documentation on class |CalibrationInterface| first, from
-        which we borrow the general setup:
-
-        >>> from hydpy.examples import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
-
-        >>> from hydpy import CalibrationInterface, nse
-        >>> ci = CalibrationInterface(
-        ...     hp=hp,
-        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
-        ... )
-
-        Here, we show only the supplemental features of method
-        |CalibrationInterface.make_rules| in some brevity.
-
-        Method |CalibrationInterface.make_rules| checks that all given sequences have
-        the same length:
-
-        >>> from hydpy import Replace
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     names=["fc", "percmax"],
-        ...     parameters=["fc", "percmax"],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     uppers=[200.0],
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
-        Traceback (most recent call last):
-        ...
-        ValueError: When creating rules via method `make_rules`, all given sequences \
-must be of equal length.
-
-        The separate handling of the specifications of all calibration parameters is
-        error-prone.  For more safety and convenience, you can bundle all
-        specifications within a |CalibSpecs| object instead and pass them at once:
-
-        >>> from hydpy import CalibSpec, CalibSpecs
-        >>> calibspecs = CalibSpecs(
-        ...     CalibSpec(name="fc", default=100.0, lower=50.0, upper=200.0),
-        ...     CalibSpec(
-        ...         name="percmax", default=5.0, lower=1.0, upper=10.0, \
-parameterstep="1d"
-        ...     ),
-        ... )
-
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     calibspecs=calibspecs,
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
-        >>> ci["percmax"]
-        Replace(
-            name="percmax",
-            parameter="percmax",
-            lower=1.0,
-            upper=10.0,
-            parameterstep="1d",
-            value=5.0,
-            model="hland_v1",
-            selections=("complete",),
-        )
-        >>> ci.remove_rules("fc", "percmax")
-
-        You are free also to use the individual arguments (e.g. `names`) to override
-        the related specifications defined by the |CalibSpecs| object:
-
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     calibspecs=calibspecs,
-        ...     names=[name.upper() for name in calibspecs.names],
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
-        >>> ci["PERCMAX"]
-        Replace(
-            name="PERCMAX",
-            parameter="percmax",
-            lower=1.0,
-            upper=10.0,
-            parameterstep="1d",
-            value=5.0,
-            model="hland_v1",
-            selections=("complete",),
-        )
-        >>> ci.remove_rules("FC", "PERCMAX")
-
-        Method |CalibrationInterface.make_rules| raises the following error if you
-        neither pass a |CalibSpecs| object nor the complete list of individual
-        calibration parameter specifications:
-
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     names=["fc", "percmax"],
-        ...     parameters=["fc", "percmax"],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
-        Traceback (most recent call last):
-        ...
-        TypeError: When creating rules via method `make_rules`, you must pass a \
-`CalibSpecs` object or provide complete information for the following arguments: \
-names, parameters, values, lowers, and uppers.
-
-        You can run method |CalibrationInterface.make_rules| in "product mode", meaning
-        that its execution results in distinct |Rule| objects for all combinations of
-        the given calibration parameters and selections:
-
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     calibspecs=calibspecs,
-        ...     model="hland_v1",
-        ...     selections=("headwaters", "nonheadwaters"),
-        ...     product=True,
-        ... )
-        >>> tuple(par.__name__ for par in ci.parametertypes)
-        ('FC', 'PercMax')
-        >>> ci.selections
-        ('headwaters', 'nonheadwaters')
-        >>> ci["percmax_headwaters"]
-        Replace(
-            name="percmax_headwaters",
-            parameter="percmax",
-            lower=1.0,
-            upper=10.0,
-            parameterstep="1d",
-            value=5.0,
-            model="hland_v1",
-            selections=("headwaters",),
-        )
-        >>> ci["percmax_nonheadwaters"].selections
-        ('nonheadwaters',)
-        >>> ci["fc_headwaters"].selections
-        ('headwaters',)
-        >>> ci["fc_nonheadwaters"].selections
-        ('nonheadwaters',)
-
-        Trying to run in "product mode" without defining the target selections results
-        in the following error message:
-
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     calibspecs=calibspecs,
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ...     product=True,
-        ... )
-        Traceback (most recent call last):
-        ...
-        TypeError: When creating rules via method `make_rules` in "product mode" \
-(with the argument `product` being `True`), you must supply all target selection \
-objects via argument `selections`.
-        """
-        if calibspecs is None:
-            if (
-                (names is None)
-                or (parameters is None)
-                or (values is None)
-                or (lowers is None)
-                or (uppers is None)
-            ):
-                raise TypeError(
-                    "When creating rules via method `make_rules`, you must pass a "
-                    "`CalibSpecs` object or provide complete information for the "
-                    "following arguments: names, parameters, values, lowers, and "
-                    "uppers."
-                )
-        else:
-            if names is None:
-                names = calibspecs.names
-            if parameters is None:
-                parameters = calibspecs.names
-            if values is None:
-                values = calibspecs.defaults
-            if lowers is None:
-                lowers = calibspecs.lowers
-            if uppers is None:
-                uppers = calibspecs.uppers
-        parameters_ = tuple(
-            objecttools.extract(
-                values=parameters,
-                types_=(parametertools.Parameter, str),
-            )
-        )
-        # pylint: disable=isinstance-second-argument-not-valid-type
-        # see https://github.com/PyCQA/pylint/issues/3507
-        if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):
-            parametersteps = len(names) * (parametersteps,)
-        # pylint: enable=isinstance-second-argument-not-valid-type
-        if not (
-            len(names)
-            == len(parameters_)
-            == len(lowers)
-            == len(uppers)
-            == len(values)
-            == len(parametersteps)
-        ):
-            raise ValueError(
-                "When creating rules via method `make_rules`, all given sequences "
-                "must be of equal length."
-            )
-        nmb_parameters = len(parameters_)
-        selections2: Iterable[Optional[Iterable[Union[selectiontools.Selection, str]]]]
-        if product:
-            if selections is None:
-                raise TypeError(
-                    'When creating rules via method `make_rules` in "product mode" '
-                    "(with the argument `product` being `True`), you must supply all "
-                    "target selection objects via argument `selections`."
-                )
-            selections = tuple(selections)
-            names = tuple(
-                f"{par}_{sel}"
-                for sel, par in itertools.product(selections, parameters_)
-            )
-            nmb_selections = len(selections)
-            parameters_ = nmb_selections * tuple(parameters_)
-            lowers = nmb_selections * tuple(lowers)
-            uppers = nmb_selections * tuple(uppers)
-            values = nmb_selections * tuple(values)
-            parametersteps = nmb_selections * tuple(parametersteps)
-            selections2 = itertools.chain.from_iterable(
-                itertools.repeat((sel,), nmb_parameters) for sel in selections
-            )
-        else:
-            selections2 = itertools.repeat(selections, nmb_parameters)
-        for name, parameter, lower, upper, value, parameterstep, selections_ in zip(
-            names, parameters_, lowers, uppers, values, parametersteps, selections2
-        ):
-            self.add_rules(
-                rule(
-                    name=name,
-                    parameter=parameter,
-                    value=value,
-                    lower=lower,
-                    upper=upper,
-                    parameterstep=parameterstep,
-                    selections=selections_,
-                    model=model,
-                )
-            )
 
     def prepare_logfile(
         self,
@@ -2027,7 +1669,7 @@ objects via argument `selections`.
 
     def _update_elements_when_adding_a_rule(
         self,
-        rule: Rule[ParameterAlias],
+        rule: RuleType1,
     ) -> None:
         self._elements += rule.elements
 
@@ -2077,8 +1719,7 @@ objects via argument `selections`.
         """The names of all |Selection| objects addressed at least one of the handled
         |Rule| objects.
 
-        See the documentation on method |CalibrationInterface.make_rules| for further
-        information.
+        See the documentation on function |make_rules| for further information.
         """
         return tuple(
             sorted(set(itertools.chain.from_iterable(rule.selections for rule in self)))
@@ -2089,8 +1730,7 @@ objects via argument `selections`.
         """The types of all |Parameter| objects addressed by at least one of the
         handled |Rule| objects.
 
-        See the documentation on method |CalibrationInterface.make_rules| for further
-        information.
+        See the documentation on function |make_rules| for further information.
         """
         return variabletools.sort_variables(set(rule.parametertype for rule in self))
 
@@ -2182,30 +1822,25 @@ objects via argument `selections`.
     ) -> None:
         """Print the current calibration parameter values in a table format.
 
-        Please see the documentation on method |CalibrationInterface.make_rules| first,
-        from which we borrow the general setup:
+        Please see the documentation on class |CalibrationInterface| first, from which
+        we borrow the general setup:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import CalibSpec, CalibSpecs, CalibrationInterface, nse
+        >>> from hydpy import CalibSpec, CalibSpecs, CalibrationInterface, make_rules, \
+nse
         >>> ci = CalibrationInterface(
         ...     hp=hp,
-        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes)
-        ... )
+        ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
         >>> calibspecs = CalibSpecs(
         ...     CalibSpec(name="fc", default=100.0, lower=50.0, upper=200.0),
-        ...     CalibSpec(
-        ...         name="percmax", default=5.0, lower=1.0, upper=10.0, \
-parameterstep="1d"
-        ...     ),
-        ... )
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     calibspecs=calibspecs,
-        ...     model="hland_v1",
-        ...     selections=("headwaters", "nonheadwaters"),
-        ...     product=True,
-        ... )
+        ...     CalibSpec(name="percmax", default=5.0, lower=1.0, upper=10.0, \
+parameterstep="1d"))
+        >>> ci.add_rules(*make_rules(rule=Replace,
+        ...                          calibspecs=calibspecs,
+        ...                          model="hland_v1",
+        ...                          selections=("headwaters", "nonheadwaters"),
+        ...                          product=True))
 
         First, we change the values of two |Rule| objects to clarify that all values
         appear in the correct table cells:
@@ -2214,7 +1849,7 @@ parameterstep="1d"
         >>> ci["percmax_nonheadwaters"].value = 10.0
 
         By default, method |CalibrationInterface.print_table| prints the values of all
-        handled |Rule| objects.  We varies the target control parameters on the first
+        handled |Rule| objects.  It varies the target control parameters on the first
         axis and the target selections on the second axis.  Row two and three contain
         the (identical) lower and upper boundary values corresponding to the respective
         control parameters:
@@ -2329,7 +1964,7 @@ parameterstep="1d"
                 f"named `{key}`."
             ) from None
 
-    def __contains__(self, item: Union[str, Rule[ParameterAlias]]) -> bool:
+    def __contains__(self, item: Union[str, Rule[Any]]) -> bool:
         return (item in self._rules) or (item in self._rules.values())
 
     def __repr__(self) -> str:
@@ -2343,27 +1978,24 @@ parameterstep="1d"
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> from hydpy import CalibrationInterface, Replace
+        >>> from hydpy import CalibrationInterface, make_rules, Replace
         >>> ci = CalibrationInterface[Replace](
         ...     hp=hp,
         ...     targetfunction=lambda: None,
         ... )
-        >>> ci.make_rules(
-        ...     rule=Replace,
-        ...     names=["fc", "percmax"],
-        ...     parameters=["fc", "percmax"],
-        ...     values=[100.0, 5.0],
-        ...     lowers=[50.0, 1.0],
-        ...     uppers=[200.0, 10.0],
-        ...     parametersteps="1d",
-        ...     model="hland_v1",
-        ... )
-        >>> dir(ci)   # doctest: +ELLIPSIS
+        >>> ci.add_rules(*make_rules(rule=Replace,
+        ...                          names=["fc", "percmax"],
+        ...                          parameters=["fc", "percmax"],
+        ...                          values=[100.0, 5.0],
+        ...                          lowers=[50.0, 1.0],
+        ...                          uppers=[200.0, 10.0],
+        ...                          parametersteps="1d",
+        ...                          model="hland_v1"))
+        >>> dir(ci)
         ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', 'fc', \
-'get_rule', 'lowers', 'make_rules', 'names', 'parametertypes', 'percmax', \
-'perform_calibrationstep', 'prepare_logfile', 'print_table', 'read_logfile', \
-'remove_rules', 'reset_parameters', 'result', 'selections', 'update_logfile', \
-'uppers', 'values']
+'get_rule', 'lowers', 'names', 'parametertypes', 'percmax', 'perform_calibrationstep', \
+'prepare_logfile', 'print_table', 'read_logfile', 'remove_rules', 'reset_parameters', \
+'result', 'selections', 'update_logfile', 'uppers', 'values']
         """
         return objecttools.dir_(self) + list(self._rules.keys())
 
@@ -3095,3 +2727,326 @@ parameterstep="1d"),
         append, defaults, first, lowers, names, parametersteps, second, uppers
         """
         return list(super().__dir__()) + list(self.names)
+
+
+@overload
+def make_rules(
+    *,
+    rule: Type[RuleType],
+    names: Sequence[str],
+    parameters: Sequence[Union[parametertools.Parameter, str]],
+    values: Sequence[float],
+    lowers: Sequence[float],
+    uppers: Sequence[float],
+    parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
+    model: Optional[Union[types.ModuleType, str]] = None,
+    selections: Literal[None] = None,
+) -> List[RuleType]:
+    ...
+
+
+@overload
+def make_rules(
+    *,
+    rule: Type[RuleType],
+    names: Sequence[str],
+    parameters: Sequence[Union[parametertools.Parameter, str]],
+    values: Sequence[float],
+    lowers: Sequence[float],
+    uppers: Sequence[float],
+    parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
+    model: Optional[Union[types.ModuleType, str]] = None,
+    selections: Iterable[Union[selectiontools.Selection, str]],
+    product: bool = False,
+) -> List[RuleType]:
+    ...
+
+
+@overload
+def make_rules(
+    *,
+    rule: Type[RuleType],
+    calibspecs: "CalibSpecs",
+    names: Optional[Sequence[str]] = None,
+    parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
+    values: Optional[Sequence[float]] = None,
+    lowers: Optional[Sequence[float]] = None,
+    uppers: Optional[Sequence[float]] = None,
+    model: Optional[Union[types.ModuleType, str]] = None,
+    selections: Literal[None] = None,
+) -> List[RuleType]:
+    ...
+
+
+@overload
+def make_rules(
+    *,
+    rule: Type[RuleType],
+    calibspecs: "CalibSpecs",
+    names: Optional[Sequence[str]] = None,
+    parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
+    values: Optional[Sequence[float]] = None,
+    lowers: Optional[Sequence[float]] = None,
+    uppers: Optional[Sequence[float]] = None,
+    model: Optional[Union[types.ModuleType, str]] = None,
+    selections: Iterable[Union[selectiontools.Selection, str]],
+    product: bool = False,
+) -> List[RuleType]:
+    ...
+
+
+def make_rules(
+    *,
+    rule: Type[RuleType],
+    calibspecs: Optional["CalibSpecs"] = None,
+    names: Optional[Sequence[str]] = None,
+    parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
+    values: Optional[Sequence[float]] = None,
+    lowers: Optional[Sequence[float]] = None,
+    uppers: Optional[Sequence[float]] = None,
+    parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
+    model: Optional[Union[types.ModuleType, str]] = None,
+    selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
+    product: bool = False,
+) -> List[RuleType]:
+    """Conveniently create multiple |Rule| objects at once.
+
+    Please see the main documentation on class |CalibrationInterface| first, from
+    which we borrow the general setup:
+
+    >>> from hydpy.examples import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> from hydpy import CalibrationInterface, make_rules, nse
+    >>> ci = CalibrationInterface(  # ToDo: remove?
+    ...     hp=hp,
+    ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
+
+    Here, we show only the supplemental features of function |make_rules| in some
+    brevity.
+
+    Function |make_rules| checks that all given sequences have the same length:
+
+    >>> from hydpy import Replace
+    >>> make_rules(rule=Replace,
+    ...            names=["fc", "percmax"],
+    ...            parameters=["fc", "percmax"],
+    ...            values=[100.0, 5.0],
+    ...            lowers=[50.0, 1.0],
+    ...            uppers=[200.0],
+    ...            parametersteps="1d",
+    ...            model="hland_v1")
+    Traceback (most recent call last):
+    ...
+    ValueError: When creating rules via function `make_rules`, all given sequences \
+must be of equal length.
+
+    The separate handling of the specifications of all calibration parameters is
+    error-prone.  You can bundle all specifications within a |CalibSpecs| object
+    instead and pass them at once for more safety and convenience:
+
+    >>> from hydpy import CalibSpec, CalibSpecs
+    >>> calibspecs = CalibSpecs(
+    ...     CalibSpec(name="fc", default=100.0, lower=50.0, upper=200.0),
+    ...     CalibSpec(name="percmax", default=5.0, lower=1.0, upper=10.0, \
+parameterstep="1d"))
+    >>> make_rules(rule=Replace,
+    ...            calibspecs=calibspecs,
+    ...            parametersteps="1d",
+    ...            model="hland_v1")[1]
+    Replace(
+        name="percmax",
+        parameter="percmax",
+        lower=1.0,
+        upper=10.0,
+        parameterstep="1d",
+        value=5.0,
+        model="hland_v1",
+        selections=("complete",),
+    )
+
+    You are free also to use the individual arguments (e.g. `names`) to override the
+    related specifications defined by the |CalibSpecs| object:
+
+    >>> make_rules(rule=Replace,
+    ...            calibspecs=calibspecs,
+    ...            names=[name.upper() for name in calibspecs.names],
+    ...            parametersteps="1d",
+    ...            model="hland_v1")[1]
+    Replace(
+        name="PERCMAX",
+        parameter="percmax",
+        lower=1.0,
+        upper=10.0,
+        parameterstep="1d",
+        value=5.0,
+        model="hland_v1",
+        selections=("complete",),
+    )
+
+    Function |make_rules| raises the following error if you neither pass a |CalibSpecs|
+    object nor the complete list of individual calibration parameter specifications:
+
+    >>> make_rules(rule=Replace,
+    ...            names=["fc", "percmax"],
+    ...            parameters=["fc", "percmax"],
+    ...            values=[100.0, 5.0],
+    ...            lowers=[50.0, 1.0],
+    ...            parametersteps="1d",
+    ...            model="hland_v1")
+    Traceback (most recent call last):
+    ...
+    TypeError: When creating rules via function `make_rules`, you must pass a \
+`CalibSpecs` object or provide complete information for the following arguments: \
+names, parameters, values, lowers, and uppers.
+
+    You can run function |make_rules| in "product mode", meaning that its execution
+    results in distinct |Rule| objects for all combinations of the given calibration
+    parameters and selections:
+
+    >>> make_rules(rule=Replace,
+    ...            calibspecs=calibspecs,
+    ...            model="hland_v1",
+    ...            selections=("headwaters", "nonheadwaters"),
+    ...            product=True)
+    [Replace(
+        name="fc_headwaters",
+        parameter="fc",
+        lower=50.0,
+        upper=200.0,
+        parameterstep=None,
+        value=100.0,
+        model="hland_v1",
+        selections=("headwaters",),
+    ), Replace(
+        name="percmax_headwaters",
+        parameter="percmax",
+        lower=1.0,
+        upper=10.0,
+        parameterstep="1d",
+        value=5.0,
+        model="hland_v1",
+        selections=("headwaters",),
+    ), Replace(
+        name="fc_nonheadwaters",
+        parameter="fc",
+        lower=50.0,
+        upper=200.0,
+        parameterstep=None,
+        value=100.0,
+        model="hland_v1",
+        selections=("nonheadwaters",),
+    ), Replace(
+        name="percmax_nonheadwaters",
+        parameter="percmax",
+        lower=1.0,
+        upper=10.0,
+        parameterstep="1d",
+        value=5.0,
+        model="hland_v1",
+        selections=("nonheadwaters",),
+    )]
+
+    Trying to run in "product mode" without defining the target selections results in
+    the following error message:
+
+    >>> make_rules(rule=Replace,
+    ...            calibspecs=calibspecs,
+    ...            parametersteps="1d",
+    ...            model="hland_v1",
+    ...            product=True)
+    Traceback (most recent call last):
+    ...
+    TypeError: When creating rules via function `make_rules` in "product mode" (with \
+the argument `product` being `True`), you must supply all target selection objects \
+via argument `selections`.
+    """
+    if calibspecs is None:
+        if (
+            (names is None)
+            or (parameters is None)
+            or (values is None)
+            or (lowers is None)
+            or (uppers is None)
+        ):
+            raise TypeError(
+                "When creating rules via function `make_rules`, you must pass a "
+                "`CalibSpecs` object or provide complete information for the "
+                "following arguments: names, parameters, values, lowers, and uppers."
+            )
+    else:
+        if names is None:
+            names = calibspecs.names
+        if parameters is None:
+            parameters = calibspecs.names
+        if values is None:
+            values = calibspecs.defaults
+        if lowers is None:
+            lowers = calibspecs.lowers
+        if uppers is None:
+            uppers = calibspecs.uppers
+        if parametersteps is None:
+            parametersteps = calibspecs.parametersteps
+    parameters_ = tuple(
+        objecttools.extract(
+            values=parameters,
+            types_=(parametertools.Parameter, str),
+        )
+    )
+    # pylint: disable=isinstance-second-argument-not-valid-type
+    # see https://github.com/PyCQA/pylint/issues/3507
+    if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):
+        parametersteps = len(names) * (parametersteps,)
+    # pylint: enable=isinstance-second-argument-not-valid-type
+    if not (
+        len(names)
+        == len(parameters_)
+        == len(lowers)
+        == len(uppers)
+        == len(values)
+        == len(parametersteps)
+    ):
+        raise ValueError(
+            "When creating rules via function `make_rules`, all given sequences must "
+            "be of equal length."
+        )
+    nmb_parameters = len(parameters_)
+    selections2: Iterable[Optional[Iterable[Union[selectiontools.Selection, str]]]]
+    if product:
+        if selections is None:
+            raise TypeError(
+                'When creating rules via function `make_rules` in "product mode" (with '
+                "the argument `product` being `True`), you must supply all target "
+                "selection objects via argument `selections`."
+            )
+        selections = tuple(selections)
+        names = tuple(
+            f"{par}_{sel}" for sel, par in itertools.product(selections, parameters_)
+        )
+        nmb_selections = len(selections)
+        parameters_ = nmb_selections * tuple(parameters_)
+        lowers = nmb_selections * tuple(lowers)
+        uppers = nmb_selections * tuple(uppers)
+        values = nmb_selections * tuple(values)
+        parametersteps = nmb_selections * tuple(parametersteps)
+        selections2 = itertools.chain.from_iterable(
+            itertools.repeat((sel,), nmb_parameters) for sel in selections
+        )
+    else:
+        selections2 = itertools.repeat(selections, nmb_parameters)
+    rules = []
+    for name, parameter, lower, upper, value, parameterstep, selections_ in zip(
+        names, parameters_, lowers, uppers, values, parametersteps, selections2
+    ):
+        rules.append(
+            rule(
+                name=name,
+                parameter=parameter,
+                value=value,
+                lower=lower,
+                upper=upper,
+                parameterstep=parameterstep,
+                selections=selections_,
+                model=model,
+            )
+        )
+    return rules

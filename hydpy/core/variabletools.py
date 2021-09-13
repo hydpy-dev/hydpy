@@ -2148,8 +2148,8 @@ def sort_variables(
 ) -> Tuple[Union[Type[VariableType], Tuple[Type[VariableType], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
-    When defined in one module, the initialisation order corresponds to the
-    order within the file:
+    When defined in one module, the initialisation order corresponds to the order
+    within the file:
 
     >>> from hydpy import classname, sort_variables
     >>> from hydpy.models.hland.hland_control import Area, NmbZones, ZoneType
@@ -2160,20 +2160,38 @@ def sort_variables(
     NmbZones
     ZoneType
 
-    Function |sort_variables| also supports sorting tuples.  Each first entry
-    must be a |Variable| subclass:
+    Function |sort_variables| also supports sorting tuples.  Each first entry must be
+    a |Variable| subclass:
 
     >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
     ...     print(classname(var), idx)
     Area 3
     NmbZones 1
     ZoneType 2
+
+    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), idx)
+    Area 3
+    NmbZones 1
+    ZoneType 2
+
+    |sort_variables| does not remove duplicates:
+
+    >>> for var, idx in \
+sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
+    ...     print(classname(var), idx)
+    Area 1
+    Area 3
+    Area 3
+    ZoneType 2
     """
-    idx2value = {}
-    for value in values:
-        variable = value[0] if isinstance(value, tuple) else value
-        idx2value[variable.__hydpy__subclasscounter__] = value
-    return tuple(value for idx, value in sorted(idx2value.items()))
+    counter_value = (
+        (value[0].__hydpy__subclasscounter__, value)
+        if isinstance(value, tuple)
+        else (value.__hydpy__subclasscounter__, value)
+        for value in values
+    )
+    return tuple(value for _, value in sorted(counter_value))
 
 
 class SubVariables(Generic[GroupType, VariableType, FastAccessType]):

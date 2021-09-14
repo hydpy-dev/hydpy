@@ -555,7 +555,7 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
             del self.neurons
             del self.neuron_derivatives
 
-    def _get_nmb_inputs(self) -> int:  # pylint: disable=method-hidden
+    def _get_nmb_inputs(self) -> int:
         """The number of input nodes.
 
         >>> from hydpy import ANN
@@ -617,7 +617,7 @@ object `ann` has not been prepared so far.
     nmb_outputs: int  # type: ignore[no-redef]
     # to improve PyCharm code completion; required until PyCharm is fixed
 
-    def _get_nmb_neurons(self) -> Tuple[int, ...]:  # pylint: disable=method-hidden
+    def _get_nmb_neurons(self) -> Tuple[int, ...]:
         """The number of neurons of the hidden layers.
 
         >>> from hydpy import ANN

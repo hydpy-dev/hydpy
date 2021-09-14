@@ -155,7 +155,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
 # Copy additional files into folder `auto` and, for the rst files, add the
 # required substitution replacement commands.
 for subpackage in (autofigs, bibliography, figs, sphinx, rst):
-    subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+    subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined]
     for filename in sorted(os.listdir(subpackagepath)):
         path_in = os.path.join(subpackagepath, filename)
         path_out = os.path.join(AUTOPATH, filename)

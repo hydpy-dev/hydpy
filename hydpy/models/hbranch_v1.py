@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 Version 1 of the HydPy-H-Branch model allows branching the summed input from some inlet
 nodes to an arbitrary number of outlet nodes. The original HBV96 implementation

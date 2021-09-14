@@ -116,7 +116,6 @@ from hydpy.exe import commandtools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
-    # pylint: disable=ungrouped-imports
     import netCDF4 as netcdf4
     import xmlschema
     from hydpy.core import modeltools
@@ -501,7 +500,7 @@ correctly refer to one of the available XML schema files \
                     f"does not correctly refer to one of the available XML "
                     f"schema files ({objecttools.enumeration(filenames)})."
                 )
-            confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+            confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
             schemapath = os.path.join(confpath, schemafile)
             schema = xmlschema.XMLSchema(schemapath)
             schema.validate(self.filepath)
@@ -2007,7 +2006,7 @@ class XSDWriter:
         >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
-        modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+        modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
         return sorted(
             str(fn.split(".")[0])
             for fn in sorted(os.listdir(modelspath))

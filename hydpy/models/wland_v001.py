@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 r"""Version 1 of *HydPy-W-Land* is a slightly modified and extended version of the
 `WALRUS`_ model, specifically designed to simulate surface water fluxes in lowland
 catchments influenced by near-surface groundwater :cite:`ref-Brauer2014`.  We

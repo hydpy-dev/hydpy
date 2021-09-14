@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Nearest-neighbour interpolation.
 
 Version 1 of HydPy-C performs simple nearest-neighbour interpolations between

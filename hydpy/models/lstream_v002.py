@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 2 of HydPy-L-Stream is a computationally more efficient alternative to
 application model |lstream_v001|.  The higher efficiency is due to not calculating
 discharges based on channel geometries but preprocessed relationships between velocity

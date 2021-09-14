@@ -28,7 +28,6 @@ class IntegrationTestNode(nodes.General, nodes.FixedTextElement):
     """The docutils node for the integration test directive."""
 
 
-# pylint: disable=inherit-non-class
 class IntegrationTestBlock(code.CodeBlock):
     """A sphinx directive specialised for integration test code blocks."""
 
@@ -38,9 +37,6 @@ class IntegrationTestBlock(code.CodeBlock):
         integrationtestnode = IntegrationTestNode(content, content)
         integrationtestnode.line = self.lineno
         return [integrationtestnode]
-
-
-# pylint: enable=inherit-non-class
 
 
 def visit_html(self, node):

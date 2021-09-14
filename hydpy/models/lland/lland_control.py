@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """

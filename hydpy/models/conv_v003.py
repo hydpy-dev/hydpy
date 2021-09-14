@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Inverse distance weighted interpolation with external drift.
 
 Version 3 of HydPy-C extends version 2 by taking an additional

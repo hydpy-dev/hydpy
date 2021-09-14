@@ -172,7 +172,7 @@ class FileManager:
         self._currentdir = None
 
     @propertytools.ProtectedPropertyStr
-    def projectdir(self) -> str:  # pylint: disable=method-hidden
+    def projectdir(self) -> str:
         """The name of the main folder of a project.
 
         For the `LahnH` example project, |FileManager.projectdir| is

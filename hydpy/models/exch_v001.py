@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Bidirectional water exchange over a weir.
 
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN

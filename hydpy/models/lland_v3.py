@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -2001,8 +2000,6 @@ class Model(modeltools.AdHocModel):
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v3|."""
 
-    # pylint: disable=no-member
-    # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES
 
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 2 of HydPy-Dam.
 
 Application model |dam_v002| is a simplification of |dam_v001|.  While most

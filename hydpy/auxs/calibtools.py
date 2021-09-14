@@ -3007,11 +3007,8 @@ via argument `selections`.
             types_=(parametertools.Parameter, str),
         )
     )
-    # pylint: disable=isinstance-second-argument-not-valid-type
-    # see https://github.com/PyCQA/pylint/issues/3507
     if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):
         parametersteps = len(names) * (parametersteps,)
-    # pylint: enable=isinstance-second-argument-not-valid-type
     if not (
         len(names)
         == len(parameters_)

@@ -888,8 +888,6 @@ elements so far.  So, it is not possible to aggregate to the selection level.
 
 
 class MathItem(ChangeItem):
-    # pylint: disable=abstract-method
-    # due to pylint issue https://github.com/PyCQA/pylint/issues/179
     """This base class performs some mathematical operations on the given values before
     assigning them to the handled target variables.
 

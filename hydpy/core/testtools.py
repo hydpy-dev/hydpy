@@ -40,7 +40,6 @@ from hydpy.core import variabletools
 from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
-    # pylint: disable=ungrouped-imports
     import matplotlib
     from matplotlib import pyplot
     import pandas

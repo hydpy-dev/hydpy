@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=wildcard-import
 """
 The `HydPy-Exch` base model provides features to implement helper models that enable
 other models to exchange data more freely.

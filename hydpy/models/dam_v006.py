@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Controlled lake version of HydPy-Dam.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/

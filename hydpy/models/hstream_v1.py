@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """
 Version 1 of The HydPy-H-Stream model is a straightforward routing
 approach.  It applies the working equation of the Muskingum method on some
@@ -236,8 +236,6 @@ class Model(modeltools.AdHocModel):
 class Masks(masktools.Masks):
     """Masks applicable to |hstream_v1|."""
 
-    # pylint: disable=no-member
-    # bug of pylint 2.4?
     CLASSES = hstream_masks.Masks.CLASSES
 
 

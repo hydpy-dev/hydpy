@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 4 of HydPy-Dam.
 
 Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the

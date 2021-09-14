@@ -822,7 +822,6 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         >>> seasonalinterpolator.nmb_inputs, seasonalinterpolator.nmb_outputs
         (2, 3)
         """
-        # pylint: disable=unsupported-assignment-operation
         if self._do_refresh:
             if self.algorithms:
                 self.__seasonalinterpolator = interputils.SeasonalInterpolator(

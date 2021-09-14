@@ -33,7 +33,7 @@ from typing import *
 
 # ...from site-packages
 # from scipy but not optional due to using interp1d during module initialisation:
-from scipy import interpolate  # pylint: disable=ungrouped-imports
+from scipy import interpolate
 import numpy
 
 # ...from HydPy
@@ -265,7 +265,7 @@ def calc_smoothpar_min1(metapar):
 
 
 # Load the supporting points required for method `calc_smoothpar_logistic2`:
-confpath = conf.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+confpath = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
 xys = numpy.load(os.path.join(confpath, "support_points_for_smoothpar_logistic2.npy"))
 _cubic_interpolator_for_smoothpar_logistic2 = interpolate.interp1d(
     xys[0], xys[1], kind="cubic", fill_value="extrapolate"

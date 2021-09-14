@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 Version 2 of the L-Land model is a slight modification of |lland_v1|.
 While |lland_v1| implements the Turc-Wendling approach for calculating the
@@ -1581,8 +1581,6 @@ class Model(modeltools.AdHocModel):
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v2|."""
 
-    # pylint: disable=no-member
-    # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES
 
 

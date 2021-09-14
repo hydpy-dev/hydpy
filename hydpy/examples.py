@@ -258,7 +258,7 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     """
     if dirpath is None:
         testtools.TestIO.clear()
-        dirpath = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+        dirpath = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined]
     datapath: str = data.__path__[0]  # type: ignore[attr-defined, name-defined]
     shutil.copytree(os.path.join(datapath, "LahnH"), os.path.join(dirpath, "LahnH"))
     seqpath = os.path.join(dirpath, "LahnH", "series")

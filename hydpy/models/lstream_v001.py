@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`Williams (1969)`: \
 https://elibrary.asabe.org/abstract.asp?aid=38772&confalias=

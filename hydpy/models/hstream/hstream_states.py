@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from standard library
@@ -68,6 +67,4 @@ occurred: could not broadcast input array from shape (2,) into shape (3,)
         >>> states.qjoints.refweights
         array([0.2, 0.2, 0.2, 0.2, 0.2])
         """
-        # pylint: disable=unsubscriptable-object
-        # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
         return numpy.full(self.shape, 1.0 / self.shape[0], dtype=float)

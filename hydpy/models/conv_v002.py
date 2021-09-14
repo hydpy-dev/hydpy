@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Inverse distance weighted interpolation.
 
 Version 2 of HydPy-C performs simple inverse distance weighted interpolations

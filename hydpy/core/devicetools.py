@@ -94,7 +94,6 @@ from hydpy.core.typingtools import *
 from hydpy.cythons.autogen import pointerutils
 
 if TYPE_CHECKING:
-    # pylint: disable=ungrouped-imports
     from matplotlib import pyplot
     import pandas
     from hydpy.core import auxfiletools
@@ -2030,8 +2029,6 @@ group name `test`.
         )
 
     def reset(self, idx: int = 0) -> None:
-        # pylint: disable=unused-argument
-        # required for consistincy with the other reset methods.
         """Reset the actual value of the simulation sequence to zero.
 
         >>> from hydpy import Node

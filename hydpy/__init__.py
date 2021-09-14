@@ -4,8 +4,7 @@
 """
 *HydPy*
 
-An interactive framework for the developement and a application of
-hydrological models.
+An interactive framework for the developement and a application of hydrological models.
 """
 # import...
 # ...from standard library
@@ -328,7 +327,7 @@ if config.USEAUTODOC:
                     autodoctools.autodoc_module(module)
         autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         with pub.options.autocompile(False):
-            modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]  # pylint: disable=line-too-long
+            modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
             for filename in sorted(os.listdir(modelpath)):
                 path = os.path.join(modelpath, filename)
                 if os.path.isdir(path) and not filename.startswith("_"):

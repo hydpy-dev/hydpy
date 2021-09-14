@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 3 of HydPy-Dam.
 
 |dam_v003| is quite similar to |dam_v002|.  Both application models provide the same

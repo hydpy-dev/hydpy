@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=wildcard-import
 """
 The HydPy-D base model provides features to implement water barriers like
 dams, weirs, lakes, or polders.

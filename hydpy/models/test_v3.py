@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """This simple test model is nearly identical with |test_v1| but works
 on 1-dimensional sequences instead on 0-dimensional sequences."""
 # imports...

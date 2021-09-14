@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
@@ -1018,8 +1018,6 @@ class Model(modeltools.AdHocModel):
 class Masks(masktools.Masks):
     """Masks applicable to |hland_v4|."""
 
-    # pylint: disable=no-member
-    # bug of pylint 2.4?
     CLASSES = hland_masks.Masks.CLASSES
 
 

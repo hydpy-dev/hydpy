@@ -473,7 +473,6 @@ type(s) for +=: 'int' and 'str'
     @wrapt.decorator
     def wrapper(wrapped, instance, args, kwargs):  # type: ignore[no-untyped-def]
         """Apply |augment_excmessage| when the wrapped function fails."""
-        # pylint: disable=unused-argument
         try:
             return wrapped(*args, **kwargs)
         except BaseException:

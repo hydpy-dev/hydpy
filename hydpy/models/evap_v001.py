@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Implementation of the FAO reference evapotranspiration model.
 
 .. _`Allen`: http://www.fao.org/3/x0490e/x0490e00.htm

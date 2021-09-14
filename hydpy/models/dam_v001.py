@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 1 application model of HydPy-Dam.
 
 |dam_v001| is supposed to represent a dam with an "active" low water control scheme and

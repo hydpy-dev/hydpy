@@ -371,8 +371,6 @@ wrong number of offset characters
 by string `1997-11-01 +0X:00`, the following error occurred: \
 invalid literal for int() with base 10: '0X'
         """
-        # pylint: disable=protected-access
-        # due to pylint issue https://github.com/PyCQA/pylint/issues/1159
         self = cast(Date, super().__new__(cls))
         substring, offset = self._extract_offset(date)
         vars(self)["style"], date_ = self._extract_date(substring, date)
@@ -1398,8 +1396,6 @@ from object `wrong` of type `str`.
         ValueError: For `Period` instances, microseconds must be zero.  \
 However, for the given `timedelta` object it is `1` instead.
         """
-        # pylint: disable=protected-access
-        # due to pylint issue https://github.com/PyCQA/pylint/issues/1159
         self = cast(Period, super().__new__(cls))
         vars(self)["timedelta"] = self._check_timedelta(period)
         return self
@@ -1677,7 +1673,6 @@ object at the moment.
         ...
         RuntimeError: No step size defined at the moment.
         """
-        # pylint: disable=protected-access
         if not self:
             raise RuntimeError("No step size defined at the moment.")
 

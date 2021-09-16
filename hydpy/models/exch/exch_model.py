@@ -228,8 +228,8 @@ class Pass_ActualExchange_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.e[0][0] = -flu.actualexchange
-        out.e[1][0] = flu.actualexchange
+        out.e[0][0] -= flu.actualexchange
+        out.e[1][0] += flu.actualexchange
 
 
 class Model(modeltools.AdHocModel):

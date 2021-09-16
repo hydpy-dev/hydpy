@@ -37,10 +37,12 @@ from hydpy.core.typingtools import *
 
 ParameterType = TypeVar("ParameterType", bound=parametertools.Parameter)
 RuleType1 = TypeVar(
-    "RuleType1", "Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"
+    "RuleType1",
+    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
 )
 RuleType2 = TypeVar(
-    "RuleType2", "Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"
+    "RuleType2",
+    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
 )
 RuleType = TypeVar("RuleType", "Replace", "Add", "Multiply")
 Target = Optional[str]

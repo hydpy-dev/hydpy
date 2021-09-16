@@ -994,6 +994,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
+        legend: bool = True,
         **kwargs: Optional[Union[float, str]],
     ) -> pyplot.Figure:
         """Call method |InterpAlgorithm.plot| of all currently handled
@@ -1008,7 +1009,8 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 label=str(toy),
                 **kwargs,
             )
-        pyplot.legend()
+        if legend:
+            pyplot.legend()
         self._update_labels()
         return figure
 

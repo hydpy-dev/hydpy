@@ -1151,7 +1151,7 @@ series data under the (sub)device name `element2` nor does it define a member na
         >>> NetCDFVariableBase_("name", isolate=False, timeaxis=1).prefix
         'name_'
         """
-        return "" if self._isolate else "%s_" % self.name
+        return "" if self._isolate else f"{self.name}_"
 
     def insert_subdevices(self, ncfile) -> None:
         """Insert a variable of the names of the (sub)devices of the logged sequences
@@ -1198,9 +1198,9 @@ series data under the (sub)device name `element2` nor does it define a member na
         >>> file2.close()
         """
         prefix = self.prefix
-        nmb_subdevices = "%s%s" % (prefix, dimmapping["nmb_subdevices"])
-        nmb_characters = "%s%s" % (prefix, dimmapping["nmb_characters"])
-        subdevices = "%s%s" % (prefix, varmapping["subdevices"])
+        nmb_subdevices = f"{prefix}{dimmapping['nmb_subdevices']}"
+        nmb_characters = f"{prefix}{dimmapping['nmb_characters']}"
+        subdevices = f"{prefix}{varmapping['subdevices']}"
         statchars = str2chars(self.subdevicenames)
         create_dimension(ncfile, nmb_subdevices, statchars.shape[0])
         create_dimension(ncfile, nmb_characters, statchars.shape[1])

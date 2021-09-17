@@ -372,7 +372,7 @@ Most probably, you defined the same threshold value(s) twice.
 
     def __repr__(self) -> str:
         strings = self.commentrepr
-        prefix = "%s(" % self.name
+        prefix = f"{self.name}("
         blanks = " " * len(prefix)
         if self:
             for idx, (th, coefs) in enumerate(self):

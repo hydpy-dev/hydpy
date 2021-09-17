@@ -870,6 +870,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
                     targetvalues = targetvalues.flatten()
                 itemvalues[idx0:idx1] = targetvalues
                 idx0 = idx1
+        # pylint: disable=consider-using-in
         elif (self.level == "selection") or (self.level == "global"):
             raise NotImplementedError(
                 f"HydPy does not support averaging values across different elements so "

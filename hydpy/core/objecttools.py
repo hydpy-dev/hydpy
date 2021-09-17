@@ -692,7 +692,7 @@ class _Repr:
         ):
             value = float(value)
             if decimals > -1:
-                string = "{0:.{1}f}".format(value, decimals)
+                string = f"{value:.{decimals}f}"
                 string = string.rstrip("0")
                 if string.endswith("."):
                     string += "0"
@@ -1739,8 +1739,7 @@ def enumeration(
 def description(self: object) -> str:
     """Returns the first "paragraph" of the docstring of the given object.
 
-    Note that ugly things like multiple whitespaces and newline characters
-    are removed:
+    Note that ugly things like multiple whitespaces and newline characters are removed:
 
     >>> from hydpy.core.objecttools import description, augment_excmessage
     >>> description(augment_excmessage)

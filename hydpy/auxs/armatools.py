@@ -813,7 +813,7 @@ the MA coefficients `1.0, 1.0, 1.0`.
             pyplot.xlim(0.0, idx)
 
     def __repr__(self) -> str:
-        return "%s,\n%s)" % (
-            objecttools.assignrepr_tuple(self.ar_coefs, "ARMA(ar_coefs=", 70),
-            objecttools.assignrepr_tuple(self.ma_coefs, "     ma_coefs=", 70),
+        return (
+            f"{objecttools.assignrepr_tuple(self.ar_coefs, 'ARMA(ar_coefs=', 70)},\n"
+            f"{objecttools.assignrepr_tuple(self.ma_coefs, '     ma_coefs=', 70)})"
         )

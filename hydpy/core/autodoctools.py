@@ -183,12 +183,11 @@ def _add_title(title: str, marker: str) -> List[str]:
 def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
     """Return autodoc commands for a basemodels docstring.
 
-    Note that `collection classes` (e.g. `Model`, `ControlParameters`,
-    `InputSequences` are placed on top of the respective section and the
-    `contained classes` (e.g. model methods, `ControlParameter` instances,
-    `InputSequence` instances at the bottom.  This differs from the order
-    of their definition in the respective modules, but results in a better
-    documentation structure.
+    Note that `collection classes` (e.g. `Model`, `ControlParameters`, `InputSequences`
+    are placed on top of the respective section and the `contained classes` (e.g. model
+    methods, `ControlParameter` instances, `InputSequence` instances at the bottom.
+    This differs from the order of their definition in the respective modules, but
+    results in a better documentation structure.
     """
     caption = _all_spec2capt.get(specification, "dummy")
     if caption.split()[-1] in ("parameters", "sequences", "Masks"):
@@ -232,8 +231,8 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
 def autodoc_basemodel(module: types.ModuleType) -> None:
     """Add an exhaustive docstring to the given module of a basemodel.
 
-    Works onlye when all modules of the basemodel are named in the
-    standard way, e.g. `lland_model`, `lland_control`, `lland_inputs`.
+    Works onlye when all modules of the basemodel are named in the standard way, e.g.
+    `lland_model`, `lland_control`, `lland_inputs`.
     """
     autodoc_tuple2doc(module)
     namespace = module.__dict__
@@ -412,12 +411,11 @@ def _gain_and_insert_additional_information_into_docstrings(
 
 
 def autodoc_applicationmodel(module: types.ModuleType) -> None:
-    """Improves the docstrings of application models when called
-    at the bottom of the respective module.
+    """Improves the docstrings of application models when called at the bottom of the
+    respective module.
 
-    |autodoc_applicationmodel| requires, similar to
-    |autodoc_basemodel|, that both the application model and its
-    base model are defined in the conventional way.
+    |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the
+    application model and its base model are defined in the conventional way.
     """
     autodoc_tuple2doc(module)
     name_applicationmodel = module.__name__
@@ -490,9 +488,8 @@ class Substituter:
         False
         >>> del numpy.Substituter
 
-        Members that are defined in submodules of a given package
-        (either from the standard library or from site-packages)
-        should be added...
+        Members that are defined in submodules of a given package (either from the
+        standard library or from site-packages) should be added...
 
         >>> Substituter.consider_member("clip", numpy.clip, numpy)
         True
@@ -503,8 +500,8 @@ class Substituter:
         >>> Substituter.consider_member("Node", hydpy.Node, hydpy)
         False
 
-        For descriptor instances (with method `__get__`) being members
-        of classes should be added:
+        For descriptor instances (with method `__get__`) being members of classes
+        should be added:
 
         >>> from hydpy.auxs import anntools
         >>> Substituter.consider_member(
@@ -544,11 +541,10 @@ class Substituter:
 
     @staticmethod
     def get_role(member: object, cython: bool = False) -> str:
-        """Return the reStructuredText role `func`, `class`, or `const`
-        best describing the given member.
+        """Return the reStructuredText role `func`, `class`, or `const` best describing
+        the given member.
 
-        Some examples based on the site-package |numpy|.  |numpy.clip|
-        is a function:
+        Some examples based on the site-package |numpy|.  |numpy.clip| is a function:
 
         >>> from hydpy.core.autodoctools import Substituter
         >>> import numpy
@@ -560,8 +556,8 @@ class Substituter:
         >>> Substituter.get_role(numpy.ndarray)
         'class'
 
-        |numpy.ndarray.clip| is a method, for which also the `function`
-        role is returned:
+        |numpy.ndarray.clip| is a method, for which also the `function` role is
+        returned:
 
         >>> Substituter.get_role(numpy.ndarray.clip)
         'func'
@@ -571,17 +567,16 @@ class Substituter:
         >>> Substituter.get_role(numpy.nan)
         'const'
 
-        When analysing cython extension modules, set the option `cython`
-        flag to |True|.  |Double| is correctly identified as a class:
+        When analysing cython extension modules, set the option `cython` flag to |True|.
+        |Double| is correctly identified as a class:
 
         >>> from hydpy.cythons import pointerutils
         >>> Substituter.get_role(pointerutils.Double, cython=True)
         'class'
 
-        Only with the `cython` flag beeing |True|, for everything else
-        the `function` text role is returned (doesn't make sense here,
-        but the |numpy| module is not something defined in module
-        |pointerutils| anyway):
+        Only with the `cython` flag beeing |True|, for everything else the `function`
+        text role is returned (doesn't make sense here, but the |numpy| module is not
+        something defined in module |pointerutils| anyway):
 
         >>> Substituter.get_role(pointerutils.numpy, cython=True)
         'func'
@@ -804,8 +799,8 @@ class Substituter:
 :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
         """
         name_module = module.__name__.split(".")[-1]
-        short = "|%s|" % name_module
-        long = ":mod:`~%s`" % module.__name__
+        short = f"|{name_module}|"
+        long = f":mod:`~{module.__name__}`"
         self.short2long[short] = long
         for (name_member, member) in vars(module).items():
             if self.consider_member(name_member, member, module):
@@ -849,8 +844,8 @@ class Substituter:
             if name.startswith("_"):
                 continue
             name = name.split(".")[0]
-            short = "|%s|" % name
-            long = ":mod:`~%s.%s`" % (package.__package__, name)
+            short = f"|{name}|"
+            long = f":mod:`~{package.__package__}.{name}`"
             self.short2long[short] = long
 
     def update_masters(self) -> None:
@@ -976,7 +971,7 @@ replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
         commands = []
         for key, value in self:
             if (source is None) or (key in source):
-                commands.append(".. %s replace:: %s" % (key, value))
+                commands.append(f".. {key} replace:: {value}")
         return "\n".join(commands)
 
     def find(self, text: str) -> None:
@@ -1087,8 +1082,7 @@ def autodoc_module(module: types.ModuleType) -> None:
     members = sorted(members, key=_number_of_line)
     if members:
         lines = [
-            "\n\nModule :mod:`~%s` implements the following members:\n"
-            % module.__name__
+            f"\n\nModule :mod:`~{module.__name__}` implements the following members:\n"
         ]
         for (name, member) in members:
             if inspect.isfunction(member):
@@ -1098,7 +1092,7 @@ def autodoc_module(module: types.ModuleType) -> None:
             else:
                 type_ = "obj"
             lines.append(
-                "      * :%s:`~%s` %s" % (type_, name, objecttools.description(member))
+                f"      * :{type_}:`~{name}` {objecttools.description(member)}"
             )
         doc = doc + "\n\n" + "\n".join(lines) + "\n\n" + 80 * "_"
         module.__doc__ = doc

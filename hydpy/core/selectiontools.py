@@ -23,11 +23,7 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
 
-ModelTypesArg = Union[
-    modeltools.Model,
-    types.ModuleType,
-    str,
-]
+ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
 
 
 class Selections:
@@ -530,9 +526,10 @@ Selections objects, single Selection objects, or iterables containing \
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
-                prefix += "%s(" % type(self).__name__
-                repr_ = objecttools.assignrepr_values(sorted(self.names), prefix, 70)
-                return repr_ + ")"
+                prefix = f"{prefix}{type(self).__name__}("
+                return (
+                    f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
+                )
 
     def __dir__(self) -> List[str]:
         return objecttools.dir_(self) + list(self.names)

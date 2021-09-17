@@ -159,7 +159,7 @@ of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
         try:
             return f'{self.name}("{timetools.Period.from_seconds(self.value)}")'
         except BaseException:
-            return "%s(?)" % self.name
+            return f"{self.name}(?)"
 
 
 class MaxDW(parametertools.SeasonalParameter):

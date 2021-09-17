@@ -1425,11 +1425,14 @@ as `var` can only be `()`, but `(2,)` is given.
         )
 
     def verify(self) -> None:
-        """Raises a |RuntimeError| if at least one of the required values of a
-        |Variable| object is |None| or |numpy.nan|. The descriptor `mask` defines which
-        values are considered to be necessary.
+        """Raise a |RuntimeError| if at least one of the required values of a |Variable|
+        object is |None| or |numpy.nan|.
 
-        Example on a 0-dimensional |Variable|:
+        The descriptor |Variable.mask| defines which values are considered necessary.
+        For |Variable| subclasses defining |numpy.nan| as their |Variable.INIT| value,
+        method |Variable.verify| assumes that |numpy.nan| are not problematic.
+
+        Examples on a 0-dimensional |Variable|:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class Var(Variable):
@@ -1446,10 +1449,13 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been \
-set yet: var(nan).
+        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+var(nan).
 
-        Example on a 2-dimensional |Variable|:
+        >>> var.INIT = numpy.nan
+        >>> var.verify()
+
+        Examples on a 2-dimensional |Variable|:
 
         >>> Var.NDIM = 2
         >>> var = Var(None)
@@ -1459,16 +1465,16 @@ set yet: var(nan).
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 2 required values have not been \
-set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
+        RuntimeError: For variable `var`, 2 required values have not been set yet: \
+var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask = var.mask
         >>> Var.mask[0, 1] = False
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been \
-set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
+        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask[1, 1] = False
         >>> var.verify()
@@ -1476,21 +1482,19 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         valueready = self.__valueready
         try:
             self.__valueready = True
-            # noinspection PyTypeChecker
             nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
         finally:
             self.__valueready = valueready
-        if nmbnan:
+        if nmbnan and ((self.INIT is None) or ~numpy.isnan(self.INIT)):
             text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(
-                f"For variable {objecttools.devicephrase(self)}, "
-                f"{nmbnan} required {text} not been set yet: "
-                f"{objecttools.flatten_repr(self)}."
+                f"For variable {objecttools.devicephrase(self)}, {nmbnan} required "
+                f"{text} not been set yet: {objecttools.flatten_repr(self)}."
             )
 
     @property
     def valuevector(self) -> Vector:
-        """The values of the actual |Variable| object arranged in a 1-dimensional
+        """The values of the actual |Variable| object, arranged in a 1-dimensional
         vector.
 
         For a 1-dimensional variable object, property |Variable.valuevector| returns

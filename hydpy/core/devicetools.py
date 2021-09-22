@@ -70,10 +70,12 @@ False
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import contextlib
 import copy
 import itertools
+import operator
 import warnings
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
@@ -123,11 +125,11 @@ LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"
 StepSize = Literal["daily", "d", "monthly", "m"]
 
 
-class Keywords(set):
+class Keywords(Set[str]):
     """Set of keyword arguments used to describe and search for |Element| and
     |Node| objects."""
 
-    device: Union["Node", "Element", None]
+    device: Union[Node, Element, None]
 
     def __init__(self, *names: str):
         self.device = None
@@ -242,7 +244,7 @@ define a valid variable identifier.  ...
         self._check_keywords([str(name)])
         super().add(str(name))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         with objecttools.repr_.preserve_strings(True):
             return (
                 objecttools.assignrepr_values(sorted(self), "Keywords(", width=70) + ")"
@@ -255,7 +257,6 @@ _registry_fusedvariable: Dict[str, "FusedVariable"] = {}
 
 
 class FusedVariable:
-    # noinspection PyUnresolvedReferences
     """Combines |InputSequence| and |OutputSequence| subclasses of different models
     dealing with the same property into a single variable.
 
@@ -424,6 +425,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
         >>> Node.clear_all()
         >>> Element.clear_all()
     """
+
     _name: str
     _aliases: Tuple[str]
     _variables: Tuple[sequencetools.TypesInOutSequence, ...]
@@ -433,7 +435,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
         cls,
         name: str,
         *sequences: sequencetools.TypesInOutSequence,
-    ):
+    ) -> FusedVariable:
         self = super().__new__(cls)
         aliases = tuple(hydpy.sequence2alias[seq] for seq in sequences)
         idxs = numpy.argsort(aliases)
@@ -671,7 +673,7 @@ classes: Node and str.
 
     @staticmethod
     @abc.abstractmethod
-    def get_contentclass() -> Type:
+    def get_contentclass() -> Type[DeviceType]:
         """To be overridden."""
 
     def add_device(self, device: Union[DeviceType, str]) -> None:
@@ -796,7 +798,6 @@ immutable Nodes objects is not allowed.
 
     @property
     def keywords(self) -> Set[str]:
-        # noinspection PyCallingNonCallable
         """A set of all keywords of all handled devices.
 
         In addition to attribute access via device names, |Nodes| and
@@ -970,21 +971,22 @@ which is in conflict with using their names as identifiers.
             f"names as identifiers."
         )
 
-    def __select_devices_by_keyword(self, name):
-        # noinspection PyArgumentList
+    def __select_devices_by_keyword(self, name: str) -> DevicesTypeBound:
         devices = type(self)(*(device for device in self if name in device.keywords))
         vars(devices)["_shadowed_keywords"] = self._shadowed_keywords.copy()
         vars(devices)["_shadowed_keywords"].add(name)
         return devices
 
-    def __getattr__(self, name):
+    def __getattr__(
+        self: DevicesTypeBound,
+        name: str,
+    ) -> Union[DeviceType, DevicesTypeBound]:
         try:
             name2device = self._name2device
-            name2device = name2device[name]
+            device = name2device[name]
             if self.forceiterable:
-                # noinspection PyArgumentList
-                return type(self)(name2device)
-            return name2device
+                return type(self)(device)
+            return device
         except KeyError:
             pass
         _devices = self.__select_devices_by_keyword(name)
@@ -993,33 +995,31 @@ which is in conflict with using their names as identifiers.
         if len(_devices) == 1:
             return _devices.devices[0]
         raise AttributeError(
-            f"The selected {type(self).__name__} object has "
-            f"neither a `{name}` attribute nor does it handle a "
-            f"{self.get_contentclass().__name__} object with name "
-            f"or keyword `{name}`, which could be returned."
+            f"The selected {type(self).__name__} object has neither a `{name}` "
+            f"attribute nor does it handle a {self.get_contentclass().__name__} "
+            f"object with name or keyword `{name}`, which could be returned."
         )
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         if hasattr(self, name):
             super().__setattr__(name, value)
         else:
             classname = type(self).__name__
             raise AttributeError(
-                f"Setting attributes of {classname} objects could result in "
-                f"confusion whether a new attribute should be handled as a "
-                f'{classname[:-1]} object or as a "normal" attribute and is '
-                f"thus not support, hence `{name}` is rejected."
+                f"Setting attributes of {classname} objects could result in confusion "
+                f"whether a new attribute should be handled as a {classname[:-1]} "
+                f'object or as a "normal" attribute and is thus not support, hence '
+                f"`{name}` is rejected."
             )
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         try:
             self.remove_device(name)
         except ValueError:
             raise AttributeError(
-                f"The actual {type(self).__name__} object does not "
-                f"handle a {self.get_contentclass().__name__} object "
-                f"named `{name}` which could be removed, and deleting "
-                f"other attributes is not supported."
+                f"The actual {type(self).__name__} object does not handle a "
+                f"{self.get_contentclass().__name__} object named `{name}` which "
+                f"could be removed, and deleting other attributes is not supported."
             ) from None
 
     def __getitem__(self, name: str) -> DeviceType:
@@ -1028,21 +1028,21 @@ which is in conflict with using their names as identifiers.
         except KeyError:
             raise KeyError(f"No device named `{name}` available.") from None
 
-    def __setitem__(self, name: str, value: DeviceType):
+    def __setitem__(self, name: str, value: DeviceType) -> None:
         self._name2device[name] = value
 
-    def __delitem__(self, name: str):
+    def __delitem__(self, name: str) -> None:
         del self._name2device[name]
 
     def __iter__(self) -> Iterator[DeviceType]:
         for (_, device) in sorted(self._name2device.items()):
             yield device
 
-    def __contains__(self, value: Mayberable2[DeviceType, str]):
+    def __contains__(self, value: Mayberable2[DeviceType, str]) -> bool:
         device = self.get_contentclass()(value)
         return device.name in self._name2device
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._name2device)
 
     def __add__(
@@ -1087,28 +1087,28 @@ which is in conflict with using their names as identifiers.
                 pass
         return self
 
-    def __compare(self, other, func):
+    def __compare(self, other: object, func: Callable[[object, object], bool]) -> bool:
         if isinstance(other, type(self)):
-            return getattr(set(self), func)(set(other))
+            return func(set(self), set(other))
         return NotImplemented
 
     def __lt__(self, other: DevicesTypeBound) -> bool:
-        return self.__compare(other, "__lt__")
+        return self.__compare(other, operator.lt)
 
     def __le__(self, other: DevicesTypeBound) -> bool:
-        return self.__compare(other, "__le__")
+        return self.__compare(other, operator.le)
 
     def __eq__(self, other: Any) -> bool:
-        return self.__compare(other, "__eq__")
+        return self.__compare(other, operator.eq)
 
     def __ne__(self, other: Any) -> bool:
-        return self.__compare(other, "__ne__")
+        return self.__compare(other, operator.ne)
 
     def __ge__(self, other: DevicesTypeBound) -> bool:
-        return self.__compare(other, "__ge__")
+        return self.__compare(other, operator.ge)
 
     def __gt__(self, other: DevicesTypeBound) -> bool:
-        return self.__compare(other, "__gt__")
+        return self.__compare(other, operator.gt)
 
     def __repr__(self) -> str:
         return self.assignrepr("")
@@ -1177,7 +1177,7 @@ class Nodes(Devices["Node"]):
             _default_variable = _default_variable_copy
 
     @staticmethod
-    def get_contentclass() -> Type["Node"]:
+    def get_contentclass() -> Type[Node]:
         """Return class |Node|."""
         return Node
 
@@ -1270,7 +1270,7 @@ class Elements(Devices["Element"]):
     """
 
     @staticmethod
-    def get_contentclass() -> Type["Element"]:
+    def get_contentclass() -> Type[Element]:
         """Return class |Element|."""
         return Element
 
@@ -1370,7 +1370,7 @@ Use method `prepare_models` instead.
         parameterstep: Optional["timetools.PeriodConstrArg"] = None,
         simulationstep: Optional["timetools.PeriodConstrArg"] = None,
         auxfiler: "Optional[auxfiletools.Auxfiler]" = None,
-    ):
+    ) -> None:
         """Save the control parameters of the |Model| object handled by
         each |Element| object and eventually the ones handled by the
         given |Auxfiler| object."""
@@ -1426,7 +1426,7 @@ Use method `prepare_models` instead.
     @conditions.setter
     def conditions(
         self, conditions: Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
-    ):
+    ) -> None:
         for name, subconditions in conditions.items():
             element = getattr(self, name)
             element.model.sequences.conditions = subconditions
@@ -1539,7 +1539,7 @@ Use method `prepare_models` instead.
         with an activated |IOSequence.memoryflag|."""
         self.__save_modelseries("states")
 
-    def __save_modelseries(self, name_subseqs) -> None:
+    def __save_modelseries(self, name_subseqs: str) -> None:
         for element in printtools.progressbar(self):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
@@ -1660,7 +1660,6 @@ class Device(Generic[DevicesTypeUnbound]):
         vars(self)["name"] = name
         _registry[type(self)][self.name] = self
         for devices in _id2devices[self].values():
-            # noinspection PyTypeChecker
             devices[self.name] = self
 
     @classmethod
@@ -1716,14 +1715,13 @@ class Device(Generic[DevicesTypeUnbound]):
     def keywords(self) -> None:
         vars(self)["keywords"].clear()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     __dir__ = objecttools.dir_
 
 
 class Node(Device[Nodes]):
-    # noinspection PyPropertyAccess
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for
@@ -1765,13 +1763,12 @@ immutable Elements objects is not allowed.
     masks = masktools.NodeMasks()
     sequences: sequencetools.NodeSequences
 
-    # noinspection PyUnusedLocal
     def __init__(
         self,
         value: NodeConstrArg,
-        variable: NodeVariableType = None,
+        variable: Optional[NodeVariableType] = None,
         keywords: MayNonerable1[str] = None,
-    ):
+    ) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if "new_instance" in vars(self):
@@ -1817,8 +1814,6 @@ immutable Elements objects is not allowed.
 
     @property
     def variable(self) -> NodeVariableType:
-        # noinspection PyUnresolvedReferences
-        # noinspection PyPropertyAccess
         """The variable handled by the actual |Node| object.
 
         By default, we suppose that nodes route discharge:
@@ -1952,7 +1947,6 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
-        # noinspection PyUnresolvedReferences
         """Return the |Double| object appropriate for the given |Element|
         input or output group and the actual |Node.deploymode|.
 
@@ -2573,7 +2567,6 @@ is not allowed.
     Elements()
     """
 
-    # noinspection PyUnusedLocal
     def __init__(
         self,
         value: ElementConstrArg,
@@ -2657,7 +2650,7 @@ is not allowed.
         return vars(self)["inlets"]
 
     @inlets.setter
-    def inlets(self, values: NodesConstrArg):
+    def inlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="inlets",
@@ -2676,7 +2669,7 @@ is not allowed.
         return vars(self)["outlets"]
 
     @outlets.setter
-    def outlets(self, values: NodesConstrArg):
+    def outlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="outlets",
@@ -2696,7 +2689,7 @@ is not allowed.
         return vars(self)["receivers"]
 
     @receivers.setter
-    def receivers(self, values: NodesConstrArg):
+    def receivers(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="receivers",
@@ -2736,7 +2729,7 @@ is not allowed.
         return vars(self)["inputs"]
 
     @inputs.setter
-    def inputs(self, values: NodesConstrArg):
+    def inputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="inputs",
@@ -2758,7 +2751,7 @@ is not allowed.
         return vars(self)["outputs"]
 
     @outputs.setter
-    def outputs(self, values: NodesConstrArg):
+    def outputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="outputs",
@@ -2779,7 +2772,6 @@ is not allowed.
 
     @property
     def model(self) -> "modeltools.Model":
-        # noinspection PyUnresolvedReferences
         """The |Model| object handled by the actual |Element| object.
 
         Directly after their initialisation, elements do not know which model they
@@ -3018,7 +3010,7 @@ Use method `prepare_model` instead.
         """
         self.__prepare_series("states", ramflag)
 
-    def __prepare_series(self, name_subseqs, ramflag) -> None:
+    def __prepare_series(self, name_subseqs: str, ramflag: bool) -> None:
         subseqs = getattr(self.model.sequences, name_subseqs, None)
         if subseqs:
             if ramflag:
@@ -3317,7 +3309,7 @@ Use method `prepare_model` instead.
                 lines[-1] = lines[-1][:-1] + ")"
                 return "\n".join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr("")
 
 
@@ -3327,9 +3319,7 @@ _selection: Mapping = {Node: {}, Element: {}}
 
 
 @contextlib.contextmanager
-def clear_registries_temporarily():
-    # noinspection PyTypeChecker
-    # noinspection PyProtectedMember
+def clear_registries_temporarily() -> Generator[None, None, None]:
     """Context manager for clearing the current |Node|, |Element|, and
     |FusedVariable| registries .
 

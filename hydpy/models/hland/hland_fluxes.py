@@ -97,6 +97,12 @@ class R(hland_sequences.Flux1DSequence):
     mask = hland_masks.Soil()
 
 
+class SR(hland_sequences.Flux1DSequence):
+    """Sealed surface runoff [mm/T]."""
+
+    mask = hland_masks.Sealed()
+
+
 class EA(hland_sequences.Flux1DSequence):
     """Actual soil evaporation [mm/T]."""
 

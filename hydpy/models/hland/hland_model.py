@@ -1522,6 +1522,49 @@ class Calc_In_WC_V1(modeltools.Method):
                     sta.wc[c, k] = 0.0
 
 
+class Calc_SR_V1(modeltools.Method):
+    r"""Calculate the sealed surface runoff.
+
+    Basic equations:
+      .. math::
+        SR =
+        \begin{cases}
+        In &|\ ZoneType_k = SEALED
+        \\
+        0 &|\ ZoneType_k \neq SEALED
+        \end{cases}
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
+        >>> fluxes.in_ = 1.0
+        >>> fluxes.sr = 2.0
+        >>> model.calc_sr_v1()
+        >>> fluxes.sr
+        sr(0.0, 0.0, 0.0, 0.0, 1.0)
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    REQUIREDSEQUENCES = (hland_fluxes.In_,)
+    RESULTSEQUENCES = (hland_fluxes.SR,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == SEALED:
+                flu.sr[k] = flu.in_[k]
+            else:
+                flu.sr[k] = 0.0
+
+
 class Calc_GAct_V1(modeltools.Method):
     r"""Adjust the day degree factor for glacier ice to the current day of the year.
 
@@ -4428,6 +4471,7 @@ class Model(modeltools.AdHocModel):
         Calc_Melt_SP_WC_V1,
         Calc_Refr_SP_WC_V1,
         Calc_In_WC_V1,
+        Calc_SR_V1,
         Calc_GAct_V1,
         Calc_GlMelt_In_V1,
         Calc_R_SM_V1,

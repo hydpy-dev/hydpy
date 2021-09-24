@@ -365,6 +365,7 @@ class Interception(Element):
 @dataclass
 class Snow(Element):
     arrowfactor: float = 1.0
+    include_sr: bool = False
 
     def plot(self, frame: Frame) -> None:
         self.draw_line(
@@ -432,12 +433,20 @@ class Snow(Element):
             length=Point(0.0, -1.0 * self.arrowfactor),
             properties=ArrowProperties(),
         )
+        text = ""
         self.draw_text(
             frame=frame,
             text="In",
             point=Point(0.75 + TDX, -0.5),
             properties=TextProperties(horizontal="left", vertical="center"),
         )
+        if self.include_sr:
+            self.draw_text(
+                frame=frame,
+                text="SR",
+                point=Point(0.63 - TDX, -0.5),
+                properties=TextProperties(horizontal="left", vertical="center"),
+            )
         self.draw_arrow(
             frame=frame,
             base=Point(0.4, 0.4),
@@ -1294,7 +1303,7 @@ if __name__ == "__main__":
         Title(index=Index(i0=10, j0=3), text="FIELD/FOREST"),
         Interception(Index(i0=8, j0=0)),
         Interception(Index(i0=8, j0=3)),
-        Snow(Index(i0=6, j0=0), arrowfactor=5.5),
+        Snow(Index(i0=6, j0=0), arrowfactor=5.5, include_sr=True),
         Snow(Index(i0=6, j0=2), arrowfactor=3.0),
         Snow(Index(i0=6, j0=3)),
         Soil(Index(i0=4, j0=3)),

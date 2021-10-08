@@ -737,41 +737,38 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        We prepare nine zones.  We use the first five to show the identical behaviour
+        We prepare eight zones.  We use the first five to show the identical behaviour
         of the land-use types |GLACIER|, |FIELD|, |FOREST|, and |SEALED| and the unique
         behaviour of type |ILAKE|.  Zones six to eight serve for demonstrating the
-        effects of different initial states.  The ninth zone is a "dead end", from
-        which no further redistribution of snow occurs:
+        effects of different initial states:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> nmbzones(9)
+        >>> nmbzones(8)
         >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD, FIELD, FIELD)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD, FIELD)
         >>> smax(500.0)
-        >>> derived.sredend(0, 0, 0, 0, 0, 0, 0, 0, 1)
 
         Internal lakes do not possess a snow module and cannot redistribute any snow.
         Hence, |Calc_SPL_WCL_SP_WC_V1| sets the loss (|SPL| and |WCL|) and state (|SP|
-        and |WC|) sequences to zero.  The last zone cannot redistribute snow due to
-        its definition as a "dead end".  For all other zones, the total amount of
-        snow redistribution depends on how much the total water equivalent exceeds the
-        threshold parameter |SMax| (consistently set to 500 m). The fraction between
+        and |WC|) sequences to zero.  For all other zones, the total amount of snow
+        redistribution depends on how much the total water equivalent exceeds the
+        threshold parameter |SMax| (consistently set to 500 m).  The fraction between
         the liquid (|WCL|) and frozen (|SPL|) loss depends on the fraction between
         the actual storage of liquid (|WC|) and frozen (|SP|) water in the snow layer:
 
-        >>> states.sp = 600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0, 600.0
-        >>> states.wc = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0, 200.0
+        >>> states.sp = 600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0
+        >>> states.wc = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0
         >>> model.calc_spl_wcl_sp_wc_v1()
         >>> fluxes.spl
-        spl(0.0, 225.0, 225.0, 225.0, 225.0, 0.0, 300.0, 0.0, 0.0)
+        spl(0.0, 225.0, 225.0, 225.0, 225.0, 0.0, 300.0, 0.0)
         >>> fluxes.wcl
-        wcl(0.0, 75.0, 75.0, 75.0, 75.0, 0.0, 0.0, 300.0, 0.0)
+        wcl(0.0, 75.0, 75.0, 75.0, 75.0, 0.0, 0.0, 300.0)
         >>> states.sp
-        sp(0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0, 600.0)
+        sp(0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0)
         >>> states.wc
-        wc(0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0, 200.0)
+        wc(0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0)
 
         The above example deals with a single snow class.  Here, we add a second snow
         class to illustrate that the total snow loss of each zone does not depend on
@@ -779,21 +776,21 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
         individual snow classes:
 
         >>> sclass(2)
-        >>> states.sp = [[600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0, 600.0],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-        >>> states.wc = [[200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0, 200.0],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        >>> states.sp = [[600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0],
+        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        >>> states.wc = [[200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0],
+        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
         >>> model.calc_spl_wcl_sp_wc_v1()
         >>> fluxes.spl
-        spl(0.0, 112.5, 112.5, 112.5, 112.5, 0.0, 150.0, 0.0, 0.0)
+        spl(0.0, 112.5, 112.5, 112.5, 112.5, 0.0, 150.0, 0.0)
         >>> fluxes.wcl
-        wcl(0.0, 37.5, 37.5, 37.5, 37.5, 0.0, 0.0, 150.0, 0.0)
+        wcl(0.0, 37.5, 37.5, 37.5, 37.5, 0.0, 0.0, 150.0)
         >>> states.sp
-        sp([[0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0, 600.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+        sp([[0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
         >>> states.wc
-        wc([[0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0, 200.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+        wc([[0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
     """
 
     CONTROLPARAMETERS = (
@@ -802,7 +799,6 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.SMax,
     )
-    DERIVEDPARAMETERS = (hland_derived.SRedEnd,)
     UPDATEDSEQUENCES = (
         hland_states.WC,
         hland_states.SP,
@@ -815,7 +811,6 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
@@ -825,7 +820,7 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
                 for c in range(con.sclass):
                     sta.sp[c, k] = 0.0
                     sta.wc[c, k] = 0.0
-            elif not (der.sredend[k] or modelutils.isinf(con.smax[k])):
+            elif not modelutils.isinf(con.smax[k]):
                 for c in range(con.sclass):
                     d_snow = sta.sp[c, k] + sta.wc[c, k]
                     d_excess = d_snow - con.smax[k]
@@ -848,37 +843,42 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
 
     Examples:
 
-        We prepare an example consisting of six zones, sorted by (non-strictly)
+        We prepare an example consisting of seven zones, sorted by (non-strictly)
         descending elevation.  For now, there is a single snow class per zone, and the
-        zones' areas are identical (1.0 k²).  We use the same configuration for |SMax|
-        (the maximum snow storage) and |SRed| (defining the redistribution paths)
-        throughout all examples:
+        zones' areas are identical (1.0 km²).  The last zone is of type |ILAKE| and
+        does not participate in snow redistribution. We use the same configuration for
+        |SMax| (the maximum snow storage) and |SRed| (defining the redistribution
+        paths) throughout all examples:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> area(6.0)
-        >>> nmbzones(6)
+        >>> area(7.0)
+        >>> nmbzones(7)
         >>> sclass(1)
-        >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
+        >>> zonetype(GLACIER, FIELD, FOREST, SEALED, FOREST, FIELD, ILAKE)
+        >>> zonez(30.0, 25.0, 20.0, 15.0, 10.0, 10.0, 5.0)
         >>> zonearea(1.0)
         >>> psi(1.0)
         >>> sfdist(1.0)
         >>> smax(500.0)
-        >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
-        ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+        >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0],
+        ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
         For convenience, we prepare a function that updates all relevant derived
         parameters:
 
         >>> def update():
+        ...     derived.rellandarea.update()
         ...     derived.relzoneareas.update()
         ...     derived.rellowerzonearea.update()
         ...     derived.zonearearatios.update()
+        ...     derived.indiceszonez.update()
         ...     derived.sredorder.update()
         ...     derived.srednumber.update()
         ...     derived.sredend.update()
@@ -886,24 +886,51 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
 
         In the first example, the total snow water equivalent (300 mm) is way below
         |SRed| (500 mm).  Hence, all frozen (|SPL|) and liquid (|WCL|) water released
-        deposits completely in the target zones.  Internal lake zones do not possess a
-        snow module.  Thus, the deposition does not increase |SP| or |WC| for the fifth
-        zone (another method needs to handle the respective gains separately, see the
-        documentation on the methods |Calc_LZ_V1|, |Calc_LZ_V2|, and |Calc_GR2_GR3_V1|):
+        deposits completely in the target zones:
 
         >>> states.sp = 200.0
         >>> states.wc = 100.0
-        >>> fluxes.spl = 20.0
-        >>> fluxes.wcl = 10.0
+        >>> fluxes.spl = 20.0, 20.0, 20.0, 20.0, 0.0, 0.0, 0.0
+        >>> fluxes.wcl = 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0
         >>> model.calc_spg_wcg_sp_wc_v1()
         >>> fluxes.spg
-        spg(0.0, 4.0, 24.0, 24.0, 14.0, 14.0)
+        spg(0.0, 4.0, 24.0, 24.0, 14.0, 14.0, 0.0)
         >>> fluxes.wcg
-        wcg(0.0, 2.0, 12.0, 12.0, 7.0, 7.0)
+        wcg(0.0, 2.0, 12.0, 12.0, 7.0, 7.0, 0.0)
         >>> states.sp
-        sp(200.0, 204.0, 224.0, 224.0, 0.0, 214.0)
+        sp(200.0, 204.0, 224.0, 224.0, 214.0, 214.0, 0.0)
         >>> states.wc
-        wc(100.0, 102.0, 112.0, 112.0, 0.0, 107.0)
+        wc(100.0, 102.0, 112.0, 112.0, 107.0, 107.0, 0.0)
+
+        The following test function checks that method |Calc_SPG_WCG_SP_WC_V1| does not
+        introduce any water balance errors:
+
+        >>> from hydpy import repr_
+        >>> def check(sp_old, wc_old):
+        ...     def check_vector(deltas):
+        ...         return numpy.max(numpy.abs(numpy.sum(deltas, axis=0)))
+        ...     sp_new = states.sp.average_values()
+        ...     sp_delta_l = fluxes.spl.average_values()
+        ...     sp_delta_g = fluxes.spg.average_values()
+        ...     sp_old_array = numpy.array(6 * [sp_old] + [0.0])
+        ...     wc_new = states.wc.average_values()
+        ...     wc_delta_l = fluxes.wcl.average_values()
+        ...     wc_delta_g = fluxes.wcg.average_values()
+        ...     wc_old_array = numpy.array(6 * [wc_old] + [0.0])
+        ...     errors = [sp_old + sp_delta_l - sp_new,
+        ...               sp_delta_l - sp_delta_g,
+        ...               check_vector(sp_old_array + fluxes.spg - states.sp),
+        ...               wc_old + wc_delta_l - wc_new,
+        ...               wc_delta_l - wc_delta_g,
+        ...               check_vector(wc_old_array + fluxes.wcg - states.wc)]
+        ...     print(*(repr_(error) for error in errors), sep=", ")
+
+        The possible errors related to different aspects of the frozen and the liquid
+        water content of the snow layer are all within the range of the given numerical
+        precision:
+
+        >>> check(sp_old=200.0, wc_old=100.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         Next, we increase the size of the first area and decrease the size of the
         second area by the same amount.  The different results for |SPG| and |WCG|
@@ -911,54 +938,140 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         supplying zones while the gain terms (|SPG| and |WCG|) relate to the sizes of
         the receiving zones:
 
-        >>> zonearea(1.5, 0.5, 1.0, 1.0, 1.0, 1.0)
+        >>> zonearea(1.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0)
         >>> update()
         >>> states.sp = 200.0
         >>> states.wc = 100.0
-        >>> states.lz = 10.0
         >>> model.calc_spg_wcg_sp_wc_v1()
         >>> fluxes.spg
-        spg(0.0, 12.0, 16.0, 26.0, 16.0, 16.0)
+        spg(0.0, 12.0, 16.0, 26.0, 16.0, 16.0, 0.0)
         >>> fluxes.wcg
-        wcg(0.0, 6.0, 8.0, 13.0, 8.0, 8.0)
+        wcg(0.0, 6.0, 8.0, 13.0, 8.0, 8.0, 0.0)
         >>> states.sp
-        sp(200.0, 212.0, 216.0, 226.0, 0.0, 216.0)
+        sp(200.0, 212.0, 216.0, 226.0, 216.0, 216.0, 0.0)
         >>> states.wc
-        wc(100.0, 106.0, 108.0, 113.0, 0.0, 108.0)
+        wc(100.0, 106.0, 108.0, 113.0, 108.0, 108.0, 0.0)
+        >>> check(sp_old=200.0, wc_old=100.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-        If we set the initial total snow storage to the value of |SMax|, all
-        redistributed snow continues travelling until it reaches a "dead-end" zone:
+        When modelling high mountain areas, even the lowest zones (the so-called
+        "dead-ends") can receive substantial amounts of redistributed snow.  Therefore,
+        the simple "from top to bottom" approach described so far can result in
+        unrealistic snow towers for these dead-ends, especially if their size is small
+        compared to the size of the snow-delivering area.  To prevent such artefacts,
+        method |Calc_SPG_WCG_SP_WC_V1| takes the total snow amount of all dead-ends
+        exceeding the |Smax| threshold and distributes it gradually to the other zones,
+        starting from the lowest in the order defined by parameter |IndicesZoneZ|:
 
         >>> zonearea(1.0)
         >>> update()
         >>> states.sp = 400.0
-        >>> states.wc = 100.0
-        >>> states.lz = 10.0
+        >>> states.wc = 75.0
         >>> model.calc_spg_wcg_sp_wc_v1()
         >>> fluxes.spg
-        spg(0.0, 0.0, 0.0, 0.0, 40.0, 40.0)
+        spg(0.0, 13.333333, 16.666667, 16.666667, 16.666667, 16.666667, 0.0)
         >>> fluxes.wcg
-        wcg(0.0, 0.0, 0.0, 0.0, 20.0, 20.0)
+        wcg(0.0, 6.666667, 8.333333, 8.333333, 8.333333, 8.333333, 0.0)
         >>> states.sp
-        sp(400.0, 400.0, 400.0, 400.0, 0.0, 440.0)
+        sp(400.0, 413.333333, 416.666667, 416.666667, 416.666667, 416.666667,
+           0.0)
         >>> states.wc
-        wc(100.0, 100.0, 100.0, 100.0, 0.0, 120.0)
+        wc(75.0, 81.666667, 83.333333, 83.333333, 83.333333, 83.333333, 0.0)
+        >>> check(sp_old=400.0, wc_old=75.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-        We complete the examples by a mixed case where the receiving "non dead-end"
-        zones can only retent a fraction of the entire available snow redistribution:
+        If the total snow amount of all zone reaches |SMax|, |Calc_SPG_WCG_SP_WC_V1|
+        distributes all remaining excess evenly to all non-lake zones:
 
-        >>> states.sp = 390.0
+        >>> states.sp = 400.0
         >>> states.wc = 90.0
-        >>> states.lz = 10.0
         >>> model.calc_spg_wcg_sp_wc_v1()
         >>> fluxes.spg
-        spg(0.0, 4.0, 13.333333, 13.333333, 24.666667, 24.666667)
+        spg(13.333333, 13.333333, 13.333333, 13.333333, 13.333333, 13.333333,
+            0.0)
         >>> fluxes.wcg
-        wcg(0.0, 2.0, 6.666667, 6.666667, 12.333333, 12.333333)
+        wcg(6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 0.0)
         >>> states.sp
-        sp(390.0, 394.0, 403.333333, 403.333333, 0.0, 414.666667)
+        sp(413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
+           413.333333, 0.0)
         >>> states.wc
-        wc(90.0, 92.0, 96.666667, 96.666667, 0.0, 102.333333)
+        wc(96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 0.0)
+        >>> check(sp_old=400.0, wc_old=90.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+        Introducing multiple snow classes within each zone complicates things.  We
+        repeat some of the above examples with an increased number of snow classes:
+
+        >>> sclass(2)
+        >>> update()
+
+        The "normal" snow redistribution relies similarly on parameter |SFDist|
+        as the accumulation of snowfall does.  We show this by repeating the first
+        example with the most extreme configuration of |SFDist|, where the second snow
+        class receives the entire amount of incoming snow:
+
+        >>> sfdist(0.0, 2.0)
+        >>> states.sp = 200.0
+        >>> states.wc = 100.0
+        >>> fluxes.spl = 20.0, 20.0, 20.0, 20.0, 0.0, 0.0, 0.0
+        >>> fluxes.wcl = 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0
+        >>> model.calc_spg_wcg_sp_wc_v1()
+        >>> fluxes.spg
+        spg(0.0, 4.0, 24.0, 24.0, 14.0, 14.0, 0.0)
+        >>> fluxes.wcg
+        wcg(0.0, 2.0, 12.0, 12.0, 7.0, 7.0, 0.0)
+        >>> states.sp
+        sp([[200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 0.0],
+            [200.0, 208.0, 248.0, 248.0, 228.0, 228.0, 0.0]])
+        >>> states.wc
+        wc([[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.0],
+            [100.0, 104.0, 124.0, 124.0, 114.0, 114.0, 0.0]])
+
+        During the eventual "bottom to top" re-redistribution, on the other hand,
+        the fractions between the gains of individual snow classes do not depend on
+        |SFDist| but their remaining capacities:
+
+        >>> states.sp = 400.0
+        >>> states.wc = 75.0
+        >>> model.calc_spg_wcg_sp_wc_v1()
+        >>> fluxes.spg
+        spg(0.0, 13.333333, 16.666667, 16.666667, 16.666667, 16.666667, 0.0)
+        >>> fluxes.wcg
+        wcg(0.0, 6.666667, 8.333333, 8.333333, 8.333333, 8.333333, 0.0)
+        >>> states.sp
+        sp([[400.0, 412.280702, 416.666667, 416.666667, 416.666667, 416.666667,
+             0.0],
+            [400.0, 414.385965, 416.666667, 416.666667, 416.666667, 416.666667,
+             0.0]])
+        >>> states.wc
+        wc([[75.0, 81.140351, 83.333333, 83.333333, 83.333333, 83.333333, 0.0],
+            [75.0, 82.192982, 83.333333, 83.333333, 83.333333, 83.333333, 0.0]])
+        >>> check(sp_old=400.0, wc_old=75.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+        During a subbasin-wide excess of |SMax|, all snow classes of a specific zone
+        handle the same total snow water equivalent:
+
+        >>> states.sp = 400.0
+        >>> states.wc = 90.0
+        >>> model.calc_spg_wcg_sp_wc_v1()
+        >>> fluxes.spg
+        spg(13.333333, 13.333333, 13.333333, 13.333333, 13.333333, 13.333333,
+            0.0)
+        >>> fluxes.wcg
+        wcg(6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 0.0)
+        >>> states.sp
+        sp([[413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
+             413.333333, 0.0],
+            [413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
+             413.333333, 0.0]])
+        >>> states.wc
+        wc([[96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667,
+             0.0],
+            [96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667,
+             0.0]])
+        >>> check(sp_old=400.0, wc_old=90.0)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     """
 
     CONTROLPARAMETERS = (
@@ -970,7 +1083,10 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         hland_control.SRed,
     )
     DERIVEDPARAMETERS = (
+        hland_derived.RelLandArea,
+        hland_derived.RelZoneAreas,
         hland_derived.ZoneAreaRatios,
+        hland_derived.IndicesZoneZ,
         hland_derived.SRedNumber,
         hland_derived.SRedOrder,
         hland_derived.SRedEnd,
@@ -997,11 +1113,19 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
-        for f in range(con.nmbzones):
-            flu.spg[f] = 0.0
-            flu.wcg[f] = 0.0
-            aid.spe[f] = 0.0
-            aid.wce[f] = 0.0
+
+        # initialise gain and excess:
+        for i in range(con.nmbzones):
+            flu.spg[i] = 0.0
+            flu.wcg[i] = 0.0
+            aid.spe[i] = 0.0
+            aid.wce[i] = 0.0
+            if con.zonetype[i] == ILAKE:
+                for c in range(con.sclass):
+                    sta.sp[c, i] = 0.0
+                    sta.wc[c, i] = 0.0
+
+        # redistribute losses from top to bottom:
         for i in range(der.srednumber):
             # f: from, t: to
             f, t = der.sredorder[i, 0], der.sredorder[i, 1]
@@ -1009,29 +1133,73 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
             d_gain_frozen = d_f * (flu.spl[f] + aid.spe[f])
             d_gain_liquid = d_f * (flu.wcl[f] + aid.wce[f])
             d_gain_total = d_gain_frozen + d_gain_liquid
+            for c in range(con.sclass):
+                d_gain_pot = con.sfdist[c] * d_gain_total
+                if d_gain_pot > 0.0:
+                    d_gain_max = con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
+                    d_fraction_gain = min(d_gain_max / d_gain_pot, 1.0)
+                    d_factor_gain = d_fraction_gain * con.sfdist[c]
+                    flu.spg[t] += d_factor_gain * d_gain_frozen / con.sclass
+                    flu.wcg[t] += d_factor_gain * d_gain_liquid / con.sclass
+                    sta.sp[c, t] += d_factor_gain * d_gain_frozen
+                    sta.wc[c, t] += d_factor_gain * d_gain_liquid
+                    d_factor_excess = (1.0 - d_fraction_gain) * con.sfdist[c]
+                    aid.spe[t] += d_factor_excess * d_gain_frozen / con.sclass
+                    aid.wce[t] += d_factor_excess * d_gain_liquid / con.sclass
+
+        # check for remaining excess at the dead ends:
+        d_excess_frozen_basin, d_excess_liquid_basin = 0.0, 0.0
+        for i in range(con.nmbzones):
+            if der.sredend[i]:
+                d_excess_frozen_basin += der.relzoneareas[i] * (aid.spe[i] + flu.spl[i])
+                d_excess_liquid_basin += der.relzoneareas[i] * (aid.wce[i] + flu.wcl[i])
+        if (d_excess_frozen_basin + d_excess_liquid_basin) <= 0.0:
+            return
+
+        # redistribute the remaining excess from bottom to top:
+        for i in range(con.nmbzones):
+            t = der.indiceszonez[i]
             if con.zonetype[t] == ILAKE:
-                flu.spg[t] += d_gain_frozen
-                flu.wcg[t] += d_gain_liquid
+                continue
+            d_excess_frozen_zone = d_excess_frozen_basin / der.relzoneareas[t]
+            d_excess_liquid_zone = d_excess_liquid_basin / der.relzoneareas[t]
+            d_excess_total_zone = d_excess_frozen_zone + d_excess_liquid_zone
+            d_gain_max_cum = 0.0
+            for c in range(con.sclass):
+                d_gain_max_cum += con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
+            if d_gain_max_cum <= 0.0:
+                continue
+            d_fraction_gain_zone = min(
+                d_gain_max_cum / con.sclass / d_excess_total_zone, 1.0
+            )
+            d_excess_frozen_zone_actual = d_fraction_gain_zone * d_excess_frozen_zone
+            d_excess_liquid_zone_actual = d_fraction_gain_zone * d_excess_liquid_zone
+            for c in range(con.sclass):
+                d_fraction_gain_class = (
+                    con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
+                ) / d_gain_max_cum
+                d_delta_sp_zone = d_fraction_gain_class * d_excess_frozen_zone_actual
+                d_delta_wc_zone = d_fraction_gain_class * d_excess_liquid_zone_actual
+                flu.spg[t] += d_delta_sp_zone
+                flu.wcg[t] += d_delta_wc_zone
+                sta.sp[c, t] += d_delta_sp_zone * con.sclass
+                sta.wc[c, t] += d_delta_wc_zone * con.sclass
+            d_excess_frozen_basin -= d_excess_frozen_zone_actual * der.relzoneareas[t]
+            d_excess_liquid_basin -= d_excess_liquid_zone_actual * der.relzoneareas[t]
+            if (d_excess_frozen_basin + d_excess_liquid_basin) <= 0.0:
+                return
+
+        # redistribute the still remaining excess evenly:
+        d_excess_frozen_land = d_excess_frozen_basin / der.rellandarea
+        d_excess_liquid_land = d_excess_liquid_basin / der.rellandarea
+        for t in range(con.nmbzones):
+            if con.zonetype[t] != ILAKE:
+                flu.spg[t] += d_excess_frozen_land
+                flu.wcg[t] += d_excess_liquid_land
                 for c in range(con.sclass):
-                    sta.sp[c, t] = 0.0
-                    sta.wc[c, t] = 0.0
-            else:
-                for c in range(con.sclass):
-                    d_gain_pot = con.sfdist[c] * d_gain_total
-                    if d_gain_pot > 0.0:
-                        if der.sredend[t]:
-                            d_fraction_gain = 1.0
-                        else:
-                            d_gain_max = con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-                            d_fraction_gain = min(d_gain_max / d_gain_pot, 1.0)
-                        d_factor_gain = d_fraction_gain * con.sfdist[c]
-                        flu.spg[t] += d_factor_gain * d_gain_frozen / con.sclass
-                        flu.wcg[t] += d_factor_gain * d_gain_liquid / con.sclass
-                        sta.sp[c, t] += d_factor_gain * d_gain_frozen
-                        sta.wc[c, t] += d_factor_gain * d_gain_liquid
-                        d_factor_excess = (1.0 - d_fraction_gain) * con.sfdist[c]
-                        aid.spe[t] += d_factor_excess * d_gain_frozen / con.sclass
-                        aid.wce[t] += d_factor_excess * d_gain_liquid / con.sclass
+                    sta.sp[c, t] += d_excess_frozen_land
+                    sta.wc[c, t] += d_excess_liquid_land
+        return
 
 
 class Calc_CFAct_V1(modeltools.Method):
@@ -3129,15 +3297,15 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
 
 
 class Calc_LZ_V1(modeltools.Method):
-    r"""Add percolation from the upper zone layer, lake precipitation and redistributed
-    snow to the lower zone storage.
+    r"""Add percolation from the upper zone layera and lake precipitation to the lower
+    zone storage.
 
     Basic equation:
       .. math::
         \frac{dLZ}{dt} = \frac{RelUpperZoneArea}{RelLowerZoneArea} \cdot Perc +
         \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLowerZoneArea} \cdot
         \begin{cases}
-        Pc_k + SPG_k + WCG_k &|\ ZoneType_k = ILAKE
+        Pc_k &|\ ZoneType_k = ILAKE
         \\
         0 &|\ ZoneType_k \neq ILAKE
         \end{cases}
@@ -3162,31 +3330,25 @@ class Calc_LZ_V1(modeltools.Method):
         >>> derived.relupperzonearea.update()
         >>> derived.rellowerzonearea.update()
 
-        First, we set the precipitation intensity (|PC|) to 5 mm, the frozen (|SPG|)
-        and liquid (|WCG|) snow gain by redistribution to 10 mm and 15 mm, and the
-        percolation intensity (|PERC|) to zero. Only the internal lake zone passes its
-        values for |PC|, |SPG|, and |WCG| directly to the lower zone layer.  The
-        fraction between its size (15 km²) and the extent of the lower zone layer
-        (75 km²) is 1/5.  Hence, the single zone's total input of 30 mm increases the
-        lower zone layer's water content by 6 mm:
+        First, we set the precipitation intensity (|PC|) to 30 mm and the percolation
+        intensity (|PERC|) to zero. Only the internal lake zone passes its value for
+        |PC| directly to the lower zone layer.  The fraction between its size (15 km²)
+        and the extent of the lower zone layer (75 km²) is 1/5.  Hence, the single
+        zone's input of 30 mm increases the lower zone layer's water content by 6 mm:
 
-        >>> fluxes.pc = 5.0
-        >>> fluxes.spg = 10.0
-        >>> fluxes.wcg = 15.0
+        >>> fluxes.pc = 30.0
         >>> fluxes.perc = 0.0
         >>> states.lz = 10.0
         >>> model.calc_lz_v1()
         >>> states.lz
         lz(16.0)
 
-        Second, we set |PC|, |SPG|, and |WCG| to zero and the percolation intensity to
-        5 mm.  The fraction between the extents of the upper zone layer (60 km²) and
-        the lower zone layer (75 km³) is 4/5. Hence, percolation released by the upper
-        zone layer increases the content of the lower zone layer by 4 mm:
+        Second, we set |PC| to zero and the percolation intensity to 5 mm.  The
+        fraction between the extents of the upper zone layer (60 km²) and the lower
+        zone layer (75 km³) is 4/5. Hence, percolation released by the upper zone layer
+        increases the content of the lower zone layer by 4 mm:
 
         >>> fluxes.pc = 0.0
-        >>> fluxes.spg = 0.0
-        >>> fluxes.wcg = 0.0
         >>> fluxes.perc = 5.0
         >>> model.calc_lz_v1()
         >>> states.lz
@@ -3213,8 +3375,6 @@ class Calc_LZ_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         hland_fluxes.Perc,
         hland_fluxes.PC,
-        hland_fluxes.SPG,
-        hland_fluxes.WCG,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
@@ -3228,15 +3388,14 @@ class Calc_LZ_V1(modeltools.Method):
             sta.lz += der.relupperzonearea / der.rellowerzonearea * flu.perc
             for k in range(con.nmbzones):
                 if con.zonetype[k] == ILAKE:
-                    d_factor = der.relzoneareas[k] / der.rellowerzonearea
-                    sta.lz += d_factor * (flu.pc[k] + flu.spg[k] + flu.wcg[k])
+                    sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.pc[k]
         else:
             sta.lz = 0.0
 
 
 class Calc_LZ_V2(modeltools.Method):
-    r"""Add percolation from the interflow reservoir, lake precipitation and
-    redistributed snow to the lower zone storage.
+    r"""Add percolation from the interflow reservoir and lake precipitation to the
+    lower zone storage.
 
     Basic equation:
       .. math::
@@ -3245,7 +3404,7 @@ class Calc_LZ_V2(modeltools.Method):
         \begin{cases}
         QVs2_k &|\ ZoneType_k \in \{ FIELD, FOREST, GLACIER \}
         \\
-        Pc_k + SPG_k + WCG_k &|\ ZoneType_k = ILAKE
+        Pc_k &|\ ZoneType_k = ILAKE
         \\
         0 &|\ ZoneType_k = SEALED
         \end{cases}
@@ -3254,9 +3413,9 @@ class Calc_LZ_V2(modeltools.Method):
 
         The first three zones of type |FIELD|, |FOREST|, and |GLACIER| contribute via
         deep percolation to the lower zone reservoir.  For the fourth zone of type
-        |ILAKE|, precipitation and snow redistribution contribute directly to the lower
-        zone storage.  The fifth zone of type |SEALED| does not contribute to the lower
-        zone storage at all:
+        |ILAKE|, precipitation contributes directly to the lower zone storage.  The
+        fifth zone of type |SEALED| does not contribute to the lower zone storage at
+        all:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -3266,9 +3425,7 @@ class Calc_LZ_V2(modeltools.Method):
         >>> derived.relzoneareas = 0.24, 0.18, 0.12, 0.06, 0.4
         >>> derived.rellowerzonearea = 0.6
         >>> fluxes.qvs2 = 1.0, 2.0, 3.0, nan, nan
-        >>> fluxes.pc = nan, nan, nan, 3.0, nan
-        >>> fluxes.spg = nan, nan, nan, 5.0, nan
-        >>> fluxes.wcg = nan, nan, nan, 6.0, nan
+        >>> fluxes.pc = nan, nan, nan, 14.0, nan
         >>> states.lz = 5.0
         >>> model.calc_lz_v2()
         >>> states.lz
@@ -3286,8 +3443,6 @@ class Calc_LZ_V2(modeltools.Method):
     REQUIREDSEQUENCES = (
         hland_fluxes.QVs2,
         hland_fluxes.PC,
-        hland_fluxes.SPG,
-        hland_fluxes.WCG,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
@@ -3299,8 +3454,7 @@ class Calc_LZ_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
-                d_factor = der.relzoneareas[k] / der.rellowerzonearea
-                sta.lz += d_factor * (flu.pc[k] + flu.spg[k] + flu.wcg[k])
+                sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.pc[k]
             elif con.zonetype[k] != SEALED:
                 sta.lz += der.relzoneareas[k] / der.rellowerzonearea * flu.qvs2[k]
 
@@ -3439,7 +3593,7 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         \begin{cases}
         DP_k - GR1_k &|\ ZoneType_k \in \{ FIELD, FOREST, GLACIER \}
         \\
-        Pc_k + SPG_k + WCG_k &|\ ZoneType_k = ILAKE
+        Pc_k &|\ ZoneType_k = ILAKE
         \\
         0 &|\ ZoneType_k = SEALED
         \end{cases}
@@ -3462,9 +3616,7 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         >>> derived.rellowerzonearea(0.6)
         >>> fluxes.gr1 = 1.0, 2.0, 3.0, nan, nan
         >>> fluxes.dp = 4.0, 6.0, 8.0, nan, nan
-        >>> fluxes.pc = nan, nan, nan, 3.0, nan
-        >>> fluxes.spg = nan, nan, nan, 3.5, nan
-        >>> fluxes.wcg = nan, nan, nan, 4.5, nan
+        >>> fluxes.pc = nan, nan, nan, 11.0, nan
         >>> model.calc_gr2_gr3_v1()
         >>> fluxes.gr2
         gr2(4.0)
@@ -3485,8 +3637,6 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         hland_fluxes.PC,
         hland_fluxes.DP,
         hland_fluxes.GR1,
-        hland_fluxes.SPG,
-        hland_fluxes.WCG,
     )
     RESULTSEQUENCES = (
         hland_fluxes.GR2,
@@ -3506,7 +3656,7 @@ class Calc_GR2_GR3_V1(modeltools.Method):
                 continue
             d_weight = der.relzoneareas[k] / der.rellowerzonearea
             if con.zonetype[k] == ILAKE:
-                d_total = d_weight * (flu.pc[k] + flu.spg[k] + flu.wcg[k])
+                d_total = d_weight * flu.pc[k]
             else:
                 d_total = d_weight * (flu.dp[k] - flu.gr1[k])
             flu.gr2 += fix.fsg * d_total

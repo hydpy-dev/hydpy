@@ -264,6 +264,27 @@ class ZoneAreaRatios(parametertools.Parameter):
         self.values = zonearea[:, numpy.newaxis] / zonearea
 
 
+class IndicesZoneZ(parametertools.Parameter):
+    """Indices of the zones sorted by altitude [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+
+    CONTROLPARAMETERS = (hland_control.ZoneZ,)
+
+    def update(self) -> None:
+        """Update the indices based on the order of the values of parameter |ZoneZ|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> zonez(3.0, 4.0, 2.0, 5.0, 3.0)
+        >>> derived.indiceszonez.update()
+        >>> derived.indiceszonez
+        indiceszonez(2, 0, 4, 1, 3)
+        """
+        self.values = numpy.argsort(self.subpars.pars.control.zonez.values)
+
+
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
@@ -280,6 +301,7 @@ class SRedOrder(parametertools.Parameter):
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(6)
+        >>> zonetype(FIELD)
         >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
         ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
         ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -322,6 +344,7 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
         An example or unsorted data:
 
         >>> nmbzones(5)
+        >>> zonetype(FIELD)
         >>> sred([[0.0, 0.5, 0.0, 0.5, 0.0],
         ...       [0.0, 0.0, 0.0, 0.0, 0.0],
         ...       [0.0, 0.0, 0.0, 0.0, 1.0],

@@ -55,13 +55,13 @@ class WCL(hland_sequences.Flux1DSequence):
 class SPG(hland_sequences.Flux1DSequence):
     """Subbasin-internal redistribution gain of the snow's ice content [mm/T]."""
 
-    mask = hland_masks.Complete()
+    mask = hland_masks.Snow()
 
 
 class WCG(hland_sequences.Flux1DSequence):
     """Subbasin-internal redistribution gain of the snow's water content [mm/T]."""
 
-    mask = hland_masks.Complete()
+    mask = hland_masks.Snow()
 
 
 class GlMelt(hland_sequences.Flux1DSequence):

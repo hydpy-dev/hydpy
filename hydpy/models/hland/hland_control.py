@@ -491,8 +491,8 @@ class SRed(parametertools.Parameter):
     """Snow redistribution paths [-].
 
     |SRed| is a 2-dimensional parameter that handles weighting factors for all possible
-    zone connections.  The source zones vary on the rows and the target zones on
-    the columns.  In the following example, zone one sends all snow available for
+    zone connections.  The source zones vary on the rows and the target zones on the
+    columns.  In the following example, zone one sends all snow available for
     redistribution to zone three.  Zone two sends 50 % to zone four and 50 % to zone
     five.  Zone six sends 40 % to zone two, 40 % to zone three, and 20 % to zone four:
 
@@ -500,6 +500,7 @@ class SRed(parametertools.Parameter):
     >>> simulationstep("12h")
     >>> parameterstep("1d")
     >>> nmbzones(6)
+    >>> zonetype(FIELD)
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -517,7 +518,7 @@ class SRed(parametertools.Parameter):
     A zone can either redistribute no snow at all (we then call it a "dead end") or
     needs to send 100 % of the snow available for redistribution.  Hence, the sums of
     the individual rows must be either 0.0 or 1.0.  Parameter |SRed| checks for
-    possible violations of this requirement:
+    possible violations of this requirement (by calling method |SRed.check_sums|):
 
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
@@ -530,9 +531,43 @@ class SRed(parametertools.Parameter):
     ValueError: The sum(s) of the following row(s) of parameter `sred` of element `?` \
 are neither 0.0 nor 1.0: 3 and 4.
 
+    Zones of type |ILAKE| possess no snow module.  Hence, they never release any snow
+    for redistribution and parameter |SRed| checks for possible unused weighting
+    factors in the relevant rows (by calling method |SRed.check_lakes|):
+
+    >>> zonetype(FIELD, FIELD, FIELD, ILAKE, FIELD, ILAKE)
+    >>> sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    Traceback (most recent call last):
+    ...
+    ValueError: Internal lake zones cannot be involved in snow redistribution, so the \
+sums of all rows of parameter `sred` of element `?` corresponding to internal lake \
+zones must be zero, which is not the case for the row(s): 3.
+
+    For the same reason, internal lakes cannot receive and accumulate any redistributed
+    snow.  Therefore, parameter |SRed| additionally checks for possible problematic
+    weighting factors in the relevant columns (by calling method |SRed.check_lakes|):
+
+    >>> sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
+    ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    Traceback (most recent call last):
+    ...
+    ValueError: Internal lake zones cannot be involved in snow redistribution, so the \
+sums of all columns of parameter `sred` of element `?` corresponding to internal lake \
+zones must be zero, which is not the case for the column(s): 3 and 5.
+
     The snow redistribution routine of |hland| does not allow for any cycles.  When in
     doubt, use the |SRed.check_order| method to check this:
 
+    >>> zonetype(FIELD)
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -574,7 +609,7 @@ least one cycle: (3, 5) and (5, 3).
     sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
@@ -585,8 +620,8 @@ least one cycle: (3, 5) and (5, 3).
     >>> sred
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.5, 0.5, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
@@ -595,10 +630,10 @@ least one cycle: (3, 5) and (5, 3).
 
     >>> sred(n_zones=999)
     >>> sred
-    sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
-          [0.0, 0.0, 0.25, 0.25, 0.25, 0.25],
-          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
-          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
+          [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
@@ -614,25 +649,25 @@ least one cycle: (3, 5) and (5, 3).
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
     >>> sred
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
-          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
     >>> sred
-    sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2],
-          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
-          [0.0, 0.0, 0.0, 0.333333, 0.333333, 0.333333],
-          [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
+    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
@@ -665,25 +700,25 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
     >>> sred
     sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
+          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.5, 0.5, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
     >>> sred
-    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
-          [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],
+    sred([[0.0, 0.333333, 0.333333, 0.0, 0.0, 0.333333],
+          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.2, 0.2, 0.2, 0.2, 0.0, 0.2],
-          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0]])
+          [0.25, 0.25, 0.25, 0.0, 0.0, 0.25],
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     For unequal zone areas, the calculated weights reflect the relations between the
     respective source and target zones.  The idea is that larger target zones have
@@ -699,25 +734,25 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
     >>> sred
     sred([[0.0, 0.25, 0.0, 0.0, 0.0, 0.75],
-          [0.0, 0.0, 0.0, 0.4, 0.0, 0.6],
+          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
     >>> sred
-    sred([[0.0, 0.133333, 0.2, 0.266667, 0.0, 0.4],
-          [0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
+    sred([[0.0, 0.181818, 0.272727, 0.0, 0.0, 0.545455],
+          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0625, 0.125, 0.1875, 0.25, 0.0, 0.375],
-          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+          [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     Instead of supplying the number of target zones directly, on can define the maximum
     height of redistribution.  For a source zone at an elevation `x`, parameter |SRed|
@@ -733,7 +768,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(d_height=2.0)
     >>> sred
@@ -742,16 +777,16 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(d_height=10.0)
     >>> sred
-    sred([[0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
-          [0.0, 0.0, 0.230769, 0.307692, 0.0, 0.461538],
+    sred([[0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
+          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0625, 0.125, 0.1875, 0.25, 0.0, 0.375],
-          [0.0, 0.0, 0.428571, 0.571429, 0.0, 0.0]])
+          [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],
+          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
     """
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
@@ -764,6 +799,7 @@ least one cycle: (3, 5) and (5, 3).
             args = [self._prepare_dheight(kwargs.pop("d_height"))]
         super().__call__(*args, **kwargs)
         self.check_sums()
+        self.check_lakes()
 
     def _prepare_nzones(self, nzones: int) -> Matrix[float]:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
@@ -785,7 +821,8 @@ least one cycle: (3, 5) and (5, 3).
             if (type_ != ILAKE) and (z_upper > zonez_min):
                 for z_lower in zonez_sorted:
                     if z_upper > z_lower:
-                        jdxs = numpy.where((z_upper > zonez) * (zonez >= z_lower))[0]
+                        sel = (types_ != ILAKE) * (z_upper > zonez) * (zonez >= z_lower)
+                        jdxs = numpy.where(sel)[0]
                         if len(jdxs) >= nzone:
                             break
                 values[idx, jdxs] = zonearea[jdxs] / numpy.sum(zonearea[jdxs])
@@ -814,6 +851,21 @@ least one cycle: (3, 5) and (5, 3).
             if values is not None:
                 sredorder.shape = values.shape
                 sredorder.values = values
+
+    def check_lakes(self) -> None:
+        """Check if any internal lake seems to be involved in snow redistribution."""
+        values = self.values
+        is_lake = self.subpars.zonetype.values == ILAKE
+        for axis, string in ((1, "row"), (0, "column")):
+            errors = is_lake * (numpy.sum(values, axis=axis) > 0.0)
+            if numpy.any(errors):
+                raise ValueError(
+                    f"Internal lake zones cannot be involved in snow "
+                    f"redistribution, so the sums of all {string}s of parameter "
+                    f"{objecttools.elementphrase(self)} corresponding to internal "
+                    f"lake zones must be zero, which is not the case for the "
+                    f"{string}(s): {objecttools.enumeration(numpy.where(errors)[0])}."
+                )
 
 
 class TT(hland_parameters.ParameterComplete):

@@ -175,7 +175,7 @@ element `?` is not available at the moment.
 
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-    >>> zonearea(1.0)
+    >>> zonearea.values = 1.0
     >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
     >>> fluxes.pc.average_values()
     4.0

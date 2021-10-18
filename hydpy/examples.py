@@ -175,7 +175,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     control.nmbzones(3)
     control.sclass(2)
     control.zonetype(hland.FIELD)
-    control.zonearea(10.0)
+    control.zonearea.values = 10.0
 
     # pylint: disable=not-callable
     # pylint usually understands that all options are callable

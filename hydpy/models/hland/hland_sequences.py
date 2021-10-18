@@ -22,7 +22,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0
     >>> factors.tc(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(factors.tc.average_values())
@@ -51,7 +51,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0
     >>> fluxes.pc(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(fluxes.pc.average_values())
@@ -81,7 +81,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
     >>> nmbzones(5)
     >>> sclass(2)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea(10.0, 20.0, 30.0, 40.0, 60.0)
+    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0
     >>> fluxes.melt = [[40.0, 10.0, 30.0, nan, 0.0],
     ...                [60.0, 30.0, 50.0, nan, 20.0]]
     >>> from hydpy import round_
@@ -110,7 +110,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea(1.0, 1.0, 1.0)
+        >>> zonearea.values = 1.0, 1.0, 1.0
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         >>> from hydpy import print_values
         >>> print_values(states.sp.valuevector)
@@ -139,7 +139,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea(1.0, 1.0, 1.0)
+        >>> zonearea.values = 1.0, 1.0, 1.0
         >>> states.sp.activate_ram()
         >>> states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
@@ -175,7 +175,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea(10.0, 20.0, 30.0, 40.0, 50.0)
+    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 50.0
     >>> fc(100.0)
     >>> states.sm = 50.0, 20.0, 40.0, 10.0, nan
     >>> from hydpy import round_
@@ -206,7 +206,7 @@ class State2DSequence(sequencetools.StateSequence):
     >>> nmbzones(5)
     >>> sclass(2)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea(10.0, 20.0, 30.0, 40.0, 60.0)
+    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0
     >>> states.sp = [[40.0, 10.0, 30.0, nan, 0.0],
     ...              [60.0, 30.0, 50.0, nan, 20.0]]
     >>> from hydpy import round_
@@ -235,7 +235,7 @@ class State2DSequence(sequencetools.StateSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea(1.0, 1.0, 1.0)
+        >>> zonearea.values = 1.0, 1.0, 1.0
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         >>> from hydpy import print_values
         >>> print_values(states.sp.valuevector)
@@ -264,7 +264,7 @@ class State2DSequence(sequencetools.StateSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea(1.0, 1.0, 1.0)
+        >>> zonearea.values = 1.0, 1.0, 1.0
         >>> states.sp.activate_ram()
         >>> states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],

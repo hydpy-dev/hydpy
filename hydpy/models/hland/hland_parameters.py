@@ -34,7 +34,7 @@ class ParameterComplete(parametertools.ZipParameter):
     Parameter |ZoneArea| serves for calculating areal means (see the documentation on
     |property| |ParameterComplete.refweights|):
 
-    >>> zonearea(0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
+    >>> zonearea.values = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0
     >>> from hydpy import round_
     >>> round_(pcorr.average_values())
     3.4
@@ -85,7 +85,7 @@ class ParameterLand(ParameterComplete):
     >>> whc(field=2.0, default=9.0)
     >>> whc
     whc(field=2.0, forest=9.0, glacier=9.0)
-    >>> zonearea(1.0, 1.0, 1.0, nan, 1.0)
+    >>> zonearea.values = 1.0, 1.0, 1.0, nan, 1.0
     >>> from hydpy import round_
     >>> round_(whc.average_values())
     5.5
@@ -111,7 +111,7 @@ class ParameterInterception(ParameterComplete):
     >>> icmax(field=2.0, default=8.0, sealed=3.0)
     >>> icmax
     icmax(field=2.0, forest=8.0, sealed=3.0)
-    >>> zonearea(1.0, 2.0, nan, nan, 3.0)
+    >>> zonearea.values = 1.0, 2.0, nan, nan, 3.0
     >>> from hydpy import round_
     >>> round_(icmax.average_values())
     4.5
@@ -136,7 +136,7 @@ class ParameterSoil(ParameterComplete):
     >>> icmax(field=2.0, default=9.0)
     >>> icmax
     icmax(field=2.0, forest=9.0)
-    >>> zonearea(0.0, 1.0, nan, nan, 3.0)
+    >>> zonearea.values = 0.0, 1.0, nan, nan, 3.0
     >>> from hydpy import round_
     >>> round_(icmax.average_values())
     3.75
@@ -162,7 +162,7 @@ class ParameterUpperZone(ParameterComplete):
     >>> h1(field=2.0, default=9.0)
     >>> h1
     h1(field=2.0, forest=9.0, glacier=9.0)
-    >>> zonearea(1.0, 1.0, 1.0, nan, 1.0, nan)
+    >>> zonearea.values = 1.0, 1.0, 1.0, nan, 1.0, nan
     >>> from hydpy import round_
     >>> round_(h1.average_values())
     5.5
@@ -187,7 +187,7 @@ class ParameterLake(ParameterComplete):
     >>> ttice(field=2.0, forest=9.0, default=9.0)
     >>> ttice
     ttice(9.0)
-    >>> zonearea(1.0, nan, nan, 1.0, nan)
+    >>> zonearea.values = 1.0, nan, nan, 1.0, nan
     >>> from hydpy import round_
     >>> round_(ttice.average_values())
     9.0
@@ -213,7 +213,7 @@ class ParameterGlacier(ParameterComplete):
     >>> gmelt(field=2.0, forest=9.0, default=8.0)
     >>> gmelt
     gmelt(8.0)
-    >>> zonearea(1.0, nan, nan, 1.0, nan)
+    >>> zonearea.values = 1.0, nan, nan, 1.0, nan
     >>> from hydpy import round_
     >>> round_(gmelt.average_values())
     8.0
@@ -239,7 +239,7 @@ class ParameterNoGlacier(ParameterComplete):
     >>> ecorr(field=2.0, default=9.0)
     >>> ecorr
     ecorr(field=2.0, forest=9.0, ilake=9.0)
-    >>> zonearea(1.0, 1.0, nan, 1.0, 1.0)
+    >>> zonearea.values = 1.0, 1.0, nan, 1.0, 1.0
     >>> from hydpy import round_
     >>> round_(ecorr.average_values())
     5.5

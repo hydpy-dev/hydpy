@@ -653,7 +653,7 @@ least one cycle: (3, 5) and (5, 3).
 
     >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
     >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
-    >>> zonearea(1.0)
+    >>> zonearea.values = 1.0
 
     >>> sred(n_zones=1)
     >>> sred
@@ -776,7 +776,7 @@ least one cycle: (3, 5) and (5, 3).
     larger contact surfaces with their source zones than smaller ones.  This approach
     prevents building extreme snow towers in small target zones:
 
-    >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    >>> zonearea.values = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0
 
     >>> sred(n_zones=1)
     >>> sred

@@ -1005,10 +1005,10 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         >>> sclass(2)
         >>> update()
 
-        The "normal" snow redistribution relies similarly on parameter |SFDist|
-        as the accumulation of snowfall does.  We show this by repeating the first
-        example with the most extreme configuration of |SFDist|, where the second snow
-        class receives the entire amount of incoming snow:
+        The "normal" snow redistribution relies similarly on parameter |SFDist| as the
+        snowfall accumulation does.  We show this by repeating the first example with
+        the most extreme configuration of |SFDist|, where the second snow class
+        receives the entire amount of incoming snow:
 
         >>> sfdist(0.0, 2.0)
         >>> states.sp = 200.0

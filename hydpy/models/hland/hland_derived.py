@@ -27,129 +27,6 @@ class DOY(parametertools.DOYParameter):
     class |Indexer| available in module |pub| [-]."""
 
 
-class RelSoilArea(parametertools.Parameter):
-    """Relative area of all |FIELD| and |FOREST| zones [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-
-    CONTROLPARAMETERS = (
-        hland_control.ZoneArea,
-        hland_control.ZoneType,
-        hland_control.Area,
-    )
-
-    def update(self):
-        """Update |RelSoilArea| based on |Area|, |ZoneArea|, and |ZoneType|.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-        >>> area(100.0)
-        >>> zonearea(10.0, 20.0, 15.0, 25.0, 30.0)
-        >>> derived.relsoilarea.update()
-        >>> derived.relsoilarea
-        relsoilarea(0.3)
-        """
-        con = self.subpars.pars.control
-        temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == GLACIER] = 0.0
-        temp[con.zonetype.values == ILAKE] = 0.0
-        temp[con.zonetype.values == SEALED] = 0.0
-        self(numpy.sum(temp) / con.area)
-
-
-class RelLandArea(parametertools.Parameter):
-    """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |SEALED| zones [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-
-    CONTROLPARAMETERS = (
-        hland_control.ZoneArea,
-        hland_control.ZoneType,
-        hland_control.Area,
-    )
-
-    def update(self):
-        """Update |RelLandArea| based on |Area|, |ZoneArea|, and |ZoneType|.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-        >>> area(100.0)
-        >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
-        >>> derived.rellandarea.update()
-        >>> derived.rellandarea
-        rellandarea(0.85)
-        """
-        con = self.subpars.pars.control
-        temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == ILAKE] = 0.0
-        self(numpy.sum(temp) / con.area)
-
-
-class RelUpperZoneArea(parametertools.Parameter):
-    """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-
-    CONTROLPARAMETERS = (
-        hland_control.ZoneArea,
-        hland_control.ZoneType,
-        hland_control.Area,
-    )
-
-    def update(self):
-        """Update |RelUpperZoneArea| based on |Area|, |ZoneArea|, and |ZoneType|.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-        >>> area(100.0)
-        >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
-        >>> derived.relupperzonearea.update()
-        >>> derived.relupperzonearea
-        relupperzonearea(0.6)
-        """
-        con = self.subpars.pars.control
-        temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == ILAKE] = 0.0
-        temp[con.zonetype.values == SEALED] = 0.0
-        self(numpy.sum(temp) / con.area)
-
-
-class RelLowerZoneArea(parametertools.Parameter):
-    """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| zones [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-
-    CONTROLPARAMETERS = (
-        hland_control.ZoneArea,
-        hland_control.ZoneType,
-        hland_control.Area,
-    )
-
-    def update(self):
-        """Update |RelLowerZoneArea| based on |Area|, |ZoneArea|, and |ZoneType|.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-        >>> area(100.0)
-        >>> zonearea(10.0, 20.0, 30.0, 15.0, 25.0)
-        >>> derived.rellowerzonearea.update()
-        >>> derived.rellowerzonearea
-        rellowerzonearea(0.75)
-        """
-        con = self.subpars.pars.control
-        temp = con.zonearea.values.copy()
-        temp[con.zonetype.values == SEALED] = 0.0
-        self(numpy.sum(temp) / con.area)
-
-
 class RelZoneAreas(hland_parameters.ParameterComplete):
     """Relative area of all zones [-]."""
 
@@ -164,13 +41,14 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
 
     def update(self) -> None:
         """Update the relative area based on the parameters |ZoneArea|, |ZoneType|,
-         and |Psi|.
+        and |Psi|.
 
         In the simplest case, |RelZoneAreas| provides the fractions of the zone areas
         available via the control parameter |ZoneArea|:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
+        >>> area(100.0)
         >>> nmbzones(5)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
         >>> zonearea(10.0, 40.0, 20.0, 25.0, 5.0)
@@ -240,12 +118,117 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
             self.values = zonearea / numpy.sum(zonearea)
 
 
+class RelSoilArea(parametertools.Parameter):
+    """Relative area of all |FIELD| and |FOREST| zones [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.ZoneType,)
+    DERIVEDPARAMETERS = (RelZoneAreas,)
+
+    def update(self):
+        """Update |RelSoilArea| based on |RelZoneAreas| and |ZoneType|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.1, 0.2, 0.15, 0.25, 0.3)
+        >>> derived.relsoilarea.update()
+        >>> derived.relsoilarea
+        relsoilarea(0.3)
+        """
+        zonetype = self.subpars.pars.control.zonetype.values
+        temp = self.subpars.relzoneareas.values.copy()
+        temp[zonetype == GLACIER] = 0.0
+        temp[zonetype == ILAKE] = 0.0
+        temp[zonetype == SEALED] = 0.0
+        self(numpy.sum(temp))
+
+
+class RelLandArea(parametertools.Parameter):
+    """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |SEALED| zones [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.ZoneType,)
+    DERIVEDPARAMETERS = (RelZoneAreas,)
+
+    def update(self):
+        """Update |RelLandArea| based on |RelZoneAreas| and |ZoneType|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.1, 0.2, 0.3, 0.15, 0.25)
+        >>> derived.rellandarea.update()
+        >>> derived.rellandarea
+        rellandarea(0.85)
+        """
+        temp = self.subpars.relzoneareas.values.copy()
+        temp[self.subpars.pars.control.zonetype.values == ILAKE] = 0.0
+        self(numpy.sum(temp))
+
+
+class RelUpperZoneArea(parametertools.Parameter):
+    """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.ZoneType,)
+    DERIVEDPARAMETERS = (RelZoneAreas,)
+
+    def update(self):
+        """Update |RelUpperZoneArea| based on |RelZoneAreas| and |ZoneType|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.1, 0.2, 0.3, 0.15, 0.25)
+        >>> derived.relupperzonearea.update()
+        >>> derived.relupperzonearea
+        relupperzonearea(0.6)
+        """
+        zonetype = self.subpars.pars.control.zonetype.values
+        temp = self.subpars.relzoneareas.values.copy()
+        temp[zonetype == ILAKE] = 0.0
+        temp[zonetype == SEALED] = 0.0
+        self(numpy.sum(temp))
+
+
+class RelLowerZoneArea(parametertools.Parameter):
+    """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| zones [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (hland_control.ZoneType,)
+    DERIVEDPARAMETERS = (RelZoneAreas,)
+
+    def update(self):
+        """Update |RelLowerZoneArea| based on |RelZoneAreas| and |ZoneType|.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
+        >>> derived.relzoneareas(0.1, 0.2, 0.3, 0.15, 0.25)
+        >>> derived.rellowerzonearea.update()
+        >>> derived.rellowerzonearea
+        rellowerzonearea(0.75)
+        """
+        temp = self.subpars.relzoneareas.values.copy()
+        temp[self.subpars.pars.control.zonetype.values == SEALED] = 0.0
+        self(numpy.sum(temp))
+
+
 class ZoneAreaRatios(parametertools.Parameter):
     """Ratios of all zone combinations [-]."""
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (hland_control.ZoneArea,)
+    DERIVEDPARAMETERS = (RelZoneAreas,)
 
     def update(self) -> None:
         """Update the zone area ratios based on the parameter |ZoneArea|.
@@ -253,15 +236,15 @@ class ZoneAreaRatios(parametertools.Parameter):
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(3)
-        >>> zonearea(1.0, 5.0, 10.0)
+        >>> derived.relzoneareas(0.0625, 0.3125, 0.625)
         >>> derived.zonearearatios.update()
         >>> derived.zonearearatios
         zonearearatios([[1.0, 0.2, 0.1],
                         [5.0, 1.0, 0.5],
                         [10.0, 2.0, 1.0]])
         """
-        zonearea = self.subpars.pars.control.zonearea.values
-        self.values = zonearea[:, numpy.newaxis] / zonearea
+        relzoneareas = self.subpars.relzoneareas.values
+        self.values = relzoneareas[:, numpy.newaxis] / relzoneareas
 
 
 class IndicesZoneZ(parametertools.Parameter):
@@ -440,7 +423,7 @@ class TTM(hland_parameters.ParameterLand):
     )
 
     def update(self):
-        """Update |TTM| based on :math:`TTM = TT+DTTM`.
+        """Update |TTM| based on :math:`TTM = TT + DTTM`.
 
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
@@ -485,7 +468,7 @@ class DT(parametertools.Parameter):
         >>> recstep.value
         5
         """
-        self(1 / self.subpars.pars.control.recstep)
+        self(1.0 / self.subpars.pars.control.recstep)
 
 
 class W0(parametertools.Parameter):

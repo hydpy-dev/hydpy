@@ -2,7 +2,8 @@
 .. _Python: http://www.python.org/
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
-.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
+.. _`German Federal Institute of Hydrology`: https://www.bafg.de/EN
+.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/en/bjoernsen-consulting-engineers
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html

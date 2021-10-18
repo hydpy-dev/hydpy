@@ -207,6 +207,57 @@ class ZoneArea(hland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
+    def trim(self, lower=None, upper=None):
+        r"""Trim |ZoneArea| so that :math:`\Sigma ZoneArea = Area` holds and each zone
+        area is non-negative.
+
+        Our example basin is 6 km² large and consists of three zones:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> area(6.0)
+        >>> nmbzones(3)
+        >>> zonetype(FIELD)
+
+        First, an example with correct data:
+
+        >>> zonearea(1.0, 2.0, 3.0)
+        >>> zonearea
+        zonearea(1.0, 2.0, 3.0)
+
+        Second, an example with a single zone with a negative area:
+
+        >>> zonearea(-1.0, 2.0, 4.0)
+        >>> zonearea
+        zonearea(0.0, 2.0, 4.0)
+
+        Third, an example with too low zone areas:
+
+        >>> zonearea(0.5, 1.0, 1.5)
+        >>> zonearea
+        zonearea(1.0, 2.0, 3.0)
+
+        Fourth, an example with too high zone areas:
+
+        >>> zonearea(2.0, 4.0, 6.0)
+        >>> zonearea
+        zonearea(1.0, 2.0, 3.0)
+
+        Fifth, a combined example:
+
+        >>> zonearea(-1.0, 1.0, 2.0)
+        >>> zonearea
+        zonearea(0.0, 2.0, 4.0)
+        """
+        area = self.subpars.area.value
+        areas = numpy.clip(self.values, 0.0, numpy.inf)
+        areas *= area / numpy.sum(areas)
+        if lower is None:
+            lower = areas
+        if upper is None:
+            upper = areas
+        super().trim(lower, upper)
+
 
 class Psi(parametertools.Parameter):
     """Fraction of the actual sealing of zones classified as |SEALED| [-]."""

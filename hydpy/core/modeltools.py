@@ -238,26 +238,25 @@ a group of masks (at the moment).
                     setattr(self, shortname, method)
 
     def connect(self) -> None:
-        """Connect all |LinkSequence| objects and the selected |InputSequence|
-        and |OutputSequence| objects of the actual model to the corresponding
+        """Connect all |LinkSequence| objects and the selected |InputSequence| and
+        |OutputSequence| objects of the actual model to the corresponding
         |NodeSequence| objects.
 
-        You cannot connect any sequences until the |Model| object itself
-        is connected to an |Element| object referencing the required |Node|
-        objects:
+        You cannot connect any sequences until the |Model| object itself is connected
+        to an |Element| object referencing the required |Node| objects:
 
         >>> from hydpy import prepare_model
         >>> prepare_model("hstream_v1").connect()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to build the node connection of the \
-`input` sequences of the model handled by element `?`, the following \
-error occurred: 'NoneType' object has no attribute 'inputs'
+        AttributeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `?`, the following error occurred: \
+'NoneType' object has no attribute 'inputs'
 
-        The application model |hstream_v1| can receive inflow from an
-        arbitrary number of upstream nodes and passes its outflow to
-        a single downstream node (note that property |Element.model| of
-        class |Element| calls method |Model.connect| automatically):
+        The application model |hstream_v1| can receive inflow from an arbitrary number
+        of upstream nodes and passes its outflow to a single downstream node (note that
+        property |Element.model| of class |Element| calls method |Model.connect|
+        automatically):
 
         >>> from hydpy import Element, Node
         >>> in1 = Node("in1", variable="Q")
@@ -285,9 +284,8 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         >>> out1.sequences.sim
         sim(6.0)
 
-        To show some possible errors and related error messages, we
-        define three additional nodes, two handling variables different
-        from discharge (`Q`):
+        To show some possible errors and related error messages, we define three
+        additional nodes, two handling variables different from discharge (`Q`):
 
         >>> in3 = Node("in3", variable="X")
         >>> out2 = Node("out2", variable="Q")
@@ -299,85 +297,77 @@ error occurred: 'NoneType' object has no attribute 'inputs'
         >>> element2.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`outlet` sequences of the model handled by element `element2`, the \
-following error occurred: Sequence `q` of element `element2` cannot be \
-connected due to no available node handling variable `Q`.
+        RuntimeError: While trying to build the node connection of the `outlet` \
+sequences of the model handled by element `element2`, the following error occurred: \
+Sequence `q` of element `element2` cannot be connected due to no available node \
+handling variable `Q`.
 
-        One can connect a 0-dimensional link sequence to a single node
-        sequence only:
+        One can connect a 0-dimensional link sequence to a single node sequence only:
 
         >>> element3 = Element("element3", inlets=(in1, in2), outlets=(out1, out2))
         >>> element3.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`outlet` sequences of the model handled by element `element3`, the following \
-error occurred: Sequence `q` cannot be connected as it is 0-dimensional \
-but multiple nodes are available which are handling variable `Q`.
+        RuntimeError: While trying to build the node connection of the `outlet` \
+sequences of the model handled by element `element3`, the following error occurred: \
+Sequence `q` cannot be connected as it is 0-dimensional but multiple nodes are \
+available which are handling variable `Q`.
 
-        Method |Model.connect| generally reports about unusable node
-        sequences:
+        Method |Model.connect| generally reports about unusable node sequences:
 
         >>> element4 = Element("element4", inlets=(in1, in2), outlets=(out1, out3))
         >>> element4.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`outlet` sequences of the model handled by element `element4`, the \
-following error occurred: The following nodes have not been connected \
-to any sequences: out3.
+        RuntimeError: While trying to build the node connection of the `outlet` \
+sequences of the model handled by element `element4`, the following error occurred: \
+The following nodes have not been connected to any sequences: out3.
 
         >>> element5 = Element("element5", inlets=(in1, in2, in3), outlets=out1)
         >>> element5.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`inlet` sequences of the model handled by element `element5`, the \
-following error occurred: The following nodes have not been connected \
-to any sequences: in3.
+        RuntimeError: While trying to build the node connection of the `inlet` \
+sequences of the model handled by element `element5`, the following error occurred: \
+The following nodes have not been connected to any sequences: in3.
 
         >>> element6 = Element("element6", inlets=in1, outlets=out1, receivers=in2)
         >>> element6.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`receiver` sequences of the model handled by element `element6`, the \
-following error occurred: The following nodes have not been connected \
-to any sequences: in2.
+        RuntimeError: While trying to build the node connection of the `receiver` \
+sequences of the model handled by element `element6`, the following error occurred: \
+The following nodes have not been connected to any sequences: in2.
 
         >>> element7 = Element("element7", inlets=in1, outlets=out1, senders=in2)
         >>> element7.model = prepare_model("hstream_v1")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to build the node connection of the \
-`sender` sequences of the model handled by element `element7`, the \
-following error occurred: The following nodes have not been connected \
-to any sequences: in2.
+        RuntimeError: While trying to build the node connection of the `sender` \
+sequences of the model handled by element `element7`, the following error occurred: \
+The following nodes have not been connected to any sequences: in2.
 
-        The above examples explain how to connect link sequences to their
-        nodes.  Such connections are relatively hard requirements
-        (|hstream_v1| definitively needs inflow provided from a node,
-        which the node itself typically receives from another model).
-        In contrast, connections between input or output sequences and nodes
-        are optional.  If one defines such a connection for an input sequence,
-        it receives data from the related node; otherwise, it uses its
-        individually managed data, usually read from a file.  If one defines
-        such a connection for an output sequence, it passes its internal
-        data to the related node; otherwise, nothing happens.
+        The above examples explain how to connect link sequences to their nodes.  Such
+        connections are relatively hard requirements (|hstream_v1| definitively needs
+        inflow provided from a node, which the node itself typically receives from
+        another model).  In contrast, connections between input or output sequences and
+        nodes are optional.  If one defines such a connection for an input sequence, it
+        receives data from the related node; otherwise, it uses its individually
+        managed data, usually read from a file.  If one defines such a connection for
+        an output sequence, it passes its internal data to the related node; otherwise,
+        nothing happens.
 
         We demonstrate this functionality by focussing on the input sequences
-        |hland_inputs.T| and |hland_inputs.P| and the output sequences
-        |hland_fluxes.Q0| and |hland_states.UZ| of application model |hland_v1|.
-        |hland_inputs.T| uses its own data (which we define manually, but we
-        could read it from a file as well), whereas |hland_inputs.P| gets its
-        data from node `inp1`.  Flux sequence |hland_fluxes.Q0| and state
-        sequence |hland_states.UZ| pass their data to two separate output
-        nodes, whereas all other fluxes and states do not.  This functionality
-        requires to tell each node which sequence it should connect to, which
-        we do by passing the sequence types (or the globally available aliases
-        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword
-        of different node objects:
+        |hland_inputs.T| and |hland_inputs.P| and the output sequences |hland_fluxes.Q0|
+        and |hland_states.UZ| of application model |hland_v1|.  |hland_inputs.T| uses
+        its own data (which we define manually, but we could read it from a file as
+        well), whereas |hland_inputs.P| gets its data from node `inp1`.  Flux sequence
+        |hland_fluxes.Q0| and state sequence |hland_states.UZ| pass their data to two
+        separate output nodes, whereas all other fluxes and states do not.  This
+        functionality requires to tell each node which sequence it should connect to,
+        which we do by passing the sequence types (or the globally available aliases
+        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword of different
+        node objects:
 
         >>> from hydpy import pub
         >>> from hydpy.inputs import hland_P
@@ -387,10 +377,8 @@ to any sequences: in2.
         >>> inp1 = Node("inp1", variable=hland_P)
         >>> outp1 = Node("outp1", variable=hland_Q0)
         >>> outp2 = Node("outp2", variable=hland_UZ)
-        >>> element8 = Element("element8",
-        ...                    outlets=out1,
-        ...                    inputs=inp1,
-        ...                    outputs=[outp1, outp2])
+        >>> element8 = Element(
+        ...     "element8", outlets=out1, inputs=inp1, outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
         >>> element8.model.idx_sim = 2
@@ -409,10 +397,10 @@ to any sequences: in2.
         >>> outp2.sequences.sim
         sim(999.0)
 
-        Instead of using single |InputSequence| and |OutputSequence|
-        subclasses, one can create and apply fused variables, combining
-        multiple subclasses (see the documentation on class |FusedVariable|
-        for more information and a more realistic example):
+        Instead of using single |InputSequence| and |OutputSequence| subclasses, one
+        can create and apply fused variables, combining multiple subclasses (see the
+        documentation on class |FusedVariable| for more information and a more
+        realistic example):
 
         >>> from hydpy import FusedVariable
         >>> from hydpy.inputs import lland_Nied
@@ -421,10 +409,7 @@ to any sequences: in2.
         >>> inp2 = Node("inp2", variable=Precip)
         >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
         >>> outp3 = Node("outp3", variable=FastRunoff)
-        >>> element9 = Element("element9",
-        ...                    outlets=out1,
-        ...                    inputs=inp2,
-        ...                    outputs=outp3)
+        >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
         >>> element9.model = prepare_model("hland_v1")
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data()
@@ -435,74 +420,63 @@ to any sequences: in2.
         >>> outp3.sequences.sim
         sim(99.0)
 
-        Method |Model.connect| reports if one of the given fused variables
-        does not find a fitting sequence:
+        Method |Model.connect| reports if one of the given fused variables does not
+        find a fitting sequence:
 
         >>> from hydpy.inputs import lland_TemL
         >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
-        >>> element10 = Element("element10",
-        ...                     outlets=out1,
-        ...                     inputs=inp3)
+        >>> element10 = Element("element10", outlets=out1, inputs=inp3)
         >>> element10.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the \
-`input` sequences of the model handled by element `element10`, the following \
-error occurred: None of the input sequences of model `hland_v1` is among \
-the sequences of the fused variable `Wrong` of node `inp3`.
+        TypeError: While trying to build the node connection of the `input` sequences \
+of the model handled by element `element10`, the following error occurred: None of \
+the input sequences of model `hland_v1` is among the sequences of the fused variable \
+`Wrong` of node `inp3`.
 
         >>> outp4 = Node("outp4", variable=Wrong)
-        >>> element11 = Element("element11",
-        ...                     outlets=out1,
-        ...                     outputs=outp4)
+        >>> element11 = Element("element11", outlets=out1, outputs=outp4)
         >>> element11.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the \
-`output` sequences of the model handled by element `element11`, the \
-following error occurred: None of the output sequences of model `hland_v1` \
-is among the sequences of the fused variable `Wrong` of node `outp4`.
+        TypeError: While trying to build the node connection of the `output` \
+sequences of the model handled by element `element11`, the following error occurred: \
+None of the output sequences of model `hland_v1` is among the sequences of the fused \
+variable `Wrong` of node `outp4`.
 
         Selecting wrong sequences results in the following errors messages:
 
         >>> outp5 = Node("outp5", variable=hland_Q0)
-        >>> element12 = Element("element12",
-        ...                     outlets=out1,
-        ...                     inputs=outp5)
+        >>> element12 = Element("element12", outlets=out1, inputs=outp5)
         >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `input` \
-sequences of the model handled by element `element12`, the following error \
-occurred: No input sequence of model `hland_v1` is named `q0`.
+        TypeError: While trying to build the node connection of the `input` sequences \
+of the model handled by element `element12`, the following error occurred: No input \
+sequence of model `hland_v1` is named `q0`.
 
         >>> inp5 = Node("inp5", variable=hland_P)
-        >>> element13 = Element("element13",
-        ...                     outlets=out1,
-        ...                     outputs=inp5)
+        >>> element13 = Element("element13", outlets=out1, outputs=inp5)
         >>> element13.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `output` \
-sequences of the model handled by element `element13`, the following error \
-occurred: No factor, flux, or state sequence of model `hland_v1` is named `p`.
+        TypeError: While trying to build the node connection of the `output` sequences \
+of the model handled by element `element13`, the following error occurred: No factor, \
+flux, or state sequence of model `hland_v1` is named `p`.
 
-        So far, you can build connections to 0-dimensional output sequences
-        only:
+        So far, you can build connections to 0-dimensional output sequences only:
 
         >>> from hydpy.models.hland.hland_fluxes import PC
         >>> outp6 = Node("outp6", variable=PC)
-        >>> element14 = Element("element14",
-        ...                     outlets=out1,
-        ...                     outputs=outp6)
+        >>> element14 = Element("element14", outlets=out1, outputs=outp6)
         >>> element14.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `output` \
-sequences of the model handled by element `element14`, the following error \
-occurred: Only connections with 0-dimensional output sequences are supported, \
-but sequence `pc` is 1-dimensional.
+        TypeError: While trying to build the node connection of the `output` sequences \
+of the model handled by element `element14`, the following error occurred: Only \
+connections with 0-dimensional output sequences are supported, but sequence `pc` is \
+1-dimensional.
 
         .. testsetup::
 
@@ -613,16 +587,15 @@ but sequence `pc` is 1-dimensional.
             if seq.NDIM == 0:
                 if not selected_nodes:
                     raise RuntimeError(
-                        f"Sequence {objecttools.elementphrase(seq)} "
-                        f"cannot be connected due to no available node "
-                        f"handling variable `{seq.name.upper()}`."
+                        f"Sequence {objecttools.elementphrase(seq)} cannot be "
+                        f"connected due to no available node handling variable "
+                        f"`{seq.name.upper()}`."
                     )
                 if len(selected_nodes) > 1:
                     raise RuntimeError(
-                        f"Sequence `{seq.name}` cannot be connected as "
-                        f"it is 0-dimensional but multiple nodes are "
-                        f"available which are handling variable "
-                        f"`{seq.name.upper()}`."
+                        f"Sequence `{seq.name}` cannot be connected as it is "
+                        f"0-dimensional but multiple nodes are available which are "
+                        f"handling variable `{seq.name.upper()}`."
                     )
                 applied_nodes.append(selected_nodes[0])
                 seq.set_pointer(selected_nodes[0].get_double(group))
@@ -636,8 +609,8 @@ but sequence `pc` is 1-dimensional.
                 node.name for node in available_nodes if node not in applied_nodes
             ]
             raise RuntimeError(
-                f"The following nodes have not been connected to any "
-                f"sequences: {objecttools.enumeration(remaining_nodes)}."
+                f"The following nodes have not been connected to any sequences: "
+                f"{objecttools.enumeration(remaining_nodes)}."
             )
 
     @property

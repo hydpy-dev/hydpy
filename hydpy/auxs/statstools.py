@@ -295,15 +295,11 @@ but both of them are given.
             idx0 = date0.to_string(style="iso1")
             idx1 = (date1 - tg.stepsize).to_string(style="iso1")
             selected_dates = dataframe.loc[idx0:idx1]  # type: ignore[misc]
-            dataframe_selected = pandas.concat(
-                [selected_dates, dataframe_selected],
-            )
+            dataframe_selected = pandas.concat([selected_dates, dataframe_selected])
     elif (date_ranges is None) and (months is not None):
         for month in months:
             selected_dates = dataframe.loc[dataframe.index.month == int(month)]
-            dataframe_selected = pandas.concat(
-                [selected_dates, dataframe_selected],
-            )
+            dataframe_selected = pandas.concat([selected_dates, dataframe_selected])
     elif (date_ranges is None) and (months is None):
         raise ValueError(
             "You need to define either the `date_ranges` or `months` "

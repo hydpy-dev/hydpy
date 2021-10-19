@@ -430,11 +430,12 @@ in an equal object.
 
 A Python example:
 
->>> 1.5
+>>> x = 1.5
+>>> x
 1.5
->>> eval("1.5") is 1.5
+>>> eval("1.5") is x
 False
->>> eval("1.5") == 1.5
+>>> eval("1.5") == x
 True
 
 A *HydPy* example:

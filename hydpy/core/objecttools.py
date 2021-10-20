@@ -711,8 +711,6 @@ class _PreserveStrings:
     |repr| can also be applied on numpy's float types:
 
     >>> import numpy
-    >>> repr_(numpy.float(1.0/3.0))
-    '0.333333'
     >>> repr_(numpy.float64(1.0/3.0))
     '0.333333'
     >>> repr_(numpy.float32(1.0/3.0))
@@ -861,8 +859,6 @@ Such a change is only temporary (even in case of an error):
 |repr| can also be applied on numpy's float types:
 
 >>> import numpy
->>> repr_(numpy.float(1.0/3.0))
-'0.333333'
 >>> repr_(numpy.float64(1.0/3.0))
 '0.333333'
 >>> repr_(numpy.float32(1.0/3.0))

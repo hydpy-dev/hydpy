@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools to help to standardize the functionality
-of the different objects defined by the HydPy framework."""
+"""This module implements tools to help to standardize the functionality of the
+different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
 import builtins
@@ -647,7 +647,95 @@ def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
 
 
 class _PreserveStrings:
-    """Helper class for |_Repr_|."""
+    r"""Modifies |repr| for strings and floats, mainly for supporting clean float and
+    path representations that are compatible with |doctest|.
+
+    Use the already available instance `repr_` instead of initialising a new |Repr_|
+    object.
+
+    When value is a string, it is returned without any modification, except that the
+    path separator "\" (Windows) is replaced with "/" (Linux):
+
+    >>> from hydpy.core.objecttools import repr_
+
+    >>> print(r"directory\file")
+    directory\file
+    >>> print(repr(r"directory\file"))
+    'directory\\file'
+    >>> print(repr_(r"directory\file"))
+    directory/file
+
+    You can change this behaviour of function object |repr|, when necessary:
+
+    >>> with repr_.preserve_strings(True):
+    ...     print(repr_(r"directory\file"))
+    "directory/file"
+
+    Behind the with block, |repr_| works as before
+    (even in case of an error):
+
+    >>> print(repr_(r"directory\file"))
+    directory/file
+
+    When value is a float, the result depends on how the option |Options.reprdigits| is
+    set.  Without defining a special value, |repr| defines the number of digits in the
+    usual, system dependent manner:
+
+    >>> from hydpy import pub
+    >>> with pub.options.reprdigits(-1):
+    ...     repr(1.0/3.0) == repr_(1.0/3.0)
+    True
+
+    Through setting |Options.reprdigits| to a positive integer value, one defines the
+    maximum number of decimal places, which allows for doctesting across different
+    systems and Python versions:
+
+    >>> repr_(1.0/3.0)
+    '0.333333'
+    >>> repr_(2.0/3.0)
+    '0.666667'
+    >>> repr_(1.0/2.0)
+    '0.5'
+
+    Changing the number of decimal places can be done via a with block:
+
+    >>> with pub.options.reprdigits(3):
+    ...     print(repr_(1.0/3.0))
+    0.333
+
+    Such a change is only temporary (even in case of an error):
+
+    >>> repr_(1.0/3.0)
+    '0.333333'
+
+    |repr| can also be applied on numpy's float types:
+
+    >>> import numpy
+    >>> repr_(numpy.float(1.0/3.0))
+    '0.333333'
+    >>> repr_(numpy.float64(1.0/3.0))
+    '0.333333'
+    >>> repr_(numpy.float32(1.0/3.0))
+    '0.333333'
+    >>> repr_(numpy.float16(1.0/3.0))
+    '0.333252'
+
+    Note that the deviation from the `true` result in the last example is due to the
+    low precision of |numpy.float16|.
+
+    For scalar |numpy.ndarray| objects, |repr_| returns its item's string
+    representation:
+
+    >>> repr_(numpy.array(1.0/3.0))
+    '0.333333'
+
+    On all types not mentioned above, the usual |repr| function is applied, e.g.:
+
+    >>> repr([1, 2, 3])
+    '[1, 2, 3]'
+    >>> repr_([1, 2, 3])
+    '[1, 2, 3]'
+    """
 
     newvalue: bool
     oldvalue: bool
@@ -669,8 +757,8 @@ class _PreserveStrings:
 
 
 class _Repr:
-    """Modifies |repr| for strings and floats, mainly for supporting
-    clean float and path representations that are compatible with |doctest|."""
+    """Modifies |repr| for strings and floats, mainly for supporting clean float and
+    path representations that are compatible with |doctest|."""
 
     def __init__(self) -> None:
         self._preserve_strings = False
@@ -687,6 +775,8 @@ class _Repr:
             if self._preserve_strings:
                 return f'"{string}"'
             return string
+        if isinstance(value, numpy.ndarray) and not value.ndim:
+            value = value.item()
         if isinstance(value, numbers.Real) and (
             not isinstance(value, numbers.Integral)
         ):
@@ -708,15 +798,13 @@ class _Repr:
 
 
 repr_ = _Repr()
-r"""Modifies |repr| for strings and floats, mainly for supporting
-clean float and path representations that are compatible with |doctest|.
+r"""Modifies |repr| for strings and floats, mainly for supporting clean float and path 
+representations that are compatible with |doctest|.
 
-Use the already available instance `repr_` instead of initialising
-a new |Repr_| object.
+Use the already available instance `repr_` instead of initialising a new |Repr_| object.
 
-When value is a string, it is returned without any modification,
-except that the path separator "\" (Windows) is replaced with "/"
-(Linux):
+When value is a string, it is returned without any modification, except that the path 
+separator "\" (Windows) is replaced with "/" (Linux):
 
 >>> from hydpy.core.objecttools import repr_
 
@@ -727,8 +815,7 @@ directory\file
 >>> print(repr_(r"directory\file"))
 directory/file
 
-You can change this behaviour of function object |repr|,
-when necessary:
+You can change this behaviour of function object |repr|, when necessary:
 
 >>> with repr_.preserve_strings(True):
 ...     print(repr_(r"directory\file"))
@@ -740,55 +827,58 @@ Behind the with block, |repr_| works as before
 >>> print(repr_(r"directory\file"))
 directory/file
 
-When value is a float, the result depends on how the option
-|Options.reprdigits| is set.  Without defining a special value,
-|repr| defines the number of digits in the usual, system dependent
-manner:
+When value is a float, the result depends on how the option |Options.reprdigits| is set.  
+Without defining a special value, |repr| defines the number of digits in the usual, 
+system dependent manner:
 
 >>> from hydpy import pub
->>> del pub.options.reprdigits
->>> repr(1./3.) == repr_(1./3.)
+>>> with pub.options.reprdigits(-1):
+...     repr(1.0/3.0) == repr_(1.0/3.0)
 True
 
-Through setting |Options.reprdigits| to a positive integer value,
-one defines the maximum number of decimal places, which allows for
-doctesting across different systems and Python versions:
+Through setting |Options.reprdigits| to a positive integer value, one defines the 
+maximum number of decimal places, which allows for doctesting across different systems 
+and Python versions:
 
->>> pub.options.reprdigits = 6
->>> repr_(1./3.)
+>>> repr_(1.0/3.0)
 '0.333333'
->>> repr_(2./3.)
+>>> repr_(2.0/3.0)
 '0.666667'
->>> repr_(1./2.)
+>>> repr_(1.0/2.0)
 '0.5'
 
 Changing the number of decimal places can be done via a with block:
 
 >>> with pub.options.reprdigits(3):
-...     print(repr_(1./3.))
+...     print(repr_(1.0/3.0))
 0.333
 
 Such a change is only temporary (even in case of an error):
->>> repr_(1./3.)
+
+>>> repr_(1.0/3.0)
 '0.333333'
 
 |repr| can also be applied on numpy's float types:
 
 >>> import numpy
->>> repr_(numpy.float(1./3.))
+>>> repr_(numpy.float(1.0/3.0))
 '0.333333'
->>> repr_(numpy.float64(1./3.))
+>>> repr_(numpy.float64(1.0/3.0))
 '0.333333'
->>> repr_(numpy.float32(1./3.))
+>>> repr_(numpy.float32(1.0/3.0))
 '0.333333'
->>> repr_(numpy.float16(1./3.))
+>>> repr_(numpy.float16(1.0/3.0))
 '0.333252'
 
-Note that the deviation from the `true` result in the last example is due
-to the low precision of |numpy.float16|.
+Note that the deviation from the `true` result in the last example is due to the low 
+precision of |numpy.float16|.
 
-On all types not mentioned above, the usual |repr| function is
-applied, e.g.:
+For scalar |numpy.ndarray| objects, |repr_| returns its item's string representation:
+
+>>> repr_(numpy.array(1.0/3.0))
+'0.333333'
+
+On all types not mentioned above, the usual |repr| function is applied, e.g.:
 
 >>> repr([1, 2, 3])
 '[1, 2, 3]'

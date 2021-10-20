@@ -563,12 +563,13 @@ has been extracted but cannot be further processed: `x == y`.
     damp = 0.5
     sfcf_1 = 0.3
     sfcf_2 = 0.2
-    sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
+    sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
     k4 = 10.0
     >>> test("query_initialconditionitemvalues")
-    sm_lahn_2 = [123.]
-    sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
-    quh = [10.]
+    sm_lahn_2 = [123.0]
+    sm_lahn_1 = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, \
+200.0, 210.0, 220.0, 230.0]
+    quh = [10.0]
     >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
@@ -734,12 +735,12 @@ A value for parameter item `lag` is missing.
 
     >>> test("register_conditionitemvalues", id_="0",
     ...      data=("sm_lahn_2 = 246.0\\n"
-    ...            "sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n"
+    ...            "sm_lahn_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]\\n"
     ...            "quh = 1.0\\n"))
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")
     sm_lahn_2 = 246.0
-    sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    sm_lahn_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     quh = 1.0
 
     Note the trimming of the too-high value for the state sequence |hland_states.SM|
@@ -938,11 +939,12 @@ calculated so far.
     damp = 0.5
     sfcf_1 = 0.3
     sfcf_2 = 0.2
-    sfcf_3 = [0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2 0.2 0.2]
+    sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
     k4 = 10.0
-    sm_lahn_2 = [123.]
-    sm_lahn_1 = [110. 120. 130. 140. 150. 160. 170. 180. 190. 200. 210. 220. 230.]
-    quh = [10.]
+    sm_lahn_2 = [123.0]
+    sm_lahn_1 = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, \
+200.0, 210.0, 220.0, 230.0]
+    quh = [10.0]
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
@@ -1253,11 +1255,19 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self.GET_register_initialparameteritemvalues()
         self.GET_register_initialconditionitemvalues()
 
+    @staticmethod
+    def _array2output(values: Union[float, VectorInput[Any]]) -> str:
+        # duck-typing for simplicity:
+        try:
+            return objecttools.repr_list(values)  # type: ignore[arg-type]
+        except TypeError:
+            return objecttools.repr_(values)
+
     def GET_query_initialparameteritemvalues(self) -> None:
         """Get the initial values of all current exchange items supposed to change
         the values of |Parameter| objects."""
         for name, value in self.state.initialparameteritemvalues.items():
-            self._outputs[name] = value
+            self._outputs[name] = self._array2output(value)
 
     def GET_register_initialparameteritemvalues(self) -> None:
         """Register the initial values of all current exchange items supposed to
@@ -1275,7 +1285,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         """Get the initial values of all current exchange items supposed to change
         the values of |StateSequence| or |LogSequence| objects."""
         for name, value in self.state.initialconditionitemvalues.items():
-            self._outputs[name] = value
+            self._outputs[name] = self._array2output(value)
 
     def GET_register_initialconditionitemvalues(self) -> None:
         """Register the initial values of all current exchange items supposed to
@@ -1413,7 +1423,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         """Return the parameter values registered under the given `id`."""
         item2value = self._get_registered_content(self.state.parameteritemvalues)
         for item, value in item2value.items():
-            self._outputs[item] = value
+            self._outputs[item] = self._array2output(value)
 
     def POST_register_conditionitemvalues(self) -> None:
         """Register the send condition item values under the given `id`."""
@@ -1443,7 +1453,10 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         """Return the condition item values registered under the given `id`."""
         item2value = self._get_registered_content(self.state.conditionitemvalues)
         for item, value in item2value.items():
-            self._outputs[item] = value
+            try:
+                self._outputs[item] = self._array2output(value)
+            except:
+                raise RuntimeError(value)
 
     def GET_save_internalconditions(self) -> None:
         """Register the |StateSequence| and |LogSequence| values of the |HydPy|

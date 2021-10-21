@@ -531,7 +531,7 @@ arguments are given, which is ambiguous.
         return values
 
 
-class SMax(parametertools.Parameter):
+class SMax(hland_parameters.ParameterLand):
     """Maximum snow water equivalent [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)

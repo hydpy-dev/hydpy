@@ -164,6 +164,7 @@ from hydpy.auxs.statstools import (
     prepare_arrays,
     rmse,
     std_ratio,
+    var_ratio,
 )
 from hydpy.auxs.xmltools import (
     XMLInterface,
@@ -288,6 +289,7 @@ __all__ = [
     "prepare_arrays",
     "rmse",
     "std_ratio",
+    "var_ratio",
     "XMLInterface",
     "run_simulation",
     "exec_commands",

@@ -1017,6 +1017,63 @@ def std_ratio(
 
 
 @overload
+def var_ratio(
+    *,
+    sim: VectorInput[float],
+    obs: VectorInput[float],
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> float:
+    """node as argument"""
+
+
+@overload
+def var_ratio(
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    subperiod: bool = True,
+) -> float:
+    """sim and obs as arguments"""
+
+
+@objecttools.excmessage_decorator("calculate the variation coefficient ratio")
+def var_ratio(
+    *,
+    sim: Optional[VectorInput[float]] = None,
+    obs: Optional[VectorInput[float]] = None,
+    node: Optional[devicetools.Node] = None,
+    skip_nan: bool = False,
+    subperiod: Optional[bool] = None,
+) -> float:
+    """Calculate the ratio between the variation coefficients of the simulated and the
+    observed values.
+
+    >>> from hydpy import round_, var_ratio
+    >>> round_(var_ratio(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0]))
+    0.0
+    >>> round_(var_ratio(sim=[1.0, 2.0, 3.0], obs=[0.0, 1.0, 2.0]))
+    -0.5
+    >>> round_(var_ratio(sim=[1.0, 2.0, 3.0], obs=[0.0, 2.0, 4.0]))
+    -0.5
+
+    See the documentation on function |prepare_arrays| for some additional instructions
+    for using |var_ratio|.
+    """
+    sim_, obs_ = prepare_arrays(
+        sim=sim,
+        obs=obs,
+        node=node,
+        skip_nan=skip_nan,
+        subperiod=subperiod,
+    )
+    del sim, obs
+    var_sim = numpy.std(sim_) / numpy.mean(sim_)
+    var_obs = numpy.std(obs_) / numpy.mean(obs_)
+    return cast(float, var_sim / var_obs - 1.0)
+
+
+@overload
 def corr(
     *,
     sim: VectorInput[float],

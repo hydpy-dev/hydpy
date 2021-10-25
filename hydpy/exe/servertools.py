@@ -1453,10 +1453,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         """Return the condition item values registered under the given `id`."""
         item2value = self._get_registered_content(self.state.conditionitemvalues)
         for item, value in item2value.items():
-            try:
-                self._outputs[item] = self._array2output(value)
-            except:
-                raise RuntimeError(value)
+            self._outputs[item] = self._array2output(value)
 
     def GET_save_internalconditions(self) -> None:
         """Register the |StateSequence| and |LogSequence| values of the |HydPy|

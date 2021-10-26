@@ -303,7 +303,7 @@ class SRedOrder(parametertools.Parameter):
                    [3, 4],
                    [3, 5]])
 
-        An erroneous example including a cycle:
+        An erroneous example, including a cycle:
 
         >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
         ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
@@ -314,7 +314,7 @@ class SRedOrder(parametertools.Parameter):
         >>> derived.sredorder.update()
         Traceback (most recent call last):
         ...
-        ValueError: The weighting factors of parameter `sred` of element `?` define \
+        RuntimeError: The weighting factors of parameter `sred` of element `?` define \
 at least one cycle: (1, 4), (4, 5), and (5, 1).
 
         A "no redistribution" example:
@@ -347,7 +347,7 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
             dg = networkx.DiGraph(zip(idxs, jdxs))
             try:
                 first_cycle = networkx.find_cycle(dg)
-                raise ValueError(
+                raise RuntimeError(
                     f"The weighting factors of parameter "
                     f"{objecttools.elementphrase(sred)} define at least one cycle: "
                     f"{objecttools.enumeration(first_cycle)}."

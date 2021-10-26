@@ -568,8 +568,8 @@ class SRed(parametertools.Parameter):
 
     A zone can either redistribute no snow at all (we then call it a "dead end") or
     needs to send 100 % of the snow available for redistribution.  Hence, the sums of
-    the individual rows must be either 0.0 or 1.0.  Parameter |SRed| checks for
-    possible violations of this requirement (by calling method |SRed.check_sums|):
+    the individual rows must be either 0.0 or 1.0.  Method |SRed.verify| checks for
+    possible violations of this requirement (by calling method |SRed.verify_sums|):
 
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
@@ -577,14 +577,15 @@ class SRed(parametertools.Parameter):
     ...       [0.0, 0.0, 0.0, 0.0, 0.4, 0.5],
     ...       [0.0, 0.1, 0.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
+    >>> sred.verify()
     Traceback (most recent call last):
     ...
-    ValueError: The sum(s) of the following row(s) of parameter `sred` of element `?` \
-are neither 0.0 nor 1.0: 3 and 4.
+    RuntimeError: The sum(s) of the following row(s) of parameter `sred` of element \
+`?` are neither 0.0 nor 1.0: 3 and 4.
 
     Zones of type |ILAKE| possess no snow module.  Hence, they never release any snow
-    for redistribution and parameter |SRed| checks for possible unused weighting
-    factors in the relevant rows (by calling method |SRed.check_lakes|):
+    for redistribution and method |SRed.verify| checks for possible unused weighting
+    factors in the relevant rows (by calling method |SRed.verify_lakes|):
 
     >>> zonetype(FIELD, FIELD, FIELD, ILAKE, FIELD, ILAKE)
     >>> sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
@@ -593,15 +594,16 @@ are neither 0.0 nor 1.0: 3 and 4.
     ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> sred.verify()
     Traceback (most recent call last):
     ...
-    ValueError: Internal lake zones cannot be involved in snow redistribution, so the \
-sums of all rows of parameter `sred` of element `?` corresponding to internal lake \
+    RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \
+the sums of all rows of parameter `sred` of element `?` corresponding to internal lake \
 zones must be zero, which is not the case for the row(s): 3.
 
     For the same reason, internal lakes cannot receive and accumulate any redistributed
-    snow.  Therefore, parameter |SRed| additionally checks for possible problematic
-    weighting factors in the relevant columns (by calling method |SRed.check_lakes|):
+    snow.  Therefore, method |SRed.verify| additionally checks for possible problematic
+    weighting factors in the relevant columns (by calling method |SRed.verify_lakes|):
 
     >>> sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
     ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -609,14 +611,15 @@ zones must be zero, which is not the case for the row(s): 3.
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> sred.verify()
     Traceback (most recent call last):
     ...
-    ValueError: Internal lake zones cannot be involved in snow redistribution, so the \
-sums of all columns of parameter `sred` of element `?` corresponding to internal lake \
-zones must be zero, which is not the case for the column(s): 3 and 5.
+    RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \
+the sums of all columns of parameter `sred` of element `?` corresponding to internal \
+lake zones must be zero, which is not the case for the column(s): 3 and 5.
 
-    The snow redistribution routine of |hland| does not allow for any cycles.  When in
-    doubt, use the |SRed.check_order| method to check this:
+    The snow redistribution routine of |hland| does not allow for any cycles.  Method
+    |SRed.verify| checks for possible cycles by calling method |SRed.verify_order|:
 
     >>> zonetype(FIELD)
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -625,23 +628,23 @@ zones must be zero, which is not the case for the column(s): 3 and 5.
     ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
     ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])
-    >>> sred.check_order()
+    >>> sred.verify()
     Traceback (most recent call last):
     ...
-    ValueError: The weighting factors of parameter `sred` of element `?` define at \
+    RuntimeError: The weighting factors of parameter `sred` of element `?` define at \
 least one cycle: (1, 5) and (5, 1).
 
-    Note that method |SRed.check_order| relies on the |SRedOrder.update| method of
+    Note that method |SRed.verify_order| relies on the |SRedOrder.update| method of
     parameter |SRedOrder| but resets its values afterwards:
 
     >>> derived.sredorder.shape = (1, 2)
     >>> derived.sredorder.values = [[0, 1]]
     >>> old_values = derived.sredorder.values.copy()
     >>> sred.values[1, -2:] = 1.0, 0.0
-    >>> sred.check_order()
+    >>> sred.verify_order()
     Traceback (most recent call last):
     ...
-    ValueError: The weighting factors of parameter `sred` of element `?` define at \
+    RuntimeError: The weighting factors of parameter `sred` of element `?` define at \
 least one cycle: (3, 5) and (5, 3).
     >>> derived.sredorder
     sredorder(0, 1)
@@ -849,8 +852,6 @@ least one cycle: (3, 5) and (5, 3).
         if "d_height" in kwargs:
             args = [self._prepare_dheight(kwargs.pop("d_height"))]
         super().__call__(*args, **kwargs)
-        self.check_sums()
-        self.check_lakes()
 
     def _prepare_nzones(self, nzones: int) -> Matrix[float]:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
@@ -879,21 +880,39 @@ least one cycle: (3, 5) and (5, 3).
                 values[idx, jdxs] = zonearea[jdxs] / numpy.sum(zonearea[jdxs])
         return values
 
-    def check_sums(self) -> None:
+    def verify(self) -> None:
+        """Perform the usual parameter value verifications (implemented in method
+        |Variable.verify|) and call methods |SRed.verify_sums|, |SRed.verify_lakes|,
+        and |SRed.verify_order| for additional checks.
+
+        See the main documentation on class |SRed| for further information.
+        """
+        super().verify()
+        self.verify_sums()
+        self.verify_lakes()
+        self.verify_order()
+
+    def verify_sums(self) -> None:
         """Check if the sums of all rows are either 0.0 (for dead-end zones) or 1.0
-        (for redistributing zones)."""
+        (for redistributing zones).
+
+        See the main documentation on class |SRed| for further information.
+        """
         values = self.values
         sums = numpy.round(numpy.sum(values, axis=1), 12)
         errors = ~numpy.isin(sums, (0.0, 1.0))
         if numpy.any(errors):
-            raise ValueError(
+            raise RuntimeError(
                 f"The sum(s) of the following row(s) of parameter "
                 f"{objecttools.elementphrase(self)} are neither 0.0 nor 1.0: "
                 f"{objecttools.enumeration(numpy.where(errors)[0])}."
             )
 
-    def check_order(self) -> None:
-        """Check if the weighting factors define any cycles."""
+    def verify_order(self) -> None:
+        """Check if the weighting factors define any cycles.
+
+        See the main documentation on class |SRed| for further information.
+        """
         sredorder = self.subpars.pars.derived.sredorder
         values = exceptiontools.getattr_(sredorder, "values", None)
         try:
@@ -903,14 +922,17 @@ least one cycle: (3, 5) and (5, 3).
                 sredorder.shape = values.shape
                 sredorder.values = values
 
-    def check_lakes(self) -> None:
-        """Check if any internal lake seems to be involved in snow redistribution."""
+    def verify_lakes(self) -> None:
+        """Check if any internal lake seems to be involved in snow redistribution.
+
+        See the main documentation on class |SRed| for further information.
+        """
         values = self.values
         is_lake = self.subpars.zonetype.values == ILAKE
         for axis, string in ((1, "row"), (0, "column")):
             errors = is_lake * (numpy.sum(values, axis=axis) > 0.0)
             if numpy.any(errors):
-                raise ValueError(
+                raise RuntimeError(
                     f"Internal lake zones cannot be involved in snow "
                     f"redistribution, so the sums of all {string}s of parameter "
                     f"{objecttools.elementphrase(self)} corresponding to internal "

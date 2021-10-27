@@ -938,6 +938,24 @@ raise_exception=False)
             )
         return
 
+    def clear(self) -> None:
+        """Clear the current object contents and set attribute |KeywordArguments.valid|
+        to |False|.
+
+        >>> from hydpy import KeywordArguments
+        >>> kwa =KeywordArguments(x=1, y=2)
+        >>> kwa
+        KeywordArguments(x=1, y=2)
+        >>> kwa.valid
+        True
+        >>> kwa.clear()
+        >>> kwa
+        KeywordArguments()
+        >>> kwa.valid
+        True
+        """
+        self._name2value.clear()
+
     def __getitem__(self, key: str) -> T:
         try:
             return self._name2value[key]
@@ -1751,7 +1769,7 @@ implement method `update`.
             return objecttools.repr_(unique[0])
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.NDIM:
             values = self.compress_repr()
             if values is None:
@@ -1768,7 +1786,7 @@ implement method `update`.
         lines.append(f"{self.name}({objecttools.repr_(value)})")
         return "\n".join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):

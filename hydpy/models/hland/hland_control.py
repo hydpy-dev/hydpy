@@ -548,8 +548,7 @@ class SRed(parametertools.Parameter):
     five.  Zone six sends 40 % to zone two, 40 % to zone three, and 20 % to zone four:
 
     >>> from hydpy.models.hland import *
-    >>> simulationstep("12h")
-    >>> parameterstep("1d")
+    >>> parameterstep()
     >>> nmbzones(6)
     >>> zonetype(FIELD)
     >>> sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -657,8 +656,18 @@ least one cycle: (3, 5) and (5, 3).
     >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
     >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
     >>> zonearea.values = 1.0
-
     >>> sred(n_zones=1)
+
+    For brevity, parameter |SRed| returns string representations based on these options
+    when possible:
+
+    >>> sred
+    sred(n_zones=1)
+
+    Clear the contents of the |KeywordArguments| object returned by property
+    |SRed.keywordarguments| to see the actual parameter values:
+
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -671,6 +680,7 @@ least one cycle: (3, 5) and (5, 3).
     zones are 0.5:
 
     >>> sred(n_zones=2)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.5, 0.5, 0.0, 0.0],
@@ -683,6 +693,7 @@ least one cycle: (3, 5) and (5, 3).
     adjusts the given value to the number of actually available target zones:
 
     >>> sred(n_zones=999)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
           [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],
@@ -697,8 +708,8 @@ least one cycle: (3, 5) and (5, 3).
 
     >>> zonez(6.0, 5.0, 5.0, 3.0, 2.0, 1.0)
 
-    >>> sred.test = None
     >>> sred(n_zones=1)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -708,6 +719,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
@@ -717,6 +729,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
           [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
@@ -730,14 +743,17 @@ least one cycle: (3, 5) and (5, 3).
     >>> zonez(1.0)
 
     >>> sred(n_zones=1)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred(0.0)
 
     >>> sred(n_zones=2)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred(0.0)
 
     >>> sred(n_zones=999)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred(0.0)
 
@@ -748,6 +764,7 @@ least one cycle: (3, 5) and (5, 3).
     >>> zonez(5.0, 4.0, 1.0, 2.0, 6.0, 3.0)
 
     >>> sred(n_zones=1)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
@@ -757,6 +774,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
           [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
@@ -766,6 +784,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.333333, 0.333333, 0.0, 0.0, 0.333333],
           [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
@@ -782,6 +801,7 @@ least one cycle: (3, 5) and (5, 3).
     >>> zonearea.values = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0
 
     >>> sred(n_zones=1)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
@@ -791,6 +811,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=2)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.25, 0.0, 0.0, 0.0, 0.75],
           [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
@@ -800,6 +821,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(n_zones=999)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.181818, 0.272727, 0.0, 0.0, 0.545455],
           [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
@@ -817,6 +839,9 @@ least one cycle: (3, 5) and (5, 3).
 
     >>> sred(d_height=0.0)
     >>> sred
+    sred(d_height=0.0)
+    >>> sred.keywordarguments.clear()
+    >>> sred
     sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -825,6 +850,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(d_height=2.0)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
@@ -834,6 +860,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
 
     >>> sred(d_height=10.0)
+    >>> sred.keywordarguments.clear()
     >>> sred
     sred([[0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
           [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
@@ -841,17 +868,52 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+
+    Passing multiple keyword arguments or a positional and a keyword argument at once
+    results in the following error messages:
+
+    >>> sred(n_zones=1, d_height=0.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `sred` of element `?` accepts at most a single keyword \
+argument but 2 are given.
+
+    >>> sred(0.0, d_height=0.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `sred` of element `?` both positional and keyword \
+arguments are given, which is ambiguous.
     """
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
     INIT = 0.0
 
+    _keywordarguments = parametertools.KeywordArguments(False)
+
+    def __init__(self, subvars) -> None:
+        super().__init__(subvars)
+        self._keywordarguments = parametertools.KeywordArguments(False)
+
     def __call__(self, *args, **kwargs) -> None:
-        if "n_zones" in kwargs:
-            args = [self._prepare_nzones(kwargs.pop("n_zones"))]
-        if "d_height" in kwargs:
-            args = [self._prepare_dheight(kwargs.pop("d_height"))]
-        super().__call__(*args, **kwargs)
+        self._keywordarguments.clear()
+        if ("n_zones" in kwargs) or ("d_height" in kwargs):
+            if args:
+                super().__call__(*args, **kwargs)
+            if len(kwargs) > 1:
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} accepts at most a "
+                    f"single keyword argument but {len(kwargs)} are given."
+                )
+            self._keywordarguments.add(*tuple(kwargs.items())[0])
+        try:
+            if "n_zones" in kwargs:
+                args = [self._prepare_nzones(kwargs.pop("n_zones"))]
+            elif "d_height" in kwargs:
+                args = [self._prepare_dheight(kwargs.pop("d_height"))]
+            super().__call__(*args, **kwargs)
+        except BaseException as exc:
+            self._keywordarguments.clear()
+            raise exc
 
     def _prepare_nzones(self, nzones: int) -> Matrix[float]:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
@@ -939,6 +1001,93 @@ least one cycle: (3, 5) and (5, 3).
                     f"lake zones must be zero, which is not the case for the "
                     f"{string}(s): {objecttools.enumeration(numpy.where(errors)[0])}."
                 )
+
+    @property
+    def keywordarguments(self) -> parametertools.KeywordArguments[float]:
+        """A |KeywordArguments| object, providing the currently valid keyword argument.
+
+        We reuse one of the example configurations of the main documentation on class
+        |SRed|:
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nmbzones(6)
+        >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
+        >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
+        >>> zonearea.values = 1.0
+
+        After defining the values of parameter |SRed| via option `n_zones` or
+        `d_height`, the returned |KeywordArguments| object contains the given
+        name-value pair and indicates its validity by its |True|
+        |KeywordArguments.valid| attribute:
+
+        >>> sred(n_zones=1)
+        >>> sred.keywordarguments
+        KeywordArguments(n_zones=1)
+        >>> sred.keywordarguments.valid
+        True
+
+        Property |SRed.keywordarguments| checks if the last passed option still results
+        in the currently defined parameter values and sets the |KeywordArguments.valid|
+        flag to |False| if this is not the case.  We show this by modifying the zone
+        heights specified by parameter |ZoneZ|:
+
+        >>> zonez(4.0, 5.0, 4.0, 3.0, 2.0, 1.0)
+        >>> sred.keywordarguments
+        KeywordArguments(n_zones=1)
+        >>> sred.keywordarguments.valid
+        False
+
+        After resetting the original values of |ZoneZ|, the |KeywordArguments.valid|
+        flag of the returned |KeywordArguments| object is |True| again:
+
+        >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
+        >>> sred.keywordarguments
+        KeywordArguments(n_zones=1)
+        >>> sred.keywordarguments.valid
+        True
+
+        After defining the parameter values directly, the |KeywordArguments| object is
+        always empty and invalid:
+
+        >>> sred(sred.values)
+        >>> sred.keywordarguments
+        KeywordArguments()
+        >>> sred.keywordarguments.valid
+        False
+
+        The same holds for erroneous keyword arguments:
+
+        >>> sred(n_zones=None)
+        Traceback (most recent call last):
+        ...
+        TypeError: '>=' not supported between instances of 'int' and 'NoneType'
+        >>> sred.keywordarguments
+        KeywordArguments()
+        >>> sred.keywordarguments.valid
+        False
+        """
+        kwa = self._keywordarguments
+        kwa.valid = True
+        if len(kwa) != 1:
+            kwa.valid = False
+        else:
+            for name, value in kwa:
+                if name == "n_zones":
+                    values = self._prepare_nzones(value)
+                else:
+                    values = self._prepare_dheight(value)
+            if self != values:
+                kwa.valid = False
+        return kwa
+
+    def __repr__(self) -> str:
+        keywordarguments = self.keywordarguments
+        if keywordarguments.valid:
+            name, value = tuple(keywordarguments)[0]
+            return f"{self.name}({name}={objecttools.repr_(value)})"
+        return super().__repr__()
 
 
 class TT(hland_parameters.ParameterComplete):

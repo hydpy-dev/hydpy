@@ -26,8 +26,8 @@ from hydpy.core import objecttools
 @overload
 def run_subprocess(
     command: str,
-    verbose: bool,
-    blocking: Literal[True],
+    verbose: bool = True,
+    blocking: Literal[True] = ...,
 ) -> "subprocess.CompletedProcess[str]":
     """non-blocking"""
 
@@ -35,8 +35,8 @@ def run_subprocess(
 @overload
 def run_subprocess(
     command: str,
-    verbose: bool,
-    blocking: Literal[False],
+    verbose: bool = True,
+    blocking: Literal[False] = ...,
 ) -> "subprocess.Popen[str]":
     """blocking"""
 

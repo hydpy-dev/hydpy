@@ -136,6 +136,16 @@
         <setitems>
             <hland_v1>
                 <states>
+                    <ic>
+                        <selections>catchment_lahn_2</selections>
+                        <name>ic_lahn_2</name>
+                        <level>device</level>
+                    </ic>
+                    <ic>
+                        <selections>catchment_lahn_1</selections>
+                        <name>ic_lahn_1</name>
+                        <level>subunit</level>
+                    </ic>
                     <sm>
                         <selections>catchment_lahn_2</selections>
                         <name>sm_lahn_2</name>

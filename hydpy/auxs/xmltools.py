@@ -292,7 +292,6 @@ class XMLBase:
     ...     print(strip(element.tag))
     name
     level
-    init
     """
 
     root: ElementTree.Element
@@ -1553,6 +1552,8 @@ class XMLExchange(XMLBase):
         >>> interface.update_selections()
         >>> for item in interface.exchange.conditionitems:
         ...     print(item.name)
+        ic_lahn_2
+        ic_lahn_1
         sm_lahn_2
         sm_lahn_1
         quh
@@ -1719,7 +1720,7 @@ class XMLVar(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> from hydpy import HydPy, round_, pub, TestIO, XMLInterface
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
@@ -1758,7 +1759,7 @@ class XMLVar(XMLSelector):
         sequence |hland_states.SM|, resulting in the same soil moisture for all
         individual hydrological response units of element `land_lahn_2`:
 
-        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[2]
         >>> item = var.item
         >>> item.name
         'sm_lahn_2'
@@ -1775,7 +1776,7 @@ class XMLVar(XMLSelector):
         allows to assign different values to the individual hydrological response units
         of element `land_lahn_1`:
 
-        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[3]
         >>> item = var.item
         >>> item.name
         'sm_lahn_1'
@@ -1786,12 +1787,34 @@ class XMLVar(XMLSelector):
         sm(99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
            125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
            142.84148)
-        >>> from hydpy import pub
         >>> with pub.options.warntrim(False):
         ...     item.update_variables()
         >>> hp.elements.land_lahn_1.model.sequences.states.sm
         sm(110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
            206.0, 206.0, 206.0)
+
+        Without defining initial values in the XML file, the |ChangeItem.value|
+        property of each |SetItem| starts with the averaged (see item `ic_lahn_2`) or
+        original (see item `ic_lahn_1`) values of the corresponding sequences:
+
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
+        >>> item = var.item
+        >>> item.name
+        'ic_lahn_2'
+        >>> round_(item.value)
+        1.184948
+        >>> round_(hp.elements.land_lahn_2.model.sequences.states.ic.average_values())
+        1.184948
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
+        >>> item = var.item
+        >>> item.name
+        'ic_lahn_1'
+        >>> item.value
+        array([0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
+               1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719])
+        >>> hp.elements.land_lahn_1.model.sequences.states.ic
+        ic(0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
+           1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719)
 
         |AddItem| `sfcf_1`, `sfcf_2`, and `sfcf_3` serve to demonstrate how a scalar
         value (`sfcf_1` and `sfcf_2`) or a vector of values can be used to change the
@@ -1916,9 +1939,6 @@ class XMLVar(XMLSelector):
         assert name is not None
         level = self.find("level", optional=False).text
         assert level is not None
-        init = self.find("init", optional=False).text
-        assert init is not None
-        init = ",".join(init.split())
         item: _SetOrAddOrMultiplyItem
         # Simplify the following if-clauses after Mypy issue 10989 is fixed?
         if not issubclass(itemtype, itemtools.SetItem):
@@ -1937,7 +1957,14 @@ class XMLVar(XMLSelector):
                 level=cast(itemtools.LevelType, level),
             )
         self._collect_variables(item)
-        item.value = eval(init)
+        element = self.find("init", optional=True)
+        if element is not None:
+            init = element.text
+            assert init is not None
+            item.value = eval(",".join(init.split()))
+        else:
+            assert isinstance(item, itemtools.SetItem)
+            item.extract_values()
         return item
 
     def _collect_variables(self, item: itemtools.ExchangeItem) -> None:
@@ -2217,7 +2244,7 @@ class XSDWriter:
         >>> print(XSDWriter.get_mathitemsinsertion(1))    # doctest: +ELLIPSIS
             <complexType name="arma_v1_mathitemType">
                 <complexContent>
-                    <extension base="hpcb:setitemType">
+                    <extension base="hpcb:mathitemType">
                         <choice>
                             <element name="control.responses"/>
         ...
@@ -2238,7 +2265,7 @@ class XSDWriter:
                 [
                     f'{blanks}<complexType name="{modelname}_mathitemType">',
                     f"{blanks}    <complexContent>",
-                    f'{blanks}        <extension base="hpcb:setitemType">',
+                    f'{blanks}        <extension base="hpcb:mathitemType">',
                     f"{blanks}            <choice>",
                 ]
             )

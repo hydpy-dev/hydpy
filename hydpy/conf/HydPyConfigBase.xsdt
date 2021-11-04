@@ -397,6 +397,20 @@
             <element name="level"
                      type="hpcb:_levelType"/>
             <element name="init"
+                     type="hpcb:listOfDoubles"
+                     minOccurs="0"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="mathitemType">
+        <sequence>
+            <element ref="hpcb:selections"
+                     minOccurs="0"/>
+            <element name="name"
+                     type="string"/>
+            <element name="level"
+                     type="hpcb:_levelType"/>
+            <element name="init"
                      type="hpcb:listOfDoubles"/>
         </sequence>
     </complexType>

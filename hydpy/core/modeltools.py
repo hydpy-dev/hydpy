@@ -901,7 +901,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 },
             )
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> NoReturn:
         if item in ("parameters", "sequences"):
             raise AttributeError(
                 f"The dynamic attribute `{item}` of "

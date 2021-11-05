@@ -140,8 +140,8 @@ _GetOrChangeItem = TypeVar(
 )
 
 namespace = (
-    "{https://github.com/hydpy-dev/hydpy/releases/download/"
-    "your-hydpy-version/HydPyConfigBase.xsd}"
+    "{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/"
+    "HydPyConfigBase.xsd}"
 )
 _ITEMGROUP2ITEMCLASS = {
     "setitems": itemtools.SetItem,
@@ -153,26 +153,20 @@ _ITEMGROUP2ITEMCLASS = {
 
 @overload
 def find(
-    root: ElementTree.Element,
-    name: str,
-    optional: Literal[True] = True,
+    root: ElementTree.Element, name: str, optional: Literal[True] = True
 ) -> Optional[ElementTree.Element]:
     """Optional version of function |find|."""
 
 
 @overload
 def find(
-    root: ElementTree.Element,
-    name: str,
-    optional: Literal[False],
+    root: ElementTree.Element, name: str, optional: Literal[False]
 ) -> ElementTree.Element:
     """Non-optional version of function |find|."""
 
 
 def find(
-    root: ElementTree.Element,
-    name: str,
-    optional: Literal[True, False] = True,
+    root: ElementTree.Element, name: str, optional: Literal[True, False] = True
 ) -> Optional[ElementTree.Element]:
     """Return the first XML element with the given name found in the given XML root.
 
@@ -230,10 +224,7 @@ def strip(name: str) -> str:
     return name.split("}")[-1]
 
 
-def run_simulation(
-    projectname: str,
-    xmlfile: str,
-) -> None:
+def run_simulation(projectname: str, xmlfile: str) -> None:
     """Perform a *HydPy* workflow in agreement with the given XML configuration file
     available in the given project's directory.
 
@@ -260,7 +251,7 @@ def run_simulation(
         selection=interface.fullselection,
     )
     write("Read the required control files")
-    hp.prepare_models()
+    interface.control_io.prepare_models()
     write("Read the required condition files")
     interface.conditions_io.load_conditions()
     write("Read the required time series files")
@@ -312,24 +303,16 @@ class XMLBase:
 
     @overload
     def find(
-        self,
-        name: str,
-        optional: Literal[True] = True,
+        self, name: str, optional: Literal[True] = True
     ) -> Optional[ElementTree.Element]:
         """Optional version of method |XMLBase.find|."""
 
     @overload
-    def find(
-        self,
-        name: str,
-        optional: Literal[False],
-    ) -> ElementTree.Element:
+    def find(self, name: str, optional: Literal[False]) -> ElementTree.Element:
         """Non-optional version of function |XMLBase.find|."""
 
     def find(
-        self,
-        name: str,
-        optional: Literal[True, False] = True,
+        self, name: str, optional: Literal[True, False] = True
     ) -> Optional[ElementTree.Element]:
         """Apply function |find| to the root of the object of the |XMLBase| subclass.
 
@@ -379,11 +362,7 @@ HydPyConfigMultipleRuns.xsd}config'
 [Errno 2] No such file or directory: '...wrongfilepath.xml'
     """
 
-    def __init__(
-        self,
-        filename: str,
-        directory: Optional[str] = None,
-    ) -> None:
+    def __init__(self, filename: str, directory: Optional[str] = None) -> None:
         if directory is None:
             directory = hydpy.pub.projectname
         self.filepath = os.path.abspath(os.path.join(directory, filename))
@@ -853,7 +832,25 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return fullselection
 
     @property
-    def conditions_io(self) -> "XMLConditions":
+    def control_io(self) -> Union[XMLControlDefault, XMLControlUserDefined]:
+        """The `control_io` element defined in the actual XML file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface("single_run.xml", make_filepath("LahnH"))
+        >>> interface.control_io.text
+        'default'
+        >>> interface = XMLInterface("multiple_runs.xml", make_filepath("LahnH"))
+        >>> interface.control_io.text
+        'default'
+        """
+        control_io = self.find("control_io", optional=True)
+        if control_io is None:
+            return XMLControlDefault(self, text="default")
+        return XMLControlUserDefined(self, control_io, text=control_io.text)
+
+    @property
+    def conditions_io(self) -> XMLConditions:
         """The `condition_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
@@ -865,7 +862,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return XMLConditions(self, self.find("conditions_io", optional=False))
 
     @property
-    def series_io(self) -> "XMLSeries":
+    def series_io(self) -> XMLSeries:
         """The `series_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
@@ -877,7 +874,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return XMLSeries(self, self.find("series_io", optional=False))
 
     @property
-    def exchange(self) -> "XMLExchange":
+    def exchange(self) -> XMLExchange:
         """The `exchange` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
@@ -890,15 +887,66 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return XMLExchange(self, self.find("exchange", optional=False))
 
 
+class XMLControlBase:
+    """Base class for |XMLControlDefault| and |XMLControlUserDefined|."""
+
+    master: XMLInterface
+    text: Optional[str]
+
+    def prepare_models(self) -> None:
+        """Prepare the |Model| objects of all |Element| objects returned by
+        |XMLInterface.elements|:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import attrready, HydPy, pub, TestIO, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface("single_run.xml")
+        ...     interface.update_selections()
+        ...     interface.find("selections").text = "headwaters"
+        ...     interface.control_io.prepare_models()
+        >>> interface.update_timegrids()
+        >>> hp.elements.land_lahn_1.model.parameters.control.alpha
+        alpha(1.0)
+        >>> attrready(hp.elements.land_lahn_2, "model")
+        False
+        """
+        if self.text:
+            hydpy.pub.controlmanager.currentdir = str(self.text)
+        for element in self.master.elements:
+            element.prepare_model()
+
+
+class XMLControlDefault(XMLControlBase):
+    """Helper class for |XMLInterface| responsible for loading models from control
+    files when the XML file does not specify a control directory."""
+
+    def __init__(self, master: XMLInterface, text: Optional[str]) -> None:
+        self.master: XMLInterface = master
+        self.text: Optional[str] = text
+
+
+class XMLControlUserDefined(XMLBase, XMLControlBase):
+    """Helper class for |XMLInterface| responsible for loading models from control
+    files when the XML file specifies a control directory."""
+
+    def __init__(
+        self, master: XMLInterface, root: ElementTree.Element, text: Optional[str]
+    ) -> None:
+        self.master: XMLInterface = master
+        self.root: ElementTree.Element = root
+        self.text: Optional[str] = text
+
+
 class XMLConditions(XMLBase):
     """Helper class for |XMLInterface| responsible for loading and saving initial
     conditions."""
 
-    def __init__(
-        self,
-        master: XMLInterface,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLInterface, root: ElementTree.Element) -> None:
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
@@ -981,11 +1029,7 @@ class XMLSeries(XMLBase):
     """Helper class for |XMLInterface| responsible for loading and saving time series
     data, which is further delegated to suitable instances of class |XMLSubseries|."""
 
-    def __init__(
-        self,
-        master: XMLInterface,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLInterface, root: ElementTree.Element) -> None:
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
@@ -1114,22 +1158,15 @@ Please make sure your XML file follows the relevant XML schema.
         return _query_selections(selections)
 
     @overload
-    def _get_devices(
-        self,
-        attr: Literal["nodes"],
-    ) -> Iterator[devicetools.Node]:
+    def _get_devices(self, attr: Literal["nodes"]) -> Iterator[devicetools.Node]:
         """Extract all nodes."""
 
     @overload
-    def _get_devices(
-        self,
-        attr: Literal["elements"],
-    ) -> Iterator[devicetools.Element]:
+    def _get_devices(self, attr: Literal["elements"]) -> Iterator[devicetools.Element]:
         """Extract all elements."""
 
     def _get_devices(
-        self,
-        attr: Literal["nodes", "elements"],
+        self, attr: Literal["nodes", "elements"]
     ) -> Union[Iterator[devicetools.Node], Iterator[devicetools.Element]]:
         """Extract all nodes or elements."""
         selections = copy.copy(self.selections)
@@ -1188,11 +1225,7 @@ class XMLSubseries(XMLSelector):
     """Helper class for |XMLSeries| responsible for loading and saving time series
     data."""
 
-    def __init__(
-        self,
-        master: XMLSeries,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLSeries, root: ElementTree.Element) -> None:
         self.master: XMLSeries = master
         self.root: ElementTree.Element = root
 
@@ -1466,18 +1499,12 @@ class XMLExchange(XMLBase):
     """Helper class for |XMLInterface| responsible for interpreting exchange items,
     accessible via different instances of class |XMLItemgroup|."""
 
-    def __init__(
-        self,
-        master: XMLInterface,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLInterface, root: ElementTree.Element) -> None:
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
     def _get_items_of_certain_item_types(
-        self,
-        itemgroups: Iterable[str],
-        itemtype: Type[_GetOrChangeItem],
+        self, itemgroups: Iterable[str], itemtype: Type[_GetOrChangeItem]
     ) -> List[_GetOrChangeItem]:
         """Return either all |GetItem| or all |ChangeItem| objects."""
         items: List[_GetOrChangeItem] = []
@@ -1625,11 +1652,7 @@ class XMLItemgroup(XMLBase):
     related to model parameters and sequences separately from the exchange items of
     node sequences."""
 
-    def __init__(
-        self,
-        master: XMLExchange,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLExchange, root: ElementTree.Element) -> None:
         self.master: XMLExchange = master
         self.root: ElementTree.Element = root
 
@@ -1652,11 +1675,7 @@ class XMLModel(XMLBase):
     """Helper class for |XMLItemgroup| responsible for handling the exchange items
     related to different parameter or sequence groups of |Model| objects."""
 
-    def __init__(
-        self,
-        master: XMLItemgroup,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLItemgroup, root: ElementTree.Element) -> None:
         self.master: XMLItemgroup = master
         self.root: ElementTree.Element = root
 
@@ -1684,11 +1703,7 @@ class XMLNode(XMLBase):
     """Helper class for |XMLItemgroup| responsible for handling the exchange items
     related to individual parameters or sequences of |Node| objects."""
 
-    def __init__(
-        self,
-        master: XMLItemgroup,
-        root: ElementTree.Element,
-    ) -> None:
+    def __init__(self, master: XMLItemgroup, root: ElementTree.Element) -> None:
         self.master: XMLItemgroup = master
         self.root: ElementTree.Element = root
 
@@ -1703,9 +1718,7 @@ class XMLVar(XMLSelector):
     exchange item."""
 
     def __init__(
-        self,
-        master: Union[XMLSubvars, XMLNode],
-        root: ElementTree.Element,
+        self, master: Union[XMLSubvars, XMLNode], root: ElementTree.Element
     ) -> None:
         self.master: Union[XMLSubvars, XMLNode] = master
         self.root: ElementTree.Element = root
@@ -1915,10 +1928,7 @@ class XMLVar(XMLSelector):
         return self._get_changeitem(target, master, itemtype)
 
     def _get_getitem(
-        self,
-        target: str,
-        master: str,
-        itemtype: Type[itemtools.GetItem],
+        self, target: str, master: str, itemtype: Type[itemtools.GetItem]
     ) -> itemtools.GetItem:
         xmlelement = self.find("name", optional=True)
         if xmlelement is None or xmlelement.text is None:
@@ -1930,10 +1940,7 @@ class XMLVar(XMLSelector):
         return item
 
     def _get_changeitem(
-        self,
-        target: str,
-        master: str,
-        itemtype: Type[_SetOrAddOrMultiplyItem],
+        self, target: str, master: str, itemtype: Type[_SetOrAddOrMultiplyItem]
     ) -> _SetOrAddOrMultiplyItem:
         name = cast(Name, self.find("name", optional=False).text)
         assert name is not None
@@ -2101,11 +2108,7 @@ class XSDWriter:
         return "\n".join(subs)
 
     @classmethod
-    def get_modelinsertion(
-        cls,
-        model: modeltools.Model,
-        indent: int,
-    ) -> str:
+    def get_modelinsertion(cls, model: modeltools.Model, indent: int) -> str:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2139,9 +2142,7 @@ class XSDWriter:
 
     @classmethod
     def get_subsequencesinsertion(
-        cls,
-        subsequences: sequencetools.SubSequences[Any, Any, Any],
-        indent: int,
+        cls, subsequences: sequencetools.SubSequences[Any, Any, Any], indent: int
     ) -> str:
         """Return the insertion string required for the given group of sequences.
 
@@ -2189,8 +2190,7 @@ class XSDWriter:
 
     @staticmethod
     def get_sequenceinsertion(
-        sequence: sequencetools.Sequence_[Any, Any],
-        indent: int,
+        sequence: sequencetools.Sequence_[Any, Any], indent: int
     ) -> str:
         """Return the insertion string required for the given sequence.
 
@@ -2287,18 +2287,11 @@ class XSDWriter:
         return "\n".join(subs)
 
     @staticmethod
-    def _get_itemstype(
-        modelname: str,
-        itemgroup: str,
-    ) -> str:
+    def _get_itemstype(modelname: str, itemgroup: str) -> str:
         return f"{modelname}_{itemgroup}Type"
 
     @classmethod
-    def get_itemsinsertion(
-        cls,
-        itemgroup: str,
-        indent: int,
-    ) -> str:
+    def get_itemsinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the XML element for the given exchange item group.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2359,11 +2352,7 @@ class XSDWriter:
         return "\n".join(subs)
 
     @classmethod
-    def get_itemtypesinsertion(
-        cls,
-        itemgroup: str,
-        indent: int,
-    ) -> str:
+    def get_itemtypesinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the required types for the given exchange item
         group.
 
@@ -2386,12 +2375,7 @@ class XSDWriter:
         return "\n".join(subs)
 
     @classmethod
-    def get_itemtypeinsertion(
-        cls,
-        itemgroup: str,
-        modelname: str,
-        indent: int,
-    ) -> str:
+    def get_itemtypeinsertion(cls, itemgroup: str, modelname: str, indent: int) -> str:
         """Return a string defining the required types for the given combination of
         an exchange item group and an application model.
 
@@ -2425,11 +2409,7 @@ class XSDWriter:
         return "\n".join(subs)
 
     @classmethod
-    def get_nodesitemtypeinsertion(
-        cls,
-        itemgroup: str,
-        indent: int,
-    ) -> str:
+    def get_nodesitemtypeinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the required types for the given combination of
         an exchange item group and |Node| objects.
 
@@ -2482,10 +2462,7 @@ class XSDWriter:
 
     @classmethod
     def get_subgroupsiteminsertion(
-        cls,
-        itemgroup: str,
-        modelname: str,
-        indent: int,
+        cls, itemgroup: str, modelname: str, indent: int
     ) -> str:
         """Return a string defining the required types for the given combination of an
         exchange item group and an application model.
@@ -2520,9 +2497,7 @@ class XSDWriter:
 
     @classmethod
     def _get_subvars(
-        cls,
-        model: modeltools.Model,
-        conditions: bool,
+        cls, model: modeltools.Model, conditions: bool
     ) -> Iterator[variabletools.SubVariables[Any, Any, Any]]:
         yield model.parameters.control
         names = ["inputs", "factors", "fluxes"]

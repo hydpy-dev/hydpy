@@ -128,7 +128,10 @@
              type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="keywords"
-         type="hpcb:nonEmptyListOfStrings"/>
+             type="hpcb:nonEmptyListOfStrings"/>
+
+    <element name="control_io"
+             type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="conditions_io">
         <complexType>

@@ -30,7 +30,7 @@ using the command line:
 
 >>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
->>> with TestIO():    # doctest: +ELLIPSIS
+>>> with TestIO():  # doctest: +ELLIPSIS
 ...     result = run_subprocess("hyd.py run_simulation LahnH single_run.xml")
 Start HydPy project `LahnH` (...).
 Read configuration file `single_run.xml` (...).
@@ -46,7 +46,7 @@ Write the desired condition files (...).
 Write the desired time series files (...).
 
 As defined by the XML configuration file, the simulation started on the first and
-ended on the sixths of January 1996.  The following example shows the read initial
+ended on the sixth of January 1996.  The following example shows the read initial
 conditions and the written final conditions of sequence |hland_states.SM| for the
 12 hydrological response units of the subcatchment `land_dill`:
 
@@ -433,7 +433,7 @@ HydPyConfigSingleRun.xsd}config'
     >>> interface.root.tag
     '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
 HydPyConfigMultipleRuns.xsd}config'
-    >>> XMLInterface('wrongfilepath.xml', 'wrongdir')    # doctest: +ELLIPSIS
+    >>> XMLInterface('wrongfilepath.xml', 'wrongdir')  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to parse the XML configuration file \
@@ -466,7 +466,7 @@ HydPyConfigMultipleRuns.xsd}config'
         >>> from hydpy import TestIO, xml_replace
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> import os
-        >>> with TestIO():    # doctest: +ELLIPSIS
+        >>> with TestIO():  # doctest: +ELLIPSIS
         ...     xml_replace("LahnH/single_run",
         ...                 firstdate="1996-01-32T00:00:00")
         template file: LahnH/single_run.xmlt
@@ -479,7 +479,7 @@ HydPyConfigMultipleRuns.xsd}config'
           config_end --> </hpcsr:config> (default argument)
         >>> with TestIO():
         ...     interface = XMLInterface("single_run.xml", "LahnH")
-        >>> interface.validate_xml()    # doctest: +ELLIPSIS
+        >>> interface.validate_xml()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         xmlschema.validators.exceptions.XMLSchemaDecodeError: While trying to \
@@ -500,7 +500,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
 
         In the second example, we examine a correct configuration file:
 
-        >>> with TestIO():    # doctest: +ELLIPSIS
+        >>> with TestIO():  # doctest: +ELLIPSIS
         ...     xml_replace("LahnH/single_run")
         ...     interface = XMLInterface("single_run.xml", "LahnH")
         template file: LahnH/single_run.xmlt
@@ -516,7 +516,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         The XML configuration file must correctly refer to the corresponding schema
         file:
 
-        >>> with TestIO():    # doctest: +ELLIPSIS
+        >>> with TestIO():
         ...     xml_replace("LahnH/single_run",
         ...                 config_start="<config>",
         ...                 config_end="</config>")
@@ -528,7 +528,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
           firstdate --> 1996-01-01T00:00:00 (default argument)
           zip_ --> false (default argument)
           config_end --> </config> (given argument)
-        >>> interface.validate_xml()    # doctest: +ELLIPSIS
+        >>> interface.validate_xml()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to validate XML file `...single_run.xml`, \
@@ -540,7 +540,7 @@ correctly refer to one of the available XML schema files \
 
         >>> with TestIO():
         ...     interface = XMLInterface("multiple_runs.xml", "LahnH")
-        >>> interface.validate_xml()    # doctest: +ELLIPSIS
+        >>> interface.validate_xml()
         """
         try:
             filenames = ("HydPyConfigSingleRun.xsd", "HydPyConfigMultipleRuns.xsd")
@@ -717,8 +717,8 @@ correctly refer to one of the available XML schema files \
                             "land_lahn_3", "stream_dill_lahn_2",
                             "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
 
-        Defining wrong device names, keywords, or selection names results in the
-        following error messages:
+        Defining wrong device names, keywords, or selection names results in error
+        messages:
 
         >>> add_selections = find(interface.root, "add_selections")
         >>> add_selections[2][1].text = "streams no_selection"
@@ -1482,7 +1482,7 @@ class XMLSubseries(XMLSelector):
 
         Method |IOSequence.prepare_series| solves a complex task, as it needs to
         determine the correct arguments for method |IOSequence.prepare_series| of class
-        |IOSequence|.  Those arguments depend on wether the respective |XMLSubseries|
+        |IOSequence|.  Those arguments depend on whether the respective |XMLSubseries|
         element is for reading or writing data, addresses input or output sequences,
         and if one prefers to handle time-series data in RAM or read or write it "just
         in time" during model simulations.  Method |XMLSubseries.prepare_series|
@@ -1745,7 +1745,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
 
 class XMLExchange(XMLBase):
     """Helper class for |XMLInterface| responsible for interpreting exchange items,
-    accessible via different instances of class |XMLItemgroup|."""
+    accessible via different |XMLItemgroup| instances."""
 
     def __init__(self, master: XMLInterface, root: ElementTree.Element) -> None:
         self.master: XMLInterface = master
@@ -1807,8 +1807,29 @@ class XMLExchange(XMLBase):
         k4
         """
         return self._get_items_of_certain_item_types(
-            itemgroups=("control",),
-            itemtype=itemtools.ChangeItem,
+            itemgroups=("control",), itemtype=itemtools.ChangeItem
+        )
+
+    @property
+    def inputitems(self) -> List[itemtools.SetItem]:
+        """Return all items for changing input sequence values.
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
+        >>> for item in interface.exchange.inputitems:
+        ...     print(item.name)
+        t_headwaters
+        """
+        return self._get_items_of_certain_item_types(
+            itemgroups=("inputs",), itemtype=itemtools.SetItem
         )
 
     @property
@@ -1834,8 +1855,7 @@ class XMLExchange(XMLBase):
         quh
         """
         return self._get_items_of_certain_item_types(
-            itemgroups=("states", "logs"),
-            itemtype=itemtools.SetItem,
+            itemgroups=("states", "logs"), itemtype=itemtools.SetItem
         )
 
     @property
@@ -1879,7 +1899,7 @@ class XMLExchange(XMLBase):
         """Prepare all required |IOSequence.series| arrays via the
         |IOSequence.prepare_series| method.
         """
-        for item in itertools.chain(self.conditionitems, self.getitems):
+        for item in itertools.chain(self.inputitems, self.conditionitems, self.getitems):
             for target in item.device2target.values():
                 if item.targetspecs.series:
                     assert isinstance(target, sequencetools.IOSequence)
@@ -2076,6 +2096,29 @@ class XMLVar(XMLSelector):
         ic(0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
            1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719)
 
+        Finally, one |SetItem| addresses the time series if the input sequence
+        |hland_inputs.T| of both headwater catchments.  Similar to the example above,
+        its initial values stem from its target sequences' initial (time series)
+        values:
+
+        >>> var = interface.exchange.itemgroups[2].models[0].subvars[0].vars[0]
+        >>> item = var.item
+        >>> item.value
+        array([[-0.29884643, -0.81153886, -2.49384849, -5.96884868, -6.9996175 ],
+               [-0.70539496, -1.50555283, -4.22126769, -7.44634946, -8.11936591]])
+        >>> hp.elements.land_dill.model.sequences.inputs.t.series
+        InfoArray([-0.29884643, -0.81153886, -2.49384849, -5.96884868,
+                   -6.9996175 ])
+        >>> hp.elements.land_lahn_1.model.sequences.inputs.t.series
+        InfoArray([-0.70539496, -1.50555283, -4.22126769, -7.44634946,
+                   -8.11936591])
+        >>> item.value = [0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0, 9.0]
+        >>> item.update_variables()
+        >>> hp.elements.land_dill.model.sequences.inputs.t.series
+        InfoArray([0., 1., 2., 3., 4.])
+        >>> hp.elements.land_lahn_1.model.sequences.inputs.t.series
+        InfoArray([5., 6., 7., 8., 9.])
+
         |AddItem| `sfcf_1`, `sfcf_2`, and `sfcf_3` serve to demonstrate how a scalar
         value (`sfcf_1` and `sfcf_2`) or a vector of values can be used to change the
         value of a "target" parameter (|hland_control.SfCF|) in relation to a "base"
@@ -2086,7 +2129,7 @@ class XMLVar(XMLSelector):
         >>> for element in pub.selections.nonheadwaters.elements:
         ...     element.model.parameters.control.rfcf(1.0)
 
-        >>> for subvars in interface.exchange.itemgroups[2].models[0].subvars:
+        >>> for subvars in interface.exchange.itemgroups[3].models[0].subvars:
         ...     for var in subvars.vars:
         ...         var.item.update_variables()
         >>> for element in hp.elements.catchment:
@@ -2101,7 +2144,7 @@ class XMLVar(XMLSelector):
         with 10 to gain new values for the target parameter objects of type
         |hland_control.K4|:
 
-        >>> for subvars in interface.exchange.itemgroups[3].models[0].subvars:
+        >>> for subvars in interface.exchange.itemgroups[4].models[0].subvars:
         ...     for var in subvars.vars:
         ...         var.item.update_variables()
         >>> for element in hp.elements.catchment:
@@ -2116,10 +2159,10 @@ class XMLVar(XMLSelector):
         queries the actual values of the |hland_states.SM| states of all relevant
         elements:
 
-        >>> var = interface.exchange.itemgroups[4].models[0].subvars[2].vars[0]
+        >>> var = interface.exchange.itemgroups[5].models[0].subvars[2].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
-        ...     print(name, target)    # doctest: +ELLIPSIS
+        ...     print(name, target)  # doctest: +ELLIPSIS
         land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         land_lahn_1_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, \
 190.0, 200.0, 206.0, 206.0, 206.0]
@@ -2131,9 +2174,9 @@ class XMLVar(XMLSelector):
         factor sequence of element `land_dill`:
 
         >>> hp.elements.land_dill.model.sequences.factors.tmean(1.0)
-        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[0].vars:
+        >>> for var in interface.exchange.itemgroups[5].models[0].subvars[0].vars:
         ...     for name, target in var.item.yield_name2value():
-        ...         print(name, target)    # doctest: +ELLIPSIS
+        ...         print(name, target)
         land_dill_factors_tmean 1.0
 
         Another |GetItem| object queries both the actual and the time series values of
@@ -2142,22 +2185,22 @@ class XMLVar(XMLSelector):
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
         >>> qt.series = 2.0
-        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[1].vars:
+        >>> for var in interface.exchange.itemgroups[5].models[0].subvars[1].vars:
         ...     for name, target in var.item.yield_name2value():
-        ...         print(name, target)    # doctest: +ELLIPSIS
+        ...         print(name, target)
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
 
         Last but not least, one |GetItem| queries the simulated time series values
         available through node `dill`:
 
-        >>> var = interface.exchange.itemgroups[4].nodes[0].vars[0]
+        >>> var = interface.exchange.itemgroups[5].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)
         >>> for name, target in var.item.yield_name2value():
-        ...     print(name, target)    # doctest: +ELLIPSIS
+        ...     print(name, target)
         dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
         >>> for name, target in var.item.yield_name2value(2, 4):
-        ...     print(name, target)    # doctest: +ELLIPSIS
+        ...     print(name, target)
         dill_nodes_sim_series [2.0, 3.0]
         """
         target = f"{self.master.name}.{self.name}"
@@ -2246,8 +2289,8 @@ class XSDWriter:
 
         Method |XSDWriter.write_xsd| adds model-specific information to the general
         information of template file `HydPyConfigBase.xsdt` regarding reading and
-        writing of time series data and exchanging parameter and sequence values, e. g.
-        during calibration.
+        writing of time series data and exchanging parameter and sequence values, for
+        example, during calibration.
 
         The following example shows that after writing a new schema file, method
         |XMLInterface.validate_xml| does not raise an error when either applied on the
@@ -2284,7 +2327,7 @@ class XSDWriter:
         """Return a sorted |list| containing all application model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_modelnames())  # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
         modelspath: str = models.__path__[0]
@@ -2439,9 +2482,9 @@ class XSDWriter:
 
         >>> model = prepare_model("arma_v1")
         >>> XSDWriter.get_modelinsertion(
-        ...     model=model, type_="reader", indent=1)   # doctest: +ELLIPSIS
+        ...     model=model, type_="reader", indent=1)  # doctest: +ELLIPSIS
         >>> print(XSDWriter.get_modelinsertion(
-        ...     model=model, type_="writer", indent=1))   # doctest: +ELLIPSIS
+        ...     model=model, type_="writer", indent=1))  # doctest: +ELLIPSIS
             <element name="fluxes"
                      minOccurs="0">
                 <complexType>
@@ -2479,7 +2522,7 @@ class XSDWriter:
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")
         >>> print(XSDWriter.get_subsequencesinsertion(
-        ...     model.sequences.factors, 1))    # doctest: +ELLIPSIS
+        ...     model.sequences.factors, 1))  # doctest: +ELLIPSIS
             <element name="factors"
                      minOccurs="0">
                 <complexType>
@@ -2631,7 +2674,7 @@ class XSDWriter:
         """Return a string defining a model-specific XML type extending `ItemType`.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_mathitemsinsertion(1))    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_mathitemsinsertion(1))  # doctest: +ELLIPSIS
             <complexType name="arma_v1_mathitemType">
                 <complexContent>
                     <extension base="hpcb:mathitemType">
@@ -2748,7 +2791,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypesinsertion(
-        ...     "setitems", 1))    # doctest: +ELLIPSIS
+        ...     "setitems", 1))  # doctest: +ELLIPSIS
             <complexType name="arma_v1_setitemsType">
         ...
             </complexType>
@@ -2771,7 +2814,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
-        ...     "setitems", "hland_v1", 1))    # doctest: +ELLIPSIS
+        ...     "setitems", "hland_v1", 1))  # doctest: +ELLIPSIS
             <complexType name="hland_v1_setitemsType">
                 <sequence>
                     <element ref="hpcb:selections"
@@ -2805,7 +2848,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_nodesitemtypeinsertion(
-        ...     "setitems", 1))    # doctest: +ELLIPSIS
+        ...     "setitems", 1))  # doctest: +ELLIPSIS
             <complexType name="nodes_setitemsType">
                 <sequence>
                     <element ref="hpcb:selections"
@@ -2859,7 +2902,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupsiteminsertion(
-        ...     "setitems", "hland_v1", 1))    # doctest: +ELLIPSIS
+        ...     "setitems", "hland_v1", 1))  # doctest: +ELLIPSIS
             <element name="control"
                      minOccurs="0"
                      maxOccurs="unbounded">
@@ -2916,7 +2959,7 @@ class XSDWriter:
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "setitems", model, model.parameters.control, 1))
             <element name="control"
                      minOccurs="0"
@@ -2935,7 +2978,7 @@ class XSDWriter:
                 </complexType>
             </element>
 
-        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "getitems", model, model.parameters.control, 1))
             <element name="control"
         ...
@@ -2945,7 +2988,7 @@ class XSDWriter:
                                  maxOccurs="unbounded"/>
         ...
 
-        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "additems", model, model.parameters.control, 1))
             <element name="control"
         ...
@@ -2955,7 +2998,7 @@ class XSDWriter:
                                  maxOccurs="unbounded"/>
         ...
 
-        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "multiplyitems", model, model.parameters.control, 1))
             <element name="control"
         ...
@@ -2967,7 +3010,7 @@ class XSDWriter:
 
         For sequence classes, additional "series" elements are added:
 
-        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "setitems", model, model.sequences.factors, 1))
             <element name="factors"
         ...

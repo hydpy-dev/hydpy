@@ -170,6 +170,17 @@
                 </logs>
             </hland_v1>
         </setitems>
+        <setitems>
+            <hland_v1>
+                <inputs>
+                    <t.series>
+                        <selections>headwaters</selections>
+                        <name>t_headwaters</name>
+                        <level>device</level>
+                    </t.series>
+                </inputs>
+            </hland_v1>
+        </setitems>
         <additems>
             <hland_v1>
                 <selections>headwaters</selections>
@@ -242,7 +253,6 @@
                 <sim.series/>
             </nodes>
         </getitems>
-
     </exchange>
 
 </hpcmr:config>

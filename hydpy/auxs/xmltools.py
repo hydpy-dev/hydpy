@@ -1467,8 +1467,8 @@ class XMLSubseries(XMLSelector):
         |XMLSubseries.prepare_series| adds new sequences automatically.
 
         Method |IOSequence.prepare_series| solves a complex task, as it needs to
-        determine the correct arguments for mehod |IOSequence.prepare_series| of class
-        |IOSequence|.  Those arguments depend on wether the respective |XMLSubseries|
+        determine the correct arguments for method |IOSequence.prepare_series| of class
+        |IOSequence|.  Those arguments depend on whether the respective |XMLSubseries|
         element is for reading or writing data, adresses input or output sequences, and
         if one prefers to handle time-series data in RAM or to read or write it "just
         in time" during model simulations.  Method |XMLSubseries.prepare_series|
@@ -1535,9 +1535,9 @@ class XMLSubseries(XMLSelector):
         ...     print(f"diskflag_reading={sequence.diskflag_reading}")
         ...     print(f"diskflag_writing={sequence.diskflag_writing}")
 
-        The XML files makes uses of the `jit` mode for all non-aggregated time series.
-        Reader elements handle input sequences and writer elements handle output
-        sequences.  Hence, |IOSequence.ramflag| is generally |False| while
+        The XML file uses the `jit` mode for all non-aggregated time series.  Reader
+        elements handle input sequences, and writer elements handle output sequences.
+        Hence, |IOSequence.ramflag| is generally |False| while
         |IOSequence.diskflag_reading| is |True| for the input sequences and
         |IOSequence.diskflag_writing| is |True| for the output sequences:
 
@@ -1796,6 +1796,29 @@ class XMLExchange(XMLBase):
         )
 
     @property
+    def inputitems(self) -> List[itemtools.SetItem]:
+        """Return all items for changing input sequence values.
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
+        >>> for item in interface.exchange.inputitems:
+        ...     print(item.name)
+        t_headwaters
+        """
+        return self._get_items_of_certain_item_types(
+            itemgroups=("inputs",),
+            itemtype=itemtools.SetItem,
+        )
+
+    @property
     def conditionitems(self) -> List[itemtools.SetItem]:
         """Return all items for changing condition sequence values.
 
@@ -1863,7 +1886,7 @@ class XMLExchange(XMLBase):
         """Prepare all required |IOSequence.series| arrays via the
         |IOSequence.prepare_series| method.
         """
-        for item in itertools.chain(self.conditionitems, self.getitems):
+        for item in itertools.chain(self.inputitems, self.conditionitems, self.getitems):
             for target in item.device2target.values():
                 if item.targetspecs.series:
                     assert isinstance(target, sequencetools.IOSequence)
@@ -2070,7 +2093,7 @@ class XMLVar(XMLSelector):
         >>> for element in pub.selections.nonheadwaters.elements:
         ...     element.model.parameters.control.rfcf(1.0)
 
-        >>> for subvars in interface.exchange.itemgroups[2].models[0].subvars:
+        >>> for subvars in interface.exchange.itemgroups[3].models[0].subvars:
         ...     for var in subvars.vars:
         ...         var.item.update_variables()
         >>> for element in hp.elements.catchment:
@@ -2085,7 +2108,7 @@ class XMLVar(XMLSelector):
         with 10 to gain new values for the target parameter objects of type
         |hland_control.K4|:
 
-        >>> for subvars in interface.exchange.itemgroups[3].models[0].subvars:
+        >>> for subvars in interface.exchange.itemgroups[4].models[0].subvars:
         ...     for var in subvars.vars:
         ...         var.item.update_variables()
         >>> for element in hp.elements.catchment:
@@ -2100,7 +2123,7 @@ class XMLVar(XMLSelector):
         queries the actual values of the |hland_states.SM| states of all relevant
         elements:
 
-        >>> var = interface.exchange.itemgroups[4].models[0].subvars[2].vars[0]
+        >>> var = interface.exchange.itemgroups[5].models[0].subvars[2].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
@@ -2115,7 +2138,7 @@ class XMLVar(XMLSelector):
         factor sequence of element `land_dill`:
 
         >>> hp.elements.land_dill.model.sequences.factors.tmean(1.0)
-        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[0].vars:
+        >>> for var in interface.exchange.itemgroups[5].models[0].subvars[0].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_factors_tmean 1.0
@@ -2126,7 +2149,7 @@ class XMLVar(XMLSelector):
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
         >>> qt.series = 2.0
-        >>> for var in interface.exchange.itemgroups[4].models[0].subvars[1].vars:
+        >>> for var in interface.exchange.itemgroups[5].models[0].subvars[1].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
@@ -2135,7 +2158,7 @@ class XMLVar(XMLSelector):
         Last but not least, one |GetItem| queries the simulated time series values
         available through node `dill`:
 
-        >>> var = interface.exchange.itemgroups[4].nodes[0].vars[0]
+        >>> var = interface.exchange.itemgroups[5].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS

@@ -2165,7 +2165,7 @@ class XMLVar(XMLSelector):
         dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
         >>> for name, target in var.item.yield_name2value(2, 4):
         ...     print(name, target)    # doctest: +ELLIPSIS
-        dill_nodes_sim_series [2.0, 3.0]
+        dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
         """
         target = f"{self.master.name}.{self.name}"
         if self.master.name == "nodes":

@@ -364,8 +364,8 @@ class ChangeItem(ExchangeItem):
     @property
     def seriesshape(self) -> Tuple[int, ...]:
         if isinstance(self.shape, int):
-            return self.shape, len(hydpy.pub.timegrids.sim)
-        return self.shape + (len(hydpy.pub.timegrids.sim),)
+            return self.shape, len(hydpy.pub.timegrids.init)
+        return self.shape + (len(hydpy.pub.timegrids.init),)
 
     @property
     def subnames(self) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
@@ -577,7 +577,7 @@ value `wrong` cannot be converted to type `float`.
         try:
             if self.targetspecs.series:
                 assert isinstance(variable, sequencetools.IOSequence)
-                variable.simseries = value
+                variable.series = value
             else:
                 variable(value)
         except BaseException:
@@ -902,7 +902,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
         itemvalues = numpy.empty(shape, dtype=float)
-        jdx0, jdx1 = hydpy.pub.timegrids.simindices
+        jdx0, jdx1 = hydpy.pub.timegrids.initindices
         if self.level == "device":
             for idx, variable in enumerate(self.device2target.values()):
                 if series:
@@ -917,7 +917,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
                 idx1 = idx0 + len(variable)
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
-                    targetvalues = variable.simseries
+                    targetvalues = variable.series
                 else:
                     targetvalues = variable.values
                 if variable.NDIM > 1:
@@ -1426,7 +1426,7 @@ class GetItem(ExchangeItem):
             target = self.device2target[device]
             if self.targetspecs.series:
                 assert isinstance(target, sequencetools.IOSequence)
-                values = target.series[idx1:idx2]
+                values = target.series
             else:
                 values = target.values
             if self.ndim == 0:

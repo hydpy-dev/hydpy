@@ -25,11 +25,11 @@ Module |servertools| solves such integration problems by running *HydPy* within 
 HTTP server.  After starting such a server, one can use any HTTP client (e.g. `curl`_)
 to perform the above steps.
 
-The *HydPy* server's API is relatively simple, allowing to perform a "normal"
-calibration using a few server methods only.  However, it is also more restrictive than
-controlling *HydPy* within a Python process.  Within a Python process, you are free to
-do anything. Using the *HydPy* server, you are much more restricted to what was
-anticipated by the framework developers.
+The server's API is relatively simple, allowing performing a "normal" calibration using
+only a few server methods.  However, it is also more restrictive than controlling
+*HydPy* within a Python process.  Within a Python process, you are free to do anything.
+Using the *HydPy* server, you are much more restricted to what was anticipated by the
+framework developers.
 
 Commonly but not mandatory, one configures the initial state of a *HydPy* server with
 an XML file.  As an example, we prepare the `LahnH` project by calling function
@@ -67,12 +67,13 @@ alpha = 2.0
 dill_nodes_sim_series = [nan, nan, nan, nan, nan]
 
 In general, it is possible to control the *HydPy* server via invoking each method with
-a separate HTTP request.  However, one can use methods |HydPyServer.GET_execute| and
-|HydPyServer.POST_execute| alternatively to execute many methods with only one HTTP
-request.  We now define three such metafunctions.  The first one changes the value of
-the parameter |hland_control.Alpha|  The second one runs a simulation.  The third one
-prints the newly calculated discharge at the outlet of the headwater catchment `Dill`.
-All of this is very similar to what the `HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.
+a separate HTTP request.  However, alternatively, one can use methods
+|HydPyServer.GET_execute| and |HydPyServer.POST_execute| to execute many methods with
+only one HTTP request.  We now define three such metafunctions.  The first one changes
+the value of the parameter |hland_control.Alpha|  The second one runs a simulation.
+The third one prints the newly calculated discharge at the outlet of the headwater
+catchment `Dill`.  All of this is very similar to what the
+`HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.
 
 Function `set_itemvalues` wraps the POST methods
 |HydPyServer.POST_register_simulationdates|,
@@ -211,7 +212,7 @@ also causes no problem:
 1.0: 7.131072, 6.017787, 5.313211
 
 Finally, we close the server and kill its process (just closing your command-line tool
-works as well):
+works likewise):
 
 >>> _ = request.urlopen("http://localhost:8080/close_server")
 >>> process.kill()
@@ -236,6 +237,9 @@ import urllib.request
 import types
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
+
+# ...from site-packages
+import numpy
 
 # ...from HydPy
 import hydpy
@@ -559,7 +563,7 @@ been extracted but cannot be further processed: `x == y`.
     (|HydPyServer.GET_query_initialgetitemvalues|) return the relevant subgroup only.
     Note that for the exchange items related to state sequence |hland_states.SM|
     (`sm_lahn_1` and `sm_lahn_2`), the initial values stem from the XML file.  For the
-    items related to |hland_states.IC|, the XML file does not provide such information.
+    items related to |hland_states.Ic|, the XML file does not provide such information.
     Thus, the initial values of `ic_lahn_1` and `ic_lahn_2` stem from the corresponding
     sequences themselves (and thus, indirectly, from the respective condition files):
 
@@ -929,6 +933,66 @@ method `GET_load_internalconditions`, the following error occurred: Conditions f
 ID `0` and time point `1996-01-03 00:00:00` are required, but have not been \
 calculated so far.
 
+    For example, when restarting data assimilation subsequent forecasting periods, you
+    might need to get and set all internal conditions from the client side.  Use
+    methods |HydPyServer.GET_query_internalconditions| and
+    |HydPyServer.POST_register_internalconditions| in such cases.  Method
+    |HydPyServer.GET_query_internalconditions| returns the information registered for
+    the end of the current simulation period.  All data is within a single nested
+    |dict| object (created  by the |HydPy.conditions| property of class |HydPy|):
+
+    >>> test("register_simulationdates", id_="0",
+    ...      data=("firstdate_sim = 1996-01-01\\n"
+    ...            "lastdate_sim = 1996-01-02"))
+    <BLANKLINE>
+    >>> test("activate_simulationdates", id_="0")
+    <BLANKLINE>
+    >>> conditions = test("query_internalconditions", id_="0",
+    ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
+    conditions = {'land_dill': {'states': {'ic': array([0.69171697, 1.19171697...
+
+    Due to the steps above, the returned dictionary agrees with the current state of
+    the |HydPy| instance:
+
+    >>> sequences = f"HydPyServer.state.hp.elements.land_dill.model.sequences"
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
+    ic_dill = ic(0.691717, 1.191717, 0.692897,...
+
+    To show that registering new internal conditions also works, we first convert the
+    string representation of the data to actual Python objects by using Python's |eval|
+    function.  Therefore, we need to clarify that "array" means the array creation
+    function |numpy.array| of |numpy|:
+
+    >>> import numpy
+    >>> conditions = eval(conditions, {"array": numpy.array})
+
+    Next, we modify an arbitrary state and convert the dictionary back to a single-line
+    string:
+
+    >>> conditions["land_dill"]["states"]["ic"][:2] = 0.5, 2.0
+    >>> conditions = str(conditions).replace("\\n", " ")
+
+    Now we can send the modified data back to the server by using the
+    |HydPyServer.POST_register_internalconditions| method, which stores it for the
+    start of the simulation period:
+
+    >>> test("register_internalconditions", id_="0", data=f"conditions = {conditions}")
+    <BLANKLINE>
+    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['states']['ic']"
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {ic_dill}")  # doctest: +ELLIPSIS
+    ic_dill = array([0.5       , 2.        , 0.69289697,...
+
+    After calling method |HydPyServer.GET_load_internalconditions|, the freshly
+    registered states are ready to be used by the next simulation run:
+
+    >>> test("load_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
+    ic_dill = ic(0.5, 1.5, 0.692897,...
+
     Some algorithms provide new information about initial conditions and require
     information on how they evolve during a simulation.  For such purposes, you can
     use method |HydPyServer.GET_update_conditionitemvalues| to store the current
@@ -940,7 +1004,7 @@ calculated so far.
 
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
-    >>> test("query_conditionitemvalues", id_="0")    # doctest: +ELLIPSIS
+    >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
     ic_lahn_2 = [0.953246...]
     ic_lahn_1 = [0.738365, ...]
     sm_lahn_2 = [99.84802...]
@@ -1504,6 +1568,16 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
                     f"not been calculated so far."
                 ) from None
             self.state.hp.conditions = self.state.init_conditions
+
+    def POST_register_internalconditions(self) -> None:
+        """Register the send internal conditions under the given `id`."""
+        conditions = eval(self._inputs["conditions"], {"array": numpy.array})
+        self.state.conditions[self._id][self.state.idx1] = conditions
+
+    def GET_query_internalconditions(self) -> None:
+        """Get the internal conditions registered under the given `id`."""
+        cond = self._get_registered_content(self.state.conditions)[self.state.idx2]
+        self._outputs["conditions"] = str(cond).replace("\n", " ")
 
     def GET_update_getitemvalues(self) -> None:
         """Register the current |GetItem| values under the given `id`.

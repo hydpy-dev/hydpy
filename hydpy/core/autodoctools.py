@@ -26,6 +26,7 @@ import types
 import typing
 from typing import *
 import unittest
+import warnings
 
 # ...from site-packages
 # import matplotlib    actual import below
@@ -1021,6 +1022,7 @@ def prepare_mainsubstituter() -> Substituter:
         matplotlib,
         figure,
         pyplot,
+        warnings,
     ):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):

@@ -8,7 +8,9 @@
 # ...from standard library
 from __future__ import annotations
 import abc
+import collections
 import itertools
+import time
 import types
 import warnings
 from typing import *
@@ -1167,7 +1169,7 @@ attribute nor a rule object named `FC`.
     percmax(5.0)
 
     Method |CalibrationInterface.perform_calibrationstep| writes intermediate results
-    into a log file, if available.  Prepares it beforehand via method
+    into a log file, if available.  Prepare it beforehand via method
     |CalibrationInterface.prepare_logfile|:
 
     >>> with TestIO():
@@ -1190,9 +1192,72 @@ attribute nor a rule object named `FC`.
     1.605136      100.0 5.0     0.3
     <BLANKLINE>
 
+    To prevent (automatic) calibration runs from crashing due to IO problems, method
+    |CalibrationInterface.update_logfile| raises warnings instead of errors in such
+    cases and logs the inwritten data internally:
+
+    >>> import os
+    >>> with TestIO():
+    ...     ci._logfilepath = "dirname1/filename.log"
+    ...     ci.update_logfile()
+    Traceback (most recent call last):
+    ...
+    UserWarning: While trying to update the logfile `dirname1/filename.log`, the \
+following problem occured: [Errno 2] No such file or directory: 'dirname1/filename.log'.
+
+    On subsequent calls, it tries to write both the previously logged and the new data:
+
+    >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
+    ...     os.makedirs("dirname1", exist_ok=True)
+    ...     ci.update_logfile()
+    ...     with open("dirname1/filename.log") as file_:
+    ...         print(file_.read())
+    1.605136 100.0 5.0 0.3
+    1.605136 100.0 5.0 0.3
+    <BLANKLINE>
+
+    Call method |CalibrationInterface.finalise_logfile| to ensure the
+    |CalibrationInterface| object does not withhold data after the end of a calibration
+    run.  If you do so, it sleeps until it gets the chance to write the logged data and
+    warns you about this problem from time to time (we demonstrate this by mocking the
+    |warnings.warn| function and, to keep our test example awake, the |time.sleep|
+    function):
+
+    >>> with TestIO():
+    ...     ci._logfilepath = "dirname2/filename.log"
+    ...     ci.update_logfile()
+    Traceback (most recent call last):
+    ...
+    UserWarning: While trying to update the logfile `dirname2/filename.log`, the \
+following problem occured: [Errno 2] No such file or directory: 'dirname2/filename.log'.
+    >>> from unittest import mock
+    >>> with TestIO():
+    ...     with mock.patch("time.sleep") as mocked:
+    ...         mocked.side_effect = Exception("time.sleep actually called")
+    ...         ci.finalise_logfile()
+    Traceback (most recent call last):
+    ...
+    UserWarning: Trying to finalise logfile `dirname2/filename.log` failed 1 times.
+    >>> with TestIO():
+    ...     with mock.patch("warnings.warn"), mock.patch("time.sleep") as mocked:
+    ...         mocked.side_effect = Exception("time.sleep actually called")
+    ...         ci.finalise_logfile()
+    Traceback (most recent call last):
+    ...
+    Exception: time.sleep actually called
+    >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
+    ...     os.makedirs("dirname2", exist_ok=True)
+    ...     ci.finalise_logfile()
+    ...     with open("dirname2/filename.log") as file_:
+    ...         print(file_.read())
+    1.605136 100.0 5.0 0.3
+    <BLANKLINE>
+
+    >>> ci._logfilepath = "example_calibration.log"
+
     For automatic calibration, one needs a calibration algorithm like the following,
-    which simply checks the lower and upper boundaries and the initial values of all
-    |Rule| objects:
+    which checks the lower and upper boundaries and the initial values of all |Rule|
+    objects:
 
     >>> def find_max(function, lowers, uppers, inits):
     ...     best_result = -999.0
@@ -1337,6 +1402,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     them later to reset all relevant conditions before each new simulation run.
     """
     _logfilepath: Optional[str]
+    _logfilelines: Deque[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
     _rules: Dict[str, RuleType1]
@@ -1353,12 +1419,10 @@ does not agree with the one documentated in log file `example_calibration.log` (
         self._rules = {}
         self._elements = devicetools.Elements()
         self._logfilepath = None
+        self._logfilelines = collections.deque()
         self.result = None
 
-    def add_rules(
-        self,
-        *rules: RuleType1,
-    ) -> None:
+    def add_rules(self, *rules: RuleType1) -> None:
         """Add some |Rule| objects to the actual |CalibrationInterface| object.
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1393,24 +1457,15 @@ does not agree with the one documentated in log file `example_calibration.log` (
             self._update_elements_when_adding_a_rule(rule)
 
     @overload
-    def get_rule(
-        self,
-        name: str,
-    ) -> RuleType1:
+    def get_rule(self, name: str) -> RuleType1:
         ...
 
     @overload
-    def get_rule(
-        self,
-        name: str,
-        type_: Type[RuleType2],
-    ) -> RuleType2:
+    def get_rule(self, name: str, type_: Type[RuleType2]) -> RuleType2:
         ...
 
     def get_rule(
-        self,
-        name: str,
-        type_: Optional[Type[RuleType2]] = None,
+        self, name: str, type_: Optional[Type[RuleType2]] = None
     ) -> Union[RuleType1, RuleType2]:
         """Return a |Rule| object (of a specific type).
 
@@ -1541,6 +1596,7 @@ object named `fc`.
         information.
         """
         self._logfilepath = logfilepath
+        self._logfilelines = collections.deque()
         with open(logfilepath, "w", encoding=config.ENCODING) as logfile:
             if documentation:
                 lines = (f"# {line}" for line in documentation.split("\n"))
@@ -1554,21 +1610,49 @@ object named `fc`.
             logfile.write("\t".join(["parameterstep"] + steps))
             logfile.write("\n")
 
-    def update_logfile(
-        self,
-    ) -> None:
+    def update_logfile(self) -> None:
         """Update the current log file, if available.
 
         See the main documentation on class |CalibrationInterface| for further
         information.
         """
         if self._logfilepath:
-            with open(self._logfilepath, "a", encoding=config.ENCODING) as logfile:
-                logfile.write(f"{objecttools.repr_(self.result)}\t")
-                logfile.write(
-                    "\t".join(objecttools.repr_(value) for value in self.values)
+            result = objecttools.repr_(self.result)
+            values = "\t".join(objecttools.repr_(value) for value in self.values)
+            self._logfilelines.append(f"{result}\t{values}\n")
+            try:
+                self._write_data_into_logfile()
+            except BaseException as exc:
+                warnings.warn(
+                    f"While trying to update the logfile `{self._logfilepath}`, the "
+                    f"following problem occured: {exc}."
                 )
-                logfile.write("\n")
+
+    def finalise_logfile(self) -> None:
+        """Update the current log file if method |CalibrationInterface.update_logfile|
+        was not entirely successful in doing so.
+
+        See the main documentation on class |CalibrationInterface| for further
+        information.
+        """
+        if self._logfilepath:
+            counter = 0
+            while self._logfilelines:
+                try:
+                    self._write_data_into_logfile()
+                except BaseException:
+                    counter += 1
+                    warnings.warn(
+                        f"Trying to finalise logfile `{self._logfilepath}` failed "
+                        f"{counter} times."
+                    )
+                    time.sleep(10.0)
+
+    def _write_data_into_logfile(self) -> None:
+        assert self._logfilepath
+        with open(self._logfilepath, "a", encoding=config.ENCODING) as logfile:
+            while self._logfilelines:
+                logfile.write(self._logfilelines.popleft())
 
     def read_logfile(
         self,
@@ -1634,10 +1718,7 @@ object named `fc`.
                 idx2rule[idx].value = float(value)
         self.result = result_best
 
-    def _update_elements_when_adding_a_rule(
-        self,
-        rule: RuleType1,
-    ) -> None:
+    def _update_elements_when_adding_a_rule(self, rule: RuleType1) -> None:
         self._elements += rule.elements
 
     def _update_elements_when_deleting_a_rule(self) -> None:
@@ -1709,10 +1790,7 @@ object named `fc`.
                 parametertypes.append((rule.parametertype, None))
         return variabletools.sort_variables(set(parametertypes))
 
-    def _update_values(
-        self,
-        values: Iterable[float],
-    ) -> None:
+    def _update_values(self, values: Iterable[float]) -> None:
         for rule, value in zip(self, values):
             rule.value = value
 
@@ -2038,9 +2116,10 @@ parameterstep="1d"))
         ...                          model="hland_v1"))
         >>> dir(ci)
         ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', 'fc', \
-'get_rule', 'lowers', 'names', 'parametertypes', 'percmax', 'perform_calibrationstep', \
-'prepare_logfile', 'print_table', 'read_logfile', 'remove_rules', 'reset_parameters', \
-'result', 'selections', 'update_logfile', 'uppers', 'values']
+'finalise_logfile', 'get_rule', 'lowers', 'names', 'parametertypes', 'percmax', \
+'perform_calibrationstep', 'prepare_logfile', 'print_table', 'read_logfile', \
+'remove_rules', 'reset_parameters', 'result', 'selections', 'update_logfile', \
+'uppers', 'values']
         """
         return objecttools.dir_(self) + list(self._rules.keys())
 

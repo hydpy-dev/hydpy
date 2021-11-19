@@ -150,7 +150,6 @@ class SumAdaptor(Adaptor):
         self,
         *rules: Rule[parametertools.Parameter],
     ):
-        super().__init__()
         self._rules = tuple(rules)
 
     def __call__(
@@ -292,7 +291,6 @@ class FactorAdaptor(Adaptor):
             ]
         ] = None,
     ):
-        super().__init__()
         self._rule = rule
         self._reference = str(getattr(reference, "name", reference))
         self._mask = getattr(mask, "name", mask) if mask else None

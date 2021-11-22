@@ -488,8 +488,6 @@ allowed.
 class Criterion(Protocol):
     """Callback protocol for efficiency criteria like |nse|."""
 
-    __name__: str
-
     @overload
     def __call__(
         self,
@@ -1936,7 +1934,7 @@ number of given alternative names being 1.
                 f"with number of given alternative names being {len(critnames)}."
             )
     else:
-        critnames = [crit.__name__ for crit in criteria]
+        critnames = [getattr(crit, "__name__", str(crit)) for crit in criteria]
     if isinstance(critfactors, float):
         critfactors = len(criteria) * (critfactors,)
     if isinstance(critdigits, int):

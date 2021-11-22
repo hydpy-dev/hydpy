@@ -497,12 +497,12 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
 class Devices(Generic[DeviceType]):
     """Base class for class |Elements| and class |Nodes|.
 
-    The following features are common to class |Nodes| and class
-    |Elements|.  We arbitrarily select class |Nodes| for all examples.
+    The following features are common to class |Nodes| and class |Elements|.
+    We arbitrarily select class |Nodes| for all examples.
 
-    To initialise a |Nodes| collection class, pass a variable number of
-    |str| or |Node| objects.  Strings are used to create new or query
-    already existing nodes automatically:
+    To initialise a |Nodes| collection class, pass a variable number of |str| or |Node|
+    objects.  Strings are used to create new or query already existing nodes
+    automatically:
 
     >>> from hydpy import Node, Nodes
     >>> nodes = Nodes("na",
@@ -511,8 +511,8 @@ class Devices(Generic[DeviceType]):
     ...               Node("nd", keywords=("group_a", "group_2")),
     ...               Node("ne", keywords=("group_b", "group_1")))
 
-    |Nodes| and |Elements| objects are containers supporting attribute
-    access. You can access each node or element directly by its name:
+    |Nodes| and |Elements| objects are containers supporting attribute access. You can
+    access each node or element directly by its name:
 
     >>> nodes.na
     Node("na", variable="Q")
@@ -522,19 +522,17 @@ class Devices(Generic[DeviceType]):
     >>> nodes.wrong
     Traceback (most recent call last):
     ...
-    AttributeError: The selected Nodes object has neither a `wrong` \
-attribute nor does it handle a Node object with name or keyword `wrong`, \
-which could be returned.
+    AttributeError: The selected Nodes object has neither a `wrong` attribute nor \
+does it handle a Node object with name or keyword `wrong`, which could be returned.
 
-    As explained in more detail in the documentation on property
-    |Device.keywords|, you can also use the keywords of the individual
-    nodes to query the relevant ones:
+    As explained in more detail in the documentation on property |Device.keywords|, you
+    can also use the keywords of the individual nodes to query the relevant ones:
 
     >>> nodes.group_a
     Nodes("nc", "nd")
 
-    Especially in this context, you might find it useful to also get an
-    iterable object in case no node or only a single node is available:
+    Especially in this context, you might find it useful to also get an iterable object
+    in case no node or only a single node is available:
 
     >>> Nodes.forceiterable = True
     >>> nodes.wrong
@@ -553,20 +551,19 @@ which could be returned.
     >>> del nodes.na
     Traceback (most recent call last):
     ...
-    AttributeError: The actual Nodes object does not handle \
-a Node object named `na` which could be removed, and deleting \
-other attributes is not supported.
+    AttributeError: The actual Nodes object does not handle a Node object named `na` \
+which could be removed, and deleting other attributes is not supported.
 
-    However, shown  by the next example, setting devices via attribute
-    access could result in inconsistencies and is not allowed (see method
-    |Devices.add_device| instead):
+    However, shown  by the next example, setting devices via attribute access could
+    result in inconsistencies and is not allowed (see method |Devices.add_device|
+    instead):
 
     >>> nodes.NF = Node("nf")
     Traceback (most recent call last):
     ...
-    AttributeError: Setting attributes of Nodes objects could result \
-in confusion whether a new attribute should be handled as a Node object or \
-as a "normal" attribute and is thus not support, hence `NF` is rejected.
+    AttributeError: Setting attributes of Nodes objects could result in confusion \
+whether a new attribute should be handled as a Node object or as a "normal" attribute \
+and is thus not support, hence `NF` is rejected.
 
     |Nodes| and |Elements| instances support iteration:
 
@@ -576,8 +573,8 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     ...     print(node.name, end=",")
     nb,nc,nd,ne,
 
-    The binary operators `+`, `+=`, `-` and `-=` support adding and removing
-    single devices or groups of devices:
+    The binary operators `+`, `+=`, `-` and `-=` support adding and removing single
+    devices or groups of devices:
 
     >>> nodes
     Nodes("nb", "nc", "nd", "ne")
@@ -597,8 +594,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     >>> nodes
     Nodes("nb", "nc", "nd", "ne")
 
-    Attempts to add already existing or to remove non-existing devices
-    do no harm:
+    Attempts to add already existing or to remove non-existing devices do no harm:
 
     >>> nodes
     Nodes("nb", "nc", "nd", "ne")
@@ -622,6 +618,20 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     (False, True, True)
     >>> subgroup > nodes, nodes > subgroup, nodes > nodes
     (False, True, False)
+
+    Class |Nodes| supports the `in` operator both for |str| and |Node| objects and
+    generally returns |False| for other types:
+
+    >>> "na" in nodes
+    False
+    >>> "nb" in nodes
+    True
+    >>> Node("na") in nodes
+    False
+    >>> Node("nb") in nodes
+    True
+    >>> 1 in nodes
+    False
 
     Passing wrong arguments to the constructor of class |Node| results in errors like
     the following:
@@ -1035,12 +1045,10 @@ which is in conflict with using their names as identifiers.
     def __contains__(self, value: object) -> bool:
         cls = self.get_contentclass()
         if isinstance(value, cls):
-            device = value
-        elif isinstance(value, str):
-            device = cls(value)
-        else:
-            return False
-        return device.name in self._name2device
+            return value.name in self._name2device
+        if isinstance(value, str):
+            return value in self._name2device
+        return False
 
     def __len__(self) -> int:
         return len(self._name2device)

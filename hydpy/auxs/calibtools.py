@@ -85,10 +85,7 @@ class Adaptor(Protocol):
     See class |SumAdaptor| or class |FactorAdaptor| for concrete examples.
     """
 
-    def __call__(
-        self,
-        target: parametertools.Parameter,
-    ) -> None:
+    def __call__(self, target: parametertools.Parameter) -> None:
         """Modify the value(s) of the given target |Parameter| object."""
 
 
@@ -146,16 +143,13 @@ class SumAdaptor(Adaptor):
 
     _rules: Tuple[Rule[parametertools.Parameter], ...]
 
-    def __init__(
-        self,
-        *rules: Rule[parametertools.Parameter],
+    # due to https://github.com/PyCQA/pylint/issues/4790:
+    def __init__(  # pylint: disable=super-init-not-called
+        self, *rules: Rule[parametertools.Parameter]
     ):
         self._rules = tuple(rules)
 
-    def __call__(
-        self,
-        target: parametertools.Parameter,
-    ) -> None:
+    def __call__(self, target: parametertools.Parameter) -> None:
         target(sum(rule.value for rule in self._rules))
 
 
@@ -280,16 +274,12 @@ class FactorAdaptor(Adaptor):
     _reference: str
     _mask: Optional[str]
 
-    def __init__(
+    # due to https://github.com/PyCQA/pylint/issues/4790:
+    def __init__(  # pylint: disable=super-init-not-called
         self,
         rule: Rule[parametertools.Parameter],
         reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
-        mask: Optional[
-            Union[
-                masktools.BaseMask,
-                str,
-            ]
-        ] = None,
+        mask: Optional[Union[masktools.BaseMask, str]] = None,
     ):
         self._rule = rule
         self._reference = str(getattr(reference, "name", reference))
@@ -650,10 +640,7 @@ value `200.0` instead.
         return self._value
 
     @value.setter
-    def value(
-        self,
-        value: float,
-    ) -> None:
+    def value(self, value: float) -> None:
         if self.lower <= value <= self.upper:
             self._value = value
         else:
@@ -706,10 +693,7 @@ value `200.0` instead.
         """
         return self._parameterstep
 
-    def _set_parameterstep(
-        self,
-        value: Optional[timetools.PeriodConstrArg],
-    ) -> None:
+    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
         if self.parametertype.TIME is None:
             self._parameterstep = None
         else:
@@ -727,11 +711,7 @@ value `200.0` instead.
 
     parameterstep = property(_get_parameterstep, _set_parameterstep)
 
-    def assignrepr(
-        self,
-        prefix: str,
-        indent: int = 0,
-    ) -> str:
+    def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |Rule| object prefixed with the
         given string."""
 
@@ -1406,11 +1386,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     _rules: Dict[str, RuleType1]
     _elements: devicetools.Elements
 
-    def __init__(
-        self,
-        hp: hydpytools.HydPy,
-        targetfunction: TargetFunction,
-    ):
+    def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction):
         self._hp = hp
         self._targetfunction = targetfunction
         self.conditions = hp.conditions
@@ -1653,10 +1629,7 @@ object named `fc`.
                 logfile.write(self._logfilelines.popleft())
 
     def read_logfile(
-        self,
-        logfilepath: str,
-        maximisation: bool,
-        check: bool = True,
+        self, logfilepath: str, maximisation: bool, check: bool = True
     ) -> None:
         """Read the log file with the given file path.
 
@@ -2641,10 +2614,7 @@ object named `second`.
 
     _name2parspec: Dict[str, CalibSpec]
 
-    def __init__(
-        self,
-        *parspecs: CalibSpec,
-    ) -> None:
+    def __init__(self, *parspecs: CalibSpec) -> None:
         self._name2parspec = {parspec.name: parspec for parspec in parspecs}
 
     def __getitem__(self, name: str) -> CalibSpec:

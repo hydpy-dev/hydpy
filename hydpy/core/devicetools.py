@@ -479,13 +479,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
         for variable in self._variables:
             yield variable
 
-    def __contains__(
-        self,
-        item: Union[
-            sequencetools.TypesInOutSequence,
-            sequencetools.InOutSequence,
-        ],
-    ) -> bool:
+    def __contains__(self, item: object) -> bool:
         if isinstance(
             item,
             (sequencetools.InputSequence, sequencetools.OutputSequence),
@@ -1038,8 +1032,14 @@ which is in conflict with using their names as identifiers.
         for (_, device) in sorted(self._name2device.items()):
             yield device
 
-    def __contains__(self, value: Mayberable2[DeviceType, str]) -> bool:
-        device = self.get_contentclass()(value)
+    def __contains__(self, value: object) -> bool:
+        cls = self.get_contentclass()
+        if isinstance(value, cls):
+            device = value
+        elif isinstance(value, str):
+            device = cls(value)
+        else:
+            return False
         return device.name in self._name2device
 
     def __len__(self) -> int:

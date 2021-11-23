@@ -99,6 +99,7 @@ if TYPE_CHECKING:
     from matplotlib import pyplot
     import pandas
     from hydpy.core import auxfiletools
+    from hydpy.core import hydpytools
     from hydpy.core import modeltools
 else:
     pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
@@ -1415,9 +1416,7 @@ Use method `prepare_models` instead.
             element.model.sequences.reset()
 
     @property
-    def conditions(
-        self,
-    ) -> Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
+    def conditions(self) -> hydpytools.ConditionsType:
         """A nested dictionary that contains the values of all |ConditionSequence|
         objects of all currently handled models.
 
@@ -1426,9 +1425,7 @@ Use method `prepare_models` instead.
         return {element.name: element.model.sequences.conditions for element in self}
 
     @conditions.setter
-    def conditions(
-        self, conditions: Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
-    ) -> None:
+    def conditions(self, conditions: hydpytools.ConditionsType) -> None:
         for name, subconditions in conditions.items():
             element = getattr(self, name)
             element.model.sequences.conditions = subconditions

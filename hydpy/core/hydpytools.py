@@ -2,6 +2,7 @@
 """This module implements the main features for managing *HydPy* projects."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import collections
 import itertools
 import warnings
@@ -973,7 +974,7 @@ Use method `prepare_models` instead.
         self,
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
     ) -> None:
         """Write the control files of all current |Element| objects.
 
@@ -1507,10 +1508,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         self,
     ) -> Dict[
         str,
-        Union[
-            int,
-            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
-        ],
+        Union[int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]],
     ]:
         """Some properties of the network defined by the currently relevant
         |Node| and |Element| objects.
@@ -1624,7 +1622,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         return endnodes
 
     @property
-    def segregatednetworks(self) -> "selectiontools.Selections":
+    def segregatednetworks(self) -> selectiontools.Selections:
         """The number of segregated networks defined by the currently
         relevant |Node| and |Element| objects.
 
@@ -1857,7 +1855,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
     def update_devices(
         self,
         *,
-        selection: "selectiontools.Selection",
+        selection: selectiontools.Selection,
     ) -> None:
         """Selection as input"""
 
@@ -1873,7 +1871,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
     def update_devices(
         self,
         *,
-        selection: Optional["selectiontools.Selection"] = None,
+        selection: Optional[selectiontools.Selection] = None,
         nodes: Optional[devicetools.NodesConstrArg] = None,
         elements: Optional[devicetools.ElementsConstrArg] = None,
     ) -> None:
@@ -2409,7 +2407,7 @@ Use method `simulate` instead.
 
 
 def create_directedgraph(
-    devices: Union[HydPy, "selectiontools.Selection"],
+    devices: Union[HydPy, selectiontools.Selection],
 ) -> networkx.DiGraph:
     """Create a directed graph based on the given devices."""
     digraph = networkx.DiGraph()

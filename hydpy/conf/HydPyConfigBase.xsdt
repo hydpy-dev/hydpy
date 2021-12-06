@@ -179,16 +179,10 @@
             <sequence>
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="hpcb:devices"
-                         minOccurs="0"/>
                 <element ref="hpcb:sequences"/>
                 <element ref="hpcb:filetype"
                          minOccurs="0"/>
                 <element ref="hpcb:dirpath"
-                         minOccurs="0"/>
-                <element ref="hpcb:selections"
-                         minOccurs="0"/>
-                <element ref="hpcb:devices"
                          minOccurs="0"/>
             </sequence>
             <attribute name="info" type="string"/>
@@ -199,8 +193,6 @@
         <complexType>
             <sequence>
                 <element ref="hpcb:selections"
-                         minOccurs="0"/>
-                <element ref="hpcb:devices"
                          minOccurs="0"/>
                 <element ref="hpcb:sequences"/>
                 <element ref="hpcb:filetype"

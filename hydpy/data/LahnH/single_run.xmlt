@@ -75,8 +75,6 @@
             <general>none</general>
         </aggregation>
 
-        <zip><!--|zip_=false|--></zip>
-
         <readers>
             <reader info="all input data">
                 <selections>from_keywords</selections>

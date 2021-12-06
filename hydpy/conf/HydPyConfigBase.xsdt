@@ -153,8 +153,6 @@
                 <element ref="hpcb:overwrite"/>
                 <element ref="hpcb:dirpath"/>
                 <element ref="hpcb:aggregation"/>
-                <element name="zip"
-                         type="boolean"/>
                 <element name="readers">
                     <complexType>
                         <sequence>

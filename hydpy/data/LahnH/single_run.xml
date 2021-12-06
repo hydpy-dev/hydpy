@@ -78,8 +78,6 @@
             <general>none</general>
         </aggregation>
 
-        <zip>false</zip>
-
         <readers>
             <reader info="all input data">
                 <selections>from_keywords</selections>

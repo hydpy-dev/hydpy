@@ -207,9 +207,9 @@ def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selecti
             selections.append(getattr(hydpy.pub.selections, name))
         except AttributeError:
             raise NameError(
-                f"The XML configuration file tries to define a selection "
-                f"using the text `{name}`, but the actual project does not "
-                f"handle such a `Selection` object."
+                f"The XML configuration file tries to define a selection using the "
+                f"text `{name}`, but the actual project does not handle such a "
+                f"`Selection` object."
             ) from None
     return selectiontools.Selections(*selections)
 
@@ -247,9 +247,7 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Create the custom selections (if defined)")
     interface.update_selections()
     write("Activate the selected network")
-    hp.update_devices(
-        selection=interface.fullselection,
-    )
+    hp.update_devices(selection=interface.fullselection)
     write("Read the required control files")
     interface.control_io.prepare_models()
     write("Read the required condition files")
@@ -397,7 +395,6 @@ HydPyConfigMultipleRuns.xsd}config'
                       ...HydPyConfigSingleRun.xsd"> (default argument)
           firstdate --> 1996-01-32T00:00:00 (given argument)
           zip_ --> false (default argument)
-          zip_ --> false (default argument)
           config_end --> </hpcsr:config> (default argument)
         >>> with TestIO():
         ...     interface = XMLInterface("single_run.xml", "LahnH")
@@ -432,7 +429,6 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
                       ...HydPyConfigSingleRun.xsd"> (default argument)
           firstdate --> 1996-01-01T00:00:00 (default argument)
           zip_ --> false (default argument)
-          zip_ --> false (default argument)
           config_end --> </hpcsr:config> (default argument)
         >>> interface.validate_xml()
 
@@ -449,7 +445,6 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         replacements:
           config_start --> <config> (given argument)
           firstdate --> 1996-01-01T00:00:00 (default argument)
-          zip_ --> false (default argument)
           zip_ --> false (default argument)
           config_end --> </config> (given argument)
         >>> interface.validate_xml()    # doctest: +ELLIPSIS

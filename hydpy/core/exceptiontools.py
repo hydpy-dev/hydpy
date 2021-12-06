@@ -27,7 +27,7 @@ class AttributeNotReady(RuntimeError):
 
 def attrready(
     obj: Any,
-    name: str,
+    name: str
 ) -> bool:
     """Return |False| when trying the access the attribute of the given object
     results in an |AttributeNotReady| error and otherwise return |True|.

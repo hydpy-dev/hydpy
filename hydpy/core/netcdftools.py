@@ -91,7 +91,8 @@ process happens.  After that, the interface object is not available anymore:
 >>> pub.sequencemanager.netcdfwriter
 Traceback (most recent call last):
 ...
-RuntimeError: The sequence file manager does currently handle no NetCDF writer object.
+hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does currently \
+handle no NetCDF writer object.
 
 (8) We set the time series values of two test sequences to zero, which serves the
 purpose to demonstrate that reading the data back in actually works:
@@ -202,6 +203,7 @@ from numpy import typing
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
+from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -248,7 +250,7 @@ You can set another |float| value before writing a NetCDF file:
 """
 
 
-NDArrayFloat = typing.NDArray[numpy.float_]
+NetCDFVariable = Union["NetCDFVariableDeep", "NetCDFVariableFlat", "NetCDFVariableAgg"]
 
 
 def str2chars(strings: Sequence[str]) -> NDArrayFloat:
@@ -519,8 +521,8 @@ class NetCDFInterface:
     >>> from hydpy.core.netcdftools import NetCDFInterface
     >>> interface = NetCDFInterface(flatten=False, isolate=False, timeaxis=1)
     >>> for sequence in sequences:
-    ...     interface.log(sequence, sequence.series)
-    ...     interface.log(sequence, sequence.average_series())
+    ...     _ = interface.log(sequence, sequence.series)
+    ...     _ = interface.log(sequence, sequence.average_series())
     >>> interface.filenames
     ('hland_v1', 'lland_v1', 'lland_v2', 'node')
     >>> interface.node.variablenames
@@ -555,7 +557,7 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
     >>> from hydpy import pub
     >>> pub.timegrids = "02.01.2000", "04.01.2000", "1d"
     >>> for sequence in sequences:
-    ...     sequence.activate_ram()
+    ...     sequence.prepare_series()
 
     (6) We again initialise class |NetCDFInterface|, log all test sequences, and read
     the test data of the defined subperiod:
@@ -563,7 +565,7 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
     >>> from hydpy.core.netcdftools import NetCDFInterface
     >>> interface = NetCDFInterface(flatten=False, isolate=False, timeaxis=1)
     >>> for sequence in sequences:
-    ...     interface.log(sequence, None)
+    ...     _ = interface.log(sequence, None)
 
     >>> with TestIO():
     ...     interface.read()
@@ -599,8 +601,8 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
 
     >>> interface = NetCDFInterface(flatten=True, isolate=True, timeaxis=1)
     >>> for sequence in sequences:
-    ...     interface.log(sequence, sequence.series)
-    ...     interface.log(sequence, sequence.average_series())
+    ...     _ = interface.log(sequence, sequence.series)
+    ...     _ = interface.log(sequence, sequence.average_series())
     >>> from pprint import pprint
     >>> pprint(interface.filenames)
     ('hland_v1_state_sp',
@@ -628,11 +630,11 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
     >>> from hydpy import pub
     >>> pub.timegrids = "02.01.2000", "04.01.2000", "1d"
     >>> for sequence in sequences:
-    ...     sequence.activate_ram()
+    ...     sequence.prepare_series()
 
     >>> interface = NetCDFInterface(flatten=True, isolate=True, timeaxis=1)
     >>> for sequence in sequences:
-    ...     interface.log(sequence, None)
+    ...     _ = interface.log(sequence, None)
     >>> with TestIO():
     ...     interface.read()
     >>> nodes.node1.sequences.sim.series
@@ -665,13 +667,13 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
         self._flatten = flatten
         self._isolate = isolate
         self._timeaxis = timeaxis
-        self.folders: Dict[str, Dict[str, NetCDFFile]] = collections.OrderedDict()
+        self.folders: Dict[str, Dict[str, NetCDFFile]] = {}
 
     def log(
         self,
         sequence: sequencetools.IOSequence[Any, Any],
-        infoarray: sequencetools.InfoArray,
-    ) -> None:
+        infoarray: Optional[sequencetools.InfoArray] = None,
+    ) -> Tuple[NetCDFFile, NetCDFVariable]:
         """Prepare a |NetCDFFile| object suitable for the given |IOSequence| object,
         when necessary, and pass the given arguments to its |NetCDFFile.log| method."""
         if isinstance(sequence, sequencetools.ModelSequence):
@@ -682,11 +684,11 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
             descr = f"{descr}_{sequence.descr_sequence}"
             if (infoarray is not None) and (infoarray.info["type"] != "unmodified"):
                 descr = f"{descr}_{infoarray.info['type']}"
-        dirpath = sequence.dirpath_ext
+        dirpath = sequence.dirpath
         try:
             files: Dict[str, NetCDFFile] = self.folders[dirpath]
         except KeyError:
-            files = collections.OrderedDict()
+            files = {}
             self.folders[dirpath] = files
         try:
             file_ = files[descr]
@@ -699,13 +701,12 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
                 dirpath=dirpath,
             )
             files[descr] = file_
-        file_.log(sequence, infoarray)
+        return file_, file_.log(sequence, infoarray)
 
     def read(self) -> None:
         """Call method |NetCDFFile.read| of all handled |NetCDFFile| objects."""
-        for folder in self.folders.values():
-            for file_ in folder.values():
-                file_.read()
+        for ncfile_ in self:
+            ncfile_.read()
 
     def write(self) -> None:
         """Call method |NetCDFFile.write| of all handled |NetCDFFile| objects."""
@@ -713,9 +714,87 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
             init = hydpy.pub.timegrids.init
             timeunits = init.firstdate.to_cfunits("hours")
             timepoints = init.to_timepoints("hours")
-            for folder in self.folders.values():
-                for file_ in folder.values():
-                    file_.write(timeunits, timepoints)
+            for ncfile in self:
+                ncfile.write(timeunits, timepoints)
+
+    @staticmethod
+    def _yield_disksequences(
+        deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+    ) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+        for device in deviceorder:
+            if isinstance(device, devicetools.Node):
+                for sequence in device.sequences:
+                    yield sequence
+            else:
+                for subseqs in device.model.sequences.iosubsequences:
+                    for sequence in subseqs:
+                        yield sequence
+
+    def open(
+        self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+    ) -> Dict[NetCDFVariableFlat, NDArrayFloat]:
+
+        ncvariable2sequences: DefaultDict[
+            NetCDFVariableFlat, List[sequencetools.IOSequence[Any, Any]]
+        ] = collections.defaultdict(lambda: [])
+        readers, writers = set(), set()
+        log = self.log
+        for sequence in self._yield_disksequences(deviceorder):
+            if sequence.diskflag:
+                ncvariable = log(sequence)[1]
+                assert isinstance(ncvariable, NetCDFVariableFlat)
+                ncvariable2sequences[ncvariable].append(sequence)
+                if sequence.diskflag_reading:
+                    readers.add(ncvariable)
+                if sequence.diskflag_writing:
+                    writers.add(ncvariable)
+
+        ncvariable2idxs_reading = {}
+        if ncvariable2sequences:
+            init = hydpy.pub.timegrids.init
+            timeunits = init.firstdate.to_cfunits("hours")
+            timepoints = init.to_timepoints("hours")
+            for ncfile in self:
+                ncfile.open(timeunits, timepoints)
+                ncvariable = tuple(ncfile)[0]
+                if ncvariable in readers:
+                    get_index = ncvariable.query_subdevice2index(
+                        ncfile.ncfile
+                    ).get_index
+                    idxs = tuple(get_index(n) for n in ncvariable.subdevicenames)
+                    ncvariable2idxs_reading[ncvariable] = idxs
+
+        ncvariable2delta_reading = {}
+        init = hydpy.pub.timegrids.init
+        for ncvariable in readers:
+            firstdate = query_timegrid(ncvariable.ncfile).firstdate
+            delta = init[firstdate]
+            ncvariable2delta_reading[ncvariable] = delta
+
+        ncvariable2array_reading = {}
+        ncvariable2array_writing = {}
+        for ncvariable, sequences in ncvariable2sequences.items():
+            ncarray = numpy.full(ncvariable.shape[1], numpy.nan, dtype=float)
+            if ncvariable in readers:
+                ncvariable2array_reading[ncvariable] = ncarray
+            else:
+                ncvariable2array_writing[ncvariable] = ncarray
+            idx0 = 0
+            for sequence in sequences:
+                idx1 = idx0 + int(numpy.product(sequence.shape))  # type: ignore[no-untyped-call]  # pylint: disable=line-too-long
+                sequence.connect_netcdf(ncarray=ncarray[idx0:idx1])
+                idx0 = idx1
+
+        return (
+            ncvariable2array_reading,
+            ncvariable2idxs_reading,
+            ncvariable2delta_reading,
+            ncvariable2array_writing,
+        )
+
+    def close(self) -> None:
+        for ncfile in self:
+            ncfile.close()
 
     @property
     def foldernames(self) -> Tuple[str, ...]:
@@ -729,7 +808,7 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
             sorted(set(itertools.chain(*(_.keys() for _ in self.folders.values()))))
         )
 
-    def __getattr__(self, name: str) -> Union[NetCDFFile]:
+    def __getattr__(self, name: str) -> NetCDFFile:
         counter = 0
         memory = None
         for foldername, folder in self.folders.items():
@@ -754,6 +833,14 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_
+
+    def __len__(self) -> int:
+        return len(tuple(ncfiles for ncfiles in self))
+
+    def __iter__(self) -> Iterator[NetCDFFile]:
+        for ncfiles in self.folders.values():
+            for ncfile in ncfiles.values():
+                yield ncfile
 
     def __dir__(self) -> List[str]:
         adds_long = []
@@ -790,7 +877,7 @@ class NetCDFFile:
     >>> from hydpy.core.netcdftools import NetCDFFile
     >>> ncfile = NetCDFFile(
     ...     "model", flatten=False, isolate=False, timeaxis=1, dirpath="")
-    >>> ncfile.log(nied, nied.series)
+    >>> _ = ncfile.log(nied, nied.series)
 
     (4) We store the NetCDF file directly into the testing directory:
 
@@ -807,7 +894,7 @@ class NetCDFFile:
     >>> nied.series = 0.0
     >>> ncfile = NetCDFFile(
     ...     "model", flatten=True, isolate=False, timeaxis=1, dirpath="")
-    >>> ncfile.log(nied, nied.series)
+    >>> _ = ncfile.log(nied, nied.series)
     >>> with TestIO():
     ...     ncfile.read()
     >>> nied.series
@@ -816,7 +903,7 @@ class NetCDFFile:
     (6) We show that IO errors and faulty variable access should result in clear error
     messages:
 
-    >>> ncfile.log(nkor, nkor.series)
+    >>> _ = ncfile.log(nkor, nkor.series)
     >>> with TestIO():
     ...     ncfile.read()
     Traceback (most recent call last):
@@ -837,6 +924,14 @@ error occurred: NetCDF file `model.nc` does not contain variable `flux_nkor`.
 variable named `state_bowa` nor does it define a member named `state_bowa`.
     """
 
+    name: str
+    variables: Dict[str, NetCDFVariable]
+    ncfile: Optional[netcdf4.Dataset]
+    _flatten: bool
+    _isolate: bool
+    _timeaxis: bool
+    _dirpath: str
+
     def __init__(
         self, name: str, flatten: bool, isolate: bool, timeaxis: bool, dirpath: str
     ) -> None:
@@ -845,13 +940,14 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         self._isolate = isolate
         self._timeaxis = timeaxis
         self._dirpath = dirpath
-        self.variables: Dict[str, NetCDFVariableBase] = collections.OrderedDict()
+        self.ncfile = None
+        self.variables = {}
 
     def log(
         self,
         sequence: sequencetools.IOSequence[Any, Any],
-        infoarray: sequencetools.InfoArray,
-    ) -> None:
+        infoarray: Optional[sequencetools.InfoArray],
+    ) -> NetCDFVariable:
         """Pass the given |IoSequence| to a suitable instance of a |NetCDFVariableBase|
         subclass.
 
@@ -962,25 +1058,31 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         ...     mock.assert_called_once_with(
         ...         name="input_nied", timeaxis=0, isolate=False)
         """
-        aggregated = (infoarray is not None) and (
-            infoarray.info["type"] != "unmodified"
-        )
         descr = sequence.descr_sequence
-        if aggregated:
+        if (infoarray is not None) and (infoarray.info["type"] != "unmodified"):
+            aggregated = True
             descr = "_".join([descr, infoarray.info["type"]])
+        else:
+            aggregated = False
         if descr in self.variables:
             var_ = self.variables[descr]
         else:
-            cls: Type[Union[NetCDFVariableAgg, NetCDFVariableFlat, NetCDFVariableDeep]]
+            cls: Type[NetCDFVariable]
             if aggregated:
                 cls = NetCDFVariableAgg
             elif self._flatten:
                 cls = NetCDFVariableFlat
             else:
                 cls = NetCDFVariableDeep
-            var_ = cls(name=descr, isolate=self._isolate, timeaxis=self._timeaxis)
+            var_ = cls(
+                name=descr,
+                isolate=self._isolate,
+                timeaxis=self._timeaxis,
+                ncfile=self.ncfile,
+            )
             self.variables[descr] = var_
         var_.log(sequence, infoarray)
+        return var_
 
     @property
     def filepath(self) -> str:
@@ -993,7 +1095,7 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         try:
             with netcdf4.Dataset(self.filepath, "r") as ncfile:
                 timegrid = query_timegrid(ncfile)
-                for variable in self.variables.values():
+                for variable in self:
                     variable.read(ncfile, timegrid)
         except BaseException:
             objecttools.augment_excmessage(
@@ -1006,8 +1108,26 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
             ncfile.Conventions = "CF-1.6"
             self._insert_timepoints(ncfile, timepoints, timeunit)
-            for variable in self.variables.values():
+            for variable in self:
                 variable.write(ncfile)
+
+    def open(
+        self, timeunit: str, timepoints: NDArrayFloat
+    ) -> Optional[Tuple[int, ...]]:
+        """Open a new NetCDF file temporarily and call method |NetCDFVariableBase.write|
+        of all handled |NetCDFVariableBase| objects."""
+        if not os.path.exists(self.filepath):
+            self.write(timeunit, timepoints)
+        self.ncfile = netcdf4.Dataset(self.filepath, "r+")
+        for variable in self:
+            variable.ncfile = self.ncfile
+
+    def close(self) -> None:
+        if self.ncfile:
+            self.ncfile.close()
+        self.ncfile = None
+        for variable in self:
+            variable.ncfile = self.ncfile
 
     @staticmethod
     def _insert_timepoints(
@@ -1029,7 +1149,7 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         """The names of all handled |IOSequence| objects."""
         return tuple(self.variables.keys())
 
-    def __getattr__(self, name: str) -> NetCDFVariableBase:
+    def __getattr__(self, name: str) -> NetCDFVariable:
         try:
             return self.variables[name]
         except KeyError:
@@ -1040,6 +1160,13 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_
+
+    def __len__(self) -> int:
+        return len(self.variables)
+
+    def __iter__(self) -> Iterator[NetCDFVariable]:
+        for variable in self.variables.values():
+            yield variable
 
     def __dir__(self) -> List[str]:
         return cast(List[str], super().__dir__()) + list(self.variablenames)
@@ -1096,12 +1223,19 @@ NetCDFVariableBase_ the value `2` is given.
 
     name: str
     sequences: Dict[str, sequencetools.IOSequence[Any, Any]]
-    arrays: Dict[str, sequencetools.InfoArray]
+    arrays: Dict[str, Optional[sequencetools.InfoArray]]
+    ncfile: netcdf4.Dataset
 
     _isolate: bool
     _timeaxis: int
 
-    def __init__(self, name: str, isolate: bool, timeaxis: bool) -> None:
+    def __init__(
+        self,
+        name: str,
+        isolate: bool,
+        timeaxis: bool,
+        ncfile: Optional[netcdf4.Dataset] = None,
+    ) -> None:
         self.name = name
         self._isolate = isolate
         _timeaxis = int(timeaxis)
@@ -1113,13 +1247,14 @@ NetCDFVariableBase_ the value `2` is given.
                 f"given."
             )
         self._timeaxis = _timeaxis
-        self.sequences = collections.OrderedDict()
-        self.arrays = collections.OrderedDict()
+        self.ncfile = ncfile
+        self.sequences = {}
+        self.arrays = {}
 
     def log(
         self,
         sequence: sequencetools.IOSequence[Any, Any],
-        infoarray: sequencetools.InfoArray,
+        infoarray: Optional[sequencetools.InfoArray],
     ) -> None:
         """Log the given |IOSequence| object either for reading or writing data.
 
@@ -1753,8 +1888,9 @@ file `model.nc` available.
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, (descr, subarray) in enumerate(self.arrays.items()):
-            sequence = self.sequences[descr]
-            array[self.get_slices(idx, sequence.shape)] = subarray
+            if subarray is not None:
+                sequence = self.sequences[descr]
+                array[self.get_slices(idx, sequence.shape)] = subarray
         return array
 
     @property
@@ -1967,7 +2103,8 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin):
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, subarray in enumerate(self.arrays.values()):
-            array[self.get_timeplaceslice(idx)] = subarray
+            if subarray is not None:
+                array[self.get_timeplaceslice(idx)] = subarray
         return array
 
     def read(self, ncfile: netcdf4.Dataset, timegrid_data: timetools.Timegrid) -> None:
@@ -1991,6 +2128,7 @@ other sequences as well) is not invertible.
 
 
 class NetCDFVariableFlat(AggAndFlatMixin):
+
     """Relates objects of a specific |IOSequence| subclass with a single NetCDF
     variable when flattening is required.
 
@@ -2195,8 +2333,9 @@ class NetCDFVariableFlat(AggAndFlatMixin):
         idxs: List[Any] = [slice(None)]
         for seq, subarray in zip(self.sequences.values(), self.arrays.values()):
             for prod in self._product(seq.shape):
-                subsubarray = subarray[tuple(idxs + list(prod))]
-                array[self.get_timeplaceslice(idx0)] = subsubarray
+                if subarray is not None:
+                    subsubarray = subarray[tuple(idxs + list(prod))]
+                    array[self.get_timeplaceslice(idx0)] = subsubarray
                 idx0 += 1
         return array
 

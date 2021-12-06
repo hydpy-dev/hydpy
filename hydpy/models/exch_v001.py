@@ -132,7 +132,7 @@ For simplicity, we set both lakes' inflow, precipitation, and evaporation to zer
 >>> for model_ in (lake1.model, lake2.model):
 ...     inputs = model_.sequences.inputs
 ...     for seq in (inputs.precipitation, inputs.evaporation):
-...         seq.activate_ram()
+...         seq.prepare_series()
 ...         seq.series = 0.0
 
 The only difference between both lakes is their initial state.  The first lake starts

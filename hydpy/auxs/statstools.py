@@ -337,10 +337,9 @@ def prepare_arrays(
     Next, we assign some values to the `simulation` and the `observation` sequences of
     the node:
 
-    >>> node.prepare_simseries()
+    >>> node.prepare_allseries()
     >>> with pub.options.checkseries(False):
     ...     node.sequences.sim.series = 1.0, nan, nan, nan, 2.0, 3.0
-    ...     node.sequences.obs.activate_ram()
     ...     node.sequences.obs.series = 4.0, 5.0, nan, nan, nan, 6.0
 
     Now we can pass the node object to function |prepare_arrays| and get the
@@ -1789,7 +1788,7 @@ def print_evaluationtable(
     >>> for node in nodes:
     ...     node.prepare_simseries()
     ...     node.sequences.sim.series = 1.0, 2.0, 3.0
-    ...     node.sequences.obs.activate_ram()
+    ...     node.sequences.obs.prepare_series()
     ...     node.sequences.obs.series = 4.0, 5.0, 6.0
     >>> nodes[0].sequences.sim.series = 1.0, 2.0, 3.0
     >>> nodes[0].sequences.obs.series = 4.0, 5.0, 6.0

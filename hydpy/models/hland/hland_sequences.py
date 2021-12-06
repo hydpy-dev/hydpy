@@ -140,7 +140,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> sclass(2)
         >>> zonetype(FIELD)
         >>> zonearea.values = 1.0, 1.0, 1.0
-        >>> states.sp.activate_ram()
+        >>> states.sp.prepare_series()
         >>> states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
         ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],
@@ -265,7 +265,7 @@ class State2DSequence(sequencetools.StateSequence):
         >>> sclass(2)
         >>> zonetype(FIELD)
         >>> zonearea.values = 1.0, 1.0, 1.0
-        >>> states.sp.activate_ram()
+        >>> states.sp.prepare_series()
         >>> states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
         ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],

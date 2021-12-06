@@ -743,14 +743,15 @@ datetime of the Python standard library for for further information.
             if not node.entries:
                 node.deploymode = "oldsim"
             sim = node.sequences.sim
-            sim.activate_ram()
+            sim.prepare_series(allocate_ram=False)
+            sim.prepare_series(allocate_ram=True)
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
-        subseqs = getattr(self.element.model.sequences, "inputs", ())
-        for seq in subseqs:
-            seq.activate_ram()
+        prepare_series = self.element.model.sequences.inputs.prepare_series
+        prepare_series(allocate_ram=False)
+        prepare_series(allocate_ram=True)
 
     def extract_print_sequences(self):
         """Return a list of all input, factor, flux, and state sequences of the model
@@ -773,9 +774,10 @@ datetime of the Python standard library for for further information.
         series and set the initial conditions."""
         if update_parameters:
             self.model.parameters.update()
-        self.element.prepare_factorseries()
-        self.element.prepare_fluxseries()
-        self.element.prepare_stateseries()
+        for flag in (False, True):
+            self.element.prepare_factorseries(allocate_ram=flag)
+            self.element.prepare_fluxseries(allocate_ram=flag)
+            self.element.prepare_stateseries(allocate_ram=flag)
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):

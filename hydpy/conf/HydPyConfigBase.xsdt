@@ -146,6 +146,14 @@
         </complexType>
     </element>
 
+    <simpleType name="mode">
+        <restriction base="string">
+            <enumeration value="ram"/>
+            <enumeration value="jit"/>
+        </restriction>
+    </simpleType>
+
+
     <element name="series_io">
         <complexType>
             <sequence>
@@ -153,6 +161,9 @@
                 <element ref="hpcb:overwrite"/>
                 <element ref="hpcb:dirpath"/>
                 <element ref="hpcb:aggregation"/>
+                <element name="mode"
+                         minOccurs="0"
+                         type="hpcb:mode"/>
                 <element name="readers">
                     <complexType>
                         <sequence>
@@ -179,11 +190,15 @@
             <sequence>
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="hpcb:sequences"/>
+                <element name="sequences"
+                         type="hpcb:readerType"/>
                 <element ref="hpcb:filetype"
                          minOccurs="0"/>
                 <element ref="hpcb:dirpath"
                          minOccurs="0"/>
+                <element name="mode"
+                         minOccurs="0"
+                         type="hpcb:mode"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>
@@ -194,7 +209,8 @@
             <sequence>
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="hpcb:sequences"/>
+                <element name="sequences"
+                         type="hpcb:writerType"/>
                 <element ref="hpcb:filetype"
                          minOccurs="0"/>
                 <element ref="hpcb:overwrite"
@@ -203,6 +219,9 @@
                          minOccurs="0"/>
                 <element ref="hpcb:aggregation"
                          minOccurs="0"/>
+                <element name="mode"
+                         minOccurs="0"
+                         type="hpcb:mode"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>
@@ -319,36 +338,22 @@
         </restriction>
     </simpleType>
 
-    <element name="sequences">
-        <complexType>
-            <sequence>
-                <element ref="hpcb:sequenceGroup"
-                         maxOccurs="unbounded"/>
-            </sequence>
-        </complexType>
-    </element>
+    <complexType name="node_readerType">
+        <sequence>
+            <element name="sim"
+                     minOccurs="0"/>
+            <element name="obs"
+                     minOccurs="0"/>
+        </sequence>
+    </complexType>
 
-    <element name="sequenceGroup"
-             type="hpcb:sequenceGroupType"
-             abstract="true"/>
-
-    <complexType name="sequenceGroupType"/>
-
-    <element name="node"
-             substitutionGroup="hpcb:sequenceGroup"
-             type="hpcb:nodeType"/>
-
-    <complexType name="nodeType">
-        <complexContent>
-            <extension base="hpcb:sequenceGroupType">
-                <sequence>
-                    <element name="sim"
-                             minOccurs="0"/>
-                    <element name="obs"
-                             minOccurs="0"/>
-                </sequence>
-            </extension>
-        </complexContent>
+    <complexType name="node_writerType">
+        <sequence>
+            <element name="sim"
+                     minOccurs="0"/>
+            <element name="obs"
+                     minOccurs="0"/>
+        </sequence>
     </complexType>
 
 <!--include model sequence groups-->

@@ -78,6 +78,8 @@
             <general>none</general>
         </aggregation>
 
+        <mode>jit</mode>
+
         <readers>
             <reader info="all input data">
                 <selections>from_keywords</selections>
@@ -94,11 +96,11 @@
                 <filetype>
                     <inputs>nc</inputs>
                 </filetype>
+                <mode>jit</mode>
             </reader>
         </readers>
 
         <writers>
-
             <writer info="precipitation">
                 <selections>
                     headwaters
@@ -106,9 +108,6 @@
                 </selections>
                 <sequences>
                     <hland_v1>
-                        <inputs>
-                            <p/>
-                        </inputs>
                         <fluxes>
                             <pc/>
                             <tf/>
@@ -136,6 +135,7 @@
                 <overwrite>
                     <states>false</states>
                 </overwrite>
+                <mode>jit</mode>
             </writer>
 
             <writer info="averaged">
@@ -149,7 +149,6 @@
                             <tc/>
                         </factors>
                         <fluxes>
-                            <pc/>
                             <tf/>
                         </fluxes>
                         <states>
@@ -168,6 +167,7 @@
                 <aggregation>
                     <general>mean</general>
                 </aggregation>
+                <mode>ram</mode>
             </writer>
 
         </writers>

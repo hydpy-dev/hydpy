@@ -3,7 +3,9 @@
 as well as loading data from and storing data to files."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
+import contextlib
 import os
 import runpy
 import shutil
@@ -17,15 +19,15 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
-
-if TYPE_CHECKING:
-    from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Folder2Path:
@@ -103,7 +105,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
     False
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: str, **kwargs: str) -> None:
         for arg in args:
             self.add(arg)
         for (key, value) in kwargs.items():
@@ -1131,37 +1133,37 @@ class _Descriptor(Generic[_DescrAttrType]):
 
     default: _DescrAttrType
     sequencetype: "str"
-    obj2value: Dict["SequenceManager", _DescrAttrType]
+    obj2value: Dict[SequenceManager, _DescrAttrType]
 
     def __init__(self, default: _DescrAttrType, sequencetype: str) -> None:
         self.default = default
         self.sequencetype = sequencetype
         self.obj2value = {}
 
-    def get_value(self, obj: "SequenceManager") -> _DescrAttrType:
+    def get_value(self, obj: SequenceManager) -> _DescrAttrType:
         """Get the value from the given object and return it."""
         return self.obj2value.get(obj, self.default)
 
-    def set_value(self, obj: "SequenceManager", value: _DescrAttrType):
+    def set_value(self, obj: SequenceManager, value: _DescrAttrType):
         """Assign the given value to the given object."""
         self.obj2value[obj] = value
 
-    def del_value(self, obj: "SequenceManager") -> None:
+    def del_value(self, obj: SequenceManager) -> None:
         """Delete the value from the given object."""
         if obj in self.obj2value:
             del self.obj2value[obj]
 
     @abc.abstractmethod
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
     ) -> _DescrAttrType:
         """To be overridden."""
 
     @abc.abstractmethod
-    def __set__(self, obj: "SequenceManager", directory: _DescrAttrType) -> None:
+    def __set__(self, obj: SequenceManager, directory: _DescrAttrType) -> None:
         """To be overridden."""
 
-    def __delete__(self, obj: "SequenceManager") -> None:
+    def __delete__(self, obj: SequenceManager) -> None:
         self.del_value(obj)
 
 
@@ -1171,13 +1173,13 @@ class _DescriptorType(_Descriptor[str]):
         self.__doc__ = f"Currently selected type of the {sequencetype} sequence files."
 
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
     ) -> str:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: "SequenceManager", value: str) -> None:
+    def __set__(self, obj: SequenceManager, value: str) -> None:
         value = str(value)
         if value in obj.SUPPORTED_MODES:
             self.set_value(obj, value)
@@ -1197,13 +1199,13 @@ class _DescriptorOverwrite(_Descriptor[bool]):
         )
 
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
     ) -> bool:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: "SequenceManager", value: bool) -> None:
+    def __set__(self, obj: SequenceManager, value: bool) -> None:
         self.set_value(obj, value)
 
 
@@ -1215,7 +1217,7 @@ class _DescriptorPath(_Descriptor[Optional[str]]):
         self.__doc__ = f"Path of the {sequencetype} sequence directory."
 
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
     ) -> str:
         if obj is None:
             return self
@@ -1224,7 +1226,7 @@ class _DescriptorPath(_Descriptor[Optional[str]]):
             return os.path.join(obj.basepath, self.sequencedir)
         return value
 
-    def __set__(self, obj: "SequenceManager", value: Optional[str]) -> None:
+    def __set__(self, obj: SequenceManager, value: Optional[str]) -> None:
         if value is not None:
             abspath = os.path.abspath(value)
             if not os.path.exists(abspath):
@@ -1244,13 +1246,13 @@ class _DescriptorAggregate(_Descriptor[str]):
         )
 
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]] = None
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
     ) -> str:
         if obj is None:
             return self
         return self.get_value(obj)
 
-    def __set__(self, obj: "SequenceManager", value: str) -> None:
+    def __set__(self, obj: SequenceManager, value: str) -> None:
         if value in self.AVAILABLE_MODES:
             self.set_value(obj, value)
         else:
@@ -1272,7 +1274,7 @@ class _GeneralDescriptor(Generic[_DescrAttrType]):
         self.specific_descriptors = specific_descriptors
 
     def __get__(
-        self, obj: "SequenceManager", type_: Optional[Type["SequenceManager"]]
+        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]]
     ) -> Union[_DescrAttrType, Tuple[_DescrAttrType, ...]]:
         if obj is None:
             return self
@@ -1281,11 +1283,11 @@ class _GeneralDescriptor(Generic[_DescrAttrType]):
             return list(values)[0]
         return tuple(sorted(values))
 
-    def __set__(self, obj: "SequenceManager", value: _DescrAttrType) -> None:
+    def __set__(self, obj: SequenceManager, value: _DescrAttrType) -> None:
         for descr in self.specific_descriptors:
             descr.__set__(obj, value)
 
-    def __delete__(self, obj: "SequenceManager") -> None:
+    def __delete__(self, obj: SequenceManager) -> None:
         for descr in self.specific_descriptors:
             descr.__delete__(obj)
 
@@ -1311,8 +1313,8 @@ class SequenceManager(FileManager):
     >>> sim = nodes.node2.sequences.sim
     >>> nkor = elements.element2.model.sequences.fluxes.nkor
 
-    We store the time series data of both sequences in ASCII files (Mwthods
-    |SequenceManager.save_file| and |IOSequence.save_ext| are interchangeable here.
+    We store the time series data of both sequences in ASCII files (methods
+    |SequenceManager.save_file| and |IOSequence.save_series| are interchangeable here.
     The last one is only a convenience function for the first one):
 
     >>> from hydpy import pub
@@ -1320,7 +1322,7 @@ class SequenceManager(FileManager):
     >>> from hydpy import TestIO
     >>> with TestIO():
     ...     pub.sequencemanager.save_file(sim)
-    ...     nkor.save_ext()
+    ...     nkor.save_series()
 
     To check that this was successful, we can load the file content from the output
     directory defined by |prepare_io_example_1| and print it:
@@ -1366,7 +1368,7 @@ class SequenceManager(FileManager):
                [0., 0.]])
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(sim)
-    ...     nkor.load_ext()
+    ...     nkor.load_series()
     >>> sim.series
     InfoArray([64., 65., 66., 67.])
     >>> nkor.series
@@ -1389,8 +1391,8 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    NameError: While trying to load the external data of sequence `sim` of node \
-`node2`, the following error occurred: name 'timegrid' is not defined
+    NameError: While trying to load the time-series data of sequence `sim` of \
+node `node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
     >>> with TestIO():
@@ -1403,23 +1405,23 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to load the external data of sequence `sim` of node \
-`node2`, the following error occurred: The series array of sequence `sim` of node \
-`node2` contains 1 nan value.
+    RuntimeError: While trying to load the time-series data of sequence `sim` \
+of node `node2`, the following error occurred: The series array of sequence \
+`sim` of node `node2` contains 1 nan value.
     >>> sim.series = sim_series
 
     By default, overwriting existing time series files is disabled:
 
     >>> with TestIO():
-    ...     sim.save_ext()   # doctest: +ELLIPSIS
+    ...     sim.save_series()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    OSError: While trying to save the external data of sequence `sim` of node \
-`node2`, the following error occurred: Sequence `sim` of node `node2` is not allowed \
-to overwrite the existing file `...`.
+    OSError: While trying to save the time-series data of sequence `sim` of \
+node `node2`, the following error occurred: Sequence `sim` of node `node2` is \
+not allowed to overwrite the existing file `...`.
     >>> pub.sequencemanager.generaloverwrite = True
     >>> with TestIO():
-    ...     sim.save_ext()
+    ...     sim.save_series()
 
     When a sequence comes with a weighting parameter referenced by |property|
     |Variable.refweights|, one can save the averaged time series by using the method
@@ -1461,8 +1463,8 @@ to overwrite the existing file `...`.
 
     >>> pub.sequencemanager.generalfiletype = "npy"
     >>> with TestIO():
-    ...     sim.save_ext()
-    ...     nkor.save_ext()
+    ...     sim.save_series()
+    ...     nkor.save_series()
 
     The time information (without time zone information) is available within the first
     thirteen entries:
@@ -1479,8 +1481,8 @@ to overwrite the existing file `...`.
     >>> sim.series = 0.0
     >>> nkor.series = 0.0
     >>> with TestIO():
-    ...     sim.load_ext()
-    ...     nkor.load_ext()
+    ...     sim.load_series()
+    ...     nkor.load_series()
     >>> sim.series
     InfoArray([64., 65., 66., 67.])
     >>> nkor.series
@@ -1501,13 +1503,13 @@ to overwrite the existing file `...`.
     Generally, trying to load data for "deactivated" sequences results in the following
     error message:
 
-    >>> nkor.deactivate_ram()
+    >>> nkor.prepare_series(allocate_ram=False)
     >>> with TestIO(clear_all=True):
     ...     pub.sequencemanager.save_file(nkor)
     Traceback (most recent call last):
     ...
-    AttributeError: Sequence `nkor` of element `element2` is not requested \
-to make any internal data available.
+    hydpy.core.exceptiontools.AttributeNotReady: Sequence `nkor` of element \
+`element2` is not requested to make any time-series data available.
 
     The third option is to store data in netCDF files, which is explained separately in
     the documentation on class |NetCDFInterface|.
@@ -1528,8 +1530,6 @@ to make any internal data available.
     >>> pub.sequencemanager.stateoverwrite
     True
     >>> pub.sequencemanager.nodeoverwrite
-    True
-    >>> pub.sequencemanager.tempoverwrite
     True
 
     However, there is also a "general" attribute, covering all specific ones:
@@ -1562,8 +1562,6 @@ to make any internal data available.
     False
     >>> pub.sequencemanager.nodeoverwrite
     False
-    >>> pub.sequencemanager.tempoverwrite
-    False
 
     All other special configuration attributes do not return and except booleans but
     strings instead:
@@ -1581,7 +1579,7 @@ to make any internal data available.
 Select one of the following modes: none and mean.
     """
 
-    SUPPORTED_MODES = ("npy", "asc", "nc")
+    SUPPORTED_MODES = "npy", "asc", "nc"
     BASEDIR = "series"
     DEFAULTDIR = None
 
@@ -1590,14 +1588,12 @@ Select one of the following modes: none and mean.
     fluxfiletype = _DescriptorType("asc", "flux")
     statefiletype = _DescriptorType("asc", "state")
     nodefiletype = _DescriptorType("asc", "node")
-    tempfiletype = _DescriptorType("asc", "temporary")
     generalfiletype = _GeneralDescriptor[str](
         inputfiletype,
         factorfiletype,
         fluxfiletype,
         statefiletype,
         nodefiletype,
-        tempfiletype,
     )
 
     inputoverwrite = _DescriptorOverwrite(False, "input")
@@ -1605,14 +1601,12 @@ Select one of the following modes: none and mean.
     fluxoverwrite = _DescriptorOverwrite(False, "flux")
     stateoverwrite = _DescriptorOverwrite(False, "state")
     nodeoverwrite = _DescriptorOverwrite(False, "node")
-    tempoverwrite = _DescriptorOverwrite(False, "temporary")
     generaloverwrite = _GeneralDescriptor[bool](
         inputoverwrite,
         factoroverwrite,
         fluxoverwrite,
         stateoverwrite,
         nodeoverwrite,
-        tempoverwrite,
     )
 
     inputdirpath = _DescriptorPath("input", "input")
@@ -1620,14 +1614,12 @@ Select one of the following modes: none and mean.
     fluxdirpath = _DescriptorPath("output", "flux")
     statedirpath = _DescriptorPath("output", "state")
     nodedirpath = _DescriptorPath("node", "node")
-    tempdirpath = _DescriptorPath("temp", "temporary")
     generaldirpath = _GeneralDescriptor[str](
         inputdirpath,
         factordirpath,
         fluxdirpath,
         statedirpath,
         nodedirpath,
-        tempdirpath,
     )
 
     inputaggregation = _DescriptorAggregate("none", "input")
@@ -1643,77 +1635,75 @@ Select one of the following modes: none and mean.
         nodeaggregation,
     )
 
-    def load_file(self, sequence: "sequencetools.IOSequence") -> None:
-        """Load data from an "external" data file and pass it to the given
-        |IOSequence|."""
+    _ncvariable2array: Dict[netcdftools.NetCDFVariableFlat, NDArrayFloat]
+
+    def load_file(self, sequence: sequencetools.IOSequence) -> None:
+        """Load data from a data file and pass it to the given |IOSequence|."""
         try:
-            if sequence.filetype_ext == "npy":
+            if sequence.filetype == "npy":
                 sequence.series = sequence.adjust_series(*self._load_npy(sequence))
-            elif sequence.filetype_ext == "asc":
+            elif sequence.filetype == "asc":
                 sequence.series = sequence.adjust_series(*self._load_asc(sequence))
-            elif sequence.filetype_ext == "nc":
+            elif sequence.filetype == "nc":
                 self._load_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the external data of sequence "
+                f"While trying to load the time-series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
     @staticmethod
     def _load_npy(
-        sequence: "sequencetools.IOSequence",
+        sequence: sequencetools.IOSequence,
     ) -> Tuple[timetools.Timegrid, numpy.array]:
-        data = numpy.load(sequence.filepath_ext)
+        data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
 
     @staticmethod
     def _load_asc(
-        sequence: "sequencetools.IOSequence",
+        sequence: sequencetools.IOSequence,
     ) -> Tuple[timetools.Timegrid, numpy.array]:
-        filepath_ext = sequence.filepath_ext
-        with open(filepath_ext, encoding=config.ENCODING) as file_:
+        filepath = sequence.filepath
+        with open(filepath, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
-        values = numpy.loadtxt(
-            filepath_ext, skiprows=3, ndmin=min(sequence.NDIM + 1, 2)
-        )
+        values = numpy.loadtxt(filepath, skiprows=3, ndmin=min(sequence.NDIM + 1, 2))
         if sequence.NDIM == 2:
             values = values.reshape(*sequence.seriesshape)
         return timegrid_data, values
 
-    def _load_nc(self, sequence: "sequencetools.IOSequence") -> None:
+    def _load_nc(self, sequence: sequencetools.IOSequence) -> None:
         self.netcdfreader.log(sequence, None)
 
     def save_file(
         self,
-        sequence: "sequencetools.IOSequence",
+        sequence: sequencetools.IOSequence,
         array: Optional[numpy.ndarray] = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
-        |IOSequence| into an "external" data file."""
+        |IOSequence| into a data file."""
         if array is None:
             array = sequence.aggregate_series()
         try:
-            if sequence.filetype_ext == "nc":
+            if sequence.filetype == "nc":
                 self._save_nc(sequence, array)
             else:
-                filepath = sequence.filepath_ext
+                filepath = sequence.filepath
                 if (array is not None) and (array.info["type"] != "unmodified"):
                     filepath = f"{filepath[:-4]}_{array.info['type']}{filepath[-4:]}"
-                if not sequence.overwrite_ext and os.path.exists(filepath):
+                if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
-                        f"Sequence {objecttools.devicephrase(sequence)} "
-                        f"is not allowed to overwrite the existing file "
-                        f"`{sequence.filepath_ext}`."
+                        f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
+                        f"to overwrite the existing file `{sequence.filepath}`."
                     )
-                if sequence.filetype_ext == "npy":
+                if sequence.filetype == "npy":
                     self._save_npy(array, filepath)
-                elif sequence.filetype_ext == "asc":
+                elif sequence.filetype == "asc":
                     self._save_asc(array, filepath)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the external data of sequence "
+                f"While trying to save the time-series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
@@ -1736,7 +1726,7 @@ Select one of the following modes: none and mean.
             numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(
-        self, sequence: "sequencetools.IOSequence", array: numpy.ndarray
+        self, sequence: sequencetools.IOSequence, array: numpy.ndarray
     ) -> None:
         self.netcdfwriter.log(sequence, array)
 
@@ -1805,8 +1795,8 @@ reader object.
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
+currently handle no NetCDF writer object.
 
         >>> sm.open_netcdfwriter()
         >>> from hydpy import classname
@@ -1817,12 +1807,12 @@ writer object.
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
+currently handle no NetCDF writer object.
         """
         netcdfwriter = vars(self).get("netcdfwriter")
         if netcdfwriter is None:
-            raise RuntimeError(
+            raise exceptiontools.AttributeNotReady(
                 "The sequence file manager does currently handle no NetCDF writer "
                 "object."
             )
@@ -1847,3 +1837,31 @@ writer object.
         afterwards."""
         self.netcdfwriter.write()
         del vars(self)["netcdfwriter"]
+
+    @contextlib.contextmanager
+    def prepare_netcdfaccess(
+        self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+    ) -> Iterator[None]:
+        """Open all required internal time-series files.
+
+        This method is only required when storing internal time-series data to disk.
+        See the main documentation on class |HydPy| for further information.
+        """
+        interface = netcdftools.NetCDFInterface(timeaxis=0, isolate=True, flatten=True)
+        self._ncvariable2array_reading, self._ncvariable2idxs_reading, self._ncvariable2delta_reading, self._ncvariable2array_writing = interface.open(deviceorder)
+        try:
+            yield
+        finally:
+            self._ncvariable2array_reading = {}
+            interface.close()
+
+    def read_netcdfslice(self, idx: int) -> None:
+        for ncvariable in self._ncvariable2idxs_reading:
+            delta = self._ncvariable2delta_reading[ncvariable]
+            array = self._ncvariable2array_reading[ncvariable]
+            idxs = self._ncvariable2idxs_reading[ncvariable]
+            array[:] = ncvariable.ncfile[ncvariable.name][idx + delta, idxs]
+
+    def write_netcdfslice(self, idx: int) -> None:
+        for ncvariable, array in self._ncvariable2array_writing.items():
+            ncvariable.ncfile[ncvariable.name][idx, :] = array

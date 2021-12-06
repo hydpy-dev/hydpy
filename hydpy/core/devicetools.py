@@ -127,8 +127,8 @@ StepSize = Literal["daily", "d", "monthly", "m"]
 
 
 class Keywords(Set[str]):
-    """Set of keyword arguments used to describe and search for |Element| and
-    |Node| objects."""
+    """Set of keyword arguments used to describe and search for |Element| and |Node|
+    objects."""
 
     device: Union[Node, Element, None]
 
@@ -179,13 +179,13 @@ class Keywords(Set[str]):
                 objecttools.valid_variable_identifier(name)
             except ValueError:
                 objecttools.augment_excmessage(
-                    f"While trying to add the keyword `{name}` "
-                    f"to device {objecttools.devicename(self.device)}"
+                    f"While trying to add the keyword `{name}` to device "
+                    f"{objecttools.devicename(self.device)}"
                 )
 
     def update(self, *names: Any) -> None:
-        """Before updating, the given names are checked to be valid
-        variable identifiers.
+        """Before updating, the given names are checked to be valid variable
+        identifiers.
 
         >>> from hydpy.core.devicetools import Keywords
         >>> keywords = Keywords("first_keyword", "second_keyword",
@@ -194,12 +194,12 @@ class Keywords(Set[str]):
         >>> keywords.update("test_1", "test 2")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `test 2` to device ?, \
-the following error occurred: The given name string `test 2` does not \
-define a valid variable identifier.  ...
+        ValueError: While trying to add the keyword `test 2` to device ?, the \
+following error occurred: The given name string `test 2` does not define a valid \
+variable identifier.  ...
 
-        Note that even the first string (`test1`) is not added due to the
-        second one (`test 2`) being invalid.
+        Note that even the first string (`test1`) is not added due to the second one
+        (`test 2`) being invalid.
 
         >>> keywords
         Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
@@ -227,9 +227,9 @@ define a valid variable identifier.  ...
         >>> keywords.add("1_test")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `1_test` to device ?, \
-the following error occurred: The given name string `1_test` does not \
-define a valid variable identifier.  ...
+        ValueError: While trying to add the keyword `1_test` to device ?, the \
+following error occurred: The given name string `1_test` does not define a valid \
+variable identifier.  ...
 
         >>> keywords
         Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
@@ -259,34 +259,32 @@ class FusedVariable:
     """Combines |InputSequence| and |OutputSequence| subclasses of different models
     dealing with the same property into a single variable.
 
-    Class |FusedVariable| is one possible type of the property |Node.variable|
-    of class |Node|.  We need it in some *HydPy* projects where the involved
-    models do not only pass runoff to each other but share other types of
-    data as well.  Each project-specific |FusedVariable| object serves as a
-    "meta-type", indicating which input and output sequences of the different
-    models correlate and are thus connectable with each other.
+    Class |FusedVariable| is one possible type of the property |Node.variable| of class
+    |Node|.  We need it in some *HydPy* projects where the involved models do not only
+    pass runoff to each other but share other types of data as well.  Each
+    project-specific |FusedVariable| object serves as a "meta-type", indicating which
+    input and output sequences of the different models correlate and are thus
+    connectable with each other.
 
-    Using class |FusedVariable| is easiest to explain by a concrete example.
-    Assume we use |conv_v001| to interpolate the air temperature for a
-    specific location.  We use this temperature as input to the |evap_v001|
-    model, which requires this and other meteorological data to calculate
-    potential evapotranspiration.  Further, we pass the calculated potential
-    evapotranspiration as input to |lland_v2| for calculating the actual
-    evapotranspiration.  Hence, we need to connect the output sequence
-    |evap_fluxes.ReferenceEvapotranspiration| of |evap_v001| with the input
-    sequence |lland_inputs.PET| of |lland_v2|.
+    Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
+    use |conv_v001| to interpolate the air temperature for a specific location.  We use
+    this temperature as input to the |evap_v001| model, which requires this and other
+    meteorological data to calculate potential evapotranspiration.  Further, we pass
+    the calculated potential evapotranspiration as input to |lland_v2| for calculating
+    the actual evapotranspiration.  Hence, we need to connect the output sequence
+    |evap_fluxes.ReferenceEvapotranspiration| of |evap_v001| with the input sequence
+    |lland_inputs.PET| of |lland_v2|.
 
-    Additionally, |lland_v2| requires temperature data itself for modelling
-    snow processes, introducing the problem that we need to use the same data
-    (the output of |conv_v001|) as the input of two differently named input
-    sequences (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for
-    |evap_v001| and |lland_v2|, respectively).
+    Additionally, |lland_v2| requires temperature data itself for modelling snow
+    processes, introducing the problem that we need to use the same data (the output of
+    |conv_v001|) as the input of two differently named input sequences
+    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_v001| and
+    |lland_v2|, respectively).
 
-    For our concrete example, we need to create two |FusedVariable| objects.
-    `E` combines |evap_fluxes.ReferenceEvapotranspiration| and
-    |lland_inputs.PET| and `T` combines |evap_inputs.AirTemperature| and
-    |lland_inputs.TemL| (for convenience, we import their globally
-    available aliases):
+    For our concrete example, we need to create two |FusedVariable| objects.  `E`
+    combines |evap_fluxes.ReferenceEvapotranspiration| and |lland_inputs.PET| and `T`
+    combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we
+    import their globally available aliases):
 
     >>> from hydpy import FusedVariable
     >>> from hydpy.inputs import lland_PET, evap_AirTemperature, lland_TemL
@@ -296,15 +294,14 @@ class FusedVariable:
 
     Now we can construct the network:
 
-     * Node `t1` handles the original temperature and serves as the input
-       node to element `conv`. We define the (arbitrarily selected) string
-       `Temp` to be its variable.
-     * Node `e` receives the potential evapotranspiration calculated by
-       element `evap` and passes it to element `lland`.  Node `e` thus
-       receives the fused variable `E`.
-     * Node `t2` handles the interpolated temperature and serves as the
-       outlet node of element `conv` and the input node to elements
-       `evap` and `lland`.  Node `t2` thus receives the fused variable `T`.
+     * Node `t1` handles the original temperature and serves as the input node to
+       element `conv`. We define the (arbitrarily selected) string `Temp` to be its
+       variable.
+     * Node `e` receives the potential evapotranspiration calculated by element `evap`
+       and passes it to element `lland`.  Node `e` thus receives the fused variable `E`.
+     * Node `t2` handles the interpolated temperature and serves as the outlet node of
+       element `conv` and the input node to elements `evap` and `lland`.  Node `t2`
+       thus receives the fused variable `T`.
 
     >>> from hydpy import Node, Element
     >>> t1 = Node("t1", variable="Temp")
@@ -321,9 +318,9 @@ class FusedVariable:
     ...                 outlets="node_q")
 
     Now we can prepare the different model objects and assign them to their
-    corresponding elements (note that parameters |conv_control.InputCoordinates|
-    and |conv_control.OutputCoordinates| of |conv_v001| first require
-    information on the location of the relevant nodes):
+    corresponding elements (note that parameters |conv_control.InputCoordinates| and
+    |conv_control.OutputCoordinates| of |conv_v001| first require information on the
+    location of the relevant nodes):
 
     >>> from hydpy import prepare_model
     >>> model_conv = prepare_model("conv_v001")
@@ -339,17 +336,17 @@ class FusedVariable:
 
     >>> t1.sequences.sim = -273.15
 
-    Model |conv_v001| now can perform a simulation step and pass its
-    output to node `t2`:
+    Model |conv_v001| now can perform a simulation step and pass its output to node
+    `t2`:
 
     >>> conv.model.simulate(0)
     >>> t2.sequences.sim
     sim(-273.15)
 
-    Without further configuration, |evap_v001| cannot perform any simulation
-    steps.  Hence, we just call its |Model.load_data| method to show that
-    its input sequence |evap_inputs.AirTemperature| is well connected to the
-    |Sim| sequence of node `t2` and receives the correct data:
+    Without further configuration, |evap_v001| cannot perform any simulation steps.
+    Hence, we just call its |Model.load_data| method to show that its input sequence
+    |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
+    and receives the correct data:
 
     >>> evap.model.load_data()
     >>> evap.model.sequences.inputs.airtemperature
@@ -364,8 +361,8 @@ class FusedVariable:
     >>> e.sequences.sim
     sim(999.9)
 
-    Finally, both input sequences |lland_inputs.TemL| and |lland_inputs.PET|
-    receive the current values of nodes `t2` and `e`:
+    Finally, both input sequences |lland_inputs.TemL| and |lland_inputs.PET| receive
+    the current values of nodes `t2` and `e`:
 
     >>> lland.model.load_data()
     >>> lland.model.sequences.inputs.teml
@@ -389,29 +386,28 @@ class FusedVariable:
     >>> FusedVariable("T", hland_T, lland_TemL)
     Traceback (most recent call last):
     ...
-    ValueError: The sequences combined by a FusedVariable object cannot be \
-changed.  The already defined sequences of the fused variable `T` are \
-`evap_AirTemperature and lland_TemL` instead of `hland_T and lland_TemL`.  \
-Keep in mind, that `name` is the unique identifier for fused variable instances.
+    ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
+The already defined sequences of the fused variable `T` are `evap_AirTemperature and \
+lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
+unique identifier for fused variable instances.
 
 
-    Defining additional fused variables with the same member sequences does
-    not seem advisable but is allowed:
+    Defining additional fused variables with the same member sequences does not seem
+    advisable but is allowed:
 
     >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
     >>> T is Temp
     False
 
-    To get an overview of the already existing fused variables, call
-    method |FusedVariable.get_registry|:
+    To get an overview of the already existing fused variables, call method
+    |FusedVariable.get_registry|:
 
     >>> len(FusedVariable.get_registry())
     3
 
-    Principally, you can clear the registry via method
-    |FusedVariable.clear_registry|, but remember it does not remove
-    |FusedVariable| objects from the running process being otherwise
-    referenced:
+    Principally, you can clear the registry via method |FusedVariable.clear_registry|,
+    but remember it does not remove |FusedVariable| objects from the running process
+    being otherwise referenced:
 
     >>> FusedVariable.clear_registry()
     >>> FusedVariable.get_registry()
@@ -431,9 +427,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
     _alias2variable: Dict[str, sequencetools.TypesInOutSequence]
 
     def __new__(
-        cls,
-        name: str,
-        *sequences: sequencetools.TypesInOutSequence,
+        cls, name: str, *sequences: sequencetools.TypesInOutSequence
     ) -> FusedVariable:
         self = super().__new__(cls)
         aliases = tuple(hydpy.sequence2alias[seq] for seq in sequences)
@@ -445,20 +439,18 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
             if variables == fusedvariable._variables:
                 return fusedvariable
             raise ValueError(
-                f"The sequences combined by a {type(self).__name__} "
-                f"object cannot be changed.  The already defined sequences "
-                f"of the fused variable `{name}` are "
-                f"`{objecttools.enumeration(fusedvariable._aliases)}` "
-                f"instead of `{objecttools.enumeration(aliases)}`.  Keep in "
-                f"mind, that `name` is the unique identifier for fused "
-                f"variable instances."
+                f"The sequences combined by a {type(self).__name__} object cannot be "
+                f"changed.  The already defined sequences of the fused variable "
+                f"`{name}` are `{objecttools.enumeration(fusedvariable._aliases)}` "
+                f"instead of `{objecttools.enumeration(aliases)}`.  Keep in mind, "
+                f"that `name` is the unique identifier for fused variable instances."
             )
         self._name = name
         self._aliases = aliases
         self._variables = variables
         _registry_fusedvariable[name] = self
         self._alias2variable = dict(zip(self._aliases, self._variables))
-        return self
+        return self  # type: ignore[no-any-return]
 
     @classmethod
     def get_registry(cls) -> Tuple["FusedVariable", ...]:
@@ -467,8 +459,7 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
 
     @classmethod
     def clear_registry(cls) -> None:
-        """Clear the registry from all |FusedVariable| objects initialised
-        so far.
+        """Clear the registry from all |FusedVariable| objects initialised so far.
 
         Use this method only for good reasons!
         """
@@ -496,8 +487,8 @@ Keep in mind, that `name` is the unique identifier for fused variable instances.
 class Devices(Generic[DeviceType]):
     """Base class for class |Elements| and class |Nodes|.
 
-    The following features are common to class |Nodes| and class |Elements|.
-    We arbitrarily select class |Nodes| for all examples.
+    The following features are common to class |Nodes| and class |Elements|.  We
+    arbitrarily select class |Nodes| for all examples.
 
     To initialise a |Nodes| collection class, pass a variable number of |str| or |Node|
     objects.  Strings are used to create new or query already existing nodes
@@ -680,8 +671,8 @@ classes: Node and str.
         """To be overridden."""
 
     def add_device(self, device: Union[DeviceType, str]) -> None:
-        """Add the given |Node| or |Element| object to the actual
-        |Nodes| or |Elements| object.
+        """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
+        object.
 
         You can pass either a string or a device:
 
@@ -694,16 +685,15 @@ classes: Node and str.
         >>> nodes
         Nodes("new_node", "old_node")
 
-        Method |Devices.add_device| is disabled for immutable |Nodes|
-        and |Elements| objects:
+        Method |Devices.add_device| is disabled for immutable |Nodes| and |Elements|
+        objects:
 
         >>> nodes.mutable = False
         >>> nodes.add_device("newest_node")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to add the device `newest_node` to a \
-Nodes object, the following error occurred: Adding devices to immutable \
-Nodes objects is not allowed.
+        RuntimeError: While trying to add the device `newest_node` to a Nodes object, \
+the following error occurred: Adding devices to immutable Nodes objects is not allowed.
         """
         try:
             if self.mutable:
@@ -712,8 +702,8 @@ Nodes objects is not allowed.
                 _id2devices[_device][id(self)] = self
             else:
                 raise RuntimeError(
-                    f"Adding devices to immutable "
-                    f"{type(self).__name__} objects is not allowed."
+                    f"Adding devices to immutable {type(self).__name__} objects is "
+                    f"not allowed."
                 )
         except BaseException:
             objecttools.augment_excmessage(
@@ -722,8 +712,8 @@ Nodes objects is not allowed.
             )
 
     def remove_device(self, device: Union[DeviceType, str]) -> None:
-        """Remove the given |Node| or |Element| object from the actual
-        |Nodes| or |Elements| object.
+        """Remove the given |Node| or |Element| object from the actual |Nodes| or
+        |Elements| object.
 
         You can pass either a string or a device:
 
@@ -739,20 +729,19 @@ Nodes objects is not allowed.
         >>> nodes.remove_device(Node("node_z"))
         Traceback (most recent call last):
         ...
-        ValueError: While trying to remove the device `node_z` from a \
-Nodes object, the following error occurred: The actual Nodes object does \
-not handle such a device.
+        ValueError: While trying to remove the device `node_z` from a Nodes object, \
+the following error occurred: The actual Nodes object does not handle such a device.
 
-        Method |Devices.remove_device| is disabled for immutable |Nodes|
-        and |Elements| objects:
+        Method |Devices.remove_device| is disabled for immutable |Nodes| and |Elements|
+        objects:
 
         >>> nodes.mutable = False
         >>> nodes.remove_device("node_z")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to remove the device `node_z` from a \
-Nodes object, the following error occurred: Removing devices from \
-immutable Nodes objects is not allowed.
+        RuntimeError: While trying to remove the device `node_z` from a Nodes object, \
+the following error occurred: Removing devices from immutable Nodes objects is not \
+allowed.
         """
         try:
             if self.mutable:
@@ -803,12 +792,11 @@ immutable Nodes objects is not allowed.
     def keywords(self) -> Set[str]:
         """A set of all keywords of all handled devices.
 
-        In addition to attribute access via device names, |Nodes| and
-        |Elements| objects allow for attribute access via keywords,
-        allowing for an efficient search of certain groups of devices.
-        Let us use the example from above, where the nodes `na` and `nb`
-        have no keywords, but each of the other three nodes both belongs
-        to either `group_a` or `group_b` and `group_1` or `group_2`:
+        In addition to attribute access via device names, |Nodes| and |Elements|
+        objects allow for attribute access via keywords, allowing for an efficient
+        search of certain groups of devices.  Let us use the example from above, where
+        the nodes `na` and `nb` have no keywords, but each of the other three nodes
+        both belongs to either `group_a` or `group_b` and `group_1` or `group_2`:
 
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes("na",
@@ -821,8 +809,8 @@ immutable Nodes objects is not allowed.
         >>> sorted(nodes.keywords)
         ['group_1', 'group_2', 'group_a', 'group_b']
 
-        If you are interested in inspecting all devices belonging to
-        `group_a`, select them via this keyword:
+        If you are interested in inspecting all devices belonging to `group_a`, select
+        them via this keyword:
 
         >>> subgroup = nodes.group_1
         >>> subgroup
@@ -836,16 +824,16 @@ immutable Nodes objects is not allowed.
         Node("ne", variable="Q",
              keywords=["group_1", "group_b"])
 
-        Note that the keywords already used for building a device subgroup
-        are not informative anymore (as they hold for each device) and are
-        thus not shown anymore:
+        Note that the keywords already used for building a device subgroup are not
+        informative anymore (as they hold for each device) and are thus not shown
+        anymore:
 
         >>> sorted(subgroup.keywords)
         ['group_a', 'group_b']
 
-        The latter might be confusing if you intend to work with a device
-        subgroup for a longer time.  After copying the subgroup, all
-        keywords of the contained devices are available again:
+        The latter might be confusing if you intend to work with a device subgroup for
+        a longer time.  After copying the subgroup, all keywords of the contained
+        devices are available again:
 
         >>> from copy import copy
         >>> newgroup = copy(subgroup)
@@ -863,8 +851,8 @@ immutable Nodes objects is not allowed.
         self: DevicesTypeBound,
         *keywords: str,
     ) -> DevicesTypeBound:
-        """Search for all devices handling at least one of the given
-        keywords and return them.
+        """Search for all devices handling at least one of the given keywords and
+        return them.
 
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes("na",
@@ -888,18 +876,6 @@ immutable Nodes objects is not allowed.
             *(device for device in self if keywords_.intersection(device.keywords))
         )
 
-    def open_files(self, idx: int = 0) -> None:
-        """Call method |Node.open_files| or |Element.open_files| of all
-        contained |Node| or |Element| objects."""
-        for device in self:
-            device.open_files(idx)
-
-    def close_files(self) -> None:
-        """Call method |Node.close_files| or |Element.close_files| of
-        all contained |Node| or |Element| objects."""
-        for device in self:
-            device.close_files()
-
     def copy(self: DevicesTypeBound) -> DevicesTypeBound:
         """Return a shallow copy of the actual |Nodes| or |Elements| object.
 
@@ -919,8 +895,8 @@ immutable Nodes objects is not allowed.
         >>> new.x is new.x
         True
 
-        Changing the |Device.name| of a device is recognised both by the
-        original and the copied collection objects:
+        Changing the |Device.name| of a device is recognised both by the original and
+        the copied collection objects:
 
         >>> new.x.name = "z"
         >>> old.z
@@ -933,9 +909,9 @@ immutable Nodes objects is not allowed.
         >>> copy.deepcopy(old)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Deep copying of Nodes objects is not supported, \
-as it would require to make deep copies of the Node objects themselves, \
-which is in conflict with using their names as identifiers.
+        NotImplementedError: Deep copying of Nodes objects is not supported, as it \
+would require to make deep copies of the Node objects themselves, which is in \
+conflict with using their names as identifiers.
         """
         new = type(self)()
         vars(new).update(vars(self))
@@ -968,10 +944,9 @@ which is in conflict with using their names as identifiers.
     def __deepcopy__(self, dict_):
         classname = type(self).__name__
         raise NotImplementedError(
-            f"Deep copying of {classname} objects is not supported, as it "
-            f"would require to make deep copies of the {classname[:-1]} "
-            f"objects themselves, which is in conflict with using their "
-            f"names as identifiers."
+            f"Deep copying of {classname} objects is not supported, as it would "
+            f"require to make deep copies of the {classname[:-1]} objects themselves, "
+            f"which is in conflict with using their names as identifiers."
         )
 
     def __select_devices_by_keyword(self, name: str) -> DevicesTypeBound:
@@ -1185,25 +1160,30 @@ class Nodes(Devices["Node"]):
         return Node
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Call methods |Node.prepare_simseries| and
-        |Node.prepare_obsseries|."""
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Node.prepare_allseries| of all handled |Node| objects."""
         for node in printtools.progressbar(self):
-            node.prepare_allseries(ramflag)
+            node.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     @printtools.print_progress
-    def prepare_simseries(self, ramflag: bool = True) -> None:
-        """Call method |Node.prepare_simseries| of all handled
-        |Node| objects."""
+    def prepare_simseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |Node.prepare_simseries| of all handled |Node| objects."""
         for node in printtools.progressbar(self):
-            node.prepare_simseries(ramflag)
+            node.prepare_simseries(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
     @printtools.print_progress
-    def prepare_obsseries(self, ramflag: bool = True) -> None:
-        """Call method |Node.prepare_obsseries| of all handled
-        |Node| objects."""
+    def prepare_obsseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |Node.prepare_obsseries| of all handled |Node| objects."""
         for node in printtools.progressbar(self):
-            node.prepare_obsseries(ramflag)
+            node.prepare_obsseries(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
     @printtools.print_progress
     def load_allseries(self) -> None:
@@ -1213,19 +1193,19 @@ class Nodes(Devices["Node"]):
 
     @printtools.print_progress
     def load_simseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |Sim| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.load_series| of all |Sim| objects with an activated
+        |IOSequence.memoryflag|."""
         self.__load_nodeseries("sim")
 
     @printtools.print_progress
     def load_obsseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |Obs| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.load_series| of all |Obs| objects with an activated
+        |IOSequence.memoryflag|."""
         self.__load_nodeseries("obs")
 
     def __load_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
-            getattr(node.sequences, seqname).load_ext()
+            getattr(node.sequences, seqname).load_series()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
@@ -1235,21 +1215,21 @@ class Nodes(Devices["Node"]):
 
     @printtools.print_progress
     def save_simseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |Sim| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.save_series| of all |Sim| objects with an activated
+        |IOSequence.memoryflag|."""
         self.__save_nodeseries("sim")
 
     @printtools.print_progress
     def save_obsseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |Obs| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.save_series| of all |Obs| objects with an activated
+        |IOSequence.memoryflag|."""
         self.__save_nodeseries("obs")
 
     def __save_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
             seq = getattr(node.sequences, seqname)
-            if seq.memoryflag:
-                seq.save_ext()
+            if seq.ramflag:
+                seq.save_series()
 
     @property
     def variables(self) -> Set[NodeVariableType]:
@@ -1268,8 +1248,8 @@ class Nodes(Devices["Node"]):
 class Elements(Devices["Element"]):
     """A container for handling |Element| objects.
 
-    For the general usage of |Elements| objects, please see the documentation
-    on its base class |Devices|.
+    For the general usage of |Elements| objects, please see the documentation on its
+    base class |Devices|.
     """
 
     @staticmethod
@@ -1305,9 +1285,9 @@ class Elements(Devices["Element"]):
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: While trying to load the control \
-file `...land_dill.py`, the following error occurred: At least one value of \
-parameter `zonetype` of element `?` is not valid.
+`land_dill`, the following error occurred: While trying to load the control file \
+`...land_dill.py`, the following error occurred: At least one value of parameter \
+`zonetype` of element `?` is not valid.
 
         By default, missing control files result in exceptions:
 
@@ -1354,16 +1334,15 @@ be initialised for element `land_dill`
         ...     elements.init_models()
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
-Method `init_models` of class `Elements` is deprecated.  \
-Use method `prepare_models` instead.
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: Method `init_models` of \
+class `Elements` is deprecated.  Use method `prepare_models` instead.
         >>> mocked.call_args_list
         [call()]
         """
         self.prepare_models()
         warnings.warn(
-            "Method `init_models` of class `Elements` is deprecated.  "
-            "Use method `prepare_models` instead.",
+            "Method `init_models` of class `Elements` is deprecated.  Use method "
+            "`prepare_models` instead.",
             exceptiontools.HydPyDeprecationWarning,
         )
 
@@ -1374,9 +1353,8 @@ Use method `prepare_models` instead.
         simulationstep: Optional["timetools.PeriodConstrArg"] = None,
         auxfiler: "Optional[auxfiletools.Auxfiler]" = None,
     ) -> None:
-        """Save the control parameters of the |Model| object handled by
-        each |Element| object and eventually the ones handled by the
-        given |Auxfiler| object."""
+        """Save the control parameters of the |Model| object handled by each |Element|
+        object and eventually the ones handled by the given |Auxfiler| object."""
         if auxfiler:
             auxfiler.write(
                 parameterstep=parameterstep,
@@ -1391,27 +1369,27 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def load_conditions(self) -> None:
-        """Save the initial conditions of the |Model| object handled by
-        each |Element| object."""
+        """Save the initial conditions of the |Model| object handled by each |Element|
+        object."""
         for element in printtools.progressbar(self):
             element.model.sequences.load_conditions()
 
     @printtools.print_progress
     def save_conditions(self) -> None:
-        """Save the calculated conditions of the |Model| object handled by
-        each |Element| object."""
+        """Save the calculated conditions of the |Model| object handled by each
+        |Element| object."""
         for element in printtools.progressbar(self):
             element.model.sequences.save_conditions()
 
     def trim_conditions(self) -> None:
-        """Call method |Sequences.trim_conditions| of the |Sequences|
-        object handled (indirectly) by each |Element| object."""
+        """Call method |Sequences.trim_conditions| of the |Sequences| object handled
+        (indirectly) by each |Element| object."""
         for element in self:
             element.model.sequences.trim_conditions()
 
     def reset_conditions(self) -> None:
-        """Call method |Sequences.reset| of the |Sequences| object
-        handled (indirectly) by each |Element| object."""
+        """Call method |Sequences.reset| of the |Sequences| object handled (indirectly)
+        by each |Element| object."""
         for element in self:
             element.model.sequences.reset()
 
@@ -1431,39 +1409,47 @@ Use method `prepare_models` instead.
             element.model.sequences.conditions = subconditions
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Call method |Element.prepare_allseries| of all handled
-        |Element| objects."""
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Element.prepare_allseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.prepare_allseries(ramflag)
+            element.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     @printtools.print_progress
-    def prepare_inputseries(self, ramflag: bool = True) -> None:
-        """Call method |Element.prepare_inputseries| of all handled
-        |Element| objects."""
+    def prepare_inputseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |Element.prepare_inputseries| of all handled |Element|
+        objects."""
         for element in printtools.progressbar(self):
-            element.prepare_inputseries(ramflag)
+            element.prepare_inputseries(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
     @printtools.print_progress
-    def prepare_factorseries(self, ramflag: bool = True) -> None:
+    def prepare_factorseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
         """Call method |Element.prepare_factorseries| of all handled |Element|
         objects."""
         for element in printtools.progressbar(self):
-            element.prepare_factorseries(ramflag)
+            element.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
-    def prepare_fluxseries(self, ramflag: bool = True) -> None:
-        """Call method |Element.prepare_fluxseries| of all handled
-        |Element| objects."""
+    def prepare_fluxseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Element.prepare_fluxseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.prepare_fluxseries(ramflag)
+            element.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
-    def prepare_stateseries(self, ramflag: bool = True) -> None:
-        """Call method |Element.prepare_stateseries| of all handled
-        |Element| objects."""
+    def prepare_stateseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Element.prepare_stateseries| of all handled |Element|
+        objects."""
         for element in printtools.progressbar(self):
-            element.prepare_stateseries(ramflag)
+            element.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
     def load_allseries(self) -> None:
@@ -1476,26 +1462,26 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def load_inputseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |InputSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.load_series| of all |InputSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__load_modelseries("inputs")
 
     @printtools.print_progress
     def load_factorseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |FactorSequence| objects with an
+        """Call method |IOSequence.load_series| of all |FactorSequence| objects with an
         activated |IOSequence.memoryflag|."""
         self.__load_modelseries("factors")
 
     @printtools.print_progress
     def load_fluxseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |FluxSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.load_series| of all |FluxSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__load_modelseries("fluxes")
 
     @printtools.print_progress
     def load_stateseries(self) -> None:
-        """Call method |IOSequence.load_ext| of all |StateSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.load_series| of all |StateSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__load_modelseries("states")
 
     def __load_modelseries(self, name_subseqs) -> None:
@@ -1503,7 +1489,7 @@ Use method `prepare_models` instead.
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:
-                seq.load_ext()
+                seq.load_series()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
@@ -1516,26 +1502,26 @@ Use method `prepare_models` instead.
 
     @printtools.print_progress
     def save_inputseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |InputSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.save_series| of all |InputSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__save_modelseries("inputs")
 
     @printtools.print_progress
     def save_factorseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |FactorSequence| objects with an
+        """Call method |IOSequence.save_series| of all |FactorSequence| objects with an
         activated |IOSequence.memoryflag|."""
         self.__save_modelseries("factors")
 
     @printtools.print_progress
     def save_fluxseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |FluxSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.save_series| of all |FluxSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__save_modelseries("fluxes")
 
     @printtools.print_progress
     def save_stateseries(self) -> None:
-        """Call method |IOSequence.save_ext| of all |StateSequence| objects
-        with an activated |IOSequence.memoryflag|."""
+        """Call method |IOSequence.save_series| of all |StateSequence| objects with an
+        activated |IOSequence.memoryflag|."""
         self.__save_modelseries("states")
 
     def __save_modelseries(self, name_subseqs: str) -> None:
@@ -1543,8 +1529,8 @@ Use method `prepare_models` instead.
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:
-                if seq.memoryflag:
-                    seq.save_ext()
+                if seq.ramflag:
+                    seq.save_series()
 
 
 class Device(Generic[DevicesTypeUnbound]):
@@ -1577,8 +1563,7 @@ class Device(Generic[DevicesTypeUnbound]):
     def query_all(cls) -> DevicesTypeUnbound:
         """Get all |Node| or |Element| objects initialised so far.
 
-        See the main documentation on module |devicetools| for further
-        information.
+        See the main documentation on module |devicetools| for further information.
         """
         return cls.get_handlerclass()(*_registry[cls].values())
 
@@ -1586,8 +1571,7 @@ class Device(Generic[DevicesTypeUnbound]):
     def extract_new(cls) -> DevicesTypeUnbound:
         """Gather all "new" |Node| or |Element| objects.
 
-        See the main documentation on module |devicetools| for further
-        information.
+        See the main documentation on module |devicetools| for further information.
         """
         devices = cls.get_handlerclass()(*_selection[cls])
         _selection[cls].clear()
@@ -1597,8 +1581,7 @@ class Device(Generic[DevicesTypeUnbound]):
     def clear_all(cls) -> None:
         """Clear the registry from all initialised |Node| or |Element| objects.
 
-        See the main documentation on module |devicetools| for further
-        information.
+        See the main documentation on module |devicetools| for further information.
         """
         _selection[cls].clear()
         _registry[cls].clear()
@@ -1631,13 +1614,13 @@ class Device(Generic[DevicesTypeUnbound]):
         >>> node3 = Node("n 3")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to initialize a `Node` object with value \
-`n 3` of type `str`, the following error occurred: The given name string \
-`n 3` does not define a valid variable identifier.  ...
+        ValueError: While trying to initialize a `Node` object with value `n 3` of \
+type `str`, the following error occurred: The given name string `n 3` does not define \
+a valid variable identifier.  ...
 
-        When you change the name of a device (only do this for a good reason),
-        the corresponding keys of all related |Nodes| and |Elements| objects
-        (as well as of the internal registry) change automatically:
+        When you change the name of a device (only do this for a good reason), the
+        corresponding keys of all related |Nodes| and |Elements| objects (as well as of
+        the internal registry) change automatically:
 
         >>> Node.query_all()
         Nodes("n1", "n2")
@@ -1667,8 +1650,8 @@ class Device(Generic[DevicesTypeUnbound]):
             objecttools.valid_variable_identifier(name)
         except ValueError:
             objecttools.augment_excmessage(
-                f"While trying to initialize a `{cls.__name__}` object "
-                f"with value `{name}` of type `{type(name).__name__}`"
+                f"While trying to initialize a `{cls.__name__}` object with value "
+                f"`{name}` of type `{type(name).__name__}`"
             )
 
     @property
@@ -1682,16 +1665,16 @@ class Device(Generic[DevicesTypeUnbound]):
         >>> node.keywords
         Keywords("word0")
 
-        Assigning new words does not overwrite already existing ones.
-        You are allowed to add them individually or within iterable objects:
+        Assigning new words does not overwrite already existing ones.  You are allowed
+        to add them individually or within iterable objects:
 
         >>> node.keywords = "word1"
         >>> node.keywords = "word2", "word3"
         >>> node.keywords
         Keywords("word0", "word1", "word2", "word3")
 
-        Additionally, passing additional keywords to the constructor
-        of class |Node| or |Element| works also fine:
+        Additionally, passing additional keywords to the constructor of class |Node| or
+        |Element| works also fine:
 
         >>> Node("n", keywords=("word3", "word4", "word5"))
         Node("n", variable="Q",
@@ -1721,8 +1704,8 @@ class Device(Generic[DevicesTypeUnbound]):
 class Node(Device[Nodes]):
     """Handles the data flow between |Element| objects.
 
-    |Node| objects always handle two sequences, a |Sim| object for
-    simulated values and an |Obs| object for measured values:
+    |Node| objects always handle two sequences, a |Sim| object for simulated values and
+    an |Obs| object for measured values:
 
     >>> from hydpy import Node
     >>> node = Node("test")
@@ -1731,9 +1714,8 @@ class Node(Device[Nodes]):
     sim(0.0)
     obs(0.0)
 
-    Each node can handle an arbitrary number of "input" and "output"
-    elements, available as instance attributes `entries` and `exits`,
-    respectively:
+    Each node can handle an arbitrary number of "input" and "output" elements,
+    available as instance attributes `entries` and `exits`, respectively:
 
     >>> node.entries
     Elements()
@@ -1749,12 +1731,11 @@ class Node(Device[Nodes]):
     >>> node.exits.add_device("element")
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to add the device `element` to a \
-Elements object, the following error occurred: Adding devices to \
-immutable Elements objects is not allowed.
+    RuntimeError: While trying to add the device `element` to a Elements object, the \
+following error occurred: Adding devices to immutable Elements objects is not allowed.
 
-    Instead, see the documentation on class |Element| on how to connect
-    |Node| and |Element| objects properly.
+    Instead, see the documentation on class |Element| on how to connect |Node| and
+    |Element| objects properly.
     """
 
     masks = masktools.NodeMasks()
@@ -1766,6 +1747,8 @@ immutable Elements objects is not allowed.
         variable: Optional[NodeVariableType] = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
+        if value == "test2":
+            x = 1
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if "new_instance" in vars(self):
@@ -1781,11 +1764,10 @@ immutable Elements objects is not allowed.
             del vars(self)["new_instance"]
         if (variable is not None) and (variable != self.variable):
             raise ValueError(
-                f"The variable to be represented by a "
-                f"{type(self).__name__} instance cannot be changed.  "
-                f"The variable of node `{self.name}` is `{self.variable}` "
-                f"instead of `{variable}`.  Keep in mind, that `name` is "
-                f"the unique identifier of node objects."
+                f"The variable to be represented by a {type(self).__name__} instance "
+                f"cannot be changed.  The variable of node `{self.name}` is "
+                f"`{self.variable}` instead of `{variable}`.  Keep in mind, that "
+                f"`name` is the unique identifier of node objects."
             )
         if keywords is not None:
             self.keywords = keywords  # type: ignore
@@ -1799,14 +1781,14 @@ immutable Elements objects is not allowed.
 
     @property
     def entries(self) -> Elements:
-        """Group of |Element| objects which set the the simulated value
-        of the |Node| object."""
+        """Group of |Element| objects which set the the simulated value of the |Node|
+        object."""
         return vars(self)["entries"]
 
     @property
     def exits(self) -> Elements:
-        """Group of |Element| objects which query the simulated or
-        observed value of the actual |Node| object."""
+        """Group of |Element| objects which query the simulated or observed value of
+        the actual |Node| object."""
         return vars(self)["exits"]
 
     @property
@@ -1829,17 +1811,17 @@ immutable Elements objects is not allowed.
         >>> Node("test3", variable=T)
         Node("test3", variable=hland_T)
 
-        The last above example shows that the string representations of
-        nodes handling "class variables" use the aliases importable from
-        the top-level of the *HydPy* package:
+        The last above example shows that the string representations of nodes handling
+        "class variables" use the aliases importable from the top-level of the *HydPy*
+        package:
 
         >>> from hydpy.inputs import hland_P
         >>> Node("test4", variable=hland_P)
         Node("test4", variable=hland_P)
 
-        For some complex *HydPy* projects, one may need to fall back on
-        |FusedVariable| objects.  The string representation then relies
-        on the name of the fused variable:
+        For some complex *HydPy* projects, one may need to fall back on |FusedVariable|
+        objects.  The string representation then relies on the name of the fused
+        variable:
 
         >>> from hydpy import FusedVariable
         >>> from hydpy.inputs import lland_Nied
@@ -1856,16 +1838,16 @@ immutable Elements objects is not allowed.
         >>> Node("test1", variable="H")
         Traceback (most recent call last):
         ...
-        ValueError: The variable to be represented by a Node instance \
-cannot be changed.  The variable of node `test1` is `Q` instead of `H`.  \
-Keep in mind, that `name` is the unique identifier of node objects.
+        ValueError: The variable to be represented by a Node instance cannot be \
+changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, that \
+`name` is the unique identifier of node objects.
         """
         return vars(self)["variable"]
 
     @property
     def deploymode(
         self,
-    ) -> Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim",]:
+    ) -> Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]:
         """Defines the kind of information a node offers its exit elements.
 
         *HydPy* supports the following modes:
@@ -1932,10 +1914,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
             self.__blackhole = pointerutils.Double(0.0)
         elif value not in ("newsim", "obs", "obs_newsim", "obs_oldsim"):
             raise ValueError(
-                f"When trying to set the routing mode of node `{self.name}`, "
-                f"the value `{value}` was given, but only the following "
-                f"values are allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, "
-                f"and `obs_oldsim`."
+                f"When trying to set the routing mode of node `{self.name}`, the "
+                f"value `{value}` was given, but only the following values are "
+                f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`."
             )
         vars(self)["deploymode"] = value
         for element in itertools.chain(self.entries, self.exits):
@@ -1944,24 +1925,22 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
-        """Return the |Double| object appropriate for the given |Element|
-        input or output group and the actual |Node.deploymode|.
+        """Return the |Double| object appropriate for the given |Element| input or
+        output group and the actual |Node.deploymode|.
 
-        Method |Node.get_double| should be of interest for framework
-        developers only (and eventually for model developers).
+        Method |Node.get_double| should be of interest for framework developers only
+        (and eventually for model developers).
 
-        Let |Node| object `node1` handle different simulation and
-        observation values:
+        Let |Node| object `node1` handle different simulation and observation values:
 
         >>> from hydpy import Node
         >>> node = Node("node1")
         >>> node.sequences.sim = 1.0
         >>> node.sequences.obs = 2.0
 
-        The following `test` function shows for a given |Node.deploymode|
-        if method |Node.get_double| either returns the |Double| object
-        handling the simulated value (1.0) or the |Double| object handling
-        the observed value (2.0):
+        The following `test` function shows for a given |Node.deploymode| if method
+        |Node.get_double| either returns the |Double| object handling the simulated
+        value (1.0) or the |Double| object handling the observed value (2.0):
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
@@ -2031,51 +2010,27 @@ group name `test`.
         """
         self.sequences.fastaccess.reset(idx)
 
-    def open_files(self, idx: int = 0) -> None:
-        """Call method |Sequences.open_files| of the |Sequences| object
-        handled by the actual |Node| object."""
-        self.sequences.open_files(idx)
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Node.prepare_simseries| with `write_jit=jit` and method
+        |Node.prepare_obsseries| with `read_jit=jit`."""
+        self.prepare_simseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_obsseries(allocate_ram=allocate_ram, read_jit=jit)
 
-    def close_files(self) -> None:
-        """Call method |Sequences.close_files| of the |Sequences| object
-        handled by the actual |Node| object."""
-        self.sequences.close_files()
+    def prepare_simseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of the |Sim| sequence object."""
+        self.sequences.sim.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
 
-    def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| object both of the |Sim| and the |Obs|
-        sequence.
-
-        Call this method before a simulation run if you need access to the whole
-        time-series of the simulated and the observed series after the simulation run
-        is finished.
-
-        By default, the time-series are kept in RAM, which is the faster option.  If
-        your RAM is limited, pass |False| to function argument `ramflag` to store the
-        series on disk.
-        """
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
-
-    def prepare_simseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| object of the |Sim| sequence.
-
-        See method |Node.prepare_allseries| for further information.
-        """
-        self.__prepare_nodeseries("sim", ramflag)
-
-    def prepare_obsseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| object of the |Obs| sequence.
-
-        See method |Node.prepare_allseries| for further information.
-        """
-        self.__prepare_nodeseries("obs", ramflag)
-
-    def __prepare_nodeseries(self, seqname, ramflag) -> None:
-        seq = getattr(self.sequences, seqname)
-        if ramflag:
-            seq.activate_ram()
-        else:
-            seq.activate_disk()
+    def prepare_obsseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of the |Obs| sequence object."""
+        self.sequences.obs.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
 
     def plot_allseries(
         self,
@@ -2086,7 +2041,7 @@ group name `test`.
         linewidths: Optional[Union[int, Tuple[int, int]]] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
 
@@ -2160,10 +2115,10 @@ group name `test`.
         Traceback (most recent call last):
         ...
         ValueError: While trying to plot the time series of sequence(s) obs and sim \
-of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, \
-the following error occurred: While trying to aggregate the given series, the \
-following error occurred: Argument `stepsize` received value `quaterly`, but only \
-the following ones are supported: `monthly` (default) and `daily`.
+of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
+following error occurred: While trying to aggregate the given series, the following \
+error occurred: Argument `stepsize` received value `quaterly`, but only the following \
+ones are supported: `monthly` (default) and `daily`.
 
         >>> from hydpy import pub
         >>> del pub.timegrids
@@ -2201,7 +2156,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: Optional[int] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2225,7 +2180,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: Optional[int] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2249,7 +2204,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         linewidths: Iterable[Optional[int]],
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
             for sequence, label, color, linestyle, linewidth in zip(
@@ -2334,16 +2289,15 @@ class Element(Device[Elements]):
     When preparing |Element| objects, one links them to nodes of different "groups",
     each group of nodes implemented as an immutable |Nodes| object:
 
-     * |Element.inlets| and |Element.outlets| nodes handle, for
-       example, the inflow to and the outflow from the respective element.
-     * |Element.receivers| and |Element.senders| nodes are thought for
-       information flow between arbitrary elements, for example, to inform a
-       |dam| model about the discharge at a gauge downstream.
+     * |Element.inlets| and |Element.outlets| nodes handle, for example, the inflow to
+       and the outflow from the respective element.
+     * |Element.receivers| and |Element.senders| nodes are thought for information flow
+       between arbitrary elements, for example, to inform a |dam| model about the
+       discharge at a gauge downstream.
      * |Element.inputs| nodes provide optional input information, for example,
-       interpolated precipitation that could alternatively be read from files
-       as well.
-     * |Element.outputs| nodes query optional output information, for example,
-       the water level of a dam.
+       interpolated precipitation that could alternatively be read from files as well.
+     * |Element.outputs| nodes query optional output information, for example, the
+       water level of a dam.
 
     You can select the relevant nodes either by passing them explicitly or passing
     their name both as single objects or as objects contained within an iterable object:
@@ -2358,8 +2312,8 @@ class Element(Device[Elements]):
             outlets="outl1",
             receivers=["rec1", "rec2"])
 
-    Repeating such a statement with different nodes adds them to the
-    existing ones without any conflict in case of repeated specifications:
+    Repeating such a statement with different nodes adds them to the existing ones
+    without any conflict in case of repeated specifications:
 
     >>> Element("test",
     ...         inlets="inl1",
@@ -2393,81 +2347,81 @@ class Element(Device[Elements]):
             inputs="inp1",
             outputs=["outp1", "outp2"])
 
-    The properties try to verify that all connections make sense.  For example,
-    an element should never handle an `inlet` node that it also handles as an
-    `outlet`, `input`, or `output` node:
+    The properties try to verify that all connections make sense.  For example, an
+    element should never handle an `inlet` node that it also handles as an `outlet`,
+    `input`, or `output` node:
 
     >>> test.inlets = "outl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given inlet node `outl1` is already \
-defined as a(n) outlet node, which is not allowed.
+    ValueError: For element `test`, the given inlet node `outl1` is already defined \
+as a(n) outlet node, which is not allowed.
 
     >>> test.inlets = "inp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given inlet node `inp1` is already \
-defined as a(n) input node, which is not allowed.
+    ValueError: For element `test`, the given inlet node `inp1` is already defined as \
+a(n) input node, which is not allowed.
 
     >>> test.inlets = "outp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given inlet node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    ValueError: For element `test`, the given inlet node `outp1` is already defined \
+as a(n) output node, which is not allowed.
 
     Similar holds for the `outlet` nodes:
 
     >>> test.outlets = "inl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given outlet node `inl1` is already \
-defined as a(n) inlet node, which is not allowed.
+    ValueError: For element `test`, the given outlet node `inl1` is already defined \
+as a(n) inlet node, which is not allowed.
 
     >>> test.outlets = "inp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given outlet node `inp1` is already \
-defined as a(n) input node, which is not allowed.
+    ValueError: For element `test`, the given outlet node `inp1` is already defined \
+as a(n) input node, which is not allowed.
 
     >>> test.outlets = "outp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given outlet node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    ValueError: For element `test`, the given outlet node `outp1` is already defined \
+as a(n) output node, which is not allowed.
 
     The following restrictions hold for the `sender` nodes:
 
     >>> test.senders = "rec1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given sender node `rec1` is already \
-defined as a(n) receiver node, which is not allowed.
+    ValueError: For element `test`, the given sender node `rec1` is already defined \
+as a(n) receiver node, which is not allowed.
 
     >>> test.senders = "inp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given sender node `inp1` is already \
-defined as a(n) input node, which is not allowed.
+    ValueError: For element `test`, the given sender node `inp1` is already defined \
+as a(n) input node, which is not allowed.
 
     >>> test.senders = "outp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given sender node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    ValueError: For element `test`, the given sender node `outp1` is already defined \
+as a(n) output node, which is not allowed.
 
     The following restrictions hold for the `receiver` nodes:
 
     >>> test.receivers = "sen1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given receiver node `sen1` is already \
-defined as a(n) sender node, which is not allowed.
+    ValueError: For element `test`, the given receiver node `sen1` is already defined \
+as a(n) sender node, which is not allowed.
 
     >>> test.receivers = "inp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given receiver node `inp1` is already \
-defined as a(n) input node, which is not allowed.
+    ValueError: For element `test`, the given receiver node `inp1` is already defined \
+as a(n) input node, which is not allowed.
 
     >>> test.receivers = "outp1"
     Traceback (most recent call last):
@@ -2480,74 +2434,73 @@ defined as a(n) output node, which is not allowed.
     >>> test.inputs = "outp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    ValueError: For element `test`, the given input node `outp1` is already defined \
+as a(n) output node, which is not allowed.
 
     >>> test.inputs = "inl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `inl1` is already \
-defined as a(n) inlet node, which is not allowed.
+    ValueError: For element `test`, the given input node `inl1` is already defined as \
+a(n) inlet node, which is not allowed.
 
     >>> test.inputs = "outl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `outl1` is already \
-defined as a(n) outlet node, which is not allowed.
+    ValueError: For element `test`, the given input node `outl1` is already defined \
+as a(n) outlet node, which is not allowed.
 
     >>> test.inputs = "sen1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `sen1` is already \
-defined as a(n) sender node, which is not allowed.
+    ValueError: For element `test`, the given input node `sen1` is already defined as \
+a(n) sender node, which is not allowed.
 
     >>> test.inputs = "rec1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given input node `rec1` is already \
-defined as a(n) receiver node, which is not allowed.
+    ValueError: For element `test`, the given input node `rec1` is already defined as \
+a(n) receiver node, which is not allowed.
 
    The following restrictions hold for the `output` nodes:
 
     >>> test.outputs = "inp1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given output node `inp1` is already \
-defined as a(n) input node, which is not allowed.
+    ValueError: For element `test`, the given output node `inp1` is already defined \
+as a(n) input node, which is not allowed.
 
     >>> test.outputs = "inl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given output node `inl1` is already \
-defined as a(n) inlet node, which is not allowed.
+    ValueError: For element `test`, the given output node `inl1` is already defined \
+as a(n) inlet node, which is not allowed.
 
     >>> test.outputs = "outl1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given output node `outl1` is already \
-defined as a(n) outlet node, which is not allowed.
+    ValueError: For element `test`, the given output node `outl1` is already defined \
+as a(n) outlet node, which is not allowed.
 
     >>> test.outputs = "sen1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given output node `sen1` is already \
-defined as a(n) sender node, which is not allowed.
+    ValueError: For element `test`, the given output node `sen1` is already defined \
+as a(n) sender node, which is not allowed.
 
     >>> test.outputs = "rec1"
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given output node `rec1` is already \
-defined as a(n) receiver node, which is not allowed.
+    ValueError: For element `test`, the given output node `rec1` is already defined \
+as a(n) receiver node, which is not allowed.
 
-    Note that the discussed |Nodes| objects are immutable by default,
-    disallowing to change them in other ways as described above:
+    Note that the discussed |Nodes| objects are immutable by default, disallowing to
+    change them in other ways as described above:
 
     >>> test.inlets += "inl3"
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to add the device `inl3` to a Nodes object, \
-the following error occurred: Adding devices to immutable Nodes objects \
-is not allowed.
+    RuntimeError: While trying to add the device `inl3` to a Nodes object, the \
+following error occurred: Adding devices to immutable Nodes objects is not allowed.
 
     Setting their `mutable` flag to |True| changes this behaviour:
 
@@ -2624,10 +2577,9 @@ is not allowed.
                 for incomp in incompatiblenodes:
                     if node in vars(self)[incomp]:
                         raise ValueError(
-                            f"For element `{self}`, the given "
-                            f"{targetnodes[:-1]} node `{node}` is already "
-                            f"defined as a(n) {incomp[:-1]} node, which is "
-                            f"not allowed."
+                            f"For element `{self}`, the given {targetnodes[:-1]} node "
+                            f"`{node}` is already defined as a(n) {incomp[:-1]} node, "
+                            f"which is not allowed."
                         )
                 elementgroup.add_device(node)
                 nodegroup: Elements = getattr(node, targetelements)
@@ -2642,8 +2594,8 @@ is not allowed.
 
     @property
     def inlets(self) -> Nodes:
-        """Group of |Node| objects from which the handled |Model| object
-        queries its "upstream" input values (e.g. inflow)."""
+        """Group of |Node| objects from which the handled |Model| object queries its
+        "upstream" input values (e.g. inflow)."""
         return vars(self)["inlets"]
 
     @inlets.setter
@@ -2652,17 +2604,13 @@ is not allowed.
             values,
             targetnodes="inlets",
             targetelements="exits",
-            incompatiblenodes=(
-                "outlets",
-                "inputs",
-                "outputs",
-            ),
+            incompatiblenodes=("outlets", "inputs", "outputs"),
         )
 
     @property
     def outlets(self) -> Nodes:
-        """Group of |Node| objects to which the handled |Model| object
-        passes its "downstream" output values (e.g. outflow)."""
+        """Group of |Node| objects to which the handled |Model| object passes its
+        "downstream" output values (e.g. outflow)."""
         return vars(self)["outlets"]
 
     @outlets.setter
@@ -2671,18 +2619,13 @@ is not allowed.
             values,
             targetnodes="outlets",
             targetelements="entries",
-            incompatiblenodes=(
-                "inlets",
-                "inputs",
-                "outputs",
-            ),
+            incompatiblenodes=("inlets", "inputs", "outputs"),
         )
 
     @property
     def receivers(self) -> Nodes:
-        """Group of |Node| objects from which the handled |Model| object
-        queries its "remote" information values (e.g. discharge at a
-        remote downstream)."""
+        """Group of |Node| objects from which the handled |Model| object queries its
+        "remote" information values (e.g. discharge at a remote downstream)."""
         return vars(self)["receivers"]
 
     @receivers.setter
@@ -2691,18 +2634,13 @@ is not allowed.
             values,
             targetnodes="receivers",
             targetelements="exits",
-            incompatiblenodes=(
-                "senders",
-                "inputs",
-                "outputs",
-            ),
+            incompatiblenodes=("senders", "inputs", "outputs"),
         )
 
     @property
     def senders(self) -> Nodes:
-        """Group of |Node| objects to which the handled |Model| object
-        passes its "remote" information values (e.g. water level of
-        a |dam| model)."""
+        """Group of |Node| objects to which the handled |Model| object passes its
+        "remote" information values (e.g. water level of a |dam| model)."""
         return vars(self)["senders"]
 
     @senders.setter
@@ -2711,18 +2649,14 @@ is not allowed.
             values,
             targetnodes="senders",
             targetelements="entries",
-            incompatiblenodes=(
-                "receivers",
-                "inputs",
-                "outputs",
-            ),
+            incompatiblenodes=("receivers", "inputs", "outputs"),
         )
 
     @property
     def inputs(self) -> Nodes:
-        """Group of |Node| objects from which the handled |Model| object
-        queries its "external" input values, instead of reading them from
-        files (e.g. interpolated precipitation)."""
+        """Group of |Node| objects from which the handled |Model| object queries its
+        "external" input values, instead of reading them from files (e.g. interpolated
+        precipitation)."""
         return vars(self)["inputs"]
 
     @inputs.setter
@@ -2731,20 +2665,14 @@ is not allowed.
             values,
             targetnodes="inputs",
             targetelements="exits",
-            incompatiblenodes=(
-                "inlets",
-                "outlets",
-                "senders",
-                "receivers",
-                "outputs",
-            ),
+            incompatiblenodes=("inlets", "outlets", "senders", "receivers", "outputs"),
         )
 
     @property
     def outputs(self) -> Nodes:
-        """Group of |Node| objects to which the handled |Model| object passes
-        its "internal" output values, available via sequences of type
-        |FluxSequence| or |StateSequence| (e.g. potential evaporation)."""
+        """Group of |Node| objects to which the handled |Model| object passes its
+        "internal" output values, available via sequences of type |FluxSequence| or
+        |StateSequence| (e.g. potential evaporation)."""
         return vars(self)["outputs"]
 
     @outputs.setter
@@ -2753,13 +2681,7 @@ is not allowed.
             values,
             targetnodes="outputs",
             targetelements="entries",
-            incompatiblenodes=(
-                "inlets",
-                "outlets",
-                "senders",
-                "receivers",
-                "inputs",
-            ),
+            incompatiblenodes=("inlets", "outlets", "senders", "receivers", "inputs"),
         )
 
     @classmethod
@@ -2768,7 +2690,7 @@ is not allowed.
         return Elements
 
     @property
-    def model(self) -> "modeltools.Model":
+    def model(self) -> modeltools.Model:
         """The |Model| object handled by the actual |Element| object.
 
         Directly after their initialisation, elements do not know which model they
@@ -2859,23 +2781,23 @@ is not allowed.
         vars(self)["model"] = None
 
     def prepare_model(self, clear_registry: bool = True) -> None:
-        """Load the control file of the actual |Element| object, initialise
-        its |Model| object, build the required connections via (an eventually
-        overridden version of) method |Model.connect| of class |Model|, and
-        update its  derived parameter values via calling (an eventually
-        overridden version) of method |Parameters.update| of class |Parameters|.
+        """Load the control file of the actual |Element| object, initialise its |Model|
+        object, build the required connections via (an eventually overridden version
+        of) method |Model.connect| of class |Model|, and update its  derived parameter
+        values via calling (an eventually overridden version) of method
+        |Parameters.update| of class |Parameters|.
 
-        See method |HydPy.prepare_models| of class |HydPy| and property
-        |model| of class |Element| fur further information.
+        See method |HydPy.prepare_models| of class |HydPy| and property |model| of
+        class |Element| fur further information.
         """
         try:
             try:
                 hydpy.pub.timegrids
             except exceptiontools.AttributeNotReady:
                 raise exceptiontools.AttributeNotReady(
-                    "The initialisation period has not been defined via "
-                    "attribute `timegrids` of module `pub` yet but might "
-                    "be required to prepare the model properly."
+                    "The initialisation period has not been defined via attribute "
+                    "`timegrids` of module `pub` yet but might be required to prepare "
+                    "the model properly."
                 ) from None
             with hydpy.pub.options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
@@ -2886,18 +2808,17 @@ is not allowed.
         except OSError:
             if hydpy.pub.options.warnmissingcontrolfile:
                 warnings.warn(
-                    f"Due to a missing or no accessible control file, no "
-                    f"model could be initialised for element `{self.name}`"
+                    f"Due to a missing or no accessible control file, no model could "
+                    f"be initialised for element `{self.name}`"
                 )
             else:
                 objecttools.augment_excmessage(
-                    f"While trying to initialise the model "
-                    f"object of element `{self.name}`"
+                    f"While trying to initialise the model object of element "
+                    f"`{self.name}`"
                 )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to initialise the model "
-                f"object of element `{self.name}`"
+                f"While trying to initialise the model object of element `{self.name}`"
             )
 
     def init_model(self, clear_registry: bool = True) -> None:
@@ -2910,26 +2831,25 @@ is not allowed.
         ...     element.init_model(False)
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
-Method `init_model` of class `Element` is deprecated.  \
-Use method `prepare_model` instead.
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: Method `init_model` of \
+class `Element` is deprecated.  Use method `prepare_model` instead.
         >>> mocked.call_args_list
         [call(False)]
         """
         self.prepare_model(clear_registry)
         warnings.warn(
-            "Method `init_model` of class `Element` is deprecated.  "
-            "Use method `prepare_model` instead.",
+            "Method `init_model` of class `Element` is deprecated.  Use method "
+            "`prepare_model` instead.",
             exceptiontools.HydPyDeprecationWarning,
         )
 
     @property
     def variables(self) -> Set[NodeVariableType]:
-        """A set of all different |Node.variable| values of the |Node|
-        objects directly connected to the actual |Element| object.
+        """A set of all different |Node.variable| values of the |Node| objects directly
+        connected to the actual |Element| object.
 
-        Suppose there is an element connected to five nodes, which (partly)
-        represent different variables:
+        Suppose there is an element connected to five nodes, which (partly) represent
+        different variables:
 
         >>> from hydpy import Element, Node
         >>> element = Element("Test",
@@ -2938,8 +2858,8 @@ Use method `prepare_model` instead.
         ...                   receivers=(Node("N5", "X"), Node("N6", "Y3")),
         ...                   senders=(Node("N7", "X"), Node("N8", "Y4")))
 
-        Property |Element.variables| puts all the different variables of
-        these nodes together:
+        Property |Element.variables| puts all the different variables of these nodes
+        together:
 
         >>> sorted(element.variables)
         ['X', 'Y1', 'Y2', 'Y3', 'Y4']
@@ -2949,71 +2869,50 @@ Use method `prepare_model` instead.
             variables.update(connection.variables)
         return variables
 
-    def open_files(self, idx: int = 0) -> None:
-        """Call method |Sequences.open_files| of the |Sequences| object
-        handled (indirectly) by the actual |Element| object."""
-        self.model.sequences.open_files(idx)
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Element.prepare_inputseries| with `read_jit=jit` and methods
+        |Element.prepare_factorseries|, |Element.prepare_fluxseries|, and
+        |Element.prepare_stateseries| with `write_jit=jit`."""
+        self.prepare_inputseries(allocate_ram=allocate_ram, read_jit=jit)
+        self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
 
-    def close_files(self) -> None:
-        """Call method |Sequences.close_files| of the |Sequences| object
-        handled (indirectly) by the actual |Element| object."""
-        self.model.sequences.close_files()
+    def prepare_inputseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all |InputSequence| objects of
+        the currently handled |Model| instance."""
+        self.model.sequences.inputs.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
 
-    def prepare_allseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of all `input`, `factor`, `flux`,
-        and `state` sequences of the model handled by this element.
+    def prepare_factorseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all |FactorSequence| objects of
+        the currently handled |Model| instance."""
+        self.model.sequences.factors.prepare_series(
+            allocate_ram=allocate_ram, write_jit=write_jit
+        )
 
-        Call this method before a simulation run, if you need access to (nearly) all
-        simulated series of the handled model after the simulation run is finished.
+    def prepare_fluxseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all |FluxSequence| objects of
+        the currently handled |Model| instance."""
+        self.model.sequences.fluxes.prepare_series(
+            allocate_ram=allocate_ram, write_jit=write_jit
+        )
 
-        By default, the time-series are stored in RAM, which is the faster option.  If
-        your RAM is limited, pass |False| to function argument `ramflag` to store the
-        series on disk.
-        """
-        self.prepare_inputseries(ramflag)
-        self.prepare_factorseries(ramflag)
-        self.prepare_fluxseries(ramflag)
-        self.prepare_stateseries(ramflag)
-
-    def prepare_inputseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of the `input` sequences
-        of the model handled by this element.
-
-        See method |Element.prepare_allseries| for further information.
-        """
-        self.__prepare_series("inputs", ramflag)
-
-    def prepare_factorseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of the `factor` sequences of the
-        model handled by this element.
-
-        See method |Element.prepare_allseries| for further information.
-        """
-        self.__prepare_series("factors", ramflag)
-
-    def prepare_fluxseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of the `flux` sequences
-        of the model handled by this element.
-
-        See method |Element.prepare_allseries| for further information.
-        """
-        self.__prepare_series("fluxes", ramflag)
-
-    def prepare_stateseries(self, ramflag: bool = True) -> None:
-        """Prepare the |IOSequence.series| objects of the `state` sequences
-        of the model handled by this element.
-
-        See method |Element.prepare_allseries| for further information.
-        """
-        self.__prepare_series("states", ramflag)
-
-    def __prepare_series(self, name_subseqs: str, ramflag: bool) -> None:
-        subseqs = getattr(self.model.sequences, name_subseqs, None)
-        if subseqs:
-            if ramflag:
-                subseqs.activate_ram()
-            else:
-                subseqs.activate_disk()
+    def prepare_stateseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all |StateSequence| objects of
+        the currently handled |Model| instance."""
+        self.model.sequences.states.prepare_series(
+            allocate_ram=allocate_ram, write_jit=write_jit
+        )
 
     def _plot_series(
         self,
@@ -3026,10 +2925,9 @@ Use method `prepare_model` instead.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]],
         linewidths: Optional[Union[int, Tuple[int, ...]]],
         focus: bool,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: Optional[Union[T, Tuple[T, ...]]],
-            nmb_entries: int,
+            input_: Optional[Union[T, Tuple[T, ...]]], nmb_entries: int
         ) -> Tuple[Optional[T], ...]:
             if isinstance(input_, tuple):
                 return input_
@@ -3114,18 +3012,18 @@ Use method `prepare_model` instead.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
         linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
         focus: bool = True,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
 
-        We demonstrate the functionalities of method |Element.plot_inputseries|
-        based on the `Lahn` example project:
+        We demonstrate the functionalities of method |Element.plot_inputseries| based
+        on the `Lahn` example project:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        Without any arguments, |Element.plot_inputseries| prints the time-series of
-        all input sequences handled by its |Model| object directly to the screen (in
-        our example |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
+        Without any arguments, |Element.plot_inputseries| prints the time-series of all
+        input sequences handled by its |Model| object directly to the screen (in our
+        example |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
         |hland_inputs.EPN| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
@@ -3203,7 +3101,7 @@ Use method `prepare_model` instead.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
         linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
         focus: bool = True,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the `factor` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -3230,11 +3128,11 @@ Use method `prepare_model` instead.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
         linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
         focus: bool = True,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the `flux` series of the handled model.
 
-        See the documentation on method |Element.plot_inputseries| for
-        additional information.
+        See the documentation on method |Element.plot_inputseries| for additional
+        information.
         """
         return self._plot_series(
             subseqs=self.model.sequences.fluxes,
@@ -3257,11 +3155,11 @@ Use method `prepare_model` instead.
         linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
         linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
         focus: bool = True,
-    ) -> "pyplot.Figure":
+    ) -> pyplot.Figure:
         """Plot the `state` series of the handled model.
 
-        See the documentation on method |Element.plot_inputseries| for
-        additional information.
+        See the documentation on method |Element.plot_inputseries| for additional
+        information.
         """
         return self._plot_series(
             subseqs=self.model.sequences.states,
@@ -3317,14 +3215,13 @@ _selection: Mapping = {Node: {}, Element: {}}
 
 @contextlib.contextmanager
 def clear_registries_temporarily() -> Generator[None, None, None]:
-    """Context manager for clearing the current |Node|, |Element|, and
-    |FusedVariable| registries .
+    """Context manager for clearing the current |Node|, |Element|, and |FusedVariable|
+    registries.
 
-    Function |clear_registries_temporarily| is only available for testing
-    purposes.
+    Function |clear_registries_temporarily| is only available for testing purposes.
 
-    These are the relevant registries for the currently initialised |Node|,
-    |Element|, and |FusedVariable| objects:
+    These are the relevant registries for the currently initialised |Node|, |Element|,
+    and |FusedVariable| objects:
 
     >>> from hydpy.core import devicetools
     >>> registries = (devicetools._id2devices,
@@ -3352,8 +3249,8 @@ def clear_registries_temporarily() -> Generator[None, None, None]:
     {}
     {}
 
-    Before leaving the `with` block, the |clear_registries_temporarily|
-    method restores the contents of each dictionary:
+    Before leaving the `with` block, the |clear_registries_temporarily| method restores
+    the contents of each dictionary:
 
     >>> for registry in registries:
     ...     print(registry)
@@ -3383,7 +3280,7 @@ def clear_registries_temporarily() -> Generator[None, None, None]:
             registry.update(copy_)
 
 
-def _get_pandasindex() -> "pandas.Index":
+def _get_pandasindex() -> pandas.Index:
     """
     >>> from hydpy import pub
     >>> pub.timegrids = "2004.01.01", "2005.01.01", "1d"

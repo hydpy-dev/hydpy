@@ -9,6 +9,7 @@ https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import importlib
 import itertools
@@ -74,11 +75,10 @@ class IndexProperty:
 class Idx_Sim(IndexProperty):
     """The simulation step index.
 
-    Some model methods require to know the index of the current simulation
-    step (with respect to the initialisation period), which one usually
-    updates by passing it to |Model.simulate|.  However, you are allowed
-    to change it manually via the |modeltools.Idx_Sim| descriptor, which is
-    often beneficial during testing:
+    Some model methods require to know the index of the current simulation step (with
+    respect to the initialisation period), which one usually updates by passing it to
+    |Model.simulate|.  However, you are allowed to change it manually via the
+    |modeltools.Idx_Sim| descriptor, which is often beneficial during testing:
 
     >>> from hydpy.models.hland_v1 import *
     >>> parameterstep("1d")
@@ -88,8 +88,8 @@ class Idx_Sim(IndexProperty):
     >>> model.idx_sim
     1
 
-    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects
-    are aware of their name:
+    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects are aware of
+    their name:
 
     >>> Model.idx_sim.name
     'idx_sim'
@@ -99,24 +99,22 @@ class Idx_Sim(IndexProperty):
 class Idx_HRU(IndexProperty):
     """The hydrological response unit index.
 
-    See class :class:`~hydpy.core.modeltools.Idx_HRU` for an
-    explanation  on the purpose and handling of objects of
-    :class:`~hydpy.core.modeltools.IndexProperty` subclasses.
+    See class |Idx_HRU| for an explanation on the purpose and handling of objects of
+    |IndexProperty| subclasses.
     """
 
 
 class Model:
     """Base class for all hydrological models.
 
-    Class |Model| provides everything to create a usable application
-    model, except method |Model.simulate|.  See class |AdHocModel| and
-    |ELSModel|, which implement this method.
+    Class |Model| provides everything to create a usable application model, except
+    method |Model.simulate|.  See class |AdHocModel| and |ELSModel|, which implement
+    this method.
 
-    Each final |Model| object has two attributes named `parameters` and
-    `sequences`, providing access to all parameter and sequence values,
-    respectively.  For example, the application model |hland_v1| so
-    provides access to the control parameter |hland_control.NmbZones|
-    and the input sequence |hland_inputs.P|:
+    Each final |Model| object has two attributes named `parameters` and `sequences`,
+    providing access to all parameter and sequence values, respectively.  For example,
+    the application model |hland_v1| so provides access to the control parameter
+    |hland_control.NmbZones| and the input sequence |hland_inputs.P|:
 
     >>> from hydpy.models.hland_v1 import *
     >>> parameterstep("1d")
@@ -125,23 +123,23 @@ class Model:
     >>> model.sequences.inputs.p
     p(nan)
 
-    Both attributes are dynamic.  You need to add them manually whenever
-    you want to prepare a workable |Model| object on your own (see the
-    factory functions |prepare_model| and |parameterstep|, which do this
-    regularly).  In case you forget to do so, you get the following
-    error message:
+    Both attributes are dynamic.  You need to add them manually whenever you want to
+    prepare a workable |Model| object on your own (see the factory functions
+    |prepare_model| and |parameterstep|, which do this regularly).  In case you forget
+    to do so, you get the following error message:
 
     >>> from hydpy.models.hland_v1 import Model
     >>> Model().parameters
     Traceback (most recent call last):
     ...
-    AttributeError: The dynamic attribute `parameters` of `hland_v1` of \
-element `?` is not available at the moment.
+    AttributeError: The dynamic attribute `parameters` of `hland_v1` of element `?` \
+is not available at the moment.
+
     >>> Model().sequences
     Traceback (most recent call last):
     ...
-    AttributeError: The dynamic attribute `sequences` of `hland_v1` of \
-element `?` is not available at the moment.
+    AttributeError: The dynamic attribute `sequences` of `hland_v1` of element `?` is \
+not available at the moment.
 
     Other wrong attribute names result in the familiar error message:
 
@@ -150,9 +148,9 @@ element `?` is not available at the moment.
     ...
     AttributeError: 'Model' object has no attribute 'wrong'
 
-    Similar to `parameters` and `sequences`, there is also the dynamic
-    `masks` attribute, making all predefined masks of the actual model
-    type available within in a |Masks| objects:
+    Similar to `parameters` and `sequences`, there is also the dynamic `masks`
+    attribute, making all predefined masks of the actual model type available within in
+    a |Masks| objects:
 
     >>> model.masks
     complete of module hydpy.models.hland.hland_masks
@@ -167,11 +165,10 @@ element `?` is not available at the moment.
     sealed of module hydpy.models.hland.hland_masks
     noglacier of module hydpy.models.hland.hland_masks
 
-    You can use these masks, for example, to average the zone-specific
-    precipitation values handled by sequence |hland_fluxes.PC|.
-    When passing no argument, method |Variable.average_values|
-    applies the `complete` mask.  Pass mask `land` to average the
-    values of all zones except those of type |hland_constants.ILAKE|:
+    You can use these masks, for example, to average the zone-specific precipitation
+    values handled by sequence |hland_fluxes.PC|.  When passing no argument, method
+    |Variable.average_values| applies the `complete` mask.  Pass mask `land` to average
+    the values of all zones except those of type |hland_constants.ILAKE|:
 
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
@@ -182,22 +179,22 @@ element `?` is not available at the moment.
     >>> fluxes.pc.average_values(model.masks.land)
     3.0
 
-    Attribute `masks` is, in contrast to attributes `parameters` and
-    `sequences`, optional, which we indicate by a different error message:
+    Attribute `masks` is, in contrast to attributes `parameters` and `sequences`,
+    optional, which we indicate by a different error message:
 
     >>> from hydpy import prepare_model
     >>> prepare_model("test_v1").masks
     Traceback (most recent call last):
     ...
-    AttributeError: Model ``test_v1` of element `?`` does not handle \
-a group of masks (at the moment).
+    AttributeError: Model ``test_v1` of element `?`` does not handle a group of masks \
+(at the moment).
     """
 
-    element: Optional["devicetools.Element"]
+    element: Optional[devicetools.Element]
     cymodel: Optional[typingtools.CyModelProtocol]
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
-    masks: "masktools.Masks"
+    masks: masktools.Masks
     idx_sim = Idx_Sim()
 
     _NAME: Final[str]
@@ -207,7 +204,7 @@ a group of masks (at the moment).
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS: ClassVar[Tuple[str, ...]]
-    SUBMODELS: ClassVar[Tuple[Type["Submodel"], ...]]
+    SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
@@ -217,8 +214,8 @@ a group of masks (at the moment).
         self._init_methods()
 
     def _init_methods(self) -> None:
-        """Convert all pure Python calculation functions of the model class to
-        methods and assign them to the model instance."""
+        """Convert all pure Python calculation functions of the model class to methods
+        and assign them to the model instance."""
         for name_group in self.METHOD_GROUPS:
             functions = getattr(self, name_group, ())
             shortname2method: Dict[str, types.MethodType] = {}
@@ -644,8 +641,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def load_data(self) -> None:
         """Call method |Sequences.load_data| of attribute `sequences`.
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         if self.sequences:
             self.sequences.load_data(self.idx_sim)
@@ -653,8 +650,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def save_data(self, idx: int) -> None:
         """Call method |Sequences.save_data| of attribute `sequences`.
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
         if self.sequences:
@@ -678,8 +675,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         1
         2
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         for method in self.INLET_METHODS:
             method.__call__(self)
@@ -702,8 +699,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         1
         2
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
             method.__call__(self)
@@ -727,8 +724,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         2
         3
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
@@ -753,19 +750,18 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         2
         3
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
             method.__call__(self)
 
     def new2old(self) -> None:
-        """Call method |StateSequences.new2old| of subattribute
-        `sequences.states`.
+        """Call method |StateSequences.new2old| of subattribute `sequences.states`.
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         if self.sequences:
             self.sequences.states.new2old()
@@ -773,15 +769,15 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def update_outputs(self) -> None:
         """Call method |Sequences.update_outputs| of attribute |Model.sequences|.
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.sequences.update_outputs()
 
     @classmethod
     def get_methods(cls) -> Iterator[Method]:
-        """Convenience method for iterating through all methods selected by
-        a |Model| subclass.
+        """Convenience method for iterating through all methods selected by a |Model|
+        subclass.
 
         >>> from hydpy.models import hland_v1
         >>> for method in hland_v1.Model.get_methods():
@@ -792,9 +788,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Calc_QT_V1
         Pass_Q_v1
 
-        Note that function |Model.get_methods| returns the "raw" |Method|
-        objects instead of the modified Python or Cython functions used
-        for performing calculations.
+        Note that function |Model.get_methods| returns the "raw" |Method| objects
+        instead of the modified Python or Cython functions used for performing
+        calculations.
         """
         for name_group in getattr(cls, "METHOD_GROUPS", ()):
             for method in getattr(cls, name_group, ()):
@@ -904,14 +900,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def __getattr__(self, item: str) -> NoReturn:
         if item in ("parameters", "sequences"):
             raise AttributeError(
-                f"The dynamic attribute `{item}` of "
-                f"{objecttools.elementphrase(self)} is not available "
-                f"at the moment."
+                f"The dynamic attribute `{item}` of {objecttools.elementphrase(self)} "
+                f"is not available at the moment."
             )
         if item == "masks":
             raise AttributeError(
-                f"Model `{objecttools.elementphrase(self)}` does not "
-                f"handle a group of masks (at the moment)."
+                f"Model `{objecttools.elementphrase(self)}` does not handle a group "
+                f"of masks (at the moment)."
             )
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{item}'"
@@ -919,12 +914,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
 
 class AdHocModel(Model):
-    """Base class for models solving the underlying differential equations
-    in an "ad hoc manner".
+    """Base class for models solving the underlying differential equations in an "ad
+    hoc manner".
 
-    "Ad hoc" stands for the classical approaches in hydrology, to calculate
-    individual fluxes separately (often sequentially) and without error
-    control (see `Clark and Kavetski`_).
+    "Ad hoc" stands for the classical approaches in hydrology, to calculate individual
+    fluxes separately (often sequentially) and without error control (see `Clark and
+    Kavetski`_).
     """
 
     RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -1011,16 +1006,16 @@ class AdHocModel(Model):
         1
         2
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         for method in self.RUN_METHODS:
             method.__call__(self)
 
 
 class SolverModel(Model):
-    """Base class for hydrological models which solve ordinary differential
-    equations with numerical integration algorithms."""
+    """Base class for hydrological models which solve ordinary differential equations
+    with numerical integration algorithms."""
 
     PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -1031,23 +1026,23 @@ class SolverModel(Model):
 
 
 class NumConstsELS:
-    """Configuration options for using the "Explicit Lobatto Sequence"
-    implemented by class |ELSModel|.
+    """Configuration options for using the "Explicit Lobatto Sequence" implemented by
+    class |ELSModel|.
 
     You can change the following solver options at your own risk.
 
     >>> from hydpy.core.modeltools import NumConstsELS
     >>> consts = NumConstsELS()
 
-    The maximum number of Runge Kutta submethods to be applied (the
-    higher, the better the theoretical accuracy, but also the worse
-    the time spent unsuccessful when the theory does not apply):
+    The maximum number of Runge Kutta submethods to be applied (the higher, the better
+    the theoretical accuracy, but also the worse the time spent unsuccessful when the
+    theory does not apply):
 
     >>> consts.nmb_methods
     10
 
-    The number of entries to handle the stages of the highest order method
-    (must agree with the maximum number of methods):
+    The number of entries to handle the stages of the highest order method (must agree
+    with the maximum number of methods):
 
     >>> consts.nmb_stages
     11
@@ -1086,13 +1081,12 @@ class NumConstsELS:
 
 
 class NumVarsELS:
-    """Intermediate results of the "Explicit Lobatto Sequence" implemented
-    by class |ELSModel|.
+    """Intermediate results of the "Explicit Lobatto Sequence" implemented by class
+    |ELSModel|.
 
-    Class |NumVarsELS| should be of relevance for model developers,
-    as it helps to evaluate how efficient newly implemented models
-    are solved (see the documentation on method |ELSModel.solve| of
-    class |ELSModel| as an example).
+    Class |NumVarsELS| should be of relevance for model developers, as it helps to
+    evaluate how efficient newly implemented models are solved (see the documentation
+    on method |ELSModel.solve| of class |ELSModel| as an example).
     """
 
     use_relerror: bool
@@ -1130,28 +1124,25 @@ class NumVarsELS:
 
 
 class ELSModel(SolverModel):
-    """Base class for hydrological models using the "Explicit Lobatto
-    Sequence" for solving ordinary differential equations.
+    """Base class for hydrological models using the "Explicit Lobatto Sequence" for
+    solving ordinary differential equations.
 
-    The "Explicit Lobatto Sequence" is a variable order Runge Kutta
-    method combining different Lobatto methods.  Its main idea is to
-    first calculate a solution with a lower order method, then to use
-    these results to apply the next higher-order method, and to compare
-    both results.  If they are close enough, the latter results are
-    accepted.  If not, the next higher-order method is applied (or,
-    if no higher-order method is available, the step size is
-    decreased, and the algorithm restarts with the method of the
-    lowest order).  So far, the `thorough description`_ of the
+    The "Explicit Lobatto Sequence" is a variable order Runge Kutta method combining
+    different Lobatto methods.  Its main idea is to first calculate a solution with a
+    lower order method, then to use these results to apply the next higher-order method,
+    and to compare both results.  If they are close enough, the latter results are
+    accepted.  If not, the next higher-order method is applied (or, if no higher-order
+    method is available, the step size is decreased, and the algorithm restarts with
+    the method of the lowest order).  So far, the `thorough description`_ of the
     algorithm is available in German only.
 
-    Note the strengths and weaknesses of class |ELSModel| discussed
-    in the documentation on method |ELSModel.solve|.  Model developers
-    should not derive from class |ELSModel| when trying to implement
-    models with a high potential for stiff parameterisations.
-    Discontinuities should be regularised, for example by the
-    "smoothing functions" provided by module |smoothtools|.  Model
-    users should be careful not to define two small smoothing factors,
-    to avoid needlessly long simulation times.
+    Note the strengths and weaknesses of class |ELSModel| discussed in the
+    documentation on method |ELSModel.solve|.  Model developers should not derive from
+    class |ELSModel| when trying to implement models with a high potential for stiff
+    parameterisations.  Discontinuities should be regularised, for example by the
+    "smoothing functions" provided by module |smoothtools|.  Model users should be
+    careful not to define two small smoothing factors, to avoid needlessly long
+    simulation times.
     """
 
     SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.DependentSequence, ...]]
@@ -1175,11 +1166,11 @@ class ELSModel(SolverModel):
         self.numvars = NumVarsELS()
 
     def simulate(self, idx: int) -> None:
-        """Similar to method |Model.simulate| of class |AdHocModel| but
-        calls method |ELSModel.solve| instead of |AdHocModel.run|.
+        """Similar to method |Model.simulate| of class |AdHocModel| but calls method
+        |ELSModel.solve| instead of |AdHocModel.run|.
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
         self.load_data()
@@ -1191,38 +1182,35 @@ class ELSModel(SolverModel):
     def solve(self) -> None:
         """Solve all `FULL_ODE_METHODS` in parallel.
 
-        Implementing numerical integration algorithms that (hopefully)
-        always work well in practice is a tricky task.  The following
-        exhaustive examples show how well our "Explicit Lobatto
-        Sequence" algorithm performs for the numerical test models
-        |test_v1| and |test_v2|.  We hope to cover all possible
-        corner-cases.  Please tell us if you find one we missed.
+        Implementing numerical integration algorithms that (hopefully) always work well
+        in practice is a tricky task.  The following exhaustive examples show how well
+        our "Explicit Lobatto Sequence" algorithm performs for the numerical test
+        models |test_v1| and |test_v2|.  We hope to cover all possible corner-cases.
+        Please tell us if you find one we missed.
 
-        First, we set the value of parameter |test_control.K| to zero,
-        resulting in no changes at all, and thus defining the simplest
-        test case possible:
+        First, we set the value of parameter |test_control.K| to zero, resulting in no
+        changes at all, and thus defining the simplest test case possible:
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> k(0.0)
 
-        Second, we assign values to the solver parameters
-        |test_solver.AbsErrorMax|, |test_solver.RelDTMin|, and
-        |test_solver.RelDTMax| to specify the required numerical accuracy
-        and the smallest and largest internal integration step size allowed:
+        Second, we assign values to the solver parameters |test_solver.AbsErrorMax|,
+        |test_solver.RelDTMin|, and |test_solver.RelDTMax| to specify the required
+        numerical accuracy and the smallest and largest internal integration step size
+        allowed:
 
         >>> solver.abserrormax(0.1)
         >>> solver.reldtmin(0.001)
         >>> solver.reldtmax(1.0)
 
-        Additionally, we set |test_solver.RelErrorMax| to |numpy.nan|,
-        which disables taking relative errors into account:
+        Additionally, we set |test_solver.RelErrorMax| to |numpy.nan|, which disables
+        taking relative errors into account:
 
         >>> solver.relerrormax(nan)
 
-        Calling method |ELSModel.solve| correctly calculates zero
-        discharge (|test_fluxes.Q|) and thus does not change the water
-        storage (|test_states.S|):
+        Calling method |ELSModel.solve| correctly calculates zero discharge
+        (|test_fluxes.Q|) and thus does not change the water storage (|test_states.S|):
 
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -1232,11 +1220,10 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.0)
 
-        The achieve the above result, |ELSModel| requires two function
-        calls, one for the initial guess (using the Explicit Euler Method)
-        and the other one (extending the Explicit Euler method to the
-        Explicit Heun method) to confirm the first guess meets the
-        required accuracy:
+        The achieve the above result, |ELSModel| requires two function calls, one for
+        the initial guess (using the Explicit Euler Method) and the other one
+        (extending the Explicit Euler method to the Explicit Heun method) to confirm
+        the first guess meets the required accuracy:
 
         >>> model.numvars.idx_method
         2
@@ -1245,8 +1232,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         2
 
-        With moderate changes due to setting the value of parameter
-        |test_control.K| to 0.1, two method calls are still sufficient:
+        With moderate changes due to setting the value of parameter |test_control.K|
+        to 0.1, two method calls are still sufficient:
 
         >>> k(0.1)
         >>> states.s(1.0)
@@ -1261,18 +1248,17 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         2
 
-        Calculating the analytical solution shows |ELSModel| did not
-        exceed the given tolerance value:
+        Calculating the analytical solution shows |ELSModel| did not exceed the given
+        tolerance value:
 
         >>> import numpy
         >>> from hydpy import round_
         >>> round_(numpy.exp(-k))
         0.904837
 
-        After decreasing the allowed error by one order of magnitude,
-        |ELSModel| requires four method calls (again, one for the
-        first order and one for the second-order method, and two
-        additional calls for the third-order method):
+        After decreasing the allowed error by one order of magnitude, |ELSModel|
+        requires four method calls (again, one for the first order and one for the
+        second-order method, and two additional calls for the third-order method):
 
         >>> solver.abserrormax(0.001)
         >>> states.s(1.0)
@@ -1287,9 +1273,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         4
 
-        After decreasing |test_solver.AbsErrorMax| by a factor of ten
-        again, |ELSModel| needs one further higher-order method, which
-        requires three additional calls, making a sum of seven:
+        After decreasing |test_solver.AbsErrorMax| by a factor of ten again, |ELSModel|
+        needs one further higher-order method, which requires three additional calls,
+        making a sum of seven:
 
         >>> solver.abserrormax(0.0001)
         >>> states.s(1.0)
@@ -1304,9 +1290,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         7
 
-        |ELSModel| achieves even a very extreme numerical precision
-        (just for testing, way beyond hydrological requirements), in
-        one single step, but now requires a total of 29 method calls:
+        |ELSModel| achieves even a very extreme numerical precision (just for testing,
+        way beyond hydrological requirements), in one single step, but now requires a
+        total of 29 method calls:
 
         >>> solver.abserrormax(1e-12)
         >>> states.s(1.0)
@@ -1323,9 +1309,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         29
 
-        With a more dynamical parameterisation, where the storage decreases
-        by about 40% per time step, |ELSModel| needs seven method calls
-        to meet a "normal" error tolerance:
+        With a more dynamical parameterisation, where the storage decreases by about
+        40 % per time step, |ELSModel| needs seven method calls to meet a "normal"
+        error tolerance:
 
         >>> solver.abserrormax(0.01)
         >>> k(0.5)
@@ -1343,11 +1329,10 @@ class ELSModel(SolverModel):
         >>> round_(numpy.exp(-k))
         0.606531
 
-        Being an explicit integration method, the "Explicit Lobatto
-        Sequence" can be inefficient for solving stiff initial value
-        problems.  Setting |test_control.K| to 2.0 forces |ELSModel|
-        to solve the problem in two substeps, requiring a total of
-        22 method calls:
+        Being an explicit integration method, the "Explicit Lobatto Sequence" can be
+        inefficient for solving stiff initial value problems.  Setting |test_control.K|
+        to 2.0 forces |ELSModel| to solve the problem in two substeps, requiring a
+        total of 22 method calls:
 
         >>> k(2.0)
         >>> round_(numpy.exp(-k))
@@ -1364,8 +1349,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         22
 
-        Increasing the stiffness of the initial value problem further
-        can increase computation times rapidly:
+        Increasing the stiffness of the initial value problem further can increase
+        computation times rapidly:
 
         >>> k(4.0)
         >>> round_(numpy.exp(-k))
@@ -1382,9 +1367,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         44
 
-        If we prevent |ELSModel| from compensating its problems by
-        disallowing it to reduce its integration step size, it does not
-        achieve satisfying results:
+        If we prevent |ELSModel| from compensating its problems by disallowing it to
+        reduce its integration step size, it does not achieve satisfying results:
 
         >>> solver.reldtmin(1.0)
         >>> states.s(1.0)
@@ -1399,9 +1383,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         46
 
-        You can restrict the allowed maximum integration step size, which
-        can help to prevent from loosing to much performance due to trying
-        to solve too stiff problems, repeatedly:
+        You can restrict the allowed maximum integration step size, which can help to
+        prevent from loosing to much performance due to trying to solve too stiff
+        problems, repeatedly:
 
         >>> solver.reldtmin(0.001)
         >>> solver.reldtmax(0.25)
@@ -1417,10 +1401,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         33
 
-        Alternatively, you can restrict the available number of Lobatto
-        methods.  Using two methods only is an inefficient choice for the
-        given initial value problem, but at least solves it with the
-        required accuracy:
+        Alternatively, you can restrict the available number of Lobatto methods.  Using
+        two methods only is an inefficient choice for the given initial value problem,
+        but at least solves it with the required accuracy:
 
         >>> solver.reldtmax(1.0)
         >>> model.numconsts.nmb_methods = 2
@@ -1436,16 +1419,16 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         74
 
-        In the above examples, we control numerical accuracies based on
-        absolute error estimates only via parameter |test_solver.AbsErrorMax|.
-        After assigning an actual value to parameter |test_solver.RelErrorMax|,
-        |ELSModel| also takes relative errors into account.  We modify some
-        of the above examples to show how this works.
+        In the above examples, we control numerical accuracies based on absolute error
+        estimates only via parameter |test_solver.AbsErrorMax|.  After assigning an
+        actual value to parameter |test_solver.RelErrorMax|, |ELSModel| also takes
+        relative errors into account.  We modify some of the above examples to show how
+        this works.
 
-        Generally, it is sufficient to meet one of both criteria.  If we
-        repeat the second example with a relaxed absolute but a strict
-        relative tolerance, we reproduce the original result due to our
-        absolute criteria being the relevant one:
+        Generally, it is sufficient to meet one of both criteria.  If we repeat the
+        second example with a relaxed absolute but a strict relative tolerance, we
+        reproduce the original result due to our absolute criteria being the relevant
+        one:
 
         >>> solver.abserrormax(0.1)
         >>> solver.relerrormax(0.000001)
@@ -1457,8 +1440,8 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.095)
 
-        The same holds for the opposite case of a strict absolute but a
-        relaxed relative tolerance:
+        The same holds for the opposite case of a strict absolute but a relaxed
+        relative tolerance:
 
         >>> solver.abserrormax(0.000001)
         >>> solver.relerrormax(0.1)
@@ -1470,8 +1453,8 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.095)
 
-        Reiterating the "more dynamical parameterisation" example results
-        in slightly different but also correct results:
+        Reiterating the "more dynamical parameterisation" example results in slightly
+        different but also correct results:
 
         >>> k(0.5)
         >>> states.s(1.0)
@@ -1481,10 +1464,9 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.392804)
 
-        Reiterating the stiffest example with a relative instead of an
-        absolute error tolerance of 0.1 achieves higher accuracy, as
-        to be expected due to the value of |test_states.S| being far
-        below 1.0 for some time:
+        Reiterating the stiffest example with a relative instead of an absolute error
+        tolerance of 0.1 achieves higher accuracy, as to be expected due to the value
+        of |test_states.S| being far below 1.0 for some time:
 
         >>> k(4.0)
         >>> states.s(1.0)
@@ -1494,18 +1476,17 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(0.9815)
 
-        Besides its weaknesses with stiff problems, |ELSModel| cannot
-        solve discontinuous problems well.  We use the |test_v1| example
-        model to demonstrate how |ELSModel| behaves when confronted
-        with such a problem.
+        Besides its weaknesses with stiff problems, |ELSModel| cannot solve
+        discontinuous problems well.  We use the |test_v1| example model to demonstrate
+        how |ELSModel| behaves when confronted with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
         >>> from hydpy.models.test_v2 import *
         >>> parameterstep()
 
-        Everything works fine, as long as the discontinuity does not
-        affect the considered simulation step:
+        Everything works fine, as long as the discontinuity does not affect the
+        considered simulation step:
 
         >>> k(0.5)
         >>> solver.abserrormax(0.01)
@@ -1526,8 +1507,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         2
 
-        The occurrence of a discontinuity within the simulation step
-        often increases computation times more than a stiff parameterisation:
+        The occurrence of a discontinuity within the simulation step often increases
+        computation times more than a stiff parameterisation:
 
         >>> k(2.0)
         >>> states.s(1.0)
@@ -1551,8 +1532,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         50
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
         """
         self.numvars.use_relerror = not modelutils.isnan(
             self.parameters.solver.relerrormax
@@ -1870,9 +1851,8 @@ class ELSModel(SolverModel):
             temp[idx] = flux
 
     def integrate_fluxes(self) -> None:
-        """Perform a dot multiplication between the fluxes and the
-        A coefficients associated with the different stages of the
-        actual method.
+        """Perform a dot multiplication between the fluxes and the A coefficients
+        associated with the different stages of the actual method.
 
         >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
@@ -1976,13 +1956,12 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f"_{flux.name}_sum", sum_)
 
     def calculate_error(self) -> None:
-        """Estimate the numerical error based on the relevant fluxes
-        calculated by the current and the last method.
+        """Estimate the numerical error based on the relevant fluxes calculated by the
+        current and the last method.
 
-        "Relevant fluxes" are those contained within the `SOLVERSEQUENCES`
-        tuple.  If this tuple is empty, method |ELSModel.calculate_error|
-        selects all flux sequences of the respective model with a |True|
-        `NUMERIC` attribute.
+        "Relevant fluxes" are those contained within the `SOLVERSEQUENCES` tuple.  If
+        this tuple is empty, method |ELSModel.calculate_error| selects all flux
+        sequences of the respective model with a |True| `NUMERIC` attribute.
 
         >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
@@ -2078,12 +2057,12 @@ class ELSModel(SolverModel):
                 )
 
     def extrapolate_error(self) -> None:
-        """Estimate the numerical error expected when applying all methods
-         available based on the results of the current and the last method.
+        """Estimate the numerical error expected when applying all methods available
+        based on the results of the current and the last method.
 
-        Note that you cannot apply this extrapolation strategy on the first
-        method.   If the current method is the first one, method
-        |ELSModel.extrapolate_error| returns `-999.9`:
+        Note that you cannot apply this extrapolation strategy on the first method.  If
+        the current method is the first one, method |ELSModel.extrapolate_error|
+        returns `-999.9`:
 
          >>> from hydpy.models.test_v1 import *
          >>> parameterstep()
@@ -2161,16 +2140,15 @@ class ELSModel(SolverModel):
 
 
 class Submodel:
-    """Base class for implementing "submodels" that serve to deal with
-    (possibly complicated) general mathematical algorithms (e.g.
-    root-finding algorithms) within hydrological model methods.
+    """Base class for implementing "submodels" that serve to deal with (possibly
+    complicated) general mathematical algorithms (e.g. root-finding algorithms) within
+    hydrological model methods.
 
 
-    You might find class |Submodel| useful when trying to implement
-    algorithms requiring some interaction with the respective model
-    without any Python overhead.  See the modules |roottools| and
-    `rootutils` as an example, implementing Python interfaces and
-    Cython implementations of a root-finding algorithms, respectively.
+    You might find class |Submodel| useful when trying to implement algorithms
+    requiring some interaction with the respective model without any Python overhead.
+    See the modules |roottools| and `rootutils` as an example, implementing Python
+    interfaces and Cython implementations of a root-finding algorithms, respectively.
     """
 
     METHODS: ClassVar[Tuple[Type[Method], ...]]

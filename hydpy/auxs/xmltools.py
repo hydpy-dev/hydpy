@@ -3,17 +3,18 @@
 configuration files.
 
 .. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
+.. _`OpenDA`: https://www.openda.org/
 
-At the heart of module |xmltools| lies function |run_simulation|, which is thought
-to be applied via a command line (see the documentation on script |hyd| for further
-information).  |run_simulation| expects that the *HydPy* project you want to work
-with is available in your current working directory and contains an XML configuration
-file (as `single_run.xml` in the example project folder `LahnH`).  This configuration
-file must agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
-in the :ref:`configuration` subpackage and separately downloadable for each
-`HydPy release`_.  In case you did implement new or changed existing models, you have
-to update this schema file.  *HydPy* does this automatically through its setup
-mechanism (see the documentation on class |XSDWriter|).
+At the heart of module |xmltools| lies function |run_simulation|, thought to be applied
+via a command line (see the documentation on script |hyd| for further information).
+|run_simulation| expects that the *HydPy* project you want to work with is available in
+your current working directory and contains an XML configuration file (as
+`single_run.xml` in the example project folder `LahnH`).  This configuration file must
+agree with the XML schema `HydPyConfigSingleRun.xsd`, which is available in the
+:ref:`configuration` subpackage and separately downloadable for each `HydPy release`_.
+If you did implement new or changed existing models, you have to update this schema
+file.  *HydPy* does this automatically through its setup mechanism (see the
+documentation on class |XSDWriter|).
 
 To show how to apply |run_simulation| via a command line, we first copy the `LahnH`
 project into the `iotesting` folder by calling the function |prepare_full_example_1|:
@@ -22,10 +23,10 @@ project into the `iotesting` folder by calling the function |prepare_full_exampl
 >>> prepare_full_example_1()
 
 Running the simulation requires defining the main script (`hyd.py`), the function
-specifying the actual workflow (`run_simulation`), the name of the project of
-interest (`LahnH`), and the name of the relevant XMK configuration file
-(`single_run.xml`).  To simulate using the command line, we pass the required text
-to function |run_subprocess|:
+specifying the actual workflow (`run_simulation`), the name of the project of interest
+(`LahnH`), and the name of the relevant XML configuration file (`single_run.xml`).  We
+pass the required text to function |run_subprocess| of module subprocess to simulate
+using the command line:
 
 >>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
@@ -64,7 +65,7 @@ sm(183.873078, 179.955801, 198.446011, 195.222634, 210.598689,
    235.308805, 234.042313)
 <BLANKLINE>
 
-The intermediate soil moisture values are stored in a NetCDF file called
+The intermediate soil moisture values have been stored in a NetCDF file called
 `hland_v1_state_sm.nc`:
 
 >>> import numpy
@@ -78,7 +79,7 @@ The intermediate soil moisture values are stored in a NetCDF file called
 184.926173, 184.603966, 184.386666, 184.098541, 183.873078
 >>> ncfile.close()
 
-Spatially averaged time series values are stored in files ending with the suffix
+Spatially averaged time series values have been stored in files ending with the suffix
 `_mean`:
 
 >>> with TestIO(clear_all=True):
@@ -191,9 +192,9 @@ named `wrong`.  Please make sure your XML file follows the relevant XML schema.
     element = root.find(f"{namespace}{name}")
     if element is None and not optional:
         raise AttributeError(
-            f"The actual XML element `{root.tag.rsplit('}')[-1]}` does "
-            f"not define a XML subelement named `{name}`.  Please make "
-            f"sure your XML file follows the relevant XML schema."
+            f"The actual XML element `{root.tag.rsplit('}')[-1]}` does not define a "
+            f"XML subelement named `{name}`.  Please make sure your XML file follows "
+            f"the relevant XML schema."
         )
     return element
 
@@ -224,8 +225,83 @@ def strip(name: str) -> str:
     return name.split("}")[-1]
 
 
+class PrepareSeriesArguments(NamedTuple):
+    """Helper class that determines and provides the arguments for function
+    |IOSequence.prepare_series|."""
+
+    allocate_ram: bool
+    read_jit: bool
+    write_jit: bool
+
+    @classmethod
+    def from_xmldata(
+        cls, is_reader: bool, is_input: bool, prefer_ram: bool
+    ) -> PrepareSeriesArguments:
+        """Create a |PrepareSeriesArguments| object based on the (already prepared)
+        information of an XML file.
+
+        Meaning of the arguments:
+         * is_reader: is the current XML-Element responsible for reading (or writing)?
+         * is_input: serve the addressed sequences as inputs (or outputs)?
+         * prefer_ram: prefer to handle time-series data in RAM (or read and write it
+           just in time)?
+
+        >>> from hydpy.auxs.xmltools import PrepareSeriesArguments
+        >>> from_xmldata = PrepareSeriesArguments.from_xmldata
+
+        Test cases for reading input data:
+
+        >>> from_xmldata(is_reader=True, is_input=True, prefer_ram=True)
+        PrepareSeriesArguments(allocate_ram=True, read_jit=False, write_jit=False)
+
+        >>> from_xmldata(is_reader=True, is_input=True, prefer_ram=False)
+        PrepareSeriesArguments(allocate_ram=False, read_jit=True, write_jit=False)
+
+        Attempting to read output data results in an |AssertionError| (disallowed by
+        all available XML schema files):
+
+        >>> from_xmldata(is_reader=True, is_input=False, prefer_ram=True)
+        Traceback (most recent call last):
+        ...
+        AssertionError: reading output values is disallowed
+
+        >>> from_xmldata(is_reader=True, is_input=False, prefer_ram=False)
+        Traceback (most recent call last):
+        ...
+        AssertionError: reading output values is disallowed
+
+        Test cases for writing input data (this is for the rare case where an
+        external tool like `OpenDA`_ provides or modifies the input data in RAM, and we
+        want to write it to a file for documentation purposes):
+
+        >>> from_xmldata(is_reader=False, is_input=True, prefer_ram=True)
+        PrepareSeriesArguments(allocate_ram=True, read_jit=False, write_jit=False)
+
+        >>> from_xmldata(is_reader=False, is_input=True, prefer_ram=False)
+        PrepareSeriesArguments(allocate_ram=True, read_jit=False, write_jit=True)
+
+        Test cases for writing output data:
+
+        >>> from_xmldata(is_reader=False, is_input=False, prefer_ram=True)
+        PrepareSeriesArguments(allocate_ram=True, read_jit=False, write_jit=False)
+
+        >>> from_xmldata(is_reader=False, is_input=False, prefer_ram=False)
+        PrepareSeriesArguments(allocate_ram=False, read_jit=False, write_jit=True)
+
+        """
+        is_writer = not is_reader
+        is_output = not is_input
+        prefer_jit = not prefer_ram
+        assert not (is_reader and is_output), "reading output values is disallowed"
+        return PrepareSeriesArguments(
+            allocate_ram=prefer_ram or (is_input and is_writer),
+            read_jit=is_reader and prefer_jit,
+            write_jit=is_writer and prefer_jit,
+        )
+
+
 def run_simulation(projectname: str, xmlfile: str) -> None:
-    """Perform a *HydPy* workflow in agreement with the given XML configuration file
+    """Perform a *HydPy* workflow according to the given XML configuration file
     available in the given project's directory.
 
     Function |run_simulation| is a "script function".  We explain its normal usage
@@ -473,7 +549,7 @@ correctly refer to one of the available XML schema files \
                     f"does not correctly refer to one of the available XML "
                     f"schema files ({objecttools.enumeration(filenames)})."
                 )
-            confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+            confpath: str = conf.__path__[0]
             schemapath = os.path.join(confpath, schemafile)
             schema = xmlschema.XMLSchema(schemapath)
             schema.validate(self.filepath)
@@ -483,7 +559,7 @@ correctly refer to one of the available XML schema files \
             )
 
     def update_options(self) -> None:
-        """Update the |Options| object available in module |pub| with the values
+        """Update the |Options| object available in the |pub| module with the values
         defined in the `options` XML element.
 
         .. testsetup::
@@ -539,7 +615,7 @@ correctly refer to one of the available XML schema files \
         options.printprogress = False
 
     def update_timegrids(self) -> None:
-        """Update the |Timegrids| object available in module |pub| with the values
+        """Update the |Timegrids| object available in the |pub| module with the values
         defined in the `timegrid` XML element.
 
         Usually, one would prefer to define `firstdate`, `lastdate`, and `stepsize`
@@ -589,11 +665,7 @@ correctly refer to one of the available XML schema files \
             assert lastdate is not None
             stepsize = timegrid_xml[2].text
             assert stepsize is not None
-            hydpy.pub.timegrids = (
-                firstdate,
-                lastdate,
-                stepsize,
-            )
+            hydpy.pub.timegrids = (firstdate, lastdate, stepsize)
         except IndexError:
             seriesfile = find(timegrid_xml, "seriesfile", optional=False).text
             with netcdf4.Dataset(seriesfile) as ncfile:
@@ -1022,7 +1094,7 @@ class XMLSeries(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def readers(self) -> List["XMLSubseries"]:
+    def readers(self) -> List[XMLSubseries]:
         """The reader XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1035,7 +1107,7 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find("readers", optional=False)]
 
     @property
-    def writers(self) -> List["XMLSubseries"]:
+    def writers(self) -> List[XMLSubseries]:
         """The writer XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1088,19 +1160,20 @@ class XMLSeries(XMLBase):
 
 
 class XMLSelector(XMLBase):
-    """ToDo"""
+    """Base class for |XMLSubseries| and |XMLVar| responsible for querying the relevant
+    |Node| and |Element| objects."""
 
     master: XMLBase
     root: ElementTree.Element
 
     @property
     def selections(self) -> selectiontools.Selections:
-        """The |Selections| object defined for the respective `reader` or `writer`
-        element of the actual XML file. ToDo
+        """The |Selections| object defined for the respective respective IO series or
+        exchange item elements of the actual XML file.
 
-        If the `reader` or `writer` element does not define a special `selections`
-        element, the general |XMLInterface.selections| element of |XMLInterface|
-        is used.
+        Property |XMLSelector.selections| of class |XMLSelector| falls back to the
+        general property |XMLInterface.selections| of |XMLInterface| if the relevant IO
+        series or exchange item element does not define a unique selection:
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1121,8 +1194,8 @@ class XMLSelector(XMLBase):
         soilmoisture ('complete',)
         averaged ('from_selections',)
 
-        If property |XMLSelector.selections| does not find the definition of a
-        |Selections| object, it raises the following error:
+        If property |XMLSelector.selections| does not find any definitions, it raises
+        the following error:
 
         >>> interface.root.remove(interface.find("selections"))
         >>> series_io = interface.series_io
@@ -1130,8 +1203,8 @@ class XMLSelector(XMLBase):
         ...     print(seq.info, seq.selections.names)
         Traceback (most recent call last):
         ...
-        AttributeError: Unable to find a XML element named "selections".  \
-Please make sure your XML file follows the relevant XML schema.
+        AttributeError: Unable to find a XML element named "selections".  Please make \
+sure your XML file follows the relevant XML schema.
         """
         selections = self.find("selections")
         master: XMLBase = self
@@ -1167,8 +1240,8 @@ Please make sure your XML file follows the relevant XML schema.
 
     @property
     def elements(self) -> Iterator[devicetools.Element]:
-        """Return the |Element| objects selected by the actual `reader` or `writer`
-        element. ToDo
+        """Return the |Element| objects selected by the actual IO series or exchange
+        item element.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1189,8 +1262,8 @@ Please make sure your XML file follows the relevant XML schema.
 
     @property
     def nodes(self) -> Iterator[devicetools.Node]:
-        """Return the |Node| objects selected by the actual `reader` or `writer`
-        element. ToDo
+        """Return the |Node| objects selected by the actual IO series or exchange item
+        element.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1222,6 +1295,18 @@ class XMLSubseries(XMLSelector):
         """Info attribute of the actual XML `reader` or `writer` element."""
         return self.root.attrib["info"]
 
+    @property
+    def _is_reader(self) -> bool:
+        if self.name == "reader":
+            return True
+        if self.name == "writer":
+            return False
+        assert False
+
+    @property
+    def _is_writer(self) -> bool:
+        return not self._is_reader
+
     def prepare_sequencemanager(self) -> None:
         """Configure the |SequenceManager| object available in module |pub| following
         the definitions of the actual XML `reader` or `writer` element when available;
@@ -1230,8 +1315,8 @@ class XMLSubseries(XMLSelector):
         Compare the following results with `single_run.xml` to see that the first
         `writer` element defines the input file type specifically, that the second
         `writer` element defines a general file type, and that the third `writer`
-        element does not define any file type (the base mechanism is the same for
-        other options, e.g. the aggregation mode):
+        element does not define any file type.  The base mechanism is the same for
+        other options, e.g. the aggregation mode:
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1293,7 +1378,18 @@ class XMLSubseries(XMLSelector):
                             break
 
     @property
-    def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
+    def _ramflag(self) -> bool:
+        """A flag analoge to the |IOSequence.ramflag| of class |IOSequence|."""
+        mode = self.find("mode")
+        if mode is None:
+            mode = self.master.find("mode")
+        if mode is None:
+            return True
+        assert mode.text is not None
+        return mode.text == "ram"
+
+    @property
+    def model2subs2seqs(self) -> DefaultDict[str, DefaultDict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model-specific information
         provided by the XML `sequences` element.
 
@@ -1306,13 +1402,12 @@ class XMLSubseries(XMLSelector):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
         hland_v1 factors ['tc']
-        hland_v1 fluxes ['pc', 'tf']
+        hland_v1 fluxes ['tf']
         hland_v1 states ['sm']
         hstream_v1 states ['qjoints']
         """
-        model2subs2seqs: Dict[str, Dict[str, List[str]]] = collections.defaultdict(
-            lambda: collections.defaultdict(list)
-        )
+        model2subs2seqs: DefaultDict[str, DefaultDict[str, List[str]]]
+        model2subs2seqs = collections.defaultdict(lambda: collections.defaultdict(list))
         for model in self.find("sequences", optional=False):
             model_name = strip(model.tag)
             if model_name == "node":
@@ -1338,7 +1433,7 @@ class XMLSubseries(XMLSelector):
         ...     print(subs, seq)
         node ['sim', 'obs']
         """
-        subs2seqs: Dict[str, List[str]] = collections.defaultdict(list)
+        subs2seqs: DefaultDict[str, List[str]] = collections.defaultdict(list)
         nodes = find(self.find("sequences", optional=False), "node")
         if nodes is not None:
             for seq in nodes:
@@ -1367,11 +1462,22 @@ class XMLSubseries(XMLSelector):
                     yield getattr(node.sequences, seq_name)
 
     def prepare_series(self, memory: Set[sequencetools.IOSequence[Any, Any]]) -> None:
-        """Call |IOSequence.activate_ram| of all sequences selected by the given
-        output element of the actual XML file.
+        """Call method |IOSequence.prepare_series| of class |IOSequence| for all
+        sequences selected by the given element of the actual XML file.
 
-        Use the memory argument to pass in already prepared sequences; newly prepared
-        sequences will be added.
+        Use the memory argument to pass in already considered sequences; method
+        |XMLSubseries.prepare_subseries| adds new sequences automatically.
+
+        Method |IOSequence.prepare_series| solves a complex task, as it needs to
+        determine the correct arguments for mehod |IOSequence.prepare_series| of class
+        |IOSequence|.  Those arguments depend on wether the respective |XMLSubseries|
+        element is for reading or writing data, adresses input or output sequences, and
+        if one prefers to handle time-series data in RAM or to read or write it "just
+        in time" during model simulations.  Method |XMLSubseries.prepare_series|
+        delegates some of the related logic to the |PrepareSeriesArguments.from_xmldata|
+        method of class |PrepareSeriesArguments|.  The following examples try to
+        demonstrate that method |XMLSubseries.prepare_series| implements the remaining
+        logic correctly.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1387,27 +1493,162 @@ class XMLSubseries(XMLSelector):
         >>> interface.update_selections()
         >>> series_io = interface.series_io
 
+        First, we show that method |XMLSubseries.prepare_series| only handles sequences
+        not already included in the given `memory` |set|:
+
         >>> memory = set()
         >>> pc = hp.elements.land_dill.model.sequences.fluxes.pc
-        >>> pc.ramflag
+        >>> pc.diskflag_writing
         False
         >>> series_io.writers[0].prepare_series(memory)
         >>> pc in memory
         True
-        >>> pc.ramflag
+        >>> pc.diskflag_writing
         True
 
-        >>> pc.deactivate_ram()
-        >>> pc.ramflag
+        >>> pc.prepare_series(allocate_ram=False)
+        >>> pc.diskflag_writing
         False
         >>> series_io.writers[0].prepare_series(memory)
-        >>> pc.ramflag
+        >>> pc.diskflag_writing
         False
+
+        ToDo: Better raise an error if there are multiple inconsistent specifications
+        for the same sequence?
+
+        Next, we check and discuss the propert setting of the properties
+        |IOSequence.ramflag|, |IOSequence.diskflag_reading|, and
+        |IOSequence.diskflag_writing| for the sequences defined in `single_run.xml`.
+        First, we call |XMLSubseries.prepare_series| for available |XMLSubseries|
+        objects:
+
+        >>> memory = set()
+        >>> for reader in series_io.readers:
+        ...     reader.prepare_series(memory)
+        >>> for writer in series_io.writers:
+        ...     writer.prepare_series(memory)
+
+        The following test function prints the options for the first sequence found
+        with the given name:
+
+        >>> def print_io_options(name):
+        ...     sequence = [s for s in memory if s.name == name][0]
+        ...     print(f"ramflag={sequence.ramflag}")
+        ...     print(f"diskflag_reading={sequence.diskflag_reading}")
+        ...     print(f"diskflag_writing={sequence.diskflag_writing}")
+
+        The XML files makes uses of the `jit` mode for all non-aggregated time series.
+        Reader elements handle input sequences and writer elements handle output
+        sequences.  Hence, |IOSequence.ramflag| is generally |False| while
+        |IOSequence.diskflag_reading| is |True| for the input sequences and
+        |IOSequence.diskflag_writing| is |True| for the output sequences:
+
+        >>> print_io_options("p")
+        ramflag=False
+        diskflag_reading=True
+        diskflag_writing=False
+
+        >>> print_io_options("pc")
+        ramflag=False
+        diskflag_reading=False
+        diskflag_writing=True
+
+        >>> print_io_options("sm")
+        ramflag=False
+        diskflag_reading=False
+        diskflag_writing=True
+
+        Currently, aggregation only works in combination with mode `ram`:
+
+        >>> print_io_options("tc")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=False
+
+        # ToDo: Support jit for writing and report error for reading?
+
+        We temporarily convert the only reader element to a writer element and apply
+        method |XMLSubseries.prepare_series| again.  This is the only case where two
+        options (|IOSequence.ramflag| and |IOSequence.diskflag_writing|) are |True| at
+        the same time (see the documentation on method |PrepareSeriesArguments.from_xmldata|
+        for further information):
+
+        >>> reader = series_io.readers[0]
+        >>> reader.root.tag = reader.root.tag.replace("reader", "writer")
+        >>> reader.prepare_series(set())
+        >>> reader.root.tag = reader.root.tag.replace("writer", "reader")
+        >>> print_io_options("p")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=True
+
+        ToDo: We currently handle node sequences likewise.  This decision generally
+        seems to make sense for observed sequences.  However, for simulated sequences,
+        activating the ram flag seems only necessary when working with the `oldsim`
+        option, which is currently not supported by XML.  The same holds for the `obs`
+        option.  Should we add them?
+
+        If we prefer the `ram` mode, things are more straightforward.  Then, option
+        |IOSequence.ramflag| is |True| and options |IOSequence.diskflag_reading| and
+        |IOSequence.diskflag_writing| are |False| regardless of all other options:
+
+        >>> memory = set()
+        >>> series_io.find("mode").text = "ram"
+        >>> for reader in series_io.readers:
+        ...     reader.find("mode").text = "ram"
+        ...     reader.prepare_series(memory)
+        >>> for writer in series_io.writers:
+        ...     mode = writer.find("mode")
+        ...     if mode is not None:
+        ...         mode.text = "ram"
+        ...     writer.prepare_series(memory)
+
+        >>> print_io_options("p")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=False
+
+        >>> print_io_options("pc")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=False
+
+        >>> print_io_options("sm")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=False
+
+        >>> reader = series_io.readers[0]
+        >>> reader.root.tag = reader.root.tag.replace("reader", "writer")
+        >>> reader.prepare_series(set())
+        >>> reader.root.tag = reader.root.tag.replace("writer", "reader")
+        >>> print_io_options("p")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=False
         """
+        input_args = PrepareSeriesArguments.from_xmldata(
+            is_reader=self._is_reader, is_input=True, prefer_ram=self._ramflag
+        )
+        output_args = None
+        if self._is_writer:
+            output_args = PrepareSeriesArguments.from_xmldata(
+                is_reader=False, is_input=False, prefer_ram=self._ramflag
+            )
+        input_types = (sequencetools.InputSequence, sequencetools.NodeSequence)
         for sequence in self._iterate_sequences():
             if sequence not in memory:
                 memory.add(sequence)
-                sequence.activate_ram()
+                args = (
+                    input_args
+                    if (output_args is None) or isinstance(sequence, input_types)
+                    else output_args
+                )
+                sequence.prepare_series(
+                    allocate_ram=args.allocate_ram,
+                    read_jit=args.read_jit,
+                    write_jit=args.write_jit,
+                )
 
     def load_series(self) -> None:
         """Load time series data as defined by the actual XML `reader` element.
@@ -1415,12 +1656,13 @@ class XMLSubseries(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, xml_replace, XMLInterface
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
+        ...     xml_replace("LahnH/single_run", printflag=False)
         ...     interface = XMLInterface("single_run.xml")
         ...     interface.update_options()
         ...     interface.update_timegrids()
@@ -1429,15 +1671,16 @@ class XMLSubseries(XMLSelector):
         ...     series_io.prepare_series()
         ...     series_io.load_series()
         >>> from hydpy import print_values
-        >>> print_values(
-        ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
+        >>> print_values(hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
-        hydpy.pub.sequencemanager.open_netcdfreader()
-        self.prepare_sequencemanager()
-        for sequence in self._iterate_sequences():
-            sequence.load_ext()
-        hydpy.pub.sequencemanager.close_netcdfreader()
+        if self._is_reader:
+            hydpy.pub.sequencemanager.open_netcdfreader()
+            self.prepare_sequencemanager()
+            for sequence in self._iterate_sequences():
+                if sequence.ramflag:
+                    sequence.load_series()
+            hydpy.pub.sequencemanager.close_netcdfreader()
 
     def save_series(self) -> None:
         """Save time series data as defined by the actual XML `writer` element.
@@ -1445,12 +1688,13 @@ class XMLSubseries(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, xml_replace, XMLInterface
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
+        ...     xml_replace("LahnH/single_run", printflag=False)
         ...     interface = XMLInterface("single_run.xml")
         >>> interface.update_options()
         >>> interface.update_timegrids()
@@ -1476,11 +1720,13 @@ class XMLSubseries(XMLSelector):
         9.0
         7.0
         """
-        hydpy.pub.sequencemanager.open_netcdfwriter()
-        self.prepare_sequencemanager()
-        for sequence in self._iterate_sequences():
-            sequence.save_ext()
-        hydpy.pub.sequencemanager.close_netcdfwriter()
+        if self.name == "writer":
+            hydpy.pub.sequencemanager.open_netcdfwriter()
+            self.prepare_sequencemanager()
+            for sequence in self._iterate_sequences():
+                if not sequence.diskflag_writing:
+                    sequence.save_series()
+            hydpy.pub.sequencemanager.close_netcdfwriter()
 
 
 class XMLExchange(XMLBase):
@@ -1617,20 +1863,19 @@ class XMLExchange(XMLBase):
 
     def prepare_series(self) -> None:
         """Prepare all required |IOSequence.series| arrays via the
-        |IOSequence.activate_ram| method.
+        |IOSequence.prepare_series| method.
         """
         for item in itertools.chain(self.conditionitems, self.getitems):
             for target in item.device2target.values():
                 if item.targetspecs.series:
                     assert isinstance(target, sequencetools.IOSequence)
-                    if not target.ramflag:
-                        target.activate_ram()
+                    target.prepare_series()
                 # for base in getattr(item, "device2base", {}).values():
                 #     if item.basespecs.series and not base.ramflag:
-                #         base.activate_ram()   ToDo
+                #         base.prepare_series()   ToDo
 
     @property
-    def itemgroups(self) -> List["XMLItemgroup"]:
+    def itemgroups(self) -> List[XMLItemgroup]:
         """The relevant |XMLItemgroup| objects."""
         return [XMLItemgroup(self, element) for element in self]
 
@@ -1645,14 +1890,14 @@ class XMLItemgroup(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def models(self) -> List["XMLModel"]:
+    def models(self) -> List[XMLModel]:
         """The required |XMLModel| objects."""
         return [
             XMLModel(self, element) for element in self if strip(element.tag) != "nodes"
         ]
 
     @property
-    def nodes(self) -> List["XMLNode"]:
+    def nodes(self) -> List[XMLNode]:
         """The required |XMLNode| objects."""
         return [
             XMLNode(self, element) for element in self if strip(element.tag) == "nodes"
@@ -1668,7 +1913,7 @@ class XMLModel(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def subvars(self) -> List["XMLSubvars"]:
+    def subvars(self) -> List[XMLSubvars]:
         """The required |XMLSubVars| objects."""
         return [XMLSubvars(self, element) for element in self]
 
@@ -1682,7 +1927,7 @@ class XMLSubvars(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List["XMLVar"]:
+    def vars(self) -> List[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -1696,7 +1941,7 @@ class XMLNode(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List["XMLVar"]:
+    def vars(self) -> List[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -1976,7 +2221,7 @@ class XSDWriter:
     if any, be interested in method |XSDWriter.write_xsd| only.
     """
 
-    confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+    confpath: str = conf.__path__[0]
     filepath_source: str = os.path.join(confpath, "HydPyConfigBase" + ".xsdt")
     filepath_target: str = filepath_source[:-1]
 
@@ -2028,7 +2273,7 @@ class XSDWriter:
         >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
-        modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
+        modelspath: str = models.__path__[0]
         return sorted(
             str(fn.split(".")[0])
             for fn in sorted(os.listdir(modelspath))
@@ -2041,68 +2286,125 @@ class XSDWriter:
         file.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_insertion())    # doctest: +ELLIPSIS
-             <element name="arma_v1"
-                      substitutionGroup="hpcb:sequenceGroup"
-                      type="hpcb:arma_v1Type"/>
-        <BLANKLINE>
-             <complexType name="arma_v1Type">
-                 <complexContent>
-                     <extension base="hpcb:sequenceGroupType">
-                         <sequence>
-                            <element name="fluxes"
-                                     minOccurs="0">
-                                <complexType>
-                                    <sequence>
-                                        <element
-                                            name="qin"
-                                            minOccurs="0"/>
+        >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
+            <complexType name="dam_v001_readerType">
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element
+                                    name="precipitation"
+                                    minOccurs="0"/>
+                                <element
+                                    name="evaporation"
+                                    minOccurs="0"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                </sequence>
+            </complexType>
         ...
-                                </complexType>
-                            </element>
-                         </sequence>
-                     </extension>
-                 </complexContent>
-             </complexType>
+            <complexType name="readerType">
+                <sequence>
+                    <element name="node"
+                             type="hpcb:node_readerType"
+                             minOccurs="0"/>
+                    <element name="dam_v001"
+                             type="hpcb:dam_v001_readerType"
+                             minOccurs="0"/>
+        ...
+                    <element name="wland_v002"
+                             type="hpcb:wland_v002_readerType"
+                             minOccurs="0"/>
+                </sequence>
+            </complexType>
+        ...
+            <complexType name="arma_v1_writerType">
+                <sequence>
+                    <element name="fluxes"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element
+                                    name="qin"
+        ...
+                                <element
+                                    name="qout"
+                                    minOccurs="0"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                </sequence>
+            </complexType>
+        ...
+            <complexType name="writerType">
+                <sequence>
+                    <element name="node"
+                             type="hpcb:node_writerType"
+                             minOccurs="0"/>
+                    <element name="arma_v1"
+                             type="hpcb:arma_v1_writerType"
+                             minOccurs="0"/>
+        ...
+                    <element name="wland_v002"
+                             type="hpcb:wland_v002_writerType"
+                             minOccurs="0"/>
+                </sequence>
+            </complexType>
         <BLANKLINE>
         """
         indent = 1
-        blanks = " " * (indent + 4)
+        blanks = " " * (indent * 4)
         subs = []
-        for name in cls.get_modelnames():
-            subs.extend(
-                [
-                    f'{blanks}<element name="{name}"',
-                    f'{blanks}         substitutionGroup="hpcb:sequenceGroup"',
-                    f'{blanks}         type="hpcb:{name}Type"/>',
-                    "",
-                    f'{blanks}<complexType name="{name}Type">',
-                    f"{blanks}    <complexContent>",
-                    f'{blanks}        <extension base="hpcb:sequenceGroupType">',
-                    f"{blanks}            <sequence>",
-                ]
-            )
-            model = importtools.prepare_model(name)
-            subs.append(cls.get_modelinsertion(model, indent + 4))
-            subs.extend(
-                [
-                    f"{blanks}            </sequence>",
-                    f"{blanks}        </extension>",
-                    f"{blanks}    </complexContent>",
-                    f"{blanks}</complexType>",
-                    "",
-                ]
-            )
+        types_: Tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
+        for type_ in types_:
+            for name in cls.get_modelnames():
+                model = importtools.prepare_model(name)
+                modelinsertion = cls.get_modelinsertion(
+                    model=model, type_=type_, indent=indent + 2
+                )
+                if modelinsertion:
+                    subs.extend(
+                        [
+                            f'{blanks}<complexType name="{name}_{type_}Type">',
+                            f"{blanks}    <sequence>",
+                            modelinsertion,
+                            f"{blanks}    </sequence>",
+                            f"{blanks}</complexType>",
+                            "",
+                        ]
+                    )
+            subs.append(cls.get_readerwriterinsertion(type_=type_, indent=indent))
         return "\n".join(subs)
 
     @classmethod
-    def get_modelinsertion(cls, model: modeltools.Model, indent: int) -> str:
+    def get_modelinsertion(
+        cls, model: modeltools.Model, type_: str, indent: int
+    ) -> Optional[str]:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_v1")
-        >>> print(XSDWriter.get_modelinsertion(model, 1))   # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_modelinsertion(
+        ...     model=model, type_="reader", indent=1))  # doctest: +ELLIPSIS
+            <element name="inputs"
+                     minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element
+                            name="p"
+                            minOccurs="0"/>
+        ...
+                        <element
+                            name="epn"
+                            minOccurs="0"/>
+                    </sequence>
+                </complexType>
+            </element>
+        >>> print(XSDWriter.get_modelinsertion(
+        ...     model=model, type_="writer", indent=1))  # doctest: +ELLIPSIS
             <element name="inputs"
                      minOccurs="0">
                 <complexType>
@@ -2120,13 +2422,38 @@ class XSDWriter:
                      minOccurs="0">
         ...
             </element>
+
+        >>> model = prepare_model("arma_v1")
+        >>> XSDWriter.get_modelinsertion(
+        ...     model=model, type_="reader", indent=1)   # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_modelinsertion(
+        ...     model=model, type_="writer", indent=1))   # doctest: +ELLIPSIS
+            <element name="fluxes"
+                     minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element
+                            name="qin"
+                            minOccurs="0"/>
+            ...
+                        <element
+                            name="qout"
+                            minOccurs="0"/>
+                    </sequence>
+                </complexType>
+            </element>
         """
+        names: Tuple[str, ...] = ("inputs",)
+        if type_ == "writer":
+            names += "factors", "fluxes", "states"
         texts = []
-        for name in ("inputs", "factors", "fluxes", "states"):
+        return_none = True
+        for name in names:
             subsequences = getattr(model.sequences, name, None)
             if subsequences:
+                return_none = False
                 texts.append(cls.get_subsequencesinsertion(subsequences, indent))
-        return "\n".join(texts)
+        return None if return_none else "\n".join(texts)
 
     @classmethod
     def get_subsequencesinsertion(
@@ -2198,12 +2525,73 @@ class XSDWriter:
         )
 
     @classmethod
+    def get_readerwriterinsertion(
+        cls, type_: Literal["reader", "writer"], indent: int
+    ) -> str:
+        """Return the insertion all sequences relevant for reading or writing
+        time-series data.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_readerwriterinsertion("reader", 1)) # doctest: +ELLIPSIS
+            <complexType name="readerType">
+                <sequence>
+                    <element name="node"
+                             type="hpcb:node_readerType"
+                             minOccurs="0"/>
+                    <element name="dam_v001"
+                             type="hpcb:dam_v001_readerType"
+                             minOccurs="0"/>
+        ...
+                    <element name="wland_v002"
+                             type="hpcb:wland_v002_readerType"
+                             minOccurs="0"/>
+                </sequence>
+            </complexType>
+        <BLANKLINE>
+        >>> print(XSDWriter.get_readerwriterinsertion("writer", 1)) # doctest: +ELLIPSIS
+            <complexType name="writerType">
+                <sequence>
+                    <element name="node"
+                             type="hpcb:node_writerType"
+                             minOccurs="0"/>
+                    <element name="arma_v1"
+                             type="hpcb:arma_v1_writerType"
+                             minOccurs="0"/>
+        ...
+                    <element name="wland_v002"
+                             type="hpcb:wland_v002_writerType"
+                             minOccurs="0"/>
+                </sequence>
+            </complexType>
+        <BLANKLINE>
+        """
+        blanks = " " * (indent * 4)
+        subs = [
+            f'{blanks}<complexType name="{type_}Type">',
+            f"{blanks}    <sequence>",
+            f'{blanks}        <element name="node"',
+            f'{blanks}                 type="hpcb:node_{type_}Type"',
+            f'{blanks}                 minOccurs="0"/>',
+        ]
+        for name in cls.get_modelnames():
+            if (type_ == "writer") or importtools.prepare_model(name).sequences.inputs:
+                subs.extend(
+                    [
+                        f'{blanks}        <element name="{name}"',
+                        f'{blanks}                 type="hpcb:{name}_{type_}Type"',
+                        f'{blanks}                 minOccurs="0"/>',
+                    ]
+                )
+        subs.extend([f"{blanks}    </sequence>", f"{blanks}</complexType>", ""])
+        return "\n".join(subs)
+
+    @classmethod
     def get_exchangeinsertion(cls) -> str:
         """Return the complete string related to the definition of exchange items to
         be inserted into the string of the template file.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_exchangeinsertion())    # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_exchangeinsertion())  # doctest: +ELLIPSIS
             <complexType name="arma_v1_mathitemType">
         ...
             <element name="setitems">

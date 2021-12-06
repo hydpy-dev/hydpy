@@ -181,11 +181,16 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     # pylint usually understands that all options are callable
     # but, for unknown reasons, not in the following line:
     with hydpy.pub.options.printprogress(False):
-        nodes.prepare_simseries()
-        elements.prepare_inputseries()
-        elements.prepare_factorseries()
-        elements.prepare_fluxseries()
-        elements.prepare_stateseries()
+        nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
+        nodes.prepare_simseries(allocate_ram=True)
+        elements.prepare_inputseries(allocate_ram=False)
+        elements.prepare_inputseries(allocate_ram=True)
+        elements.prepare_factorseries(allocate_ram=False)
+        elements.prepare_factorseries(allocate_ram=True)
+        elements.prepare_fluxseries(allocate_ram=False)
+        elements.prepare_fluxseries(allocate_ram=True)
+        elements.prepare_stateseries(allocate_ram=False)
+        elements.prepare_stateseries(allocate_ram=True)
     # pylint: enable=not-callable
 
     def init_values(seq: TestIOSequence, value1_: float) -> float:

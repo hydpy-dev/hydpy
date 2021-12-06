@@ -6,6 +6,10 @@ eventually dynamical) typing."""
 from typing import *
 from typing_extensions import Protocol  # type: ignore[misc]
 
+# ...from site-packages
+import numpy
+import numpy.typing
+
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -37,6 +41,8 @@ Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
 Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
+
+NDArrayFloat = numpy.typing.NDArray[numpy.float_]
 
 
 class VectorInput(Protocol[Float_co]):
@@ -486,6 +492,7 @@ __all__ = [
     "MayNonerable2",
     "MayNonerable3",
     "Name",
+    "NDArrayFloat",
     "ScriptFunction",
     "Sequence1",
     "Sequence2",

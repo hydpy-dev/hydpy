@@ -822,8 +822,6 @@ class PyxWriter:
             "sin, cos, tan, asin, acos, atan, isnan, isinf",
             "from libc.math cimport NAN as nan",
             "from libc.math cimport INFINITY as inf",
-            "from libc.stdio cimport *",
-            "from libc.stdlib cimport *",
             "import cython",
             "from cpython.mem cimport PyMem_Malloc",
             "from cpython.mem cimport PyMem_Realloc",
@@ -917,8 +915,6 @@ class PyxWriter:
                 if isinstance(subseqs, sequencetools.IOSequences):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.IOSequences):
-                lines.extend(self.open_files(subseqs))
-                lines.extend(self.close_files(subseqs))
                 lines.extend(self.load_data(subseqs))
                 lines.extend(self.save_data(subseqs))
             if isinstance(subseqs, sequencetools.LinkSequences):
@@ -940,13 +936,13 @@ class PyxWriter:
     @staticmethod
     def iosequence(seq: sequencetools.IOSequence[Any, Any]) -> List[str]:
         """Declaration lines for the given |IOSequence| object."""
-        lines = Lines()
-        lines.add(1, f"cdef public bint _{seq.name}_diskflag")
-        lines.add(1, f"cdef public str _{seq.name}_path")
-        lines.add(1, f"cdef FILE *_{seq.name}_file")
-        lines.add(1, f"cdef public bint _{seq.name}_ramflag")
         ctype = f"double{NDIM2STR[seq.NDIM+1]}"
+        lines = Lines()
+        lines.add(1, f"cdef public bint _{seq.name}_ramflag")
         lines.add(1, f"cdef public {ctype} _{seq.name}_array")
+        lines.add(1, f"cdef public bint _{seq.name}_diskflag_reading")
+        lines.add(1, f"cdef public bint _{seq.name}_diskflag_writing")
+        lines.add(1, f"cdef public double[:] _{seq.name}_ncarray")
         if isinstance(seq, sequencetools.InputSequence):
             lines.add(1, f"cdef public bint _{seq.name}_inputflag")
             lines.add(1, f"cdef double *_{seq.name}_inputpointer")
@@ -956,38 +952,8 @@ class PyxWriter:
         return lines
 
     @staticmethod
-    def open_files(subseqs: sequencetools.IOSequences[Any, Any, Any]) -> List[str]:
-        """Open file statements."""
-        print("            . open_files")
-        lines = Lines()
-        lines.add(1, "cpdef open_files(self, int idx):")
-        for seq in subseqs:
-            lines.add(2, f"if self._{seq.name}_diskflag:")
-            lines.add(
-                3,
-                f"self._{seq.name}_file = "
-                f'fopen(str(self._{seq.name}_path).encode(), "rb+")',
-            )
-            if seq.NDIM == 0:
-                lines.add(3, f"fseek(self._{seq.name}_file, idx*8, SEEK_SET)")
-            else:
-                lines.add(
-                    3,
-                    f"fseek(self._{seq.name}_file, "
-                    f"idx*self._{seq.name}_length*8, SEEK_SET)",
-                )
-        return lines
-
-    @staticmethod
-    def close_files(subseqs: sequencetools.IOSequences[Any, Any, Any]) -> List[str]:
-        """Close file statements."""
-        print("            . close_files")
-        lines = Lines()
-        lines.add(1, "cpdef inline close_files(self):")
-        for seq in subseqs:
-            lines.add(2, f"if self._{seq.name}_diskflag:")
-            lines.add(3, f"fclose(self._{seq.name}_file)")
-        return lines
+    def _get_index(ndim: int) -> str:
+        return ", ".join(f"jdx{idx}" for idx in range(ndim))
 
     @staticmethod
     def _add_cdef_jdxs(
@@ -1005,6 +971,7 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void load_data(self, int idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
+        lines.add(2, "cdef int k")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
                 lines.add(2, f"if self._{seq.name}_inputflag:")
@@ -1012,31 +979,35 @@ class PyxWriter:
                 if_or_elif = "elif"
             else:
                 if_or_elif = "if"
-            lines.add(2, f"{if_or_elif} self._{seq.name}_diskflag:")
+            lines.add(2, f"{if_or_elif} self._{seq.name}_diskflag_reading:")
             if seq.NDIM == 0:
-                lines.add(3, f"fread(&self.{seq.name}, 8, 1, self._{seq.name}_file)")
+                lines.add(3, f"self.{seq.name} = self._{seq.name}_ncarray[0]")
             else:
+                lines.add(3, f"k = 0")
+                for idx in range(seq.NDIM):
+                    lines.add(
+                        3 + idx,
+                        f"for jdx{idx} in range(self._{seq.name}_length_{idx}):",
+                    )
                 lines.add(
-                    3,
-                    f"fread(&self.{seq.name}[{', '.join(seq.NDIM * ['0'])}], 8, "
-                    f"self._{seq.name}_length, self._{seq.name}_file)",
+                    3 + seq.NDIM,
+                    f"self.{seq.name}[{cls._get_index(seq.NDIM)}] "
+                    f"= self._{seq.name}_ncarray[k]",
                 )
+                lines.add(3 + seq.NDIM, f"k += 1")
             lines.add(2, f"elif self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
                 lines.add(3, f"self.{seq.name} = self._{seq.name}_array[idx]")
             else:
-                indexing = ""
                 for idx in range(seq.NDIM):
                     lines.add(
                         3 + idx,
                         f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
                     )
-                    indexing += f"jdx{idx}, "
-                indexing = indexing[:-2]
+                index = cls._get_index(seq.NDIM)
                 lines.add(
                     3 + seq.NDIM,
-                    f"self.{seq.name}[{indexing}] = "
-                    f"self._{seq.name}_array[idx, {indexing}]",
+                    f"self.{seq.name}[{index}] = self._{seq.name}_array[idx, {index}]",
                 )
         return lines
 
@@ -1047,39 +1018,40 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void save_data(self, int idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
+        lines.add(2, "cdef int k")
         for seq in subseqs:
-            if isinstance(seq, sequencetools.InputSequence):
-                lines.add(2, f"if self._{seq.name}_inputflag:")
-                indent = 3
-            else:
-                indent = 2
-            lines.add(indent, f"if self._{seq.name}_diskflag:")
+            lines.add(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
                 lines.add(
-                    indent + 1, f"fwrite(&self.{seq.name}, 8, 1, self._{seq.name}_file)"
+                    3,
+                    f"self._{seq.name}_ncarray[0] = self.{seq.name}"
                 )
             else:
-                lines.add(
-                    indent + 1,
-                    f"fwrite(&self.{seq.name}[{', '.join(seq.NDIM * ['0'])}], 8, "
-                    f"self._{seq.name}_length, self._{seq.name}_file)",
-                )
-            lines.add(indent, f"elif self._{seq.name}_ramflag:")
-            if seq.NDIM == 0:
-                lines.add(indent + 1, f"self._{seq.name}_array[idx] = self.{seq.name}")
-            else:
-                indexing = ""
+                lines.add(3, f"k = 0")
                 for idx in range(seq.NDIM):
                     lines.add(
-                        indent + 1 + idx,
+                        3 + idx,
                         f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
                     )
-                    indexing += f"jdx{idx},"
-                indexing = indexing[:-1]
+                index = cls._get_index(seq.NDIM)
                 lines.add(
                     3 + seq.NDIM,
-                    f"self._{seq.name}_array[idx, {indexing}] = "
-                    f"self.{seq.name}[{indexing}]",
+                    f"self._{seq.name}_ncarray[k] = self.{seq.name}[{index}]",
+                )
+                lines.add(3 + seq.NDIM, f"k += 1")
+            lines.add(2, f"if self._{seq.name}_ramflag:")
+            if seq.NDIM == 0:
+                lines.add(3, f"self._{seq.name}_array[idx] = self.{seq.name}")
+            else:
+                for idx in range(seq.NDIM):
+                    lines.add(
+                        3 + idx,
+                        f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
+                    )
+                index = cls._get_index(seq.NDIM)
+                lines.add(
+                    3 + seq.NDIM,
+                    f"self._{seq.name}_array[idx, {index}] = self.{seq.name}[{index}]",
                 )
         return lines
 
@@ -1410,20 +1382,8 @@ class PyxWriter:
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
         >>> pyxwriter.iofunctions
-                    . open_files
-                    . close_files
                     . load_data
                     . save_data
-            cpdef inline void open_files(self):
-                self.sequences.inputs.open_files(self.idx_sim)
-                self.sequences.factors.open_files(self.idx_sim)
-                self.sequences.fluxes.open_files(self.idx_sim)
-                self.sequences.states.open_files(self.idx_sim)
-            cpdef inline void close_files(self):
-                self.sequences.inputs.close_files()
-                self.sequences.factors.close_files()
-                self.sequences.fluxes.close_files()
-                self.sequences.states.close_files()
             cpdef inline void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
             cpdef inline void save_data(self, int idx) nogil:
@@ -1437,14 +1397,8 @@ class PyxWriter:
         >>> pyxwriter.model.sequences.fluxes = None
         >>> pyxwriter.model.sequences.states = None
         >>> pyxwriter.iofunctions
-                    . open_files
-                    . close_files
                     . load_data
                     . save_data
-            cpdef inline void open_files(self):
-                self.sequences.inputs.open_files(self.idx_sim)
-            cpdef inline void close_files(self):
-                self.sequences.inputs.close_files()
             cpdef inline void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
             cpdef inline void save_data(self, int idx) nogil:
@@ -1460,7 +1414,7 @@ class PyxWriter:
         seqs = self.model.sequences
         if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
             return lines
-        for func in ("open_files", "close_files", "load_data", "save_data"):
+        for func in ("load_data", "save_data"):
             if (func == "load_data") and not seqs.inputs:
                 continue
             print(f"            . {func}")
@@ -1473,12 +1427,9 @@ class PyxWriter:
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
-                    if func == "close_files":
-                        lines.add(2, f"self.sequences.{subseqs.name}.{func}()")
-                    else:
-                        lines.add(
-                            2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
-                        )
+                    lines.add(
+                        2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
+                    )
         return lines
 
     @property
@@ -2066,8 +2017,7 @@ class PyxWriter:
             for methodgroup in self.model.METHOD_GROUPS:
                 for method in getattr(self.model, methodgroup):
                     stubfile.write(
-                        f"    {method.__name__.lower()}: "
-                        f"hydpy.core.modeltools.Method\n"
+                        f"    {method.__name__.lower()}: hydpy.core.modeltools.Method\n"
                     )
 
             stubfile.write("\n\nmodel: Model\n")
@@ -2401,7 +2351,7 @@ def exp(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.exp(double))
+    return numpy.exp(double)  # type: ignore[no-any-return]
 
 
 def log(double: float) -> float:
@@ -2415,7 +2365,7 @@ def log(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.log(double))
+    return numpy.log(double)  # type: ignore[no-any-return]
 
 
 def fabs(double: float) -> float:
@@ -2443,7 +2393,7 @@ def sin(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.sin(double))
+    return numpy.sin(double)  # type: ignore[no-any-return]
 
 
 def cos(double: float) -> float:
@@ -2457,7 +2407,7 @@ def cos(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.cos(double))
+    return numpy.cos(double)  # type: ignore[no-any-return]
 
 
 def tan(double: float) -> float:
@@ -2471,7 +2421,7 @@ def tan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.tan(double))
+    return numpy.tan(double)  # type: ignore[no-any-return]
 
 
 def asin(double: float) -> float:
@@ -2485,7 +2435,7 @@ def asin(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.arcsin(double))
+    return numpy.arcsin(double)  # type: ignore[no-any-return]
 
 
 def acos(double: float) -> float:
@@ -2499,7 +2449,7 @@ def acos(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.arccos(double))
+    return numpy.arccos(double)  # type: ignore[no-any-return]
 
 
 def atan(double: float) -> float:
@@ -2513,7 +2463,7 @@ def atan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.arctan(double))
+    return numpy.arctan(double)  # type: ignore[no-any-return]
 
 
 def isnan(double: float) -> float:
@@ -2527,7 +2477,7 @@ def isnan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.isnan(double))
+    return numpy.isnan(double)  # type: ignore[no-any-return]
 
 
 def isinf(double: float) -> float:
@@ -2541,4 +2491,4 @@ def isinf(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return cast(float, numpy.isinf(double))
+    return numpy.isinf(double)  # type: ignore[no-any-return]

@@ -109,8 +109,7 @@ We reuse the Ångström coefficients from the first example:
 
 >>> parameters.update()
 >>> test = IntegrationTest(element)
->>> IntegrationTest.plotting_options.activated = [
-...     fluxes.referenceevapotranspiration]
+>>> IntegrationTest.plotting_options.activated = [fluxes.referenceevapotranspiration]
 >>> test.dateformat = "%Y-%d-%m %H:00"
 
 We set constant input sequence values from the start of the simulation

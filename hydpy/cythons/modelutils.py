@@ -336,6 +336,7 @@ TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicat
     "str": "str",
     None: "void",
     "None": "void",
+    type(None): "void",
     typingtools.Vector: "double[:]",  # to be removed as soon as possible
     "typingtools.Vector": "double[:]",
     "Vector": "double[:]",
@@ -2372,22 +2373,20 @@ nogil:
                 return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
         """
+        annotations_ = get_type_hints(self.func)
         lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        annotations = self.func.__annotations__
         lines[0] = lines[0].replace(
-            "def ", f"cpdef inline {TYPE2STR[annotations['return']]} "
+            "def ", f"cpdef inline {TYPE2STR[annotations_['return']]} "
         )
         lines[0] = lines[0].replace("):", f") {_nogil}:")
         for name in self.untypedarguments:
-            type_ = TYPE2STR[annotations[name]]
+            type_ = TYPE2STR[annotations_[name]]
             lines[0] = lines[0].replace(f", {name},", f", {type_} {name},")
             lines[0] = lines[0].replace(f", {name})", f", {type_} {name})")
         for name in self.untypedinternalvarnames:
-            if name.startswith("d_"):
-                lines.insert(1, "        cdef double " + name)
-            else:
-                lines.insert(1, "        cdef int " + name)
+            type_ = "double" if name.startswith("d_") else "int"
+            lines.insert(1, f"        cdef {type_} {name}")
         return Lines(*lines)
 
 

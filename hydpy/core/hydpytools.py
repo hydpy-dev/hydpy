@@ -1755,18 +1755,16 @@ one value needed to be trimmed.  The old and the new value(s) are \
                   nodes="somewhere",
                   elements="stream_lahn_1_nowhere")
         """
-        sels1 = selectiontools.Selections()
-        sels2 = selectiontools.Selections()
+        sels1, sels2 = selectiontools.Selections(), selectiontools.Selections()
         complete = selectiontools.Selection("complete", self.nodes, self.elements)
         for node in self.endnodes:
-            sel = complete.copy(node.name).select_upstream(node)
-            sels1 += sel
-            sels2 += sel.copy(node.name)
-        for sel1 in sels1:
-            for sel2 in sels2:
-                if sel1.name != sel2.name:
-                    sel1 -= sel2
-        for name in list(sels1.names):
+            sel = complete.search_upstream(device=node, name=node.name, inclusive=False)
+            sels1.add_selections(sel)
+            sels2.add_selections(sel.copy(node.name))
+        for sel1, sel2 in itertools.product(sels1, sels2):
+            if sel1.name != sel2.name:
+                sel1 -= sel2
+        for name in tuple(sels1.names):
             if not sels1[name].elements:
                 del sels1[name]
         return sels1

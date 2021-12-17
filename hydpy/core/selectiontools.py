@@ -92,8 +92,8 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     KeyError: 'The actual Selections object does not handle a Selection object called \
 `sel4` that could be deleted.'
 
-    You can ask for the existence of a specific |Selection| objects within a
-    |Selections| object both via its name and via the object itself:
+    You can ask for the existence of specific |Selection| objects within a |Selections|
+    object both via its name and via the object itself:
 
     >>> sel1 in selections
     True
@@ -104,7 +104,7 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     >>> "sel3" in selections
     False
 
-    Class |Selections| supports both the |iter| and |len| operator:
+    Class |Selections| supports both the |iter| and |len| operators:
 
     >>> for selection in selections:
     ...     print(selection.name)
@@ -164,13 +164,9 @@ objects, but the type of the given argument is `str`.
     False
     """
 
-    def __init__(
-        self,
-        *selections: Selection,
-    ) -> None:
+    def __init__(self, *selections: Selection) -> None:
         self.__selections: Dict[str, Selection] = {}
-        for selection in selections:
-            self += selection
+        self.add_selections(*selections)
 
     @property
     def names(self) -> Tuple[str, ...]:
@@ -217,10 +213,47 @@ objects, but the type of the given argument is `str`.
             elements += selection.elements
         return elements
 
-    def find(
-        self,
-        device: devicetools.DeviceType,
-    ) -> Selections:
+    def add_selections(self, *selections: Selection) -> None:
+        """Add the given |Selection| object(s) to the current |Selections| object.
+
+        >>> from hydpy import Selection, Selections
+        >>> selections = Selections(Selection("sel1", ["node1"], ["element1"]))
+        >>> selections.add_selections(
+        ...     Selection("sel2", ["node1"], ["element2", "element3"]),
+        ...     Selection("sel3", ["node2"], []))
+        >>> selections
+        Selections("sel1", "sel2", "sel3")
+        >>> selections.nodes
+        Nodes("node1", "node2")
+        >>> selections.elements
+        Elements("element1", "element2", "element3")
+        """
+        for selection in selections:
+            self[selection.name] = selection
+
+    def remove_selections(self, *selections: Selection) -> None:
+        """Remove the given |Selection| object(s) from the current |Selections| object.
+
+        >>> from hydpy import Selection, Selections
+        >>> selections = Selections(
+        ...     Selection("sel1", ["node1"], ["element1"]),
+        ...     Selection("sel2", ["node1"], ["element2", "element3"]))
+        >>> selections.remove_selections(
+        ...     Selection("sel3", ["node2"], []), selections["sel1"])
+        >>> selections
+        Selections("sel2")
+        >>> selections.nodes
+        Nodes("node1")
+        >>> selections.elements
+        Elements("element2", "element3")
+        """
+        for selection in selections:
+            try:
+                del self[selection.name]
+            except KeyError:
+                pass
+
+    def find(self, device: devicetools.DeviceType) -> Selections:
         """Return all |Selection| objects containing the given |Node| or |Element|
         object.
 
@@ -249,21 +282,18 @@ objects, but the type of the given argument is `str`.
 
     @overload
     def query_intersections(
-        self,
-        selection2element: Literal[True] = ...,
+        self, selection2element: Literal[True] = ...
     ) -> Dict[Selection, Dict[Selection, devicetools.Elements]]:
         ...
 
     @overload
     def query_intersections(
-        self,
-        selection2element: Literal[False],
+        self, selection2element: Literal[False]
     ) -> Dict[devicetools.Element, Selections]:
         ...
 
     def query_intersections(
-        self,
-        selection2element: bool = True,
+        self, selection2element: bool = True
     ) -> Union[
         Dict[Selection, Dict[Selection, devicetools.Elements]],
         Dict[devicetools.Element, Selections],
@@ -271,7 +301,7 @@ objects, but the type of the given argument is `str`.
         """A dictionary covering all cases where one |Element| object is a member of
         multiple |Selection| objects.
 
-        The form of the dictionary depends on the value of the optional argument
+        The dictionary's structure depends on the value of the optional argument
         `selection2element`.  See method |Selections.print_intersections| for an
         example.
         """
@@ -293,10 +323,7 @@ objects, but the type of the given argument is `str`.
                 intersections_[element] = selections
         return intersections_
 
-    def print_intersections(
-        self,
-        selection2element: bool = True,
-    ) -> None:
+    def print_intersections(self, selection2element: bool = True) -> None:
         """Print the result of method |Selections.query_intersections|.
 
         We use method |Selections.print_intersections| to check if any combination of
@@ -311,8 +338,8 @@ objects, but the type of the given argument is `str`.
         ... )
 
         If we call method |Selections.print_intersections| with argument
-        `selection2element` being |True|, we find out which selection intersects with
-        which other and which elements are affected:
+        `selection2element` |True|, we find out which selection intersects with which
+        other and which elements are affected:
 
         >>> selections.print_intersections()
         selection s1 intersects with...
@@ -326,8 +353,8 @@ objects, but the type of the given argument is `str`.
            ...selection s2 due to the following elements: e3
 
         If we call method |Selections.print_intersections| with argument
-        `selection2element` being |False|, we find out which element occurs multiple
-        times in which selections:
+        `selection2element` |False|, we find out which element occurs multiple times in
+        which selections:
 
         >>> selections.print_intersections(selection2element=False)
         element e2 is a member of multiple selections: s1 and s2
@@ -363,20 +390,13 @@ objects, but the type of the given argument is `str`.
                 f"a Selection object called `{key}` that could be returned."
             ) from None
 
-    def __setattr__(
-        self,
-        name: str,
-        value: Any,
-    ) -> None:
+    def __setattr__(self, name: str, value: object) -> None:
         if isinstance(value, Selection):
             self[name] = value
         else:
             super().__setattr__(name, value)
 
-    def __delattr__(
-        self,
-        key: str,
-    ) -> None:
+    def __delattr__(self, key: str) -> None:
         try:
             del self.__selections[key]
         except KeyError:
@@ -385,10 +405,7 @@ objects, but the type of the given argument is `str`.
                 f"a Selection object called `{key}` that could be deleted."
             ) from None
 
-    def __getitem__(
-        self,
-        key: str,
-    ) -> Selection:
+    def __getitem__(self, key: str) -> Selection:
         try:
             return self.__selections[key]
         except KeyError:
@@ -397,11 +414,7 @@ objects, but the type of the given argument is `str`.
                 f"called `{key}` that could be returned."
             ) from None
 
-    def __setitem__(
-        self,
-        key: str,
-        value: Selection,
-    ) -> None:
+    def __setitem__(self, key: str, value: Selection) -> None:
         if key != value.name:
             raise ValueError(
                 f"To avoid inconsistencies when handling Selection objects as "
@@ -411,10 +424,7 @@ objects, but the type of the given argument is `str`.
             )
         self.__selections[key] = value
 
-    def __delitem__(
-        self,
-        key: str,
-    ) -> None:
+    def __delitem__(self, key: str) -> None:
         try:
             del self.__selections[key]
         except KeyError:
@@ -423,10 +433,7 @@ objects, but the type of the given argument is `str`.
                 f"called `{key}` that could be deleted."
             ) from None
 
-    def __contains__(
-        self,
-        value: Union[str, Selection],
-    ) -> bool:
+    def __contains__(self, value: Union[str, Selection]) -> bool:
         if isinstance(value, str):
             return value in self.names
         return value in self.__selections.values()
@@ -453,14 +460,11 @@ objects, but the type of the given argument is `str`.
                 f"is `{type(value).__name__}`."
             ) from None
 
-    def __add__(
-        self,
-        other: typingtools.Mayberable1[Selection],
-    ) -> Selections:
+    def __add__(self, other: typingtools.Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
-            setattr(new, selection.name, selection)
+            new[selection.name] = selection
         return new
 
     def __iadd__(
@@ -469,19 +473,16 @@ objects, but the type of the given argument is `str`.
     ) -> Selections:
         selections = self.__getiterable(other)
         for selection in selections:
-            setattr(self, selection.name, selection)
+            self[selection.name] = selection
         return self
 
-    def __sub__(
-        self,
-        other: typingtools.Mayberable1[Selection],
-    ) -> Selections:
+    def __sub__(self, other: typingtools.Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
             try:
-                delattr(new, selection.name)
-            except AttributeError:
+                del new[selection.name]
+            except KeyError:
                 pass
         return new
 
@@ -492,19 +493,14 @@ objects, but the type of the given argument is `str`.
         selections = self.__getiterable(other)
         for selection in selections:
             try:
-                delattr(self, selection.name)
-            except AttributeError:
+                del self[selection.name]
+            except KeyError:
                 pass
         return self
 
-    def __eq__(
-        self,
-        other: Any,
-    ) -> bool:
-        try:
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, (Selection, Selections, hydpytools.HydPy)):
             return (self.nodes == self.nodes) and (self.elements == other.elements)
-        except AttributeError:
-            pass
         return False
 
     def __copy__(self) -> Selections:
@@ -513,10 +509,7 @@ objects, but the type of the given argument is `str`.
     def __repr__(self) -> str:
         return self.assignrepr("")
 
-    def assignrepr(
-        self,
-        prefix: str = "",
-    ) -> str:
+    def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
@@ -526,13 +519,13 @@ objects, but the type of the given argument is `str`.
                 )
 
     def __dir__(self) -> List[str]:
-        return objecttools.dir_(self) + list(self.names)
+        return cast(List[str], super().__dir__()) + list(self.names)
 
 
 class Selection:
     """Handles and modifies combinations of |Node| and |Element| objects.
 
-    In *HydPy*, |Node| and |Element| objects are the fundamental means to structure
+    In *HydPy*, |Node|, and |Element| objects are the fundamental means to structure
     projects.  However, keeping the overview of huge projects involving thousands of
     nodes and elements requires additional strategies.
 
@@ -629,7 +622,7 @@ type `Node`, the following error occurred: 'Node' object has no attribute 'nodes
     AttributeError: While trying to compare selection `test` with object `wrong` of \
 type `str`, the following error occurred: 'str' object has no attribute 'nodes'
 
-    But as usual, checking for equality or inequality return |False| and |True| for
+    But as usual, checking for equality or inequality returns |False| and |True| for
     uncomparable objects:
 
     >>> test == "wrong"
@@ -669,9 +662,7 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         self.elements = devicetools.Elements(elements).copy()
 
     def _check_device(
-        self,
-        device: devicetools.DeviceType,
-        type_of_device: str,
+        self, device: devicetools.DeviceType, type_of_device: str
     ) -> devicetools.DeviceType:
         if isinstance(device, devicetools.Node):
             device = self.nodes[device.name]
@@ -689,6 +680,7 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         self,
         device: devicetools.DeviceType,
         name: str = "upstream",
+        inclusive: bool = True,
     ) -> Selection:
         """Return the network upstream of the given starting point, including the
         starting point itself.
@@ -705,8 +697,16 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
                   nodes=("dill", "lahn_1", "lahn_2"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "stream_dill_lahn_2", "stream_lahn_1_lahn_2"))
-        >>> test.search_upstream(
-        ...     hp.elements.stream_lahn_1_lahn_2, "UPSTREAM")
+        >>> test.search_upstream(hp.elements.stream_lahn_1_lahn_2, "UPSTREAM")
+        Selection("UPSTREAM",
+                  nodes=("lahn_1", "lahn_2"),
+                  elements=("land_lahn_1", "stream_lahn_1_lahn_2"))
+
+        Method |Selection.search_upstream| generally selects all |Node| objects
+        directly connected to any upstream |Element| object.  Set the `inclusive`
+        argument to |False| to circumvent this:
+
+        >>> test.search_upstream(hp.elements.stream_lahn_1_lahn_2, "UPSTREAM", False)
         Selection("UPSTREAM",
                   nodes="lahn_1",
                   elements=("land_lahn_1", "stream_lahn_1_lahn_2"))
@@ -723,9 +723,8 @@ the "outlet device", but the given `device` value is of type `int`.
         >>> pub.selections.headwaters.search_upstream(hp.nodes.lahn_3)
         Traceback (most recent call last):
         ...
-        KeyError: "While trying to determine an upstream network of \
-selection `headwaters`, the following error occurred: 'No device named \
-`lahn_3` available.'"
+        KeyError: "While trying to determine an upstream network of selection \
+`headwaters`, the following error occurred: 'No device named `lahn_3` available.'"
 
         Method |Selection.select_upstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
@@ -739,8 +738,7 @@ selection `headwaters`, the following error occurred: 'No device named \
         On the contrary, the method |Selection.deselect_upstream| restricts the current
         selection to all devices not determined by method |Selection.search_upstream|:
 
-        >>> complete = pub.selections.complete.deselect_upstream(
-        ...     hp.nodes.lahn_2)
+        >>> complete = pub.selections.complete.deselect_upstream(hp.nodes.lahn_2)
         >>> complete
         Selection("complete",
                   nodes="lahn_3",
@@ -748,24 +746,57 @@ selection `headwaters`, the following error occurred: 'No device named \
 
         If necessary, include the "outlet device" manually afterwards:
 
-        >>> complete.nodes += hp.nodes.lahn_2
+        >>> complete.nodes.add_device(hp.nodes.lahn_2)
         >>> complete
         Selection("complete",
                   nodes=("lahn_2", "lahn_3"),
                   elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
+
+        Method |Selection.search_downstream| generally selects all |Node| objects
+        directly connected to any upstream |Element| object.  Set the `inclusive`
+        argument to |False| to circumvent this:
+
+        >>> from hydpy import Element, Nodes, Selection
+        >>> nodes = Nodes(
+        ...     "inlet", "outlet1", "outlet2", "input_", "output", "receiver", "sender")
+        >>> upper = Element("upper",
+        ...                 inlets=nodes.inlet, outlets=(nodes.outlet1, nodes.outlet2),
+        ...                 inputs=nodes.input_, outputs=nodes.output,
+        ...                 receivers=nodes.receiver, senders=nodes.sender)
+        >>> test = Selection("test", nodes=nodes, elements=upper)
+        >>> test.search_upstream(nodes.outlet1, inclusive=True)
+        Selection("upstream",
+                  nodes=("inlet", "input_", "outlet1", "outlet2", "output",
+                         "receiver", "sender"),
+                  elements="upper")
+        >>> test.search_upstream(nodes.outlet1, inclusive=False)
+        Selection("upstream",
+                  nodes=("inlet", "input_", "outlet1"),
+                  elements="upper")
         """
         try:
             device = self._check_device(device, "outlet")
             devices = networkx.ancestors(
-                G=hydpytools.create_directedgraph(self),
-                source=device,
+                G=hydpytools.create_directedgraph(self), source=device
             )
             devices.add(device)
-            return Selection(
+            selection = Selection(
                 name=name,
                 nodes=[d for d in devices if isinstance(d, devicetools.Node)],
                 elements=[d for d in devices if isinstance(d, devicetools.Element)],
             )
+            if inclusive:
+                add_device = selection.nodes.add_device
+                for element in selection.elements:
+                    for nodes in (
+                        element.outlets,
+                        element.outputs,
+                        element.receivers,
+                        element.senders,
+                    ):
+                        for node in nodes:
+                            add_device(node)
+            return selection
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to determine an upstream network of selection "
@@ -773,8 +804,7 @@ selection `headwaters`, the following error occurred: 'No device named \
             )
 
     def select_upstream(
-        self,
-        device: devicetools.DeviceType,
+        self, device: devicetools.DeviceType, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network upstream of the given starting
         point, including the starting point itself.
@@ -782,14 +812,13 @@ selection `headwaters`, the following error occurred: 'No device named \
         See the documentation on method |Selection.search_upstream| for additional
         information.
         """
-        upstream = self.search_upstream(device)
+        upstream = self.search_upstream(device, inclusive=inclusive)
         self.nodes = upstream.nodes
         self.elements = upstream.elements
         return self
 
     def deselect_upstream(
-        self,
-        device: devicetools.DeviceType,
+        self, device: devicetools.DeviceType, inclusive: bool = True
     ) -> Selection:
         """Remove the network upstream of the given starting point from the current
         selection, including the starting point itself.
@@ -797,7 +826,7 @@ selection `headwaters`, the following error occurred: 'No device named \
         See the documentation on method |Selection.search_upstream| for additional
         information.
         """
-        upstream = self.search_upstream(device)
+        upstream = self.search_upstream(device, inclusive=inclusive)
         self.nodes -= upstream.nodes
         self.elements -= upstream.elements
         return self
@@ -806,6 +835,7 @@ selection `headwaters`, the following error occurred: 'No device named \
         self,
         device: devicetools.DeviceType,
         name: str = "downstream",
+        inclusive: bool = True,
     ) -> Selection:
         """Return the network downstream of the given starting point, including the
         starting point itself.
@@ -821,8 +851,7 @@ selection `headwaters`, the following error occurred: 'No device named \
         Selection("downstream",
                   nodes=("lahn_1", "lahn_2", "lahn_3"),
                   elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
-        >>> test.search_downstream(
-        ...     hp.elements.land_lahn_1, "DOWNSTREAM")
+        >>> test.search_downstream(hp.elements.land_lahn_1, "DOWNSTREAM")
         Selection("DOWNSTREAM",
                   nodes=("lahn_1", "lahn_2", "lahn_3"),
                   elements=("land_lahn_1", "stream_lahn_1_lahn_2",
@@ -865,12 +894,34 @@ required as the "inlet device", but the given `device` value is of type `int`.
 
         If necessary, include the "inlet device" manually afterwards:
 
-        >>> complete.nodes += hp.nodes.lahn_1
+        >>> complete.nodes.add_device(hp.nodes.lahn_1)
         >>> complete
         Selection("complete",
                   nodes=("dill", "lahn_1"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "land_lahn_3", "stream_dill_lahn_2"))
+
+        Method |Selection.search_downstream| generally selects all |Node| objects
+        directly connected to any upstream |Element| object.  Set the `inclusive`
+        argument to |False| to circumvent this:
+
+        >>> from hydpy import Element, Nodes, Selection
+        >>> nodes = Nodes(
+        ...     "inlet1", "inlet2", "outlet", "input_", "output", "receiver", "sender")
+        >>> lower = Element("lower",
+        ...                 inlets=(nodes.inlet1, nodes.inlet2), outlets=nodes.outlet,
+        ...                 inputs=nodes.input_, outputs=nodes.output,
+        ...                 receivers=nodes.receiver, senders=nodes.sender)
+        >>> test = Selection("test", nodes=nodes, elements=lower)
+        >>> test.search_downstream(nodes.inlet1, inclusive=True)
+        Selection("downstream",
+                  nodes=("inlet1", "inlet2", "input_", "outlet", "output",
+                         "receiver", "sender"),
+                  elements="lower")
+        >>> test.search_downstream(nodes.inlet1, inclusive=False)
+        Selection("downstream",
+                  nodes=("inlet1", "outlet", "output"),
+                  elements="lower")
         """
         try:
             device = self._check_device(device, "inlet")
@@ -879,11 +930,23 @@ required as the "inlet device", but the given `device` value is of type `int`.
                 source=device,
             )
             devices.add(device)
-            return Selection(
+            selection = Selection(
                 name=name,
                 nodes=[d for d in devices if isinstance(d, devicetools.Node)],
                 elements=[d for d in devices if isinstance(d, devicetools.Element)],
             )
+            if inclusive:
+                add_device = selection.nodes.add_device
+                for element in selection.elements:
+                    for nodes in (
+                        element.inlets,
+                        element.inputs,
+                        element.receivers,
+                        element.senders,
+                    ):
+                        for node in nodes:
+                            add_device(node)
+            return selection
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to determine a downstream network of selection "
@@ -891,8 +954,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
             )
 
     def select_downstream(
-        self,
-        device: devicetools.DeviceType,
+        self, device: devicetools.DeviceType, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network downstream of the given
         starting point, including the starting point itself.
@@ -900,14 +962,13 @@ required as the "inlet device", but the given `device` value is of type `int`.
         See the documentation on method |Selection.search_downstream| for additional
         information.
         """
-        downstream = self.search_downstream(device)
+        downstream = self.search_downstream(device, inclusive=inclusive)
         self.nodes = downstream.nodes
         self.elements = downstream.elements
         return self
 
     def deselect_downstream(
-        self,
-        device: devicetools.DeviceType,
+        self, device: devicetools.DeviceType, inclusive: bool = True
     ) -> Selection:
         """Remove the network downstream of the given starting point from the current
         selection, including the starting point itself.
@@ -915,15 +976,13 @@ required as the "inlet device", but the given `device` value is of type `int`.
         See the documentation on method |Selection.search_downstream| for additional
         information.
         """
-        downstream = self.search_downstream(device)
+        downstream = self.search_downstream(device, inclusive=inclusive)
         self.nodes -= downstream.nodes
         self.elements -= downstream.elements
         return self
 
     def search_modeltypes(
-        self,
-        *models: ModelTypesArg,
-        name: str = "modeltypes",
+        self, *models: ModelTypesArg, name: str = "modeltypes"
     ) -> Selection:
         """Return a |Selection| object containing only the elements currently handling
         models of the given types.
@@ -1000,10 +1059,7 @@ following error occurred: No module named 'hydpy.models.wrong'
             )
         return selection
 
-    def select_modeltypes(
-        self,
-        *models: ModelTypesArg,
-    ) -> Selection:
+    def select_modeltypes(self, *models: ModelTypesArg) -> Selection:
         """Restrict the current |Selection| object to all elements containing the given
         model types (removes all nodes).
 
@@ -1014,10 +1070,7 @@ following error occurred: No module named 'hydpy.models.wrong'
         self.elements = self.search_modeltypes(*models).elements
         return self
 
-    def deselect_modeltypes(
-        self,
-        *models: ModelTypesArg,
-    ) -> Selection:
+    def deselect_modeltypes(self, *models: ModelTypesArg) -> Selection:
         """Restrict the current selection to all elements not containing the given
         model types (removes all nodes).
 
@@ -1028,11 +1081,7 @@ following error occurred: No module named 'hydpy.models.wrong'
         self.elements -= self.search_modeltypes(*models).elements
         return self
 
-    def search_nodenames(
-        self,
-        *substrings: str,
-        name: str = "nodenames",
-    ) -> Selection:
+    def search_nodenames(self, *substrings: str, name: str = "nodenames") -> Selection:
         """Return a new selection containing all nodes of the current selection with a
         name containing at least one of the given substrings.
 
@@ -1094,10 +1143,7 @@ error occurred: 'in <string>' requires string as left operand, not list
             )
         return selection
 
-    def select_nodenames(
-        self,
-        *substrings: str,
-    ) -> Selection:
+    def select_nodenames(self, *substrings: str) -> Selection:
         """Restrict the current selection to all nodes with a name containing at least
         one of the given substrings  (does not affect any elements).
 
@@ -1107,10 +1153,7 @@ error occurred: 'in <string>' requires string as left operand, not list
         self.nodes = self.search_nodenames(*substrings).nodes
         return self
 
-    def deselect_nodenames(
-        self,
-        *substrings: str,
-    ) -> Selection:
+    def deselect_nodenames(self, *substrings: str) -> Selection:
         """Restrict the current selection to all nodes with a name not containing at
         least one of the given substrings (does not affect any elements).
 
@@ -1121,9 +1164,7 @@ error occurred: 'in <string>' requires string as left operand, not list
         return self
 
     def search_elementnames(
-        self,
-        *substrings: str,
-        name: str = "elementnames",
+        self, *substrings: str, name: str = "elementnames"
     ) -> Selection:
         """Return a new selection containing all elements of the current selection with
         a name containing at least one of the given substrings.
@@ -1180,16 +1221,12 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         except BaseException:
             values = objecttools.enumeration(substrings)
             objecttools.augment_excmessage(
-                f"While trying to determine the elements of selection "
-                f"`{self.name}` with names containing at least one "
-                f"of the given substrings `{values}`"
+                f"While trying to determine the elements of selection `{self.name}` "
+                f"with names containing at least one of the given substrings `{values}`"
             )
         return selection
 
-    def select_elementnames(
-        self,
-        *substrings: str,
-    ) -> Selection:
+    def select_elementnames(self, *substrings: str) -> Selection:
         """Restrict the current selection to all elements with a name containing at
         least one of the given substrings (does not affect any nodes).
 
@@ -1212,10 +1249,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         self.elements -= self.search_elementnames(*substrings).elements
         return self
 
-    def copy(
-        self,
-        name: str,
-    ) -> Selection:
+    def copy(self, name: str) -> Selection:
         """Return a new |Selection| object with the given name and copies of the
         handled |Nodes| and |Elements| objects based on method |Devices.copy|."""
         return type(self)(name, copy.copy(self.nodes), copy.copy(self.elements))
@@ -1253,9 +1287,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 nodes.add_device(node)
 
     def save_networkfile(
-        self,
-        filepath: Union[str, None] = None,
-        write_defaultnodes: bool = True,
+        self, filepath: Union[str, None] = None, write_defaultnodes: bool = True
     ) -> None:
         """Save the selection as a network file.
 
@@ -1415,65 +1447,41 @@ following error occurred: 'in <string>' requires string as left operand, not lis
     )
 
     @objecttools.excmessage_decorator(f"add {_ERRORMESSAGE}")
-    def __iadd__(
-        self,
-        other: Selection,
-    ) -> Selection:
+    def __iadd__(self, other: Selection) -> Selection:
         self.nodes += other.nodes
         self.elements += other.elements
         return self
 
     @objecttools.excmessage_decorator(f"subtract {_ERRORMESSAGE}")
-    def __isub__(
-        self,
-        other: Selection,
-    ) -> Selection:
+    def __isub__(self, other: Selection) -> Selection:
         self.nodes -= other.nodes
         self.elements -= other.elements
         return self
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __lt__(
-        self,
-        other: Selection,
-    ) -> bool:
+    def __lt__(self, other: Selection) -> bool:
         return (self.nodes < other.nodes) and (self.elements < other.elements)
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __le__(
-        self,
-        other: Selection,
-    ) -> bool:
+    def __le__(self, other: Selection) -> bool:
         return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
-    def __eq__(
-        self,
-        other: Any,
-    ) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, (hydpytools.HydPy, Selection)):
             return (self.nodes == other.nodes) and (self.elements == other.elements)
         return False
 
-    def __ne__(
-        self,
-        other: Any,
-    ) -> bool:
+    def __ne__(self, other: object) -> bool:
         if isinstance(other, (hydpytools.HydPy, Selection)):
             return (self.nodes != other.nodes) or (self.elements != other.elements)
         return True
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __ge__(
-        self,
-        other: Selection,
-    ) -> bool:
+    def __ge__(self, other: Selection) -> bool:
         return (self.nodes >= other.nodes) and (self.elements >= other.elements)
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __gt__(
-        self,
-        other: Selection,
-    ) -> bool:
+    def __gt__(self, other: Selection) -> bool:
         return (self.nodes > other.nodes) and (self.elements >= other.elements)
 
     def __hash__(self) -> int:
@@ -1485,10 +1493,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
     def __repr__(self) -> str:
         return self.assignrepr("")
 
-    def assignrepr(
-        self,
-        prefix: str = "",
-    ) -> str:
+    def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
@@ -1506,11 +1511,3 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                         f"{nodestr},\n"
                         f"{elementstr})"
                     )
-
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy import Selection
-        >>> "elements" in dir(Selection("test"))
-        True
-        """
-        return objecttools.dir_(self)

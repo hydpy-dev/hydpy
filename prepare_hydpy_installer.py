@@ -1,11 +1,8 @@
-from distutils.version import StrictVersion
-import importlib
-import json
 import os
-import packaging.version
 import shutil
 import sys
-import urllib
+
+import lastversion
 
 
 with open("make_hydpy_installer.cfgt") as file_:
@@ -26,35 +23,8 @@ for idx, line in enumerate(lines):
 for idx, line in enumerate(lines):
     if "==[auto]" in line:
         name = line.split()[-1].split("==")[0]
-        if name == "python-dateutil":
-            version = importlib.import_module("dateutil").__version__
-        elif name == "PyYAML":
-            version = importlib.import_module("yaml").__version__
-        elif name == "attrs":
-            version = importlib.import_module("attr").__version__
-        elif name == "Pillow":
-            version = importlib.import_module("PIL").__version__
-        elif name == "tornado":
-            version = importlib.import_module("tornado").version
-        else:
-            try:
-                version = ".".join(
-                    str(number)
-                    for number in packaging.version.parse(
-                        importlib.import_module(name).__version__
-                    ).release
-                )
-            except AttributeError:
-                data = json.load(
-                    urllib.request.urlopen(
-                        urllib.request.Request(
-                            f"https://pypi.python.org/pypi/{name}/json"
-                        )
-                    )
-                )
-                versions = (packaging.version.parse(v) for v in data["releases"])
-                version = str(max(v for v in versions if not v.is_prerelease))
-        lines[idx] = line.replace("[auto]", version)
+        version = lastversion.latest(name, at="pip")
+        lines[idx] = line.replace("[auto]", str(version))
 
 with open("make_hydpy_installer.cfg", "w") as file_:
     file_.writelines(lines)
@@ -66,8 +36,9 @@ if os.path.exists(wheeldir):
 os.makedirs(wheeldir)
 os.system(f"{sys.executable} -m pip wheel retrying --wheel-dir={wheeldir}")
 
+this_path = os.path.abspath(os.getcwd())
 for folderpath in sys.path:
-    if os.path.isdir(folderpath):
+    if os.path.isdir(folderpath) and (os.path.abspath(folderpath) != this_path):
         for filename in os.listdir(folderpath):
             if filename in ("tcl86t.dll", "tk86t.dll", "tcl"):
                 source = os.path.join(folderpath, filename)

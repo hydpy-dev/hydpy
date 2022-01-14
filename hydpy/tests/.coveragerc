@@ -5,6 +5,7 @@ source =
 omit =
     */hydpy/tests/*
     */hydpy/docs/*
+    */hydpy/cythons/modelutils.py
 parallel=True
 
 [report]

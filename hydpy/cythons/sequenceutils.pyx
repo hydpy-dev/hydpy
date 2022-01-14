@@ -16,7 +16,7 @@ cimport numpy
 from libc.math cimport isnan
 from libc.stdio cimport *
 from libc.stdlib cimport *
-from hydpy.cythons cimport pointerutils
+from hydpy.cythons.autogen cimport pointerutils
 
 @cython.final
 cdef class FastAccessNodeSequence:

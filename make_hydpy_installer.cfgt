@@ -43,6 +43,8 @@ pypi_wheels = numpy==[auto]
 	mypy_extensions==0.4.3
 	pathspec==[auto]
 	tomli==[auto]
+	click==[auto]
+	colorama==[auto]
 
 local_wheels = dist/*.whl
 

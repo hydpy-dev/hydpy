@@ -1,0 +1,18 @@
+[build-system]
+requires = [
+    "black",
+    "bokeh",
+    "click",
+    "Cython",
+    "matplotlib",
+    "netCDF4",
+    "networkx",
+    "numpy",
+    "pandas",
+    "plotly",
+    "scipy",
+    "setuptools",
+    "typing_extensions",
+    "wrapt",
+    "xmlschema",
+]

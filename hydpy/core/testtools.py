@@ -304,6 +304,7 @@ hydpy.models.hland.hland_control.ZoneType
         )
         for name in self.modulenames:
             print(f"    * {name}:")
+            # pylint: disable=not-callable
             with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
                 False
             ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
@@ -1311,8 +1312,6 @@ class TestIO:
         traceback_: types.TracebackType,
     ) -> None:
         for file in sorted(os.listdir(".")):
-            if file.startswith(".coverage"):
-                shutil.move(file, os.path.join(self._path, file))
             if (file != "__init__.py") and (
                 self._clear_all or (self._clear_own and (file not in self._olds))
             ):

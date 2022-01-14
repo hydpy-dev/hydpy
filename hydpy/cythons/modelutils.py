@@ -661,7 +661,7 @@ class Cythonizer:
         >>> repr_(cythonizer.dllfilepath)   # doctest: +ELLIPSIS
         '.../hydpy/cythons/autogen/c_hland_v1...'
         >>> import os
-        >>> os.path.exists(cythonizer.dllfilepath)
+        >>> os.path.exists(os.path.split(cythonizer.dllfilepath)[0])
         True
         """
         return os.path.join(self.cydirpath, f"{self.cyname}{_dllextension}")

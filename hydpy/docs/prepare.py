@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Move, create and modify documentation files before applying `Sphinx`.
 
-Sphinx is to be executed in a freshly created folder named `auto`.  If
-this folder exists already, `prepare` removes it first and builds it from
-scratch afterwards, in order to assure that no old documentation files
-find their way into the html documentation.
+Sphinx is to be executed in a freshly created folder named `auto`.  If this folder
+exists already, `prepare` removes it first and builds it from scratch afterwards, in
+order to assure that no old documentation files find their way into the html
+documentation.
 """
 
 # import...
@@ -35,7 +35,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import variabletools
 from hydpy.docs import autofigs
-from hydpy.docs import bibliography
+from hydpy.docs import bib
 from hydpy.docs import figs
 from hydpy.docs import sphinx
 from hydpy.docs import rst
@@ -47,13 +47,6 @@ if os.path.exists(AUTOPATH):
     shutil.rmtree(AUTOPATH)
 os.makedirs(AUTOPATH)
 shutil.copytree(os.path.join(docspath, "html_"), os.path.join(AUTOPATH, "html_"))
-try:
-    shutil.move(
-        os.path.join(AUTOPATH, "html_", "coverage.html"),
-        os.path.join(AUTOPATH, "coverage.html"),
-    )
-except BaseException:
-    print("coverage.html could not be moved")
 
 # Import all base and application models, to make sure all substituters are up-to-date.
 # (I am not sure if this is really necessary but it does not hurt.)
@@ -154,7 +147,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
 
 # Copy additional files into folder `auto` and, for the rst files, add the
 # required substitution replacement commands.
-for subpackage in (autofigs, bibliography, figs, sphinx, rst):
+for subpackage in (autofigs, bib, figs, sphinx, rst):
     subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined]
     for filename in sorted(os.listdir(subpackagepath)):
         path_in = os.path.join(subpackagepath, filename)

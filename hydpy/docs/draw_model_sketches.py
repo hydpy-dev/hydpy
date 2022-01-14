@@ -7,6 +7,7 @@ some refactoring.
 For now, calling this script is not part of our Travis-CI workflow.  So we have to run
 the script and exchange the resulting png files manually each time something changes.
 """
+# pylint: disable=missing-docstring
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -225,7 +226,6 @@ class Element:
     def draw_special_form(
         self,
         frame: Frame,
-        nmb_outlets_buttom: Literal[1] = 1,
     ) -> None:
         top = 1.0
         self.draw_line(
@@ -287,7 +287,7 @@ class Title(Element):
 
 class Interception(Element):
     def plot(self, frame: Frame) -> None:
-        self.draw_special_form(frame=frame, nmb_outlets_buttom=1)
+        self.draw_special_form(frame=frame)
         self.draw_text(
             frame=frame,
             text="ICMax",
@@ -433,7 +433,6 @@ class Snow(Element):
             length=Point(0.0, -1.0 * self.arrowfactor),
             properties=ArrowProperties(),
         )
-        text = ""
         self.draw_text(
             frame=frame,
             text="In",
@@ -498,7 +497,7 @@ class Soil(Element):
                 properties=LineProperties(color="grey"),
             )
         elif self.version == "v3_v4":
-            self.draw_special_form(frame=frame, nmb_outlets_buttom=1)
+            self.draw_special_form(frame=frame)
         self.draw_text(
             frame=frame,
             text="FC",
@@ -603,6 +602,9 @@ class Glacier(Element):
 @dataclass
 class UZ_SG1_BW(Element):
     arrows: bool = True
+
+    def plot(self, frame: Frame) -> None:
+        raise NotImplementedError
 
     @property
     def arrayinfo(self) -> Tuple[ArrowProperties, float]:

@@ -4,7 +4,7 @@
 The available options should not be changed during runtime.
 """
 
-USEAUTODOC = True
+USEAUTODOC = False
 """A flag that indicates whether *HydPy's* automatic documentation manipulation 
 features should be applied or not.  It is imperative to set it to `True` before one 
 uses `Sphinx` to generate the online documentation.  However, one can set it to `False` 

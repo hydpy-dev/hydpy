@@ -504,7 +504,6 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.ellipsis = 0
         >>> pub.options.parameterstep = "1h"
         >>> pub.options.printprogress = True
-        >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
         >>> pub.options.warnsimulationstep = 0
@@ -520,7 +519,6 @@ correctly refer to one of the available XML schema files \
             isolatenetcdf -> 1
             parameterstep -> Period("1d")
             printprogress -> 0
-            printincolor -> 0
             reprcomments -> 0
             reprdigits -> 6
             simulationstep -> Period()
@@ -548,7 +546,6 @@ correctly refer to one of the available XML schema files \
             else:
                 setattr(options, strip(option.tag), value)
         options.printprogress = False
-        options.printincolor = False
 
     def update_timegrids(self) -> None:
         """Update the |Timegrids| object available in module |pub| with the values

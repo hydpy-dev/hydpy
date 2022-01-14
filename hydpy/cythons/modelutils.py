@@ -294,7 +294,6 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
 from hydpy.core import typingtools
@@ -552,15 +551,11 @@ class Cythonizer:
         """Translate Python source code of the relevant model first into
         Cython and then into C, compile it, and move the resulting dll
         file to the `autogen` subfolder of subpackage `cythons`."""
-        with printtools.PrintStyle(color=33, font=4):
-            print(f"Translate module/package {self.pyname}.")
-        with printtools.PrintStyle(color=33, font=2):
-            self.pyxwriter.write()
-        with printtools.PrintStyle(color=31, font=4):
-            print(f"Compile module {self.cyname}.")
-        with printtools.PrintStyle(color=31, font=2):
-            self.compile_()
-            self.move_dll()
+        print(f"Translate module/package {self.pyname}.")
+        self.pyxwriter.write()
+        print(f"Compile module {self.cyname}.")
+        self.compile_()
+        self.move_dll()
 
     @property
     def pyname(self) -> str:

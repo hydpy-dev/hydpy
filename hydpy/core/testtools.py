@@ -32,7 +32,6 @@ from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import objecttools
-from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
@@ -298,62 +297,54 @@ hydpy.models.hland.hland_control.ZoneType
                   "1d")
         """
         opt = hydpy.pub.options
-        color = 34 if hydpy.pub.options.usecython else 36
-        with printtools.PrintStyle(color=color, font=4):
-            print(
-                f"Test {'package' if self.ispackage else 'module'} "
-                f"{self.package if self.ispackage else self.modulenames[0]} "
-                f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
-            )
-        with printtools.PrintStyle(color=color, font=2):
-            for name in self.modulenames:
-                print(f"    * {name}:")
-                # pylint: disable=not-callable
-                # pylint does understand that all options are callable
-                # except option `printincolor`!?
-                with StdOutErr(indent=8), opt.ellipsis(0), opt.printincolor(
-                    False
-                ), opt.printprogress(False), opt.reprcomments(False), opt.reprdigits(
-                    6
-                ), opt.usedefaultvalues(
-                    False
-                ), opt.utclongitude(
-                    15
-                ), opt.utcoffset(
-                    60
-                ), opt.warnsimulationstep(
-                    False
-                ), opt.warntrim(
-                    False
-                ), opt.parameterstep(
-                    timetools.Period("1d")
-                ), opt.simulationstep(
-                    timetools.Period()
-                ), devicetools.clear_registries_temporarily():
-                    # pylint: enable=not-callable
-                    projectname = exceptiontools.getattr_(
-                        hydpy.pub, "projectname", None, str
-                    )
-                    del hydpy.pub.projectname
-                    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
-                    del hydpy.pub.timegrids
-                    plotting_options = IntegrationTest.plotting_options
-                    IntegrationTest.plotting_options = PlottingOptions()
-                    try:
-                        modulename = ".".join((self.package, name))
-                        module = importlib.import_module(modulename)
-                        with warnings.catch_warnings():
-                            doctest.testmod(
-                                module,
-                                extraglobs={"testing": True},
-                                optionflags=doctest.ELLIPSIS,
-                            )
-                    finally:
-                        if projectname is not None:
-                            hydpy.pub.projectname = projectname
-                        if timegrids is not None:
-                            hydpy.pub.timegrids = timegrids
-                        IntegrationTest.plotting_options = plotting_options
+        print(
+            f"Test {'package' if self.ispackage else 'module'} "
+            f"{self.package if self.ispackage else self.modulenames[0]} "
+            f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
+        )
+        for name in self.modulenames:
+            print(f"    * {name}:")
+            with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
+                False
+            ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
+                False
+            ), opt.utclongitude(
+                15
+            ), opt.utcoffset(
+                60
+            ), opt.warnsimulationstep(
+                False
+            ), opt.warntrim(
+                False
+            ), opt.parameterstep(
+                timetools.Period("1d")
+            ), opt.simulationstep(
+                timetools.Period()
+            ), devicetools.clear_registries_temporarily():
+                # pylint: enable=not-callable
+                projectname = exceptiontools.getattr_(
+                    hydpy.pub, "projectname", None, str
+                )
+                del hydpy.pub.projectname
+                timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
+                del hydpy.pub.timegrids
+                plotting_options = IntegrationTest.plotting_options
+                IntegrationTest.plotting_options = PlottingOptions()
+                try:
+                    modulename = ".".join((self.package, name))
+                    module = importlib.import_module(modulename)
+                    with warnings.catch_warnings():
+                        doctest.testmod(
+                            module,
+                            extraglobs={"testing": True},
+                            optionflags=doctest.ELLIPSIS,
+                        )
+                finally:
+                    if projectname is not None:
+                        hydpy.pub.projectname = projectname
+                    if timegrids is not None:
+                        hydpy.pub.timegrids = timegrids
+                    IntegrationTest.plotting_options = plotting_options
 
 
 class Array:

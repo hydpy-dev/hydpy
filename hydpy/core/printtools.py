@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-"""This module implements features for printing additional information and
-for modifying how information is printed."""
+"""This module implements features for printing additional information and for
+modifying how information is printed."""
 # import...
 # ...from standard library
 import os
 import sys
 import tempfile
 import time
-import types
 from typing import *
-from typing import TextIO
 
 # ...from HydPy
 import hydpy
@@ -18,54 +16,20 @@ from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
 
-class PrintStyle:
-    """Context manager for changing the colour and font of printed
-    output temporarilly."""
-
-    color: int
-    font: int
-    file: TextIO
-
-    def __init__(
-        self,
-        color: int,
-        font: int,
-        file: Optional[TextIO] = None,
-    ) -> None:
-        self.color = color
-        self.font = font
-        self.file = sys.stdout if file is None else file
-
-    def __enter__(self) -> None:
-        if hydpy.pub.options.printincolor:
-            print(end=f"\x1B[{self.font};30;{self.color}m", file=self.file)
-
-    def __exit__(
-        self,
-        exception_type: Type[BaseException],
-        exception_value: BaseException,
-        traceback: types.TracebackType,
-    ) -> None:
-        if hydpy.pub.options.printincolor:
-            print(end="\x1B[0m", file=self.file)
-
-
 _printprogress_indentation = -4
 
 
 @objecttools.decorator
-def print_progress(  # type: ignore[no-untyped-def]
+def print_progress(
     wrapped: Callable[..., None],
-    _=None,
-    args=None,
-    kwargs=None,
-):
-    """Add print commands time to the given function informing about
-     execution time.
+    _: object,
+    args: Iterable[object],
+    kwargs: Mapping[str, object],
+) -> None:
+    """Add print commands time to the given function informing about execution time.
 
-    To show how the |print_progress| decorator works, we need to modify the
-    functions used by |print_progress| to gain system time information
-    available in module |time|.
+    To show how the |print_progress| decorator works, we need to modify the functions
+    used by |print_progress| to gain system time information available in module |time|.
 
     First, we mock the functions |time.strftime| and |time.perf_counter|:
 
@@ -77,19 +41,19 @@ def print_progress(  # type: ignore[no-untyped-def]
     >>> time.strftime = strftime_mock
     >>> time.perf_counter = mock.MagicMock()
 
-    The mock of |time.strftime| shall respond to two calls, as if the first
-    call to a decorated function occurs at quarter past eight, and the second
-    one two seconds later:
+    The mock of |time.strftime| shall respond to two calls, as if the first call to a
+    decorated function occurs at quarter past eight, and the second one two seconds
+    later:
 
     >>> time.strftime.side_effect = "20:15:00", "20:15:02"
 
-    The mock of |time.perf_counter| shall respond to four calls, as if the
-    subsequent calls by decorated functions occur at second 1, 3, 4, and 7:
+    The mock of |time.perf_counter| shall respond to four calls, as if the subsequent
+    calls by decorated functions occur at second 1, 3, 4, and 7:
 
     >>> time.perf_counter.side_effect = 1, 3, 4, 7
 
-    Now we decorate two test functions.  The first one does nothing; the
-    second one only calls the first one:
+    Now we decorate two test functions.  The first one does nothing; the second one
+    only calls the first one:
 
     >>> from hydpy.core.printtools import print_progress
     >>> @print_progress
@@ -99,10 +63,9 @@ def print_progress(  # type: ignore[no-untyped-def]
     ... def test2():
     ...     test1()
 
-    The first example shows that the output is appropriately indented,
-    tat the returned times are at the right place, that the calculated
-    execution the is correct, and that the mock of |time.strftime|
-    received a valid format string:
+    The first example shows that the output is appropriately indented, that the
+    returned times are at the right place, that the calculated execution the is
+    correct, and that the mock of |time.strftime| received a valid format string:
 
     >>> from hydpy import pub
     >>> pub.options.printprogress = True
@@ -124,8 +87,8 @@ def print_progress(  # type: ignore[no-untyped-def]
             seconds elapsed: 1
         seconds elapsed: 6
 
-    The last example shows that disabling the |Options.printprogress|
-    option works as expected:
+    The last example shows that disabling the |Options.printprogress| option works as
+    expected:
 
     >>> pub.options.printprogress = False
     >>> test2()
@@ -140,15 +103,13 @@ def print_progress(  # type: ignore[no-untyped-def]
             blanks = " " * _printprogress_indentation
             name = wrapped.__name__
             time_ = time.strftime("%H:%M:%S")
-            with PrintStyle(color=34, font=1):
-                print(f"{blanks}method {name} started at {time_}")
+            print(f"{blanks}method {name} started at {time_}")
             seconds = time.perf_counter()
             sys.stdout.flush()
             wrapped(*args, **kwargs)
             blanks = " " * (_printprogress_indentation + 4)
             seconds = time.perf_counter() - seconds
-            with PrintStyle(color=34, font=1):
-                print(f"{blanks}seconds elapsed: {seconds}")
+            print(f"{blanks}seconds elapsed: {seconds}")
             sys.stdout.flush()
         else:
             wrapped(*args, **kwargs)
@@ -159,17 +120,15 @@ def print_progress(  # type: ignore[no-untyped-def]
 def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     """Print a simple progress bar while processing the given iterable.
 
-    Function |progressbar| does print the progress bar when option
-    `printprogress` is activted:
+    Function |progressbar| does print the progress bar when option `printprogress` is
+    activted:
 
     >>> from hydpy import pub
     >>> pub.options.printprogress = True
 
-    You can pass an iterable object.  Say you want to calculate the the sum
-    of all integer values from 1 to 100 and print the progress of the
-    calculation.  Using function |range| (which returns a list in Python 2
-    and an iterator in Python3, but both are fine), one just has to
-    interpose function |progressbar|:
+    You can pass an iterable object.  Say you want to calculate the the sum of all
+    integer values from 1 to 100 and print the progress of the calculation.  Using
+    function |range|, one just has to interpose function |progressbar|:
 
     >>> from hydpy.core.printtools import progressbar
     >>> x_sum = 0
@@ -180,9 +139,9 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     >>> x_sum
     5050
 
-    To prevent possible interim print commands from dismembering the status
-    bar, they are delayed until the status bar is complete.  For intermediate
-    print outs of each fiftieth calculation, the result looks as follows:
+    To prevent possible interim print commands from dismembering the status bar, they
+    are delayed until the status bar is complete.  For intermediate print outs of each
+    fiftieth calculation, the result looks as follows:
 
     >>> x_sum = 0
     >>> for x in progressbar(range(1, 101)):
@@ -202,8 +161,8 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
         |------------------------------------------------|
         **************************************************
 
-    But its maximum number of characters is restricted by the length of the
-    given iterable:
+    But its maximum number of characters is restricted by the length of the given
+    iterable:
 
     >>> for i in progressbar(range(10), length=50):
     ...     continue
@@ -238,19 +197,18 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
             nmbstars = min(nmbitems, length)
             nmbcounts = nmbitems / nmbstars
             indentation = " " * max(_printprogress_indentation, 0)
-            with PrintStyle(color=36, font=1, file=real_stdout):
-                print(
-                    f"    {indentation}|{'-' * (nmbstars - 2)}|\n{indentation}    ",
-                    end="",
-                    file=real_stdout,
-                )
-                counts = 1.0
-                for next_ in iterable:
-                    counts += 1.0
-                    if counts >= nmbcounts:
-                        print(end="*", file=real_stdout)
-                        counts -= nmbcounts
-                    yield next_
+            print(
+                f"    {indentation}|{'-' * (nmbstars - 2)}|\n{indentation}    ",
+                end="",
+                file=real_stdout,
+            )
+            counts = 1.0
+            for next_ in iterable:
+                counts += 1.0
+                if counts >= nmbcounts:
+                    print(end="*", file=real_stdout)
+                    counts -= nmbcounts
+                yield next_
         finally:
             temp_stdout.close()
             sys.stdout = real_stdout

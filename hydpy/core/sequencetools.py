@@ -989,20 +989,6 @@ neither a filename is given nor does the model know its master element.
     def __len__(self):
         return sum(1 for _ in self)
 
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1", "1d")
-        >>> dir(model.sequences)
-        ['activate_disk', 'activate_ram', 'aides', 'close_files', 'conditions', \
-'conditionsequences', 'deactivate_disk', 'deactivate_ram', 'disk2ram', 'factors', \
-'fluxes', 'inlets', 'inputs', 'iosubsequences', 'load_conditions', 'load_data', \
-'load_series', 'logs', 'model', 'open_files', 'outlets', 'ram2disk', 'receivers', \
-'reset', 'save_conditions', 'save_data', 'save_series', 'senders', 'states', \
-'trim_conditions', 'update_outputs']
-        """
-        return objecttools.dir_(self)
-
 
 class SubSequences(
     variabletools.SubVariables[
@@ -1516,27 +1502,6 @@ can only be retrieved after it has been defined.
     def __repr__(self) -> str:
         brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return variabletools.to_repr(self, self.value, brackets)
-
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy.core.sequencetools import FluxSequence
-        >>> sequence = FluxSequence(None)
-        >>> from hydpy import print_values
-        >>> print_values(dir(sequence))
-        INIT, NOT_DEEPCOPYABLE_MEMBERS, SPAN, TYPE, activate_disk,
-        activate_ram, adjust_series, adjust_short_series, aggregate_series,
-        aggregation_ext, availablemasks, average_series, average_values,
-        check_completeness, commentrepr, deactivate_disk, deactivate_ram,
-        descr_device, descr_model, descr_sequence, dirpath_ext, dirpath_int,
-        disk2ram, diskflag, evalseries, fastaccess, filename_ext,
-        filename_int, filepath_ext, filepath_int, filetype_ext, get_submask,
-        initinfo, load_ext, mask, memoryflag, name, numericshape, outputflag,
-        overwrite_ext, ram2disk, ramflag, rawfilename, refweights, save_ext,
-        save_mean, series, seriesmatrix, seriesshape, set_pointer, shape,
-        simseries, strict_valuehandling, subseqs, subvars, unit,
-        update_fastaccess, value, values, valuevector, verify
-        """
-        return objecttools.dir_(self)
 
 
 class _IOProperty(

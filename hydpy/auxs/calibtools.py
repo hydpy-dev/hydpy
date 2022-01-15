@@ -2072,7 +2072,6 @@ parameterstep="1d"))
 
     def __dir__(self) -> List[str]:
         """
-
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface, make_rules, Replace
@@ -2085,14 +2084,10 @@ parameterstep="1d"))
         ...                          uppers=[200.0, 10.0],
         ...                          parametersteps="1d",
         ...                          model="hland_v1"))
-        >>> dir(ci)
-        ['add_rules', 'apply_values', 'calculate_likelihood', 'conditions', 'fc', \
-'finalise_logfile', 'get_rule', 'lowers', 'names', 'parametertypes', 'percmax', \
-'perform_calibrationstep', 'prepare_logfile', 'print_table', 'read_logfile', \
-'remove_rules', 'reset_parameters', 'result', 'selections', 'update_logfile', \
-'uppers', 'values']
+        >>> sorted(set(dir(ci)) - set(object.__dir__(ci)))
+        ['fc', 'percmax']
         """
-        return objecttools.dir_(self) + list(self._rules.keys())
+        return cast(List[str], super().__dir__()) + list(self._rules.keys())
 
 
 class RuleIUH(Rule[arma_control.Responses]):
@@ -2781,14 +2776,8 @@ parameterstep="1d"),
         >>> from hydpy import CalibSpec, CalibSpecs, print_values
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0),
         ...                         CalibSpec(name="second",default=2.0))
-        >>> print_values(dir(calibspecs))
-        __annotations__, __class__, __contains__, __delattr__, __delitem__,
-        __dict__, __dir__, __doc__, __eq__, __format__, __ge__, __getattr__,
-        __getattribute__, __getitem__, __gt__, __hash__, __init__,
-        __init_subclass__, __iter__, __le__, __len__, __lt__, __module__,
-        __ne__, __new__, __reduce__, __reduce_ex__, __repr__, __setattr__,
-        __sizeof__, __str__, __subclasshook__, __weakref__, _name2parspec,
-        append, defaults, first, lowers, names, parametersteps, second, uppers
+        >>> sorted(set(dir(calibspecs)) - set(object.__dir__(calibspecs)))
+        ['first', 'second']
         """
         return list(super().__dir__()) + list(self.names)
 

@@ -446,16 +446,6 @@ set yet: c1(?).
     def __len__(self):
         return sum(1 for _ in self)
 
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep()
-        >>> dir(model.parameters)
-        ['control', 'derived', 'fixed', 'model', 'save_controls', \
-'secondary_subpars', 'solver', 'update', 'verify']
-        """
-        return objecttools.dir_(self)
-
 
 class FastAccessParameter(variabletools.FastAccess):
     """Used as a surrogate for typed Cython classes handling parameters
@@ -1786,20 +1776,6 @@ implement method `update`.
         lines.append(f"{self.name}({objecttools.repr_(value)})")
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     pass
-        >>> dir(Par(None))
-        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'apply_timefactor', \
-'availablemasks', 'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
-'get_submask', 'get_timefactor', 'initinfo', 'keywordarguments', 'mask', 'name', \
-'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', 'subpars', \
-'subvars', 'trim', 'unit', 'update', 'value', 'values', 'valuevector', 'verify']
-        """
-        return objecttools.dir_(self)
-
 
 class NameParameter(Parameter):
     """Parameter displaying the names of constants instead of their values.
@@ -2215,26 +2191,20 @@ error occurred: could not convert string to float: 'test'
         )
         return f"{string})"
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
-        >>> dir(treft)
-        ['INIT', 'MODEL_CONSTANTS', 'NDIM', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', \
-'TIME', 'TYPE', 'acker', 'apply_timefactor', 'availablemasks', 'average_values', \
-'baumb', 'boden', 'commentrepr', 'compress_repr', 'fastaccess', 'feucht', 'fluss', \
-'get_submask', 'get_timefactor', 'glets', 'grue_e', 'grue_i', 'initinfo', \
-'keywordarguments', 'laubw', 'mask', 'mischw', 'nadelw', 'name', 'obstb', \
-'refweights', 'revert_timefactor', 'see', 'shape', 'sied_d', 'sied_l', \
-'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', 'value', \
-'values', 'valuevector', 'verify', 'vers', 'wasser', 'weinb']
+        >>> sorted(set(dir(treft)) - set(object.__dir__(treft)))
+        ['acker', 'baumb', 'boden', 'feucht', 'fluss', 'glets', 'grue_e', 'grue_i', \
+'laubw', 'mischw', 'nadelw', 'obstb', 'see', 'sied_d', 'sied_l', 'vers', 'wasser', \
+'weinb']
         """
-        return list(
-            itertools.chain(
-                super().__dir__(),
-                (key.lower() for key in self.MODEL_CONSTANTS.keys()),
-            )
+        names = itertools.chain(
+            cast(List[str], super().__dir__()),
+            (key.lower() for key in self.MODEL_CONSTANTS.keys()),
         )
+        return list(names)
 
 
 class SeasonalParameter(Parameter):
@@ -2801,15 +2771,14 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         >>> par.NDIM = 1
         >>> par.shape = (None,)
         >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
-        >>> dir(par)   # doctest: +ELLIPSIS
-        [... 'subvars', 'toy_1_1_0_0_0', 'toy_3_1_0_0_0', \
-'toy_7_1_0_0_0', 'toys', 'trim', ...]
+        >>> sorted(set(dir(par)) - set(object.__dir__(par)))
+        ['toy_1_1_0_0_0', 'toy_3_1_0_0_0', 'toy_7_1_0_0_0']
 
         .. testsetup::
 
             >>> del pub.timegrids
         """
-        return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
+        return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
 class KeywordParameter1D(Parameter):
@@ -2982,17 +2951,18 @@ index 1 is out of bounds for axis 0 with size 1
             lines[-1] += ")"
         return "\n".join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class Season(KeywordParameter1D):
         ...     TYPE = bool
         ...     TIME = None
         ...     ENTRYNAMES = ("winter", "summer")
-        >>> dir(Season(None))   # doctest: +ELLIPSIS
-        [...'subvars', 'summer', 'trim', ... 'verify', 'winter']
+        >>> season = Season(None)
+        >>> sorted(set(dir(season)) - set(object.__dir__(season)))
+        ['summer', 'winter']
         """
-        return tuple(objecttools.dir_(self)) + self.ENTRYNAMES
+        return cast(List[str], super().__dir__()) + list(self.ENTRYNAMES)
 
 
 class MonthParameter(KeywordParameter1D):
@@ -3279,7 +3249,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         else:
             super().__setattr__(key, values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
@@ -3292,7 +3262,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         lines[-1] = lines[-1][:-1] + ")"
         return "\n".join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
@@ -3300,16 +3270,16 @@ a normal attribute nor a row or column related attribute named `wrong`.
         ...     TIME = None
         ...     ROWNAMES = ("north", "south")
         ...     COLNAMES = ("apr2sep", "oct2mar")
-        >>> dir(IsWarm(None))   # doctest: +ELLIPSIS
-        [...'apply_timefactor', 'apr2sep'...'north', 'north_apr2sep', \
-'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
-'strict_valuehandling'...]
+        >>> iswarm = IsWarm(None)
+        >>> sorted(set(dir(iswarm)) - set(object.__dir__(iswarm)))
+        ['apr2sep', 'north', 'north_apr2sep', 'north_oct2mar', 'oct2mar', 'south', \
+'south_apr2sep', 'south_oct2mar']
         """
         return (
-            tuple(objecttools.dir_(self))
-            + self.ROWNAMES
-            + self.COLNAMES
-            + tuple(self._ROWCOLMAPPINGS.keys())
+            cast(List[str], super().__dir__())
+            + list(self.ROWNAMES)
+            + list(self.COLNAMES)
+            + list(self._ROWCOLMAPPINGS.keys())
         )
 
 

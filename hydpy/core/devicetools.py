@@ -250,8 +250,6 @@ define a valid variable identifier.  ...
                 objecttools.assignrepr_values(sorted(self), "Keywords(", width=70) + ")"
             )
 
-    __dir__ = objecttools.dir_
-
 
 _registry_fusedvariable: Dict[str, "FusedVariable"] = {}
 
@@ -1132,18 +1130,14 @@ which is in conflict with using their names as identifiers.
     def __dir__(self) -> List[str]:
         """
         >>> from hydpy import Node, Nodes
-        >>> from hydpy.core.objecttools import assignrepr_values
         >>> nodes = Nodes(Node("name1", keywords="keyword1"),
         ...               Node("name2", keywords=("keyword2a", "keyword2a")))
-        >>> print(assignrepr_values(dir(nodes), "", 70))
-        add_device, assignrepr, close_files, copy, devices, forceiterable,
-        get_contentclass, intersection, keyword1, keyword2a, keywords,
-        load_allseries, load_obsseries, load_simseries, mutable, name1, name2,
-        names, open_files, prepare_allseries, prepare_obsseries,
-        prepare_simseries, remove_device, save_allseries, save_obsseries,
-        save_simseries, search_keywords, variables
+        >>> sorted(set(dir(nodes)) - set(object.__dir__(nodes)))
+        ['keyword1', 'keyword2a', 'name1', 'name2']
         """
-        return objecttools.dir_(self) + list(self.names) + list(self.keywords)
+        return (
+            cast(List[str], super().__dir__()) + list(self.names) + list(self.keywords)
+        )
 
 
 class Nodes(Devices["Node"]):
@@ -1725,8 +1719,6 @@ class Device(Generic[DevicesTypeUnbound]):
 
     def __str__(self) -> str:
         return self.name
-
-    __dir__ = objecttools.dir_
 
 
 class Node(Device[Nodes]):

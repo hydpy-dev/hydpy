@@ -1098,14 +1098,12 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         """
         >>> from hydpy import ANN, pub, SeasonalInterpolator
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> seasonalinterpolator = SeasonalInterpolator(None)
-        >>> seasonalinterpolator(
+        >>> si = SeasonalInterpolator(None)
+        >>> si(
         ...     ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...         weights_input=0.0, weights_output=0.0,
         ...         intercepts_hidden=0.0, intercepts_output=1.0))
-        >>> print(*dir(seasonalinterpolator))
-        NDIM SPAN TIME TYPE algorithms calculate_values fastaccess inputs name \
-nmb_inputs nmb_outputs outputs plot ratios refresh shape subpars subvars \
-toy_1_1_0_0_0 toys verify
+        >>> sorted(set(dir(si)) - set(object.__dir__(si)))
+        ['toy_1_1_0_0_0']
         """
-        return objecttools.dir_(self) + [str(toy) for toy in self.toys]
+        return cast(List[str], super().__dir__()) + [str(toy) for toy in self.toys]

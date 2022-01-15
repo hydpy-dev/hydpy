@@ -2395,17 +2395,14 @@ named `wrong`.
         ...     CLASSES = (TestVar,)
         ...     name = None
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
-        >>> dir(TestSubVars(None))
-        ['CLASSES', 'fastaccess', 'name', 'testvar', 'vars']
+        >>> testsubvars = TestSubVars(None)
+        >>> sorted(set(dir(testsubvars)) - set(object.__dir__(testsubvars)))
+        ['testvar']
         """
-        return objecttools.dir_(self) + list(self._name2variable.keys())
+        return cast(List[str], super().__dir__()) + list(self._name2variable.keys())
 
 
-def to_repr(
-    self: Variable,
-    values,
-    brackets: bool = False,
-) -> str:
+def to_repr(self: Variable, values, brackets: bool = False) -> str:
     """Return a valid string representation for the given |Variable| object.
 
     Function |to_repr| is thought for internal purposes only, more specifically for

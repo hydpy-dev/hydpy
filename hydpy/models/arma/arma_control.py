@@ -386,6 +386,4 @@ Most probably, you defined the same threshold value(s) twice.
         return "\n".join(strings)
 
     def __dir__(self) -> List[str]:
-        attrs = objecttools.dir_(self)
-        attrs.extend(self._coefs.keys())
-        return attrs
+        return cast(List[str], super().__dir__()) + list(self._coefs.keys())

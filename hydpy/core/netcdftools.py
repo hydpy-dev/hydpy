@@ -753,7 +753,7 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
                 adds_long.append(f"{foldername}_{filename}")
                 counter[filename] += 1
         adds_short = [name for name, nmb in counter.items() if nmb == 1]
-        return objecttools.dir_(self) + adds_long + adds_short
+        return cast(List[str], super().__dir__()) + adds_long + adds_short
 
 
 class NetCDFFile:
@@ -1023,7 +1023,7 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
     __deepcopy__ = objecttools.deepcopy_
 
     def __dir__(self):
-        return objecttools.dir_(self) + list(self.variablenames)
+        return cast(List[str], super().__dir__()) + list(self.variablenames)
 
 
 _NetCDFVariableInfo = collections.namedtuple(
@@ -1368,7 +1368,7 @@ variable `flux_prec` (the first found duplicate is `element1`).
             ) from None
 
     def __dir__(self):
-        return objecttools.dir_(self) + list(self.sequences.keys())
+        return cast(List[str], super().__dir__()) + list(self.sequences.keys())
 
 
 class DeepAndAggMixin:

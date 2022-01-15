@@ -511,7 +511,6 @@ correctly refer to one of the available XML schema files \
         >>> pub.options
         Options(
             checkseries -> 1
-            dirverbose -> 0
             ellipsis -> 0
             flattennetcdf -> 1
             isolatenetcdf -> 1

@@ -948,13 +948,13 @@ class Substituter:
         >>> print(substituter.get_commands())   # doctest: +ELLIPSIS
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |Options.dirverbose| replace:: \
-:const:`~hydpy.core.optiontools.Options.dirverbose`
+        .. |Options.ellipsis| replace:: \
+:const:`~hydpy.core.optiontools.Options.ellipsis`
         ...
         .. |optiontools.Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |optiontools.Options.dirverbose| replace:: \
-:const:`~hydpy.core.optiontools.Options.dirverbose`
+        .. |optiontools.Options.ellipsis| replace:: \
+:const:`~hydpy.core.optiontools.Options.ellipsis`
         ...
 
         Through passing a string (usually the source code of a file to be documented),

@@ -208,11 +208,6 @@ class Options:
     time series not spanning the whole initialisation period or containing
     |numpy.nan| values."""
 
-    dirverbose = _BoolOption(False)
-    """A True/False flag for letting the autocompletion textbox include
-    all members of an object or only the most relevant ones.  So far, this
-    option affects the behaviour of a few implemented classes only."""
-
     ellipsis = _IntOption(-999)
     """Ellipsis points are used to shorten the string representations of
     iterable HydPy objects containing many entries.  Set a value to define

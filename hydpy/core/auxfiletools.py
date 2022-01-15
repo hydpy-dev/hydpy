@@ -381,14 +381,12 @@ attribute nor does it handle a model named `lland_v1`.
 
     def __dir__(self) -> List[str]:
         """
-        >>> from hydpy import print_values
         >>> aux = Auxfiler()
         >>> aux.add_models("llake_v1", "lland_v1", "lstream_v001")
-        >>> print_values(dir(aux))
-        add_models, get, llake_v1, lland_v1, lstream_v001, modelnames,
-        remove_models, write
+        >>> sorted(set(dir(aux)) - set(object.__dir__(aux)))
+        ['llake_v1', 'lland_v1', 'lstream_v001']
         """
-        return objecttools.dir_(self) + list(self.modelnames)
+        return cast(List[str], super().__dir__()) + list(self.modelnames)
 
 
 class SubAuxfiler:
@@ -1204,16 +1202,12 @@ file1 and file2
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
-        >>> from hydpy import print_values
-        >>> print_values(dir(subauxfiler))
-        add_parameter, add_parameters, eqb, eqd1, eqi1, file1, file2,
-        get_filename, get_filenames, get_parameterstrings, get_parametertypes,
-        get_references, remove_parameters, treft
+        >>> sorted(set(dir(subauxfiler)) - set(object.__dir__(subauxfiler)))
+        ['eqb', 'eqd1', 'eqi1', 'file1', 'file2', 'treft']
         """
-        return list(
-            itertools.chain(
-                objecttools.dir_(self),
-                self.get_filenames(),
-                (type_.__name__.lower() for type_ in self.get_parametertypes()),
-            )
+        names = itertools.chain(
+            cast(List[str], super().__dir__()),
+            self.get_filenames(),
+            (type_.__name__.lower() for type_ in self.get_parametertypes()),
         )
+        return list(names)

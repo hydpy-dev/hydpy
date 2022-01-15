@@ -399,9 +399,6 @@ occurred: The given key is neither a `string` a `mask` type.
             lines.append(f"{mask.__name__.lower()} of module {mask.__module__}")
         return "\n".join(lines)
 
-    def __dir__(self):
-        return objecttools.dir_(self)
-
 
 class NodeMasks(Masks):
     """|Masks| subclass for class |Node|.

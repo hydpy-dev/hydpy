@@ -333,17 +333,28 @@ _dllextension = get_dllextension()
 
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
-TYPE2STR: Dict[Optional[Type[Any]], str] = {
+TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicate-key
     bool: "bint",
+    "bool": "bint",
     int: _int,
+    "int": _int,
     parametertools.IntConstant: _int,
+    "parametertools.IntConstant": _int,
+    "IntConstant": _int,
     float: "double",
+    "float": "double",
     str: "str",
+    "str": "str",
     None: "void",
+    "None": "void",
     typingtools.Vector: "double[:]",  # to be removed as soon as possible
+    "typingtools.Vector": "double[:]",
+    "Vector": "double[:]",
     typingtools.Vector[float]: "double[:]",  # This works because the `__getitem__`
     # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
     # is documented behaviour, so this might cause (little) trouble in the future.
+    "typingtools.Vector[float]": "double[:]",
+    "Vector[float]": "double[:]",
 }
 """Maps Python types to Cython compatible type declarations.
 

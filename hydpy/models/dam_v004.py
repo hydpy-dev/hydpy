@@ -647,4 +647,3 @@ class Model(modeltools.ELSModel):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

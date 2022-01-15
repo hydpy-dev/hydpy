@@ -12,4 +12,3 @@ from hydpy.models.exch.exch_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

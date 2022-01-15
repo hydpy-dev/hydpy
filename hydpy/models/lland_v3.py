@@ -2005,4 +2005,3 @@ class Masks(masktools.Masks):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

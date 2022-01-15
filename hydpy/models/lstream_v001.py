@@ -1323,4 +1323,3 @@ stage or a discharge value, but both are given.
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

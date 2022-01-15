@@ -756,4 +756,3 @@ class Model(lstream_model.Model):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

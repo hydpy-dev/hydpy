@@ -13,4 +13,3 @@ from hydpy.models.llake.llake_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

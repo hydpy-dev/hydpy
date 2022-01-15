@@ -9,4 +9,3 @@ from hydpy.models.evap.evap_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

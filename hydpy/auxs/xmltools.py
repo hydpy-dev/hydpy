@@ -510,19 +510,16 @@ correctly refer to one of the available XML schema files \
         >>> interface.update_options()
         >>> pub.options
         Options(
-            autocompile -> 1
             checkseries -> 1
             dirverbose -> 0
             ellipsis -> 0
             flattennetcdf -> 1
-            forcecompiling -> 0
             isolatenetcdf -> 1
             parameterstep -> Period("1d")
             printprogress -> 0
             reprcomments -> 0
             reprdigits -> 6
             simulationstep -> Period()
-            skipdoctests -> 0
             timeaxisnetcdf -> 0
             trimvariables -> 1
             usecython -> 1

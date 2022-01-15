@@ -14,4 +14,3 @@ from hydpy.models.dam.dam_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

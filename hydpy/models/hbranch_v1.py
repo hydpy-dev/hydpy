@@ -104,4 +104,3 @@ class Model(hbranch_model.Model):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

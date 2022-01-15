@@ -4,23 +4,20 @@ Python models automatically.
 
 .. _`issue`: https://github.com/hydpy-dev/hydpy/issues
 
-Most model developers do not need to be aware of the features
-implemented in module |modelutils|, except that they need to
-initialise class |Cythonizer| within the main modules of their base
-and application models (see, for example, the source code of base
+Most model developers do not need to be aware of the features implemented in module
+|modelutils|, except that they need to initialise class |Cythonizer| within the main
+modules of their base and application models (see, for example, the source code of base
 model |hland| and application model |hland_v1|).
 
-However, when implementing models with functionalities not envisaged
-so far, problems might arise.  Please contact the *HydPy*
-developer team then, preferably by opening an `issue`_ on GitHub.
-Potentially, problems could occur when defining parameters or sequences
-with larger dimensionality than anticipated.  The following
-example shows the Cython code lines for the |ELSModel.get_point_states|
-method of class |ELSModel|, used for deriving the |test| model.  By
-now, we did only implement 0-dimensional and 1-dimensional sequences
-requiring this method.  After hackishly changing the dimensionality of
-sequences |test_states.S|, we still seem to get  plausible results, but
-these are untested in model applications:
+However, when implementing models with functionalities not envisaged so far, problems
+might arise.  Please contact the *HydPy* developer team then, preferably by opening an
+`issue`_ on GitHub.  Potentially, problems could occur when defining parameters or
+sequences with larger dimensionality than anticipated.  The following example shows the
+Cython code lines for the |ELSModel.get_point_states| method of class |ELSModel|, used
+for deriving the |test| model.  By now, we did only implement 0-dimensional and
+1-dimensional sequences requiring this method.  After hackishly changing the
+dimensionality of sequences |test_states.S|, we still seem to get  plausible results,
+but these are untested in model applications:
 
 >>> from hydpy.models.test import cythonizer
 >>> pyxwriter = cythonizer.pyxwriter
@@ -34,7 +31,6 @@ self.sequences.states._s_points[self.numvars.idx_stage]
             self.sequences.states.sv[idx0] = \
 self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
-
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 2
 >>> pyxwriter.get_point_states
@@ -193,8 +189,7 @@ self.sequences.fluxes._q_results[self.numvars.idx_method-1])
             if self.sequences.fluxes._q_results[self.numvars.idx_method] == 0.:
                 self.numvars.relerror = inf
             else:
-                self.numvars.relerror = max(\
-self.numvars.relerror, \
+                self.numvars.relerror = max(self.numvars.relerror, \
 fabs(abserror/self.sequences.fluxes._q_results[self.numvars.idx_method]))
         for idx0 in range(self.sequences.fluxes._qv_length):
             abserror = fabs(\
@@ -206,8 +201,7 @@ self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0])
 [self.numvars.idx_method, idx0] == 0.:
                     self.numvars.relerror = inf
                 else:
-                    self.numvars.relerror = max(\
-self.numvars.relerror, \
+                    self.numvars.relerror = max(self.numvars.relerror, \
 fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
@@ -233,8 +227,7 @@ self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1])
 [self.numvars.idx_method, idx0, idx1] == 0.:
                         self.numvars.relerror = inf
                     else:
-                        self.numvars.relerror = max(\
-self.numvars.relerror, fabs(\
+                        self.numvars.relerror = max(self.numvars.relerror, fabs(\
 abserror/self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]))
         for idx0 in range(self.sequences.fluxes._qv_length):
             abserror = fabs(\
@@ -259,6 +252,7 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import copy
 import distutils.core
 import distutils.extension
@@ -278,11 +272,7 @@ from typing import *
 
 # ...third party modules
 import numpy
-
-# noinspection PyUnresolvedReferences
 from numpy import inf  # pylint: disable=unused-import
-
-# noinspection PyUnresolvedReferences
 from numpy import nan  # pylint: disable=unused-import
 
 # ...from HydPy
@@ -307,10 +297,9 @@ else:
 def get_dllextension() -> str:
     """Return the DLL file extension for the current operating system.
 
-    The returned value depends on the response of function |platform.system|
-    of module |platform|.  |get_dllextension| returns `.pyd` if
-    |platform.system| returns the string "windows" and `.so` for
-    all other strings:
+    The returned value depends on the response of function |platform.system| of module
+    |platform|.  |get_dllextension| returns `.pyd` if |platform.system| returns the
+    string "windows" and `.so` for all other strings:
 
     >>> from hydpy.cythons.modelutils import get_dllextension
     >>> import platform
@@ -358,8 +347,8 @@ TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicat
 }
 """Maps Python types to Cython compatible type declarations.
 
-The Cython type belonging to Python's |int| is selected to agree
-with numpy's default integer type on the current platform/system.
+The Cython type belonging to Python's |int| is selected to agree with numpy's default 
+integer type on the current platform/system.
 """
 
 _checkable_types: List[Type[Any]] = []
@@ -400,8 +389,7 @@ class Lines(list):
 
 
 def get_methodheader(methodname: str, nogil: bool = False, idxarg: bool = False) -> str:
-    """Returns the Cython method header for methods without arguments except
-    `self`.
+    """Returns the Cython method header for methods without arguments except`self`.
 
     Note the influence of the configuration flag `FASTCYTHON`:
 
@@ -446,7 +434,7 @@ def decorate_method(wrapped: Callable) -> property:
 class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
-    Model: Type["modeltools.Model"]
+    Model: Type[modeltools.Model]
     Parameters: Type[parametertools.Parameters]
     Sequences: Type[sequencetools.Sequences]
     tester: testtools.Tester
@@ -458,110 +446,10 @@ class Cythonizer:
         for (key, value) in frame.f_locals.items():
             setattr(self, key, value)
 
-    def finalise(self) -> None:
-        # noinspection PyUnresolvedReferences
-        """Test and cythonize the relevant model eventually.
-
-        Method |Cythonizer.finalise| might call method |Cythonizer.cythonize|
-        and method |Tester.perform_tests| depending on the actual values
-        of the options |Options.autocompile|, |Options.usecython|, and
-        |Options.skipdoctests| as well the value currently returned
-        by property |Cythonizer.outdated|.  To explain and test the
-        considerable amount of relevant combinations, we make use of Python's
-        |unittest| `mock` library.
-
-        First, we import the |Cythonizer| instance responsible for
-        application model |hland_v1|, the classes |Cythonizer| and
-        |Tester|, module |pub|, and the |unittest| `mock` library:
-
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> from hydpy.cythons.modelutils import Cythonizer
-        >>> from hydpy.core.testtools import Tester
-        >>> from hydpy import pub
-        >>> from unittest import mock
-
-        Second, we memorise the relevant settings to restore them later:
-
-        >>> autocompile = pub.options.autocompile
-        >>> skipdoctests = pub.options.skipdoctests
-        >>> usecython = pub.options.usecython
-        >>> outdated = Cythonizer.outdated
-
-        Third, we define a test function mocking methods
-        |Cythonizer.cythonize| and |Tester.perform_tests|, printing
-        when the mocks are called and providing information on the
-        current value of option |Options.usecython|:
-
-        >>> def test():
-        ...     sc = lambda: print(
-        ...         f"calling method `cythonize` "
-        ...         f"(usecython={bool(pub.options.usecython)})")
-        ...     se = lambda: print(
-        ...         f"calling method `perform_tests` "
-        ...         f"(usecython={bool(pub.options.usecython)})")
-        ...     with mock.patch.object(
-        ...                 Cythonizer, "cythonize", side_effect=sc) as mc,\\
-        ...             mock.patch.object(
-        ...                 Tester, "perform_tests", side_effect=se) as mt:
-        ...         cythonizer.finalise()
-
-        With either option |Options.autocompile| or property
-        |Cythonizer.outdated| being |False|, nothing happens:
-
-        >>> pub.options.autocompile = False
-        >>> Cythonizer.outdated = True
-        >>> test()
-
-        >>> pub.options.autocompile = True
-        >>> Cythonizer.outdated = False
-        >>> test()
-
-        Option |Options.usecython| enables/disables the actual cythonization
-        and option |Options.skipdoctests| enables/disables the testing
-        of the Python model and, if available, of the Cython model:
-
-        >>> Cythonizer.outdated = True
-        >>> pub.options.usecython = False
-        >>> pub.options.skipdoctests = True
-        >>> test()
-
-        >>> pub.options.skipdoctests = False
-        >>> test()
-        calling method `perform_tests` (usecython=False)
-
-        >>> pub.options.usecython = True
-        >>> pub.options.skipdoctests = True
-        >>> test()
-        calling method `cythonize` (usecython=True)
-
-        >>> pub.options.skipdoctests = False
-        >>> test()
-        calling method `perform_tests` (usecython=False)
-        calling method `cythonize` (usecython=False)
-        calling method `perform_tests` (usecython=True)
-
-        >>> pub.options.autocompile = autocompile
-        >>> Cythonizer.outdated = outdated
-        >>> pub.options.skipdoctests = skipdoctests
-        """
-        if hydpy.pub.options.autocompile and self.outdated:
-            usecython = hydpy.pub.options.usecython
-            try:
-                if not hydpy.pub.options.skipdoctests:
-                    hydpy.pub.options.usecython = False
-                    self.tester.perform_tests()
-                if usecython:
-                    self.cythonize()
-                    if not hydpy.pub.options.skipdoctests:
-                        hydpy.pub.options.usecython = True
-                        self.tester.perform_tests()
-            finally:
-                hydpy.pub.options.usecython = usecython
-
     def cythonize(self) -> None:
-        """Translate Python source code of the relevant model first into
-        Cython and then into C, compile it, and move the resulting dll
-        file to the `autogen` subfolder of subpackage `cythons`."""
+        """Translate Python source code of the relevant model first into Cython and
+        then into C, compile it, and move the resulting dll file to the `autogen`
+        subfolder of subpackage `cythons`."""
         print(f"Translate module/package {self.pyname}.")
         self.pyxwriter.write()
         print(f"Compile module {self.cyname}.")
@@ -619,9 +507,9 @@ class Cythonizer:
         >>> c_hland_v1 is cythonizer.cymodule
         True
 
-        However, if this module is missing for some reasons, it tries to
-        create the module first and returns it afterwards.  For demonstration
-        purposes, we define a wrong |Cythonizer.cyname|:
+        However, if this module is missing for some reasons, it tries to create the
+        module first and returns it afterwards.  For demonstration purposes, we define
+        a wrong |Cythonizer.cyname|:
 
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
@@ -689,7 +577,7 @@ class Cythonizer:
         return os.path.join(self.cydirpath, "_build")
 
     @property
-    def pyxwriter(self) -> "PyxWriter":
+    def pyxwriter(self) -> PyxWriter:
         """A new |PyxWriter| instance.
 
         >>> from hydpy.models.hland_v1 import cythonizer
@@ -706,151 +594,6 @@ class Cythonizer:
         model.parameters = importtools.prepare_parameters(dict_)
         model.sequences = importtools.prepare_sequences(dict_)
         return PyxWriter(self, model, self.pyxfilepath)
-
-    @property
-    def pysourcefiles(self) -> List[str]:
-        # noinspection PyUnresolvedReferences
-        """All relevant source files of the actual model.
-
-        We consider source files to be relevant if they are part of the
-        *HydPy* package and if they define ancestors of the classes of
-        the considered model.
-
-        For the base model |hland|, all relevant modules seem to be covered:
-
-        >>> from hydpy.models.hland import cythonizer
-        >>> import os, pprint
-        >>> pprint.pprint([fn.split(os.path.sep)[-1] for fn in
-        ...                sorted(cythonizer.pysourcefiles)])
-        ['masktools.py',
-         'modeltools.py',
-         'parametertools.py',
-         'sequencetools.py',
-         'testtools.py',
-         'variabletools.py',
-         'modelutils.py',
-         '__init__.py',
-         'hland_masks.py',
-         'hland_model.py']
-
-        However, this is not the case for application model |hland_v1|,
-        where the base model files are missing.  Hence, relevant
-        changes in its base model might not be detected, resulting in
-        an outdated application model.  This issue is relevant for
-        developers only, but we should fix it someday:
-
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> import os, pprint
-        >>> pprint.pprint([fn.split(os.path.sep)[-1] for fn in
-        ...                sorted(cythonizer.pysourcefiles)])
-        ['masktools.py',
-         'modeltools.py',
-         'parametertools.py',
-         'sequencetools.py',
-         'testtools.py',
-         'typingtools.py',
-         'variabletools.py',
-         'modelutils.py',
-         'hland_v1.py']
-        """
-        basepath = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
-        filepaths = set()
-        for child in vars(self).values():
-            try:
-                parents = inspect.getmro(child)
-            except AttributeError:
-                continue
-            for parent in parents:
-                try:
-                    filepath = inspect.getfile(parent)
-                except TypeError:
-                    continue
-                if basepath in filepath:
-                    filepaths.add(filepath)
-        return list(filepaths)
-
-    @property
-    def outdated(self) -> bool:
-        """True/False flag indicating whether a |Cythonizer| object
-        should renew its Cython model or not.
-
-        With option |Options.forcecompiling| being |True|, property
-        |Cythonizer.outdated| also return |True| under all circumstances:
-
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> from hydpy import pub
-        >>> forcecompiling = pub.options.forcecompiling
-        >>> pub.options.forcecompiling = True
-        >>> cythonizer.outdated
-        True
-
-        With option |Options.forcecompiling| being |False|, property
-        |Cythonizer.outdated| generally return |False| if *HydPy* is
-        a site-package (under the assumption the user does not modify
-        his site-package files and for reasons of efficiency due to
-        skipping the following tests):
-
-        >>> pub.options.forcecompiling = False
-        >>> from unittest import mock
-        >>> with mock.patch("hydpy.__path__", ["folder/somename-packages/hydpy"]):
-        ...     cythonizer.outdated
-        False
-        >>> with mock.patch("hydpy.__path__", ["folder/pkgs/hydpy"]):
-        ...     cythonizer.outdated
-        False
-
-        When working with a "local" *HydPy* package (that is not part
-        of the site-packages directory) property |Cythonizer.outdated|
-        returns |True| if the required DLL file is not available at all:
-
-        >>> with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
-        ...     with mock.patch.object(
-        ...             type(cythonizer), "dllfilepath",
-        ...             new_callable=mock.PropertyMock) as dllfilepath:
-        ...         dllfilepath.return_value = "missing"
-        ...         cythonizer.outdated
-        True
-
-        If the DLL file is available, property |Cythonizer.outdated|
-        returns |True| or |False| depending on the timestamp of the
-        DLL file itself and the timestamp of the newest file returned
-        by property |Cythonizer.pysourcefiles|:
-
-        >>> from hydpy import TestIO
-        >>> with TestIO():
-        ...     with open("new.txt", "w"):
-        ...         pass
-        ...     with mock.patch("hydpy.__path__", ["folder/local_dir/hydpy"]):
-        ...         with mock.patch.object(
-        ...                 type(cythonizer), "dllfilepath",
-        ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = "new.txt"
-        ...             cythonizer.outdated
-        ...         with mock.patch.object(
-        ...                 type(cythonizer), "pysourcefiles",
-        ...                 new_callable=mock.PropertyMock) as mocked:
-        ...             mocked.return_value = ["new.txt"]
-        ...             cythonizer.outdated
-        False
-        True
-
-        >>> pub.options.forcecompiling = forcecompiling
-        """
-        if hydpy.pub.options.forcecompiling:
-            return True
-        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
-        foldername = os.path.split(os.path.split(hydpypath)[0])[-1]
-        testname = foldername.split("-")[-1]
-        if testname in ("pkgs", "packages"):
-            return False
-        if not os.path.exists(self.dllfilepath):
-            return True
-        cydate = os.stat(self.dllfilepath).st_mtime
-        for pysourcefile in self.pysourcefiles:
-            pydate = os.stat(pysourcefile).st_mtime
-            if pydate > cydate:
-                return True
-        return False
 
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
@@ -874,22 +617,21 @@ class Cythonizer:
         sys.argv = argv
 
     def move_dll(self) -> None:
-        """Try to find the DLL file created my method |Cythonizer.compile_|
-        and to move it into the `autogen` folder of the `cythons` subpackage.
+        """Try to find the DLL file created my method |Cythonizer.compile_| and to move
+        it into the `autogen` folder of the `cythons` subpackage.
 
-        Usually, one does not need to apply the |Cythonizer.move_dll| method
-        directly.  However, if you are a model developer, you might
-        see one of the following error messages from time to time:
+        Usually, one does not need to apply the |Cythonizer.move_dll| method directly.
+        However, if you are a model developer, you might see one of the following error
+        messages from time to time:
 
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> cythonizer.move_dll()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        OSError: After trying to cythonize model `hland_v1`, the resulting \
-file `c_hland_v1...` could not be found in directory \
-`.../hydpy/cythons/autogen/_build` nor any of its subdirectories.  \
-The distutil report should tell whether the file has been stored \
-somewhere else, is named somehow else, or could not be build at all.
+        OSError: After trying to cythonize model `hland_v1`, the resulting file \
+`c_hland_v1...` could not be found in directory `.../hydpy/cythons/autogen/_build` \
+nor any of its subdirectories.  The distutil report should tell whether the file has \
+been stored somewhere else, is named somehow else, or could not be build at all.
 
         >>> import os
         >>> from unittest import mock
@@ -909,13 +651,12 @@ somewhere else, is named somehow else, or could not be build at all.
         ...             cythonizer.move_dll()
         Traceback (most recent call last):
         ...
-        PermissionError: After trying to cythonize module `hland_v1`, \
-when trying to move the final cython module `c_hland_v1...` from \
-directory `_build` to directory `.../hydpy/cythons/autogen`, the \
-following error occurred: Denied! A likely error cause is that the \
-cython module `c_hland_v1...` does already exist in this directory \
-and is currently blocked by another Python process.  Maybe it helps \
-to close all Python processes and restart the cythonization afterwards.
+        PermissionError: After trying to cythonize module `hland_v1`, when trying to \
+move the final cython module `c_hland_v1...` from directory `_build` to directory \
+`.../hydpy/cythons/autogen`, the following error occurred: Denied! A likely error \
+cause is that the cython module `c_hland_v1...` does already exist in this directory \
+and is currently blocked by another Python process.  Maybe it helps to close all \
+Python processes and restart the cythonization afterwards.
         """
         dirinfos = os.walk(self.buildpath)
         system_dependent_filename = None
@@ -949,39 +690,37 @@ to close all Python processes and restart the cythonization afterwards.
                     )
         else:
             raise IOError(
-                f"After trying to cythonize model `{self.pyname}`, the "
-                f"resulting file `{self.cyname}{_dllextension}` could "
-                f"not be found in directory "
+                f"After trying to cythonize model `{self.pyname}`, the resulting file "
+                f"`{self.cyname}{_dllextension}` could not be found in directory "
                 f"`{objecttools.repr_(self.buildpath)}` nor any of its "
-                f"subdirectories.  The distutil report should tell "
-                f"whether the file has been stored somewhere else, is "
-                f"named somehow else, or could not be build at all."
+                f"subdirectories.  The distutil report should tell whether the file "
+                f"has been stored somewhere else, is named somehow else, or could not "
+                f"be build at all."
             )
 
 
 class PyxWriter:
     """Translates the source code of Python models into Cython source code.
 
-    Method |PyxWriter| serves as a master method, which triggers the
-    complete writing process.  The other properties and methods supply
-    the required code lines.  Their names are selected to match the
-    names of the original Python models as close as possible.
+    Method |PyxWriter| serves as a master method, which triggers the complete writing
+    process.  The other properties and methods supply the required code lines.  Their
+    names are selected to match the names of the original Python models as close as
+    possible.
     """
 
     cythonizer: Cythonizer
-    model: "modeltools.Model"
+    model: modeltools.Model
     pyxpath: str
 
     def __init__(
-        self, cythonizer: Cythonizer, model: "modeltools.Model", pyxpath: str
+        self, cythonizer: Cythonizer, model: modeltools.Model, pyxpath: str
     ) -> None:
         self.cythonizer = cythonizer
         self.model = model
         self.pyxpath = pyxpath
 
     def write(self) -> None:
-        """Collect the source code and write it into a Cython extension
-        file ("pyx")."""
+        """Collect the source code and write it into a Cython extension file ("pyx")."""
         with open(self.pyxpath, "w", encoding=config.ENCODING) as pxf:
             print("    * cython options")
             pxf.write(repr(self.cythondistutilsoptions))
@@ -1009,11 +748,10 @@ class PyxWriter:
 
     @property
     def cythondistutilsoptions(self) -> List[str]:
-        # noinspection PyTypeChecker
         """Cython and Distutils option lines.
 
-        Use the configuration options "FASTCYTHON" and "PROFILECYTHON" to
-        configure the cythonization processes as follows:
+        Use the configuration options "FASTCYTHON" and "PROFILECYTHON" to configure the
+        cythonization processes as follows:
 
         >>> from hydpy.cythons.modelutils import PyxWriter
         >>> pyxwriter = PyxWriter(None, None, None)
@@ -1479,8 +1217,7 @@ class PyxWriter:
         return lines
 
     def set_pointeroutput(
-        self,
-        subseqs: Union[sequencetools.OutputSequences],
+        self, subseqs: Union[sequencetools.OutputSequences]
     ) -> List[str]:
         """Set pointer statements for output sequences."""
         print("            . set_pointeroutput")
@@ -1648,11 +1385,10 @@ class PyxWriter:
     def iofunctions(self) -> List[str]:
         """Input/output functions of the model class.
 
-        The result of property |PyxWriter.iofunctions| depends on the
-        availability of different types of sequences.  So far, the
-        models implemented in *HydPy* do not reflect all possible
-        combinations, which is why we modify the |hland_v1| application
-        model in the following examples:
+        The result of property |PyxWriter.iofunctions| depends on the availability of
+        different types of sequences.  So far, the models implemented in *HydPy* do not
+        reflect all possible combinations, which is why we modify the |hland_v1|
+        application model in the following examples:
 
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
@@ -1784,7 +1520,7 @@ class PyxWriter:
         """Lines of the model method with the same name."""
         return self._call_methods("update_inlets", self.model.INLET_METHODS)
 
-    def run(self, model: "modeltools.AdHocModel") -> List[str]:
+    def run(self, model: modeltools.AdHocModel) -> List[str]:
         """Return the lines of the model method with the same name."""
         return self._call_methods("run", model.RUN_METHODS)
 
@@ -1800,8 +1536,7 @@ class PyxWriter:
 
     @property
     def update_outputs_model(self) -> List[str]:
-        """Lines of the model method with the same name (except the `_model`
-        suffix)."""
+        """Lines of the model method with the same name (except the `_model` suffix)."""
         lines = Lines()
         add = lines.add
         methodheader = get_methodheader(
@@ -1823,10 +1558,7 @@ class PyxWriter:
             add(2, "pass")
         return lines
 
-    def update_outputs(
-        self,
-        subseqs: sequencetools.OutputSequences,
-    ) -> List[str]:
+    def update_outputs(self, subseqs: sequencetools.OutputSequences) -> List[str]:
         """Lines of the subsequences method with the same name."""
         lines = Lines()
         add = lines.add
@@ -1846,7 +1578,7 @@ class PyxWriter:
             add(2, "pass")
         return lines
 
-    def calculate_single_terms(self, model: "modeltools.SolverModel") -> List[str]:
+    def calculate_single_terms(self, model: modeltools.SolverModel) -> List[str]:
         """Return the lines of the model method with the same name."""
         lines = self._call_methods("calculate_single_terms", model.PART_ODE_METHODS)
         if lines:
@@ -1855,7 +1587,7 @@ class PyxWriter:
             )
         return lines
 
-    def calculate_full_terms(self, model: "modeltools.SolverModel") -> List[str]:
+    def calculate_full_terms(self, model: modeltools.SolverModel) -> List[str]:
         """Return the lines of the model method with the same name."""
         return self._call_methods("calculate_full_terms", model.FULL_ODE_METHODS)
 
@@ -2204,19 +1936,16 @@ class PyxWriter:
         return lines
 
     def write_stubfile(self):
-        # noinspection PyUnresolvedReferences
         """Write a stub file for the actual base or application model.
 
-        At the moment, *HydPy* creates model objects quite dynamically.
-        In many regards, this comes with lots of conveniences.  However,
-        there two critical drawbacks compared to more static approaches:
-        some amount of additional initialisation time and, more important,
-        much opaqueness for code inspection
-        tools.  In this context, we experiment with "stub files" at
-        the moment.  These could either contain typing information only
-        or define statically predefined model classes.  The following
-        example uses method |PyxWriter.write_stubfile| to write a
-        (far from perfect) prototype stub file for base model |hland|:
+        At the moment, *HydPy* creates model objects quite dynamically.  In many
+        regards, this comes with lots of conveniences.  However, there two critical
+        drawbacks compared to more static approaches: some amount of additional
+        initialisation time and, more important, much opaqueness for code inspection
+        tools.  In this context, we experiment with "stub files" at the moment.  These
+        could either contain typing information only or define statically predefined
+        model classes.  The following example uses method |PyxWriter.write_stubfile| to
+        write a (far from perfect) prototype stub file for base model |hland|:
 
         >>> from hydpy.models.hland import *
         >>> cythonizer.pyxwriter.write_stubfile()
@@ -2327,9 +2056,8 @@ class PyxWriter:
 
 
 class FuncConverter:
-    """Helper class for class |PyxWriter| that analyses Python functions
-    and provides the required Cython code via property
-    |FuncConverter.pyxlines|."""
+    """Helper class for class |PyxWriter| that analyses Python functions and provides
+    the required Cython code via property |FuncConverter.pyxlines|."""
 
     model: "modeltools.Model"
     funcname: str
@@ -2342,7 +2070,6 @@ class FuncConverter:
 
     @property
     def argnames(self) -> List[str]:
-        # noinspection PyTypeChecker
         """The argument names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2352,12 +2079,10 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
-        # noinspection PyUnresolvedReferences
         return inspect.getargs(self.func.__code__)[0]
 
     @property
     def varnames(self) -> Tuple[str, ...]:
-        # noinspection PyTypeChecker
         """The variable names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2367,16 +2092,13 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'inp', 'fac', 'k')
         """
-        # noinspection PyUnresolvedReferences
         return tuple(
             vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
         )
 
     @property
     def locnames(self) -> List[str]:
-        # noinspection PyTypeChecker
-        """The variable names of the handled function except for
-        the argument names.
+        """The variable names of the handled function except for the argument names.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
@@ -2389,9 +2111,7 @@ class FuncConverter:
 
     @property
     def subgroupnames(self) -> List[str]:
-        # noinspection PyTypeChecker
-        """The complete names of the subgroups relevant for the current
-        function.
+        """The complete names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
@@ -2413,9 +2133,7 @@ class FuncConverter:
 
     @property
     def subgroupshortcuts(self) -> List[str]:
-        # noinspection PyTypeChecker
-        """The abbreviated names of the subgroups relevant for the current
-        function.
+        """The abbreviated names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
@@ -2428,7 +2146,6 @@ class FuncConverter:
 
     @property
     def untypedvarnames(self) -> List[str]:
-        # noinspection PyTypeChecker
         """The names of the untyped variables used in the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2446,7 +2163,6 @@ class FuncConverter:
 
     @property
     def untypedarguments(self) -> List[str]:
-        # noinspection PyTypeChecker
         """The names of the untyped arguments used by the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2465,9 +2181,8 @@ class FuncConverter:
 
     @property
     def untypedinternalvarnames(self) -> List[str]:
-        # noinspection PyTypeChecker
-        """The names of the untyped variables used in the current function
-        except for those of the arguments.
+        """The names of the untyped variables used in the current function except for
+        those of the arguments.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
@@ -2518,8 +2233,8 @@ class FuncConverter:
     def remove_linebreaks_within_equations(code: str) -> str:
         r"""Remove line breaks within equations.
 
-        The following example is not an exhaustive test but shows
-        how the method works in principle:
+        The following example is not an exhaustive test but shows how the method works
+        in principle:
 
         >>> code = "asdf = \\\n(a\n+b)"
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2540,11 +2255,11 @@ class FuncConverter:
 
     @staticmethod
     def remove_imath_operators(lines: List[str]):
-        """Remove mathematical expressions that require Pythons global
-        interpreter locking mechanism.
+        """Remove mathematical expressions that require Pythons global interpreter
+        locking mechanism.
 
-        The following example is not an exhaustive test but shows
-        how the method works in principle:
+        The following example is not an exhaustive test but shows how the method works
+        in principle:
 
         >>> lines = ["    x += 1*1"]
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2566,18 +2281,17 @@ class FuncConverter:
 
     @property
     def pyxlines(self) -> List[str]:
-        # noinspection PyUnresolvedReferences
         """Cython code lines of the current function.
 
         Assumptions:
           * The function shall be a method.
           * The method shall be inlined.
           * Annotations specify all argument and return types.
-          * Local variables are generally of type `int` but of type `double`
-            when their name starts with `d_`.
+          * Local variables are generally of type `int` but of type `double` when their
+            name starts with `d_`.
 
-        We import some classes and prepare a pure-Python instance of
-        application model |hland_v1|:
+        We import some classes and prepare a pure-Python instance of application model
+        |hland_v1|:
 
         >>> from types import MethodType
         >>> from hydpy.core.modeltools import Method, Model
@@ -2587,8 +2301,8 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
 
-        First, we show an example on a standard method without additional
-        arguments and returning nothing but requiring two local variables:
+        First, we show an example on a standard method without additional arguments and
+        returning nothing but requiring two local variables:
 
         >>> class Calc_Test_V1(Method):
         ...     @staticmethod
@@ -2605,8 +2319,7 @@ class FuncConverter:
                 cdef double d_pc
                 cdef int k
                 for k in range(self.parameters.control.nmbzones):
-                    d_pc = \
-self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                    d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
                     self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
@@ -2621,14 +2334,13 @@ self.parameters.control.kg[k]*self.sequences.inputs.p[k]
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
         >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-            cpdef inline double calc_test_v2(\
-self, double value, double[:] values)  nogil:
+            cpdef inline double calc_test_v2(self, double value, double[:] values)  \
+nogil:
                 return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
         """
         lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        # noinspection PyUnresolvedReferences
         annotations = self.func.__annotations__
         lines[0] = lines[0].replace(
             "def ", f"cpdef inline {TYPE2STR[annotations['return']]} "
@@ -2647,8 +2359,8 @@ self, double value, double[:] values)  nogil:
 
 
 def exp(double: float) -> float:
-    """Cython wrapper for the |numpy.exp| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.exp| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import exp
     >>> from unittest import mock
@@ -2661,8 +2373,8 @@ def exp(double: float) -> float:
 
 
 def log(double: float) -> float:
-    """Cython wrapper for the |numpy.log| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.log| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import log
     >>> from unittest import mock
@@ -2675,8 +2387,8 @@ def log(double: float) -> float:
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper for the |math.exp| function of module |math| applied
-    on a single |float| object.
+    """Cython wrapper for the |math.exp| function of module |math| applied on a single
+    |float| object.
 
     >>> from hydpy.cythons.modelutils import fabs
     >>> from unittest import mock
@@ -2689,8 +2401,8 @@ def fabs(double: float) -> float:
 
 
 def sin(double: float) -> float:
-    """Cython wrapper for the |numpy.sin| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.sin| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import sin
     >>> from unittest import mock
@@ -2703,8 +2415,8 @@ def sin(double: float) -> float:
 
 
 def cos(double: float) -> float:
-    """Cython wrapper for the |numpy.cos| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.cos| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import cos
     >>> from unittest import mock
@@ -2717,8 +2429,8 @@ def cos(double: float) -> float:
 
 
 def tan(double: float) -> float:
-    """Cython wrapper for the |numpy.tan| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.tan| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import tan
     >>> from unittest import mock
@@ -2731,8 +2443,8 @@ def tan(double: float) -> float:
 
 
 def asin(double: float) -> float:
-    """Cython wrapper for the |numpy.arcsin| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.arcsin| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import asin
     >>> from unittest import mock
@@ -2745,8 +2457,8 @@ def asin(double: float) -> float:
 
 
 def acos(double: float) -> float:
-    """Cython wrapper for the |numpy.arccos| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.arccos| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import acos
     >>> from unittest import mock
@@ -2759,8 +2471,8 @@ def acos(double: float) -> float:
 
 
 def atan(double: float) -> float:
-    """Cython wrapper for the |numpy.arctan| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.arctan| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import atan
     >>> from unittest import mock
@@ -2773,8 +2485,8 @@ def atan(double: float) -> float:
 
 
 def isnan(double: float) -> float:
-    """Cython wrapper for the |numpy.isnan| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.isnan| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
@@ -2787,8 +2499,8 @@ def isnan(double: float) -> float:
 
 
 def isinf(double: float) -> float:
-    """Cython wrapper for the |numpy.isinf| function of module |numpy| applied
-    on a single |float| object.
+    """Cython wrapper for the |numpy.isinf| function of module |numpy| applied on a
+    single |float| object.
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock

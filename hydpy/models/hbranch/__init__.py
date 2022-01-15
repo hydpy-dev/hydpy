@@ -11,4 +11,3 @@ from hydpy.models.hbranch.hbranch_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

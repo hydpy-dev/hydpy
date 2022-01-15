@@ -605,4 +605,3 @@ overflow2, and waterlevel2.
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

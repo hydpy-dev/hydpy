@@ -32,4 +32,3 @@ from hydpy.models.lstream.lstream_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

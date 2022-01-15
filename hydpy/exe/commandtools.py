@@ -27,20 +27,23 @@ from hydpy.core import objecttools
 @overload
 def run_subprocess(
     command: str, verbose: bool = True, blocking: Literal[True] = ...
-) -> subprocess.CompletedProcess[str]:
+) -> subprocess.CompletedProcess[str]:  # pylint: disable=unsubscriptable-object
     """non-blocking"""
 
 
 @overload
 def run_subprocess(
     command: str, verbose: bool = True, blocking: Literal[False] = ...
-) -> subprocess.Popen[str]:
+) -> subprocess.Popen[str]:  # pylint: disable=unsubscriptable-object
     """blocking"""
 
 
 def run_subprocess(
     command: str, verbose: bool = True, blocking: bool = True
-) -> Union[subprocess.CompletedProcess[str], subprocess.Popen[str]]:
+) -> Union[
+    subprocess.CompletedProcess[str],  # pylint: disable=unsubscriptable-object
+    subprocess.Popen[str],  # pylint: disable=unsubscriptable-object
+]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all

@@ -203,11 +203,6 @@ class Options:
     1
     """
 
-    autocompile = _BoolOption(True)
-    """A True/False flag for enabling/disabling the automatic conversion of 
-    pure Python models to computationally more efficient Cython models 
-    whenever a existing Cython model may be outdated."""
-
     checkseries = _BoolOption(True)
     """True/False flag for raising an error when trying to load an input
     time series not spanning the whole initialisation period or containing
@@ -231,10 +226,6 @@ class Options:
     number of 1-dimensional time series (True) or to keep the original 
     shape (False) (see the documentation on module |netcdftools| for 
     further information)."""
-
-    forcecompiling = _BoolOption(False)
-    """A True/False flag for enabling that each cythonizable model is
-    cythonized when imported."""
 
     isolatenetcdf = _BoolOption(False)
     """A True/False flag relevant when working with NetCDF files that 
@@ -300,10 +291,6 @@ class Options:
     >>> pub.options.simulationstep
     Period()
     """
-
-    skipdoctests = _BoolOption(False)
-    """A True/False flag for skipping the automatic execution of
-    documentation tests."""
 
     timeaxisnetcdf = _IntOption(1)
     """An integer value relevant when working with NetCDF files that 

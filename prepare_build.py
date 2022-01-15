@@ -102,7 +102,7 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
 
     config.FASTCYTHON = fast_cython
     config.PROFILECYTHON = profile_cython
-    with pub.options.usecython(False), pub.options.forcecompiling(False):
+    with pub.options.usecython(False):
         path_: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
         for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
             if not name.startswith("_"):

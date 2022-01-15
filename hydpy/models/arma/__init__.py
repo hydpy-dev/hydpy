@@ -12,4 +12,3 @@ from hydpy.models.arma.arma_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

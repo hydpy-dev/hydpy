@@ -946,15 +946,15 @@ class Substituter:
         replacement commands (only a few of them are shown):
 
         >>> print(substituter.get_commands())   # doctest: +ELLIPSIS
-        .. |Options.autocompile| replace:: \
-:const:`~hydpy.core.optiontools.Options.autocompile`
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
+        .. |Options.dirverbose| replace:: \
+:const:`~hydpy.core.optiontools.Options.dirverbose`
         ...
-        .. |optiontools.Options.autocompile| \
-replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
         .. |optiontools.Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
+        .. |optiontools.Options.dirverbose| replace:: \
+:const:`~hydpy.core.optiontools.Options.dirverbose`
         ...
 
         Through passing a string (usually the source code of a file to be documented),

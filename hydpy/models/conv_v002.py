@@ -115,4 +115,3 @@ class Model(conv_model.Model):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

@@ -31,58 +31,53 @@
 Programming style
 _________________
 
-Python allows for writing concise and easily readable software code
-that can be maintained and further developed with acceptable effort.
-However, code quality does also depend on the experience and available
-time of the programmer writing it.  In hydrology, much model code is
-written by PhD students, who often have little programming experience
-and are under pressure not only to get their model running but also to
-tackle their scientific questions and to publish their results.  The
-source code resulting from such a rush is understandably often a mess.
-Even the relatively goodsoftware results often prove inadequate when it
-comes to transferring the software into practical applications or
-sharing it with other researchers.
+Python allows for writing concise and easily readable software code that can be
+maintained and further developed with reasonable effort.  However, code quality
+also depends on the experience and available time of the programmer writing it.
+In hydrology, much model code is written by PhD students with little
+programming experience that are under pressure not only to get their model
+running but also to tackle their scientific questions and publish their
+results.  The source code resulting from such a rush is understandably often a
+mess.  Even the relatively goodsoftware results often prove inadequate when
+transferring the software into practical applications or sharing it with other
+researchers.
 
-In the long development process of *HydPy*, which also started as a
-quick side-project when writing a PhD thesis, we made many misleading
-design decisions ourselves.   However, through much effort spent in
-periods of refactoring and consolidation, we came to a software
-architecture that, in our opinion, should be easily extensible and
-applicable in many contexts.
+In the long development process of *HydPy*, which also started as a quick
+side-project during a PhD thesis, we made many misleading design decisions
+ourselves.   However, through much effort spent in periods of refactoring and
+consolidation, we came to a software architecture that, in our opinion, should
+be easily extensible and applicable in many contexts.
 
-This section defines the steadily growing "HydPy Style Guide", being
-an attempt to explain the principles in the development of *HydPy* and
-to make sure the contributions of different developers are as consistent
-as possible.  Please understand the "HydPy Style Guide" as a refinement
-of `PEP 8`_ — the “official” Style Guide for Python Code. `PEP 8`_ gives
-coding conventions that help to write clear code.  If everyone follows
-these conventions, diving into already existing source code becomes much
-more straightforward, as one has less effort unravelling the mysteries
-of overly creative programming solutions.
+This section defines the steadily growing "HydPy Style Guide", an attempt to
+explain the principles in the development of *HydPy* and make sure the
+contributions of different developers are as consistent as possible.  Please
+understand the "HydPy Style Guide" as a refinement of `PEP 8`_ — the "official"
+Style Guide for Python Code. `PEP 8`_ gives coding conventions that help to
+write clear code.  If everyone follows these conventions, diving into existing
+source code becomes much more straightforward, as one has less effort
+to unravel the mysteries of overly creative programming solutions.
 
-In some regards, the HydPy Style Guide deviates from `PEP 8`_, mostly
-due to the following two aims.  First, we design the *HydPy* framework
-as a Python library applicable for hydrologists with little or even no
-programming experience.  Ideally, such framework users should not even
-notice that they are writing valid Python code while preparing their
-configuration files or working interactively in the Python shell.
-Second, we try to close the gap between the model code, model
-documentation and model tests as well as possible.  Through reading
-(and testing) for example the documentation of a specific model, one
-should exactly understand how this model works within the corresponding
-version of the *HydPy* framework.  Third, we want the source code style
-of *HydPy* to be as consistent as possible.  Therefore, we further
-concretise many suggestions of `PEP 8`_ by applying (the standards of)
-`Black`_.
+In some regards, the HydPy Style Guide deviates from `PEP 8`_, primarily
+due to the following two aims::
 
-When contributing to the code basis, be aware that even slight changes
-can have significant effects on the  applicability of *HydPy*, and future
-developers must cope with your work.  So, always make sure to check for
-possible side-effects of your code changes.  Structure your code in a
-clear (mainly object-oriented) design and use `Black`_ for automatically
-formatting your code.  Refactor thoroughly enough to avoid code duplicates.
-Last but not least, create smartly thought-through APIs for your objects,
-allowing to use them smoothly both within doctests and within the Python shell.
+ * We design the *HydPy* framework as a Python library applicable to
+   hydrologists with little or no programming experience.  Ideally, such
+   framework users should not even notice that they write valid Python code
+   while preparing their configuration files or working interactively in the
+   Python shell.
+ * We try to close the gap between the model code, model documentation and
+   model tests as well as possible.  By reading (and testing) the documentation
+   of a specific model, one should exactly understand how this model works
+   within the corresponding version of the *HydPy* framework.
+
+When contributing to the code basis, be aware that even slight changes can
+significantly affect the applicability of *HydPy*, and future developers must
+cope with your work.  So, always make sure to check for possible side-effects
+of your code changes.  Structure your code in a clear (mainly object-oriented)
+design and use `Black`_ for automatically formatting your code.  Refactor
+thoroughly enough to avoid code duplicates.  Last but not least, create smartly
+thought-through APIs for your objects, allowing everyone to use them smoothly
+both within doctests and within the Python shell.
 
 Be aware of the usage of `Black`_ and `Pylint`_ in our `Travis CI`_ continuous
 integration workflow.  `Black`_ checks that all committed files follow its
@@ -96,59 +91,59 @@ a good explanation.  At best, simply at a link to a related issue explaining why
 >>> # pylint: disable=abstract-method
 >>> # due to pylint issue https://github.com/PyCQA/pylint/issues/179
 
-This section describes some specific conventions for the development
-of *HydPy* but is no guidance on how to write good source code in general.
-If you have little experience in programming, first make sure to learn
-the basics of Python through some `Python tutorials`_.  Afterwards,
-improve your knowledge of code quality through reading more advanced
-literature like this `book on object-oriented design`_.
+This section describes some specific conventions for the development of *HydPy*
+but is no guidance on how to write good source code in general.  If you have
+little experience in programming, first make sure to learn the basics of Python
+through some `Python tutorials`_.  Afterwards, improve your knowledge of code
+quality through reading more advanced literature like this `book on
+object-oriented design`_.
 
 
 Project structure
 -----------------
 
-For *HydPy*, we prefer a flat folder structure  with at most two
-subpackage levels.  The individual modules can be of arbitrary length
-to cover particular topics completely.  For example, module
-|parametertools| defines all base classes for creating model-specific
-parameter classes as well as their collection classes.
+For *HydPy*, we prefer a flat folder structure with two subpackage levels.  The
+individual modules can be of arbitrary length to cover particular topics
+completely.  For example, module |parametertools| defines all base classes for
+creating model-specific parameter classes and related collection classes.
 
 Subpackage `core`_ provides the essential features of *HydPy*, used for
-implementing hydrological models and workflows as well.  One example
-is the mentioned |parametertools| module.  Modules defined in subpackage
-`core`_ should never import features provided by modules of other
-subpackages, excepts those of subpackage `cythons`_.
+implementing hydrological models and workflows.  One example is the mentioned
+|parametertools| module.  Modules defined in subpackage `core`_ should never
+import features provided by modules of other subpackages, excepts those of
+subpackage `cythons`_.
 
-Subpackage `auxs`_ provides auxiliary features, only necessary for
-selected *HydPy* models and applications.  One example is module
-|anntools| defining artificial neural network classes usable as
-complex model parameters, currently relevant for the |dam| model only.
-Modules defined in subpackage `auxs` are allowed to import features
-from subpackages `core`_ and `cythons`_.
+Subpackage `auxs`_ provides auxiliary features, only necessary for selected
+*HydPy* models and applications.  One example is the module |anntools| defining
+artificial neural network classes usable as complex model parameters, currently
+relevant for the |dam| model only.  Modules defined in subpackage `auxs` are
+allowed to import features from subpackages `core`_ and `cythons`_.
 
-Subpackage `models`_ contains the implemented hydrological models.
-Base models as |dam| are additional subpackages, providing, for example,
-different kinds of sequence classes in separate submodules. Application
-models as |dam_v001|, selecting useful combinations of base model
-features, are defined within single modules.  Please follow the naming
-patterns of the modules of the already available models carefully, when
-implementing new ones.
+Subpackage `models`_ contains the implemented hydrological models.  Base models
+as |dam| are additional subpackages, providing, for example, different kinds of
+sequence classes in separate submodules. Application models as |dam_v001|,
+selecting valid combinations of base model features, are defined within single
+modules.  Please follow the naming patterns of the modules of the already
+available models carefully when implementing new ones.
 
 Subpackage `exe`_ provides features easing the execution of *HydPy*.
 Module |commandtools| (in combination with script |hyd|), for example,
 allows controlling *HydPy* from the command line.
 
-Subpackage `cythons`_ is related to all `Cython`_ features of *HydPy*.
-First, it contains functionalities for "cythonizing" the Python models
-defined in subpackage `models`_.  Second, it contains `Cython`_ extension
-files, which mostly correspond to Python modules of other subpackages.
-For example, the extension file |annutils| provides time-critical
-implementation details to module |anntools|.  Third, it contains the
-additional subpackage `autogen`_, including all automatically generated
-extension files and Dynamic Link Library files (*pyd* files on Windows
-and *so* files on Linux). Extension files should not import any features
-from other subpackages.  Python files controlling the automatic generation
-of extension files are allowed to import from subpackage `core`_.
+Subpackage `cythons`_ is related to all `Cython`_ features of *HydPy*::
+
+ * It implements functionalities for "cythonizing" the Python models defined in
+   subpackage `models`_.
+ * It contains `Cython`_ extension files, which mostly correspond to Python
+   modules of other subpackages.  For example, the extension file |annutils|
+   provides time-critical implementation details to module |anntools|.
+ * it contains the additional subpackage `autogen`_, including all
+   automatically generated extension files and Dynamic Link Library files
+   (*pyd* files on Windows and *so* files on Linux).
+
+Extension files should not import any features from other subpackages.  Python
+files controlling the automatic generation of extension files can import from
+the subpackage `core`_.
 
 Note that the names of the modules of subpackages `core`_, `auxs`_, and
 `exe`_ end in almost all cases with "tools" and those of the modules and
@@ -163,7 +158,7 @@ might be generated automatically during *HydPy's* build process.
 Subpackage `data`_ provides example data usable within doctests,
 currently only the `LahnH example project`_.
 
-Subpackage `docs`_ contains different subpackages itself.  `sphinx`_
+Subpackage `docs`_ contains different subpackages.  `sphinx`_
 controls the automatic generation of the HTML documentation. `rst`_
 contains all `reStructuredText`_ files written manually. `figs`_ contains
 all manually generated figures in the *png* format.  After the build
@@ -269,7 +264,7 @@ for *HydPy* applications due to two reasons. First, they are probably
 read by someone who has no experience in understanding Python's exception
 handling system.  Second, they do not tell in which hydrological context
 a problem occurs.  It would be of little help to only know that the value
-of a parameter object of a particular type has been misspecified, but not
+of a parameter object of a particular type has been misspecified but not
 to know in which sub-catchment.  Hence, try to add as much helpful
 information to error messages as possible.  One useful helper function
 for doing so is |elementphrase|, trying to determine the name of the
@@ -320,7 +315,7 @@ attribute:
 
 Classes like |Element| or |Node|, where names (and not namespaces) are
 used to differentiate between instances, should implement instance name
-attributes, when reasonable:
+attributes when reasonable:
 
 >>> from hydpy import Node
 >>> Node("gauge1").name
@@ -328,7 +323,7 @@ attributes, when reasonable:
 
 Group instances of the same type in collection objects with the same name,
 except an attached letter "s". For example, we store different |Element|
-objects in an instance of class |Elements|, and different |Node| objects
+objects in an instance of class |Elements| and different |Node| objects
 in an instance of the class |Nodes|.
 
 
@@ -477,7 +472,7 @@ losing too much information:
 Elements("e_1", "e_2")
 
 Finally, always consider using functions provided by module |objecttools|
-for simplifying the definition of |repr| and |str| return values,
+for simplifying the definition of |repr| and |str| return values
 to keep the string representations of different *HydPy* objects, at least
 to a certain degree, consistent.  For example, use function |repr_| to
 let the user control the maximum number of decimal places of scalar
@@ -498,7 +493,7 @@ Introspection
 One nice feature of Python is its "introspection" capability, allowing to
 analyse (and, when necessary, modify) objects at runtime with little effort.
 
-*HydPy* makes extensive use of these introspection features, whenever it
+*HydPy* makes extensive use of these introspection features whenever it
 serves the purpose of relieving non-programmers from writing code lines
 that do not deal with hydrological modelling directly.  Section `Imports`_
 discusses the usage of wildcard imports in parameter control files,
@@ -512,7 +507,7 @@ to be a simple configuration file that somehow checks its own validity.
 On the downside, modifying the operating principle of *HydPy's* parameter
 control files requires more thought than a more simple direct approach would.
 
-We encourage to implement additional introspection features, as long as
+We encourage to implement additional introspection features as long as
 they improve the intuitive usability for non-programmers and do not harm
 HydPy's reliability.  However, please be particularly cautious when doing
 so and document why and how thoroughly.  To ensure traceability, one
@@ -557,19 +552,19 @@ Please inspect the source files of the already available hydrological
 models in detail to understand how to implement new ones correctly.
 *HydPy* provides many standard features, allowing you to write straightforward
 model source code in many cases.  However, you are free to implement any
-functionalities you find missing (see for example the complex "connect"
+functionalities you find missing (see, for example, the complex "connect"
 method defined by the |hbranch| model). If those functionalities might
-be of importance to other models as well, consider to generalise them
-and to add them to the suitable subpackage.
+be of importance to other models as well, consider generalising them and
+adding them to the suitable subpackage.
 
-The main effort of creating new models is not to write the source code,
+The main effort of creating new models is not to write the source code
 but to document it thoroughly and to prove it is working correctly.
 Each docstring of a calculation method must contain at least a short
 description, lists of the required, calculated, and updated variables
 (linked via substitutions), the basic equation in `LaTeX`_ style,
 and doctests covering all anticipated usages of the method, even the
 unlikely ones.  The docstrings of all |Parameter| or |Sequence_|
-subclasses containing "special" source code (for example modifications
+subclasses containing "special" source code (for example, modifications
 of |trim|) must contain doctests addressing these code sections.
 Finally, write integration tests for each application model based on
 class |IntegrationTest|, explaining all model functionalities in detail

@@ -2,6 +2,7 @@
 """This module provides features for working with time series."""
 # import...
 # ...from standard library
+from __future__ import annotations
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
 
@@ -29,7 +30,7 @@ def aggregate_series(
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
-) -> "pandas.DataFrame":
+) -> pandas.DataFrame:
     """sim and obs as arguments, daily aggregation"""
 
 
@@ -40,7 +41,7 @@ def aggregate_series(
     stepsize: Literal["monthly", "m"],
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
-) -> "pandas.DataFrame":
+) -> pandas.DataFrame:
     """sim and obs as arguments, monthly aggregation"""
 
 
@@ -51,7 +52,7 @@ def aggregate_series(
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
-) -> "pandas.DataFrame":
+) -> pandas.DataFrame:
     """Aggregate the time series on a monthly or daily basis.
 
     Often, we need some aggregation before analysing deviations between simulation
@@ -110,14 +111,14 @@ initialisation time grid (181).
     Functions |aggregate_series| raises errors like the following for unsuitable
     functions:
 
-    >>> def wrong():
-    ...     return None
+    >>> def wrong(values):
+    ...     assert False, "wrong function"
     >>> aggregate_series(series=sim.series, aggregator=wrong)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to aggregate the given series, the following error \
+    AssertionError: While trying to aggregate the given series, the following error \
 occurred: While trying to perform the aggregation based on method `wrong`, the \
-following error occurred: wrong() takes 0 positional arguments but 1 was given
+following error occurred: wrong function
 
     When passing a string, |aggregate_series| queries it from |numpy|:
 
@@ -267,9 +268,8 @@ are supported: `monthly` (default) and `daily`.
         )
     if stepsize in ("d", "daily"):
         rule = "86400s"
-        offset = (
-            timetools.Date(f"2000-01-01 {basetime}") - timetools.Date("2000-01-01")
-        ).seconds
+        dt = timetools.Date(f"2000-01-01 {basetime}") - timetools.Date("2000-01-01")
+        offset = dt.seconds
     elif basetime != "00:00":
         raise ValueError(
             "Use the `basetime` argument in combination with a `daily` aggregation "
@@ -296,10 +296,7 @@ are supported: `monthly` (default) and `daily`.
         end=(tg.lastdate - tg.stepsize).datetime,
         freq=tg.stepsize.timedelta,
     )
-    resampler = dataframe_orig.resample(
-        rule=rule,
-        offset=f"{offset}s",
-    )
+    resampler = dataframe_orig.resample(rule=rule, offset=f"{offset}s")
     try:
         dataframe_resampled = resampler.apply(lambda x: realaggregator(x.values))
     except BaseException:

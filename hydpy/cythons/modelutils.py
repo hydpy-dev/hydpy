@@ -1286,7 +1286,7 @@ class PyxWriter:
                 f"{cls.__module__.split('.')[-1]}."
                 f"{cls.__name__}):",
             )
-            lines.add(1, "cpdef public Model model")
+            lines.add(1, "cdef public Model model")
             lines.add(1, "def __init__(self, Model model):")
             lines.add(2, "self.model = model")
             for idx, method in enumerate(submodel.METHODS):

@@ -206,7 +206,7 @@ a group of masks (at the moment).
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
-    METHOD_GROUPS: ClassVar[Tuple[Type[Method], ...]]
+    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
     SUBMODELS: ClassVar[Tuple[Type["Submodel"], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()

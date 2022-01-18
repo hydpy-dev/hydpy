@@ -984,12 +984,21 @@ class PyxWriter:
         return lines
 
     @staticmethod
+    def _add_cdef_jdxs(
+        lines: Lines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+    ) -> None:
+        maxndim = max(seq.NDIM for seq in subseqs)
+        if maxndim:
+            jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
+            lines.add(2, f"cdef int {jdxs}")
+
+    @staticmethod
     def load_data(subseqs: sequencetools.IOSequences) -> List[str]:
         """Load data statements."""
         print("            . load_data")
         lines = Lines()
         lines.add(1, f"cpdef inline void load_data(self, int idx) {_nogil}:")
-        lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
+        cls._add_cdef_jdxs(lines, subseqs)
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
                 lines.add(2, f"if self._{seq.name}_inputflag:")
@@ -1031,7 +1040,7 @@ class PyxWriter:
         print("            . save_data")
         lines = Lines()
         lines.add(1, f"cpdef inline void save_data(self, int idx) {_nogil}:")
-        lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
+        cls._add_cdef_jdxs(lines, subseqs)
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
                 lines.add(2, f"if self._{seq.name}_inputflag:")
@@ -1471,7 +1480,7 @@ class PyxWriter:
         if self.model.sequences.states:
             print("                . new2old")
             lines.add(1, get_methodheader("new2old", nogil=True))
-            lines.add(2, "cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5")
+            self._add_cdef_jdxs(lines, self.model.sequences.states)
             for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
                     lines.add(

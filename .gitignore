@@ -27,6 +27,7 @@ hydpy/tests/iotesting/*
 build
 _build
 dist
+release
 gui
 helpers
 examples

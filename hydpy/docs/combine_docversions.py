@@ -60,7 +60,14 @@ if os.path.exists(actual_version):
     print_("Remove the old documentation of branch", actual_branch)
     shutil.rmtree(actual_version)
 print_("Activate the new documentation of branch", actual_branch)
-shutil.move(".nox/sphinx/Lib/site-packages/hydpy/docs/auto/build", actual_version)
+for dirpath, _, _ in os.walk(os.path.join(".nox", "sphinx")):
+    if os.path.split(dirpath)[-1] == "site-packages":
+        buildpath = os.path.join(dirpath, "hydpy", "docs", "auto", "build")
+        if os.path.exists(buildpath):
+            break
+else:
+    raise RuntimeError("Cannot find Sphinx's build path.")
+shutil.move(buildpath, actual_version)
 
 token = os.environ["GH_TOKEN"]
 repo = os.environ["TRAVIS_REPO_SLUG"]

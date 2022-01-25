@@ -1332,29 +1332,28 @@ class TestIO:
 
 
 def make_abc_testable(abstract: Type) -> Type:
-    """Return a concrete version of the given abstract base class for
-    testing purposes.
+    """Return a concrete version of the given abstract base class for testing purposes.
 
-    Abstract base classes cannot be (and, at least in production code,
-    should not be) instantiated:
+    Abstract base classes cannot be (and, at least in production code, should not be)
+    instantiated:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableBase
     >>> ncvar = NetCDFVariableBase()
     Traceback (most recent call last):
     ...
-    TypeError: Can't instantiate abstract class NetCDFVariableBase with \
-abstract methods array, dimensions, read, subdevicenames, write
+    TypeError: Can't instantiate abstract class NetCDFVariableBase with abstract \
+methods array, read, subdevicenames, write
 
-    However, it is convenient to do so for testing (partly) abstract
-    base classes in doctests.  The derived class returned by function
-    |make_abc_testable| is identical with the original one, except that
-    its protection against initialisation is disabled:
+    However, it is convenient to do so for testing (partly) abstract base classes in
+    doctests.  The derived class returned by function |make_abc_testable| is identical
+    with the original one, except that its protection against initialisation is
+    disabled:
 
     >>> from hydpy import make_abc_testable, classname
     >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
 
-    To avoid confusion, |make_abc_testable| appends an underscore the
-    original class-name:
+    To avoid confusion, |make_abc_testable| appends an underscore the original
+    class-name:
 
     >>> classname(ncvar)
     'NetCDFVariableBase_'

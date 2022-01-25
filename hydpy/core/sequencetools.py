@@ -1521,8 +1521,7 @@ determined.  Either set it manually or prepare `pub.sequencemanager` correctly.
     >>> factors.tc.prepare_series()
     >>> pub.sequencemanager.generalfiletype = "nc"
     >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader(
-    ...         flatten=True, isolate=True, timeaxis=0)
+    ...     pub.sequencemanager.open_netcdfreader(isolate=True)
     ...     factors.tmean.load_series()
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
@@ -1536,8 +1535,7 @@ determined.  Either set it manually or prepare `pub.sequencemanager` correctly.
     directly stored in RAM:
 
     >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader(
-    ...         flatten=True, isolate=True, timeaxis=0)
+    ...     pub.sequencemanager.open_netcdfreader(isolate=True)
     ...     states.sm.load_series()
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()

@@ -583,14 +583,12 @@ correctly refer to one of the available XML schema files \
         Options(
             checkseries -> 1
             ellipsis -> 0
-            flattennetcdf -> 1
             isolatenetcdf -> 1
             parameterstep -> Period("1d")
             printprogress -> 0
             reprcomments -> 0
             reprdigits -> 6
             simulationstep -> Period()
-            timeaxisnetcdf -> 0
             trimvariables -> 1
             usecython -> 1
             usedefaultvalues -> 0

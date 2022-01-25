@@ -1764,18 +1764,11 @@ reader object.
             )
         return netcdfreader
 
-    def open_netcdfreader(
-        self,
-        flatten: Optional[bool] = None,
-        isolate: Optional[bool] = None,
-        timeaxis: Optional[int] = None,
-    ) -> None:
+    def open_netcdfreader(self, isolate: Optional[bool] = None) -> None:
         """Prepare a new |NetCDFInterface| object for reading data."""
         options = hydpy.pub.options
         vars(self)["netcdfreader"] = netcdftools.NetCDFInterface(
-            flatten=bool(options.flattennetcdf if flatten is None else flatten),
             isolate=bool(options.isolatenetcdf if isolate is None else isolate),
-            timeaxis=int(options.timeaxisnetcdf if timeaxis is None else timeaxis),
         )
 
     def close_netcdfreader(self) -> None:
@@ -1818,18 +1811,11 @@ currently handle no NetCDF writer object.
             )
         return netcdfwriter
 
-    def open_netcdfwriter(
-        self,
-        flatten: Optional[bool] = None,
-        isolate: Optional[bool] = None,
-        timeaxis: Optional[int] = None,
-    ) -> None:
+    def open_netcdfwriter(self, isolate: Optional[bool] = None) -> None:
         """Prepare a new |NetCDFInterface| object for writing data."""
         options = hydpy.pub.options
         vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface(
-            flatten=bool(options.flattennetcdf if flatten is None else flatten),
             isolate=bool(options.isolatenetcdf if isolate is None else isolate),
-            timeaxis=int(options.timeaxisnetcdf if timeaxis is None else timeaxis),
         )
 
     def close_netcdfwriter(self) -> None:
@@ -1847,7 +1833,7 @@ currently handle no NetCDF writer object.
         This method is only required when storing internal time-series data to disk.
         See the main documentation on class |HydPy| for further information.
         """
-        interface = netcdftools.NetCDFInterface(timeaxis=0, isolate=True, flatten=True)
+        interface = netcdftools.NetCDFInterface(isolate=True)
         self._ncvariable2array_reading, self._ncvariable2idxs_reading, self._ncvariable2delta_reading, self._ncvariable2array_writing = interface.open(deviceorder)
         try:
             yield

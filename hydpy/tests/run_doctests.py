@@ -158,14 +158,12 @@ def main(  # pylint: disable=too-many-branches
                     opt = pub.options
                     opt.usecython = mode == "Cython"
                     opt.ellipsis = 0
-                    opt.flattennetcdf = False
                     opt.isolatenetcdf = False
                     del pub.options.parameterstep
                     opt.printprogress = False
                     opt.reprcomments = False
                     opt.reprdigits = 6
                     del pub.options.simulationstep
-                    opt.timeaxisnetcdf = 1
                     opt.usedefaultvalues = False
                     opt.utclongitude = 15
                     opt.utcoffset = 60

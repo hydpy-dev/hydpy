@@ -215,13 +215,6 @@ class Options:
     it to zero to avoid any ellipsis points.  Set it to -999 to rely on
     the default values of the respective iterable objects."""
 
-    flattennetcdf = _BoolOption(False)
-    """A True/False flag relevant when working with NetCDF files that 
-    decides whether to handle multidimensional time series as a larger 
-    number of 1-dimensional time series (True) or to keep the original 
-    shape (False) (see the documentation on module |netcdftools| for 
-    further information)."""
-
     isolatenetcdf = _BoolOption(False)
     """A True/False flag relevant when working with NetCDF files that 
     decides whether to handle only the time series of a single sequence 
@@ -286,11 +279,6 @@ class Options:
     >>> pub.options.simulationstep
     Period()
     """
-
-    timeaxisnetcdf = _IntOption(1)
-    """An integer value relevant when working with NetCDF files that 
-    determines the axis of the time variable (see the documentation on 
-    module |netcdftools| for further information)."""
 
     trimvariables = _BoolOption(True)
     """A True/False flag for enabling/disabling function |trim|.  Set it

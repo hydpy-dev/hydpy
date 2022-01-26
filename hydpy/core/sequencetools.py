@@ -137,7 +137,10 @@ class FastAccessIOSequence(variabletools.FastAccess):
         for name in self:
             actual = getattr(self, name)
             if self._get_attribute(name, "diskflag_writing"):
-                self._get_attribute(name, "ncarray")[:] = actual.flatten()
+                try:
+                    self._get_attribute(name, "ncarray")[:] = actual.flatten()
+                except AttributeError:
+                    self._get_attribute(name, "ncarray")[:] = actual
             if self._get_attribute(name, "ramflag"):
                 self._get_attribute(name, "array")[idx] = actual
 
@@ -157,7 +160,7 @@ class FastAccessOutputSequence(FastAccessIOSequence):
     def set_pointeroutput(self, name: str, pdouble: pointerutils.PDouble) -> None:
         """Use the given |PDouble| object as the pointer for the 0-dimensional
         |OutputSequence| object with the given name."""
-        setattr(self, f"_{name}_outputpointer", pdouble)
+        self._set_attribute(name, "outputpointer", pdouble)
 
     def update_outputs(self) -> None:
         """Pass the data of all sequences with an activated output flag."""
@@ -241,6 +244,7 @@ class FastAccessNodeSequence(FastAccessIOSequence):
     _obs_diskflag_writing: bool
     _sim_ncarray: NDArrayFloat
     _obs_ncarray: NDArrayFloat
+    _reset_obsdata: bool
 
     def load_simdata(self, idx: int) -> None:
         """Load the next sim sequence value from a NetCDF file or, with second priority,
@@ -293,11 +297,22 @@ class FastAccessNodeSequence(FastAccessIOSequence):
         self.sim[0] = 0.0
 
     def fill_obsdata(self, idx: int = 0) -> None:
-        """Use the current sim value for the current obs value if obs is |numpy.nan|."""
+        """Use the current sim value for the current `obs` value if obs is
+        |numpy.nan|."""
         # pylint: disable=unused-argument
         # required for consistincy with the other reset methods.
         if numpy.isnan(self.obs[0]):
+            self._reset_obsdata = True
             self.obs[0] = self.sim[0]
+
+    def reset_obsdata(self, idx: int = 0) -> None:
+        """Reset the current `obs` value to |numpy.nan| if modified beforehand by
+        method |FastAccessNodeSequence.fill_obsdata|."""
+        # pylint: disable=unused-argument
+        # required for consistincy with the other reset methods.
+        if self._reset_obsdata:
+            self.obs[0] = numpy.nan
+            self._reset_obsdata = False
 
 
 class InfoArray(numpy.ndarray):
@@ -423,8 +438,35 @@ class Sequences:
     >>> sequences.states.sm.diskflag_writing
     True
 
-    The documentation on class |IOSequence| explains the underlying functionalities of
-    class |IOSequence| in more detail.
+    After applying |Sequences.prepare_series|, you can use the methods
+    |Sequences.load_series| and |Sequences.save_series| to read or write the time
+    series of the relevant |InputSequence|, |FactorSequence|, |FluxSequence|, and
+    |StateSequence| object, as the following technical test suggests.  The
+    documentation on class |IOSequence| explains the underlying functionalities of in
+    more detail.
+
+    >>> from unittest.mock import patch
+    >>> template = "hydpy.core.sequencetools.%s.load_series"
+    >>> with patch(template % "InputSequences") as inputs, \
+patch(template % "FactorSequences") as factors, \
+patch(template % "FluxSequences") as fluxes, \
+patch(template % "StateSequences") as states:
+    ...     sequences.load_series()
+    ...     inputs.assert_called_with()
+    ...     factors.assert_called_with()
+    ...     fluxes.assert_called_with()
+    ...     states.assert_called_with()
+
+    >>> template = "hydpy.core.sequencetools.%s.save_series"
+    >>> with patch(template % "InputSequences") as inputs, \
+patch(template % "FactorSequences") as factors, \
+patch(template % "FluxSequences") as fluxes, \
+patch(template % "StateSequences") as states:
+    ...     sequences.save_series()
+    ...     inputs.assert_called_with()
+    ...     factors.assert_called_with()
+    ...     fluxes.assert_called_with()
+    ...     states.assert_called_with()
 
     .. testsetup::
 
@@ -930,6 +972,8 @@ class IOSequences(
     def prepare_series(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
+        """Call method |IOSequence.prepare_series| of all handled |IOSequence|
+        objects."""
         for seq in self:
             seq.prepare_series(
                 allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
@@ -1317,9 +1361,7 @@ class _OverwriteProperty(_IOProperty[bool, bool]):
     )
 
 
-class IOSequence(
-    Sequence_[IOSequencesType, FastAccessIOSequenceType]
-):
+class IOSequence(Sequence_[IOSequencesType, FastAccessIOSequenceType]):
     """Base class for sequences with input/output functionalities.
 
     The |IOSequence| subclasses |InputSequence|, |FactorSequence|, |FluxSequence|,
@@ -1602,7 +1644,7 @@ runs is not supported.
     (4, 2)
     >>> factors.fastaccess._tc_length
     2
-    >>> round_(factors.tc.series[:, 0], 1)
+    >>> round_(factors.tc.series[:, 0])
     nan, nan, nan, nan
 
     Resetting the |IOSequence.shape| of |IOSequence| objects with a deactivated
@@ -1614,7 +1656,7 @@ runs is not supported.
     (4, 13)
     >>> fluxes.fastaccess._pc_length
     13
-    >>> round_(fluxes.pc.series[:, 0], 1)
+    >>> fluxes.pc.series
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
@@ -1625,7 +1667,7 @@ runs is not supported.
     (4, 2)
     >>> fluxes.fastaccess._pc_length
     2
-    >>> round_(fluxes.pc.series[:, 0], 1)
+    >>> fluxes.pc.series = 1.0
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
@@ -1906,7 +1948,7 @@ the following error occurred: 'Model' object has no attribute 'numconsts'
             self.__set_array(numpy.full(self.seriesshape, values, dtype=float))
             self.check_completeness()
         else:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} is not requested to make "
                 f"any time-series data available."
             )
@@ -3652,6 +3694,7 @@ class NodeSequence(IOSequence["NodeSequences", FastAccessNodeSequence]):
     def _finalise_connections(self) -> None:
         super()._finalise_connections()
         setattr(self.fastaccess, self.name, pointerutils.Double(0.0))
+        setattr(self.fastaccess, "_reset_obsdata", False)
 
     def __hydpy__get_value__(self):
         """The actual sequence value.

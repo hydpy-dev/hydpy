@@ -31,6 +31,7 @@ cdef class FastAccessNodeSequence:
     cdef public bint _obs_diskflag_writing
     cdef public double[:] _sim_ncarray
     cdef public double[:] _obs_ncarray
+    cdef public bint _reset_obsdata
 
     cpdef void load_simdata(self, numpy.int32_t idx)
     cpdef void save_simdata(self, numpy.int32_t idx)
@@ -40,3 +41,4 @@ cdef class FastAccessNodeSequence:
     cpdef void save_data(self, numpy.int32_t idx)
     cpdef void reset(self, numpy.int32_t idx)
     cpdef void fill_obsdata(self, numpy.int32_t idx)
+    cpdef void reset_obsdata(self, numpy.int32_t idx)

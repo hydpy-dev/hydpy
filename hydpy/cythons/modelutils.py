@@ -983,7 +983,7 @@ class PyxWriter:
             if seq.NDIM == 0:
                 lines.add(3, f"self.{seq.name} = self._{seq.name}_ncarray[0]")
             else:
-                lines.add(3, f"k = 0")
+                lines.add(3, "k = 0")
                 for idx in range(seq.NDIM):
                     lines.add(
                         3 + idx,
@@ -994,7 +994,7 @@ class PyxWriter:
                     f"self.{seq.name}[{cls._get_index(seq.NDIM)}] "
                     f"= self._{seq.name}_ncarray[k]",
                 )
-                lines.add(3 + seq.NDIM, f"k += 1")
+                lines.add(3 + seq.NDIM, "k += 1")
             lines.add(2, f"elif self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
                 lines.add(3, f"self.{seq.name} = self._{seq.name}_array[idx]")
@@ -1022,12 +1022,9 @@ class PyxWriter:
         for seq in subseqs:
             lines.add(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
-                lines.add(
-                    3,
-                    f"self._{seq.name}_ncarray[0] = self.{seq.name}"
-                )
+                lines.add(3, f"self._{seq.name}_ncarray[0] = self.{seq.name}")
             else:
-                lines.add(3, f"k = 0")
+                lines.add(3, "k = 0")
                 for idx in range(seq.NDIM):
                     lines.add(
                         3 + idx,
@@ -1038,7 +1035,7 @@ class PyxWriter:
                     3 + seq.NDIM,
                     f"self._{seq.name}_ncarray[k] = self.{seq.name}[{index}]",
                 )
-                lines.add(3 + seq.NDIM, f"k += 1")
+                lines.add(3 + seq.NDIM, "k += 1")
             lines.add(2, f"if self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
                 lines.add(3, f"self._{seq.name}_array[idx] = self.{seq.name}")

@@ -159,38 +159,24 @@ structure. One should at least be aware of the optional argument `isolate`.  Whe
 NetCDF file.  When reading a NetCDF file, one has to choose the same option used for
 writing.
 
-The following test shows that both |SequenceManager.open_netcdfwriter| and
-|SequenceManager.open_netcdfreader| pass the mentioned argument correctly to the
-constructor of |NetCDFInterface|:
-
->>> from unittest.mock import patch
->>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
-...     pub.sequencemanager.open_netcdfwriter(isolate=True)
-...     mock.assert_called_with(isolate=True)
-...     pub.sequencemanager.open_netcdfreader(isolate=True)
-...     mock.assert_called_with(isolate=True)
-
-Both methods take the current value of the option |Options.isolatenetcdf| as the
-default argument:
-
->>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
-...     pub.sequencemanager.open_netcdfwriter()
-...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
-...     pub.sequencemanager.open_netcdfreader()
-...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
+Using the NetCDF format allows reading or writing data "just in time" during simulation
+runs.  The documentation of class "HydPy" explains how to select and set the relevant
+|IOSequence| objects for this option.  See the documentation on method
+|NetCDFInterface.provide_jitaccess| of class |NetCDFInterface| for more in-depth
+information.
 """
 # import...
 # ...from standard library
 from __future__ import annotations
 import abc
 import collections
+import contextlib
 import itertools
 import os
 from typing import *
 
 # ...from site-packages
 import numpy
-from numpy import typing
 
 # ...from HydPy
 import hydpy
@@ -472,6 +458,48 @@ def get_filepath(ncfile: netcdf4.Dataset) -> str:
     return cast(str, filepath)
 
 
+class JITAccessInfo(NamedTuple):
+    """Helper class for structuring reading from or writing to a NetCDF file "just in
+    time" during a simulation run for a specific |NetCDFVariableFlat| object."""
+
+    ncvariable: netcdf4.Variable
+    """Variable for the direct access to the relevant section of the NetCDF file."""
+    timedelta: int
+    """Difference between the relevant row of the NetCDF file and the current 
+    simulation index (as defined by |Idx_Sim|)."""
+    columns: Tuple[int, ...]
+    """Indices of the relevant columns of the NetCDF file correctly ordered with 
+    respect to |NetCDFInfoJITAccess.data|."""
+    data: NDArrayFloat
+    """Bridge to transfer data between the NetCDF file and the (cythonized) 
+    hydrological models."""
+
+
+class JITAccessHandler(NamedTuple):
+    """Handler used by the |SequenceManager| object available in module |pub| for
+    reading data from and/or writing data to NetCDF files at each step of a simulation
+    run."""
+
+    readers: Tuple[JITAccessInfo, ...]
+    """All |JITAccessInfo| objects responsible for reading data during the simulation 
+    run."""
+    writers: Tuple[JITAccessInfo, ...]
+    """All |JITAccessInfo| objects responsible for writing data during the simulation 
+    run."""
+
+    def read_slices(self, idx: int) -> None:
+        """Read the time slice relevant for the current simulation step from each
+        NetCDF file selected for reading."""
+        for reader in self.readers:
+            reader.data[:] = reader.ncvariable[idx + reader.timedelta, reader.columns]
+
+    def write_slices(self, idx: int) -> None:
+        """Write the time slice relevant for the current simulation step from each
+        NetCDF file selected for writing."""
+        for writer in self.writers:
+            writer.ncvariable[idx + writer.timedelta, writer.columns] = writer.data
+
+
 class NetCDFInterface:
     """Interface between |SequenceManager| and multiple NetCDF files.
 
@@ -511,9 +539,13 @@ class NetCDFInterface:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
     >>> interface = NetCDFInterface(isolate=False)
+    >>> len(interface)
+    0
     >>> for sequence in sequences:
     ...     _ = interface.log(sequence, sequence.series)
     ...     _ = interface.log(sequence, sequence.average_series())
+    >>> len(interface)
+    6
     >>> interface.filenames
     ('hland_v1', 'lland_v1', 'lland_v2', 'node')
     >>> interface.node.variablenames
@@ -646,8 +678,13 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
 
     >>> from unittest.mock import patch
     >>> with patch("hydpy.core.netcdftools.NetCDFFile") as mock:
+    ...     interface = NetCDFInterface(isolate=True)
+    ...     _ = interface.log(sequences[0], sequences[0].series)
+    ...     mock.assert_called_once_with(
+    ...         name="node_sim_q", isolate=True, dirpath="nodepath")
+    >>> with patch("hydpy.core.netcdftools.NetCDFFile") as mock:
     ...     interface = NetCDFInterface(isolate=False)
-    ...     interface.log(sequences[0], sequences[0].series)
+    ...     _ = interface.log(sequences[0], sequences[0].series)
     ...     mock.assert_called_once_with(name="node", isolate=False, dirpath="nodepath")
     """
 
@@ -713,71 +750,351 @@ NetCDFFile object named `lland_v3` nor does it define a member named `lland_v3`.
                     for sequence in subseqs:
                         yield sequence
 
-    def open(
+    @contextlib.contextmanager
+    def provide_jitaccess(
         self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
-    ) -> Dict[NetCDFVariableFlat, NDArrayFloat]:
+    ) -> Iterator[JITAccessHandler]:
+        """Allow method |HydPy.simulate| of class |HydPy| to read data from or write
+        data to NetCDF files "just in time" during simulation runs.
 
-        ncvariable2sequences: DefaultDict[
+        We consider it unlikely users need ever to call the method
+        |NetCDFInterface.provide_jitaccess| directly.  See the documentation on class
+        |HydPy| on applying it indirectly.  However, the following explanations might
+        give some additional insights on options and limitations of the the related
+        functionalities.
+
+        You can only either read from or write to each NetCDF file.  We think this
+        should rarely be a limitation for the anticipated workflows.  One particular
+        situation where one could eventually try to read and write simultaneously is
+        when trying to overwrite some of the available input data.  The following
+        example tries to read the input data for all "headwater" catchments from
+        specific NetCDF files but defines zero input values for all "non-headwater"
+        catchments and tries to write them into the same files:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, print_values, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy("LahnH")
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp.prepare_network()
+        ...     hp.prepare_models()
+        ...     hp.load_conditions()
+        ...     headwaters = pub.selections["headwaters"].elements
+        ...     nonheadwaters = pub.selections["nonheadwaters"].elements
+        ...     headwaters.prepare_inputseries(allocate_ram=False, read_jit=True)
+        ...     nonheadwaters.prepare_inputseries(allocate_ram=True, write_jit=True)
+        ...     for element in nonheadwaters:
+        ...         for sequence in element.model.sequences.inputs:
+        ...             sequence.series = 0.0
+        ...     hp.simulate()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to prepare NetCDF files for reading or writing \
+data "just in time" during the current simulation run, the following error occurred: \
+For a specific NetCDF file, you can either read or write data during a simulation run \
+but for file `hland_v1_input_p` both is requested.
+
+        Clearly, each NetCDF file we want to read data from needs to span the current
+        simulation period:
+
+        >>> with TestIO():
+        ...     pub.timegrids.init.firstdate = "1990-01-01"
+        ...     pub.timegrids.sim.firstdate = "1995-01-01"
+        ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
+        ...     hp.simulate()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to prepare NetCDF files for reading or writing \
+data "just in time" during the current simulation run, the following error occurred: \
+The data of the NetCDF `hland_v1_input_p` \
+(Timegrid("1996-01-01 00:00:00", "2007-01-01 00:00:00", "1d")) does not correctly \
+cover the current simulation period \
+(Timegrid("1995-01-01 00:00:00", "1996-01-05 00:00:00", "1d")).
+
+        However, be aware that each NetCDF file selected for writing must also cover
+        the complete initialisation period.  If there is no adequately named NetCDF
+        file, |NetCDFInterface.provide_jitaccess| creates a new one for the current
+        initialisation period.  If an adequately named file exists,
+        |NetCDFInterface.provide_jitaccess| uses it without any attempt to extend it
+        temporally or spatially.  The following example shows the insertion of the
+        output data of two subsequent simulation runs into the same NetCDF files:
+
+        >>> with TestIO():
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
+        ...     hp.prepare_factorseries(allocate_ram=True, write_jit=True)
+        ...     pub.timegrids.sim.lastdate = "1996-01-03"
+        ...     hp.simulate()
+        ...     pub.timegrids.sim.firstdate = "1996-01-03"
+        ...     pub.timegrids.sim.lastdate = "1996-01-05"
+        ...     hp.simulate()
+        >>> print_values(hp.elements["land_dill"].model.sequences.factors.tmean.series)
+        -0.572053, -1.084746, -2.767055, -6.242055
+        >>> from hydpy.core.netcdftools import netcdf4
+        >>> filepath = "LahnH/series/output/hland_v1_factor_tmean.nc"
+        >>> with TestIO():
+        ...     with netcdf4.Dataset(filepath, "r") as ncfile:
+        ...         print_values(ncfile["factor_tmean"][:, 0])
+        -0.572053, -1.084746, -2.767055, -6.242055
+
+        If we try to write the output of a third simulation run beyond the original
+        initial initialisation period into the same files,
+        |NetCDFInterface.provide_jitaccess| raises an equal error as above:
+
+        >>> with TestIO():
+        ...     pub.timegrids = "1996-01-05", "1996-01-10", "1d"
+        ...     hp.prepare_inputseries(allocate_ram=True, read_jit=False)
+        ...     hp.prepare_factorseries(allocate_ram=True, write_jit=True)
+        ...     hp.simulate()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to prepare NetCDF files for reading or writing \
+data "just in time" during the current simulation run, the following error occurred: \
+The data of the NetCDF `hland_v1_factor_tmean` \
+(Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not correctly \
+cover the current simulation period \
+(Timegrid("1996-01-05 00:00:00", "1996-01-10 00:00:00", "1d")).
+
+        >>> hp.prepare_factorseries(allocate_ram=False, write_jit=False)
+
+        Regarding the spatial dimension, things are similar.  You can write data for
+        different sequences in subsequent simulation runs, but you need to ensure all
+        required data columns are available right from the start.  Hence, relying on
+        the automatic file generation of |NetCDFInterface.provide_jitaccess| fails in
+        the following example:
+
+        >>> with TestIO():
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
+        ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
+        ...     hp.simulate()
+        ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
+        ...     hp.simulate()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to prepare NetCDF files for reading or writing \
+data "just in time" during the current simulation run, the following error occurred: \
+No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
+`...hland_v1_flux_pc.nc` available.
+
+        One way to prepare complete NetCDF files that are *HydPy* compatible is to work
+        with an ordinary NetCDF writer object via |SequenceManager.open_netcdfwriter|:
+
+        >>> with TestIO():
+        ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
+        ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
+        ...     pub.sequencemanager.fluxfiletype = "nc"
+        ...     pub.sequencemanager.open_netcdfwriter(isolate=True)
+        ...     hp.save_fluxseries()
+        ...     pub.sequencemanager.close_netcdfwriter()
+        ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        >>> for element in hp.elements.search_keywords("catchment"):
+        ...     print_values(element.model.sequences.fluxes.qt.series)
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        20.58932, 8.66144, 7.281198, 6.402232
+        11.674045, 10.110371, 8.991987, 8.212314
+        >>> filepath_qt = "LahnH/series/output/hland_v1_flux_qt.nc"
+        >>> with TestIO():
+        ...     with netcdf4.Dataset(filepath_qt, "r") as ncfile:
+        ...         for jdx in range(4):
+        ...             print_values(ncfile["flux_qt"][:, jdx])
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        0.0, 0.0, 0.0, 0.0
+        0.0, 0.0, 0.0, 0.0
+        >>> with TestIO():
+        ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=False)
+        ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        >>> with TestIO():
+        ...     with netcdf4.Dataset(filepath_qt, "r") as ncfile:
+        ...         for jdx in range(4):
+        ...             print_values(ncfile["flux_qt"][:, jdx])
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        20.58932, 8.66144, 7.281198, 6.402232
+        11.674045, 10.110371, 8.991987, 8.212314
+
+        >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
+
+        There should be no limitation for reading data "just in time" and using
+        different |Node.deploymode| options.  For demonstration, we first calculate the
+        time series of the |Sim| sequences of all nodes, assign them to the
+        corresponding |Obs| sequences afterwards, and then start another simulation to
+        (again) write both the simulated and the observed values to NetCDF files:
+
+        >>> with TestIO():
+        ...     hp.prepare_simseries(allocate_ram=True, write_jit=True)
+        ...     hp.prepare_obsseries(allocate_ram=True, write_jit=True)
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        ...     for idx, node in enumerate(hp.nodes):
+        ...         node.sequences.obs.series = node.sequences.sim.series
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        >>> for node in hp.nodes:
+        ...     print_values(node.sequences.sim.series)
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        42.3697, 27.210443, 22.930066, 20.20133
+        54.043745, 37.320814, 31.922053, 28.413644
+        >>> for node in hp.nodes:
+        ...     print_values(node.sequences.obs.series)
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        42.3697, 27.210443, 22.930066, 20.20133
+        54.043745, 37.320814, 31.922053, 28.413644
+        >>> filepath_sim = "LahnH/series/node/node_sim_q.nc"
+        >>> with TestIO():
+        ...     with netcdf4.Dataset(filepath_sim, "r") as ncfile:
+        ...         for jdx in range(4):
+        ...             print_values(ncfile["sim_q"][:, jdx])
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        42.3697, 27.210443, 22.930066, 20.20133
+        54.043745, 37.320814, 31.922053, 28.413644
+        >>> filepath_obs = "LahnH/series/node/node_obs_q.nc"
+        >>> with TestIO():
+        ...     with netcdf4.Dataset(filepath_obs, "r") as ncfile:
+        ...         for jdx in range(4):
+        ...             print_values(ncfile["obs_q"][:, jdx])
+        11.78038, 8.901179, 7.131072, 6.017787
+        9.647824, 8.517795, 7.781311, 7.344944
+        42.3697, 27.210443, 22.930066, 20.20133
+        54.043745, 37.320814, 31.922053, 28.413644
+
+        Now we stop all sequences from writing to NetCDF files, remove the two
+        headwater elements from the currently active selection, and start another
+        simulation run.  The time series of both headwater nodes are zero due to the
+        missing inflow from their inlet headwater sub-catchments.  The non-headwater
+        nodes only receive inflow from the two non-headwater sub-catchments:
+
+        >>> with TestIO():
+        ...     hp.prepare_simseries(allocate_ram=True, write_jit=False)
+        ...     hp.prepare_obsseries(allocate_ram=True, write_jit=False)
+        ...     hp.update_devices(nodes=hp.nodes, elements=hp.elements - headwaters)
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        >>> for node in hp.nodes:
+        ...     print_values(node.sequences.sim.series)
+        0.0, 0.0, 0.0, 0.0
+        0.0, 0.0, 0.0, 0.0
+        30.58932, 8.66144, 7.281198, 6.402232
+        42.263365, 18.771811, 16.273185, 14.614546
+
+        Finally, we set the |Node.deploymode| of the headwater nodes `dill` and
+        `lahn_1` to `oldsim` and `obs`, respectively, and read their previously written
+        time series "just in time".  As expected, the values of the two non-headwater
+        nodes are identical to those of our initial example:
+
+        >>> with TestIO():
+        ...     hp.nodes["dill"].prepare_simseries(allocate_ram=True, read_jit=True)
+        ...     hp.nodes["dill"].deploymode = "oldsim"
+        ...     hp.nodes["lahn_1"].prepare_obsseries(allocate_ram=True, read_jit=True)
+        ...     hp.nodes["lahn_1"].deploymode = "obs"
+        ...     hp.load_conditions()
+        ...     hp.simulate()
+        >>> for node in hp.nodes:
+        ...     print_values(node.sequences.sim.series)
+        11.78038, 8.901179, 7.131072, 6.017787
+        0.0, 0.0, 0.0, 0.0
+        42.3697, 27.210443, 22.930066, 20.20133
+        54.043745, 37.320814, 31.922053, 28.413644
+        """
+
+        readers: List[JITAccessInfo] = []
+        writers: List[JITAccessInfo] = []
+        file2readmode: Dict[NetCDFFile, bool] = {}
+        variable2ncfile: Dict[NetCDFVariableFlat, NetCDFFile] = {}
+        variable2infos: Dict[NetCDFVariableFlat, List[JITAccessInfo]] = {}
+        variable2sequences: DefaultDict[
             NetCDFVariableFlat, List[sequencetools.IOSequence[Any, Any]]
         ] = collections.defaultdict(lambda: [])
-        readers, writers = set(), set()
-        log = self.log
-        for sequence in self._yield_disksequences(deviceorder):
-            if sequence.diskflag:
-                ncvariable = log(sequence)[1]
-                assert isinstance(ncvariable, NetCDFVariableFlat)
-                ncvariable2sequences[ncvariable].append(sequence)
-                if sequence.diskflag_reading:
-                    readers.add(ncvariable)
-                if sequence.diskflag_writing:
-                    writers.add(ncvariable)
 
-        ncvariable2idxs_reading = {}
-        if ncvariable2sequences:
-            init = hydpy.pub.timegrids.init
-            timeunits = init.firstdate.to_cfunits("hours")
-            timepoints = init.to_timepoints("hours")
-            for ncfile in self:
-                ncfile.open(timeunits, timepoints)
-                ncvariable = tuple(ncfile)[0]
-                if ncvariable in readers:
-                    get_index = ncvariable.query_subdevice2index(
-                        ncfile.ncfile
-                    ).get_index
-                    idxs = tuple(get_index(n) for n in ncvariable.subdevicenames)
-                    ncvariable2idxs_reading[ncvariable] = idxs
+        try:
+            # collect the relevant sequences:
+            log = self.log
+            for sequence in self._yield_disksequences(deviceorder):
+                if sequence.diskflag:
+                    file_, variable = log(sequence)
+                    assert isinstance(variable, NetCDFVariableFlat)
+                    readmode = sequence.diskflag_reading
+                    file2readmode.setdefault(file_, readmode)
+                    if file2readmode[file_] != readmode:
+                        raise RuntimeError(
+                            f"For a specific NetCDF file, you can either read or "
+                            f"write data during a simulation run but for file "
+                            f"`{file_.name}` both is requested."
+                        )
+                    variable2ncfile[variable] = file_
+                    variable2infos[variable] = readers if readmode else writers
+                    variable2sequences[variable].append(sequence)
 
-        ncvariable2delta_reading = {}
-        init = hydpy.pub.timegrids.init
-        for ncvariable in readers:
-            firstdate = query_timegrid(ncvariable.ncfile).firstdate
-            delta = init[firstdate]
-            ncvariable2delta_reading[ncvariable] = delta
+            if variable2sequences:
+                # prepare NetCDF files:
+                file2timedelta: Dict[NetCDFFile, int] = {}
+                tg_init = hydpy.pub.timegrids.init
+                tg_sim = hydpy.pub.timegrids.sim
+                timeunit = tg_init.firstdate.to_cfunits("hours")
+                timepoints = tg_init.to_timepoints("hours")
+                for file_, readmode in file2readmode.items():
+                    if not os.path.exists(file_.filepath):
+                        file_.write(timeunit, timepoints)
+                    ncfile = netcdf4.Dataset(file_.filepath, "r+")
+                    file_.ncfile = ncfile
+                    tg_ncfile = query_timegrid(ncfile)
+                    if tg_sim not in tg_ncfile:
+                        raise RuntimeError(
+                            f"The data of the NetCDF `{file_.name}` ({tg_ncfile}) "
+                            f"does not correctly cover the current simulation period "
+                            f"({tg_sim})."
+                        )
+                    file2timedelta[file_] = tg_init[tg_ncfile.firstdate]
 
-        ncvariable2array_reading = {}
-        ncvariable2array_writing = {}
-        for ncvariable, sequences in ncvariable2sequences.items():
-            ncarray = numpy.full(ncvariable.shape[1], numpy.nan, dtype=float)
-            if ncvariable in readers:
-                ncvariable2array_reading[ncvariable] = ncarray
+                # make information for reading and writing temporarily available:
+                for variable, sequences in variable2sequences.items():
+                    file_ = variable2ncfile[variable]
+                    ncfile = file_.ncfile
+                    assert ncfile is not None
+                    get = variable.query_subdevice2index(ncfile).get_index
+                    data: NDArrayFloat = numpy.full(
+                        variable.shape[1], numpy.nan, dtype=float
+                    )
+                    variable2infos[variable].append(
+                        JITAccessInfo(
+                            ncvariable=ncfile[variable.name],
+                            timedelta=file2timedelta[file_],
+                            columns=tuple(get(n) for n in variable.subdevicenames),
+                            data=data,
+                        )
+                    )
+                    idx0 = 0
+                    for sequence in sequences:
+                        idx1 = idx0 + int(numpy.product(sequence.shape))
+                        sequence.connect_netcdf(ncarray=data[idx0:idx1])
+                        idx0 = idx1
+                yield JITAccessHandler(readers=tuple(readers), writers=tuple(writers))
+
             else:
-                ncvariable2array_writing[ncvariable] = ncarray
-            idx0 = 0
-            for sequence in sequences:
-                idx1 = idx0 + int(numpy.product(sequence.shape))
-                sequence.connect_netcdf(ncarray=ncarray[idx0:idx1])
-                idx0 = idx1
+                # return without useless efforts:
+                yield JITAccessHandler(readers=(), writers=())
 
-        return (
-            ncvariable2array_reading,
-            ncvariable2idxs_reading,
-            ncvariable2delta_reading,
-            ncvariable2array_writing,
-        )
-
-    def close(self) -> None:
-        for ncfile in self:
-            ncfile.close()
+        except BaseException:
+            objecttools.augment_excmessage(
+                "While trying to prepare NetCDF files for reading or writing data "
+                '"just in time" during the current simulation run'
+            )
+        finally:
+            # close NetCDF files:
+            for file_ in file2readmode:
+                ncfile = file_.ncfile
+                if ncfile is not None:
+                    ncfile.close()
 
     @property
     def foldernames(self) -> Tuple[str, ...]:
@@ -859,7 +1176,11 @@ class NetCDFFile:
 
     >>> from hydpy.core.netcdftools import NetCDFFile
     >>> ncfile = NetCDFFile("model", isolate=False, dirpath="")
+    >>> len(ncfile)
+    0
     >>> _ = ncfile.log(nied, nied.series)
+    >>> len(ncfile)
+    1
 
     (4) We store the NetCDF file directly into the testing directory:
 
@@ -945,9 +1266,9 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
         >>> sp4 = element4.model.sequences.states.sp
 
         (3) We define a function that logs these example sequences to a given
-        |NetCDFFile| object and prints information about the resulting object
-        structure.  Note that we log sequences `nkor2` and `sp4` twice, the first time
-        with their original time series data and the second time with averaged values:
+        |NetCDFFile| object and prints the resulting object structure information.
+        Note that we log sequences `nkor2` and `sp4` twice, the first time with their
+        original time series data and the second time with averaged values:
 
         >>> from hydpy import classname
         >>> def test(ncfile):
@@ -1000,8 +1321,12 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
 
         >>> from unittest.mock import patch
         >>> with patch("hydpy.core.netcdftools.NetCDFVariableFlat") as mock:
+        ...     ncfile = NetCDFFile("model", isolate=True, dirpath="")
+        ...     _ = ncfile.log(nied1, nied1.series)
+        ...     mock.assert_called_once_with(name="input_nied", isolate=True)
+        >>> with patch("hydpy.core.netcdftools.NetCDFVariableFlat") as mock:
         ...     ncfile = NetCDFFile("model", isolate=False, dirpath="")
-        ...     ncfile.log(nied1, nied1.series)
+        ...     _ = ncfile.log(nied1, nied1.series)
         ...     mock.assert_called_once_with(name="input_nied", isolate=False)
         """
         descr = sequence.descr_sequence
@@ -1018,7 +1343,7 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
                 cls = NetCDFVariableAgg
             else:
                 cls = NetCDFVariableFlat
-            var_ = cls(name=descr, isolate=self._isolate, ncfile=self.ncfile)
+            var_ = cls(name=descr, isolate=self._isolate)
             self.variables[descr] = var_
         var_.log(sequence, infoarray)
         return var_
@@ -1049,24 +1374,6 @@ variable named `state_bowa` nor does it define a member named `state_bowa`.
             self._insert_timepoints(ncfile, timepoints, timeunit)
             for variable in self:
                 variable.write(ncfile)
-
-    def open(
-        self, timeunit: str, timepoints: NDArrayFloat
-    ) -> Optional[Tuple[int, ...]]:
-        """Open a new NetCDF file temporarily and call method |NetCDFVariableBase.write|
-        of all handled |NetCDFVariableBase| objects."""
-        if not os.path.exists(self.filepath):
-            self.write(timeunit, timepoints)
-        self.ncfile = netcdf4.Dataset(self.filepath, "r+")
-        for variable in self:
-            variable.ncfile = self.ncfile
-
-    def close(self) -> None:
-        if self.ncfile:
-            self.ncfile.close()
-        self.ncfile = None
-        for variable in self:
-            variable.ncfile = self.ncfile
 
     @staticmethod
     def _insert_timepoints(
@@ -1147,7 +1454,6 @@ class NetCDFVariableBase(abc.ABC):
     name: str
     sequences: Dict[str, sequencetools.IOSequence[Any, Any]]
     arrays: Dict[str, Optional[sequencetools.InfoArray]]
-    ncfile: netcdf4.Dataset
 
     _isolate: bool
 
@@ -1155,11 +1461,9 @@ class NetCDFVariableBase(abc.ABC):
         self,
         name: str,
         isolate: bool,
-        ncfile: Optional[netcdf4.Dataset] = None,
     ) -> None:
         self.name = name
         self._isolate = isolate
-        self.ncfile = ncfile
         self.sequences = {}
         self.arrays = {}
 
@@ -1605,8 +1909,6 @@ other sequences as well) is not invertible.
         self.insert_subdevices(ncfile)
         dimensions = self.dimensions
         array = self.array
-        for dimension, length in zip(dimensions[2:], array.shape[2:]):
-            create_dimension(ncfile, dimension, length)
         create_variable(ncfile, self.name, "f8", dimensions)
         ncfile[self.name][:] = array
 
@@ -1670,9 +1972,9 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     False
     False
 
-    (6) We again prepare three |NetCDFVariableFlat| instances and log the same
+    (6) Again, we prepare three |NetCDFVariableFlat| instances and log the same
     sequences as above, open the existing NetCDF file for reading, read its data, and
-    confirm that it has been passed to the test sequences correctly:
+    confirm that it has been correctly passed to the test sequences:
 
     >>> nied1 = NetCDFVariableFlat("input_nied", isolate=False)
     >>> nkor1 = NetCDFVariableFlat("flux_nkor", isolate=False)

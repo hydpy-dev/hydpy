@@ -31,12 +31,12 @@ from hydpy.core.typingtools import *
 
 
 class Folder2Path:
-    """Map folder names to their path names.
+    """Map folder names to their pathnames.
 
     You can both pass positional arguments and keyword arguments when initialising
     |Folder2Path|.  For positional arguments, the folder and its path are assumed to be
     identical.  For keyword arguments, the keyword corresponds to the folder name and
-    its value to the path name:
+    its value to the pathname:
 
     >>> from hydpy.core.filetools import Folder2Path
     >>> Folder2Path()
@@ -176,7 +176,7 @@ class FileManager:
         """The name of the main folder of a project.
 
         For the `LahnH` example project, |FileManager.projectdir| is (not surprisingly)
-        `LahnH`, and is queried from the |pub| module.  However, you can define or
+        `LahnH` and is queried from the |pub| module.  However, you can define or
         change |FileManager.projectdir| interactively, which can be useful for more
         complex tasks like copying (parts of) projects:
 
@@ -344,7 +344,7 @@ dir2).
         False
 
         |FileManager| subclasses can define a default directory name.  When many
-        directories exist, and none is selected manually, the default directory is
+        directories exist and none is selected manually, the default directory is
         selected automatically.  The following example shows an error message due to
         multiple directories without any having the default name:
 
@@ -650,7 +650,7 @@ class NetworkManager(FileManager):
                         "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
 
     Method |NetworkManager.save_files| writes all |Selection| objects into separate
-    files.  We first change the current working directory to assure we do not overwrite
+    files.  We first change the current working directory to ensure we do not overwrite
     already existing files:
 
     >>> import os
@@ -677,7 +677,7 @@ class NetworkManager(FileManager):
     ['streams.py']
 
     When defining network files, many things can go wrong.  In the following, we list
-    all specialised error messages, of what we hope to be concrete enough to aid in
+    all specialised error messages of what we hope to be concrete enough to aid in
     finding the relevant problems:
 
     >>> with TestIO():
@@ -1635,7 +1635,11 @@ Select one of the following modes: none and mean.
         nodeaggregation,
     )
 
-    _ncvariable2array: Dict[netcdftools.NetCDFVariableFlat, NDArrayFloat]
+    _jitaccesshandler: Optional[netcdftools.JITAccessHandler]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._jitaccesshandler = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
@@ -1765,7 +1769,24 @@ reader object.
         return netcdfreader
 
     def open_netcdfreader(self, isolate: Optional[bool] = None) -> None:
-        """Prepare a new |NetCDFInterface| object for reading data."""
+        """Prepare a new |NetCDFInterface| object for reading data.
+
+        The following test shows that |SequenceManager.open_netcdfreader| passes the
+        `isolate` argument correctly to the constructor of |NetCDFInterface| or takes
+        the current value of the option |Options.isolatenetcdf| as the default argument:
+
+        >>> from hydpy.examples import prepare_io_example_1
+        >>> _ = prepare_io_example_1()
+        >>> from hydpy import pub
+        >>> from unittest.mock import patch
+        >>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
+        ...     pub.sequencemanager.open_netcdfreader(isolate=True)
+        ...     mock.assert_called_with(isolate=True)
+        ...     pub.sequencemanager.open_netcdfreader(isolate=False)
+        ...     mock.assert_called_with(isolate=False)
+        ...     pub.sequencemanager.open_netcdfreader()
+        ...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
+        """
         options = hydpy.pub.options
         vars(self)["netcdfreader"] = netcdftools.NetCDFInterface(
             isolate=bool(options.isolatenetcdf if isolate is None else isolate),
@@ -1812,7 +1833,24 @@ currently handle no NetCDF writer object.
         return netcdfwriter
 
     def open_netcdfwriter(self, isolate: Optional[bool] = None) -> None:
-        """Prepare a new |NetCDFInterface| object for writing data."""
+        """Prepare a new |NetCDFInterface| object for writing data.
+
+        The following test shows that |SequenceManager.open_netcdfwriter| passes the
+        `isolate` argument correctly to the constructor of |NetCDFInterface| or takes
+        the current value of the option |Options.isolatenetcdf| as the default argument:
+
+        >>> from hydpy.examples import prepare_io_example_1
+        >>> _ = prepare_io_example_1()
+        >>> from hydpy import pub
+        >>> from unittest.mock import patch
+        >>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
+        ...     pub.sequencemanager.open_netcdfwriter(isolate=True)
+        ...     mock.assert_called_with(isolate=True)
+        ...     pub.sequencemanager.open_netcdfwriter(isolate=False)
+        ...     mock.assert_called_with(isolate=False)
+        ...     pub.sequencemanager.open_netcdfwriter()
+        ...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
+        """
         options = hydpy.pub.options
         vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface(
             isolate=bool(options.isolatenetcdf if isolate is None else isolate),
@@ -1825,29 +1863,41 @@ currently handle no NetCDF writer object.
         del vars(self)["netcdfwriter"]
 
     @contextlib.contextmanager
-    def prepare_netcdfaccess(
+    def provide_netcdfjitaccess(
         self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
     ) -> Iterator[None]:
-        """Open all required internal time-series files.
+        """Open all required internal NetCDF time-series files.
 
-        This method is only required when storing internal time-series data to disk.
-        See the main documentation on class |HydPy| for further information.
+        This method is only relevant for reading data from or writing data to NetCDF
+        files "just in time" during simulation runs.  See the main documentation on
+        class |HydPy| for further information.
         """
-        interface = netcdftools.NetCDFInterface(isolate=True)
-        self._ncvariable2array_reading, self._ncvariable2idxs_reading, self._ncvariable2delta_reading, self._ncvariable2array_writing = interface.open(deviceorder)
         try:
-            yield
+            interface = netcdftools.NetCDFInterface(isolate=True)
+            with interface.provide_jitaccess(deviceorder) as jitaccesshandler:
+                self._jitaccesshandler = jitaccesshandler
+                yield
         finally:
-            self._ncvariable2array_reading = {}
-            interface.close()
+            self._jitaccesshandler = None
 
-    def read_netcdfslice(self, idx: int) -> None:
-        for ncvariable in self._ncvariable2idxs_reading:
-            delta = self._ncvariable2delta_reading[ncvariable]
-            array = self._ncvariable2array_reading[ncvariable]
-            idxs = self._ncvariable2idxs_reading[ncvariable]
-            array[:] = ncvariable.ncfile[ncvariable.name][idx + delta, idxs]
+    def read_netcdfslices(self, idx: int) -> None:
+        """Read the time slice relevant for the current simulation step.
 
-    def write_netcdfslice(self, idx: int) -> None:
-        for ncvariable, array in self._ncvariable2array_writing.items():
-            ncvariable.ncfile[ncvariable.name][idx, :] = array
+        This method is only relevant for reading data from or writing data to NetCDF
+        files "just in time" during simulation runs.  See the main documentation on
+        class |HydPy| for further information.
+        """
+        handler = self._jitaccesshandler
+        if handler is not None:
+            handler.read_slices(idx)
+
+    def write_netcdfslices(self, idx: int) -> None:
+        """Write the time slice relevant for the current simulation step.
+
+        This method is only relevant for reading data from or writing data to NetCDF
+        files "just in time" during simulation runs.  See the main documentation on
+        class |HydPy| for further information.
+        """
+        handler = self._jitaccesshandler
+        if handler is not None:
+            handler.write_slices(idx)

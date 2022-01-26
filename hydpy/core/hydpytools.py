@@ -407,16 +407,36 @@ is not requested to make any time-series data available.
     Hence we close our explanations with some detailed examples on this topic that also
     cover the potential problem of limited rapid access storage availability.
 
-    By default, the *HydPy* framework does not overwrite already existing time-series
-    files.  You can change such settings via the |SequenceManager| object available in
-    module |pub| (module |pub| also handles |ControlManager| and |ConditionManager|
-    objects for settings related to reading and writing control files and condition
-    files).  We change the default behaviour by setting the `generaloverwrite`
-    attribute to |True| and write all the time series (not only those of the flux and
-    states sequences but also those of the input sequences) by calling method
-    |HydPy.save_allseries|:
+    The *HydPy* framework does not overwrite already existing time-series by default
+    files.  However, you can change this and related settings via the |SequenceManager|
+    object available in module |pub| (module |pub| also handles |ControlManager| and
+    |ConditionManager| objects for settings related to reading and writing control
+    files and condition files).  We change the default behaviour by setting the
+    |SequenceManager.generaloverwrite| attribute to |True|:
 
     >>> pub.sequencemanager.generaloverwrite = True
+
+    Now we can (over)write all possible time series:
+
+    >>> with TestIO():
+    ...     hp.save_inputseries()
+    ...     hp.save_factorseries()
+    ...     hp.save_fluxseries()
+    ...     hp.save_stateseries()
+    ...     hp.save_simseries()
+    ...     hp.save_obsseries()
+
+    Alternatively, apply |HydPy.save_modelseries| to write the series of all the
+    |InputSequence|, |FactorSequence|, |FluxSequence|, and |StateSequence| objects and
+    |HydPy.save_nodeseries| to write the series of all |Sim| and |Obs| objects in one
+    step:
+
+    >>> with TestIO():
+    ...     hp.save_modelseries()
+    ...     hp.save_nodeseries()
+
+    Even shorter, just apply the method |HydPy.save_allseries|:
+
     >>> with TestIO():
     ...     hp.save_allseries()
 
@@ -433,11 +453,9 @@ is not requested to make any time-series data available.
     data handled by the |Obs| sequence objects, which is not available in the `LahnH`
     example project).  To circumvent this problem, we disable the |Options.checkseries|
     option, which is one of the public options handled by the instance of class
-    |Options| available as another attribute of module |pub|.  We again use a "with
-    block", making sure the option is changed only temporarily while loading the
-    time-series (this time not by executing method |HydPy.load_allseries| but by the
-    more specific methods |HydPy.load_inputseries|, |HydPy.load_factorseries|,
-    |HydPy.load_fluxseries|, |HydPy.load_stateseries|, and |HydPy.load_simseries|):
+    |Options| available as another attribute of module |pub|.  We again use "with
+    blocks", making sure the option (and the current working directory) changes only
+    temporarily while loading the time-series:
 
     >>> with TestIO(), pub.options.checkseries(False):
     ...     hp.load_inputseries()
@@ -445,6 +463,14 @@ is not requested to make any time-series data available.
     ...     hp.load_fluxseries()
     ...     hp.load_stateseries()
     ...     hp.load_simseries()
+    ...     hp.load_obsseries()
+
+    >>> with TestIO(), pub.options.checkseries(False):
+    ...     hp.load_modelseries()
+    ...     hp.load_nodeseries()
+
+    >>> with TestIO(), pub.options.checkseries(False):
+    ...     hp.load_allseries()
 
     The read time-series data equals the previously written one:
 
@@ -2005,15 +2031,13 @@ time.
         """
         funcs: List[Callable[[int], None]] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            funcs.append(hydpy.pub.sequencemanager.read_netcdfslice)
+            funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
             if node.deploymode in ("oldsim", "obs_oldsim"):
                 funcs.append(node.sequences.fastaccess.load_simdata)
-            if node.deploymode in ("obs", "obs_newsim", "obs_oldsim"):
-                funcs.append(node.sequences.fastaccess.load_obsdata)
-        for node in self.nodes:
-            if node.deploymode not in ("oldsim", "obs_oldsim"):
+            else:
                 funcs.append(node.sequences.fastaccess.reset)
+            funcs.append(node.sequences.fastaccess.load_obsdata)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)
@@ -2028,10 +2052,12 @@ time.
         for element in self.elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploymode not in ("oldsim", "obs_oldsim"):
-                funcs.append(node.sequences.fastaccess.save_simdata)
+            if node.deploymode in ("obs_newsim", "obs_oldsim"):
+                funcs.append(node.sequences.fastaccess.reset_obsdata)
+            funcs.append(node.sequences.fastaccess.save_simdata)
+            funcs.append(node.sequences.fastaccess.save_obsdata)
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            funcs.append(hydpy.pub.sequencemanager.write_netcdfslice)
+            funcs.append(hydpy.pub.sequencemanager.write_netcdfslices)
         return funcs
 
     @printtools.print_progress
@@ -2211,10 +2237,9 @@ time.
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder
+        cm: ContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            cm = hydpy.pub.sequencemanager.prepare_netcdfaccess(self.deviceorder)
-        else:
-            cm = contextlib.nullcontext()
+            cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
         with cm:
             for idx in printtools.progressbar(range(idx_start, idx_end)):
                 for func in methodorder:
@@ -2242,9 +2267,7 @@ time.
             exceptiontools.HydPyDeprecationWarning,
         )
 
-    def prepare_allseries(
-        self, allocate_ram: bool = True, jit: bool = False
-    ) -> None:
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Tell all current |IOSequence| objects how to handle time-series data.
 
         Assign |True| to the `allocate_ram` argument (default) to activate the

@@ -14,6 +14,7 @@ cimport cython
 import numpy
 cimport numpy
 from libc.math cimport isnan
+from libc.math cimport NAN as nan
 from libc.stdio cimport *
 from libc.stdlib cimport *
 from hydpy.cythons.autogen cimport pointerutils
@@ -78,7 +79,15 @@ cdef class FastAccessNodeSequence:
         self.sim.value = 0.
 
     cpdef void fill_obsdata(self, numpy.int32_t idx):
-        """Use the current sim value for the current obs value if obs is
+        """Use the current sim value for the current `obs` value if obs is
         `nan`."""
         if isnan(self.obs.value):
+            self._reset_obsdata = True
             self.obs.value = self.sim.value
+
+    cpdef void reset_obsdata(self, numpy.int32_t idx):
+        """Reset the current `obs` value to |numpy.nan| if modified beforehand
+        by method `fill_obsdata`."""
+        if self._reset_obsdata:
+            self.obs.value = nan
+            self._reset_obsdata = False

@@ -1205,7 +1205,7 @@ class Nodes(Devices["Node"]):
 
     def __load_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
-            getattr(node.sequences, seqname).load_series()
+            node.sequences[seqname].load_series()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
@@ -1227,7 +1227,7 @@ class Nodes(Devices["Node"]):
 
     def __save_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
-            seq = getattr(node.sequences, seqname)
+            seq = node.sequences[seqname]
             if seq.ramflag:
                 seq.save_series()
 
@@ -1486,10 +1486,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
 
     def __load_modelseries(self, name_subseqs) -> None:
         for element in printtools.progressbar(self):
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, ())
-            for seq in subseqs:
-                seq.load_series()
+            element.model.sequences[name_subseqs].load_series()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
@@ -1526,11 +1523,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
 
     def __save_modelseries(self, name_subseqs: str) -> None:
         for element in printtools.progressbar(self):
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, ())
-            for seq in subseqs:
-                if seq.ramflag:
-                    seq.save_series()
+            element.model.sequences[name_subseqs].save_series()
 
 
 class Device(Generic[DevicesTypeUnbound]):
@@ -1747,8 +1740,6 @@ following error occurred: Adding devices to immutable Elements objects is not al
         variable: Optional[NodeVariableType] = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
-        if value == "test2":
-            x = 1
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if "new_instance" in vars(self):

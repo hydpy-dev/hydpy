@@ -1464,7 +1464,7 @@ class XMLSubseries(XMLSelector):
         sequences selected by the given element of the actual XML file.
 
         Use the memory argument to pass in already considered sequences; method
-        |XMLSubseries.prepare_subseries| adds new sequences automatically.
+        |XMLSubseries.prepare_series| adds new sequences automatically.
 
         Method |IOSequence.prepare_series| solves a complex task, as it needs to
         determine the correct arguments for mehod |IOSequence.prepare_series| of class
@@ -1568,8 +1568,8 @@ class XMLSubseries(XMLSelector):
         We temporarily convert the only reader element to a writer element and apply
         method |XMLSubseries.prepare_series| again.  This is the only case where two
         options (|IOSequence.ramflag| and |IOSequence.diskflag_writing|) are |True| at
-        the same time (see the documentation on method |PrepareSeriesArguments.from_xmldata|
-        for further information):
+        the same time (see the documentation on method
+        |PrepareSeriesArguments.from_xmldata| for further information):
 
         >>> reader = series_io.readers[0]
         >>> reader.root.tag = reader.root.tag.replace("reader", "writer")

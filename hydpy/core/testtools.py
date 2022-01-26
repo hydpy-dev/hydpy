@@ -1350,7 +1350,7 @@ methods array, read, subdevicenames, write
     disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, 1)
 
     To avoid confusion, |make_abc_testable| appends an underscore the original
     class-name:

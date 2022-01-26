@@ -25,10 +25,7 @@ class AttributeNotReady(RuntimeError):
     """The attribute is principally defined but  so far unprepared."""
 
 
-def attrready(
-    obj: Any,
-    name: str
-) -> bool:
+def attrready(obj: Any, name: str) -> bool:
     """Return |False| when trying the access the attribute of the given object
     results in an |AttributeNotReady| error and otherwise return |True|.
 

@@ -1717,10 +1717,10 @@ class Node(Device[Nodes]):
 
     You cannot (or at least should not) add new elements manually:
 
-    >>> node.entries = "element"
+    >>> node.entries = "element"  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AttributeError: can't set attribute
+    AttributeError: can't set attribute...
     >>> node.exits.add_device("element")
     Traceback (most recent call last):
     ...
@@ -1822,10 +1822,10 @@ following error occurred: Adding devices to immutable Elements objects is not al
 
         To avoid confusion, one cannot change |Node.variable|:
 
-        >>> node.variable = "H"
+        >>> node.variable = "H"  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: can't set attribute
+        AttributeError: can't set attribute...
         >>> Node("test1", variable="H")
         Traceback (most recent call last):
         ...

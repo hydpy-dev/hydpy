@@ -3729,11 +3729,11 @@ class NodeSequence(IOSequence["NodeSequences", FastAccessNodeSequence]):
         Node sequences return errors like the following if they receive misspecified
         values or ill-configured:
 
-        >>> sim.value = 1.0, 2.0
+        >>> sim.value = 1.0, 2.0   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         TypeError: While trying to assign the value `(1.0, 2.0)` to sequence `sim` of \
-node `node`, the following error occurred: float() argument must be a string or a \
+node `node`, the following error occurred: float() argument must be a string or a... \
 number, not 'tuple'
 
         >>> del sim.fastaccess

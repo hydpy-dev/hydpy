@@ -10,6 +10,7 @@ matrix:
     - python: 3.9
 
 install:
+  - pip install --upgrade pip virtualenv
   - pip install -r requirements.txt
 
 script:

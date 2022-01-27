@@ -141,13 +141,9 @@ def main(  # pylint: disable=too-many-branches
                 suite = unittest.TestSuite()
                 try:
                     if name[-4:] in (".rst", ".pyx"):
-                        test = doctest.DocFileSuite(
-                            name, module_relative=False, optionflags=doctest.ELLIPSIS
-                        )
+                        test = doctest.DocFileSuite(name, module_relative=False)
                     else:
-                        test = doctest.DocTestSuite(
-                            module, optionflags=doctest.ELLIPSIS
-                        )
+                        test = doctest.DocTestSuite(module)
                     suite.addTest(test)
                 except ValueError as exc:
                     if exc.args[-1] != "has no docstrings":

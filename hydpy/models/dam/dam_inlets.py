@@ -9,7 +9,7 @@ from hydpy.core import sequencetools
 class Q(sequencetools.InletSequence):
     """Inflow [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class S(sequencetools.InletSequence):

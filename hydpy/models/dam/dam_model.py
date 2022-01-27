@@ -225,7 +225,7 @@ class Pic_Inflow_V1(modeltools.Method):
     """Update the inlet sequence |Inflow|.
 
     Basic equation:
-      :math:`Inflow = Q`
+      :math:`Inflow = \\sum Q`
     """
 
     REQUIREDSEQUENCES = (dam_inlets.Q,)
@@ -235,14 +235,16 @@ class Pic_Inflow_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.inflow = inl.q[0]
+        flu.inflow = 0.0
+        for idx in range(inl.len_q):
+            flu.inflow += inl.q[idx][0]
 
 
 class Pic_Inflow_V2(modeltools.Method):
     """Update the inlet sequence |Inflow|.
 
     Basic equation:
-      :math:`Inflow = Q + S + R`
+      :math:`Inflow = S + R + \\sum Q`
     """
 
     REQUIREDSEQUENCES = (
@@ -256,7 +258,9 @@ class Pic_Inflow_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.inflow = inl.q[0] + inl.s[0] + inl.r[0]
+        flu.inflow = inl.s[0] + inl.r[0]
+        for idx in range(inl.len_q):
+            flu.inflow += inl.q[idx][0]
 
 
 class Pic_TotalRemoteDischarge_V1(modeltools.Method):

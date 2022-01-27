@@ -406,7 +406,7 @@ vectors `x` (2) and `y` (3) must be identical.
                     f"The lenghts of vectors `x` ({len(xs)}) and `y` ({len(ys)}) must "
                     f"be identical."
                 )
-            if not xs:
+            if len(xs) == 0:
                 raise ValueError("Vectors `x` and `y` must not be empty.")
             if len(xs) == 1:
                 return cls(Poly(x0=xs[0], cs=(ys[0],)))

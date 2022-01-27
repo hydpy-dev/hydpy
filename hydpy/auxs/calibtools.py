@@ -2262,7 +2262,7 @@ complete set of relevant elements (element1 and element2).
     By default, each |ReplaceIUH| object triggers the calculation of the ARMA
     coefficients during the execution of its method |ReplaceIUH.apply_value|, which can
     be a waste of computation time if we want to calibrate multiple |IUH| coefficients.
-    To save computation time in such cases, set option |ReplaceIUH.update_parameters|
+    To save computation time in such cases, set option |RuleIUH.update_parameters|
     to |False| for all except the lastly executed |ReplaceIUH| objects:
 
     >>> u.update_parameters = False

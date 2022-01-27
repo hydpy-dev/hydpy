@@ -783,11 +783,11 @@ class Substituter:
 
         >>> from hydpy.auxs import calibtools
         >>> substituter.add_module(calibtools)
-        >>> substituter.find("ReplaceIUH.update_parameters")
-        |ReplaceIUH.update_parameters| \
-:attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
-        |calibtools.ReplaceIUH.update_parameters| \
-:attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
+        >>> substituter.find("RuleIUH.update_parameters")
+        |RuleIUH.update_parameters| \
+:attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
+        |calibtools.RuleIUH.update_parameters| \
+:attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
 
         When adding Cython modules, the `cython` flag should be set |True|:
 

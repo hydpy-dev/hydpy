@@ -45,6 +45,7 @@ from hydpy import examples
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core import typingtools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import interputils
 from hydpy.cythons.autogen import ppolyutils
@@ -481,8 +482,7 @@ class Substituter:
         >>> Substituter.consider_member("warnings", numpy.warnings, numpy)
         False
 
-        Members that are actually defined in other modules should
-        not be added:
+        Members that are actually defined in other modules should not be added:
 
         >>> numpy.Substituter = Substituter
         >>> Substituter.consider_member("Substituter", numpy.Substituter, numpy)
@@ -499,6 +499,19 @@ class Substituter:
 
         >>> import hydpy
         >>> Substituter.consider_member("Node", hydpy.Node, hydpy)
+        False
+
+        Module |typingtools| is unique, as it is the only one for which
+        |Substituter.consider_member| returns |True| all explicitly exported type
+        aliases:
+
+        >>> from hydpy.core import sequencetools, typingtools
+        >>> Substituter.consider_member(
+        ...     "NDArrayFloat", typingtools.NDArrayFloat, typingtools)
+        True
+
+        >>> Substituter.consider_member(
+        ...     "NDArrayFloat", typingtools.NDArrayFloat, sequencetools)
         False
 
         For descriptor instances (with method `__get__`) being members of classes
@@ -529,6 +542,8 @@ class Substituter:
         real_module = getattr(member, "__module__", None)
         if (module is not typing) and (name_member in typing.__all__):
             return False
+        if (module is typingtools) and (name_member in typingtools.__all__):
+            return True
         if not real_module:
             return True
         if real_module != module.__name__:
@@ -788,6 +803,14 @@ class Substituter:
 :attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
         |calibtools.RuleIUH.update_parameters| \
 :attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
+
+        Module |typingtools| is unique, as it is the only one for which
+        |Substituter.add_module| considers all explicitly exported type aliases:
+
+        >>> from hydpy.core import typingtools
+        >>> substituter.add_module(typingtools)
+        >>> substituter.find("|NDArrayFloat|")
+        |NDArrayFloat| :class:`~hydpy.core.typingtools.NDArrayFloat`
 
         When adding Cython modules, the `cython` flag should be set |True|:
 

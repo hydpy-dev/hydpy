@@ -264,8 +264,7 @@ logging-modules=logging
 [MISCELLANEOUS]
 
 # List of note tags to take in consideration, separated by a comma.
-notes=FixMe,
-      ToDo
+notes=FixMe
 
 
 [SIMILARITIES]

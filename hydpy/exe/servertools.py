@@ -1662,7 +1662,7 @@ def start_server(
     |mimetypes.init| as usual, (over)writes `mimetypes.txt` and tries to proceed as
     expected.
     """
-    confpath: str = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+    confpath: str = conf.__path__[0]
     filepath = os.path.join(confpath, "mimetypes.txt")
     try:
         with open(filepath, encoding=config.ENCODING) as file_:

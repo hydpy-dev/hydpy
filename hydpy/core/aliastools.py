@@ -152,7 +152,7 @@ def write_sequencealiases() -> None:
     >>> write_sequencealiases()
     """
     sqt = sequencetools
-    modelpath: str = models.__path__[0]  # type: ignore[attr-defined, modelname-defined]
+    modelpath: str = models.__path__[0]
     for groupnames, sequencetypes, filename in (
         (
             ("inputs",),
@@ -184,7 +184,7 @@ def write_sequencealiases() -> None:
                     ):
                         alias = f"{modelname}_{member.__name__}"
                         sequence2alias[member] = alias
-        hydpypath = hydpy.__path__[0]  # type: ignore[attr-defined, modelname-defined]
+        hydpypath = hydpy.__path__[0]
 
         lines = [
             f'"""This module provides the aliases of the {filename[:-4]} '

@@ -41,7 +41,7 @@ from hydpy.docs import sphinx
 from hydpy.docs import rst
 
 # Prepare folder `auto`.
-docspath: str = docs.__path__[0]  # type: ignore[attr-defined, name-defined]
+docspath: str = docs.__path__[0]
 AUTOPATH = os.path.join(docspath, "auto")
 if os.path.exists(AUTOPATH):
     shutil.rmtree(AUTOPATH)
@@ -50,7 +50,7 @@ shutil.copytree(os.path.join(docspath, "html_"), os.path.join(AUTOPATH, "html_")
 
 # Import all base and application models, to make sure all substituters are up-to-date.
 # (I am not sure if this is really necessary but it does not hurt.)
-modelspath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
+modelspath: str = models.__path__[0]
 for filename in sorted(os.listdir(modelspath)):
     if not filename.startswith("_"):
         filename = filename.split(".")[0]
@@ -64,7 +64,7 @@ hydpy.substituter.update_slaves()
 # or package.
 path2source = {}
 for subpackage in (auxs, core, cythons, exe, models, hydpy):
-    subpackagepath: str = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+    subpackagepath: str = subpackage.__path__[0]
     if subpackage is hydpy:
         filenames = ["examples.py"]
     else:
@@ -148,7 +148,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
 # Copy additional files into folder `auto` and, for the rst files, add the
 # required substitution replacement commands.
 for subpackage in (autofigs, bib, figs, sphinx, rst):
-    subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined]
+    subpackagepath = subpackage.__path__[0]
     for filename in sorted(os.listdir(subpackagepath)):
         path_in = os.path.join(subpackagepath, filename)
         path_out = os.path.join(AUTOPATH, filename)

@@ -265,7 +265,7 @@ def calc_smoothpar_min1(metapar):
 
 
 # Load the supporting points required for method `calc_smoothpar_logistic2`:
-confpath = conf.__path__[0]  # type: ignore[attr-defined, name-defined]
+confpath = conf.__path__[0]
 xys = numpy.load(os.path.join(confpath, "support_points_for_smoothpar_logistic2.npy"))
 _cubic_interpolator_for_smoothpar_logistic2 = interpolate.interp1d(
     xys[0], xys[1], kind="cubic", fill_value="extrapolate"

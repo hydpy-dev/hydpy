@@ -11,7 +11,7 @@ import importlib
 # from HydPy
 from hydpy.cythons import autogen
 
-autogenpath: str = autogen.__path__[0]  # type: ignore[attr-defined, name-defined]
+autogenpath: str = autogen.__path__[0]
 modulenames = sorted(
     str(fn.split(".")[0])
     for fn in os.listdir(autogenpath)

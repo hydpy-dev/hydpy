@@ -263,8 +263,8 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     """
     if dirpath is None:
         testtools.TestIO.clear()
-        dirpath = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined]
-    datapath: str = data.__path__[0]  # type: ignore[attr-defined, name-defined]
+        dirpath = iotesting.__path__[0]
+    datapath: str = data.__path__[0]
     shutil.copytree(os.path.join(datapath, "LahnH"), os.path.join(dirpath, "LahnH"))
     seqpath = os.path.join(dirpath, "LahnH", "series")
     for folder in ("output", "node", "temp"):

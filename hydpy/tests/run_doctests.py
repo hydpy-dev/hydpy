@@ -104,7 +104,7 @@ def main(  # pylint: disable=too-many-branches
     pingtime: float = time.perf_counter()
 
     for mode, doctests in alldoctests.items():
-        path_ = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        path_ = hydpy.__path__[0]
         filenames_: Sequence[str]
         for dirpath, _, filenames_ in os.walk(path_):
             if (  # pylint: disable=too-many-boolean-expressions

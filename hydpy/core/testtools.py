@@ -968,7 +968,7 @@ datetime of the Python standard library for for further information.
             legend=dict(tracegroupgap=100),
         )
 
-        docspath = docs.__path__[0]  # type: ignore[attr-defined, name-defined]
+        docspath = docs.__path__[0]
         fig.write_html(os.path.join(docspath, "html_", filename))
 
 
@@ -1301,7 +1301,7 @@ class TestIO:
 
     def __enter__(self) -> "TestIO":
         self._path = os.getcwd()
-        iotestingpath: str = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+        iotestingpath: str = iotesting.__path__[0]
         os.chdir(os.path.join(iotestingpath))
         if self._clear_own:
             self._olds = sorted(os.listdir("."))
@@ -2034,7 +2034,7 @@ def save_autofig(
 
     When passing no figure, function |save_autofig| takes the currently active one.
     """
-    filepath = f"{autofigs.__path__[0]}/{filename}"  # type: ignore[attr-defined]
+    filepath = f"{autofigs.__path__[0]}/{filename}"
     if figure:
         figure.savefig(filepath)
         figure.clear()

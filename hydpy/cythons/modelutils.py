@@ -499,7 +499,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.cydirpath)
         True
         """
-        path = cythons.autogen.__path__[0]  # type: ignore[attr-defined, name-defined]
+        path = cythons.autogen.__path__[0]
         return cast(str, path)
 
     @property
@@ -1944,7 +1944,7 @@ class PyxWriter:
         >>> os.path.exists(filepath)
         False
         """
-        hydpypath: str = hydpy.__path__[0]  # type: ignore[attr-defined, name-defined]
+        hydpypath: str = hydpy.__path__[0]
         filepath = os.path.join(hydpypath, f"{self.model.name}.py")
         base = ".".join(self.model.__module__.split(".")[:3])
         with open(filepath, "w", encoding=config.ENCODING) as stubfile:

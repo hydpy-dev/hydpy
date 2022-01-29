@@ -10,7 +10,7 @@ from hydpy import models
 from hydpy.core.testtools import perform_consistencychecks
 
 print("Perform all available consistency checks:\n")
-dirpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
+dirpath: str = models.__path__[0]
 applicationmodels = sorted(
     fn.split(".")[0]
     for fn in os.listdir(dirpath)

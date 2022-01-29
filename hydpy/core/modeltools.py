@@ -55,17 +55,19 @@ class Method:
 class IndexProperty:
     """Base class for index descriptors like |Idx_Sim|."""
 
-    def __set_name__(self, owner: "Model", name: str) -> None:
+    name: str
+
+    def __set_name__(self, owner: Model, name: str) -> None:
         self.name = name.lower()
 
-    def __get__(self, obj: "Model", objtype=None):
+    def __get__(self, obj: Model, objtype=None):
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: "Model", value: int) -> None:
+    def __set__(self, obj: Model, value: int) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
@@ -95,13 +97,19 @@ class Idx_Sim(IndexProperty):
     'idx_sim'
     """
 
+    def __init__(self) -> None:
+        self.__doc__ = "The simulation step index."
+
 
 class Idx_HRU(IndexProperty):
     """The hydrological response unit index.
 
-    See class |Idx_HRU| for an explanation on the purpose and handling of objects of
+    See class |Idx_Sim| for an explanation on the purpose and handling of objects of
     |IndexProperty| subclasses.
     """
+
+    def __init__(self) -> None:
+        self.__doc__ = "The hydrological response unit index."
 
 
 class Model:

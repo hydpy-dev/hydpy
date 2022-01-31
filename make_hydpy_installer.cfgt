@@ -16,7 +16,7 @@ bitness = 64
 [Include]
 pypi_wheels = numpy==[auto]
 	scipy==[auto]
-	typing_extensions==3.10.0.2
+	typing_extensions==4.0.1
 	matplotlib==[auto]
 	cycler==[auto]
 	six==[auto]
@@ -45,6 +45,7 @@ pypi_wheels = numpy==[auto]
 	tomli==[auto]
 	click==[auto]
 	colorama==[auto]
+	black==[auto]
 
 local_wheels = dist/*.whl
 
@@ -55,8 +56,6 @@ packages = wrapt
 	jinja2
 	tkinter
 	_tkinter
-	black
-	_black_version
 	blib2to3
 	regex
 

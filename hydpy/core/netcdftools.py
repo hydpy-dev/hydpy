@@ -469,7 +469,7 @@ class JITAccessInfo(NamedTuple):
     simulation index (as defined by |Idx_Sim|)."""
     columns: Tuple[int, ...]
     """Indices of the relevant columns of the NetCDF file correctly ordered with 
-    respect to |NetCDFInfoJITAccess.data|."""
+    respect to |JITAccessInfo.data|."""
     data: NDArrayFloat
     """Bridge to transfer data between the NetCDF file and the (cythonized) 
     hydrological models."""

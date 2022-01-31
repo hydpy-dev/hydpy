@@ -44,8 +44,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the
     application models |lland_v1|, |lland_v2|, and |hland_v1|.  Here, we apply
-    |prepare_io_example_1| and shortly discuss different aspects of the data it
-    generates.
+    |prepare_io_example_1| and shortly discuss different aspects of its generated data.
 
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
@@ -58,22 +57,15 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
               "2000-01-05 00:00:00",
               "1d")
 
-    (2) It creates a flat IO testing directory structure:
+    (2) It prepares an empty directory for IO testing:
 
-    >>> pub.sequencemanager.inputdirpath
-    'inputpath'
-    >>> pub.sequencemanager.fluxdirpath
-    'outputpath'
-    >>> pub.sequencemanager.statedirpath
-    'outputpath'
-    >>> pub.sequencemanager.nodedirpath
-    'nodepath'
     >>> import os
-    >>> from hydpy import TestIO
-    >>> with TestIO():
-    ...     print(sorted(filename for filename in os.listdir(".")
-    ...                  if not filename.startswith("_")))
-    ['inputpath', 'nodepath', 'outputpath']
+    >>> from hydpy import repr_, TestIO
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     repr_(pub.sequencemanager.currentpath)
+    ...     os.listdir("project/series/default")
+    '...iotesting/project/series/default'
+    []
 
     (3) It returns four |Element| objects handling either application model |lland_v1|
     |lland_v2|, or |hland_v1|, and two |Node| objects handling variables `Q` and `T`:
@@ -142,12 +134,11 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     InfoArray(False)
     """
     testtools.TestIO.clear()
+
+    hydpy.pub.projectname = "project"
     hydpy.pub.sequencemanager = filetools.SequenceManager()
     with testtools.TestIO():
-        hydpy.pub.sequencemanager.inputdirpath = "inputpath"
-        hydpy.pub.sequencemanager.fluxdirpath = "outputpath"
-        hydpy.pub.sequencemanager.statedirpath = "outputpath"
-        hydpy.pub.sequencemanager.nodedirpath = "nodepath"
+        os.makedirs("project/series/default")
 
     hydpy.pub.timegrids = "2000-01-01", "2000-01-05", "1d"
 
@@ -243,7 +234,7 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     root: LahnH __init__.py
     LahnH/control: default
     LahnH/conditions: init_1996_01_01_00_00_00
-    LahnH/series: input node output temp
+    LahnH/series: default
 
     Pass an alternative path if you prefer to work in another directory:
 
@@ -266,14 +257,11 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
         dirpath = iotesting.__path__[0]
     datapath: str = data.__path__[0]
     shutil.copytree(os.path.join(datapath, "LahnH"), os.path.join(dirpath, "LahnH"))
-    seqpath = os.path.join(dirpath, "LahnH", "series")
-    for folder in ("output", "node", "temp"):
-        os.makedirs(os.path.join(seqpath, folder))
 
 
 def prepare_full_example_2(
-    lastdate: "timetools.DateConstrArg" = "1996-01-05",
-) -> Tuple[hydpytools.HydPy, "pubtools.Pub", Type[testtools.TestIO]]:
+    lastdate: timetools.DateConstrArg = "1996-01-05",
+) -> Tuple[hydpytools.HydPy, pubtools.Pub, Type[testtools.TestIO]]:
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function

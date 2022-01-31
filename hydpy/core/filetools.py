@@ -170,8 +170,7 @@ class FileManager:
             pass
         self._currentdir = None
 
-    @propertytools.ProtectedPropertyStr
-    def projectdir(self) -> str:
+    def _get_projectdir(self) -> str:
         """The name of the main folder of a project.
 
         For the `LahnH` example project, |FileManager.projectdir| is (not surprisingly)
@@ -203,15 +202,17 @@ class FileManager:
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
 `filemanager` has not been prepared so far.
         """
-        return self._projectdir
+        return self._projectdir  # type: ignore[return-value]
 
-    @projectdir.setter
-    def projectdir(self, name: str) -> None:
+    def _set_projectdir(self, name: str) -> None:
         self._projectdir = name
 
-    @projectdir.deleter
-    def projectdir(self) -> None:
+    def _del_projectdir(self) -> None:
         self._projectdir = None
+
+    projectdir = propertytools.ProtectedPropertyStr(
+        _get_projectdir, _set_projectdir, _del_projectdir
+    )
 
     @property
     def basepath(self) -> str:
@@ -1172,7 +1173,9 @@ class _DescriptorType(_Descriptor[str]):
         self.__doc__ = f"Currently selected type of the {sequencetype} sequence files."
 
     def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
+        self,
+        obj: Optional[SequenceManager],
+        type_: Optional[Type[SequenceManager]] = None,
     ) -> str:
         if obj is None:
             return self
@@ -1206,31 +1209,6 @@ class _DescriptorOverwrite(_Descriptor[bool]):
 
     def __set__(self, obj: SequenceManager, value: bool) -> None:
         self.set_value(obj, value)
-
-
-class _DescriptorPath(_Descriptor[Optional[str]]):
-    def __init__(self, default: str, sequencetype: str) -> None:
-        super().__init__(None, sequencetype)
-        self.sequencedir = default
-        self.sequencetype = sequencetype
-        self.__doc__ = f"Path of the {sequencetype} sequence directory."
-
-    def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
-    ) -> str:
-        if obj is None:
-            return self
-        value = self.get_value(obj)
-        if value is None:
-            return os.path.join(obj.basepath, self.sequencedir)
-        return value
-
-    def __set__(self, obj: SequenceManager, value: Optional[str]) -> None:
-        if value is not None:
-            abspath = os.path.abspath(value)
-            if not os.path.exists(abspath):
-                os.makedirs(abspath)
-            self.set_value(obj, value)
 
 
 class _DescriptorAggregate(_Descriptor[str]):
@@ -1299,9 +1277,9 @@ class SequenceManager(FileManager):
     related to |IOSequence| objects.
 
     Working with a complete *HydPy* project, one often does not use the
-    |SequenceManager|  directly, except one wishes to load data from or store data to
-    directories that differ from the default settings.  In the following examples, we
-    show the essential features of class |SequenceManager| based on the example project
+    |SequenceManager|  directly, except one wishes to load or save time series data in
+    a way different from the default settings.  The following examples show the
+    essential features of class |SequenceManager| based on the example project
     configuration defined by function |prepare_io_example_1|.
 
     We prepare the project and select one 0-dimensional sequence of type |Sim| and one
@@ -1323,20 +1301,21 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.save_file(sim)
     ...     nkor.save_series()
 
-    To check that this was successful, we can load the file content from the output
-    directory defined by |prepare_io_example_1| and print it:
+    We can load the file content from the output directory defined by
+    |prepare_io_example_1| and print it to check this was successful:
 
     >>> import os
     >>> from hydpy import round_
-    >>> def print_file(path, filename):
-    ...     path = os.path.join(path, filename)
+    >>> def print_file(filename):
+    ...     path = os.path.join("project", "series", "default", filename)
     ...     with TestIO():
     ...         with open(path) as file_:
     ...             lines = file_.readlines()
     ...     print("".join(lines[:3]), end="")
     ...     for line in lines[3:]:
     ...         round_([float(x) for x in line.split()])
-    >>> print_file("nodepath", "node2_sim_t.asc")
+
+    >>> print_file("node2_sim_t.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1344,7 +1323,7 @@ class SequenceManager(FileManager):
     65.0
     66.0
     67.0
-    >>> print_file("outputpath", "element2_flux_nkor.asc")
+    >>> print_file("element2_flux_nkor.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1379,7 +1358,7 @@ class SequenceManager(FileManager):
     Wrongly formatted ASCII files and incomplete data should result in understandable
     error messages:
 
-    >>> path = os.path.join("nodepath", "node2_sim_t.asc")
+    >>> path = os.path.join("project", "series", "default", "node2_sim_t.asc")
     >>> with TestIO():
     ...     with open(path) as file_:
     ...         right = file_.read()
@@ -1390,8 +1369,8 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    NameError: While trying to load the time-series data of sequence `sim` of \
-node `node2`, the following error occurred: name 'timegrid' is not defined
+    NameError: While trying to load the time-series data of sequence `sim` of node \
+`node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
     >>> with TestIO():
@@ -1404,9 +1383,9 @@ node `node2`, the following error occurred: name 'timegrid' is not defined
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to load the time-series data of sequence `sim` \
-of node `node2`, the following error occurred: The series array of sequence \
-`sim` of node `node2` contains 1 nan value.
+    RuntimeError: While trying to load the time-series data of sequence `sim` of node \
+`node2`, the following error occurred: The series array of sequence `sim` of node \
+`node2` contains 1 nan value.
     >>> sim.series = sim_series
 
     By default, overwriting existing time series files is disabled:
@@ -1428,7 +1407,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    >>> print_file("element2_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1437,7 +1416,7 @@ not allowed to overwrite the existing file `...`.
     20.5
     22.5
 
-    Method |IOSequence.save_mean| is strongly related with method
+    Method |IOSequence.save_mean| is strongly related to method
     |IOSequence.average_series|, meaning one can pass the same arguments.  We show this
     by changing the land use classes of `element2` (parameter |lland_control.Lnk|) to
     field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|), and averaging
@@ -1447,7 +1426,7 @@ not allowed to overwrite the existing file `...`.
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
     ...     nkor.save_mean("acker")
-    >>> print_file("outputpath", "element2_flux_nkor_mean.asc")
+    >>> print_file("element2_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1457,7 +1436,7 @@ not allowed to overwrite the existing file `...`.
     22.0
 
     Another option is to store data using |numpy| binary files, which is a good option
-    for saving computation times, but possibly a problematic option for sharing data
+    for saving computation times but possibly a problematic option for sharing data
     with colleagues:
 
     >>> pub.sequencemanager.generalfiletype = "npy"
@@ -1468,7 +1447,7 @@ not allowed to overwrite the existing file `...`.
     The time information (without time zone information) is available within the first
     thirteen entries:
 
-    >>> path = os.path.join("nodepath", "node2_sim_t.npy")
+    >>> path = os.path.join("project", "series", "default", "node2_sim_t.npy")
     >>> from hydpy import numpy, print_values
     >>> with TestIO():
     ...     print_values(numpy.load(path))
@@ -1493,10 +1472,11 @@ not allowed to overwrite the existing file `...`.
     Writing mean values into |numpy| binary files is also supported:
 
     >>> import numpy
+    >>> path = os.path.join(
+    ...     "project", "series", "default", "element2_flux_nkor_mean.npy")
     >>> with TestIO():
     ...     nkor.save_mean("wasser")
-    ...     numpy.load(os.path.join("outputpath",
-    ...                             "element2_flux_nkor_mean.npy"))[-4:]
+    ...     numpy.load(path)[-4:]
     array([17., 19., 21., 23.])
 
     Generally, trying to load data for "deactivated" sequences results in the following
@@ -1580,7 +1560,7 @@ Select one of the following modes: none and mean.
 
     SUPPORTED_MODES = "npy", "asc", "nc"
     BASEDIR = "series"
-    DEFAULTDIR = None
+    DEFAULTDIR = "default"
 
     inputfiletype = _DescriptorType("asc", "input")
     factorfiletype = _DescriptorType("asc", "factor")
@@ -1606,19 +1586,6 @@ Select one of the following modes: none and mean.
         fluxoverwrite,
         stateoverwrite,
         nodeoverwrite,
-    )
-
-    inputdirpath = _DescriptorPath("input", "input")
-    factordirpath = _DescriptorPath("output", "factor")
-    fluxdirpath = _DescriptorPath("output", "flux")
-    statedirpath = _DescriptorPath("output", "state")
-    nodedirpath = _DescriptorPath("node", "node")
-    generaldirpath = _GeneralDescriptor[str](
-        inputdirpath,
-        factordirpath,
-        fluxdirpath,
-        statedirpath,
-        nodedirpath,
     )
 
     inputaggregation = _DescriptorAggregate("none", "input")

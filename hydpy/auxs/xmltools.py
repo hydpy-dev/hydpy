@@ -72,7 +72,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 >>> from hydpy import print_values
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset("LahnH/series/output/hland_v1_state_sm.nc")
+...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id"))[:3]
 ...     print_values(query_variable(ncfile, "state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
@@ -82,15 +82,18 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 Spatially averaged time series values have been stored in files ending with the suffix
 `_mean`:
 
+>>> import time
+>>> time.sleep(10)
+
 >>> with TestIO(clear_all=True):
-...     print_values((numpy.load(
-...         "LahnH/series/output/lahn_1_sim_q_mean.npy")[13:]))
+...     print_values((numpy.load("LahnH/series/averages/lahn_1_sim_q_mean.npy")[13:]))
 9.647824, 8.517795, 7.781311, 7.344944, 7.153142
 """
 # import...
 # ...from standard library
 from __future__ import annotations
 import collections
+import contextlib
 import copy
 import itertools
 import os
@@ -332,7 +335,8 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     interface.series_io.prepare_series()
     interface.series_io.load_series()
     write("Perform the simulation run")
-    hp.simulate()
+    with interface.series_io.modify_dirpath():
+        hp.simulate()
     write("Write the desired condition files")
     interface.conditions_io.save_conditions()
     write("Write the desired time series files")
@@ -636,7 +640,7 @@ correctly refer to one of the available XML schema files \
         a valid NetCDF file.  The |XMLInterface| object then interprets the file's
         time information:
 
-        >>> name = "LahnH/series/input/hland_v1_input_p.nc"
+        >>> name = "LahnH/series/default/hland_v1_input_p.nc"
         >>> with TestIO():
         ...     with open("LahnH/single_run.xml") as file_:
         ...         lines = file_.readlines()
@@ -1140,8 +1144,8 @@ class XMLSeries(XMLBase):
         >>> XMLSubseries.prepare_series = prepare_series
         """
         memory: Set[sequencetools.IOSequence[Any, Any]] = set()
-        for output in itertools.chain(self.readers, self.writers):
-            output.prepare_series(memory)
+        for ioseries in itertools.chain(self.readers, self.writers):
+            ioseries.prepare_series(memory)
 
     def load_series(self) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects handled as
@@ -1154,6 +1158,17 @@ class XMLSeries(XMLBase):
         "writers"."""
         for writer in self.writers:
             writer.save_series()
+
+    @contextlib.contextmanager
+    def modify_dirpath(self) -> Iterator[None]:
+        """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
+        registered for reading or writing time-series data "just in time" during a
+        simulation run."""
+        for ioseries in itertools.chain(self.readers, self.writers):
+            ioseries.change_dirpath()
+        yield
+        for ioseries in itertools.chain(self.readers, self.writers):
+            ioseries.reset_dirpath()
 
 
 class XMLSelector(XMLBase):
@@ -1313,7 +1328,8 @@ class XMLSubseries(XMLSelector):
         `writer` element defines the input file type specifically, that the second
         `writer` element defines a general file type, and that the third `writer`
         element does not define any file type.  The base mechanism is the same for
-        other options, e.g. the aggregation mode:
+        other options, e.g. the aggregation mode.  The `directory` element is unique,
+        as it allows for a single directory name only, counting for all sequence types.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1326,6 +1342,8 @@ class XMLSubseries(XMLSelector):
         >>> series_io = interface.series_io
         >>> with TestIO():
         ...     series_io.writers[0].prepare_sequencemanager()
+        ...     pub.sequencemanager.currentdir
+        'default'
         >>> pub.sequencemanager.inputfiletype
         'asc'
         >>> pub.sequencemanager.fluxfiletype
@@ -1334,12 +1352,16 @@ class XMLSubseries(XMLSelector):
         'none'
         >>> with TestIO():
         ...     series_io.writers[1].prepare_sequencemanager()
+        ...     pub.sequencemanager.currentdir
+        'soildata'
         >>> pub.sequencemanager.statefiletype
         'nc'
         >>> pub.sequencemanager.stateoverwrite
         False
         >>> with TestIO():
         ...     series_io.writers[2].prepare_sequencemanager()
+        ...     pub.sequencemanager.currentdir
+        'averages'
         >>> pub.sequencemanager.statefiletype
         'npy'
         >>> pub.sequencemanager.factoraggregation
@@ -1348,10 +1370,17 @@ class XMLSubseries(XMLSelector):
         'mean'
         >>> pub.sequencemanager.inputoverwrite
         True
-        >>> pub.sequencemanager.inputdirpath
-        'LahnH/series/input'
         """
-        for opt in ("filetype", "aggregation", "overwrite", "dirpath"):
+        element = self.find("directory")
+        if element is None:
+            element = self.master.find("directory")
+        if element is None:
+            hydpy.pub.sequencemanager.currentdir = "default"
+        else:
+            assert element.text is not None
+            hydpy.pub.sequencemanager.currentdir = element.text
+
+        for opt in ("filetype", "aggregation", "overwrite"):
             xml_special = self.find(opt)
             xml_general = self.master.find(opt)
             for name_manager, name_xml in zip(
@@ -1468,13 +1497,13 @@ class XMLSubseries(XMLSelector):
         Method |IOSequence.prepare_series| solves a complex task, as it needs to
         determine the correct arguments for mehod |IOSequence.prepare_series| of class
         |IOSequence|.  Those arguments depend on wether the respective |XMLSubseries|
-        element is for reading or writing data, adresses input or output sequences, and
-        if one prefers to handle time-series data in RAM or to read or write it "just
+        element is for reading or writing data, addresses input or output sequences,
+        and if one prefers to handle time-series data in RAM or read or write it "just
         in time" during model simulations.  Method |XMLSubseries.prepare_series|
         delegates some of the related logic to the |PrepareSeriesArguments.from_xmldata|
-        method of class |PrepareSeriesArguments|.  The following examples try to
-        demonstrate that method |XMLSubseries.prepare_series| implements the remaining
-        logic correctly.
+        method of class |PrepareSeriesArguments|.  The following examples demonstrate
+        that method |XMLSubseries.prepare_series| implements the remaining logic
+        correctly.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1513,7 +1542,7 @@ class XMLSubseries(XMLSelector):
         ToDo: Better raise an error if there are multiple inconsistent specifications
         for the same sequence?
 
-        Next, we check and discuss the propert setting of the properties
+        Next, we check and discuss the proper setting of the properties
         |IOSequence.ramflag|, |IOSequence.diskflag_reading|, and
         |IOSequence.diskflag_writing| for the sequences defined in `single_run.xml`.
         First, we call |XMLSubseries.prepare_series| for available |XMLSubseries|
@@ -1562,7 +1591,7 @@ class XMLSubseries(XMLSelector):
         diskflag_reading=False
         diskflag_writing=False
 
-        # ToDo: Support jit for writing and report error for reading?
+        # ToDo: Support jit for writing and report an error for reading?
 
         We temporarily convert the only reader element to a writer element and apply
         method |XMLSubseries.prepare_series| again.  This is the only case where two
@@ -1704,14 +1733,10 @@ class XMLSubseries(XMLSelector):
         ...     series_io.save_series()
         >>> import numpy
         >>> with TestIO():
-        ...     os.path.exists(
-        ...         "LahnH/series/output/land_lahn_2_flux_pc.npy")
-        ...     os.path.exists(
-        ...         "LahnH/series/output/land_lahn_3_flux_pc.npy")
-        ...     numpy.load(
-        ...         "LahnH/series/output/land_dill_flux_pc.npy")[13+2, 3]
-        ...     numpy.load(
-        ...         "LahnH/series/output/lahn_2_sim_q_mean.npy")[13+4]
+        ...     os.path.exists("LahnH/series/default/land_lahn_2_flux_pc.npy")
+        ...     os.path.exists("LahnH/series/default/land_lahn_3_flux_pc.npy")
+        ...     numpy.load("LahnH/series/default/land_dill_flux_pc.npy")[13+2, 3]
+        ...     numpy.load("LahnH/series/default/lahn_2_sim_q_mean.npy")[13+4]
         True
         False
         9.0
@@ -1724,6 +1749,29 @@ class XMLSubseries(XMLSelector):
                 if not sequence.diskflag_writing:
                     sequence.save_series()
             hydpy.pub.sequencemanager.close_netcdfwriter()
+
+    def change_dirpath(self) -> None:
+        """Set the |IOSequence.dirpath| of all relevant |IOSequence| objects to the
+        |FileManager.currentpath| of the |SequenceManager| object available in the
+        |pub| module.
+
+
+        This "information freezing" is required for those sequences selected for
+        reading data  from or writing data to different directories "just in time"
+        during a simulation run.
+        """
+        if not self._ramflag:
+            self.prepare_sequencemanager()
+            currentpath = hydpy.pub.sequencemanager.currentpath
+            for sequence in self._iterate_sequences():
+                sequence.dirpath = currentpath
+
+    def reset_dirpath(self) -> None:
+        """Revert |XMLSubseries.change_dirpath|."""
+        if not self._ramflag:
+            self.prepare_sequencemanager()
+            for sequence in self._iterate_sequences():
+                del sequence.dirpath
 
 
 class XMLExchange(XMLBase):

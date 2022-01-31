@@ -632,9 +632,9 @@ is not requested to make any time-series data available.
 
     >>> import os
     >>> with TestIO():
-    ...     for subfolder in ("output", "node"):
-    ...         for filename in os.listdir(f"LahnH/series/{subfolder}"):
-    ...             os.remove(f"LahnH/series/{subfolder}/{filename}")
+    ...     for filename in os.listdir(f"LahnH/series/default"):
+    ...         if "input" not in filename:
+    ...             os.remove(f"LahnH/series/default/{filename}")
 
     We again call method |HydPy.prepare_allseries|, but now with assigning |True| to
     the arguments `allocate_ram` and `jit`:

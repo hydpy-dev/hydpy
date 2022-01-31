@@ -33,35 +33,34 @@ and writing data, based on the example configuration defined by function
 >>> from hydpy.examples import prepare_io_example_1
 >>> nodes, elements = prepare_io_example_1()
 
-(1) We prepare a |NetCDFInterface| object for writing data by calling method
+(1) We prepare a |NetCDFInterface| object for writing data by calling the method
 |SequenceManager.open_netcdfwriter|:
 
 >>> from hydpy import pub
 >>> pub.sequencemanager.open_netcdfwriter()
 
-(2) We tell the |SequenceManager| to read and write all the time-series data from and
-to NetCDF files placed within a folder called `example` (In real cases, you would not
-write the `with TestIO():` line.  This code block makes sure we pollute the IO testing
-directory instead of our current working directory):
+(2) We tell the |SequenceManager| to write all the time-series data to NetCDF files:
 
 >>> pub.sequencemanager.generalfiletype = "nc"
->>> from hydpy import TestIO
->>> with TestIO():
-...     pub.sequencemanager.generaldirpath = "example"
 
 (3) We store all the time-series handled by the |Node| and |Element| objects of the
 example dataset by calling |Nodes.save_allseries| of class |Nodes| and
-|Elements.save_allseries| of class |Elements|:
+|Elements.save_allseries| of class |Elements|.  (In real cases, you would not write the
+`with TestIO():` line.  This code block makes sure we pollute the IO testing directory
+instead of our current working directory):
 
->>> nodes.save_allseries()
->>> elements.save_allseries()
+>>> from hydpy import TestIO
+>>> with TestIO():
+...     nodes.save_allseries()
+...     elements.save_allseries()
 
-(4) We again log all sequences, but this time after telling the |SequenceManager| to
-average each time series spatially:
+(4) We again log all sequences, but after telling the |SequenceManager| to average each
+time series spatially:
 
 >>> pub.sequencemanager.generalaggregation = "mean"
->>> nodes.save_allseries()
->>> elements.save_allseries()
+>>> with TestIO():
+...     nodes.save_allseries()
+...     elements.save_allseries()
 
 (5) We can now navigate into the details of the logged time series data via the
 |NetCDFInterface| object and its subobjects.  For example, we can query the logged flux
@@ -75,18 +74,19 @@ the relevant hydrological response units):
 ('element1_0', 'element2_0', 'element2_1')
 
 (6) In the example discussed here, all sequences are stored within the same folder
-(`example`).  Storing sequences in separate folders goes hand in hand with storing them
+(`default`).  Storing sequences in separate folders goes hand in hand with storing them
 in separate NetCDF files, of course.  In such cases, you have to include the folder
 into the attribute name:
 
 >>> writer.foldernames
-('example',)
->>> writer.example_lland_v1_flux_nkor.subdevicenames
+('default',)
+>>> writer.default_lland_v1_flux_nkor.subdevicenames
 ('element1_0', 'element2_0', 'element2_1')
 
 (7) We close the |NetCDFInterface| object, which is the moment where the writing
 process happens.  After that, the interface object is not available anymore:
 
+>>> from hydpy import TestIO
 >>> with TestIO():
 ...     pub.sequencemanager.close_netcdfwriter()
 >>> pub.sequencemanager.netcdfwriter
@@ -103,15 +103,14 @@ purpose to demonstrate that reading the data back in actually works:
 
 (9) We move up a gear and and prepare a |NetCDFInterface| object for reading data, log
 all |NodeSequence| and |ModelSequence| objects, and read their time series data from
-the created NetCDF file.  Note that we disable the |Options.checkseries| option
-temporarily to prevent raising an exception when reading incomplete data from file:
+the created NetCDF file.  We temporarily disable the |Options.checkseries| option to
+prevent raising an exception when reading incomplete data from the files:
 
->>> pub.sequencemanager.open_netcdfreader()
->>> nodes.load_simseries()
->>> elements.load_allseries()
->>> with TestIO():
-...     with pub.options.checkseries(False):
-...         pub.sequencemanager.close_netcdfreader()
+>>> with TestIO(), pub.options.checkseries(False):
+...     pub.sequencemanager.open_netcdfreader()
+...     nodes.load_simseries()
+...     elements.load_allseries()
+...     pub.sequencemanager.close_netcdfreader()
 
 (10) We check if the data is available via the test sequences again:
 
@@ -135,15 +134,16 @@ the sake of consistency):
 
 >>> from hydpy.core.netcdftools import netcdf4
 >>> from numpy import array
->>> with TestIO():
-...     with netcdf4.Dataset("example/node_sim_q_mean.nc") as ncfile:
-...         array(ncfile["sim_q"][:])
+>>> filepath = "project/series/default/node_sim_q_mean.nc"
+>>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
+...     array(ncfile["sim_q"][:])
 array([[60.],
        [61.],
        [62.],
        [63.]])
->>> with TestIO():
-...     with netcdf4.Dataset("example/lland_v1_flux_nkor_mean.nc") as ncfile:
+
+>>> filepath = "project/series/default/lland_v1_flux_nkor_mean.nc"
+>>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
 ...         array(ncfile["flux_nkor"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
@@ -385,10 +385,9 @@ def query_timegrid(ncfile: netcdf4.Dataset) -> timetools.Timegrid:
     >>> from hydpy import TestIO
     >>> from hydpy.core.netcdftools import netcdf4
     >>> from hydpy.core.netcdftools import query_timegrid
-    >>> filepath = "LahnH/series/input/hland_v1_input_t.nc"
-    >>> with TestIO():
-    ...     with netcdf4.Dataset(filepath) as ncfile:
-    ...         query_timegrid(ncfile)
+    >>> filepath = "LahnH/series/default/hland_v1_input_t.nc"
+    >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile)
     Timegrid("1996-01-01 00:00:00",
              "2007-01-01 00:00:00",
              "1d")
@@ -526,9 +525,12 @@ class NetCDFInterface:
     >>> interface = NetCDFInterface()
     >>> len(interface)
     0
-    >>> for sequence in sequences:
-    ...     _ = interface.log(sequence, sequence.series)
-    ...     _ = interface.log(sequence, sequence.average_series())
+
+    >>> from hydpy import pub, TestIO
+    >>> with TestIO():
+    ...     for sequence in sequences:
+    ...         _ = interface.log(sequence, sequence.series)
+    ...         _ = interface.log(sequence, sequence.average_series())
     >>> len(interface)
     14
 
@@ -537,12 +539,11 @@ class NetCDFInterface:
     |NetCDFVariableBase| objects related to the same sequence type being already
     available:
 
-    >>> from hydpy import pub
-    >>> pub.sequencemanager.fluxdirpath = pub.sequencemanager.fluxdirpath.replace(
-    ...     "output", "node")
     >>> nkor = elements.element1.model.sequences.fluxes.nkor
-    >>> _ = interface.log(nkor, nkor.series)
-    >>> _ = interface.log(nkor, nkor.average_series())
+    >>> with TestIO():
+    ...     pub.sequencemanager.currentdir = "test"
+    ...     _ = interface.log(nkor, nkor.series)
+    ...     _ = interface.log(nkor, nkor.average_series())
     >>> len(interface)
     16
 
@@ -552,7 +553,7 @@ class NetCDFInterface:
 
     >>> from hydpy import print_values
     >>> print_values(interface.foldernames)
-    nodepath, inputpath, outputpath
+    default, test
     >>> print_values(interface.filenames)
     hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_flux_nkor,
     lland_v1_flux_nkor_mean, lland_v1_input_nied,
@@ -565,22 +566,20 @@ class NetCDFInterface:
     |NetCDFInterface| provides attribute access to its |NetCDFVariableBase| instances,
     both via their filenames and the combination of its folder names and filenames:
 
-    >>> interface.node_sim_q is interface.nodepath_node_sim_q
+    >>> interface.node_sim_q is interface.default_node_sim_q
     True
     >>> print_values(sorted(set(dir(interface)) - set(object.__dir__(interface))))
-    hland_v1_state_sp, hland_v1_state_sp_mean,
-    inputpath_lland_v1_input_nied, inputpath_lland_v1_input_nied_mean,
-    inputpath_lland_v2_input_nied, inputpath_lland_v2_input_nied_mean,
+    default_hland_v1_state_sp, default_hland_v1_state_sp_mean,
+    default_lland_v1_flux_nkor, default_lland_v1_flux_nkor_mean,
+    default_lland_v1_input_nied, default_lland_v1_input_nied_mean,
+    default_lland_v2_flux_nkor, default_lland_v2_flux_nkor_mean,
+    default_lland_v2_input_nied, default_lland_v2_input_nied_mean,
+    default_node_sim_q, default_node_sim_q_mean, default_node_sim_t,
+    default_node_sim_t_mean, hland_v1_state_sp, hland_v1_state_sp_mean,
     lland_v1_input_nied, lland_v1_input_nied_mean, lland_v2_flux_nkor,
     lland_v2_flux_nkor_mean, lland_v2_input_nied,
     lland_v2_input_nied_mean, node_sim_q, node_sim_q_mean, node_sim_t,
-    node_sim_t_mean, nodepath_lland_v1_flux_nkor,
-    nodepath_lland_v1_flux_nkor_mean, nodepath_node_sim_q,
-    nodepath_node_sim_q_mean, nodepath_node_sim_t,
-    nodepath_node_sim_t_mean, outputpath_hland_v1_state_sp,
-    outputpath_hland_v1_state_sp_mean, outputpath_lland_v1_flux_nkor,
-    outputpath_lland_v1_flux_nkor_mean, outputpath_lland_v2_flux_nkor,
-    outputpath_lland_v2_flux_nkor_mean
+    node_sim_t_mean, test_lland_v1_flux_nkor, test_lland_v1_flux_nkor_mean
 
     If multiple NetCDF files have the same name, you must prefix the relevant folder
     name:
@@ -590,7 +589,7 @@ class NetCDFInterface:
     ...
     AttributeError: The current NetCDFInterface object handles multiple NetCDF files \
 named `lland_v1_flux_nkor`.  Please be more specific.
-    >>> hasattr(interface, "outputpath_lland_v1_flux_nkor")
+    >>> hasattr(interface, "default_lland_v1_flux_nkor")
     True
 
     |NetCDFInterface| raises the following error for completely wrong attribute names:
@@ -601,8 +600,8 @@ named `lland_v1_flux_nkor`.  Please be more specific.
     AttributeError: The current NetCDFInterface object neither handles a NetCDF file \
 named `lland_v1` nor does it define a member named `lland_v1`.
 
-    (4) We write all NetCDF files into the `inputpath`, `outputpath`, and `nodepath`
-    folders of the testing directory, defined by |prepare_io_example_1|:
+    (4) We write all NetCDF files into the `default` folder of the testing directory,
+    defined by |prepare_io_example_1|:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
@@ -623,13 +622,11 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     the test data of the defined subperiod:
 
     >>> interface = NetCDFInterface()
-    >>> _ = interface.log(nkor, nkor.series)
-    >>> pub.sequencemanager.fluxdirpath = pub.sequencemanager.fluxdirpath.replace(
-    ...     "node", "output")
-    >>> for sequence in sequences:
-    ...     _ = interface.log(sequence, None)
-
     >>> with TestIO():
+    ...     _ = interface.log(nkor, nkor.series)
+    ...     pub.sequencemanager.currentdir = "default"
+    ...     for sequence in sequences:
+    ...         _ = interface.log(sequence, None)
     ...     interface.read()
     >>> nodes.node1.sequences.sim.series
     InfoArray([61., 62.])
@@ -811,7 +808,7 @@ cover the current simulation period \
         >>> print_values(hp.elements["land_dill"].model.sequences.factors.tmean.series)
         -0.572053, -1.084746, -2.767055, -6.242055
         >>> from hydpy.core.netcdftools import netcdf4
-        >>> filepath = "LahnH/series/output/hland_v1_factor_tmean.nc"
+        >>> filepath = "LahnH/series/default/hland_v1_factor_tmean.nc"
         >>> with TestIO():
         ...     with netcdf4.Dataset(filepath, "r") as ncfile:
         ...         print_values(ncfile["factor_tmean"][:, 0])
@@ -876,7 +873,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         9.647824, 8.517795, 7.781311, 7.344944
         20.58932, 8.66144, 7.281198, 6.402232
         11.674045, 10.110371, 8.991987, 8.212314
-        >>> filepath_qt = "LahnH/series/output/hland_v1_flux_qt.nc"
+        >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
         >>> with TestIO():
         ...     with netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...         for jdx in range(4):
@@ -928,20 +925,18 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         9.647824, 8.517795, 7.781311, 7.344944
         42.3697, 27.210443, 22.930066, 20.20133
         54.043745, 37.320814, 31.922053, 28.413644
-        >>> filepath_sim = "LahnH/series/node/node_sim_q.nc"
-        >>> with TestIO():
-        ...     with netcdf4.Dataset(filepath_sim, "r") as ncfile:
-        ...         for jdx in range(4):
-        ...             print_values(ncfile["sim_q"][:, jdx])
+        >>> filepath_sim = "LahnH/series/default/node_sim_q.nc"
+        >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
+        ...     for jdx in range(4):
+        ...         print_values(ncfile["sim_q"][:, jdx])
         11.78038, 8.901179, 7.131072, 6.017787
         9.647824, 8.517795, 7.781311, 7.344944
         42.3697, 27.210443, 22.930066, 20.20133
         54.043745, 37.320814, 31.922053, 28.413644
-        >>> filepath_obs = "LahnH/series/node/node_obs_q.nc"
-        >>> with TestIO():
-        ...     with netcdf4.Dataset(filepath_obs, "r") as ncfile:
-        ...         for jdx in range(4):
-        ...             print_values(ncfile["obs_q"][:, jdx])
+        >>> filepath_obs = "LahnH/series/default/node_obs_q.nc"
+        >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
+        ...     for jdx in range(4):
+        ...         print_values(ncfile["obs_q"][:, jdx])
         11.78038, 8.901179, 7.131072, 6.017787
         9.647824, 8.517795, 7.781311, 7.344944
         42.3697, 27.210443, 22.930066, 20.20133
@@ -1074,7 +1069,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
     @property
     def foldernames(self) -> Tuple[str, ...]:
         """The names of all folders the sequences shall be read from or written to."""
-        return tuple(self._dir2file2var.keys())
+        return tuple(os.path.split(d)[-1] for d in self._dir2file2var)
 
     @property
     def filenames(self) -> Tuple[str, ...]:
@@ -1091,7 +1086,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
     def __getattr__(self, name: str) -> NetCDFVariable:
         counter = 0
         memory = None
-        for dirname, file2var in self._dir2file2var.items():
+        for dirpath, file2var in self._dir2file2var.items():
+            dirname = os.path.split(dirpath)[-1]
             for filename, variable in file2var.items():
                 if name == f"{dirname}_{filename}":
                     return variable
@@ -1125,7 +1121,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
     def __dir__(self) -> List[str]:
         adds_long = []
         counter: DefaultDict[str, int] = collections.defaultdict(lambda: 0)
-        for dirname, file2var in self._dir2file2var.items():
+        for dirpath, file2var in self._dir2file2var.items():
+            dirname = os.path.split(dirpath)[-1]
             for filename in file2var.keys():
                 adds_long.append(f"{dirname}_{filename}")
                 counter[filename] += 1

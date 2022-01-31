@@ -33,12 +33,6 @@
         <overwrite>
             <general>true</general>
         </overwrite>
-        <dirpath>
-            <inputs>LahnH/series/input</inputs>
-            <fluxes>LahnH/series/output</fluxes>
-            <states>LahnH/series/output</states>
-            <nodes>LahnH/series/node</nodes>
-        </dirpath>
         <aggregation>
             <general>none</general>
         </aggregation>

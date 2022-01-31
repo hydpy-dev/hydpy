@@ -142,9 +142,11 @@
     <element name="series_io">
         <complexType>
             <sequence>
+                <element name="directory"
+                         type="string"
+                         minOccurs="0"/>
                 <element ref="hpcb:filetype"/>
                 <element ref="hpcb:overwrite"/>
-                <element ref="hpcb:dirpath"/>
                 <element ref="hpcb:aggregation"/>
                 <element name="mode"
                          minOccurs="0"
@@ -173,13 +175,14 @@
     <element name="reader">
         <complexType>
             <sequence>
+                <element name="directory"
+                         type="string"
+                         minOccurs="0"/>
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
                 <element name="sequences"
                          type="hpcb:readerType"/>
                 <element ref="hpcb:filetype"
-                         minOccurs="0"/>
-                <element ref="hpcb:dirpath"
                          minOccurs="0"/>
                 <element name="mode"
                          minOccurs="0"
@@ -192,6 +195,9 @@
     <element name="writer">
         <complexType>
             <sequence>
+                <element name="directory"
+                         type="string"
+                         minOccurs="0"/>
                 <element ref="hpcb:selections"
                          minOccurs="0"/>
                 <element name="sequences"
@@ -199,8 +205,6 @@
                 <element ref="hpcb:filetype"
                          minOccurs="0"/>
                 <element ref="hpcb:overwrite"
-                         minOccurs="0"/>
-                <element ref="hpcb:dirpath"
                          minOccurs="0"/>
                 <element ref="hpcb:aggregation"
                          minOccurs="0"/>
@@ -263,30 +267,6 @@
                     <element name="nodes"
                              minOccurs="0"
                              type="boolean"/>
-                </sequence>
-            </choice>
-        </complexType>
-    </element>
-
-    <element name="dirpath">
-        <complexType>
-            <choice>
-                <element name="general"
-                         minOccurs="0"
-                         type="anyURI"/>
-                <sequence>
-                    <element name="inputs"
-                             minOccurs="0"
-                             type="anyURI"/>
-                    <element name="fluxes"
-                             minOccurs="0"
-                             type="anyURI"/>
-                    <element name="states"
-                             minOccurs="0"
-                             type="anyURI"/>
-                    <element name="nodes"
-                             minOccurs="0"
-                             type="anyURI"/>
                 </sequence>
             </choice>
         </complexType>

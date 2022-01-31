@@ -61,13 +61,6 @@
             <general>true</general>
         </overwrite>
 
-        <dirpath>
-            <inputs>LahnH/series/input</inputs>
-            <fluxes>LahnH/series/output</fluxes>
-            <states>LahnH/series/output</states>
-            <nodes>LahnH/series/node</nodes>
-        </dirpath>
-
         <aggregation>
             <general>none</general>
         </aggregation>
@@ -153,9 +146,6 @@
                         </states>
                     </hstream_v1>
                 </sequences>
-                <dirpath>
-                    <nodes>LahnH/series/output</nodes>
-                </dirpath>
                 <aggregation>
                     <general>mean</general>
                 </aggregation>

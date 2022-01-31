@@ -1340,11 +1340,6 @@ class _FileType(_IOProperty[str, str]):
     DOCSTRING = "Ending of the data file."
 
 
-class _DirPathProperty(_IOProperty[str, str]):
-
-    DOCSTRING = "Absolute path of the directory of the data file."
-
-
 class _AggregationProperty(_IOProperty[str, str]):
 
     DOCSTRING = (
@@ -1681,7 +1676,6 @@ runs is not supported.
     """
 
     filetype: _FileType
-    dirpath: _DirPathProperty
     aggregation: _AggregationProperty
     overwrite: _OverwriteProperty
 
@@ -1707,6 +1701,25 @@ runs is not supported.
         'dev_seq.npy'
         """
         return f"{self.descr_device}_{self.descr_sequence}.{self.filetype}"
+
+    @propertytools.DefaultPropertyStr
+    def dirpath(self) -> str:  # pylint: disable=no-self-use
+        """The absolute path to the time series directory.
+
+        As long as not overwritten, |IOSequence.dirpath| is identical with the
+        attribute |FileManager.currentpath| of the |SequenceManager| object
+        available in module |pub|:
+
+        >>> from hydpy import pub, repr_
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> class SM(SequenceManager):
+        ...     currentpath = "temp"
+        >>> pub.sequencemanager = SM()
+        >>> from hydpy.core.sequencetools import StateSequence
+        >>> repr_(StateSequence(None).dirpath)
+        'temp'
+        """
+        return hydpy.pub.sequencemanager.currentpath
 
     @propertytools.DefaultPropertyStr
     def filepath(self) -> str:
@@ -2691,7 +2704,6 @@ class InputSequence(ModelIOSequence[InputSequences, FastAccessInputSequence]):
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
 
     filetype = _FileType()
-    dirpath = _DirPathProperty()
     aggregation = _AggregationProperty()
     overwrite = _OverwriteProperty()
 
@@ -2919,7 +2931,6 @@ class FactorSequence(DependentSequence[FactorSequences]):
     # in modules `modeltools` and `modeltutils`.
 
     filetype = _FileType()
-    dirpath = _DirPathProperty()
     aggregation = _AggregationProperty()
     overwrite = _OverwriteProperty()
 
@@ -2928,7 +2939,6 @@ class FluxSequence(DependentSequence[FluxSequences]):
     """Base class for flux sequences of |Model| objects."""
 
     filetype = _FileType()
-    dirpath = _DirPathProperty()
     aggregation = _AggregationProperty()
     overwrite = _OverwriteProperty()
 
@@ -3111,7 +3121,6 @@ not broadcast input array from shape (3,) into shape (2,)
 
     NOT_DEEPCOPYABLE_MEMBERS = "subseqs", "fastaccess_old", "fastaccess_new"
     filetype = _FileType()
-    dirpath = _DirPathProperty()
     aggregation = _AggregationProperty()
     overwrite = _OverwriteProperty()
 
@@ -3645,7 +3654,6 @@ class NodeSequence(IOSequence["NodeSequences", FastAccessNodeSequence]):
     _CLS_FASTACCESS_PYTHON = FastAccessNodeSequence
 
     filetype = _FileType()
-    dirpath = _DirPathProperty()
     aggregation = _AggregationProperty()
     overwrite = _OverwriteProperty()
 

@@ -154,7 +154,6 @@ def main(  # pylint: disable=too-many-branches
                     opt = pub.options
                     opt.usecython = mode == "Cython"
                     opt.ellipsis = 0
-                    opt.isolatenetcdf = False
                     del pub.options.parameterstep
                     opt.printprogress = False
                     opt.reprcomments = False

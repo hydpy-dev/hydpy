@@ -583,7 +583,6 @@ correctly refer to one of the available XML schema files \
         Options(
             checkseries -> 1
             ellipsis -> 0
-            isolatenetcdf -> 1
             parameterstep -> Period("1d")
             printprogress -> 0
             reprcomments -> 0

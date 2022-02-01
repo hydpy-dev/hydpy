@@ -27,7 +27,6 @@ from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
-from hydpy.core.typingtools import *
 
 
 class Folder2Path:
@@ -1132,7 +1131,7 @@ _DescrAttrType = TypeVar("_DescrAttrType")
 class _Descriptor(Generic[_DescrAttrType]):
 
     default: _DescrAttrType
-    sequencetype: "str"
+    sequencetype: str
     obj2value: Dict[SequenceManager, _DescrAttrType]
 
     def __init__(self, default: _DescrAttrType, sequencetype: str) -> None:
@@ -1768,29 +1767,9 @@ reader object.
             )
         return netcdfreader
 
-    def open_netcdfreader(self, isolate: Optional[bool] = None) -> None:
-        """Prepare a new |NetCDFInterface| object for reading data.
-
-        The following test shows that |SequenceManager.open_netcdfreader| passes the
-        `isolate` argument correctly to the constructor of |NetCDFInterface| or takes
-        the current value of the option |Options.isolatenetcdf| as the default argument:
-
-        >>> from hydpy.examples import prepare_io_example_1
-        >>> _ = prepare_io_example_1()
-        >>> from hydpy import pub
-        >>> from unittest.mock import patch
-        >>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
-        ...     pub.sequencemanager.open_netcdfreader(isolate=True)
-        ...     mock.assert_called_with(isolate=True)
-        ...     pub.sequencemanager.open_netcdfreader(isolate=False)
-        ...     mock.assert_called_with(isolate=False)
-        ...     pub.sequencemanager.open_netcdfreader()
-        ...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
-        """
-        options = hydpy.pub.options
-        vars(self)["netcdfreader"] = netcdftools.NetCDFInterface(
-            isolate=bool(options.isolatenetcdf if isolate is None else isolate),
-        )
+    def open_netcdfreader(self) -> None:
+        """Prepare a new |NetCDFInterface| object for reading data."""
+        vars(self)["netcdfreader"] = netcdftools.NetCDFInterface()
 
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterface| object and delete it
@@ -1832,29 +1811,9 @@ currently handle no NetCDF writer object.
             )
         return netcdfwriter
 
-    def open_netcdfwriter(self, isolate: Optional[bool] = None) -> None:
-        """Prepare a new |NetCDFInterface| object for writing data.
-
-        The following test shows that |SequenceManager.open_netcdfwriter| passes the
-        `isolate` argument correctly to the constructor of |NetCDFInterface| or takes
-        the current value of the option |Options.isolatenetcdf| as the default argument:
-
-        >>> from hydpy.examples import prepare_io_example_1
-        >>> _ = prepare_io_example_1()
-        >>> from hydpy import pub
-        >>> from unittest.mock import patch
-        >>> with patch("hydpy.core.netcdftools.NetCDFInterface") as mock:
-        ...     pub.sequencemanager.open_netcdfwriter(isolate=True)
-        ...     mock.assert_called_with(isolate=True)
-        ...     pub.sequencemanager.open_netcdfwriter(isolate=False)
-        ...     mock.assert_called_with(isolate=False)
-        ...     pub.sequencemanager.open_netcdfwriter()
-        ...     mock.assert_called_with(isolate=pub.options.isolatenetcdf)
-        """
-        options = hydpy.pub.options
-        vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface(
-            isolate=bool(options.isolatenetcdf if isolate is None else isolate),
-        )
+    def open_netcdfwriter(self) -> None:
+        """Prepare a new |NetCDFInterface| object for writing data."""
+        vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface()
 
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterface| object and delete it
@@ -1873,7 +1832,7 @@ currently handle no NetCDF writer object.
         class |HydPy| for further information.
         """
         try:
-            interface = netcdftools.NetCDFInterface(isolate=True)
+            interface = netcdftools.NetCDFInterface()
             with interface.provide_jitaccess(deviceorder) as jitaccesshandler:
                 self._jitaccesshandler = jitaccesshandler
                 yield

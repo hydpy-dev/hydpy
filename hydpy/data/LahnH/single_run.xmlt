@@ -9,7 +9,6 @@
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>
         <warntrim>true</warntrim>
-        <isolatenetcdf>true</isolatenetcdf>
     </options>
 
     <timegrid>

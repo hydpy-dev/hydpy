@@ -1342,7 +1342,7 @@ def make_abc_testable(abstract: Type) -> Type:
     Traceback (most recent call last):
     ...
     TypeError: Can't instantiate abstract class NetCDFVariableBase with abstract \
-methods array, read, subdevicenames, write
+methods array, read, subdevicenames
 
     However, it is convenient to do so for testing (partly) abstract base classes in
     doctests.  The derived class returned by function |make_abc_testable| is identical

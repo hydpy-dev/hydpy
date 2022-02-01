@@ -589,7 +589,7 @@ is not requested to make any time-series data available.
     module |netcdftools| for further information) and inspect the results:
 
     >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader(isolate=True)
+    ...     pub.sequencemanager.open_netcdfreader()
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
     ...     pub.sequencemanager.close_netcdfreader()
@@ -669,7 +669,7 @@ is not requested to make any time-series data available.
     >>> hp.prepare_allseries(allocate_ram=False)
     >>> hp.prepare_allseries(allocate_ram=True)
     >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader(isolate=True)
+    ...     pub.sequencemanager.open_netcdfreader()
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
     ...     pub.sequencemanager.close_netcdfreader()

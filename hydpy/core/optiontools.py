@@ -215,13 +215,6 @@ class Options:
     it to zero to avoid any ellipsis points.  Set it to -999 to rely on
     the default values of the respective iterable objects."""
 
-    isolatenetcdf = _BoolOption(False)
-    """A True/False flag relevant when working with NetCDF files that 
-    decides whether to handle only the time series of a single sequence 
-    type (True) or the time series of multiple sequence types (False)
-    in individual NetCDF files (see the documentation on module 
-    |netcdftools| for further information)."""
-
     parameterstep = _PeriodOption(timetools.Period("1d"))
     """The actual parameter time step size.  Change it by passing a |Period| 
     object or any valid |Period| constructor argument.  The default parameter 

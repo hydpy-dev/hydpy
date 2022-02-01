@@ -24,12 +24,6 @@
                 <element name="checkseries"
                          type="boolean"
                          minOccurs="0"/>
-                <element name="flattennetcdf"
-                         type="boolean"
-                         minOccurs="0"/>
-                <element name="isolatenetcdf"
-                         type="boolean"
-                         minOccurs="0"/>
                 <element name="parameterstep"
                          minOccurs="0">
                     <simpleType>
@@ -44,15 +38,6 @@
                         <restriction base="integer">
                             <minInclusive value="-1"/>
                             <maxInclusive value="12"/>
-                        </restriction>
-                    </simpleType>
-                </element>
-                <element name="timeaxisnetcdf"
-                         minOccurs="0">
-                    <simpleType>
-                        <restriction base="integer">
-                            <minInclusive value="0"/>
-                            <maxInclusive value="1"/>
                         </restriction>
                     </simpleType>
                 </element>

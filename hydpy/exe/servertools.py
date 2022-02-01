@@ -224,6 +224,7 @@ software products. See the documentation on class |HydPyServer| for further info
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import collections
 import mimetypes
 import os
@@ -1055,7 +1056,7 @@ calculated so far.
     # pylint: disable=invalid-name
     # due to "GET" and "POST" method names in accordance with BaseHTTPRequestHandler
 
-    server: "_HTTPServerBase"
+    server: _HTTPServerBase
     state: ClassVar[ServerState]
     extensions_map: ClassVar[Dict[str, str]]
     _requesttype: Literal["GET", "POST"]

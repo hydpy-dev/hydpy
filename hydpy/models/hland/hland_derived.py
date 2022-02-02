@@ -724,7 +724,7 @@ class UH(parametertools.Parameter):
             half = full / 2.0
             half_f = int(numpy.floor(half))
             half_c = int(numpy.ceil(half))
-            full_2 = full ** 2.0
+            full_2 = full**2.0
             # Calculate the triangle ordinate(s)...
             self.shape = full_c
             uh = self.values
@@ -735,14 +735,14 @@ class UH(parametertools.Parameter):
             # ...around the peak (if it exists).
             if numpy.mod(half, 1.0) != 0.0:
                 uh[half_f] = (half_c - half) / full + (
-                    2 * half ** 2.0 - half_f ** 2.0 - half_c ** 2.0
+                    2 * half**2.0 - half_f**2.0 - half_c**2.0
                 ) / (2.0 * full_2)
             # ...of the falling limb (eventually except the last one).
             points = numpy.arange(half_c + 1.0, full_f + 1.0)
             uh[half_c:full_f] = 1.0 / full - (2.0 * points - 1.0) / (2.0 * full_2)
             # ...at the end (if not already done).
             if numpy.mod(full, 1.0) != 0.0:
-                uh[full_f] = (full - full_f) / full - (full_2 - full_f ** 2.0) / (
+                uh[full_f] = (full - full_f) / full - (full_2 - full_f**2.0) / (
                     2.0 * full_2
                 )
             # Normalize the ordinates.

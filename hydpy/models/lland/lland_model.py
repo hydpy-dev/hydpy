@@ -2694,7 +2694,7 @@ class Update_ASInz_V1(modeltools.Method):
                 d_r1 = modelutils.exp(
                     5000.0 * (1 / 273.15 - 1.0 / (273.15 + aid.tempsinz[k]))
                 )
-                d_r2 = min(d_r1 ** 10, 1.0)
+                d_r2 = min(d_r1**10, 1.0)
                 sta.asinz[k] *= max(1 - 0.1 * flu.sbesinz[k], 0.0)
                 sta.asinz[k] += (d_r1 + d_r2 + 0.03) / 1e6 * der.seconds
             else:
@@ -3924,7 +3924,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
             flu.dailynetlongwaveradiation[k] = (
                 (0.2 + 0.8 * d_relsunshine)
                 * fix.sigma
-                * d_temp ** 4
+                * d_temp**4
                 * (
                     con.emissivity
                     - fix.fratm
@@ -3988,7 +3988,7 @@ class Calc_RLAtm_V1(modeltools.Method):
         for k in range(con.nhru):
             d_t = flu.tkor[k] + 273.15
             aid.rlatm[k] = d_common * (
-                d_t ** 4 * (flu.actualvapourpressure[k] * 10.0 / d_t) ** (1.0 / 7.0)
+                d_t**4 * (flu.actualvapourpressure[k] * 10.0 / d_t) ** (1.0 / 7.0)
             )
 
 
@@ -4142,7 +4142,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         d_counter = aid.rlatm[k]
         if con.lnk[k] in (LAUBW, MISCHW, NADELW):
             d_fr = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
-            d_counter = d_fr * d_counter + (1.0 - d_fr) * (0.97 * d_sigma * d_temp ** 4)
+            d_counter = d_fr * d_counter + (1.0 - d_fr) * (0.97 * d_sigma * d_temp**4)
         return d_sigma * (flu.tempssurface[k] + 273.15) ** 4 - d_counter
 
 
@@ -4209,7 +4209,7 @@ class Update_TauS_V1(modeltools.Method):
                 d_r1 = modelutils.exp(
                     5000.0 * (1 / 273.15 - 1.0 / (273.15 + aid.temps[k]))
                 )
-                d_r2 = min(d_r1 ** 10, 1.0)
+                d_r2 = min(d_r1**10, 1.0)
                 sta.taus[k] *= max(1 - 0.1 * flu.sbes[k], 0.0)
                 sta.taus[k] += (d_r1 + d_r2 + 0.03) / 1e6 * der.seconds
             else:
@@ -7735,8 +7735,8 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
             else:
                 d_lai = con.lai[con.lnk[k] - 1, der.moy[model.idx_sim]]
                 d_invrestday = (
-                    (1.0 - 0.7 ** d_lai) / flu.landusesurfaceresistance[k]
-                ) + 0.7 ** d_lai / flu.soilsurfaceresistance[k]
+                    (1.0 - 0.7**d_lai) / flu.landusesurfaceresistance[k]
+                ) + 0.7**d_lai / flu.soilsurfaceresistance[k]
                 d_invrestnight = d_lai / 2500.0 + 1.0 / flu.soilsurfaceresistance[k]
                 flu.actualsurfaceresistance[k] = 1.0 / (
                     (

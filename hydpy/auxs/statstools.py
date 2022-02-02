@@ -1133,13 +1133,13 @@ def corr(
 def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
     gamma1 = special.gamma(3.0 * (1.0 + beta) / 2.0)
     gamma2 = special.gamma((1.0 + beta) / 2.0)
-    w_beta = gamma1 ** 0.5 / (1.0 + beta) / gamma2 ** 1.5
+    w_beta = gamma1**0.5 / (1.0 + beta) / gamma2**1.5
     c_beta = (gamma1 / gamma2) ** (1.0 / (1.0 + beta))
-    m_1 = special.gamma(1.0 + beta) / gamma1 ** 0.5 / gamma2 ** 0.5
+    m_1 = special.gamma(1.0 + beta) / gamma1**0.5 / gamma2**0.5
     m_2 = 1.0
     mu_xi = m_1 * (xi - 1.0 / xi)
     sigma_xi = numpy.sqrt(
-        (m_2 - m_1 ** 2) * (xi ** 2 + 1.0 / xi ** 2) + 2 * m_1 ** 2 - m_2
+        (m_2 - m_1**2) * (xi**2 + 1.0 / xi**2) + 2 * m_1**2 - m_2
     )
     return mu_xi, sigma_xi, w_beta, c_beta
 

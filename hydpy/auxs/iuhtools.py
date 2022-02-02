@@ -431,8 +431,8 @@ keywords were given: d and u.
         """Determine the values of the secondary parameters
         |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.
         """
-        self.a = self.x / (2.0 * self.d ** 0.5)
-        self.b = self.u / (2.0 * self.d ** 0.5)
+        self.a = self.x / (2.0 * self.d**0.5)
+        self.b = self.u / (2.0 * self.d**0.5)
 
     @overload
     def __call__(self, t: float) -> float:

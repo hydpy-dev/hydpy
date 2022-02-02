@@ -1049,7 +1049,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
             / 60.0
             * der.seconds
             * (inp.airtemperature + 273.16) ** 4
-            * (0.34 - 0.14 * flu.actualvapourpressure ** 0.5)
+            * (0.34 - 0.14 * flu.actualvapourpressure**0.5)
             * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
         )
 

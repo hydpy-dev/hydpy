@@ -164,7 +164,7 @@ def calc_smoothpar_logistic2(metapar, iterate: bool = False):
             return 0.0
         return optimize.newton(
             _error_smoothpar_logistic2,
-            0.3 * metapar ** 0.84,
+            0.3 * metapar**0.84,
             _smooth_logistic2_derivative1,
             args=(metapar,),
         )

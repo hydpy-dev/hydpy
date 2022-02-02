@@ -2858,7 +2858,7 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
                 d_t1 = min(d_t1, 1.0)
             d_dt = d_t1 - t0
             d_v3 = (d_v2 * d_dt) / d_v1
-            d_v4 = d_denom / d_v1 ** 2 * (1.0 - modelutils.exp(-d_dt * d_v1))
+            d_v4 = d_denom / d_v1**2 * (1.0 - modelutils.exp(-d_dt * d_v1))
             d_qa1 = (d_v3 - d_v4 - d_h * d_dt) / d_k1
             d_qa2 = (d_v3 - d_v4) / d_k2
             qa1[k] += d_qa1

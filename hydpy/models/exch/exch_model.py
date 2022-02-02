@@ -162,7 +162,7 @@ class Calc_PotentialExchange_V1(modeltools.Method):
             d_dwl = -fac.deltawaterlevel
             d_sig = -1.0
         flu.potentialexchange = d_sig * (
-            con.flowcoefficient * con.crestwidth * d_dwl ** con.flowexponent
+            con.flowcoefficient * con.crestwidth * d_dwl**con.flowexponent
         )
 
 

@@ -55,7 +55,7 @@ def classname(self: object) -> str:
     'Options'
     """
     if inspect.isclass(self):
-        return self.__name__  # type: ignore [attr-defined, no-any-return]
+        return self.__name__
     return type(self).__name__
 
 
@@ -1905,3 +1905,32 @@ def assert_never(value: NoReturn) -> NoReturn:
     AssertionError: Cannot handle value `1.0` of type `float`.
     """
     assert False, f"Cannot handle {value_of_type(value)}."
+
+
+def value2bool(argument: str, value: Union[str, int]) -> bool:
+    """Convert the given string or integer value to a boolean and return it.
+
+    >>> from hydpy.core.objecttools import value2bool
+    >>> value2bool("x", 0), value2bool("x", 1)
+    (False, True)
+    >>> for value in ("1", "tRue", "T", "yEs", "y", "oN"):
+    ...     assert value2bool("x", value)
+    >>> for value in ("0 ", "False", "f", "No", "N", "OfF"):
+    ...     assert not value2bool("x", value)
+    >>> value2bool("x", "Tr ue")
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `Tr ue` given for argument `x` cannot be interpreted as a \
+boolean.
+    """
+    if isinstance(value, int):
+        return bool(value)
+    normed = value.strip().lower()
+    if normed in ("1", "true", "t", "yes", "y", "on"):
+        return True
+    if normed in ("0", "false", "f", "no", "n", "off"):
+        return False
+    raise ValueError(
+        f"The value `{value}` given for argument `{argument}` cannot be interpreted "
+        f"as a boolean."
+    )

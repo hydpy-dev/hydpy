@@ -420,7 +420,7 @@ interpolator has been defined so far.
     ) -> pyplot.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object."""
-        return self.algorithm.plot(
+        figure = self.algorithm.plot(
             xmin=xmin,
             xmax=xmax,
             idx_input=idx_input,
@@ -428,6 +428,8 @@ interpolator has been defined so far.
             points=points,
             **kwargs,
         )
+        self._update_labels()
+        return figure
 
     def __repr__(self) -> str:
         if self._algorithm is None:

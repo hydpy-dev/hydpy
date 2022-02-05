@@ -1016,7 +1016,9 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                 timeunit = tg_init.firstdate.to_cfunits("hours")
                 timepoints = tg_init.to_timepoints("hours")
                 for variable, readmode in variable2readmode.items():
-                    if not os.path.exists(variable.filepath):
+                    if not os.path.exists(variable.filepath) and (
+                        not readmode or not hydpy.pub.options.checkseries
+                    ):
                         variable.write(timeunit, timepoints)
                     ncfile = netcdf4.Dataset(variable.filepath, "r+")
                     variable2ncfile[variable] = ncfile

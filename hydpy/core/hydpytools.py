@@ -529,7 +529,7 @@ is not requested to make any time-series data available.
     be overwritten during the simulation and thus only support the `write_jit` argument.
     The |HydPy.prepare_inputseries| method, on the other hand, supports both the
     `read_jit` and the `write_jit` argument.  However, in most cases, only reading
-    makes sense.  The argument `write_jit` is thought of when other methods (for
+    makes sense.  The argument `write_jit` is thought for when other methods (for
     example data assimilation approaches) modify the input data, and we need to keep
     track of these modifications:
 
@@ -562,7 +562,7 @@ is not requested to make any time-series data available.
     Reloading the initial conditions and starting a new simulation run leads to the
     same results as the simulation run above:
 
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.checkseries(False):
     ...     hp.load_conditions()
     ...     hp.simulate()
 
@@ -644,7 +644,7 @@ is not requested to make any time-series data available.
     After another simulation run, all input data (read during simulation) and output
     data (calculated during simulation) are directly available:
 
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.checkseries(False):
     ...     hp.load_conditions()
     ...     hp.simulate()
 

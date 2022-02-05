@@ -359,13 +359,19 @@ class ServerState:
     initialgetitemvalues: Dict[Name, Any]
     timegrids: Dict[ID, timetools.Timegrid]
     init_conditions: hydpytools.ConditionsType
+    inputconditiondirs: Dict[ID, str]
+    outputconditiondirs: Dict[ID, str]
     serieswriterdirs: Dict[ID, str]
     seriesreaderdirs: Dict[ID, str]
     idx1: int
     idx2: int
 
     def __init__(
-        self, projectname: str, xmlfile: str, load_series: bool = True
+        self,
+        projectname: str,
+        xmlfile: str,
+        load_conditions: bool = True,
+        load_series: bool = True,
     ) -> None:
         write = commandtools.print_textandtime
         write(f"Start HydPy project `{projectname}`")
@@ -384,8 +390,9 @@ class ServerState:
         hp.update_devices(selection=self.interface.fullselection)
         write("Read the required control files")
         self.interface.control_io.prepare_models()
-        write("Read the required condition files")
-        self.interface.conditions_io.load_conditions()
+        if load_conditions:
+            write("Read the required condition files")
+            self.interface.conditions_io.load_conditions()
         if load_series:
             write("Read the required time series files")
         self.interface.series_io.prepare_series()
@@ -415,6 +422,8 @@ class ServerState:
         self.timegrids = {}
         self.serieswriterdirs = {}
         self.seriesreaderdirs = {}
+        self.inputconditiondirs = {}
+        self.outputconditiondirs = {}
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -943,9 +952,10 @@ ID `0` and time point `1996-01-03 00:00:00` are required, but have not been \
 calculated so far.
 
     For example, when restarting data assimilation subsequent forecasting periods, you
-    might need to get and set all internal conditions from the client-side.  Use
-    methods |HydPyServer.GET_query_internalconditions| and
-    |HydPyServer.POST_register_internalconditions| in such cases.  Method
+    might need to get and set all internal conditions from the client-side.  Then, you
+    have two options.  The more efficient way relies on methods
+    |HydPyServer.GET_query_internalconditions| and
+    |HydPyServer.POST_register_internalconditions|.  Method
     |HydPyServer.GET_query_internalconditions| returns the information registered for
     the end of the current simulation period.  All data is within a single nested
     |dict| object (created  by the |HydPy.conditions| property of class |HydPy|):
@@ -1020,6 +1030,83 @@ calculated so far.
     sm_lahn_1 = [49.92944...]
     quh = [0.00038...]
 
+    The second option for handling multiple "simultaneous" initial conditions is
+    telling the *HydPy* server to read them from and write them to disk, which is
+    easier but often less efficient due to higher IO activity.  Use methods
+    |HydPyServer.GET_load_conditions| and |HydPyServer.GET_save_conditions| for this
+    purpose.  Reading from or writing to different directories than those defined in
+    `multiple_runs.xml` requires registering them beforehand.  If we, for example,
+    create a new empty directory with method
+    |HydPyServer.POST_register_inputconditiondir|, loading conditions from it must
+    fail:
+
+    >>> test("register_inputconditiondir", id_="0", data="inputconditiondir = new")
+    <BLANKLINE>
+    >>> test("load_conditions", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_load_conditions`, the following error occurred: While trying to \
+load the initial conditions of element `land_dill`, the following error occurred: \
+[Errno 2] No such file or directory: ...land_dill.py'
+
+    >>> test("register_outputconditiondir", id_="0", data="outputconditiondir = new")
+    <BLANKLINE>
+    >>> test("save_conditions", id_="0")
+    <BLANKLINE>
+
+    Hence, we better first write suitable conditions into the new directory:
+
+    >>> lz_dill = "self.state.hp.elements.land_dill.model.sequences.states.lz"
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
+    lz_dill = lz(9.4921...)
+
+    To prove reading and writing conditions works, we first set the current value of
+    sequence |hland_states.LZ| of catchment "Dill" to zero:
+
+    >>> test("evaluate", data=f"nothing = {lz_dill}(0.0)")
+    nothing = None
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")
+    lz_dill = lz(0.0)
+
+    As expected, applying |HydPyServer.GET_load_conditions| on the previously written
+    data resets the value of |hland_states.LZ|:
+
+    >>> test("load_conditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
+    lz_dill = lz(9.4921...)
+
+    Use the GET methods |HydPyServer.GET_query_inputconditiondir| and
+    |HydPyServer.GET_deregister_inputconditiondir| to query or remove the currently
+    registered input condition directory:
+
+    >>> test("query_inputconditiondir", id_="0")
+    inputconditiondir = new
+    >>> test("deregister_inputconditiondir", id_="0")
+    <BLANKLINE>
+    >>> test("query_inputconditiondir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_inputconditiondir`, the following error occurred: Nothing \
+registered under the id `0`.  There is nothing registered, so far.
+
+    Use the GET methods |HydPyServer.GET_query_outputconditiondir| and
+    |HydPyServer.GET_deregister_outputconditiondir| to query or remove the currently
+    registered output condition directory:
+
+    >>> test("query_outputconditiondir", id_="0")
+    outputconditiondir = new
+    >>> test("deregister_outputconditiondir", id_="0")
+    <BLANKLINE>
+    >>> test("query_outputconditiondir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_outputconditiondir`, the following error occurred: Nothing \
+registered under the id `0`.  There is nothing registered, so far.
+
     Above, we explained the recommended way to query the initial values of all or a
     subgroup of the available exchange items.  Alternatively, you can first register
     the initial values and query them later, which is a workaround for retrieving
@@ -1073,7 +1160,7 @@ calculated so far.
 
     To save the results of subsequent simulations without overwriting the previous
     ones, change the current series writer directory by the GET method
-    |HydPyServer.GET_register_serieswriterdir|:
+    |HydPyServer.POST_register_serieswriterdir|:
 
     >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = sm_averaged")
     <BLANKLINE>
@@ -1139,8 +1226,8 @@ under the id `0`.  There is nothing registered, so far.
     epn_dill = epn(0.2854...)
 
     Changing the series reader directory works as explained for the series reader
-    directory.  After setting it to an empty folder, |HydPyServer.load_allseries| and
-    |HydPyServer.simulate| cannot find suitable files and report this problem:
+    directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
+    and |HydPyServer.GET_simulate| cannot find suitable files and report this problem:
 
     >>> test("register_seriesreaderdir", id_="0", data="seriesreaderdir = no_data")
     <BLANKLINE>
@@ -1715,6 +1802,42 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         cond = self._get_registered_content(self.state.conditions)[self.state.idx2]
         self._outputs["conditions"] = str(cond).replace("\n", " ")
 
+    def POST_register_inputconditiondir(self) -> None:
+        """Register the send input condition directory under the given `id`."""
+        self.state.inputconditiondirs[self._id] = self._inputs["inputconditiondir"]
+
+    def GET_deregister_inputconditiondir(self) -> None:
+        """Remove the input condition directory registered under the `id`."""
+        self.state.inputconditiondirs.pop(self._id, None)
+
+    def GET_query_inputconditiondir(self) -> None:
+        """Return the input condition directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.inputconditiondirs)
+        self._outputs["inputconditiondir"] = dir_
+
+    def POST_register_outputconditiondir(self) -> None:
+        """Register the send output condition directory under the given `id`."""
+        self.state.outputconditiondirs[self._id] = self._inputs["outputconditiondir"]
+
+    def GET_deregister_outputconditiondir(self) -> None:
+        """Remove the output condition directory registered under the `id`."""
+        self.state.outputconditiondirs.pop(self._id, None)
+
+    def GET_query_outputconditiondir(self) -> None:
+        """Return the output condition directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.outputconditiondirs)
+        self._outputs["outputconditiondir"] = dir_
+
+    def GET_load_conditions(self) -> None:
+        """Load the (initial) conditions."""
+        dir_ = self.state.inputconditiondirs.get(self._id)
+        self.state.interface.conditions_io.load_conditions(dir_)
+
+    def GET_save_conditions(self) -> None:
+        """Save the (resulting) conditions."""
+        dir_ = self.state.inputconditiondirs.get(self._id)
+        self.state.interface.conditions_io.save_conditions(dir_)
+
     def GET_update_getitemvalues(self) -> None:
         """Register the current |GetItem| values under the given `id`.
 
@@ -1788,6 +1911,7 @@ def start_server(
     socket: Union[int, str],
     projectname: str,
     xmlfilename: str,
+    load_conditions: Union[bool, str] = True,
     load_series: Union[bool, str] = True,
     maxrequests: Union[int, str] = 5,
     debugging: Literal["enable", "disable"] = "disable",
@@ -1860,6 +1984,7 @@ def start_server(
     HydPyServer.state = ServerState(
         projectname=projectname,
         xmlfile=xmlfilename,
+        load_conditions=objecttools.value2bool("load_conditions", load_conditions),
         load_series=objecttools.value2bool("load_series", load_series),
     )
 

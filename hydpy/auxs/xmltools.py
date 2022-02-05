@@ -1012,7 +1012,7 @@ class XMLConditions(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
-    def load_conditions(self) -> None:
+    def load_conditions(self, currentdir: Optional[str] = None) -> None:
         """Load the condition files of the |Model| objects of all |Element| objects
         returned by |XMLInterface.elements|:
 
@@ -1035,13 +1035,13 @@ class XMLConditions(XMLBase):
         >>> hp.elements.land_lahn_2.model.sequences.states.lz
         lz(nan)
         """
-        hydpy.pub.conditionmanager.currentdir = str(
-            self.find("inputdir", optional=False).text
-        )
+        if currentdir is None:
+            currentdir = str(self.find("inputdir", optional=False).text)
+        hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
             element.model.sequences.load_conditions()
 
-    def save_conditions(self) -> None:
+    def save_conditions(self, currentdir: Optional[str] = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
         returned by |XMLInterface.elements|:
 
@@ -1078,9 +1078,9 @@ class XMLConditions(XMLBase):
         False
         True
         """
-        hydpy.pub.conditionmanager.currentdir = str(
-            self.find("outputdir", optional=False).text
-        )
+        if currentdir is None:
+            currentdir = str(self.find("outputdir", optional=False).text)
+        hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
             element.model.sequences.save_conditions()
         if self.find("zip", optional=False).text == "true":

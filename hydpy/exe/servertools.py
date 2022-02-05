@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements features for using *HydPy* as an HTTP server application.
+"""This module facilitates using *HydPy* as an HTTP server application.
 
 .. _`OpenDA`: https://www.openda.org/
 .. _`curl`: https://curl.haxx.se/
@@ -66,8 +66,8 @@ dill_nodes_sim_series = TimeSeries0D
 alpha = 2.0
 dill_nodes_sim_series = [nan, nan, nan, nan, nan]
 
-In general, it is possible to control the *HydPy* server via invoking each method with
-a separate HTTP request.  However, alternatively, one can use methods
+It is generally possible to control the *HydPy* server via invoking each method with a
+separate HTTP request.  However, alternatively, one can use methods
 |HydPyServer.GET_execute| and |HydPyServer.POST_execute| to execute many methods with
 only one HTTP request.  We now define three such metafunctions.  The first one changes
 the value of the parameter |hland_control.Alpha|  The second one runs a simulation.
@@ -187,7 +187,7 @@ The order in which function `do_everything` calls its subfunctions seems quite n
 but some tools might require do deviate from it.  For example, `OpenDA`_ offers
 ensemble-based algorithms triggering the simulation of all memberse before starting to
 query any simulation results.  The final example shows that the underlying atomic
-methods do support such an execution sequence:
+methods support such an execution sequence:
 
 >>> set_itemvalues("6", "1996-01-01", "1996-01-03", 2.0)
 >>> simulate("6")
@@ -229,7 +229,7 @@ import collections
 import mimetypes
 import os
 
-# import http.server   #  moved below for efficiency reasons
+# import http.server  # moved below for efficiency reasons
 import threading
 import time
 import urllib.error
@@ -272,7 +272,7 @@ class ServerState:
 
     The instance of class |ServerState| is available as the member `state` of class
     |HydPyServer| after calling the function |start_server|.  You could create other
-    instances (like we do in the following examples), but most likely, you shouldn't.
+    instances (like we do in the following examples), but you most likely shouldn't.
     The primary purpose of this instance is to store information between successive
     initialisations of class |HydPyServer|.
 
@@ -284,7 +284,7 @@ class ServerState:
     >>> prepare_full_example_1()
     >>> from hydpy import print_values, TestIO
     >>> from hydpy.exe.servertools import ServerState
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     state = ServerState("LahnH", "multiple_runs.xml")
     Start HydPy project `LahnH` (...).
     Read configuration file `multiple_runs.xml` (...).
@@ -345,6 +345,7 @@ class ServerState:
     InfoArray([nan, nan, nan, nan, nan])
     """
 
+    interface: xmltools.XMLInterface
     hp: hydpytools.HydPy
     parameteritems: List[itemtools.ChangeItem]
     conditionitems: List[itemtools.SetItem]
@@ -358,37 +359,43 @@ class ServerState:
     initialgetitemvalues: Dict[Name, Any]
     timegrids: Dict[ID, timetools.Timegrid]
     init_conditions: hydpytools.ConditionsType
+    serieswriterdirs: Dict[ID, str]
+    seriesreaderdirs: Dict[ID, str]
     idx1: int
     idx2: int
 
-    def __init__(self, projectname: str, xmlfile: str) -> None:
+    def __init__(
+        self, projectname: str, xmlfile: str, load_series: bool = True
+    ) -> None:
         write = commandtools.print_textandtime
         write(f"Start HydPy project `{projectname}`")
         hp = hydpytools.HydPy(projectname)
         write(f"Read configuration file `{xmlfile}`")
-        interface = xmltools.XMLInterface(xmlfile)
+        self.interface = xmltools.XMLInterface(xmlfile)
         write("Interpret the defined options")
-        interface.update_options()
+        self.interface.update_options()
         write("Interpret the defined period")
-        interface.update_timegrids()
+        self.interface.update_timegrids()
         write("Read all network files")
         hp.prepare_network()
         write("Create the custom selections (if defined)")
-        interface.update_selections()
+        self.interface.update_selections()
         write("Activate the selected network")
-        hp.update_devices(selection=interface.fullselection)
+        hp.update_devices(selection=self.interface.fullselection)
         write("Read the required control files")
-        interface.control_io.prepare_models()
+        self.interface.control_io.prepare_models()
         write("Read the required condition files")
-        interface.conditions_io.load_conditions()
-        write("Read the required time series files")
-        interface.series_io.prepare_series()
-        interface.exchange.prepare_series()
-        interface.series_io.load_series()
+        self.interface.conditions_io.load_conditions()
+        if load_series:
+            write("Read the required time series files")
+        self.interface.series_io.prepare_series()
+        self.interface.exchange.prepare_series()
+        if load_series:
+            self.interface.series_io.load_series()
         self.hp = hp
-        self.parameteritems = interface.exchange.parameteritems
-        self.conditionitems = interface.exchange.conditionitems
-        self.getitems = interface.exchange.getitems
+        self.parameteritems = self.interface.exchange.parameteritems
+        self.conditionitems = self.interface.exchange.conditionitems
+        self.getitems = self.interface.exchange.getitems
         self.initialparameteritemvalues = {
             item.name: item.value for item in self.parameteritems
         }
@@ -406,6 +413,8 @@ class ServerState:
         self.getitemvalues = {}
         self.init_conditions = hp.conditions
         self.timegrids = {}
+        self.serieswriterdirs = {}
+        self.seriesreaderdirs = {}
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -415,16 +424,15 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     for the real HTTP server class (from the standard library).
 
     After initialising the *HydPy* server, each communication via a GET or POST request
-    is handled by a new instance of |HydPyServer|.  This handling takes place in a
-    unified way through using either method |HydPyServer.do_GET| or
-    [HydPyServer.do_POST|, which select and apply the actual GET or POST method.  All
-    methods provided by class |HydPyServer| starting with "GET" or "POST" are
-    accessible via HTTP.
+    is handled by a new instance of |HydPyServer|.  This handling occurs in a unified
+    way by using either method |HydPyServer.do_GET| or [HydPyServer.do_POST|, which
+    select and apply the actual GET or POST method.  All methods provided by class
+    |HydPyServer| starting with "GET" or "POST" are accessible via HTTP.
 
     In the main documentation on module |servertools|, we use the
-    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.  However,
-    this time we select the more complex XML configuration file `multiple_runs.xml`,
-    covering a higher number of cases:
+    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.  However, now
+    we select the more complex XML configuration file `multiple_runs.xml`, covering a
+    higher number of cases:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -435,11 +443,11 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     ...         blocking=False, verbose=False)
     ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
-    We define a test function simplifying sending the following requests, offering two
-    optional arguments.  When passing a value to `id_`, `test` adds this value as the
-    query parameter `id` to the URL.  When passing a string to `data`, `test` sends a
-    POST request containing the given data, otherwise a GET request without additional
-    data:
+    We define a test function that simplifies sending the following requests and offers
+    two optional arguments.  When passing a value to `id_`, `test` adds this value as
+    the query parameter `id` to the URL.  When passing a string to `data`, `test` sends
+    a POST request containing the given data; otherwise, a GET request without
+    additional data:
 
     >>> from urllib import request
     >>> def test(name, id_=None, data=None, return_result=False):
@@ -462,7 +470,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     You can query the current version number of the *HydPy* installation used to start
     the server:
 
-    >>> result = test("version", return_result=True)   # doctest: +ELLIPSIS
+    >>> result = test("version", return_result=True)  # doctest: +ELLIPSIS
     version = ...
     >>> hydpy.__version__ in result
     True
@@ -513,8 +521,8 @@ been extracted but cannot be further processed: `x == y`.
     |HydPyServer.POST_evaluate|, which evaluates arbitrary valid Python code within the
     server process.  Its most likely use-case is to access the (sub)attributes of the
     single instance of class |ServerState|, available as a member of class
-    |HydPyServer|.  This method can be of help when being puzzled about the state of
-    the *HydPy* server.  Use it, for example, to find out which |Node| objects are
+    |HydPyServer|.  This method can help when being puzzled about the state of the
+    *HydPy* server.  Use it, for example, to find out which |Node| objects are
     available and to see which one is the outlet node of the |Element| object
     `land_dill`:
 
@@ -644,8 +652,8 @@ been extracted but cannot be further processed: `x == y`.
     vary for different `id` query parameters.  This flexibility makes things a little
     more complicated, as the |Timegrids| object of the global |pub| module handles only
     one |Timegrids.sim| object at once.  Hence, we differentiate between registered
-    simulation dates of the respective `id` values and the currently active simulation
-    dates of the |Timegrids| object.
+    simulation dates of the respective `id` values and the current simulation dates of
+    the |Timegrids| object.
 
     Method |HydPyServer.GET_query_simulationdates| asks for registered simulation dates
     and thus fails at first:
@@ -772,7 +780,7 @@ parameter item `lag` is missing.
     ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
     ...     test("evaluate",
     ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(99.27505, ..., 142.84148)
     quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
@@ -783,7 +791,7 @@ parameter item `lag` is missing.
     ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
     ...     test("evaluate",
     ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {sequences}.logs.quh"))    # doctest: +ELLIPSIS
+    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
     quh = quh(0.0)
     sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)
@@ -807,7 +815,7 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
-    >>> test("query_getitemvalues", id_="0")    # doctest: +ELLIPSIS
+    >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
     land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan]
@@ -857,16 +865,16 @@ under the id `0`.  There is nothing registered, so far.
     Next, we trigger a simulation run by calling the GET method
     |HydPyServer.GET_simulate|:
 
-    >>> test("simulate")
+    >>> test("simulate", id_="0")
     <BLANKLINE>
 
     Calling methods |HydPyServer.GET_update_getitemvalues| and
-    |HydPyServer.GET_query_getitemvalues| now reveals how the simulation run
-    modified our change items:
+    |HydPyServer.GET_query_getitemvalues| now reveals how the simulation modified our
+    change items:
 
-    >>> test("update_getitemvalues", id_="0")    # doctest: +ELLIPSIS
+    >>> test("update_getitemvalues", id_="0")  # doctest: +ELLIPSIS
     <BLANKLINE>
-    >>> test("query_getitemvalues", id_="0")    # doctest: +ELLIPSIS
+    >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
     land_dill_factors_tmean = -0.572053
     land_dill_fluxes_qt = 5.515321
     ...
@@ -876,8 +884,8 @@ under the id `0`.  There is nothing registered, so far.
 
     So far, we have explained how the *HydPy* server memorises different exchange item
     values for different values of query parameter `id`.  Complicating matters,
-    memorising condition values must also take the relevant time point into account.
-    You load conditions for the simulation period's current start date with method
+    memorising condition values must also consider the relevant time point.  You load
+    conditions for the simulation period's current start date with method
     |HydPyServer.GET_load_internalconditions|, and you save them for the current end
     date with method |HydPyServer.GET_save_internalconditions|.  To give an example, we
     first save the states calculated for the end time of the last simulation run
@@ -887,7 +895,7 @@ under the id `0`.  There is nothing registered, so far.
     firstdate_sim = 1996-01-01T00:00:00+01:00
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")    # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(99.848023, ..., 99.848023)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
@@ -899,7 +907,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("load_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")    # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(138.31396, ..., 164.63255)
 
     If we set the first date of the simulation period to January 2, method
@@ -915,7 +923,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("load_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")    # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(99.848023, ..., 99.848023)
 
     Loading condition values for a specific time point requires saving them before:
@@ -935,7 +943,7 @@ ID `0` and time point `1996-01-03 00:00:00` are required, but have not been \
 calculated so far.
 
     For example, when restarting data assimilation subsequent forecasting periods, you
-    might need to get and set all internal conditions from the client side.  Use
+    might need to get and set all internal conditions from the client-side.  Use
     methods |HydPyServer.GET_query_internalconditions| and
     |HydPyServer.POST_register_internalconditions| in such cases.  Method
     |HydPyServer.GET_query_internalconditions| returns the information registered for
@@ -1020,7 +1028,7 @@ calculated so far.
 
     >>> test("register_initialitemvalues", id_="1")
     <BLANKLINE>
-    >>> test("query_itemvalues", id_="1")    # doctest: +ELLIPSIS
+    >>> test("query_itemvalues", id_="1")  # doctest: +ELLIPSIS
     alpha = 2.0
     beta = 1.0
     lag = 5.0
@@ -1044,6 +1052,133 @@ calculated so far.
     land_lahn_3_states_sm = [101.31248...]
     land_lahn_3_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
     dill_nodes_sim_series = [nan, nan, nan, nan, nan]
+
+    In contrast to running a single simulation via method |run_simulation|, the HydPy
+    server does (usually) not write calculated time-series automatically.  Instead, one
+    must manually call method |HydPyServer.GET_save_allseries|:
+
+    >>> test("save_allseries", id_="0")
+    <BLANKLINE>
+
+    According to the fixed configuration of `multiple_runs.xml`,
+    |HydPyServer.GET_save_allseries| wrote averaged soil moisture values into the
+    directory `mean_sm`:
+
+    >>> import netCDF4
+    >>> from hydpy import print_values
+    >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["state_sm"][:, 0])
+    211.238178, 0.0, 0.0, 0.0, 0.0
+
+    To save the results of subsequent simulations without overwriting the previous
+    ones, change the current series writer directory by the GET method
+    |HydPyServer.GET_register_serieswriterdir|:
+
+    >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = sm_averaged")
+    <BLANKLINE>
+    >>> test("save_allseries", id_="0")
+    <BLANKLINE>
+    >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["state_sm"][:, 0])
+    211.238178, 0.0, 0.0, 0.0, 0.0
+
+    |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
+    from the registry so that the HydPy server falls back to the
+    configuration of `multiple_runs.xml`:
+
+    >>> test("query_serieswriterdir", id_="0")
+    serieswriterdir = sm_averaged
+    >>> test("deregister_serieswriterdir", id_="0")
+    <BLANKLINE>
+    >>> test("query_serieswriterdir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_serieswriterdir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+
+    The same holds for time-series to be written "just in time" during simulation runs.
+    The `temperature` writer in `multiple_runs.xml` select the `jit` mode.  This
+    setting triggered that the *HydPy* server wrote the time-series of sequences
+    |hland_inputs.T| and |hland_inputs.TN| to the directory `temperature` during the
+    last simulation:
+
+    >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["input_t"][:, 0])
+    -0.298846, 0.0, 0.0, 0.0, 0.0
+
+    The input sequences |hland_inputs.P| and |hland_inputs.EPN| are instead reading
+    their time-series "just in time" (reading and writing data for the same |IOSequence|
+    object is not supported).  We query the last read value of |hland_inputs.EPN| for
+    the Dill catchment:
+
+    >>> epn = f"HydPyServer.state.hp.elements.land_dill.model.sequences.inputs.epn"
+    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
+    epn_dill = epn(0.2854...)
+
+    We can change the series writer directory before starting another simulation run to
+    write the time-series of |hland_inputs.T| and |hland_inputs.TN| to another
+    directory:
+
+    >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = temp")
+    <BLANKLINE>
+    >>> test("simulate", id_="0")
+    <BLANKLINE>
+    >>> filepath = "LahnH/series/temp/hland_v1_input_t.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["input_t"][:, 0])
+    -0.298846, 0.0, 0.0, 0.0, 0.0
+
+    The "just in time" reading of the series of "P" and "EPN" still worked, showing the
+    registered series directory "temp" only applied for writing data:
+
+    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
+    epn_dill = epn(0.2854...)
+
+    Changing the series reader directory works as explained for the series reader
+    directory.  After setting it to an empty folder, |HydPyServer.load_allseries| and
+    |HydPyServer.simulate| cannot find suitable files and report this problem:
+
+    >>> test("register_seriesreaderdir", id_="0", data="seriesreaderdir = no_data")
+    <BLANKLINE>
+    >>> test("query_seriesreaderdir", id_="0")
+    seriesreaderdir = no_data
+
+    >>> test("load_allseries", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_load_allseries`, the following error occurred: While trying to \
+load the time-series data of sequence `t` of element `land_dill`, the following error \
+occurred: [Errno 2] No such file or directory: ...land_dill_input_t.asc'
+
+    >>> test("simulate", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_simulate`, the following error occurred: While trying to prepare \
+NetCDF files for reading or writing data "just in time" during the current simulation \
+run, the following error occurred: [Errno 2] No such file or directory: \
+...hland_v1_input_p.nc'
+
+    After deregistering the "no_data" directory, both methods work again:
+
+    >>> test("deregister_seriesreaderdir", id_="0")
+    <BLANKLINE>
+    >>> test("query_seriesreaderdir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_seriesreaderdir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+
+    >>> test("load_allseries", id_="0")
+    <BLANKLINE>
+    >>> test("simulate", id_="0")
+    <BLANKLINE>
 
     To close the *HydPy* server, call |HydPyServer.GET_close_server|:
 
@@ -1185,7 +1320,7 @@ calculated so far.
         For safety purposes, method |HydPyServer.POST_evaluate| only works if you start
         the *HydPy* Server in debug mode by writing "debugging=enable", as we do in the
         examples of the main documentation on class |HydPyServer|.  When not working in
-        debug mode, trying to use this method results in the following error message:
+        debug mode, invoking this method results in the following error message:
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1599,10 +1734,49 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         for name, value in item2value.items():
             self._outputs[name] = value
 
-    @classmethod
-    def GET_simulate(cls) -> None:
+    def GET_simulate(self) -> None:
         """Perform a simulation run."""
-        cls.state.hp.simulate()
+        readerdir = self.state.seriesreaderdirs.get(self._id, None)
+        writerdir = self.state.serieswriterdirs.get(self._id, None)
+        sio = self.state.interface.series_io
+        with sio.modify_inputdir(readerdir), sio.modify_outputdir(writerdir):
+            self.state.hp.simulate()
+
+    def POST_register_seriesreaderdir(self) -> None:
+        """Register the send series reader directory under the given `id`."""
+        self.state.seriesreaderdirs[self._id] = self._inputs["seriesreaderdir"]
+
+    def GET_deregister_seriesreaderdir(self) -> None:
+        """Remove the series reader directory registered under the `id`."""
+        self.state.seriesreaderdirs.pop(self._id, None)
+
+    def GET_query_seriesreaderdir(self) -> None:
+        """Return the series reader directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.seriesreaderdirs)
+        self._outputs["seriesreaderdir"] = dir_
+
+    def POST_register_serieswriterdir(self) -> None:
+        """Register the send series writer directory under the given `id`."""
+        self.state.serieswriterdirs[self._id] = self._inputs["serieswriterdir"]
+
+    def GET_deregister_serieswriterdir(self) -> None:
+        """Remove the series writer directory registered under the `id`."""
+        self.state.serieswriterdirs.pop(self._id, None)
+
+    def GET_query_serieswriterdir(self) -> None:
+        """Return the series writer directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.serieswriterdirs)
+        self._outputs["serieswriterdir"] = dir_
+
+    def GET_load_allseries(self) -> None:
+        """Load the time series of all sequences selected for (non-jit) reading."""
+        state = self.state
+        state.interface.series_io.load_series(state.seriesreaderdirs.get(self._id))
+
+    def GET_save_allseries(self) -> None:
+        """Save the time series of all sequences selected for (non-jit) writing."""
+        state = self.state
+        state.interface.series_io.save_series(state.serieswriterdirs.get(self._id))
 
 
 class _HTTPServerBase(http.server.HTTPServer):
@@ -1614,6 +1788,7 @@ def start_server(
     socket: Union[int, str],
     projectname: str,
     xmlfilename: str,
+    load_series: Union[bool, str] = True,
     maxrequests: Union[int, str] = 5,
     debugging: Literal["enable", "disable"] = "disable",
 ) -> None:
@@ -1651,8 +1826,8 @@ def start_server(
     >>> process.kill()
     >>> _ = process.communicate()
 
-    Please see the documentation on method |HydPyServer.POST_evaluate| for an
-    explanation of the "debugging" argument.
+    Please see the documentation on method |HydPyServer.POST_evaluate| that explains
+    the "debugging" argument.
 
     Note that function |start_server| tries to read the "mime types" from a dictionary
     stored in the file `mimetypes.txt` available in subpackage `conf` and passes it as
@@ -1685,6 +1860,7 @@ def start_server(
     HydPyServer.state = ServerState(
         projectname=projectname,
         xmlfile=xmlfilename,
+        load_series=objecttools.value2bool("load_series", load_series),
     )
 
     class _HTTPServer(_HTTPServerBase):
@@ -1704,7 +1880,7 @@ def await_server(
     given `port` or the given number of `seconds` elapsed.
 
     >>> from hydpy import run_subprocess, TestIO
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     result = run_subprocess("hyd.py await_server 8080 0.1")
     Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in the \
 following error:

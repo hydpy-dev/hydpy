@@ -70,21 +70,68 @@
         </aggregation>
 
         <readers>
-            <reader info="all input data">
+
+            <reader info="read during initialisation">
                 <sequences>
                     <hland_v1>
                         <inputs>
-                            <p/>
                             <t/>
                             <tn/>
-                            <epn/>
                         </inputs>
                     </hland_v1>
                 </sequences>
             </reader>
+
+            <reader info="read during simulation">
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                            <epn/>
+                        </inputs>
+                    </hland_v1>
+                </sequences>
+                <mode>jit</mode>
+            </reader>
+
         </readers>
 
-        <writers/>
+        <writers>
+
+            <writer info="averaged moisture">
+                <directory>mean_sm</directory>
+                <sequences>
+                    <hland_v1>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_v1>
+                </sequences>
+                <filetype>
+                    <states>nc</states>
+                </filetype>
+                <aggregation>
+                    <states>mean</states>
+                </aggregation>
+            </writer>
+
+            <writer info="temperature">
+                <directory>temperature</directory>
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <t/>
+                            <tn/>
+                        </inputs>
+                    </hland_v1>
+                </sequences>
+                <filetype>
+                    <inputs>nc</inputs>
+                </filetype>
+                <mode>jit</mode>
+            </writer>
+
+        </writers>
 
     </series_io>
 

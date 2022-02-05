@@ -332,15 +332,16 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Read the required condition files")
     interface.conditions_io.load_conditions()
     write("Read the required time series files")
-    interface.series_io.prepare_series()
-    interface.series_io.load_series()
+    series_io = interface.series_io
+    series_io.prepare_series()
+    series_io.load_series()
     write("Perform the simulation run")
-    with interface.series_io.modify_dirpath():
+    with series_io.modify_inputdir(), series_io.modify_outputdir():
         hp.simulate()
     write("Write the desired condition files")
     interface.conditions_io.save_conditions()
     write("Write the desired time series files")
-    interface.series_io.save_series()
+    series_io.save_series()
 
 
 class XMLBase:
@@ -1123,52 +1124,47 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find("writers", optional=False)]
 
     def prepare_series(self) -> None:
-        """Call |XMLSubseries.prepare_series| of all |XMLSubseries| objects with the
-        same memory |set| object.
-
-        >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
-        >>> from hydpy.data import make_filepath
-        >>> interface = XMLInterface("single_run.xml", make_filepath("LahnH"))
-        >>> series_io = interface.series_io
-        >>> from unittest import mock
-        >>> prepare_series = XMLSubseries.prepare_series
-        >>> XMLSubseries.prepare_series = mock.MagicMock()
-        >>> series_io.prepare_series()
-        >>> args = XMLSubseries.prepare_series.call_args_list
-        >>> len(args) == len(series_io.readers) + len(series_io.writers)
-        True
-        >>> args[0][0][0]
-        set()
-        >>> args[0][0][0] is args[-1][0][0]
-        True
-        >>> XMLSubseries.prepare_series = prepare_series
-        """
-        memory: Set[sequencetools.IOSequence[Any, Any]] = set()
+        """Call |XMLSubseries.prepare_series| of all |XMLSubseries| objects."""
         for ioseries in itertools.chain(self.readers, self.writers):
-            ioseries.prepare_series(memory)
+            ioseries.prepare_series()
 
-    def load_series(self) -> None:
+    def load_series(self, currentdir: Optional[str] = None) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects handled as
         "readers"."""
-        for input_ in self.readers:
-            input_.load_series()
+        for reader in self.readers:
+            reader.load_series(currentdir)
 
-    def save_series(self) -> None:
+    def save_series(self, currentdir: Optional[str] = None) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects handled as
         "writers"."""
         for writer in self.writers:
-            writer.save_series()
+            writer.save_series(currentdir)
 
     @contextlib.contextmanager
-    def modify_dirpath(self) -> Iterator[None]:
+    def modify_inputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
-        registered for reading or writing time-series data "just in time" during a
-        simulation run."""
-        for ioseries in itertools.chain(self.readers, self.writers):
-            ioseries.change_dirpath()
-        yield
-        for ioseries in itertools.chain(self.readers, self.writers):
-            ioseries.reset_dirpath()
+        registered for reading time-series data "just in time" during a simulation
+        run."""
+        try:
+            for reader in self.readers:
+                reader.change_dirpath(currentdir)
+            yield
+        finally:
+            for reader in self.readers:
+                reader.reset_dirpath()
+
+    @contextlib.contextmanager
+    def modify_outputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
+        """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
+        registered for writing time-series data "just in time" during a simulation
+        run."""
+        try:
+            for writer in self.writers:
+                writer.change_dirpath(currentdir)
+            yield
+        finally:
+            for writer in self.writers:
+                writer.reset_dirpath()
 
 
 class XMLSelector(XMLBase):
@@ -1319,7 +1315,7 @@ class XMLSubseries(XMLSelector):
     def _is_writer(self) -> bool:
         return not self._is_reader
 
-    def prepare_sequencemanager(self) -> None:
+    def prepare_sequencemanager(self, currentdir: Optional[str] = None) -> None:
         """Configure the |SequenceManager| object available in module |pub| following
         the definitions of the actual XML `reader` or `writer` element when available;
         if not, use those of the XML `series_io` element.
@@ -1371,14 +1367,17 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.inputoverwrite
         True
         """
-        element = self.find("directory")
-        if element is None:
-            element = self.master.find("directory")
-        if element is None:
-            hydpy.pub.sequencemanager.currentdir = "default"
+        if currentdir is None:
+            element = self.find("directory")
+            if element is None:
+                element = self.master.find("directory")
+            if element is None:
+                hydpy.pub.sequencemanager.currentdir = "default"
+            else:
+                assert element.text is not None
+                hydpy.pub.sequencemanager.currentdir = element.text
         else:
-            assert element.text is not None
-            hydpy.pub.sequencemanager.currentdir = element.text
+            hydpy.pub.sequencemanager.currentdir = currentdir
 
         for opt in ("filetype", "aggregation", "overwrite"):
             xml_special = self.find(opt)
@@ -1487,15 +1486,12 @@ class XMLSubseries(XMLSelector):
                 for seq_name in seq_names:
                     yield getattr(node.sequences, seq_name)
 
-    def prepare_series(self, memory: Set[sequencetools.IOSequence[Any, Any]]) -> None:
+    def prepare_series(self) -> None:
         """Call method |IOSequence.prepare_series| of class |IOSequence| for all
         sequences selected by the given element of the actual XML file.
 
-        Use the memory argument to pass in already considered sequences; method
-        |XMLSubseries.prepare_series| adds new sequences automatically.
-
         Method |IOSequence.prepare_series| solves a complex task, as it needs to
-        determine the correct arguments for mehod |IOSequence.prepare_series| of class
+        determine the correct arguments for method |IOSequence.prepare_series| of class
         |IOSequence|.  Those arguments depend on wether the respective |XMLSubseries|
         element is for reading or writing data, addresses input or output sequences,
         and if one prefers to handle time-series data in RAM or read or write it "just
@@ -1507,7 +1503,6 @@ class XMLSubseries(XMLSelector):
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-
         >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
@@ -1517,138 +1512,126 @@ class XMLSubseries(XMLSelector):
         ...     interface = XMLInterface("single_run.xml")
         >>> interface.update_timegrids()
         >>> interface.update_selections()
-        >>> series_io = interface.series_io
 
-        First, we show that method |XMLSubseries.prepare_series| only handles sequences
-        not already included in the given `memory` |set|:
-
-        >>> memory = set()
-        >>> pc = hp.elements.land_dill.model.sequences.fluxes.pc
-        >>> pc.diskflag_writing
-        False
-        >>> series_io.writers[0].prepare_series(memory)
-        >>> pc in memory
-        True
-        >>> pc.diskflag_writing
-        True
-
-        >>> pc.prepare_series(allocate_ram=False)
-        >>> pc.diskflag_writing
-        False
-        >>> series_io.writers[0].prepare_series(memory)
-        >>> pc.diskflag_writing
-        False
-
-        ToDo: Better raise an error if there are multiple inconsistent specifications
-        for the same sequence?
-
-        Next, we check and discuss the proper setting of the properties
+        First, we check and discuss the proper setting of the properties
         |IOSequence.ramflag|, |IOSequence.diskflag_reading|, and
         |IOSequence.diskflag_writing| for the sequences defined in `single_run.xml`.
         First, we call |XMLSubseries.prepare_series| for available |XMLSubseries|
         objects:
 
-        >>> memory = set()
+        >>> series_io = interface.series_io
         >>> for reader in series_io.readers:
-        ...     reader.prepare_series(memory)
+        ...     reader.prepare_series()
         >>> for writer in series_io.writers:
-        ...     writer.prepare_series(memory)
+        ...     writer.prepare_series()
 
-        The following test function prints the options for the first sequence found
-        with the given name:
+        The following test function prints the options of the specified sequence of
+        element "Dill":
 
-        >>> def print_io_options(name):
-        ...     sequence = [s for s in memory if s.name == name][0]
+        >>> def print_io_options(groupname, sequencename):
+        ...     sequences = hp.elements.land_dill.model.sequences
+        ...     sequence = sequences[groupname][sequencename]
         ...     print(f"ramflag={sequence.ramflag}")
         ...     print(f"diskflag_reading={sequence.diskflag_reading}")
         ...     print(f"diskflag_writing={sequence.diskflag_writing}")
 
-        The XML files makes uses of the `jit` mode for all non-aggregated time series.
-        Reader elements handle input sequences and writer elements handle output
-        sequences.  Hence, |IOSequence.ramflag| is generally |False| while
+        The XML file uses the `jit` mode for all non-aggregated time series.  Reader
+        elements handle input sequences and writer elements handle output sequences.
+        Hence, |IOSequence.ramflag| is generally |False| while
         |IOSequence.diskflag_reading| is |True| for the input sequences and
         |IOSequence.diskflag_writing| is |True| for the output sequences:
 
-        >>> print_io_options("p")
+        >>> print_io_options("inputs", "p")
         ramflag=False
         diskflag_reading=True
         diskflag_writing=False
 
-        >>> print_io_options("pc")
-        ramflag=False
-        diskflag_reading=False
-        diskflag_writing=True
-
-        >>> print_io_options("sm")
+        >>> print_io_options("fluxes", "pc")
         ramflag=False
         diskflag_reading=False
         diskflag_writing=True
 
         Currently, aggregation only works in combination with mode `ram`:
 
-        >>> print_io_options("tc")
+        >>> print_io_options("factors", "tc")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=False
 
-        # ToDo: Support jit for writing and report an error for reading?
+        For sequence |hland_states.SM|, two writers apply.  The writer "soil moisture"
+        triggers writing the complete time-series "just in time" during the simulation
+        run.  In contrast, the writer "averaged" initiates writing averaged time-series
+        after the simulation run.  The configuration of sequence |hland_states.SM|
+        reflects this with both "ram flag" and "disk flag writing" being "True":
 
-        We temporarily convert the only reader element to a writer element and apply
-        method |XMLSubseries.prepare_series| again.  This is the only case where two
-        options (|IOSequence.ramflag| and |IOSequence.diskflag_writing|) are |True| at
-        the same time (see the documentation on method
-        |PrepareSeriesArguments.from_xmldata| for further information):
-
-        >>> reader = series_io.readers[0]
-        >>> reader.root.tag = reader.root.tag.replace("reader", "writer")
-        >>> reader.prepare_series(set())
-        >>> reader.root.tag = reader.root.tag.replace("writer", "reader")
-        >>> print_io_options("p")
+        >>> print_io_options("states", "sm")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=True
 
-        ToDo: We currently handle node sequences likewise.  This decision generally
-        seems to make sense for observed sequences.  However, for simulated sequences,
-        activating the ram flag seems only necessary when working with the `oldsim`
-        option, which is currently not supported by XML.  The same holds for the `obs`
-        option.  Should we add them?
+        We temporarily convert the single reader element to a writer element and apply
+        method |XMLSubseries.prepare_series| again.  At first, this does not work, as
+        the affected input sequences have previously been configured for "just in time"
+        reading, which does not work in combination with "just in time" writing:
+
+        >>> reader = series_io.readers[0]
+        >>> reader.root.tag = reader.root.tag.replace("reader", "writer")
+        >>> reader.prepare_series()
+        Traceback (most recent call last):
+        ...
+        ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `p` of element \
+`land_dill`.
+
+        After resetting all |InputSequence| objects and re-applying
+        |XMLSubseries.prepare_series|, both |IOSequence.ramflag| and
+        |IOSequence.diskflag_writing| are |True|.  This case is the only one where a
+        single reader or writer enables two flags  (see the documentation on method
+        |PrepareSeriesArguments.from_xmldata| for further information):
+
+        >>> hp.prepare_allseries(allocate_ram=False, jit=False)
+        >>> reader.prepare_series()
+        >>> reader.root.tag = reader.root.tag.replace("writer", "reader")
+        >>> print_io_options("inputs", "p")
+        ramflag=True
+        diskflag_reading=False
+        diskflag_writing=True
 
         If we prefer the `ram` mode, things are more straightforward.  Then, option
-        |IOSequence.ramflag| is |True| and options |IOSequence.diskflag_reading| and
+        |IOSequence.ramflag| is |True|, and options |IOSequence.diskflag_reading| and
         |IOSequence.diskflag_writing| are |False| regardless of all other options:
 
-        >>> memory = set()
+        >>> hp.prepare_allseries(allocate_ram=False, jit=False)
         >>> series_io.find("mode").text = "ram"
         >>> for reader in series_io.readers:
         ...     reader.find("mode").text = "ram"
-        ...     reader.prepare_series(memory)
+        ...     reader.prepare_series()
         >>> for writer in series_io.writers:
         ...     mode = writer.find("mode")
         ...     if mode is not None:
         ...         mode.text = "ram"
-        ...     writer.prepare_series(memory)
+        ...     writer.prepare_series()
 
-        >>> print_io_options("p")
+        >>> print_io_options("inputs", "p")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=False
 
-        >>> print_io_options("pc")
+        >>> print_io_options("fluxes", "pc")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=False
 
-        >>> print_io_options("sm")
+        >>> print_io_options("states", "sm")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=False
 
         >>> reader = series_io.readers[0]
         >>> reader.root.tag = reader.root.tag.replace("reader", "writer")
-        >>> reader.prepare_series(set())
+        >>> reader.prepare_series()
         >>> reader.root.tag = reader.root.tag.replace("writer", "reader")
-        >>> print_io_options("p")
+        >>> print_io_options("inputs", "p")
         ramflag=True
         diskflag_reading=False
         diskflag_writing=False
@@ -1663,20 +1646,18 @@ class XMLSubseries(XMLSelector):
             )
         input_types = (sequencetools.InputSequence, sequencetools.NodeSequence)
         for sequence in self._iterate_sequences():
-            if sequence not in memory:
-                memory.add(sequence)
-                args = (
-                    input_args
-                    if (output_args is None) or isinstance(sequence, input_types)
-                    else output_args
-                )
-                sequence.prepare_series(
-                    allocate_ram=args.allocate_ram,
-                    read_jit=args.read_jit,
-                    write_jit=args.write_jit,
-                )
+            args = (
+                input_args
+                if (output_args is None) or isinstance(sequence, input_types)
+                else output_args
+            )
+            sequence.prepare_series(
+                allocate_ram=sequence.ramflag or args.allocate_ram,
+                read_jit=sequence.diskflag_reading or args.read_jit,
+                write_jit=sequence.diskflag_writing or args.write_jit,
+            )
 
-    def load_series(self) -> None:
+    def load_series(self, currentdir: Optional[str]) -> None:
         """Load time series data as defined by the actual XML `reader` element.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1702,13 +1683,13 @@ class XMLSubseries(XMLSelector):
         """
         if self._is_reader:
             hydpy.pub.sequencemanager.open_netcdfreader()
-            self.prepare_sequencemanager()
+            self.prepare_sequencemanager(currentdir)
             for sequence in self._iterate_sequences():
                 if sequence.ramflag:
                     sequence.load_series()
             hydpy.pub.sequencemanager.close_netcdfreader()
 
-    def save_series(self) -> None:
+    def save_series(self, currentdir: Optional[str]) -> None:
         """Save time series data as defined by the actual XML `writer` element.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1744,24 +1725,23 @@ class XMLSubseries(XMLSelector):
         """
         if self.name == "writer":
             hydpy.pub.sequencemanager.open_netcdfwriter()
-            self.prepare_sequencemanager()
+            self.prepare_sequencemanager(currentdir)
             for sequence in self._iterate_sequences():
                 if not sequence.diskflag_writing:
                     sequence.save_series()
             hydpy.pub.sequencemanager.close_netcdfwriter()
 
-    def change_dirpath(self) -> None:
+    def change_dirpath(self, currentdir: Optional[str]) -> None:
         """Set the |IOSequence.dirpath| of all relevant |IOSequence| objects to the
         |FileManager.currentpath| of the |SequenceManager| object available in the
         |pub| module.
-
 
         This "information freezing" is required for those sequences selected for
         reading data  from or writing data to different directories "just in time"
         during a simulation run.
         """
         if not self._ramflag:
-            self.prepare_sequencemanager()
+            self.prepare_sequencemanager(currentdir)
             currentpath = hydpy.pub.sequencemanager.currentpath
             for sequence in self._iterate_sequences():
                 sequence.dirpath = currentpath
@@ -1769,7 +1749,6 @@ class XMLSubseries(XMLSelector):
     def reset_dirpath(self) -> None:
         """Revert |XMLSubseries.change_dirpath|."""
         if not self._ramflag:
-            self.prepare_sequencemanager()
             for sequence in self._iterate_sequences():
                 del sequence.dirpath
 

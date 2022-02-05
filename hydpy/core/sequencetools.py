@@ -1588,8 +1588,9 @@ determined.  Either set it manually or prepare `pub.sequencemanager` correctly.
     >>> inputs.t.prepare_series(read_jit=True, write_jit=True)
     Traceback (most recent call last):
     ...
-    ValueError: Simultaneous reading and writing of NetCDF files during simulation \
-runs is not supported.
+    ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `t` of element \
+`land_lahn_1`.
 
     For simplifying the following examples, we now handle all model time series in RAM:
 
@@ -1783,8 +1784,9 @@ runs is not supported.
         """
         if read_jit and write_jit:
             raise ValueError(
-                "Simultaneous reading and writing of NetCDF files during simulation "
-                "runs is not supported."
+                f'Reading from and writing into the same NetCDF file "just in '
+                f'time" during a simulation run is not supported but tried for '
+                f"sequence {objecttools.devicephrase(self)}."
             )
         ramflag = self.ramflag
         if allocate_ram and not ramflag:

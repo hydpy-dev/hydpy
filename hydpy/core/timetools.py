@@ -2618,15 +2618,17 @@ date (`2000-01-01 00:00:00`) is inconsistent.
         firstdate_copy = self.firstdate
         lastdate_copy = self.lastdate
         stepsize_copy = self.stepsize
-        self.modify(
-            firstdate=firstdate,
-            lastdate=lastdate,
-            stepsize=stepsize,
-        )
-        yield self
-        self.firstdate = firstdate_copy
-        self.lastdate = lastdate_copy
-        self.stepsize = stepsize_copy
+        try:
+            self.modify(
+                firstdate=firstdate,
+                lastdate=lastdate,
+                stepsize=stepsize,
+            )
+            yield self
+        finally:
+            self.firstdate = firstdate_copy
+            self.lastdate = lastdate_copy
+            self.stepsize = stepsize_copy
 
     def __len__(self) -> int:
         return abs(int((self.lastdate - self.firstdate) / self.stepsize))

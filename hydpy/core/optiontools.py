@@ -1,164 +1,451 @@
 # -*- coding: utf-8 -*-
-"""This module implements classes that help to manage global HydPy options."""
+"""This module implements features for defining local or global *HydPy* options."""
 
 # import...
 # ...from standard library
-import inspect
+from __future__ import annotations
 import itertools
+import types
 from typing import *
 
 # ...from HydPy
 import hydpy
-from hydpy import config
+from hydpy.core import exceptiontools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 
+TypeOption = TypeVar(
+    "TypeOption",
+    bool,
+    int,
+    str,
+    timetools.Period,
+)
+TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 
-TIn = TypeVar("TIn")
-TOut = TypeVar("TOut")
-TOrig = TypeVar("TOrig")
-TOption = TypeVar("TOption", bound="_Option")
+
+class OptionPropertyBase(propertytools.BaseDescriptor, Generic[TypeOption]):
+    """Base class for defining descriptors that both work like regular |property|
+    instances and support the `with` statement to change the property's value
+    temporarily."""
+
+    _CONVERTER: Tuple[Callable[[TypeOption], TypeOption]]
+    _default: TypeOption
+    _obj2value: Dict[Hashable, TypeOption]
+
+    def __init__(self, default: TypeOption, doc: str) -> None:
+        self._default = default
+        self._obj2value = {}
+        self.set_doc(doc)
+
+    def __set__(self, obj: Hashable, value: TypeOption) -> None:
+        self._obj2value[obj] = self._CONVERTER[0](value)
+
+    def __delete__(self, obj: Hashable) -> None:
+        if obj in self._obj2value:
+            del self._obj2value[obj]
+
+    def _get_value(self, obj: Hashable) -> TypeOption:
+        return self._obj2value.get(obj, self._default)
+
+    def _set_value(self, obj: Hashable, value: Optional[TypeOption] = None) -> None:
+        if value is not None:
+            self._obj2value[obj] = self._CONVERTER[0](value)
 
 
-class _Context(Generic[TOrig, TOption]):
+class OptionPropertyBool(OptionPropertyBase[bool]):
+    """Descriptor for defining options of type |bool|.
 
-    _TYPE: Type
-    _option: TOption
-    _default: TOrig
-    _old_value: TOrig
+    Framework or model developers should implement options of type |bool| as follows:
 
-    def __new__(
-        cls,
-        *args,
-        option: TOption,
-        **kwargs,
-    ):
-        args_ = [cls, option._get_value()] + list(args)
-        return cls._TYPE.__new__(*args_, **kwargs)
+    >>> from hydpy.core.optiontools import OptionPropertyBool
+    >>> class T:
+    ...     v = OptionPropertyBool(True, "x")
+
+    Users can change the current value "normally" by assignments:
+
+    >>> t = T()
+    >>> assert t.v
+    >>> t.v = False
+    >>> assert not t.v
+
+    Deleting restores the default value:
+
+    >>> del t.v
+    >>> assert t.v
+
+    In most cases, the prefered way is to change options "temporarily" for a specific
+    code block introduced by the `with` statement:
+
+    >>> with t.v(False):
+    ...     assert not t.v
+    ...     with t.v(True):
+    ...         assert t.v
+    ...         with t.v():
+    ...             assert t.v
+    ...             with t.v(None):
+    ...                 assert t.v
+    ...                 with t.v(False):
+    ...                     assert not t.v
+    ...                 with t.v():
+    ...                     t.v = False
+    ...                     assert not t.v
+    ...                 assert t.v
+    ...             assert t.v
+    ...         assert t.v
+    ...     assert not t.v
+    >>> assert t.v
+
+    >>> with t.v(False):
+    ...     assert not t.v
+    ...     raise RuntimeError
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    >>> assert t.v
+    """
+
+    _CONVERTER = (bool,)
+
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextBool:
+        return OptionContextBool(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
+class OptionPropertyInt(OptionPropertyBase[int]):
+    """Descriptor for defining options of type |int|.
+
+    Framework or model developers should implement options of type |int| as follows:
+
+    >>> from hydpy.core.optiontools import OptionPropertyInt
+    >>> class T:
+    ...     v = OptionPropertyInt(1, "x")
+
+    Users can change the current value "normally" by assignments:
+
+    >>> t = T()
+    >>> assert t.v == 1
+    >>> t.v = 2
+    >>> assert t.v == 2
+
+    Deleting restores the default value:
+
+    >>> del t.v
+    >>> assert t.v == 1
+
+    In most cases, the prefered way is to change options "temporarily" for a specific
+    code block introduced by the `with` statement:
+
+    >>> with t.v(2):
+    ...     assert t.v == 2
+    ...     with t.v(3):
+    ...         assert t.v == 3
+    ...         with t.v():
+    ...             assert t.v == 3
+    ...             with t.v(None):
+    ...                 assert t.v == 3
+    ...                 with t.v(1):
+    ...                     assert t.v == 1
+    ...                 with t.v():
+    ...                     t.v = 4
+    ...                     assert t.v == 4
+    ...                 assert t.v == 3
+    ...             assert t.v == 3
+    ...         assert t.v == 3
+    ...     assert t.v == 2
+    >>> assert t.v == 1
+
+    >>> with t.v(2):
+    ...     assert t.v == 2
+    ...     raise RuntimeError
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    >>> assert t.v == 1
+    """
+
+    _CONVERTER = (int,)
+
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextInt:
+        return OptionContextInt(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
+class _OptionPropertyEllipsis(OptionPropertyBase[int]):
+    _CONVERTER = (int,)
+
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> _OptionContextEllipsis:
+        return _OptionContextEllipsis(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
+class OptionPropertyStr(OptionPropertyBase[str]):
+    """Descriptor for defining options of type |str|.
+
+    Framework or model developers should implement options of type |str| as follows:
+
+    >>> from hydpy.core.optiontools import OptionPropertyStr
+    >>> class T:
+    ...     v = OptionPropertyStr("1", "x")
+
+    Users can change the current value "normally" by assignments:
+
+    >>> t = T()
+    >>> assert t.v == "1"
+    >>> t.v = "2"
+    >>> assert t.v == "2"
+
+    Deleting restores the default value:
+
+    >>> del t.v
+    >>> assert t.v == "1"
+
+    In most cases, the prefered way is to change options "temporarily" for a specific
+    code block introduced by the `with` statement:
+
+    >>> with t.v("2"):
+    ...     assert t.v == "2"
+    ...     with t.v("3"):
+    ...         assert t.v == "3"
+    ...         with t.v():
+    ...             assert t.v == "3"
+    ...             with t.v(None):
+    ...                 assert t.v == "3"
+    ...                 with t.v("1"):
+    ...                     assert t.v == "1"
+    ...                 with t.v():
+    ...                     t.v = "4"
+    ...                     assert t.v == "4"
+    ...                 assert t.v == "3"
+    ...             assert t.v == "3"
+    ...         assert t.v == "3"
+    ...     assert t.v == "2"
+    >>> assert t.v == "1"
+
+    >>> with t.v("2"):
+    ...     assert t.v == "2"
+    ...     raise RuntimeError
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    >>> assert t.v == "1"
+    """
+
+    _CONVERTER = (str,)
+
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextStr:
+        return OptionContextStr(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
+class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
+    """Descriptor for defining options of type |Period|.
+
+    Framework or model developers should implement options of type |Period| as follows:
+
+    >>> from hydpy.core.optiontools import OptionPropertyStr
+    >>> class T:
+    ...     v = OptionPropertyStr("1d", "x")
+
+    Users can change the current value "normally" by assignments (note the automatic
+    type conversion):
+
+    >>> t = T()
+    >>> assert t.v == "1d"
+    >>> t.v = "2d"
+    >>> from hydpy import Period
+    >>> assert t.v == Period("2d")
+
+    Deleting restores the default value:
+
+    >>> del t.v
+    >>> assert t.v == "1d"
+
+    In most cases, the prefered way is to change options "temporarily" for a specific
+    code block introduced by the `with` statement:
+
+    >>> with t.v("2d"):
+    ...     assert t.v == "2d"
+    ...     with t.v("3d"):
+    ...         assert t.v == "3d"
+    ...         with t.v():
+    ...             assert t.v == "3d"
+    ...             with t.v(None):
+    ...                 assert t.v == "3d"
+    ...                 with t.v("1d"):
+    ...                     assert t.v == "1d"
+    ...                 with t.v():
+    ...                     t.v = "4d"
+    ...                     assert t.v == "4d"
+    ...                 assert t.v == "3d"
+    ...             assert t.v == "3d"
+    ...         assert t.v == "3d"
+    ...     assert t.v == "2d"
+    >>> assert t.v == "1d"
+
+    >>> with t.v("2d"):
+    ...     assert t.v == "2d"
+    ...     raise RuntimeError
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    >>> assert t.v == "1d"
+    """
+
+    _CONVERTER = (timetools.Period,)
+
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextPeriod:
+        return OptionContextPeriod(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+    def __set__(self, obj: Hashable, value: timetools.PeriodConstrArg) -> None:
+        self._obj2value[obj] = self._CONVERTER[0](value)
+
+    def _set_value(
+        self, obj: Hashable, value: Optional[timetools.PeriodConstrArg] = None
+    ) -> None:
+        if value is not None:
+            self._obj2value[obj] = self._CONVERTER[0](value)
+
+
+class _OptionPropertySimulationstep(OptionPropertyPeriod):
+    def _get_value(self, obj: Hashable) -> timetools.Period:
+        try:
+            return hydpy.pub.timegrids.stepsize
+        except exceptiontools.AttributeNotReady:
+            return super()._get_value(obj)
+
+
+class OptionContextBase(Generic[TypeOption]):
+    """Base class for defining context managers required for the different
+    |OptionPropertyBase| subclasses."""
+
+    _old_value: TypeOption
+    _new_value: Optional[TypeOption]
+    _set_value: Optional[Tuple[Callable[[Optional[TypeOption]], None]]]
 
     def __init__(
         self,
-        option: TOption,
-    ):
-        self._option = option
-        self._old_value = option._value
-
-    def __enter__(self):
-        return self
+        value: TypeOption,
+        set_value: Optional[Callable[[Optional[TypeOption]], None]] = None,
+    ) -> None:
+        self._old_value = value
+        self._new_value = None
+        if set_value is None:
+            self._set_value = None
+        else:
+            self._set_value = (set_value,)
 
     def __call__(
-        self,
-        value,
-        optional=False,
-    ):
-        option = self._option
-        if (value is not None) and ((option._get_value() is None) or not optional):
-            option._value = option.ORIGTYPE(value)
+        self: TypeOptionContextBase, new_value: Optional[TypeOption] = None
+    ) -> TypeOptionContextBase:
+        self._new_value = new_value
         return self
 
-    def __exit__(self, type_, value, traceback):
-        self._option._value = self._old_value
+    def __enter__(self) -> None:
+        if self._set_value is not None:
+            self._set_value[0](self._new_value)
+
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
+        self._new_value = None
+        if self._set_value is not None:
+            self._set_value[0](self._old_value)
 
 
-class _IntContext(
-    _Context[
-        int,
-        "_IntOption",
-    ],
-    int,
-):
+class OptionContextBool(int, OptionContextBase[bool]):
+    """Context manager required by |OptionPropertyBool|."""
 
-    _TYPE = int
-
-
-class _PeriodContext(
-    _Context[
-        timetools.Period,
-        "_PeriodOption",
-    ],
-    timetools.Period,
-):
-
-    _TYPE = timetools.Period
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: bool,
+        set_value: Optional[Callable[[bool], None]] = None,
+    ) -> OptionContextBool:
+        return super().__new__(cls, value)
 
 
-class _Option(Generic[TIn, TOut, TOrig]):
+class OptionContextInt(int, OptionContextBase[int]):
+    """Context manager required by |OptionPropertyInt|."""
 
-    ORIGTYPE: ClassVar[Type[TOrig]]
-    CONTEXTTYPE: ClassVar[Type[TOut]]
-    _default: TOrig
-    _value: TOrig
-
-    def __init__(self, default: TOrig):
-        self._default = default
-        self._value = default
-
-    def __get__(self: TOption, options: "Options", type_=None) -> TOut:
-        context = self.CONTEXTTYPE(option=self)
-        context.__doc__ = self.__doc__
-        context._default = self._default
-        return context
-
-    def __set__(self: TOption, options: "Options", value: TIn) -> None:
-        self._value = self.ORIGTYPE(value)
-
-    def __delete__(self, options: "Options") -> None:
-        self._value = self._default
-
-    def _get_value(self) -> TOrig:
-        return self._value
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: int,
+        set_value: Optional[Callable[[int], None]] = None,
+    ) -> OptionContextInt:
+        return super().__new__(cls, value)
 
 
-class _IntOption(
-    _Option[
-        int,
-        _IntContext,
-        int,
-    ],
-):
-    ORIGTYPE = int
-    CONTEXTTYPE = _IntContext
+class _OptionContextEllipsis(int, OptionContextBase[int]):
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: int,
+        set_value: Optional[Callable[[int], None]] = None,
+        optional: bool = False,
+    ) -> _OptionContextEllipsis:
+        return super().__new__(cls, value)
+
+    def __call__(
+        self: TypeOptionContextBase,
+        new_value: Optional[int] = None,
+        optional: bool = False,
+    ) -> TypeOptionContextBase:
+        if optional and (self._old_value != -999):
+            self._new_value = self._old_value
+        else:
+            self._new_value = new_value
+        return self
 
 
-class _BoolOption(
-    _Option[
-        bool,
-        _IntContext,
-        bool,
-    ],
-):
+class OptionContextStr(str, OptionContextBase[str]):
+    """Context manager required by |OptionPropertyStr|."""
 
-    ORIGTYPE = bool
-    CONTEXTTYPE = _IntContext
-
-
-class _PeriodOption(
-    _Option[
-        timetools.PeriodConstrArg,
-        _PeriodContext,
-        timetools.Period,
-    ],
-):
-
-    ORIGTYPE = timetools.Period
-    CONTEXTTYPE = _PeriodContext
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: str,
+        set_value: Optional[Callable[[str], None]] = None,
+    ) -> OptionContextStr:
+        return super().__new__(cls, value)
 
 
-class _Simulationstep(_PeriodOption):
-    def _get_value(self):
-        try:
-            return hydpy.pub.timegrids.stepsize
-        except RuntimeError:
-            return super()._get_value()
+class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period]):
+    """Context manager required by |OptionPropertyPeriod|."""
+
+    _set_value: Tuple[Callable[[Optional[timetools.PeriodConstrArg]], None]]
+
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: timetools.PeriodConstrArg,
+        set_value: Optional[
+            Callable[[Optional[timetools.PeriodConstrArg]], None]
+        ] = None,
+    ) -> OptionContextPeriod:
+        return super().__new__(cls, value)
+
+    def __call__(
+        self: TypeOptionContextBase,
+        new_value: Optional[timetools.PeriodConstrArg] = None,
+    ) -> TypeOptionContextBase:
+        self._new_value = new_value
+        return self
 
 
 class Options:
-    """Singleton class for `global` options placed in module |pub|.
+    """Singleton class for the general options available in the global |pub| module.
 
-    Note that Most options are simple True/False or 0/1 flags.
+    Most options are simple True/False or 0/1 flags.
 
-    You can change all options in two ways.  By using the `with` statement,
-    you make sure that the change is undone after leaving the corresponding
-    code block (even if an error occurs):
+    You can change all options in two ways.  First, using the `with` statement makes
+    sure the change is reverted after leaving the corresponding code block (even if an
+    error occurs):
 
     >>> from hydpy import pub
     >>> pub.options.printprogress = 0
@@ -184,7 +471,7 @@ class Options:
     >>> pub.options.printprogress
     0
 
-    When using the `with` statement, you can assign |None|, which does not
+    When using the `with` statement, you can pass nothing or |None|, which does not
     change the original setting and resets it after leaving the `with` block:
 
     >>> with pub.options.printprogress(None):
@@ -196,128 +483,143 @@ class Options:
     >>> pub.options.printprogress
     0
 
-    The delete attribute restores the respective default setting:
+    The delete statement restores the respective default setting:
 
     >>> del pub.options.printprogress
     >>> pub.options.printprogress
     1
     """
 
-    checkseries = _BoolOption(True)
-    """True/False flag for raising an error when trying to load an input
-    time series not spanning the whole initialisation period or containing
-    |numpy.nan| values."""
+    checkseries = OptionPropertyBool(
+        True,
+        """True/False flag for raising an error when loading an input time series that 
+        does not cover the whole initialisation period or contains |numpy.nan| 
+        values.""",
+    )
+    ellipsis = _OptionPropertyEllipsis(
+        -999,
+        """Ellipsis points are used to shorten the string representations of iterable 
+        HydPy objects containing many entries.  Set a value to define the maximum 
+        number of entries before and behind ellipsis points.  Set it to zero to avoid 
+        any ellipsis points.  Set it to -999 to rely on the default values of the 
+        respective iterable objects.""",
+    )
+    parameterstep = OptionPropertyPeriod(
+        timetools.Period("1d"),
+        """The actual parameter time step size.  Change it by passing a |Period| object 
+        or any valid |Period| constructor argument.  The default parameter step is one 
+        day.
+        
+        >>> from hydpy import pub
+        >>> pub.options.parameterstep
+        Period("1d")
+        """,
+    )
+    printprogress = OptionPropertyBool(
+        True,
+        """A True/False flag for printing information about the progress of some 
+        processes to the standard output.""",
+    )
+    reprcomments = OptionPropertyBool(
+        False,
+        """A True/False flag for including comments into string representations.  So 
+        far, this option affects the behaviour of a few implemented classes, only.""",
+    )
+    reprdigits = OptionPropertyInt(
+        -1,
+        """Required precision of string representations of floating point numbers, 
+        defined as the minimum number of digits to be reproduced by the string 
+        representation (see function |repr_|).""",
+    )
+    simulationstep = _OptionPropertySimulationstep(
+        timetools.Period(),
+        """The actual simulation time step size.  Change it by passing a |Period| 
+        object or any valid |Period| constructor argument.  *HydPy* does not define a 
+        default simulation step (indicated by an empty |Period| object).  
+        
+        Note that you cannot manually define the |Options.simulationstep| whenever it 
+        is already available via attribute |Timegrids.stepsize| of the global  
+        |Timegrids| object in module |pub| (`pub.timegrids`):
+        
+        >>> from hydpy import pub
+        >>> pub.options.simulationstep
+        Period()
+        
+        >>> pub.options.simulationstep = "1h"
+        >>> pub.options.simulationstep
+        Period("1h")
+        
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> pub.options.simulationstep
+        Period("1d")
+     
+        >>> pub.options.simulationstep = "1s"
+        >>> pub.options.simulationstep
+        Period("1d")
+        
+        >>> del pub.timegrids
+        >>> pub.options.simulationstep
+        Period("1s")
+        
+        >>> del pub.options.simulationstep
+        >>> pub.options.simulationstep
+        Period()
+        """,
+    )
+    trimvariables = OptionPropertyBool(
+        True,
+        """A True/False flag for enabling/disabling function |trim|.  Set it to |False| 
+        only for good reasons.""",
+    )
+    usecython = OptionPropertyBool(
+        True,
+        """A True/False flag for applying cythonized models if possible, which are much 
+        faster than pure Python models. """,
+    )
+    usedefaultvalues = OptionPropertyBool(
+        False,
+        """A True/False flag for initialising parameters with standard values.""",
+    )
+    utclongitude = OptionPropertyInt(
+        15,
+        """Longitude of the centre of the local time zone (see option
+        |Options.utcoffset|).  Defaults to 15,  which corresponds to the central 
+        meridian of UTC+01:00.""",
+    )
+    utcoffset = OptionPropertyInt(
+        60,
+        """Offset of your local time from UTC in minutes (see option 
+        |Options.utclongitude|.  Defaults to 60, which corresponds to  UTC+01:00.""",
+    )
+    warnmissingcontrolfile = OptionPropertyBool(
+        False,
+        """A True/False flag for only raising a warning instead of an exception when a 
+        necessary control file is missing.""",
+    )
+    warnmissingobsfile = OptionPropertyBool(
+        True,
+        """A True/False flag for raising a warning when a requested observation
+        sequence demanded by a node instance is missing.""",
+    )
+    warnmissingsimfile = OptionPropertyBool(
+        True,
+        """A True/False flag for raising a warning when a requested simulation sequence 
+        demanded by a node instance is missing.""",
+    )
+    warnsimulationstep = OptionPropertyBool(
+        True,
+        """A True/False flag for raising a warning when function |simulationstep| is
+        called for the first time directly by the user.""",
+    )
+    warntrim = OptionPropertyBool(
+        True,
+        """A True/False flag for raising a warning when a |Variable| object trims its 
+        value(s) not to violate certain boundaries.  To cope with the limited precision 
+        of floating-point numbers, only those violations beyond a small tolerance value 
+        are reported (see function |trim|).""",
+    )
 
-    ellipsis = _IntOption(-999)
-    """Ellipsis points are used to shorten the string representations of
-    iterable HydPy objects containing many entries.  Set a value to define
-    the maximum number of entries before and behind ellipsis points.  Set
-    it to zero to avoid any ellipsis points.  Set it to -999 to rely on
-    the default values of the respective iterable objects."""
-
-    parameterstep = _PeriodOption(timetools.Period("1d"))
-    """The actual parameter time step size.  Change it by passing a |Period| 
-    object or any valid |Period| constructor argument.  The default parameter 
-    step is one day.
-    
-    >>> from hydpy import pub
-    >>> pub.options.parameterstep
-    Period("1d")
-    """
-
-    printprogress = _BoolOption(True)
-    """A True/False flag for printing information about the progress of
-    some processes to the standard output."""
-
-    reprcomments = _BoolOption(False)
-    """A True/False flag for including comments into string representations.
-    So far, this option affects the behaviour of a few implemented classes,
-    only."""
-
-    reprdigits = _IntOption(-1)
-    """Required precision of string representations of floating point
-    numbers, defined as the minimum number of digits to be reproduced
-    by the string representation (see function |repr_|)."""
-
-    simulationstep = _Simulationstep(timetools.Period())
-    """The actual simulation time step size.  Change it by passing a |Period| 
-    object or any valid |Period| constructor argument.  *HydPy* does not 
-    define a default simulation step (indicated by an empty |Period| object).  
-    
-    Note that you cannot manually define the |Options.simulationstep| whenever 
-    it is already available via attribute |Timegrids.stepsize| of the global  
-    |Timegrids| object in module |pub| (`pub.timegrids`):
-    
-    >>> from hydpy import pub
-    >>> pub.options.simulationstep
-    Period()
-    
-    >>> pub.options.simulationstep = "1h"
-    >>> pub.options.simulationstep
-    Period("1h")
-    
-    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-    >>> pub.options.simulationstep
-    Period("1d")
- 
-    >>> pub.options.simulationstep = "1s"
-    >>> pub.options.simulationstep
-    Period("1d")
-    
-    >>> del pub.timegrids
-    >>> pub.options.simulationstep
-    Period("1s")
-    
-    >>> del pub.options.simulationstep
-    >>> pub.options.simulationstep
-    Period()
-    """
-
-    trimvariables = _BoolOption(True)
-    """A True/False flag for enabling/disabling function |trim|.  Set it
-    to |False| only for good reasons."""
-
-    usecython = _BoolOption(True)
-    """TA True/False flag for applying cythonized models if possible,
-    which are much faster than pure Python models. """
-
-    usedefaultvalues = _BoolOption(False)
-    """A True/False flag for initialising parameters with standard values."""
-
-    utclongitude = _IntOption(15)
-    """Longitude of the centre of the local time zone (see option
-    |Options.utcoffset|).  Defaults to 15,  which corresponds to the 
-    central meridian of UTC+01:00."""
-
-    utcoffset = _IntOption(60)
-    """Offset of your local time from UTC in minutes (see option 
-    |Options.utclongitude|.  Defaults to 60, which corresponds to 
-    UTC+01:00."""
-
-    warnmissingcontrolfile = _BoolOption(False)
-    """A True/False flag for only raising a warning instead of an exception
-    when a necessary control file is missing."""
-
-    warnmissingobsfile = _BoolOption(True)
-    """A True/False flag for raising a warning when a requested observation
-    sequence demanded by a node instance is missing."""
-
-    warnmissingsimfile = _BoolOption(True)
-    """A True/False flag for raising a warning when a requested simulation
-    sequence demanded by a node instance is missing."""
-
-    warnsimulationstep = _BoolOption(True)
-    """A True/False flag for raising a warning when function |simulationstep|
-    called for the first time directly by the user."""
-
-    warntrim = _BoolOption(True)
-    """A True/False flag for raising a warning when a |Variable| object
-    trims its value(s) in order no not violate certain boundaries.
-    To cope with the limited precision of floating-point numbers only
-    those violations beyond a small tolerance value are reported
-    (see function |trim|). """
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         type_ = type(self)
         lines = ["Options("]
         for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
@@ -326,28 +628,3 @@ class Options:
                 lines.append(f"    {option} -> {repr(value)}")
         lines.append(")")
         return "\n".join(lines)
-
-
-def _prepare_docstrings():
-    """Assign docstrings to the corresponding attributes of class `Options`
-    to make them available in the interactive mode of Python."""
-    if config.USEAUTODOC:
-        __test__ = {}
-        source = inspect.getsource(Options)
-        docstrings = source.split('"""')[3::2]
-        attributes = [
-            line.strip().split()[0]
-            for line in source.split("\n")
-            if (
-                ("_IntOption(" in line)
-                or ("_BoolOption(" in line)
-                or ("_PeriodOption(" in line)
-            )
-        ]
-        for attribute, docstring in zip(attributes, docstrings):
-            Options.__dict__[attribute].__doc__ = docstring
-            __test__[attribute] = docstring
-        globals()["__test__"] = __test__
-
-
-_prepare_docstrings()

@@ -969,16 +969,15 @@ class Substituter:
         replacement commands (only a few of them are shown):
 
         >>> print(substituter.get_commands())   # doctest: +ELLIPSIS
-        .. |Options.checkseries| replace:: \
-:const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |Options.ellipsis| replace:: \
-:const:`~hydpy.core.optiontools.Options.ellipsis`
+        .. |OptionContextBase._new_value| replace:: \
+:attr:`~hydpy.core.optiontools.OptionContextBase._new_value`
+        .. |OptionContextBase._old_value| replace:: \
+:attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
         ...
-        .. |optiontools.Options.checkseries| replace:: \
-:const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |optiontools.Options.ellipsis| replace:: \
-:const:`~hydpy.core.optiontools.Options.ellipsis`
-        ...
+        .. |optiontools.TypeOptionContextBase| replace:: \
+:const:`~hydpy.core.optiontools.TypeOptionContextBase`
+        .. |optiontools.TypeOption| replace:: \
+:const:`~hydpy.core.optiontools.TypeOption`
 
         Through passing a string (usually the source code of a file to be documented),
         only the replacement commands relevant for this string are translated:

@@ -41,7 +41,7 @@ and writing data, based on the example configuration defined by function
 
 (2) We tell the |SequenceManager| to write all the time-series data to NetCDF files:
 
->>> pub.sequencemanager.generalfiletype = "nc"
+>>> pub.sequencemanager.filetype = "nc"
 
 (3) We store all the time-series handled by the |Node| and |Element| objects of the
 example dataset by calling |Nodes.save_allseries| of class |Nodes| and
@@ -57,8 +57,7 @@ instead of our current working directory):
 (4) We again log all sequences, but after telling the |SequenceManager| to average each
 time series spatially:
 
->>> pub.sequencemanager.generalaggregation = "mean"
->>> with TestIO():
+>>> with TestIO(), pub.sequencemanager.aggregation("mean"):
 ...     nodes.save_allseries()
 ...     elements.save_allseries()
 
@@ -809,9 +808,8 @@ cover the current simulation period \
         -0.572053, -1.084746, -2.767055, -6.242055
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "LahnH/series/default/hland_v1_factor_tmean.nc"
-        >>> with TestIO():
-        ...     with netcdf4.Dataset(filepath, "r") as ncfile:
-        ...         print_values(ncfile["factor_tmean"][:, 0])
+        >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
+        ...     print_values(ncfile["factor_tmean"][:, 0])
         -0.572053, -1.084746, -2.767055, -6.242055
 
         If we try to write the output of a third simulation run beyond the original
@@ -857,10 +855,9 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
         with an ordinary NetCDF writer object via |SequenceManager.open_netcdfwriter|:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
         ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
         ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
-        ...     pub.sequencemanager.fluxfiletype = "nc"
         ...     pub.sequencemanager.open_netcdfwriter()
         ...     hp.save_fluxseries()
         ...     pub.sequencemanager.close_netcdfwriter()
@@ -874,10 +871,9 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         20.58932, 8.66144, 7.281198, 6.402232
         11.674045, 10.110371, 8.991987, 8.212314
         >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
-        >>> with TestIO():
-        ...     with netcdf4.Dataset(filepath_qt, "r") as ncfile:
-        ...         for jdx in range(4):
-        ...             print_values(ncfile["flux_qt"][:, jdx])
+        >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
+        ...     for jdx in range(4):
+        ...         print_values(ncfile["flux_qt"][:, jdx])
         11.78038, 8.901179, 7.131072, 6.017787
         9.647824, 8.517795, 7.781311, 7.344944
         0.0, 0.0, 0.0, 0.0
@@ -887,8 +883,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
         ...     hp.simulate()
-        >>> with TestIO():
-        ...     with netcdf4.Dataset(filepath_qt, "r") as ncfile:
+        >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
         ...             print_values(ncfile["flux_qt"][:, jdx])
         11.78038, 8.901179, 7.131072, 6.017787

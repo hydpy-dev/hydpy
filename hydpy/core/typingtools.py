@@ -4,6 +4,7 @@ eventually dynamical) typing."""
 # import...
 # ...from standard library
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
@@ -477,6 +478,9 @@ class ScriptFunction(Protocol):
         ...
 
 
+SeriesFileType = Literal["npy", "asc", "nc"]
+SeriesAggregationType = Literal["none", "mean"]
+
 __all__ = [
     "ArrayFloat",
     "CyModelProtocol",
@@ -494,6 +498,8 @@ __all__ = [
     "Name",
     "NDArrayFloat",
     "ScriptFunction",
+    "SeriesAggregationType",
+    "SeriesFileType",
     "Sequence1",
     "Sequence2",
     "Sequence3",

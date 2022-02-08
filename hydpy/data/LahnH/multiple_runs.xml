@@ -57,17 +57,9 @@
     
     <series_io>
 
-        <filetype>
-            <general>asc</general>
-        </filetype>
-
-        <overwrite>
-            <general>true</general>
-        </overwrite>
-
-        <aggregation>
-            <general>none</general>
-        </aggregation>
+        <filetype>asc</filetype>
+        <overwrite>true</overwrite>
+        <aggregation>none</aggregation>
 
         <readers>
 
@@ -107,12 +99,8 @@
                         </states>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <states>nc</states>
-                </filetype>
-                <aggregation>
-                    <states>mean</states>
-                </aggregation>
+                <filetype>nc</filetype>
+                <aggregation>mean</aggregation>
             </writer>
 
             <writer info="temperature">
@@ -125,9 +113,7 @@
                         </inputs>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <inputs>nc</inputs>
-                </filetype>
+                <filetype>nc</filetype>
                 <mode>jit</mode>
             </writer>
 

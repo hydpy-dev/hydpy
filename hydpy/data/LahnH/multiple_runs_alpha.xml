@@ -27,15 +27,9 @@
         <zip>false</zip> <!-- optional ? -->
     </conditions_io>
     <series_io>
-        <filetype>
-            <general>asc</general>
-        </filetype>
-        <overwrite>
-            <general>true</general>
-        </overwrite>
-        <aggregation>
-            <general>none</general>
-        </aggregation>
+        <filetype>asc</filetype>
+        <overwrite>true</overwrite>
+        <aggregation>none</aggregation>
         <readers>
             <reader info="all input data">
                 <sequences>

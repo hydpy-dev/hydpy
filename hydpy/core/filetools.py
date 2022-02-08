@@ -4,7 +4,6 @@ as well as loading data from and storing data to files."""
 # import...
 # ...from standard library
 from __future__ import annotations
-import abc
 import contextlib
 import os
 import runpy
@@ -23,6 +22,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
+from hydpy.core import optiontools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
@@ -1126,149 +1126,6 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
             self._currentdir = currentdir
 
 
-_DescrAttrType = TypeVar("_DescrAttrType")
-
-
-class _Descriptor(Generic[_DescrAttrType]):
-
-    default: _DescrAttrType
-    sequencetype: str
-    obj2value: Dict[SequenceManager, _DescrAttrType]
-
-    def __init__(self, default: _DescrAttrType, sequencetype: str) -> None:
-        self.default = default
-        self.sequencetype = sequencetype
-        self.obj2value = {}
-
-    def get_value(self, obj: SequenceManager) -> _DescrAttrType:
-        """Get the value from the given object and return it."""
-        return self.obj2value.get(obj, self.default)
-
-    def set_value(self, obj: SequenceManager, value: _DescrAttrType):
-        """Assign the given value to the given object."""
-        self.obj2value[obj] = value
-
-    def del_value(self, obj: SequenceManager) -> None:
-        """Delete the value from the given object."""
-        if obj in self.obj2value:
-            del self.obj2value[obj]
-
-    @abc.abstractmethod
-    def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
-    ) -> _DescrAttrType:
-        """To be overridden."""
-
-    @abc.abstractmethod
-    def __set__(self, obj: SequenceManager, directory: _DescrAttrType) -> None:
-        """To be overridden."""
-
-    def __delete__(self, obj: SequenceManager) -> None:
-        self.del_value(obj)
-
-
-class _DescriptorType(_Descriptor[str]):
-    def __init__(self, default: str, sequencetype: str) -> None:
-        super().__init__(default, sequencetype)
-        self.__doc__ = f"Currently selected type of the {sequencetype} sequence files."
-
-    def __get__(
-        self,
-        obj: Optional[SequenceManager],
-        type_: Optional[Type[SequenceManager]] = None,
-    ) -> str:
-        if obj is None:
-            return self
-        return self.get_value(obj)
-
-    def __set__(self, obj: SequenceManager, value: str) -> None:
-        value = str(value)
-        if value in obj.SUPPORTED_MODES:
-            self.set_value(obj, value)
-        else:
-            raise ValueError(
-                f"The given sequence file type `{value}` is not implemented.  Please "
-                f"choose one of the following file types: "
-                f"{objecttools.enumeration(obj.SUPPORTED_MODES)}."
-            )
-
-
-class _DescriptorOverwrite(_Descriptor[bool]):
-    def __init__(self, default: bool, sequencetype: str) -> None:
-        super().__init__(default, sequencetype)
-        self.__doc__ = (
-            f"Currently selected overwrite flag of the {sequencetype} sequence files."
-        )
-
-    def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
-    ) -> bool:
-        if obj is None:
-            return self
-        return self.get_value(obj)
-
-    def __set__(self, obj: SequenceManager, value: bool) -> None:
-        self.set_value(obj, value)
-
-
-class _DescriptorAggregate(_Descriptor[str]):
-
-    AVAILABLE_MODES = ("none", "mean")
-
-    def __init__(self, default: str, sequencetype: str) -> None:
-        super().__init__(default, sequencetype)
-        self.aggregationmode = default
-        self.__doc__ = (
-            f"Mode of aggregation for writing {sequencetype} time series data to files."
-        )
-
-    def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]] = None
-    ) -> str:
-        if obj is None:
-            return self
-        return self.get_value(obj)
-
-    def __set__(self, obj: SequenceManager, value: str) -> None:
-        if value in self.AVAILABLE_MODES:
-            self.set_value(obj, value)
-        else:
-            raise ValueError(
-                f"The given mode `{value}` for aggregating time series is not "
-                f"available.  Select one of the following modes: "
-                f"{objecttools.enumeration(self.AVAILABLE_MODES)}."
-            )
-
-
-class _GeneralDescriptor(Generic[_DescrAttrType]):
-    """
-    >>> from hydpy.core.filetools import SequenceManager, _GeneralDescriptor
-    >>> isinstance(SequenceManager.generaloverwrite, _GeneralDescriptor)
-    True
-    """
-
-    def __init__(self, *specific_descriptors: _Descriptor) -> None:
-        self.specific_descriptors = specific_descriptors
-
-    def __get__(
-        self, obj: SequenceManager, type_: Optional[Type[SequenceManager]]
-    ) -> Union[_DescrAttrType, Tuple[_DescrAttrType, ...]]:
-        if obj is None:
-            return self
-        values = set(descr.__get__(obj) for descr in self.specific_descriptors)
-        if len(values) == 1:
-            return list(values)[0]
-        return tuple(sorted(values))
-
-    def __set__(self, obj: SequenceManager, value: _DescrAttrType) -> None:
-        for descr in self.specific_descriptors:
-            descr.__set__(obj, value)
-
-    def __delete__(self, obj: SequenceManager) -> None:
-        for descr in self.specific_descriptors:
-            descr.__delete__(obj)
-
-
 class SequenceManager(FileManager):
     """Manager for sequence files.
 
@@ -1295,7 +1152,7 @@ class SequenceManager(FileManager):
     The last one is only a convenience function for the first one):
 
     >>> from hydpy import pub
-    >>> pub.sequencemanager.generalfiletype = "asc"
+    >>> pub.sequencemanager.filetype = "asc"
     >>> from hydpy import TestIO
     >>> with TestIO():
     ...     pub.sequencemanager.save_file(sim)
@@ -1397,7 +1254,7 @@ class SequenceManager(FileManager):
     OSError: While trying to save the time-series data of sequence `sim` of \
 node `node2`, the following error occurred: Sequence `sim` of node `node2` is \
 not allowed to overwrite the existing file `...`.
-    >>> pub.sequencemanager.generaloverwrite = True
+    >>> pub.sequencemanager.overwrite = True
     >>> with TestIO():
     ...     sim.save_series()
 
@@ -1439,7 +1296,7 @@ not allowed to overwrite the existing file `...`.
     for saving computation times but possibly a problematic option for sharing data
     with colleagues:
 
-    >>> pub.sequencemanager.generalfiletype = "npy"
+    >>> pub.sequencemanager.filetype = "npy"
     >>> with TestIO():
     ...     sim.save_series()
     ...     nkor.save_series()
@@ -1492,113 +1349,36 @@ not allowed to overwrite the existing file `...`.
 
     The third option is to store data in netCDF files, which is explained separately in
     the documentation on class |NetCDFInterface|.
-
-    In the examples above, we used some of the special configuration attributes of
-    class |SequenceManager|, which we now elaborate by taking the "overwrite"
-    attributes as an example.
-
-    All special attributes can be used to configure |SequenceManager| different for
-    different types of sequences:
-
-    >>> pub.sequencemanager.inputoverwrite
-    True
-    >>> pub.sequencemanager.factoroverwrite
-    True
-    >>> pub.sequencemanager.fluxoverwrite
-    True
-    >>> pub.sequencemanager.stateoverwrite
-    True
-    >>> pub.sequencemanager.nodeoverwrite
-    True
-
-    However, there is also a "general" attribute, covering all specific ones:
-
-    >>> pub.sequencemanager.generaloverwrite
-    True
-
-    We can delete those attributes (which resets them to their default state) or assign
-    alternative values:
-
-    >>> del pub.sequencemanager.inputoverwrite
-    >>> pub.sequencemanager.fluxoverwrite = False
-    >>> pub.sequencemanager.inputoverwrite
-    False
-    >>> pub.sequencemanager.fluxoverwrite
-    False
-    >>> pub.sequencemanager.generaloverwrite
-    (False, True)
-
-    Use the "general" attribute to change all special ones at once:
-
-    >>> del pub.sequencemanager.generaloverwrite
-    >>> pub.sequencemanager.inputoverwrite
-    False
-    >>> pub.sequencemanager.factoroverwrite
-    False
-    >>> pub.sequencemanager.fluxoverwrite
-    False
-    >>> pub.sequencemanager.stateoverwrite
-    False
-    >>> pub.sequencemanager.nodeoverwrite
-    False
-
-    All other special configuration attributes do not return and except booleans but
-    strings instead:
-
-    >>> pub.sequencemanager.generalaggregation
-    'none'
-    >>> pub.sequencemanager.fluxaggregation = "mean"
-    >>> pub.sequencemanager.generalaggregation
-    ('mean', 'none')
-
-    >>> pub.sequencemanager.fluxaggregation = "wrong"
-    Traceback (most recent call last):
-    ...
-    ValueError: The given mode `wrong` for aggregating time series is not available.  \
-Select one of the following modes: none and mean.
     """
 
     SUPPORTED_MODES = "npy", "asc", "nc"
     BASEDIR = "series"
     DEFAULTDIR = "default"
 
-    inputfiletype = _DescriptorType("asc", "input")
-    factorfiletype = _DescriptorType("asc", "factor")
-    fluxfiletype = _DescriptorType("asc", "flux")
-    statefiletype = _DescriptorType("asc", "state")
-    nodefiletype = _DescriptorType("asc", "node")
-    generalfiletype = _GeneralDescriptor[str](
-        inputfiletype,
-        factorfiletype,
-        fluxfiletype,
-        statefiletype,
-        nodefiletype,
+    filetype = optiontools.OptionPropertySeriesFileType(
+        "asc",
+        """Currently active time-series file type.
+        
+        |SequenceManager.filetype| is an option based on |OptionPropertySeriesFileType|.
+        See its documentation for further information.
+        """,
     )
+    overwrite = optiontools.OptionPropertyBool(
+        False,
+        """Currently active overwrite flag for time-series files.
 
-    inputoverwrite = _DescriptorOverwrite(False, "input")
-    factoroverwrite = _DescriptorOverwrite(False, "factor")
-    fluxoverwrite = _DescriptorOverwrite(False, "flux")
-    stateoverwrite = _DescriptorOverwrite(False, "state")
-    nodeoverwrite = _DescriptorOverwrite(False, "node")
-    generaloverwrite = _GeneralDescriptor[bool](
-        inputoverwrite,
-        factoroverwrite,
-        fluxoverwrite,
-        stateoverwrite,
-        nodeoverwrite,
+        |SequenceManager.overwrite| is an option based on |OptionPropertyBool|.  See 
+        its documentation for further information.
+        """,
     )
+    aggregation = optiontools.OptionPropertySeriesAggregation(
+        "none",
+        """Currently active aggregation mode for writing time-series files.
 
-    inputaggregation = _DescriptorAggregate("none", "input")
-    factoraggregation = _DescriptorAggregate("none", "factor")
-    fluxaggregation = _DescriptorAggregate("none", "flux")
-    stateaggregation = _DescriptorAggregate("none", "state")
-    nodeaggregation = _DescriptorAggregate("none", "node")
-    generalaggregation = _GeneralDescriptor[str](
-        inputaggregation,
-        factoraggregation,
-        fluxaggregation,
-        stateaggregation,
-        nodeaggregation,
+        |SequenceManager.aggregation| is an option based on 
+        |OptionPropertySeriesAggregation|.  See its documentation for further 
+        information.
+        """,
     )
 
     _jitaccesshandler: Optional[netcdftools.JITAccessHandler]

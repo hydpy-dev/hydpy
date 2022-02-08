@@ -145,9 +145,15 @@
                 <element name="directory"
                          type="string"
                          minOccurs="0"/>
-                <element ref="hpcb:filetype"/>
-                <element ref="hpcb:overwrite"/>
-                <element ref="hpcb:aggregation"/>
+                <element name="filetype"
+                         minOccurs="0"
+                         type="hpcb:filetype"/>
+                <element name="overwrite"
+                         minOccurs="0"
+                         type="boolean"/>
+                <element name="aggregation"
+                         minOccurs="0"
+                         type="hpcb:aggregation"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -182,8 +188,9 @@
                          minOccurs="0"/>
                 <element name="sequences"
                          type="hpcb:readerType"/>
-                <element ref="hpcb:filetype"
-                         minOccurs="0"/>
+                <element name="filetype"
+                         minOccurs="0"
+                         type="hpcb:filetype"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -202,12 +209,15 @@
                          minOccurs="0"/>
                 <element name="sequences"
                          type="hpcb:writerType"/>
-                <element ref="hpcb:filetype"
-                         minOccurs="0"/>
-                <element ref="hpcb:overwrite"
-                         minOccurs="0"/>
-                <element ref="hpcb:aggregation"
-                         minOccurs="0"/>
+                <element name="filetype"
+                         minOccurs="0"
+                         type="hpcb:filetype"/>
+                <element name="overwrite"
+                         minOccurs="0"
+                         type="boolean"/>
+                <element name="aggregation"
+                         minOccurs="0"
+                         type="hpcb:aggregation"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -216,31 +226,7 @@
         </complexType>
     </element>
 
-    <element name="filetype">
-        <complexType>
-            <choice>
-                <element name="general"
-                         minOccurs="0"
-                         type="hpcb:_filetype"/>
-                <sequence>
-                    <element name="inputs"
-                             minOccurs="0"
-                             type="hpcb:_filetype"/>
-                    <element name="fluxes"
-                             minOccurs="0"
-                             type="hpcb:_filetype"/>
-                    <element name="states"
-                             minOccurs="0"
-                             type="hpcb:_filetype"/>
-                    <element name="nodes"
-                             minOccurs="0"
-                             type="hpcb:_filetype"/>
-                </sequence>
-            </choice>
-        </complexType>
-    </element>
-
-    <simpleType name="_filetype">
+    <simpleType name="filetype">
         <restriction base="string">
             <enumeration value="asc"/>
             <enumeration value="npy"/>
@@ -248,55 +234,7 @@
         </restriction>
     </simpleType>
 
-    <element name="overwrite">
-        <complexType>
-            <choice>
-                <element name="general"
-                         minOccurs="0"
-                         type="boolean"/>
-                <sequence>
-                    <element name="inputs"
-                             minOccurs="0"
-                             type="boolean"/>
-                    <element name="fluxes"
-                             minOccurs="0"
-                             type="boolean"/>
-                    <element name="states"
-                             minOccurs="0"
-                             type="boolean"/>
-                    <element name="nodes"
-                             minOccurs="0"
-                             type="boolean"/>
-                </sequence>
-            </choice>
-        </complexType>
-    </element>
-
-    <element name="aggregation">
-        <complexType>
-            <choice>
-                <element name="general"
-                         minOccurs="0"
-                         type="hpcb:_aggregation"/>
-                <sequence>
-                    <element name="inputs"
-                             minOccurs="0"
-                             type="hpcb:_aggregation"/>
-                    <element name="fluxes"
-                             minOccurs="0"
-                             type="hpcb:_aggregation"/>
-                    <element name="states"
-                             minOccurs="0"
-                             type="hpcb:_aggregation"/>
-                    <element name="nodes"
-                             minOccurs="0"
-                             type="hpcb:_aggregation"/>
-                </sequence>
-            </choice>
-        </complexType>
-    </element>
-
-    <simpleType name="_aggregation">
+    <simpleType name="aggregation">
         <restriction base="string">
             <enumeration value="none"/>
             <enumeration value="mean"/>

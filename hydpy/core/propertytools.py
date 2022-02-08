@@ -16,6 +16,7 @@ from typing_extensions import Protocol  # type: ignore[misc]
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 InputType = TypeVar("InputType")
 InputType_contra = TypeVar("InputType_contra", contravariant=True)
@@ -654,5 +655,16 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
         """Do nothing."""
 
 
+DefaultPropertyBool = DefaultProperty[bool, bool]
+"""|DefaultProperty| for handling |bool| objects."""
+
 DefaultPropertyStr = DefaultProperty[str, str]
 """|DefaultProperty| for handling |str| objects."""
+
+DefaultPropertySeriesFileType = DefaultProperty[SeriesFileType, SeriesFileType]
+"""|DefaultProperty| for handling |SeriesFileType| literals."""
+
+DefaultPropertySeriesAggregationType = DefaultProperty[
+    SeriesAggregationType, SeriesAggregationType
+]
+"""|DefaultProperty| for handling |SeriesAggregationType| literals."""

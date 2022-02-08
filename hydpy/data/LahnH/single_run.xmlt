@@ -53,17 +53,9 @@
 
     <series_io>
 
-        <filetype>
-            <general>npy</general>
-        </filetype>
-
-        <overwrite>
-            <general>true</general>
-        </overwrite>
-
-        <aggregation>
-            <general>none</general>
-        </aggregation>
+        <filetype>npy</filetype>
+        <overwrite>true</overwrite>
+        <aggregation>none</aggregation>
 
         <readers>
             <reader info="all input data">
@@ -78,9 +70,7 @@
                         </inputs>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <inputs>nc</inputs>
-                </filetype>
+                <filetype>nc</filetype>
             </reader>
         </readers>
 
@@ -102,10 +92,7 @@
                         </fluxes>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <inputs>asc</inputs>
-                    <fluxes>npy</fluxes>
-                </filetype>
+                <filetype>npy</filetype>
             </writer>
 
             <writer info="soilmoisture">
@@ -117,12 +104,8 @@
                         </states>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <general>nc</general>
-                </filetype>
-                <overwrite>
-                    <states>false</states>
-                </overwrite>
+                <filetype>nc</filetype>
+                <overwrite>false</overwrite>
             </writer>
 
             <writer info="averaged">
@@ -146,9 +129,7 @@
                         </states>
                     </hstream_v1>
                 </sequences>
-                <aggregation>
-                    <general>mean</general>
-                </aggregation>
+                <aggregation>mean</aggregation>
             </writer>
 
         </writers>

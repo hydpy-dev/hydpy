@@ -412,9 +412,9 @@ is not requested to make any time-series data available.
     object available in module |pub| (module |pub| also handles |ControlManager| and
     |ConditionManager| objects for settings related to reading and writing control
     files and condition files).  We change the default behaviour by setting the
-    |SequenceManager.generaloverwrite| attribute to |True|:
+    |SequenceManager.overwrite| attribute to |True|:
 
-    >>> pub.sequencemanager.generaloverwrite = True
+    >>> pub.sequencemanager.overwrite = True
 
     Now we can (over)write all possible time series:
 
@@ -576,14 +576,14 @@ is not requested to make any time-series data available.
 
     By default, *HydPy* handles time-series data in simple text files ("asc" files):
 
-    >>> pub.sequencemanager.generalfiletype
+    >>> pub.sequencemanager.filetype
     'asc'
 
     One way to prepare to load the results from the available NetCDF files instead is
-    to set the |SequenceManager.generalfiletype| attribute of the public
-    |SequenceManager| object to "nc":
+    to set the |SequenceManager.filetype| attribute of the public |SequenceManager|
+    object to "nc":
 
-    >>> pub.sequencemanager.generalfiletype = "nc"
+    >>> pub.sequencemanager.filetype = "nc"
 
     Now we can load the previously written results into RAM (see the documentation on
     module |netcdftools| for further information) and inspect the results:

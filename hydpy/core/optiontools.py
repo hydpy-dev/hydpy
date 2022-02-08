@@ -13,6 +13,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 TypeOption = TypeVar(
     "TypeOption",
@@ -20,6 +21,8 @@ TypeOption = TypeVar(
     int,
     str,
     timetools.Period,
+    SeriesFileType,
+    SeriesAggregationType,
 )
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 
@@ -321,6 +324,138 @@ class _OptionPropertySimulationstep(OptionPropertyPeriod):
             return super()._get_value(obj)
 
 
+def _str2seriesfiletype(value: str) -> SeriesFileType:
+    if value == "nc":
+        return "nc"
+    if value == "npy":
+        return "npy"
+    if value == "asc":
+        return "asc"
+    raise ValueError(
+        f"The given sequence file type `{value}` is not implemented.  Please choose "
+        f"one of the following file types: npy, asc, and nc."
+    )
+
+
+class OptionPropertySeriesFileType(OptionPropertyBase[SeriesFileType]):
+    """Descriptor for defining options of type |SeriesFileType|.
+
+    *HydPy* currently supports a simple text format (`asc`), the numpy binary format
+    (`npy`) and NetCDF files (`nc`).  Options based on |OptionPropertySeriesFileType|
+    automatically check if the given string is a supported file-ending and raise errors
+    if not:
+
+    >>> from hydpy.core.optiontools import OptionPropertySeriesFileType
+    >>> class T:
+    ...     v = OptionPropertySeriesFileType("asc", "x")
+
+    >>> t = T()
+    >>> assert t.v == "asc"
+    >>> t.v = "abc"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given sequence file type `abc` is not implemented.  Please choose \
+one of the following file types: npy, asc, and nc.
+    >>> assert t.v == "asc"
+    >>> t.v = "npy"
+    >>> assert t.v == "npy"
+    >>> t.v = "nc"
+    >>> assert t.v == "nc"
+    >>> t.v = "asc"
+    >>> assert t.v == "asc"
+
+    >>> with t.v("abc"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: The given sequence file type `abc` is not implemented.  Please choose \
+one of the following file types: npy, asc, and nc.
+    >>> assert t.v == "asc"
+    >>> with t.v("npy"):
+    ...     assert t.v == "npy"
+    ...     with t.v("nc"):
+    ...         assert t.v == "nc"
+    ...         with t.v():
+    ...             assert t.v == "nc"
+    ...         with t.v(None):
+    ...             assert t.v == "nc"
+    ...     assert t.v == "npy"
+    >>> assert t.v == "asc"
+    """
+
+    _CONVERTER = (_str2seriesfiletype,)
+
+    def __get__(
+        self, obj: Hashable, typ: Type[Hashable]
+    ) -> OptionContextSeriesFileType:
+        return OptionContextSeriesFileType(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
+def _str2seriesaggregationtype(value: str) -> SeriesAggregationType:
+    if value == "none":
+        return "none"
+    if value == "mean":
+        return "mean"
+    raise ValueError(
+        f"The given aggregation mode `{value}` is not implemented.  Please choose "
+        f"one of the following modes: none and mean."
+    )
+
+
+class OptionPropertySeriesAggregation(OptionPropertyBase[SeriesAggregationType]):
+    """Descriptor for defining options of type |SeriesAggregationType|.
+
+    The only currently supported aggregation is averaging (`mean`).  Use `none` to
+    avoid any aggregation.  Options based on |OptionPropertySeriesAggregation|
+    automatically check if the given string meets one of these modes and raises errors
+    if not:
+
+    >>> from hydpy.core.optiontools import OptionPropertySeriesAggregation
+    >>> class T:
+    ...     v = OptionPropertySeriesAggregation("none", "x")
+
+    >>> t = T()
+    >>> assert t.v == "none"
+    >>> t.v = "sum"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given aggregation mode `sum` is not implemented.  Please choose \
+one of the following modes: none and mean.
+    >>> assert t.v == "none"
+    >>> t.v = "mean"
+    >>> assert t.v == "mean"
+    >>> t.v = "none"
+    >>> assert t.v == "none"
+
+    >>> with t.v("sum"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: The given aggregation mode `sum` is not implemented.  Please choose \
+one of the following modes: none and mean.
+    >>> assert t.v == "none"
+    >>> with t.v("mean"):
+    ...     assert t.v == "mean"
+    ...     with t.v():
+    ...         assert t.v == "mean"
+    ...     with t.v(None):
+    ...         assert t.v == "mean"
+    ...     assert t.v == "mean"
+    >>> assert t.v == "none"
+    """
+
+    _CONVERTER = (_str2seriesaggregationtype,)
+
+    def __get__(
+        self, obj: Hashable, typ: Type[Hashable]
+    ) -> OptionContextSeriesAggregation:
+        return OptionContextSeriesAggregation(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
+
+
 class OptionContextBase(Generic[TypeOption]):
     """Base class for defining context managers required for the different
     |OptionPropertyBase| subclasses."""
@@ -436,6 +571,28 @@ class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period])
     ) -> TypeOptionContextBase:
         self._new_value = new_value
         return self
+
+
+class OptionContextSeriesFileType(str, OptionContextBase[SeriesFileType]):
+    """Context manager required by |OptionPropertySeriesFileType|."""
+
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: SeriesFileType,
+        set_value: Optional[Callable[[SeriesFileType], None]] = None,
+    ) -> OptionContextSeriesFileType:
+        return super().__new__(cls, value)
+
+
+class OptionContextSeriesAggregation(str, OptionContextBase[SeriesAggregationType]):
+    """Context manager required by |OptionPropertySeriesAggregation|."""
+
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: SeriesAggregationType,
+        set_value: Optional[Callable[[SeriesAggregationType], None]] = None,
+    ) -> OptionContextSeriesAggregation:
+        return super().__new__(cls, value)
 
 
 class Options:

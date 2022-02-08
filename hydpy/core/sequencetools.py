@@ -394,7 +394,7 @@ class Sequences:
 
     >>> from hydpy import round_
     >>> pub.options.checkseries = False
-    >>> pub.sequencemanager.generaloverwrite = True
+    >>> pub.sequencemanager.overwrite = True
 
     Method |Sequences.prepare_series| can both enable and disable the handling of
     time-series in rapid access memory (RAM), and both enable and disable the reading
@@ -474,7 +474,7 @@ patch(template % "StateSequences") as states:
         >>> Node.clear_all()
         >>> Element.clear_all()
         >>> pub.options.checkseries = True
-        >>> pub.sequencemanager.generaloverwrite = False
+        >>> pub.sequencemanager.overwrite = False
     """
 
     model: modeltools.Model
@@ -1280,142 +1280,8 @@ class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAcces
         return variabletools.to_repr(self, self.value, brackets)
 
 
-class _IOProperty(
-    propertytools.DefaultProperty[propertytools.InputType, propertytools.OutputType]
-):
-
-    DOCSTRING: ClassVar[str]
-
-    def __init__(self) -> None:
-        super().__init__(fget=self.__fget)
-
-    def __set_name__(self, objtype: Type, name: str) -> None:
-        super().__set_name__(objtype, name)
-        attr_seq = self.name
-        cls = self.objtype.__name__
-        attr_man = f"{cls.lower()[:-8]}{self.name.split('_')[0]}"
-        self.__attr_manager = attr_man
-        self.set_doc(
-            f"""
-            {self.DOCSTRING}
-
-        Attribute {attr_seq} is connected with attribute {attr_man} of class 
-        |SequenceManager|, as shown by the following technical example (see the 
-        documentation on class |IOSequence| for some explanations on the usage of this 
-        and similar properties of |IOSequence| subclasses):
-
-        >>> from hydpy.core.filetools import SequenceManager
-        >>> temp = SequenceManager.{attr_man}
-        >>> SequenceManager.{attr_man} = "global"
-        >>> from hydpy import pub
-        >>> pub.sequencemanager = SequenceManager()
-        >>> from hydpy.core.sequencetools import {cls}
-        >>> sequence = {cls}(None)
-        >>> sequence.{attr_seq}
-        'global'
-        >>> sequence.{attr_seq} = "local"
-        >>> sequence.{attr_seq}
-        'local'
-        >>> del sequence.{attr_seq}
-        >>> sequence.{attr_seq}
-        'global'
-        >>> SequenceManager.{attr_man} = temp
-        """
-        )
-
-    def __fget(self, obj):
-        try:
-            manager = hydpy.pub.sequencemanager
-        except RuntimeError:
-            raise RuntimeError(
-                f"For sequence {objecttools.devicephrase(obj)} attribute "
-                f"{self.name} cannot be determined.  Either set it manually "
-                "or prepare `pub.sequencemanager` correctly."
-            ) from None
-        return getattr(manager, self.__attr_manager)
-
-
-class _FileType(_IOProperty[str, str]):
-
-    DOCSTRING = "Ending of the data file."
-
-
-class _AggregationProperty(_IOProperty[str, str]):
-
-    DOCSTRING = (
-        "Type of aggregation performed when writing the time-series data to an data "
-        "file."
-    )
-
-
-class _OverwriteProperty(_IOProperty[bool, bool]):
-
-    DOCSTRING = (
-        "True/False flag indicating if overwriting an existing data file is allowed "
-        "or not."
-    )
-
-
 class IOSequence(Sequence_[IOSequencesType, FastAccessIOSequenceType]):
     """Base class for sequences with input/output functionalities.
-
-    The |IOSequence| subclasses |InputSequence|, |FactorSequence|, |FluxSequence|,
-    |StateSequence|, and |NodeSequence| all implement similar special properties, which
-    configure the processes of reading and writing time-series files.  In the
-    following, property |IOSequence.filetype| is taken as an example to explain
-    handling them:
-
-    Usually, each sequence queries its current file type from the |SequenceManager|
-    object stored in module |pub|:
-
-    >>> from hydpy import pub
-    >>> from hydpy.core.filetools import SequenceManager
-    >>> pub.sequencemanager = SequenceManager()
-
-    Depending if the actual sequence stems from |InputSequence|, |FactorSequence|,
-    |FluxSequence|,  |StateSequence|, or |NodeSequence|, either the attribute
-    |SequenceManager.inputfiletype|, |SequenceManager.factorfiletype|,
-    |SequenceManager.fluxfiletype|, |SequenceManager.statefiletype|, or
-    |SequenceManager.nodefiletype| of the |SequenceManager| object is relevant:
-
-    >>> pub.sequencemanager.inputfiletype = "npy"
-    >>> pub.sequencemanager.factorfiletype = "nc"
-    >>> pub.sequencemanager.fluxfiletype = "npy"
-    >>> pub.sequencemanager.statefiletype = "nc"
-    >>> pub.sequencemanager.nodefiletype = "npy"
-    >>> from hydpy.core import sequencetools as st
-    >>> st.InputSequence(None).filetype
-    'npy'
-    >>> st.FactorSequence(None).filetype
-    'nc'
-    >>> st.FluxSequence(None).filetype
-    'npy'
-    >>> st.StateSequence(None).filetype
-    'nc'
-    >>> st.NodeSequence(None).filetype
-    'npy'
-
-    Alternatively, you can specify the file type for each sequence object individually:
-
-    >>> seq = st.InputSequence(None)
-    >>> seq.filetype
-    'npy'
-    >>> seq.filetype = "nc"
-    >>> seq.filetype
-    'nc'
-    >>> del seq.filetype
-    >>> seq.filetype
-    'npy'
-
-    If neither a specific definition nor a |SequenceManager| object is available,
-    property |IOSequence.filetype| raises the following error:
-
-    >>> del pub.sequencemanager
-    >>> seq.filetype
-    Traceback (most recent call last):
-    ...
-    RuntimeError: For sequence `inputsequence` attribute filetype cannot be \
-determined.  Either set it manually or prepare `pub.sequencemanager` correctly.
 
     The documentation on modules |filetools| and |netcdftools| in some detail explains
     how to read and write time series files.  However, due to efficiency, reading and
@@ -1556,7 +1422,7 @@ determined.  Either set it manually or prepare `pub.sequencemanager` correctly.
 
     >>> factors.tmean.prepare_series()
     >>> factors.tc.prepare_series()
-    >>> pub.sequencemanager.generalfiletype = "nc"
+    >>> pub.sequencemanager.filetype = "nc"
     >>> with TestIO():
     ...     pub.sequencemanager.open_netcdfreader()
     ...     factors.tmean.load_series()
@@ -1594,7 +1460,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     For simplifying the following examples, we now handle all model time series in RAM:
 
-    >>> pub.sequencemanager.generalfiletype = "asc"
+    >>> pub.sequencemanager.filetype = "asc"
     >>> hp.prepare_modelseries()
     >>> with TestIO():
     ...     hp.load_inputseries()
@@ -1676,15 +1542,162 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> Element.clear_all()
     """
 
-    filetype: _FileType
-    aggregation: _AggregationProperty
-    overwrite: _OverwriteProperty
-
     def _finalise_connections(self) -> None:
         self._set_fastaccessattribute("ramflag", False)
         self._set_fastaccessattribute("diskflag_reading", False)
         self._set_fastaccessattribute("diskflag_writing", False)
         super()._finalise_connections()
+
+    @propertytools.DefaultPropertySeriesFileType
+    def filetype(self) -> SeriesFileType:
+        """"Ending of the time-series data file.
+
+        Usually, |IOSequence| objects query the current file type from the
+        |SequenceManager| object available in the global |pub| module:
+
+        >>> from hydpy import pub
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
+
+        >>> from hydpy.core.sequencetools import InputSequence
+        >>> inputsequence = InputSequence(None)
+        >>> inputsequence.filetype
+        'asc'
+
+        Alternatively, you can specify the file type for each |IOSequence| object
+        individually:
+
+        >>> inputsequence.filetype = "npy"
+        >>> inputsequence.filetype
+        'npy'
+        >>> inputsequence.filetype = "nc"
+        >>> inputsequence.filetype
+        'nc'
+
+        Use the `del` statement to reset the object-specific setting:
+
+        >>> del inputsequence.filetype
+        >>> inputsequence.filetype
+        'asc'
+
+        If neither a specific definition nor a |SequenceManager| object is available,
+        property |IOSequence.filetype| raises the following error:
+
+        >>> del pub.sequencemanager
+        >>> inputsequence.filetype
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `inputsequence` does \
+not know its file type.  Either set it manually or prepare `pub.sequencemanager` \
+correctly.
+        """
+        try:
+            return hydpy.pub.sequencemanager.filetype
+        except exceptiontools.AttributeNotReady:
+            raise exceptiontools.AttributeNotReady(
+                f"Sequence {objecttools.devicephrase(self)} does not know its file "
+                f"type.  Either set it manually or prepare `pub.sequencemanager` "
+                f"correctly."
+            ) from None
+
+    @propertytools.DefaultPropertySeriesAggregationType
+    def aggregation(self) -> SeriesAggregationType:
+        """Type of aggregation for writing the time-series to a data file.
+
+        Usually, |IOSequence| objects query the current aggregation mode from the
+        |SequenceManager| object available in the global |pub| module:
+
+        >>> from hydpy import pub
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
+
+        >>> from hydpy.core.sequencetools import FluxSequence
+        >>> fluxsequence = FluxSequence(None)
+        >>> fluxsequence.aggregation
+        'none'
+
+        Alternatively, you can specify the aggregation for each |IOSequence| object
+        individually:
+
+        >>> fluxsequence.aggregation = "mean"
+        >>> fluxsequence.aggregation
+        'mean'
+
+        Use the `del` statement to reset the object-specific setting:
+
+        >>> del fluxsequence.aggregation
+        >>> fluxsequence.aggregation
+        'none'
+
+        If neither a specific definition nor a |SequenceManager| object is available,
+        property |IOSequence.aggregation| raises the following error:
+
+        >>> del pub.sequencemanager
+        >>> fluxsequence.aggregation
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
+know its aggregation mode.  Either set it manually or prepare `pub.sequencemanager` \
+correctly.
+        """
+        try:
+            return hydpy.pub.sequencemanager.aggregation
+        except exceptiontools.AttributeNotReady:
+            raise exceptiontools.AttributeNotReady(
+                f"Sequence {objecttools.devicephrase(self)} does not know its "
+                f"aggregation mode.  Either set it manually or prepare "
+                f"`pub.sequencemanager` correctly."
+            ) from None
+
+    @propertytools.DefaultPropertyBool
+    def overwrite(self) -> bool:
+        """True/False flag indicating if overwriting an existing data file is allowed
+        or not.
+
+        Usually, |IOSequence| objects query the current overwrite flag from the
+        |SequenceManager| object available in the global |pub| module:
+
+        >>> from hydpy import pub
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
+
+        >>> from hydpy.core.sequencetools import FluxSequence
+        >>> fluxsequence = FluxSequence(None)
+        >>> fluxsequence.overwrite
+        0
+
+        Alternatively, you can specify the overwrite flag for each |IOSequence| object
+        individually:
+
+        >>> fluxsequence.overwrite = True
+        >>> fluxsequence.overwrite
+        1
+
+        Use the `del` statement to reset the object-specific setting:
+
+        >>> del fluxsequence.overwrite
+        >>> fluxsequence.overwrite
+        0
+
+        If neither a specific definition nor a |SequenceManager| object is available,
+        property |IOSequence.overwrite| raises the following error:
+
+        >>> del pub.sequencemanager
+        >>> fluxsequence.overwrite
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
+know its overwrite flag.  Either set it manually or prepare `pub.sequencemanager` \
+correctly.
+        """
+        try:
+            return hydpy.pub.sequencemanager.overwrite
+        except exceptiontools.AttributeNotReady:
+            raise exceptiontools.AttributeNotReady(
+                f"Sequence {objecttools.devicephrase(self)} does not know its "
+                f"overwrite flag.  Either set it manually or prepare "
+                f"`pub.sequencemanager` correctly."
+            ) from None
 
     @propertytools.DefaultPropertyStr
     def filename(self) -> str:  # ToDo: special handling for NetCDF files
@@ -2541,9 +2554,9 @@ element `element3`.
         >>> seq.average_series.assert_called_with(1, x=2)
         """
         mode = self.aggregation
-        if mode == "none":
+        if mode == "none":  # pylint: disable=comparison-with-callable
             return self.series
-        if mode == "mean":
+        if mode == "mean":  # pylint: disable=comparison-with-callable
             return self.average_series(*args, **kwargs)
         raise RuntimeError(
             f"Unknown aggregation mode `{mode}` for sequence "
@@ -2704,10 +2717,6 @@ class InputSequence(ModelIOSequence[InputSequences, FastAccessInputSequence]):
     """
 
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
-
-    filetype = _FileType()
-    aggregation = _AggregationProperty()
-    overwrite = _OverwriteProperty()
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -2932,17 +2941,9 @@ class FactorSequence(DependentSequence[FactorSequences]):
     NUMERIC = False  # Changing this requires implementing the related functionalites
     # in modules `modeltools` and `modeltutils`.
 
-    filetype = _FileType()
-    aggregation = _AggregationProperty()
-    overwrite = _OverwriteProperty()
-
 
 class FluxSequence(DependentSequence[FluxSequences]):
     """Base class for flux sequences of |Model| objects."""
-
-    filetype = _FileType()
-    aggregation = _AggregationProperty()
-    overwrite = _OverwriteProperty()
 
 
 class ConditionSequence(
@@ -3122,9 +3123,6 @@ not broadcast input array from shape (3,) into shape (2,)
     """
 
     NOT_DEEPCOPYABLE_MEMBERS = "subseqs", "fastaccess_old", "fastaccess_new"
-    filetype = _FileType()
-    aggregation = _AggregationProperty()
-    overwrite = _OverwriteProperty()
 
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
@@ -3655,10 +3653,6 @@ class NodeSequence(IOSequence["NodeSequences", FastAccessNodeSequence]):
 
     _CLS_FASTACCESS_PYTHON = FastAccessNodeSequence
 
-    filetype = _FileType()
-    aggregation = _AggregationProperty()
-    overwrite = _OverwriteProperty()
-
     @property
     def initinfo(self) -> Tuple[pointerutils.Double, bool]:
         """Return a |Double| instead of a |float| object as the first tuple entry."""
@@ -3871,8 +3865,7 @@ node `dill`, the following error occurred: [Errno 2] No such file or directory: 
 
         >>> import numpy
         >>> sim.series[2] = numpy.nan
-        >>> with TestIO():
-        ...     pub.sequencemanager.nodeoverwrite = True
+        >>> with TestIO(), pub.sequencemanager.overwrite(True):
         ...     sim.save_series()
         >>> with TestIO():
         ...     sim.load_series()
@@ -3885,8 +3878,7 @@ node `dill`, the following error occurred: The series array of sequence `sim` of
         InfoArray([ 1.,  1., nan,  1.,  1.])
 
         >>> sim.series = 0.0
-        >>> with TestIO():
-        ...     with pub.options.warnmissingsimfile(False):
+        >>> with TestIO(), pub.options.warnmissingsimfile(False):
         ...         sim.load_series()
         >>> sim.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
@@ -3970,8 +3962,7 @@ or directory: '...dill_obs_q.asc'
 
         >>> import numpy
         >>> obs.series[2] = numpy.nan
-        >>> with TestIO():
-        ...     pub.sequencemanager.nodeoverwrite = True
+        >>> with TestIO(), pub.sequencemanager.overwrite(True):
         ...     obs.save_series()
         >>> with TestIO():
         ...     obs.load_series()

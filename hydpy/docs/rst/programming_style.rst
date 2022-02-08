@@ -239,8 +239,8 @@ remain consistent. One example is that it is not allowed to assign an unknown
 string to the `outputfiletype` of an instance ofclass |SequenceManager| :
 
 >>> from hydpy.core.filetools import SequenceManager
->>> sm = SequenceManager()
->>> sm.fluxfiletype = "test"
+>>> sequencemanager = SequenceManager()
+>>> sequencemanager.filetype = "test"
 Traceback (most recent call last):
   ...
 ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.

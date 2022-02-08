@@ -1318,14 +1318,13 @@ class XMLSubseries(XMLSelector):
     def prepare_sequencemanager(self, currentdir: Optional[str] = None) -> None:
         """Configure the |SequenceManager| object available in module |pub| following
         the definitions of the actual XML `reader` or `writer` element when available;
-        if not, use those of the XML `series_io` element.
+        if not, use those of the XML `series_io` element or fall back to the default.
 
         Compare the following results with `single_run.xml` to see that the first
-        `writer` element defines the input file type specifically, that the second
-        `writer` element defines a general file type, and that the third `writer`
-        element does not define any file type.  The base mechanism is the same for
-        other options, e.g. the aggregation mode.  The `directory` element is unique,
-        as it allows for a single directory name only, counting for all sequence types.
+        `writer` element re-defines the default file type (`asc`), that the second
+        `writer` element defines an alternative file type (`npy`), and that the third
+        `writer` relies on the general file type.  The base mechanism is the same
+        for other options, e.g. the aggregation mode.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1340,67 +1339,58 @@ class XMLSubseries(XMLSelector):
         ...     series_io.writers[0].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
         'default'
-        >>> pub.sequencemanager.inputfiletype
+        >>> pub.sequencemanager.filetype
         'asc'
-        >>> pub.sequencemanager.fluxfiletype
-        'npy'
-        >>> pub.sequencemanager.fluxaggregation
+        >>> pub.sequencemanager.overwrite
+        1
+        >>> pub.sequencemanager.aggregation
         'none'
         >>> with TestIO():
         ...     series_io.writers[1].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
         'soildata'
-        >>> pub.sequencemanager.statefiletype
+        >>> pub.sequencemanager.filetype
         'nc'
-        >>> pub.sequencemanager.stateoverwrite
-        False
+        >>> pub.sequencemanager.overwrite
+        0
+        >>> pub.sequencemanager.aggregation
+        'none'
         >>> with TestIO():
         ...     series_io.writers[2].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
         'averages'
-        >>> pub.sequencemanager.statefiletype
+        >>> pub.sequencemanager.filetype
         'npy'
-        >>> pub.sequencemanager.factoraggregation
+        >>> pub.sequencemanager.aggregation
         'mean'
-        >>> pub.sequencemanager.fluxaggregation
+        >>> pub.sequencemanager.overwrite
+        1
+        >>> pub.sequencemanager.aggregation
         'mean'
-        >>> pub.sequencemanager.inputoverwrite
-        True
         """
+        sm = hydpy.pub.sequencemanager
         if currentdir is None:
             element = self.find("directory")
             if element is None:
                 element = self.master.find("directory")
             if element is None:
-                hydpy.pub.sequencemanager.currentdir = "default"
+                sm.currentdir = "default"
             else:
                 assert element.text is not None
-                hydpy.pub.sequencemanager.currentdir = element.text
+                sm.currentdir = element.text
         else:
-            hydpy.pub.sequencemanager.currentdir = currentdir
+            sm.currentdir = currentdir
 
-        for opt in ("filetype", "aggregation", "overwrite"):
-            xml_special = self.find(opt)
-            xml_general = self.master.find(opt)
-            for name_manager, name_xml in zip(
-                ("input", "factor", "flux", "state", "node"),
-                ("inputs", "factors", "fluxes", "states", "nodes"),
-            ):
-                for xml, attr_xml in zip(
-                    (xml_special, xml_special, xml_general, xml_general),
-                    (name_xml, "general", name_xml, "general"),
-                ):
-                    if xml is not None:
-                        element = find(xml, attr_xml)
-                        if element is not None:
-                            txt = element.text
-                            assert txt is not None
-                            setattr(
-                                hydpy.pub.sequencemanager,
-                                f"{name_manager}{opt}",
-                                txt.lower() == "true" if opt == "overwrite" else txt,
-                            )
-                            break
+        for option in ("filetype", "aggregation", "overwrite"):
+            delattr(sm, option)
+            for element in (self.find(option), self.master.find(option)):
+                if element is not None:
+                    assert element.text is not None
+                    if option == "overwrite":
+                        sm.overwrite = objecttools.value2bool(option, element.text)
+                    else:
+                        setattr(sm, option, element.text)
+                    break
 
     @property
     def _ramflag(self) -> bool:

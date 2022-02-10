@@ -464,7 +464,7 @@ occurred: ...
                 )
         self._currentdir = None
 
-    @property
+    @propertytools.DefaultPropertyStr
     def currentpath(self) -> str:
         """The absolute path of the current working directory.
 

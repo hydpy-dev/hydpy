@@ -151,6 +151,7 @@ from hydpy.auxs.statstools import (
     bias_rel,
     calc_mean_time,
     calc_mean_time_deviation,
+    calc_weights,
     corr,
     corr2,
     filter_series,
@@ -164,6 +165,8 @@ from hydpy.auxs.statstools import (
     prepare_arrays,
     rmse,
     std_ratio,
+    SummaryRowSimple,
+    SummaryRowWeighted,
     var_ratio,
 )
 from hydpy.auxs.xmltools import (
@@ -276,6 +279,7 @@ __all__ = [
     "bias_rel",
     "calc_mean_time",
     "calc_mean_time_deviation",
+    "calc_weights",
     "corr",
     "corr2",
     "filter_series",
@@ -289,6 +293,8 @@ __all__ = [
     "prepare_arrays",
     "rmse",
     "std_ratio",
+    "SummaryRowSimple",
+    "SummaryRowWeighted",
     "var_ratio",
     "XMLInterface",
     "run_simulation",

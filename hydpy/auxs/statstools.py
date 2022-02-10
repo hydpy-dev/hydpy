@@ -3,6 +3,7 @@
 modelling."""
 # import...
 # ...from standard library
+import abc
 import warnings
 from typing import *
 from typing import TextIO
@@ -770,7 +771,7 @@ def corr2(
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
-        return cast(float, numpy.nan)
+        return numpy.nan
     return cast(float, numpy.corrcoef(sim_, obs_)[0, 1] ** 2)
 
 
@@ -1126,7 +1127,7 @@ def corr(
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
-        return cast(float, numpy.nan)
+        return numpy.nan
     return cast(float, numpy.corrcoef(sim_, obs_)[0, 1])
 
 
@@ -1713,6 +1714,209 @@ negative: weights.
     )
 
 
+def calc_weights(nodes: Collection[devicetools.Node]) -> Dict[devicetools.Node, float]:
+    """Calculate "statistical" weights for all given nodes based on the number of
+    observations within the evaluation period.
+
+    >>> from hydpy import calc_weights, nan, Node, print_values, pub
+    >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
+    >>> test1, test2 = Node("test1"), Node("test2")
+    >>> test1.prepare_obsseries()
+    >>> test1.sequences.obs.series = 4.0, 5.0, 6.0
+    >>> test2.prepare_obsseries()
+    >>> with pub.options.checkseries(False):
+    ...     test2.sequences.obs.series = 3.0, nan, 1.0
+
+    >>> print_values(calc_weights((test1, test2)).values())
+    0.6, 0.4
+
+    >>> pub.timegrids.eval_.lastdate = "03.01.2000"
+    >>> print_values(calc_weights((test1, test2)).values())
+    0.666667, 0.333333
+
+    >>> pub.timegrids.eval_.firstdate = "02.01.2000"
+    >>> print_values(calc_weights((test1, test2)).values())
+    1.0, 0.0
+
+    >>> print_values(calc_weights((test1,)).values())
+    1.0
+
+    >>> print_values(calc_weights((test2,)).values())
+    Traceback (most recent call last):
+    ...
+    RuntimeError: None of the given nodes (test2) provides any observation values for \
+the current evaluation period (Timegrid("02.01.2000 00:00:00", "03.01.2000 00:00:00", \
+"1d")).
+
+    >>> calc_weights(())
+    {}
+    """
+    nonnans = []
+    for node in nodes:
+        nonnans.append(sum(~numpy.isnan(node.sequences.obs.evalseries)))
+    sum_nonnan = sum(nonnans)
+    if (len(nodes) > 0) and (sum_nonnan == 0):
+        names = objecttools.enumeration(n.name for n in nodes)
+        raise RuntimeError(
+            f"None of the given nodes ({names}) provides any observation values for "
+            f"the current evaluation period ({hydpy.pub.timegrids.eval_})."
+        )
+    return {g: w / sum_nonnan for g, w in zip(nodes, nonnans)}
+
+
+class SummaryRow(abc.ABC):
+    """Abstract base class for |SummaryRowSimple| and |SummaryRowWeighted|.
+
+    The documentation on function |print_evaluationtable| explains the intended use of
+    the available |SummaryRow| subclasses.  Here, we demonstrate their configuration in
+    more detail based on the subclass |SummaryRowSimple|, which calculates simple
+    (non-weighted) averages.  You only need to pass the name and the node objects
+    relevant for the corresponding row for initialising:
+
+    >>> from hydpy import Nodes, print_values, SummaryRowSimple
+    >>> n1, n2, n3 = Nodes("n1", "n2", "n3")
+    >>> s = SummaryRowSimple("s", (n1, n2))
+
+    |print_evaluationtable| calculates values for all node-criterion combinations and
+    passes them to |SummaryRow.summarise_criteria|.  If the nodes passed to
+    |print_evaluationtable| and the |SummaryRow| instance are identical,
+    |SummaryRowSimple| just calculates the average for each criterion:
+
+    >>> print_values(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
+    2.0, 4.0
+
+    Nodes passed to |print_evaluationtable| but not to |SummaryRow| are considered
+    irrelevant for the corresponding row and thus not taken into account for averaging:
+
+    >>> print_values(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
+    2.0
+
+    If the |SummaryRow| instance expects a node not passed to |print_evaluationtable|,
+    it raises the following error:
+
+    >>> print_values(s.summarise_criteria(1, {n1: [1.0]}))
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to calculate the values of row `s` based on class \
+`SummaryRowSimple`, the following error occurred: Missing information for node `n2`.
+
+    |SummaryRow.summarise_criteria| generally returns |numpy.nan| values for all
+    |SummaryRow| instances that select no nodes:
+
+    >>> SummaryRowSimple("s", ()).summarise_criteria(2, {n1: [1.0, 2.0]})
+    (nan, nan)
+    """
+
+    name: str
+    _nodes: Tuple[devicetools.Node, ...]
+
+    def __init__(self, name: str, nodes: Collection[devicetools.Node]) -> None:
+        self.name = name
+        self._nodes = tuple(nodes)
+
+    def summarise_criteria(
+        self, nmb_criteria: int, node2values: Mapping[devicetools.Node, Sequence[float]]
+    ) -> Tuple[float, ...]:
+        """Summarise the results of all criteria."""
+        if len(self._nodes) == 0:
+            return tuple(nmb_criteria * [numpy.nan])
+        try:
+            summaries = []
+            for idx in range(nmb_criteria):
+                node2value = {}
+                for node in self._nodes:
+                    try:
+                        node2value[node] = node2values[node][idx]
+                    except KeyError:
+                        raise RuntimeError(
+                            f"Missing information for node `{node.name}`."
+                        ) from None
+                summaries.append(self.summarise_criterion(node2value))
+            return tuple(summaries)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to calculate the values of row `{self.name}` based on "
+                f"class `{type(self).__name__}`"
+            )
+
+    @abc.abstractmethod
+    def summarise_criterion(
+        self, node2value: Mapping[devicetools.Node, float]
+    ) -> float:
+        """Summarise the values of a specific criterion."""
+
+
+class SummaryRowSimple(SummaryRow):
+    """Helper to define additional "summary rows" in evaluation tables based on simple
+    (non-weighted) averages.
+
+    See the documentation on class |SummaryRow| for further information.
+    """
+
+    def summarise_criterion(
+        self, node2value: Mapping[devicetools.Node, float]
+    ) -> float:
+        """Calculate the simple (non-weighted) average of all selected nodes."""
+        return sum(node2value[n] for n in self._nodes) / len(self._nodes)
+
+
+class SummaryRowWeighted(SummaryRow):
+    """Helper to define additional "summary rows" in evaluation tables based on
+    weighted averages.
+
+    The documentation on class |SummaryRow| provides general information on using
+    |SummaryRow| subclasses, while the following examples focus on the unique features
+    of class |SummaryRowWeighted|.
+
+    First, we prepare two nodes.  `n1` provides a complete and `n2` provides an
+    incomplete observation time-series:
+
+    >>> from hydpy import print_values, pub, Node, nan
+    >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
+    >>> n1, n2 = Node("n1"), Node("n2")
+    >>> n1.prepare_obsseries()
+    >>> n1.sequences.obs.series = 4.0, 5.0, 6.0
+    >>> n2.prepare_obsseries()
+    >>> with pub.options.checkseries(False):
+    ...     n2.sequences.obs.series = 3.0, nan, 1.0
+
+    We can pass predefined weighting coefficients to |SummaryRowWeighted|.  Then, the
+    completeness of the observation series is irrelevant:
+
+    >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2), (0.1, 0.9))
+    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    0.8, 5.6
+
+    If we do not pass any weights, |SummaryRowWeighted| determines them automatically
+    based on the number of available observations per node by invoking function
+    |calc_weights|:
+
+    >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2))
+    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    -0.2, 3.6
+    """
+
+    _node2weight: Dict[devicetools.Node, float]
+
+    def __init__(
+        self,
+        name: str,
+        nodes: Collection[devicetools.Node],
+        weights: Optional[Collection[float]] = None,
+    ) -> None:
+        super().__init__(name=name, nodes=nodes)
+        if weights is None:
+            self._node2weight = calc_weights(nodes)
+        else:
+            self._node2weight = dict(zip(nodes, weights))
+
+    def summarise_criterion(
+        self, node2value: Mapping[devicetools.Node, float]
+    ) -> float:
+        """Calculate the weighted average of all selected nodes."""
+        return sum(w * node2value[n] for n, w in self._node2weight.items())
+
+
 @overload
 def print_evaluationtable(
     *,
@@ -1725,7 +1929,8 @@ def print_evaluationtable(
     subperiod: bool = True,
     average: bool = True,
     averagename: str = "mean",
-    filter_: float = 1.0,
+    summaryrows: Collection[SummaryRow] = (),
+    filter_: float = 0.0,
     missingvalue: str = "-",
     decimalseperator: str = ".",
     file_: Optional[Union[str, TextIO]] = None,
@@ -1745,7 +1950,8 @@ def print_evaluationtable(
     subperiod: bool = True,
     average: bool = True,
     averagename: str = "mean",
-    filter_: float = 1.0,
+    summaryrows: Collection[SummaryRow] = (),
+    filter_: float = 0.0,
     stepsize: Literal["daily", "d", "monthly", "m"] = "daily",
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     missingvalue: str = "-",
@@ -1769,7 +1975,8 @@ def print_evaluationtable(
     subperiod: bool = True,
     average: bool = True,
     averagename: str = "mean",
-    filter_: float = 1.0,
+    summaryrows: Collection[SummaryRow] = (),
+    filter_: float = 0.0,
     stepsize: Optional[Literal["daily", "d", "monthly", "m"]] = None,
     aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
     missingvalue: str = "-",
@@ -1786,10 +1993,7 @@ def print_evaluationtable(
     >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
     >>> nodes = Node("test1"), Node("test2")
     >>> for node in nodes:
-    ...     node.prepare_simseries()
-    ...     node.sequences.sim.series = 1.0, 2.0, 3.0
-    ...     node.sequences.obs.prepare_series()
-    ...     node.sequences.obs.series = 4.0, 5.0, 6.0
+    ...     node.prepare_allseries()
     >>> nodes[0].sequences.sim.series = 1.0, 2.0, 3.0
     >>> nodes[0].sequences.obs.series = 4.0, 5.0, 6.0
     >>> nodes[1].sequences.sim.series = 1.0, 2.0, 3.0
@@ -1802,15 +2006,15 @@ def print_evaluationtable(
     >>> from hydpy import bias_abs, corr, print_evaluationtable
     >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
     ...                       criteria=(corr, bias_abs))
-           corr  bias_abs
-    test1  1.00     -3.00
-    test2     -         -
-    mean   1.00     -3.00
+            corr   bias_abs
+    test1   1.00      -3.00
+    test2  -1.00       0.00
+    mean    0.00      -1.50
 
     One can pass alternative names for the node objects, the criteria functions, and
     the row containing the average values.  Also, one can use the `filter_` argument to
-    force printing statistics in case of incomplete observation data.  In the following
-    example, we accept a maximum fraction of missing data of 50 %:
+    suppress printing statistics in case of incomplete observation data.  In the
+    following example, we set the minimum fraction of required data to 80 %:
 
     >>> print_evaluationtable(nodes=nodes,
     ...                       criteria=(corr, bias_abs),
@@ -1818,11 +2022,11 @@ def print_evaluationtable(
     ...                       critnames=("corrcoef", "bias"),
     ...                       critdigits=1,
     ...                       averagename="average",
-    ...                       filter_=0.5)   # doctest: +NORMALIZE_WHITESPACE
-                 corrcoef  bias
-    first node        1.0  -3.0
-    second node      -1.0   0.0
-    average           0.0  -1.5
+    ...                       filter_=0.8)   # doctest: +NORMALIZE_WHITESPACE
+                corrcoef  bias
+    first node       1.0  -3.0
+    second node        -     -
+    average          1.0  -3.0
 
     The number of assigned node objects and criteria functions must match the number of
     given alternative names:
@@ -1850,9 +2054,34 @@ number of given alternative names being 1.
     >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
     ...                       criteria=(corr, bias_abs),
     ...                       average=False)
-           corr  bias_abs
-    test1  1.00     -3.00
-    test2     -         -
+            corr  bias_abs
+    test1   1.00     -3.00
+    test2  -1.00      0.00
+
+    The `summaryrows` argument is a more flexible alternative to the standard averaging
+    across nodes.  You can pass an arbitrary number of |SummaryRow| instances.  Their
+    names define the descriptions in the first column.  Here, we include additional
+    lines giving the complete averages for all nodes, averages for a subset of nodes
+    (in fact, the "average" for the single node `test2`), automatically weighted
+    averages (based on the number of available observations), and manually weighted
+    averages (based on predefined weights):
+
+    >>> from hydpy import SummaryRowSimple, SummaryRowWeighted
+    >>> summaryrows = (SummaryRowSimple("complete", nodes),
+    ...                SummaryRowSimple("selective", (nodes[1],)),
+    ...                SummaryRowWeighted("automatically weighted", nodes),
+    ...                SummaryRowWeighted("manually weighted", nodes, (0.1, 0.9)))
+    >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
+    ...                       criteria=(corr, bias_abs),
+    ...                       average=False,
+    ...                       summaryrows=summaryrows)
+                             corr  bias_abs
+    test1                    1.00     -3.00
+    test2                   -1.00      0.00
+    complete                 0.00     -1.50
+    selective               -1.00      0.00
+    automatically weighted   0.20     -1.80
+    manually weighted       -0.80     -0.30
 
     You can use the arguments `critfactors` and `critdigits` by passing either a single
     number or a sequence of criteria-specific numbers to modify the printed values:
@@ -1861,10 +2090,10 @@ number of given alternative names being 1.
     ...                       criteria=(corr, bias_abs),
     ...                       critfactors=(10.0, 0.1),
     ...                       critdigits=1)
-           corr  bias_abs
-    test1  10.0      -0.3
-    test2     -         -
-    mean   10.0      -0.3
+            corr  bias_abs
+    test1   10.0      -0.3
+    test2  -10.0       0.0
+    mean     0.0      -0.2
 
     By default, function |print_evaluationtable| prints the statics relevant for the
     actual evaluation period only:
@@ -1883,13 +2112,13 @@ number of given alternative names being 1.
     >>> print_evaluationtable(nodes=nodes,  # doctest: +NORMALIZE_WHITESPACE
     ...                       criteria=(corr, bias_abs),
     ...                       subperiod=False)
-           corr  bias_abs
-    test1  1.00     -3.00
-    test2     -         -
-    mean   1.00     -3.00
+            corr  bias_abs
+    test1   1.00     -3.00
+    test2  -1.00      0.00
+    mean    0.00     -1.50
 
     Use the `stepsize` argument (eventually in combination with argument `aggregator`)
-    to print the statistics of previously aggregated time series.  See function
+    to print the statistics of previously aggregated time series.  See
     |aggregate_series| for further information.
 
     Here, the daily aggregation step size results in identical results as the original
@@ -1900,10 +2129,10 @@ number of given alternative names being 1.
     ...                       criteria=(corr, bias_abs),
     ...                       stepsize="daily",
     ...                       aggregator="mean")
-           corr  bias_abs
-    test1  1.00     -3.00
-    test2     -         -
-    mean   1.00     -3.00
+            corr  bias_abs
+    test1   1.00     -3.00
+    test2  -1.00      0.00
+    mean    0.00     -1.50
 
     For the monthly step size, the result table is empty due to the too short
     initialisation period covering less than a month:
@@ -1939,6 +2168,7 @@ number of given alternative names being 1.
     if isinstance(critdigits, int):
         critdigits = len(criteria) * (critdigits,)
     formats = tuple(f"%.{d}f" for d in critdigits)
+    node2values: DefaultDict[devicetools.Node, List[float]] = DefaultDict(lambda: [])
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
         if stepsize is not None:
@@ -1955,20 +2185,15 @@ number of given alternative names being 1.
                 subperiod=subperiod,
             ).values
         else:
-            sim, obs = prepare_arrays(
-                node=node,
-                skip_nan=False,
-                subperiod=subperiod,
-            )
-        if len(obs) > 0:
-            availability = 1.0 - sum(numpy.isnan(obs)) / len(obs)
+            sim, obs = prepare_arrays(node=node, skip_nan=False, subperiod=subperiod)
+        availability = 0.0 if len(obs) == 0 else 1.0 - sum(numpy.isnan(obs)) / len(obs)
+        if availability > 0.0:
+            for criterion, critfactor in zip(criteria, critfactors):
+                value = critfactor * criterion(sim=sim, obs=obs, skip_nan=True)
+                node2values[node].append(value)
         else:
-            availability = 0.0
-        if availability < filter_:
-            data[idx, :] = numpy.nan
-        else:
-            for jdx, (criterion, critfactor) in enumerate(zip(criteria, critfactors)):
-                data[idx, jdx] = critfactor * criterion(sim=sim, obs=obs, skip_nan=True)
+            node2values[node] = len(criteria) * [numpy.nan]
+        data[idx, :] = numpy.nan if availability < filter_ else node2values[node]
 
     def _write(x: str, ys: Iterable[str], printtarget_: TextIO) -> None:
         printtarget_.write(f"{x}\t")
@@ -1990,3 +2215,6 @@ number of given alternative names being 1.
                 warnings.filterwarnings("ignore", "Mean of empty slice")
                 mean = _nmbs2strs(numpy.nanmean(data, axis=0))
             _write(averagename, mean, printtarget)
+        for summaryrow in summaryrows:
+            values = summaryrow.summarise_criteria(len(criteria), node2values)
+            _write(summaryrow.name, _nmbs2strs(values), printtarget)

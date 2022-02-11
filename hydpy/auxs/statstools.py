@@ -4,6 +4,7 @@ modelling."""
 # import...
 # ...from standard library
 import abc
+import copy
 import warnings
 from typing import *
 from typing import TextIO
@@ -1872,7 +1873,7 @@ class SummaryRowWeighted(SummaryRow):
     incomplete observation time-series:
 
     >>> from hydpy import print_values, pub, Node, nan
-    >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
+    >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
     >>> n1, n2 = Node("n1"), Node("n2")
     >>> n1.prepare_obsseries()
     >>> n1.sequences.obs.series = 4.0, 5.0, 6.0
@@ -1894,9 +1895,27 @@ class SummaryRowWeighted(SummaryRow):
     >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2))
     >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     -0.2, 3.6
+
+    |SummaryRowWeighted| reuses the internally calculated weights but updates them when
+    the evaluation time grid changes in the meantime:
+
+    >>> pub.timegrids.eval_.firstdate = "2000-01-02"
+    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    -0.333333, 3.333333
+
+    |nan| values calculated for individual nodes due to completely missing observations
+    within the evaluation period do not leak into the results of
+    |SummaryRow.summarise_criteria| (if the corresponding weights are zero, as they
+    should):
+
+    >>> pub.timegrids.eval_.lastdate = "2000-01-03"
+    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [nan, nan]}))
+    -1.0, 2.0
     """
 
     _node2weight: Dict[devicetools.Node, float]
+    _predefined: bool
+    _evaltimegrid: timetools.Timegrid
 
     def __init__(
         self,
@@ -1905,16 +1924,25 @@ class SummaryRowWeighted(SummaryRow):
         weights: Optional[Collection[float]] = None,
     ) -> None:
         super().__init__(name=name, nodes=nodes)
+        self._nodes = tuple(nodes)
+        self._evaltimegrid = copy.deepcopy(hydpy.pub.timegrids.eval_)
         if weights is None:
+            self._predefined = False
             self._node2weight = calc_weights(nodes)
         else:
-            self._node2weight = dict(zip(nodes, weights))
+            self._predefined = True
+            self._node2weight = dict(zip(self._nodes, weights))
 
     def summarise_criterion(
         self, node2value: Mapping[devicetools.Node, float]
     ) -> float:
         """Calculate the weighted average of all selected nodes."""
-        return sum(w * node2value[n] for n, w in self._node2weight.items())
+        if not self._predefined and (self._evaltimegrid != hydpy.pub.timegrids.eval_):
+            self._node2weight = calc_weights(self._nodes)
+            self._evaltimegrid = copy.deepcopy(hydpy.pub.timegrids.eval_)
+        return sum(
+            w * node2value[n] if w > 0.0 else 0.0 for n, w in self._node2weight.items()
+        )
 
 
 @overload

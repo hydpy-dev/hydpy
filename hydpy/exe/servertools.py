@@ -1952,7 +1952,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
 
     def GET_save_conditions(self) -> None:
         """Save the (resulting) conditions."""
-        dir_ = self.state.inputconditiondirs.get(self._id)
+        dir_ = self.state.outputconditiondirs.get(self._id)
         self.state.interface.conditions_io.save_conditions(dir_)
 
     def GET_update_getitemvalues(self) -> None:

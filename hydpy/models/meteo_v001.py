@@ -21,11 +21,12 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 Application model |meteo_v001| calculates multiple meteorological factors hydrological 
-models could require.  Many require |GlobalRadiation| for calculating net shortwave 
-radiation.  Some also require |PossibleSunshineDuration| or |ClearSkySolarRadiation| to
-guess cloudiness for calculating net longwave radiation.  Here, we select
-|GlobalRadiation| and |ClearSkySolarRadiation| by importing their globally available
-aliases, which we hand over to the |Node| instances `node1` and `node2`:
+models could require.  Many require |meteo_fluxes.GlobalRadiation| for calculating net
+shortwave radiation.  Some also require |PossibleSunshineDuration| or
+|ClearSkySolarRadiation| to guess cloudiness for calculating net longwave radiation.
+Here, we select |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation| by
+importing their globally available aliases, which we hand over to the |Node| instances
+`node1` and `node2`:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.outputs import meteo_GlobalRadiation, meteo_ClearSkySolarRadiation
@@ -61,8 +62,8 @@ terms on 6 July in Uccle (Brussels, Belgium) and take all input data from exampl
 
 >>> inputs.sunshineduration.series = 9.25
 
-Both for |GlobalRadiation| and |ClearSkySolarRadiation|, the differences to the results
-given by :cite:`ref-Allen1998` are less than 1 %:
+Both for |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|, the differences
+to the results given by :cite:`ref-Allen1998` are less than 1 %:
 
 .. integration-test::
 
@@ -112,8 +113,8 @@ approximately 0.92, which is an intermediate result of :cite:`ref-Allen1998`:
 >>> inputs.sunshineduration.series[3:16] = 0.8
 >>> inputs.sunshineduration.series[27:] = numpy.linspace(0.82, 0.88, 10)
 
-Again, the calculated |GlobalRadiation| and |ClearSkySolarRadiation| differs 
-significantly less than 1 % from the results given by :cite:`ref-Allen1998`:
+Again, the calculated |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|
+differs significantly less than 1 % from the results given by :cite:`ref-Allen1998`:
 
 .. integration-test::
 

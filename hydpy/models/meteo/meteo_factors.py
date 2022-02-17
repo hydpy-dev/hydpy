@@ -34,3 +34,9 @@ class PossibleSunshineDuration(sequencetools.FactorSequence):
     """Possible astronomical sunshine duration [h]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class SunshineDuration(sequencetools.FactorSequence):
+    """Sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False

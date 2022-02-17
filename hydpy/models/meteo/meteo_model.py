@@ -632,7 +632,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         globalradiation(27.142857)
 
         For zero possible sunshine durations, |Calc_GlobalRadiation_V1| sets
-        |GlobalRadiation| to zero:
+        |meteo_fluxes.GlobalRadiation| to zero:
 
         >>> factors.possiblesunshineduration = 0.0
         >>> model.calc_globalradiation_v1()
@@ -671,6 +671,100 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
             flu.globalradiation = 0.0
 
 
+class Calc_SunshineDuration_V1(modeltools.Method):
+    r"""Calculate the sunshine duration.
+
+    Basic equation (:cite:`ref-Allen1998`, equation 35, rearranged):
+      :math:`SunshineDuration =
+      \left(\frac{GlobalRadiation}{ExtraterrestrialRadiation}-AngstromConstant \right)
+      \cdot \frac{PossibleSunshineDuration}{AngstromFactor}`
+
+    Example:
+
+        Essentially, |Calc_SunshineDuration_V1| inverts |Calc_GlobalRadiation_V1| and
+        thus also relies on the Ångström formula.  Instead of estimating global
+        radiation from sunshine duration, it estimates global radiation from sunshine
+        duration.  We demonstrate this by repeating the examples of
+        |Calc_GlobalRadiation_V1| "backwards":
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> angstromconstant.jan = 0.19
+        >>> angstromfactor.jan = 0.55
+        >>> angstromconstant.feb = 0.25
+        >>> angstromfactor.feb = 0.5
+        >>> derived.moy.update()
+        >>> factors.possiblesunshineduration = 14.0
+        >>> fluxes.extraterrestrialradiation = 40.0
+        >>> model.idx_sim = 1
+        >>> inputs.globalradiation = 26.457143
+        >>> model.calc_sunshineduration_v1()
+        >>> factors.sunshineduration
+        sunshineduration(12.0)
+        >>> model.idx_sim = 2
+        >>> inputs.globalradiation = 27.142857
+        >>> model.calc_sunshineduration_v1()
+        >>> factors.sunshineduration
+        sunshineduration(12.0)
+
+        |Calc_SunshineDuration_V1| sets |meteo_factors.SunshineDuration| to zero for
+        zero extraterrestrial radiation:
+
+        >>> fluxes.extraterrestrialradiation = 0.0
+        >>> model.calc_sunshineduration_v1()
+        >>> factors.sunshineduration
+        sunshineduration(0.0)
+
+        Inconsistencies between global radiation measurements and the Ångström formula
+        (and the selected coefficients) can result in unrealistic sunshine duration
+        estimates.  Method |Calc_SunshineDuration_V1| reduces this problem by lowering
+        too high values to the possible sunshine duration and increasing too low values
+        to zero:
+
+        >>> fluxes.extraterrestrialradiation = 40.0
+        >>> inputs.globalradiation = 50.0
+        >>> model.calc_sunshineduration_v1()
+        >>> factors.sunshineduration
+        sunshineduration(14.0)
+
+        >>> inputs.globalradiation = 0.0
+        >>> model.calc_sunshineduration_v1()
+        >>> factors.sunshineduration
+        sunshineduration(0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        meteo_control.AngstromConstant,
+        meteo_control.AngstromFactor,
+    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY,)
+    REQUIREDSEQUENCES = (
+        meteo_inputs.GlobalRadiation,
+        meteo_factors.PossibleSunshineDuration,
+        meteo_fluxes.ExtraterrestrialRadiation,
+    )
+    RESULTSEQUENCES = (meteo_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        fac = model.sequences.factors.fastaccess
+        if flu.extraterrestrialradiation > 0.0:
+            idx = der.moy[model.idx_sim]
+            d_sd = (
+                (inp.globalradiation / flu.extraterrestrialradiation)
+                - con.angstromconstant[idx]
+            ) * (fac.possiblesunshineduration / con.angstromfactor[idx])
+            fac.sunshineduration = min(max(d_sd, 0.0), fac.possiblesunshineduration)
+        else:
+            fac.sunshineduration = 0.0
+
+
 class Model(modeltools.AdHocModel):
     """The Meteo base model."""
 
@@ -685,6 +779,7 @@ class Model(modeltools.AdHocModel):
         Calc_PossibleSunshineDuration_V1,
         Calc_ClearSkySolarRadiation_V1,
         Calc_GlobalRadiation_V1,
+        Calc_SunshineDuration_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

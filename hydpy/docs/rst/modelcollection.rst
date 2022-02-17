@@ -84,5 +84,6 @@ and will have to be discussed later.
    HydPy-Dummy
    HydPy-H
    HydPy-L
+   HydPy-Meteo
    HydPy-T
    HydPy-W

@@ -118,7 +118,7 @@ differs significantly less than 1 % from the results given by :cite:`ref-Allen19
 
 .. integration-test::
 
-    >>> test("evap_v001_hourly", update_parameters=False,
+    >>> test("meteo_v001_hourly", update_parameters=False,
     ...      axis1=(fluxes.globalradiation, fluxes.clearskysolarradiation))
     |             date | sunshineduration | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | extraterrestrialradiation | clearskysolarradiation | globalradiation |    node1 |    node2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -177,8 +177,8 @@ class Model(modeltools.AdHocModel):
         meteo_model.Calc_SolarDeclination_V1,
         meteo_model.Calc_SunsetHourAngle_V1,
         meteo_model.Calc_SolarTimeAngle_V1,
-        meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_PossibleSunshineDuration_V1,
+        meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_ClearSkySolarRadiation_V1,
         meteo_model.Calc_GlobalRadiation_V1,
     )

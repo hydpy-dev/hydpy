@@ -18,6 +18,18 @@ class ClearSkySolarRadiation(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class UnadjustedGlobalRadiation(sequencetools.FluxSequence):
+    """Unadjusted global radiation [MJ/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class DailyGlobalRadiation(sequencetools.FluxSequence):
+    """Daily sum of global radiation [MJ/m²/d]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class GlobalRadiation(sequencetools.FluxSequence):
     """Global radiation [MJ/m²/T]."""
 

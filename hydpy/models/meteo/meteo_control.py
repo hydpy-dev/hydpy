@@ -24,7 +24,7 @@ class Longitude(parametertools.Parameter):
 class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
     INIT = 0.25
 
     def trim(self, lower=None, upper=None):
@@ -52,12 +52,12 @@ class AngstromConstant(parametertools.MonthParameter):
 class AngstromFactor(parametertools.MonthParameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
     INIT = 0.5
 
     def trim(self, lower=None, upper=None):
         r"""Trim values in accordance with :math:`AngstromFactor \leq  1 -
-        AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq  1`.
+        AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq 1`.
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
@@ -75,3 +75,11 @@ class AngstromFactor(parametertools.MonthParameter):
             upper[idxs] = 1.0
             upper[~idxs] = 1.0 - upper[~idxs]
         super().trim(lower, upper)
+
+
+class AngstromAlternative(parametertools.MonthParameter):
+    """An alternative Ångström coefficient for replacing coefficient "c"
+    (|AngstromConstant|) on days without any direct sunshine [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.15

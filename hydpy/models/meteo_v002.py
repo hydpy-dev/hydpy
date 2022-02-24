@@ -91,7 +91,7 @@ Again, there is a good agreement with the results of |meteo_v001|:
 
 .. integration-test::
 
-    >>> test("evap_v001_hourly", update_parameters=False,
+    >>> test("meteo_v002_hourly", update_parameters=False,
     ...      axis1=(factors.sunshineduration, factors.possiblesunshineduration))
     |             date | globalradiation | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | sunshineduration | extraterrestrialradiation | clearskysolarradiation |    node1 |    node2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -150,8 +150,8 @@ class Model(modeltools.AdHocModel):
         meteo_model.Calc_SolarDeclination_V1,
         meteo_model.Calc_SunsetHourAngle_V1,
         meteo_model.Calc_SolarTimeAngle_V1,
-        meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_PossibleSunshineDuration_V1,
+        meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_ClearSkySolarRadiation_V1,
         meteo_model.Calc_SunshineDuration_V1,
     )

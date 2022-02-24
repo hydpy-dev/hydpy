@@ -22,5 +22,6 @@ Application models:
 
 .. toctree::
 
-   meteo_v001 (global radiation, :cite:`ref-Allen1998`) <meteo_v001>
-   meteo_v002 (sunshine duration, :cite:`ref-Allen1998`) <meteo_v002>
+   meteo_v001 (global radiation, FAO) <meteo_v001>
+   meteo_v002 (sunshine duration, FAO) <meteo_v002>
+   meteo_v003 (global radiation, LARSIM) <meteo_v003>

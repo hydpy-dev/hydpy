@@ -24,8 +24,21 @@ class SunshineDuration(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
+class PossibleSunshineDuration(sequencetools.InputSequence):
+    """Astronomisch mögliche Sonnenscheindauer (astronomically possible sunshine
+    duration) [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class Glob(sequencetools.InputSequence):
     """Globalstrahlung (global radiation) [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class GlobalRadiation(sequencetools.InputSequence):
+    """Globalstrahlung (global radiation) [MJ/m²/T]."""
 
     NDIM, NUMERIC = 0, False
 

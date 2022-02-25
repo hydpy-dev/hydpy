@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-.. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
-"""
+# pylint: disable=missing-module-docstring
+
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
@@ -374,11 +373,88 @@ class Calc_DailySunshineDuration_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        log = model.sequences.logs.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
         flu.dailysunshineduration = 0.0
         for idx in range(der.nmblogentries):
             flu.dailysunshineduration += log.loggedsunshineduration[idx]
+
+
+class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
+    """Log the sunshine duration values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively
+        moves the three memorised values to the right and stores the
+        respective new value on the most left position:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedpossiblesunshineduration.shape = 3
+        >>> logs.loggedpossiblesunshineduration = 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedpossiblesunshineduration_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(inputs.possiblesunshineduration,
+        ...                          logs.loggedpossiblesunshineduration))
+        >>> test.nexts.possiblesunshineduration = 1.0, 3.0, 2.0, 4.0
+        >>> del test.inits.loggedpossiblesunshineduration
+        >>> test()
+        | ex. | possiblesunshineduration |           loggedpossiblesunshineduration |
+        -----------------------------------------------------------------------------
+        |   1 |                      1.0 | 1.0  0.0                             0.0 |
+        |   2 |                      3.0 | 3.0  1.0                             0.0 |
+        |   3 |                      2.0 | 2.0  3.0                             1.0 |
+        |   4 |                      4.0 | 4.0  2.0                             3.0 |
+
+    """
+
+    DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (lland_inputs.PossibleSunshineDuration,)
+    UPDATEDSEQUENCES = (lland_logs.LoggedPossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            log.loggedpossiblesunshineduration[
+                idx
+            ] = log.loggedpossiblesunshineduration[idx - 1]
+        log.loggedpossiblesunshineduration[0] = inp.possiblesunshineduration
+
+
+class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
+    """Calculate the sunshine duration sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedpossiblesunshineduration.shape = 3
+        >>> logs.loggedpossiblesunshineduration = 1.0, 5.0, 3.0
+        >>> model.calc_dailypossiblesunshineduration_v1()
+        >>> fluxes.dailypossiblesunshineduration
+        dailypossiblesunshineduration(9.0)
+    """
+
+    DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (lland_logs.LoggedPossibleSunshineDuration,)
+    UPDATEDSEQUENCES = (lland_fluxes.DailyPossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailypossiblesunshineduration = 0.0
+        for idx in range(der.nmblogentries):
+            flu.dailypossiblesunshineduration += log.loggedpossiblesunshineduration[idx]
 
 
 class Calc_NKor_V1(modeltools.Method):
@@ -658,828 +734,6 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
         flu.windspeed10m = model.return_adjustedwindspeed_v1(10.0)
 
 
-class Calc_SolarDeclination_V1(modeltools.Method):
-    # noinspection PyUnresolvedReferences
-    """Calculate the solar declination (:cite:`ref-LARSIM`).
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      :math:`SolarDeclination = 0.41 \\cdot cos \\left(
-      \\frac{2 \\cdot Pi \\cdot (DOY - 171)}{365} \\right)`
-
-    Examples:
-
-        We define an initialisation period covering both a leap year (2000)
-        and a non-leap year (2001):
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
-        >>> derived.doy.update()
-
-        The following convenience function applies method
-        |Calc_SolarDeclination_V1| for the given dates and prints the results:
-
-        >>> def test(*dates):
-        ...     for date in dates:
-        ...         model.idx_sim = pub.timegrids.init[date]
-        ...         model.calc_solardeclination_v1()
-        ...         print(date, end=": ")
-        ...         round_(fluxes.solardeclination.value)
-
-        The results are identical for both years, due to :
-
-        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
-        ...      "2000-03-01", "2000-12-31")
-        2000-01-01: -0.401992
-        2000-02-28: -0.149946
-        2000-02-29: -0.143355
-        2000-03-01: -0.136722
-        2000-12-31: -0.401992
-
-        >>> test("2001-01-01", "2001-02-28",
-        ...      "2001-03-01", "2001-12-31")
-        2001-01-01: -0.401992
-        2001-02-28: -0.149946
-        2001-03-01: -0.136722
-        2001-12-31: -0.401992
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-    DERIVEDPARAMETERS = (lland_derived.DOY,)
-    FIXEDPARAMETERS = (lland_fixed.Pi,)
-    RESULTSEQUENCES = (lland_fluxes.SolarDeclination,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.solardeclination = 0.41 * modelutils.cos(
-            2.0 * fix.pi * (der.doy[model.idx_sim] - 171.0) / 365.0
-        )
-
-
-class Calc_TSA_TSU_V1(modeltools.Method):
-    """Calculate time of sunrise and sunset of the current day
-    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
-
-    Basic equations:
-      :math:`TSA^* = \\frac{12}{Pi} \\cdot acos \\left(
-      tan(SolarDeclination) \\cdot tan(LatitudeRad) +
-      \\frac{0.0145}{cos(SolarDeclination) \\cdot cos(LatitudeRad)} \\right)`
-
-      :math:`\\delta = \\frac{4 \\cdot (UTCLongitude - Longitude)}{60}`
-
-      :math:`TSA = TSA^* + \\delta`
-
-      :math:`TSU = 24 - TSA^* + \\delta`
-
-    Examples:
-
-        We calculate the local time of sunrise and sunset for a latitude of
-        approximately 52°N and a longitude of 10°E, which is 5° west of the
-        longitude defining the local time zone:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> longitude(10.0)
-        >>> derived.utclongitude(15.0)
-        >>> derived.latituderad(0.9)
-
-        The sunshine duration varies between seven hours at winter solstice
-        and 16 hours at summer solstice:
-
-        >>> fluxes.solardeclination = -0.41
-        >>> model.calc_tsa_tsu_v1()
-        >>> fluxes.tsa
-        tsa(8.432308)
-        >>> fluxes.tsu
-        tsu(16.234359)
-        >>> fluxes.solardeclination = 0.41
-        >>> model.calc_tsa_tsu_v1()
-        >>> fluxes.tsa
-        tsa(4.002041)
-        >>> fluxes.tsu
-        tsu(20.664625)
-    """
-
-    CONTROLPARAMETERS = (lland_control.Longitude,)
-    DERIVEDPARAMETERS = (
-        lland_derived.LatitudeRad,
-        lland_derived.UTCLongitude,
-    )
-    FIXEDPARAMETERS = (lland_fixed.Pi,)
-    REQUIREDSEQUENCES = (lland_fluxes.SolarDeclination,)
-    RESULTSEQUENCES = (
-        lland_fluxes.TSA,
-        lland_fluxes.TSU,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.tsa = (
-            12.0
-            / fix.pi
-            * modelutils.acos(
-                modelutils.tan(flu.solardeclination) * modelutils.tan(der.latituderad)
-                + 0.0145
-                / modelutils.cos(flu.solardeclination)
-                / modelutils.cos(der.latituderad)
-            )
-        )
-        flu.tsu = 24.0 - flu.tsa
-        d_dt = (der.utclongitude - con.longitude) * 4.0 / 60.0
-        flu.tsa += d_dt
-        flu.tsu += d_dt
-
-
-class Calc_EarthSunDistance_V1(modeltools.Method):
-    """Calculate the relative inverse distance between the earth and the sun.
-
-    Basic equation (:cite:`ref-Allen1998`, equation 23):
-
-      :math:`EarthSunDistance = 1 + 0.033 \\cdot cos \\bigl(
-      2 \\cdot Pi / 366 \\cdot (DOY + 1) \\bigr)`
-
-    Note that this equation differs a little from the one given by Allen
-    :cite:`ref-Allen1998`.
-    The following examples show that |Calc_EarthSunDistance_V1| calculates
-    the same distance value for a specific "day" (e.g. the 1st March) both
-    for leap years and non-leap years.  Hence, there is a tiny "jump"
-    between the 28th February and the 1st March for non-leap years.
-
-    Examples:
-
-        We define an initialisation period covering both a leap year (2000)
-        and a non-leap year (2001):
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = "2000-01-01", "2002-01-01", "1d"
-        >>> derived.doy.update()
-
-        The following convenience function applies method
-        |Calc_EarthSunDistance_V1| for the given dates and prints the results:
-
-        >>> def test(*dates):
-        ...     for date in dates:
-        ...         model.idx_sim = pub.timegrids.init[date]
-        ...         model.calc_earthsundistance_v1()
-        ...         print(date, end=": ")
-        ...         round_(fluxes.earthsundistance.value)
-
-        The results are identical for both years:
-
-        >>> test("2000-01-01", "2000-02-28", "2000-02-29",
-        ...      "2000-03-01", "2000-07-01", "2000-12-31")
-        2000-01-01: 1.032995
-        2000-02-28: 1.017471
-        2000-02-29: 1.016988
-        2000-03-01: 1.0165
-        2000-07-01: 0.967
-        2000-12-31: 1.033
-
-        >>> test("2001-01-01", "2001-02-28",
-        ...      "2001-03-01", "2001-07-01", "2001-12-31")
-        2001-01-01: 1.032995
-        2001-02-28: 1.017471
-        2001-03-01: 1.0165
-        2001-07-01: 0.967
-        2001-12-31: 1.033
-
-        The following calculation agrees with example 8 of Allen
-        :cite:`ref-Allen1998`:
-
-        >>> derived.doy(246)
-        >>> model.idx_sim = 0
-        >>> model.calc_earthsundistance_v1()
-        >>> fluxes.earthsundistance
-        earthsundistance(0.984993)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-
-    DERIVEDPARAMETERS = (lland_derived.DOY,)
-    FIXEDPARAMETERS = (lland_fixed.Pi,)
-    RESULTSEQUENCES = (lland_fluxes.EarthSunDistance,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.earthsundistance = 1.0 + 0.033 * modelutils.cos(
-            2 * fix.pi / 366.0 * (der.doy[model.idx_sim] + 1)
-        )
-
-
-class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
-    """Calculate the amount of extraterrestrial radiation of the current day
-    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
-
-    Basic equation:
-      :math:`ExternalTerrestrialRadiation =
-      \\frac{Sol \\cdot EarthSunDistance \\cdot (
-      SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +
-      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)
-      )}{PI}`
-
-      :math:`SunsetHourAngle = (TSU-TSA) \\cdot \\frac{Pi}{24}`
-
-    Examples:
-
-        First, we calculate the extraterrestrial radiation for a latitude of
-        approximately 52°N:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.latituderad(0.9)
-
-        The sunshine duration varies between seven hours at winter solstice
-        and 16 hours at summer solstice, which corresponds to a daily sum of
-        extraterrestrial radiation of 6.1 and 44.4 MJ/m², respectively:
-
-        >>> fluxes.solardeclination = -0.41
-        >>> fluxes.earthsundistance = 0.97
-        >>> fluxes.tsa = 8.4
-        >>> fluxes.tsu = 15.6
-        >>> model.calc_extraterrestrialradiation_v1()
-        >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(6.087605)
-
-        >>> fluxes.solardeclination = 0.41
-        >>> fluxes.earthsundistance = 1.03
-        >>> fluxes.tsa = 4.0
-        >>> fluxes.tsu = 20.0
-        >>> model.calc_extraterrestrialradiation_v1()
-        >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(44.44131)
-    """
-
-    DERIVEDPARAMETERS = (lland_derived.LatitudeRad,)
-    FIXEDPARAMETERS = (
-        lland_fixed.Pi,
-        lland_fixed.Sol,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SolarDeclination,
-        lland_fluxes.EarthSunDistance,
-        lland_fluxes.TSA,
-        lland_fluxes.TSU,
-    )
-    RESULTSEQUENCES = (lland_fluxes.ExtraterrestrialRadiation,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_sunsethourangle = (flu.tsu - flu.tsa) * fix.pi / 24.0
-        flu.extraterrestrialradiation = (
-            fix.sol
-            * flu.earthsundistance
-            / fix.pi
-            * (
-                d_sunsethourangle
-                * modelutils.sin(flu.solardeclination)
-                * modelutils.sin(der.latituderad)
-                + modelutils.cos(flu.solardeclination)
-                * modelutils.cos(der.latituderad)
-                * modelutils.sin(d_sunsethourangle)
-            )
-        )
-
-
-class Calc_PossibleSunshineDuration_V1(modeltools.Method):
-    """Calculate the possible astronomical sunshine duration
-    :cite:`ref-LARSIM`.
-
-    Basic equation:
-      :math:`PossibleSunshineDuration = max \\bigl(
-      max(SCT-Hours/2, TSA) - min(SCT+Hours/2, TSU), 0 \\bigr)`
-
-    Examples:
-
-        We focus on winter conditions with a relatively short possible
-        sunshine duration:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> fluxes.tsa(8.4)
-        >>> fluxes.tsu(15.6)
-
-        We start with a daily simulation time step.  The possible sunshine
-        duration is, as to be expected, the span between sunrise and sunset:
-
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> model.calc_possiblesunshineduration_v1()
-        >>> fluxes.possiblesunshineduration
-        possiblesunshineduration(7.2)
-
-        The following example calculates the hourly possible sunshine
-        durations of the same day:
-
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> sum_ = 0.0
-        >>> for idx in range(24):
-        ...     model.idx_sim = idx
-        ...     model.calc_possiblesunshineduration_v1()
-        ...     print(idx+1, end=": ")   # doctest: +ELLIPSIS
-        ...     round_(fluxes.possiblesunshineduration.value)
-        ...     sum_ += fluxes.possiblesunshineduration.value
-        1: 0.0
-        ...
-        9: 0.6
-        10: 1.0
-        ...
-        15: 1.0
-        16: 0.6
-        17: 0.0
-        ...
-        24: 0.0
-
-        The sum of the hourly possible sunshine durations equals the daily
-        possible sunshine, of course:
-
-        >>> round_(sum_)
-        7.2
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-
-    DERIVEDPARAMETERS = (
-        lland_derived.SCT,
-        lland_derived.Hours,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TSA,
-        lland_fluxes.TSU,
-    )
-    RESULTSEQUENCES = (lland_fluxes.PossibleSunshineDuration,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_tc = der.sct[model.idx_sim]
-        d_t0 = max((d_tc - der.hours / 2.0), flu.tsa)
-        d_t1 = min((d_tc + der.hours / 2.0), flu.tsu)
-        flu.possiblesunshineduration = max(d_t1 - d_t0, 0.0)
-
-
-class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
-    """Calculate the possible astronomical sunshine duration.
-
-    Basic equation:
-      :math:`PossibleSunshineDuration =  TSU - TSA`
-
-    Examples:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> fluxes.tsa(8.4)
-        >>> fluxes.tsu(15.6)
-        >>> model.calc_dailypossiblesunshineduration()
-        >>> fluxes.dailypossiblesunshineduration
-        dailypossiblesunshineduration(7.2)
-    """
-
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TSA,
-        lland_fluxes.TSU,
-    )
-    RESULTSEQUENCES = (lland_fluxes.DailyPossibleSunshineDuration,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        flu.dailypossiblesunshineduration = flu.tsu - flu.tsa
-
-
-class Calc_SP_V1(modeltools.Method):
-    """Calculate the relative sum of radiation :cite:`ref-LARSIM-Hilfe`.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equations:
-
-      .. math::
-        SP = S_P^*(SCT + Hours/2) - S_P^*(SCT - Hours/2)
-
-      .. math::
-        S_P^*(t) = \\begin{cases}
-        0
-        &|\\
-        TL_P(t) \\leq 0
-        \\\\
-        50 - 50 \\cdot cos\\bigl(1.8 \\cdot TL_P(t)\\bigr) -
-        3.4 \\cdot sin\\bigl(3.6 \\cdot TL_P(t)\\bigr)^2
-        &|\\
-        0 < TL_P(t) \\leq 50 \\cdot \\frac{2 \\cdot Pi}{360}
-        \\\\
-        50 - 50 \\cdot cos\\bigl(1.8 \\cdot TL_P(t)\\bigr) +
-        3.4 \\cdot sin\\bigl(3.6 \\cdot TL_P(t)\\bigr)^2
-        &|\\
-        50 \\cdot \\frac{2 \\cdot Pi}{360} < TL_P(t) <
-        100 \\cdot \\frac{2 \\cdot Pi}{360}
-        \\\\
-        100
-        &|\\
-        100 \\cdot \\frac{2 \\cdot Pi}{360} \\leq TL_P(t)
-        \\end{cases}
-
-      .. math::
-        TL_P(t) = 100 \\cdot \\frac{2 \\cdot Pi}{360} \\cdot
-        \\frac{t - TSA}{TSU - TSA}
-
-    Examples:
-
-        We focus on winter conditions with a relatively short possible
-        sunshine duration:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> fluxes.tsa(8.4)
-        >>> fluxes.tsu(15.6)
-
-        We start with an hourly simulation time step.  The relative radiation
-        sum is, as to be expected, zero before sunrise and after sunset.
-        In between, it reaches its maximum around noon:
-
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> for idx in range(7, 17):
-        ...     model.idx_sim = idx
-        ...     model.calc_sp_v1()
-        ...     print(idx+1, end=": ")
-        ...     round_(fluxes.sp.value)
-        8: 0.0
-        9: 0.853709
-        10: 7.546592
-        11: 18.473585
-        12: 23.126115
-        13: 23.126115
-        14: 18.473585
-        15: 7.546592
-        16: 0.853709
-        17: 0.0
-
-        The following examples show how method |Calc_SP_V1| works for
-        time step sizes longer than one hour:
-
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> model.idx_sim = 0
-        >>> model.calc_sp_v1()
-        >>> fluxes.sp
-        sp(100.0)
-
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "6h"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> for idx in range(4):
-        ...     model.idx_sim = idx
-        ...     model.calc_sp_v1()
-        ...     print((idx+1)*6, end=": ")
-        ...     round_(fluxes.sp.value)
-        6: 0.0
-        12: 50.0
-        18: 50.0
-        24: 0.0
-
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "3h"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> for idx in range(8):
-        ...     model.idx_sim = idx
-        ...     model.calc_sp_v1()
-        ...     print((idx+1)*3, end=": ")
-        ...     round_(fluxes.sp.value)
-        3: 0.0
-        6: 0.0
-        9: 0.853709
-        12: 49.146291
-        15: 49.146291
-        18: 0.853709
-        21: 0.0
-        24: 0.0
-
-        Often, method |Calc_SP_V1| calculates a small but unrealistic
-        "bumb" around noon (for example, the relative radiation is slightly
-        smaller between 11:30 and 12:00 than it is between 11:00 and 11:30):
-
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "30m"
-        >>> derived.sct.update()
-        >>> derived.hours.update()
-        >>> for idx in range(15, 33):
-        ...     model.idx_sim = idx
-        ...     model.calc_sp_v1()
-        ...     print((idx+1)/2, end=": ")
-        ...     round_(fluxes.sp.value)
-        8.0: 0.0
-        8.5: 0.021762
-        9.0: 0.831947
-        9.5: 2.514315
-        10.0: 5.032276
-        10.5: 7.989385
-        11.0: 10.4842
-        11.5: 11.696873
-        12.0: 11.429242
-        12.5: 11.429242
-        13.0: 11.696873
-        13.5: 10.4842
-        14.0: 7.989385
-        14.5: 5.032276
-        15.0: 2.514315
-        15.5: 0.831947
-        16.0: 0.021762
-        16.5: 0.0
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-
-    DERIVEDPARAMETERS = (
-        lland_derived.SCT,
-        lland_derived.Hours,
-    )
-    FIXEDPARAMETERS = (lland_fixed.Pi,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TSA,
-        lland_fluxes.TSU,
-    )
-    RESULTSEQUENCES = (lland_fluxes.SP,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_fac = 2.0 * fix.pi / 360.0
-        flu.sp = 0.0
-        for i in range(2):
-            if i:
-                d_dt = der.hours / 2.0
-            else:
-                d_dt = -der.hours / 2.0
-            d_tlp = (
-                100.0
-                * d_fac
-                * ((der.sct[model.idx_sim] + d_dt - flu.tsa) / (flu.tsu - flu.tsa))
-            )
-            if d_tlp <= 0.0:
-                d_sp = 0.0
-            elif d_tlp < 100.0 * d_fac:
-                d_sp = 50.0 - 50.0 * modelutils.cos(1.8 * d_tlp)
-                d_temp = 3.4 * modelutils.sin(3.6 * d_tlp) ** 2
-                if d_tlp <= 50.0 * d_fac:
-                    d_sp -= d_temp
-                else:
-                    d_sp += d_temp
-            else:
-                d_sp = 100.0
-            if i:
-                flu.sp += d_sp
-            else:
-                flu.sp -= d_sp
-
-
-class Return_DailyGlobalRadiation_V1(modeltools.Method):
-    """Calculate and return the daily global radiation :cite:`ref-LARSIM`.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      .. math::
-        ExtraterrestrialRadiation \\cdot \\begin{cases}
-        AngstromConstant + AngstromFactor \\cdot
-        \\frac{sunshineduration}{possiblesunshineduration}
-        &|\\
-        sunshineduration > 0 \\;\\; \\lor \\;\\; Days < 1
-        \\\\
-        AngstromAlternative
-        &|\\
-        sunshineduration = 0 \\;\\; \\land \\;\\; Days \\geq1
-        \\end{cases}
-
-    Example:
-
-        You can define the underlying Angstrom coefficients on a monthly
-        basis to reflect the annual variability in the relationship between
-        sunshine duration and  global radiation.  First, we demonstrate
-        this for a daily time-step basis:
-
-        >>> from hydpy import pub, round_
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.moy.update()
-        >>> derived.days.update()
-        >>> angstromconstant.jan = 0.1
-        >>> angstromfactor.jan = 0.5
-        >>> angstromalternative.jan = 0.2
-        >>> angstromconstant.feb = 0.2
-        >>> angstromfactor.feb = 0.6
-        >>> angstromalternative.feb = 0.3
-        >>> fluxes.extraterrestrialradiation = 1.7
-        >>> model.idx_sim = 1
-        >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
-        0.68
-        >>> model.idx_sim = 2
-        >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
-        0.952
-
-        If possible sunshine duration is zero, we generally set global
-        radiation to zero (even if the actual sunshine duration is larger
-        than zero, which might occur as a result of small inconsistencies
-        between measured and calculated input data):
-
-        >>> round_(model.return_dailyglobalradiation_v1(0.6, 0.0))
-        0.0
-
-        When actual sunshine is zero, the alternative Angstrom coefficient
-        applies:
-
-        >>> model.idx_sim = 1
-        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.34
-        >>> model.idx_sim = 2
-        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.51
-
-        All of the examples and explanations above hold for short simulation
-        time steps, except that parameter |AngstromAlternative| does never
-        replace parameter |AngstromConstant|:
-
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1h"
-        >>> derived.moy.update()
-        >>> derived.days.update()
-        >>> model.idx_sim = 1
-        >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.17
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-
-    CONTROLPARAMETERS = (
-        lland_control.AngstromConstant,
-        lland_control.AngstromFactor,
-        lland_control.AngstromAlternative,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Days,
-    )
-    REQUIREDSEQUENCES = (lland_fluxes.ExtraterrestrialRadiation,)
-
-    @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        sunshineduration: float,
-        possiblesunshineduration: float,
-    ) -> float:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        if possiblesunshineduration > 0.0:
-            idx = der.moy[model.idx_sim]
-            if (sunshineduration <= 0.0) and (der.days >= 1.0):
-                return flu.extraterrestrialradiation * con.angstromalternative[idx]
-            return flu.extraterrestrialradiation * (
-                con.angstromconstant[idx]
-                + con.angstromfactor[idx] * sunshineduration / possiblesunshineduration
-            )
-        return 0.0
-
-
-class Calc_GlobalRadiation_V1(modeltools.Method):
-    """Calculate the global radiation :cite:`ref-LARSIM`.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      .. math::
-        GlobalRadiation =  \\frac{SP}{100}\\cdot \\begin{cases}
-        Return\\_DailyGlobalRadiation\\_V1(
-        SunshineDuration, PossibleSunshineDuration)
-        &|\\
-        PossibleSunshineDuration > 0
-        \\\\
-        Return\\_DailyGlobalRadiation\\_V1(
-        DailySunshineDuration, DailyPossibleSunshineDuration)
-        &|\\
-        PossibleSunshineDuration = 0
-        \\end{cases}
-
-    Examples:
-
-        Method |Calc_GlobalRadiation_V1| uses the actual value of |SP| and
-        method |Return_DailyGlobalRadiation_V1|, to calculate the current
-        global radiation agreeing with the current values of sequence
-        |SunshineDuration| and sequence |PossibleSunshineDuration|:
-
-        >>> from hydpy import pub
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> derived.nmblogentries.update()
-        >>> derived.moy.update()
-        >>> derived.days.update()
-        >>> angstromconstant.jan = 0.1
-        >>> angstromconstant.jan = 0.1
-        >>> angstromfactor.jan = 0.5
-        >>> angstromalternative.jan = 0.2
-        >>> inputs.sunshineduration = 0.6
-        >>> fluxes.possiblesunshineduration = 1.0
-        >>> fluxes.extraterrestrialradiation = 1.7
-        >>> fluxes.sp = 50.0
-        >>> model.idx_sim = 1
-        >>> model.calc_globalradiation_v1()
-        >>> fluxes.globalradiation
-        globalradiation(0.34)
-
-        During nightime periods, the value of |PossibleSunshineDuration| is
-        zero.  Then, method |Calc_GlobalRadiation_V1| uses the values of the
-        sequences |DailySunshineDuration| and |DailyPossibleSunshineDuration|
-        as surrogates:
-
-        >>> fluxes.possiblesunshineduration = 0.0
-        >>> fluxes.dailysunshineduration = 4.0
-        >>> fluxes.dailypossiblesunshineduration = 10.0
-
-        >>> model.calc_globalradiation_v1()
-        >>> fluxes.globalradiation
-        globalradiation(0.255)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-        """
-
-    SUBMETHODS = (Return_DailyGlobalRadiation_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.AngstromConstant,
-        lland_control.AngstromFactor,
-        lland_control.AngstromAlternative,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Days,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.SunshineDuration,
-        lland_fluxes.ExtraterrestrialRadiation,
-        lland_fluxes.PossibleSunshineDuration,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
-        lland_fluxes.SP,
-    )
-    RESULTSEQUENCES = (lland_fluxes.GlobalRadiation,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        if flu.possiblesunshineduration > 0.0:
-            d_act = inp.sunshineduration
-            d_pos = flu.possiblesunshineduration
-        else:
-            d_act = flu.dailysunshineduration
-            d_pos = flu.dailypossiblesunshineduration
-        flu.globalradiation = (
-            flu.sp / 100.0 * model.return_dailyglobalradiation_v1(d_act, d_pos)
-        )
-
-
 class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     """Log the global radiation values of the last 24 hours.
 
@@ -1498,7 +752,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedglobalradiation_v1,
         ...                 last_example=4,
-        ...                 parseqs=(fluxes.globalradiation,
+        ...                 parseqs=(inputs.globalradiation,
         ...                          logs.loggedglobalradiation))
         >>> test.nexts.globalradiation = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedglobalradiation
@@ -1512,224 +766,46 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (lland_fluxes.GlobalRadiation,)
+    REQUIREDSEQUENCES = (lland_inputs.GlobalRadiation,)
     UPDATEDSEQUENCES = (lland_logs.LoggedGlobalRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
+        inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx - 1]
-        log.loggedglobalradiation[0] = flu.globalradiation
+        log.loggedglobalradiation[0] = inp.globalradiation
 
 
 class Calc_DailyGlobalRadiation_V1(modeltools.Method):
-    """Calculate the daily global radiation.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      :math:`DailyGlobalRadiation = Return\\_DailyGlobalRadiation\\_(
-      DailySunshineDuration, DailyPossibleSunshineDuration)`
+    """Calculate the global radiation sum of the last 24 hours.
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> from hydpy import pub
-        >>> angstromconstant.jan = 0.1
-        >>> angstromfactor.jan = 0.5
-        >>> angstromconstant.feb = 0.2
-        >>> angstromfactor.feb = 0.6
-
-        We define the extraterrestrial radiation to 10 MJ/m² and the
-        possible sunshine duration to 12 hours:
-
-        >>> fluxes.extraterrestrialradiation = 10.0
-        >>> fluxes.dailypossiblesunshineduration = 12.0
-
-        We define a daily simulation step size and update the relevant
-        derived parameters:
-
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
-        >>> derived.moy.update()
-        >>> derived.nmblogentries.update()
-
-        Applying the Angstrom coefficients for January and February on
-        the defined extraterrestrial radiation and a sunshine duration
-        of 7.2 hours results in a daily global radiation sum of 4.0 MJ/m²
-        and 5.6 MJ/m², respectively:
-
-        >>> model.idx_sim = 1
-        >>> fluxes.dailysunshineduration = 7.2
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedglobalradiation.shape = 3
+        >>> logs.loggedglobalradiation = 1.0, 5.0, 3.0
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(4.0)
-
-        >>> model.idx_sim = 2
-        >>> model.calc_dailyglobalradiation_v1()
-        >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(5.6)
-
-        Finally, we demonstrate for January that method
-        |Calc_DailyGlobalRadiation_V1| calculates the same values for an
-        hourly simulation time step, as long as the daily sum of sunshine
-        duration remains identical:
-
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1h"
-        >>> derived.moy.update()
-        >>> derived.nmblogentries.update()
-
-        The actual simulation step starts at 11 o'clock and ends at 12 o'clock:
-
-        >>> model.idx_sim = pub.timegrids.init["2000-01-31 11:00"]
-        >>> fluxes.dailysunshineduration = 7.2
-        >>> model.calc_dailyglobalradiation_v1()
-        >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(4.0)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
+        dailyglobalradiation(9.0)
     """
 
-    SUBMETHODS = (Return_DailyGlobalRadiation_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.AngstromConstant,
-        lland_control.AngstromFactor,
-        lland_control.AngstromAlternative,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Days,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.ExtraterrestrialRadiation,
-        lland_fluxes.DailySunshineDuration,
-        lland_fluxes.DailyPossibleSunshineDuration,
-    )
+    DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (lland_logs.LoggedGlobalRadiation,)
     UPDATEDSEQUENCES = (lland_fluxes.DailyGlobalRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        flu.dailyglobalradiation = model.return_dailyglobalradiation_v1(
-            flu.dailysunshineduration, flu.dailypossiblesunshineduration
-        )
-
-
-class Calc_AdjustedGlobalRadiation_V1(modeltools.Method):
-    """Adjust the current global radiation to the daily global radiation.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      :math:`AdjustedGlobalRadiation = GlobalRadiation \\cdot
-      \\frac{DailyGlobalRadiation}{\\sum LoggedGlobalRadiation}`
-
-    Examples:
-
-        The purpose of method |Calc_AdjustedGlobalRadiation_V1| is to
-        adjust hourly global radiation values (or those of other short
-        simulation time steps) so that their sum over the last 24 hours
-        equals the global radiation value directly calculated with the
-        relative sunshine duration over the last 24 hours.  We try to
-        explain this somewhat contraintuitive approach by building up
-        the examples on the examples on the documentation on method
-        |Calc_DailyGlobalRadiation_V1|.
-
-        Again, we start with a daily simulation time step:
-
-        >>> from hydpy.models.lland import *
-        >>> simulationstep("1d")
-        >>> parameterstep()
-        >>> derived.nmblogentries.update()
-
-        For such a daily simulation time step, the values of the
-        sequences |GlobalRadiation|, |DailyGlobalRadiation|, and
-        |LoggedGlobalRadiation| must be identical:
-
-        >>> model.idx_sim = 1
-        >>> fluxes.globalradiation = 4.0
-        >>> fluxes.dailyglobalradiation = 4.0
-        >>> logs.loggedglobalradiation = 4.0
-
-        After calling method |Calc_AdjustedGlobalRadiation_V1|, the
-        same holds for the adjusted global radiation sum:
-
-        >>> model.calc_adjustedglobalradiation_v1()
-        >>> fluxes.adjustedglobalradiation
-        adjustedglobalradiation(4.0)
-
-        Normally, one would not expect method |Calc_AdjustedGlobalRadiation_V1|
-        to have an effect when applied on daily simulation time steps at all.
-        However, it corrects "wrong" predefined global radiation values:
-
-        >>> fluxes.dailyglobalradiation = 5.6
-        >>> model.calc_adjustedglobalradiation_v1()
-        >>> fluxes.adjustedglobalradiation
-        adjustedglobalradiation(5.6)
-
-        We now demonstrate how method |Calc_AdjustedGlobalRadiation_V1|
-        actually works for hourly simulation time steps:
-
-        >>> simulationstep("1h")
-        >>> derived.nmblogentries.update()
-
-        The daily global radiation value does not depend on the simulation
-        time step.  We reset it to 4 MJ/m²/d:
-
-        >>> fluxes.dailyglobalradiation = 4.0
-
-        The other global radiation values now must be smaller and vary
-        throughout the day.  We set them consistently with the values
-        of the logged sunshine duration in the documentation on method
-        |Calc_DailyGlobalRadiation_V1|:
-
-        >>> fluxes.globalradiation = 0.8
-        >>> logs.loggedglobalradiation = (
-        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0,
-        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...     0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
-
-        Compared with the total 24 hours, the simulation time steps around
-        noon are relatively sunny, both for the current and the last day
-        (see the first and the last entries of the log sequence for sunshine
-        duration).  Accordingly, the sum of the hourly global radiation
-        values (4.6 W/m²)  is larger than the directly calculated daily sum
-        (4.0 W/m²).  Method |Calc_AdjustedGlobalRadiation_V1| uses the
-        fraction of both sums to finally calculate the adjusted global
-        radiation (:math:`0.8 \\cdot 4.0 / 4.6`):
-
-        >>> model.calc_adjustedglobalradiation_v1()
-        >>> fluxes.adjustedglobalradiation
-        adjustedglobalradiation(0.695652)
-    """
-
-    DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GlobalRadiation,
-        lland_fluxes.DailyGlobalRadiation,
-        lland_logs.LoggedGlobalRadiation,
-    )
-    UPDATEDSEQUENCES = (lland_fluxes.AdjustedGlobalRadiation,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        d_glob_sum = 0.0
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailyglobalradiation = 0.0
         for idx in range(der.nmblogentries):
-            d_glob_sum += log.loggedglobalradiation[idx]
-        flu.adjustedglobalradiation = (
-            flu.globalradiation * flu.dailyglobalradiation / d_glob_sum
-        )
+            flu.dailyglobalradiation += log.loggedglobalradiation[idx]
 
 
 class Calc_ET0_V1(modeltools.Method):
@@ -2752,7 +1828,7 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
 
     Basic equation:
       :math:`NetShortwaveRadiationInz =
-      (1 - Fr) \cdot (1.0 - ActualAlbedoInz) \\cdot AdjustedGlobalRadiation`
+      (1 - Fr) \cdot (1.0 - ActualAlbedoInz) \cdot AdjustedGlobalRadiation`
 
     Examples:
 
@@ -2767,8 +1843,8 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
+        >>> inputs.globalradiation = 2.0
         >>> fluxes.actualalbedoinz = 0.5
-        >>> fluxes.adjustedglobalradiation = 2.0
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
         >>> model.calc_netshortwaveradiationinz_v1()
@@ -2794,8 +1870,8 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
         lland_derived.MOY,
     )
     REQUIREDSEQUENCES = (
+        lland_inputs.GlobalRadiation,
         lland_fluxes.ActualAlbedoInz,
-        lland_fluxes.AdjustedGlobalRadiation,
     )
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationInz,)
 
@@ -2803,13 +1879,14 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
                 flu.netshortwaveradiationinz[k] = (
                     (1.0 - der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]])
                     * (1.0 - flu.actualalbedoinz[k])
-                    * flu.adjustedglobalradiation
+                    * inp.globalradiation
                 )
             else:
                 flu.netshortwaveradiationinz[k] = 0.0
@@ -3923,8 +3000,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
             d_temp = flu.tkortag[k] + 273.15
             flu.dailynetlongwaveradiation[k] = (
                 (0.2 + 0.8 * d_relsunshine)
-                * fix.sigma
-                * d_temp**4
+                * (fix.sigma * d_temp**4)
                 * (
                     con.emissivity
                     - fix.fratm
@@ -4100,6 +3176,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
+        >>> derived.moy.shape = 1
         >>> derived.moy(5)
         >>> derived.days(1/24)
         >>> derived.fr(0.3)
@@ -4108,8 +3185,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> aides.rlatm = 0.846746
         >>> from hydpy import print_values
         >>> for hru in range(2):
-        ...     print_values(
-        ...         [hru, model.return_netlongwaveradiationsnow_v1(hru)])
+        ...     print_values([hru, model.return_netlongwaveradiationsnow_v1(hru)])
         0, 0.208605
         1, 0.029784
     """
@@ -4301,8 +3377,8 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(1)
+        >>> inputs.globalradiation = 1.0
         >>> fluxes.actualalbedo = 0.25
-        >>> fluxes.adjustedglobalradiation = 1.0
         >>> model.calc_netshortwaveradiation_v1()
         >>> fluxes.netshortwaveradiation
         netshortwaveradiation(0.75)
@@ -4310,19 +3386,20 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     REQUIREDSEQUENCES = (
+        lland_inputs.GlobalRadiation,
         lland_fluxes.ActualAlbedo,
-        lland_fluxes.AdjustedGlobalRadiation,
     )
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.netshortwaveradiation[k] = (
                 1.0 - flu.actualalbedo[k]
-            ) * flu.adjustedglobalradiation
+            ) * inp.globalradiation
 
 
 class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
@@ -4345,8 +3422,8 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
+        >>> inputs.globalradiation = 2.0
         >>> fluxes.actualalbedo = 0.5
-        >>> fluxes.adjustedglobalradiation = 2.0
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
         >>> model.calc_netshortwaveradiationsnow_v1()
@@ -4372,8 +3449,8 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
         lland_derived.Fr,
     )
     REQUIREDSEQUENCES = (
+        lland_inputs.GlobalRadiation,
         lland_fluxes.ActualAlbedo,
-        lland_fluxes.AdjustedGlobalRadiation,
     )
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationSnow,)
 
@@ -4381,12 +3458,13 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.netshortwaveradiationsnow[k] = (
                 der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
                 * (1.0 - flu.actualalbedo[k])
-                * flu.adjustedglobalradiation
+                * inp.globalradiation
             )
 
 
@@ -4763,7 +3841,7 @@ class Calc_G_V1(modeltools.Method):
         |PossibleSunshineDuration| (of the current simulation step) and
         |DailyPossibleSunshineDuration| must be identical:
 
-        >>> fluxes.possiblesunshineduration = 14.0
+        >>> inputs.possiblesunshineduration = 14.0
         >>> fluxes.dailypossiblesunshineduration = 14.0
 
         We set |DailyNetRadiation| to 10 MJ/m² for most response units,
@@ -4799,7 +3877,7 @@ class Calc_G_V1(modeltools.Method):
         ar leaf area indices larger then ten (response unit five) result
         in positive soil surface fluxes:
 
-        >>> fluxes.possiblesunshineduration = 1.0
+        >>> inputs.possiblesunshineduration = 1.0
         >>> model.calc_g_v1()
         >>> fluxes.g
         g(-0.214286, -0.107143, 0.107143, 0.0, 0.107143, 0.0)
@@ -4809,7 +3887,7 @@ class Calc_G_V1(modeltools.Method):
         setting |PossibleSunshineDuration| to zero) somehow compensate the
         daytime ones:
 
-        >>> fluxes.possiblesunshineduration = 0.0
+        >>> inputs.possiblesunshineduration = 0.0
         >>> model.calc_g_v1()
         >>> fluxes.g
         g(0.4, 0.25, -0.05, 0.1, -0.05, 0.0)
@@ -4840,7 +3918,7 @@ class Calc_G_V1(modeltools.Method):
         lland_derived.Hours,
     )
     REQUIREDSEQUENCES = (
-        lland_fluxes.PossibleSunshineDuration,
+        lland_inputs.PossibleSunshineDuration,
         lland_fluxes.DailyPossibleSunshineDuration,
         lland_fluxes.DailyNetRadiation,
     )
@@ -4850,6 +3928,7 @@ class Calc_G_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (FLUSS, SEE, WASSER):
@@ -4862,8 +3941,8 @@ class Calc_G_V1(modeltools.Method):
                 d_gd_h = d_gd / flu.dailypossiblesunshineduration
                 d_gn_h = d_gn / (24.0 - flu.dailypossiblesunshineduration)
                 flu.g[k] = (
-                    flu.possiblesunshineduration * d_gd_h
-                    + (der.hours - flu.possiblesunshineduration) * d_gn_h
+                    inp.possiblesunshineduration * d_gd_h
+                    + (der.hours - inp.possiblesunshineduration) * d_gn_h
                 )
 
 
@@ -7650,7 +6729,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         becomes closer to landuse surface resistance for when the
         leaf area index increases:
 
-        >>> fluxes.possiblesunshineduration = 24.0
+        >>> inputs.possiblesunshineduration = 24.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 132.450331, 109.174477, 101.43261)
@@ -7658,7 +6737,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         For a polar night, there is a leaf area index-dependend interpolation
         between soil surface resistance and a fixed resistance value:
 
-        >>> fluxes.possiblesunshineduration = 0.0
+        >>> inputs.possiblesunshineduration = 0.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 172.413793, 142.857143, 111.111111)
@@ -7667,7 +6746,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         of the two examples above are weighted based on the possible
         sunshine duration of that day:
 
-        >>> fluxes.possiblesunshineduration = 12.0
+        >>> inputs.possiblesunshineduration = 12.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(200.0, 149.812734, 123.765057, 106.051498)
@@ -7687,17 +6766,17 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         >>> derived.hours.update()
         >>> lai.nadelw_jun = 5.0
         >>> model.idx_sim = 2
-        >>> fluxes.possiblesunshineduration = 1.0
+        >>> inputs.possiblesunshineduration = 1.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(109.174477)
 
-        >>> fluxes.possiblesunshineduration = 0.0
+        >>> inputs.possiblesunshineduration = 0.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(142.857143)
 
-        >>> fluxes.possiblesunshineduration = 0.5
+        >>> inputs.possiblesunshineduration = 0.5
         >>> model.calc_actualsurfaceresistance_v1()
         >>> fluxes.actualsurfaceresistance
         actualsurfaceresistance(123.765057)
@@ -7717,9 +6796,9 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         lland_derived.Hours,
     )
     REQUIREDSEQUENCES = (
+        lland_inputs.PossibleSunshineDuration,
         lland_fluxes.SoilSurfaceResistance,
         lland_fluxes.LanduseSurfaceResistance,
-        lland_fluxes.PossibleSunshineDuration,
     )
 
     RESULTSEQUENCES = (lland_fluxes.ActualSurfaceResistance,)
@@ -7728,6 +6807,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, FLUSS, SEE, WASSER):
@@ -7740,8 +6820,8 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                 d_invrestnight = d_lai / 2500.0 + 1.0 / flu.soilsurfaceresistance[k]
                 flu.actualsurfaceresistance[k] = 1.0 / (
                     (
-                        flu.possiblesunshineduration / der.hours * d_invrestday
-                        + (1.0 - flu.possiblesunshineduration / der.hours)
+                        inp.possiblesunshineduration / der.hours * d_invrestday
+                        + (1.0 - inp.possiblesunshineduration / der.hours)
                         * d_invrestnight
                     )
                 )
@@ -10379,7 +9459,6 @@ class Model(modeltools.AdHocModel):
         Calc_DailyNetLongwaveRadiation_V1,
         Return_NetLongwaveRadiationInz_V1,
         Return_NetLongwaveRadiationSnow_V1,
-        Return_DailyGlobalRadiation_V1,
         Return_Penman_V1,
         Return_PenmanMonteith_V1,
         Return_EnergyGainSnowSurface_V1,
@@ -10408,6 +9487,11 @@ class Model(modeltools.AdHocModel):
         Update_LoggedRelativeHumidity_V1,
         Calc_DailyRelativeHumidity_V1,
         Update_LoggedSunshineDuration_V1,
+        Calc_DailySunshineDuration_V1,
+        Update_LoggedPossibleSunshineDuration_V1,
+        Calc_DailyPossibleSunshineDuration_V1,
+        Update_LoggedGlobalRadiation_V1,
+        Calc_DailyGlobalRadiation_V1,
         Calc_NKor_V1,
         Calc_TKor_V1,
         Calc_TKorTag_V1,
@@ -10416,18 +9500,6 @@ class Model(modeltools.AdHocModel):
         Update_LoggedWindSpeed2m_V1,
         Calc_DailyWindSpeed2m_V1,
         Calc_WindSpeed10m_V1,
-        Calc_SolarDeclination_V1,
-        Calc_DailySunshineDuration_V1,
-        Calc_TSA_TSU_V1,
-        Calc_EarthSunDistance_V1,
-        Calc_ExtraterrestrialRadiation_V1,
-        Calc_PossibleSunshineDuration_V1,
-        Calc_DailyPossibleSunshineDuration_V1,
-        Calc_SP_V1,
-        Calc_GlobalRadiation_V1,
-        Update_LoggedGlobalRadiation_V1,
-        Calc_DailyGlobalRadiation_V1,
-        Calc_AdjustedGlobalRadiation_V1,
         Calc_SaturationVapourPressure_V1,
         Calc_DailySaturationVapourPressure_V1,
         Calc_SaturationVapourPressureSlope_V1,

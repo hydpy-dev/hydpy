@@ -152,13 +152,6 @@ class Z0(parametertools.FixedParameter):
     INIT = 0.003
 
 
-class Sol(parametertools.FixedParameter):
-    """Solarkonstante (solar constant) [m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 118.1088
-
-
 class FrAtm(parametertools.FixedParameter):
     """Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung
     (empirical factor for the calculation of atmospheric radiation) [-]"""

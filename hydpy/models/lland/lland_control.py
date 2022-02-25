@@ -18,25 +18,10 @@ from hydpy.core import timetools
 
 # ...from lland
 from hydpy.models.lland import lland_constants
-from hydpy.models.lland import lland_logs
 from hydpy.models.lland import lland_parameters
 
 
 # spatial information
-
-
-class Latitude(parametertools.Parameter):
-    """The latitude [decimal degrees]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90.0, 90.0)
-    INIT = 0.0
-
-
-class Longitude(parametertools.Parameter):
-    """The longitude [decimal degrees]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180.0, 180.0)
-    INIT = 0.0
 
 
 class FT(parametertools.Parameter):
@@ -49,11 +34,11 @@ class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
-    parameters and sequences as well the shape of 2-dimensional log sequences
-    with a predefined length of one axis (see |WET0|).  This requires that
-    the value of the respective |NHRU| instance is set before any of the
-    values of these 1-dimensional parameters or sequences are set.  Changing
-    the value of the |NHRU| instance necessitates setting their values again:
+    parameters and sequences as well the shape of 2-dimensional log sequences with a
+    predefined length of one axis (see |WET0|).  This requires that the value of the
+    respective |NHRU| instance is set before any of the values of these 1-dimensional
+    parameters or sequences are set.  Changing the value of the |NHRU| instance
+    necessitates setting their values again:
 
     Examples:
 
@@ -62,11 +47,13 @@ class NHRU(parametertools.Parameter):
         >>> nhru(5)
         >>> control.kg.shape
         (5,)
+        >>> control.kapgrenz.shape
+        (5, 2)
         >>> fluxes.tkor.shape
         (5,)
         >>> logs.wet0.shape
         (1, 5)
-        >>> control.angstromfactor.shape
+        >>> control.wg2z.shape
         (12,)
     """
 
@@ -74,26 +61,29 @@ class NHRU(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
-        skip = parametertools.MonthParameter
-        for subpars in self.subpars.pars.model.parameters:
-            for par in subpars:
-                if (par.NDIM == 1) and (not isinstance(par, skip)):
-                    par.shape = self.value
-                if isinstance(par, KapGrenz):
-                    par.shape = self.value, 2
+
         skip = (
-            sequencetools.LogSequence,
-            sequencetools.LinkSequence,
+            parametertools.MonthParameter,
             parametertools.MOYParameter,
         )
-        for subseqs in self.subpars.pars.model.sequences:
-            for seq in subseqs:
-                if (
-                    (seq.NDIM == 1)
-                    and (not isinstance(seq, skip))
-                    or isinstance(seq, lland_logs.WET0)
-                ):
-                    seq.shape = self.value
+        for subpars in self.subpars.pars.model.parameters:
+            for par in subpars:
+                if (par.NDIM == 1) and not isinstance(par, skip):
+                    par.shape = self.value
+        self.subpars.kapgrenz.shape = self.value, 2
+
+        skip = (
+            sequencetools.LogSequences,
+            sequencetools.LinkSequences,
+        )
+        sequences = self.subpars.pars.model.sequences
+        for subseqs in sequences:
+            if not isinstance(subseqs, skip):
+                for seq in subseqs:
+                    if seq.NDIM == 1:
+                        seq.shape = self.value
+        if hasattr(sequences.logs, "wet0"):
+            sequences.logs.wet0.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
@@ -166,93 +156,6 @@ class KE(lland_parameters.ParameterComplete):
 
 
 # energy adjustment
-
-
-class AngstromConstant(parametertools.MonthParameter):
-    """The Ångström "a" coefficient for calculating global radiation [-]."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
-    INIT = 0.25
-
-    def trim(self, lower=None, upper=None):
-        """Trim values following :math:`AngstromConstant \\leq  1 -
-        AngstromFactor` or at least following :math:`AngstromConstant \\leq  1`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> angstromfactor(0.4, 0.4, nan, 0.4, 0.4, 0.4,
-        ...                0.6, 0.8, 1.0, 1.0, nan, nan)
-        >>> angstromconstant(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
-        ...                   1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
-        >>> angstromconstant
-        angstromconstant(jan=0.0, feb=0.0, mar=0.2, apr=0.4, may=0.6, jun=0.6,
-                         jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
-        >>> angstromfactor(None)
-        >>> angstromconstant(0.6)
-        >>> angstromconstant
-        angstromconstant(0.6)
-        """
-        if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromfactor,
-                "values",
-                None,
-            )
-            if upper is not None:
-                upper = upper.copy()
-                idxs = numpy.isnan(upper)
-                upper[idxs] = 1.0
-                idxs = ~idxs
-                upper[idxs] = 1.0 - upper[idxs]
-        super().trim(lower, upper)
-
-
-class AngstromFactor(parametertools.MonthParameter):
-    """The Ångström "b" coefficient for calculating global radiation [-]."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    INIT = 0.5
-
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`AngstromFactor \\leq  1 -
-        AngstromConstant` or at least in accordance with :math:`AngstromFactor
-        \\leq  1`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> angstromconstant(0.4, 0.4, nan, 0.4, 0.4, 0.4,
-        ...                  0.6, 0.8, 1.0, 1.0, nan, nan)
-        >>> angstromfactor(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
-        ...                1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
-        >>> angstromfactor
-        angstromfactor(jan=0.0, feb=0.0, mar=0.2, apr=0.4, may=0.6, jun=0.6,
-                       jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
-        >>> angstromconstant(None)
-        >>> angstromfactor(0.6)
-        >>> angstromfactor
-        angstromfactor(0.6)
-        """
-        if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.angstromconstant,
-                "values",
-                None,
-            )
-            if upper is not None:
-                upper = upper.copy()
-                idxs = numpy.isnan(upper)
-                upper[idxs] = 1.0
-                idxs = ~idxs
-                upper[idxs] = 1.0 - upper[idxs]
-        super().trim(lower, upper)
-
-
-class AngstromAlternative(parametertools.MonthParameter):
-    """An alternative Ångström coefficient replacing coefficient "c"
-    (|AngstromConstant|) on days without any direct sunshine [-]."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
-    INIT = 0.15
 
 
 class P1Strahl(parametertools.Parameter):

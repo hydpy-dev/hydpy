@@ -42,7 +42,19 @@ class DailyRelativeHumidity(sequencetools.FluxSequence):
 
 
 class DailySunshineDuration(sequencetools.FluxSequence):
-    """Daily sunshine duration [h/d]."""
+    """Daily sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class DailyPossibleSunshineDuration(sequencetools.FluxSequence):
+    """Astronomically possible daily sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class DailyGlobalRadiation(sequencetools.FluxSequence):
+    """Daily global radiation [h]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -164,73 +176,6 @@ class DensityAir(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
-
-
-class SolarDeclination(sequencetools.FluxSequence):
-    """Solar declination [-]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class TSA(sequencetools.FluxSequence):
-    """Zeitpunkt Sonnenaufgang (time of sunrise) [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class TSU(sequencetools.FluxSequence):
-    """Zeitpunkt Sonnenuntergang (time of sunset) [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class EarthSunDistance(sequencetools.FluxSequence):
-    """The relative inverse distance between the earth and the sun [-]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class ExtraterrestrialRadiation(sequencetools.FluxSequence):
-    """Extraterrestial radiation [MJ/m²/d]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class PossibleSunshineDuration(sequencetools.FluxSequence):
-    """Possible astronomical sunshine duration [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class DailyPossibleSunshineDuration(sequencetools.FluxSequence):
-    """Possible daily astronomical sunshine duration [h/d]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class DailyGlobalRadiation(sequencetools.FluxSequence):
-    """Daily sum of global radiation [MJ/m²/d]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class SP(sequencetools.FluxSequence):
-    """Anteil an der Tagesstrahlungsmenge (relative amount of the daily
-    radiation sum) [%]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class GlobalRadiation(sequencetools.FluxSequence):
-    """Global Radiation [MJ/m²]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class AdjustedGlobalRadiation(sequencetools.FluxSequence):
-    """Adjusted global Radiation [MJ/m²]."""
-
-    NDIM, NUMERIC = 0, False
 
 
 class G(lland_sequences.Flux1DSequence):

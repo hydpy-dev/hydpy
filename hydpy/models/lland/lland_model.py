@@ -2420,7 +2420,7 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
         >>> states.waes
         waes(0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 2.0, 2.0, 2.0)
         >>> fluxes.wada
-        wada(1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.5, 0.5, 1.0, 1.5)
+        wada(1.5, 1.5, 1.5, 0.5, 1.0, 1.5, 1.0, 0.0, 0.5, 1.0)
     """
 
     CONTROLPARAMETERS = (
@@ -2445,13 +2445,13 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
         for k in range(con.nhru):
             if con.lnk[k] in (WASSER, FLUSS, SEE):
                 sta.waes[k] = 0.0
-                flu.wada[k] = flu.nbes[k] - flu.nbesinz[k] + flu.wadainz[k]
+                flu.wada[k] = flu.nbes[k]
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                sta.waes[k] += flu.nbes[k]
+                sta.waes[k] += flu.nbes[k] - flu.nbesinz[k] + flu.wadainz[k]
                 flu.wada[k] = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
                 sta.waes[k] -= flu.wada[k]
             else:
-                sta.waes[k] += flu.nbes[k] - flu.nbesinz[k] + flu.wadainz[k]
+                sta.waes[k] += flu.nbes[k]
                 flu.wada[k] = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
                 sta.waes[k] -= flu.wada[k]
 

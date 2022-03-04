@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
 """
 .. _`Wikipedia page on latent heat`: https://en.wikipedia.org/wiki/Latent_heat
 """

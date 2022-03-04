@@ -40,4 +40,3 @@ from hydpy.models.lland.lland_masks import Masks
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

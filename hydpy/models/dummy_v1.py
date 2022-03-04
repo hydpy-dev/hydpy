@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """
 Version 1 of the dummy model serves as a temporary placeholder model.
 In each simulation step, it simply sums up its inputs and hands the

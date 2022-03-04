@@ -10,12 +10,12 @@ from hydpy import models
 from hydpy.core.testtools import perform_consistencychecks
 
 print("Perform all available consistency checks:\n")
-dirpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
-applicationmodels = [
+dirpath: str = models.__path__[0]
+applicationmodels = sorted(
     fn.split(".")[0]
     for fn in os.listdir(dirpath)
     if (fn != "__init__.py") and os.path.isfile(os.path.join(dirpath, fn))
-]
+)
 results: List[str] = []
 for applicationmodel in applicationmodels:
     subresult = perform_consistencychecks(

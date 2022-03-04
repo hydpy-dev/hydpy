@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# due to pylint bug, see http://phoenix2.yizimg.com/PyCQA/pylint/issues/4711
+# pylint: disable=invalid-all-format
 """*HydPy-W-Land* provides two types of constants: those associated with the
 average soil character of a sub-catchment and those associated with the land-use
 type of the different hydrological response units of a sub-catchment.  They are

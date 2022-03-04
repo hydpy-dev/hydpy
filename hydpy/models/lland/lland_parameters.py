@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
@@ -31,7 +30,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> kg
     kg(acker=2.0, glets=4.0, see=3.0, vers=1.0)
     >>> kg.values
-    array([ 2.,  1.,  4.,  3.,  2.])
+    array([2., 1., 4., 3., 2.])
     >>> kg(5.0, 4.0, 3.0, 2.0, 1.0)
     >>> derived.absfhru(0.0, 0.1, 0.2, 0.3, 0.4)
     >>> from hydpy import round_

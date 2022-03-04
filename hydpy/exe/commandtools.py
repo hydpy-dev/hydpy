@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""This module implements some main features for using *HydPy* from
-your command line tools via script |hyd|."""
+"""This module implements some main features for using *HydPy* from your command line
+tools via script |hyd|."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import contextlib
 import datetime
 import inspect
@@ -18,37 +19,35 @@ from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 import hydpy
-from hydpy import tests
+import hydpy.tests.run_doctests
+from hydpy import config
 from hydpy.core import objecttools
 
 
 @overload
 def run_subprocess(
-    command: str,
-    verbose: bool,
-    blocking: Literal[True],
-) -> "subprocess.CompletedProcess[str]":
+    command: str, verbose: bool = True, blocking: Literal[True] = ...
+) -> subprocess.CompletedProcess[str]:  # pylint: disable=unsubscriptable-object
     """non-blocking"""
 
 
 @overload
 def run_subprocess(
-    command: str,
-    verbose: bool,
-    blocking: Literal[False],
-) -> "subprocess.Popen[str]":
+    command: str, verbose: bool = True, blocking: Literal[False] = ...
+) -> subprocess.Popen[str]:  # pylint: disable=unsubscriptable-object
     """blocking"""
 
 
 def run_subprocess(
-    command: str,
-    verbose: bool = True,
-    blocking: bool = True,
-) -> Union["subprocess.CompletedProcess[str]", "subprocess.Popen[str]"]:
+    command: str, verbose: bool = True, blocking: bool = True
+) -> Union[
+    subprocess.CompletedProcess[str],  # pylint: disable=unsubscriptable-object
+    subprocess.Popen[str],  # pylint: disable=unsubscriptable-object
+]:
     """Execute the given command in a new process.
 
-    Only when both `verbose` and `blocking` are |True|, |run_subprocess|
-    prints all responses to the current value of |sys.stdout|:
+    Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
+    responses to the current value of |sys.stdout|:
 
     >>> from hydpy import run_subprocess
     >>> import platform
@@ -56,8 +55,7 @@ def run_subprocess(
     >>> result = run_subprocess(f"python -c print{esc}(1+1{esc})")
     2
 
-    With verbose being |False|, |run_subprocess| does never print out
-    anything:
+    With verbose being |False|, |run_subprocess| never prints anything:
 
     >>> result = run_subprocess(f"python -c print{esc}(1+1{esc})", verbose=False)
 
@@ -65,13 +63,16 @@ def run_subprocess(
     >>> process.kill()
     >>> _ = process.communicate()
 
-    When `verbose` is |True| and `blocking` is |False|, |run_subprocess|
-    prints all responses to the console ("invisible" for doctests):
+    When `verbose` is |True| and `blocking` is |False|, |run_subprocess| prints all
+    responses to the console ("invisible" for doctests):
 
     >>> process = run_subprocess("python", blocking=False)
     >>> process.kill()
     >>> _ = process.communicate()
     """
+    command = command.strip()
+    if command.startswith("python"):
+        command = f"{sys.executable}{command[6:]}"
     if blocking:
         result1 = subprocess.run(
             command,
@@ -89,7 +90,7 @@ def run_subprocess(
                     print(output)
         return result1
     stdouterr = None if verbose else subprocess.DEVNULL
-    result2 = subprocess.Popen(
+    result2 = subprocess.Popen(  # pylint: disable=consider-using-with
         command,
         stdout=stdouterr,
         stderr=stdouterr,
@@ -103,9 +104,9 @@ def run_subprocess(
 def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
-    Function |exec_commands| is thought for testing purposes only (see
-    the main documentation on module |hyd|).  Separate individual commands
-    by semicolons and replaced whitespaces with underscores:
+    Function |exec_commands| is thought for testing purposes only (see the main
+    documentation on module |hyd|).  Separate individual commands by semicolons and
+    replaced whitespaces with underscores:
 
     >>> from hydpy.exe.commandtools import exec_commands
     >>> import sys
@@ -120,8 +121,8 @@ def exec_commands(commands: str, **parameters: Any) -> None:
 for testing purposes.
     <class 'int'>
 
-    |exec_commands| evaluates additional keyword arguments before it
-    executes the given commands:
+    |exec_commands| evaluates additional keyword arguments before it executes the given
+    commands:
 
     >>> exec_commands("e=x==y;print(e)", x=1, y=2)
     Start to execute the commands ['e=x==y', 'print(e)'] for testing purposes.
@@ -138,44 +139,48 @@ for testing purposes.
         exec(command)
 
 
-def test_everything() -> int:
-    """Execute script `test_everything.py` from remote.
+def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements
+    """Execute the main function of script `run_doctests.py` from remote.
 
-    Whenever in doubt about the functioning of your *HydPy* installation,
-    call script function |test_everything|.  It executes all tests employed
-    before your actual *HydPy* version was released, which allows you to
-    check for possible incompatibilities with the site-packages or the
-    configuration of your specific system.
+    Whenever in doubt about the functioning of your *HydPy* installation, call the
+    script function |run_doctests|.  It executes all tests employed before your actual
+    *HydPy* version was released, which allows you to check for possible
+    incompatibilities with the site-packages or the configuration of your specific
+    system.
 
-    Actually, |test_everything| only makes the following system call
-    and returns its exit code:
+    |run_doctests| calls the mentioned function with default arguments and returns its
+    exit code:
 
-    >>> from hydpy import test_everything, repr_
+    >>> from hydpy import run_doctests
     >>> from unittest import mock
-    >>> with mock.patch("os.system", return_value=1) as system:
-    ...     test_everything()
+    >>> with mock.patch("hydpy.tests.run_doctests.main.callback",
+    ...                 side_effect=SystemExit(1)) as main:
+    ...     run_doctests()
     1
-    >>> repr_(system.call_args[0][0])   # doctest: +ELLIPSIS
-    '.../python... .../hydpy/tests/test_everything.py forcecompiling=False'
+    >>> assert "hydpy_path=None" in str(main.mock_calls)
+    >>> assert "file_doctests=[]" in str(main.mock_calls)
+    >>> assert "python_mode=True" in str(main.mock_calls)
+    >>> assert "cython_mode=True" in str(main.mock_calls)
     """
-    testspath: str = tests.__path__[0]  # type: ignore[attr-defined, name-defined]
-    return os.system(
-        f"{sys.executable} {testspath}" f"/test_everything.py forcecompiling=False"
-    )
+    try:
+        hydpy.tests.run_doctests.main.callback(
+            hydpy_path=None, file_doctests=[], python_mode=True, cython_mode=True
+        )
+    except SystemExit as exc:
+        return exc.code
 
 
 def exec_script(filepath: str) -> None:
     """Execute an arbitrary Python script.
 
-    Function |run_simulation| allows you to execute a predefined *HydPy*
-    workflow.  You can configure many details of this workflow but not
-    change its general structure.  Use function |exec_script| when you
-    want to execute *HydPy* remotely but strive for more flexibility.
-    As its name suggests, function |exec_script| executes any valid Python
-    code relying on the standard library and the available site-packages.
+    Function |run_simulation| allows you to execute a predefined *HydPy* workflow.  You
+    can configure many details of this workflow but not change its general structure.
+    Use function |exec_script| execute *HydPy* remotely but strive for more flexibility.
+    As its name suggests, function |exec_script| executes any valid Python code relying
+    on the standard library and the available site-packages.
 
-    Function |exec_script| requires the name of the script to be executed
-    as a single argument:
+    Function |exec_script| requires the name of the script to be executed as a single
+    argument:
 
     >>> from hydpy import print_latest_logfile, Node, TestIO, run_subprocess
     >>> TestIO.clear()
@@ -187,9 +192,9 @@ resulted in the following error:
     File `...temp.py` does not exist.
     ...
 
-    Function |exec_script| can use all *HydPy* features.  As a simple
-    example, we write a Python script that initialises a |Node| object
-    and prints its string representation (into the log file):
+    Function |exec_script| can use all *HydPy* features.  As a simple example, we write
+    a Python script that initialises a |Node| object and prints its string
+    representation (into the log file):
 
     >>> with TestIO():
     ...     with open("temp.py", "w") as file_:
@@ -208,13 +213,13 @@ resulted in the following error:
     ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
     ...     result = run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
-resulted in the following error:
-    While trying to initialize a `Node` object with value `invalid name` of \
-type `str`, the following error occurred: The given name string `invalid name` \
-does not define a valid variable identifier.  Valid identifiers do not \
-contain characters like `-` or empty spaces, do not start with numbers, \
-cannot be mistaken with Python built-ins like `for`...)
+    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` resulted \
+in the following error:
+    While trying to initialize a `Node` object with value `invalid name` of type \
+`str`, the following error occurred: The given name string `invalid name` does not \
+define a valid variable identifier.  Valid identifiers do not contain characters like \
+`-` or empty spaces, do not start with numbers, cannot be mistaken with Python \
+built-ins like `for`...)
     ...
     """
     if not os.path.isfile(filepath):
@@ -225,11 +230,10 @@ cannot be mistaken with Python built-ins like `for`...)
 def start_shell(filepath: str = "") -> None:
     """Open an interactive Python shell.
 
-    Writing "hyd.py start_shell" into your command line tool opens an
-    interactive Python console with the most relevant *HydPy* features being
-    imported already.  In our first example, we directly prepare an |Element|
-    object (without needing to import class |Element| first) and print its
-    string representation:
+    Writing "hyd.py start_shell" into your command line tool opens an interactive
+    Python console with the most relevant *HydPy* features being imported already.  In
+    our first example, we directly prepare an |Element| object (without needing to
+    import class |Element| first) and print its string representation:
 
     >>> import subprocess
     >>> from hydpy import TestIO
@@ -249,10 +253,10 @@ def start_shell(filepath: str = "") -> None:
             outlets="n1")
     <BLANKLINE>
 
-    You can pass the name of a Python file as an additional argument, which
-    enables to interact with the results of the file.  For demonstration
-    purposes, we create the example file `test.py` simply defining a |Nodes|
-    object handling two individual nodes:
+    You can pass the name of a Python file as an additional argument, which enables
+    interaction with the file results.  We create the example file `test.py` for
+    demonstration purposes, simply defining a |Nodes| object handling two individual
+    nodes:
 
     >>> with TestIO():
     ...     with open("test.py", "w") as file_:
@@ -280,7 +284,7 @@ def start_shell(filepath: str = "") -> None:
         filepath_ = filepath
     else:
         filepath_ = "__hydpy_temp__"
-        with open("__hydpy_temp__", "w") as file_:
+        with open("__hydpy_temp__", "w", encoding=config.ENCODING) as file_:
             file_.write("from hydpy import *")
     subprocess.run([sys.executable, "-i", filepath_], check=True)
     if not filepath:
@@ -297,12 +301,11 @@ def start_shell(filepath: str = "") -> None:
 def print_latest_logfile(dirpath: str = ".", wait: float = 0.0) -> None:
     """Print the latest log file in the current or the given working directory.
 
-    When executing processes in parallel, |print_latest_logfile| may
-    be called before any log file exists.  Then pass an appropriate
-    number of seconds to the argument `wait`.  |print_latest_logfile| then
-    prints the contents of the latest log file, as soon as it finds one.
-    Function |print_latest_logfile| works only for "default" logfile names,
-    as described in the documentation on function |prepare_logfile|.
+    When executing processes in parallel, |print_latest_logfile| may be called before
+    any log file exists.  Then pass an appropriate number of seconds to the argument
+    `wait`.  |print_latest_logfile| prints the contents of the latest log file as soon
+    as it finds one. Function |print_latest_logfile| works only for "default" logfile
+    names, as described in the documentation on function |prepare_logfile|.
 
     >>> from hydpy import TestIO, print_latest_logfile, run_subprocess
     >>> TestIO.clear()
@@ -311,22 +314,21 @@ def print_latest_logfile(dirpath: str = ".", wait: float = 0.0) -> None:
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: Cannot find a default HydPy log file in directory \
-...iotesting.
+    FileNotFoundError: Cannot find a default HydPy log file in directory ...iotesting.
 
     >>> with TestIO():
     ...     result1 = run_subprocess('hyd.py logfile="default" test=1')
     ...     result2 = run_subprocess('hyd.py logfile="default" test=2')
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, test=2` resulted in \
-the following error:
+    Invoking hyd.py with arguments `logfile=default, test=2` resulted in the \
+following error:
     ...
     """
     now = time.perf_counter()
     wait += now
     filenames = []
     while now <= wait:
-        for filename in os.listdir(dirpath):
+        for filename in sorted(os.listdir(dirpath)):
             if filename.startswith("hydpy_") and filename.endswith(".log"):
                 filenames.append(filename)
         if filenames:
@@ -338,24 +340,23 @@ the following error:
             f"Cannot find a default HydPy log file in directory "
             f"{os.path.abspath(dirpath)}."
         )
-    with open(sorted(filenames)[-1]) as logfile:
+    with open(sorted(filenames)[-1], encoding=config.ENCODING) as logfile:
         print(logfile.read())
 
 
 def prepare_logfile(filename: str) -> str:
-    # noinspection PyCallingNonCallable
     """Prepare an empty log file eventually and return its absolute path.
 
-    When passing the "filename" `stdout`, |prepare_logfile| does not
-    prepare any file and just returns `stdout`:
+    When passing the "filename" `stdout`, |prepare_logfile| does not prepare any file
+    and just returns `stdout`:
 
     >>> from hydpy.exe.commandtools import prepare_logfile
     >>> prepare_logfile("stdout")
     'stdout'
 
-    When passing the "filename" `default`, |prepare_logfile| generates a
-    filename containing the actual date and time, prepares an empty file
-    on disk, and returns its path:
+    When passing the "filename" `default`, |prepare_logfile| generates a filename
+    containing the actual date and time, prepares an empty file on disk, and returns
+    its path:
 
     >>> from hydpy import repr_, TestIO
     >>> from hydpy.core.testtools import mock_datetime_now
@@ -369,8 +370,8 @@ def prepare_logfile(filename: str) -> str:
     >>> repr_(filepath)    # doctest: +ELLIPSIS
     '...hydpy/tests/iotesting/hydpy_2000-01-01_12-30-00.log'
 
-    For all other strings, |prepare_logfile| does not add any date or time
-    information to the filename:
+    For all other strings, |prepare_logfile| does not add any date or time information
+    to the filename:
 
     >>> with TestIO():
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
@@ -384,7 +385,7 @@ def prepare_logfile(filename: str) -> str:
         return filename
     if filename == "default":
         filename = datetime.datetime.now().strftime("hydpy_%Y-%m-%d_%H-%M-%S.log")
-    with open(filename, "w"):
+    with open(filename, "w", encoding=config.ENCODING):
         pass
     return os.path.abspath(filename)
 
@@ -406,7 +407,7 @@ def _activate_logfile(
             )
             yield
         else:
-            with open(filepath, "a") as logfile:
+            with open(filepath, "a", encoding=config.ENCODING) as logfile:
                 sys.stdout = cast(
                     TextIO, LogFileInterface(logfile, logstyle, level_stdout)
                 )
@@ -422,8 +423,8 @@ def _activate_logfile(
 def execute_scriptfunction() -> Optional[int]:
     """Execute a HydPy script function.
 
-    Function |execute_scriptfunction| is indirectly applied and explained
-    in the documentation on module |hyd|.
+    Function |execute_scriptfunction| is indirectly applied and explained in the
+    documentation on module |hyd|.
     """
     logstyle = "plain"
     logfilepath = prepare_logfile("stdout")
@@ -445,8 +446,8 @@ def execute_scriptfunction() -> Optional[int]:
             funcname = str(args_given.pop(0))
         except IndexError:
             raise ValueError(
-                "The first positional argument defining the function "
-                "to be called is missing."
+                "The first positional argument defining the function to be called is "
+                "missing."
             ) from None
         try:
             func = hydpy.pub.scriptfunctions[funcname]
@@ -455,8 +456,8 @@ def execute_scriptfunction() -> Optional[int]:
                 sorted(hydpy.pub.scriptfunctions.keys())
             )
             raise ValueError(
-                f"There is no `{funcname}` function callable by `hyd.py`.  "
-                f"Choose one of the following instead: {available_funcs}."
+                f"There is no `{funcname}` function callable by `hyd.py`.  Choose one "
+                f"of the following instead: {available_funcs}."
             ) from None
         argspec = inspect.getfullargspec(func)
         args_possible = argspec.args
@@ -502,9 +503,8 @@ def execute_scriptfunction() -> Optional[int]:
             else:
                 argphrase = "without arguments"
             print(
-                f"Invoking hyd.py {argphrase} resulted in the following "
-                f"error:\n{str(exc)}\n\n"
-                f"See the following stack traceback for debugging:\n",
+                f"Invoking hyd.py {argphrase} resulted in the following error:\n"
+                f"{str(exc)}\n\nSee the following stack traceback for debugging:\n",
                 file=sys.stderr,
             )
             traceback.print_tb(sys.exc_info()[2])
@@ -512,12 +512,12 @@ def execute_scriptfunction() -> Optional[int]:
 
 
 class LogFileInterface:
-    """Wraps a usual file object, exposing all its methods while modifying
-    only the `write` method.
+    """Wraps a usual file object, exposing all its methods while modifying only the
+    `write` method.
 
-    At the moment, class |LogFileInterface| only supports only two log
-    styles, as explained in the documentation on module |hyd|.  The
-    following example shows its basic usage:
+    At the moment, class |LogFileInterface| only supports only two log styles, as
+    explained in the documentation on module |hyd|.  The following example shows its
+    basic usage:
 
     >>> from hydpy import TestIO
     >>> from hydpy.exe.commandtools import LogFileInterface
@@ -535,8 +535,7 @@ class LogFileInterface:
     error: another message
     <BLANKLINE>
 
-    The class member `style2infotype2string` defines the currently
-    available log styles.
+    The class member `style2infotype2string` defines the currently available log styles.
     """
 
     style2infotype2string = {
@@ -568,14 +567,14 @@ class LogFileInterface:
     def _ignore(self, substring: str) -> bool:
         """Tell if a substring should be ignored.
 
-        So far, we only ignore warning lines like `# -*- coding: utf-8 -*-`
-        which occur when using Python 3.6 and 3.7 but not when using Python 3.8.
+        So far, we only ignore warning lines like `# -*- coding: utf-8 -*-` which occur
+        when using Python 3.6 and 3.7 but not when using Python 3.8.
         """
         return (self._infotype == "warning") and substring.strip().startswith("#")
 
     def write(self, string: str) -> None:
-        """Write the given string as explained in the main documentation
-        on class |LogFileInterface|."""
+        """Write the given string as explained in the main documentation on class
+        |LogFileInterface|."""
 
         self.logfile.write(
             "\n".join(
@@ -590,14 +589,13 @@ class LogFileInterface:
 
 
 def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
-    """Return a single value for a string understood as a positional
-    argument or a |tuple| containing a keyword and its value for a
-    string understood as a keyword argument.
+    """Return a single value for a string understood as a positional argument or a
+    |tuple| containing a keyword and its value for a string understood as a keyword
+    argument.
 
-    |parse_argument| is intended to be used as a helper function for
-    function |execute_scriptfunction| only.  See the following
-    examples to see which types of keyword arguments |execute_scriptfunction|
-    covers:
+    |parse_argument| is intended to be used as a helper function for function
+    |execute_scriptfunction| only.  See the following examples to see which types of
+    keyword arguments |execute_scriptfunction| covers:
 
     >>> from hydpy.exe.commandtools import parse_argument
     >>> parse_argument("x=3")
@@ -625,9 +623,8 @@ def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
 
 
 def print_textandtime(text: str) -> None:
-    # noinspection PyCallingNonCallable
-    """Print the given string and the current date and time with high
-    precision for logging purposes.
+    """Print the given string and the current date and time with high precision for
+    logging purposes.
 
     >>> from hydpy.exe.commandtools import print_textandtime
     >>> from hydpy.core.testtools import mock_datetime_now

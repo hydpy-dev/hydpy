@@ -8,9 +8,9 @@ from typing import *
 try:
     print("\nModify html files:")
     folder = os.path.join("hydpy", "docs", "auto", "build")
-    paths = [
+    paths = sorted(
         os.path.join(folder, fn) for fn in os.listdir(folder) if fn.endswith(".html")
-    ]
+    )
     for path in paths:
         path = os.path.abspath(path)
         print("  " + path)

@@ -7,14 +7,18 @@ environment:
   PYPIPA:
     secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
   matrix:
-    - PYTHON: "C:\\Python36-x64"
-      make_exe: false
     - PYTHON: "C:\\Python37-x64"
       make_exe: false
+      python_mode: false
+      cython_mode: true
     - PYTHON: "C:\\Python38-x64"
       make_exe: false
+      python_mode: true
+      cython_mode: false
     - PYTHON: "C:\\Python39-x64"
       make_exe: true
+      python_mode: false
+      cython_mode: false
 
 install:
 #  - cinst nsis
@@ -22,44 +26,25 @@ install:
   - ps: nsis-3.05-setup.exe /S
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python -m pip install --upgrade pip
-  - python -m pip install cython
-  - python -m pip install numpy
-  - python -m pip install scipy
-  - python -m pip install matplotlib
-  - python -m pip install bokeh
-  - python -m pip install black
-  - python -m pip install netcdf4
-  - python -m pip install networkx
-  - python -m pip install pandas
-  - python -m pip install plotly
+  - python -m pip install -r requirements.txt
   - if %make_exe%==true python -m pip install pynsist
-  - python -m pip install setuptools
-  - python -m pip install typing_extensions
+  - if %make_exe%==true python -m pip install lastversion
+  - if %make_exe%==true python -m pip install regex
   - python -m pip install twine
-  - python -m pip install wheel
-  - python -m pip install wrapt
-  - python -m pip install xmlschema
 
 build: off
 
 before_test:
-  - python disable_autodoc.py
-  - python setup.py install
-  - python make_and_install_dists.py
-  - if %make_exe%==true python -m pip install attrs
+  - python prepare_build.py
+  - python -m build
   - if %make_exe%==true python prepare_hydpy_installer.py
   - if %make_exe%==true pynsist make_hydpy_installer.cfg
-  - python -m pip uninstall cython --yes
-  - rename hydpy _hydpy
 
 test_script:
-  - hyd.py test_everything
-  - if %make_exe%==true cd dist
-  - if %make_exe%==true python -m pip uninstall hydpy --yes
-  - if %make_exe%==true cd..
-  - if %make_exe%==true python call_installer.py
+  - if %make_exe%==false nox -s doctest -- --python-mode=%python_mode% --cython-mode=%cython_mode%
+  - if %make_exe%==true rename hydpy _hydpy
   - if %make_exe%==true SET PATH=C:\Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
-  - if %make_exe%==true hyd.py test_everything
+  - if %make_exe%==true nox -s installer
 
 after_test:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"

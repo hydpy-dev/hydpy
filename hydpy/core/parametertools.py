@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-"""This module provides tools for defining and handling different kinds
-of parameters of hydrological models."""
+"""This module provides tools for defining and handling different kinds of parameters
+of hydrological models."""
 # import...
 # ...from standard library
 import copy
 import inspect
 import itertools
 import textwrap
-import time
 from typing import *
 
 # ...from site-packages
@@ -26,12 +25,7 @@ from hydpy.core.typingtools import *
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import devicetools
-    from hydpy.core import masktools
     from hydpy.core import modeltools
-
-# The import of `_strptime` is not thread save.  The following call of
-# `strptime` is supposed to prevent possible problems arising from this bug.
-time.strptime("1999", "%Y")
 
 
 def get_controlfileheader(
@@ -41,11 +35,11 @@ def get_controlfileheader(
 ) -> str:
     """Return the header of a regular or auxiliary parameter control file.
 
-    The header contains the default coding information, the import command
-    for the given model and the actual parameter and simulation step sizes.
+    The header contains the default coding information, the import command for the
+    given model and the actual parameter and simulation step sizes.
 
-    If you pass the model argument as a string, you have to take care that this
-    string makes sense:
+    If you pass the model argument as a string, you have to take care that this string
+    makes sense:
 
     >>> from hydpy.core.parametertools import get_controlfileheader
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
@@ -131,7 +125,7 @@ class Constants(dict):
         to make them available in the interactive mode of Python."""
         if config.USEAUTODOC:
             filename = inspect.getsourcefile(frame)
-            with open(filename) as file_:
+            with open(filename, encoding=config.ENCODING) as file_:
                 sources = file_.read().split('"""')
             for code, doc in zip(sources[::2], sources[1::2]):
                 code = code.strip()
@@ -164,6 +158,20 @@ class Parameters:
     derived
     >>> len(model.parameters)
     2
+
+    Keyword access provides a type-safe way to query a subgroup via a string:
+
+    >>> type(model.parameters["control"]).__name__
+    'ControlParameters'
+    >>> type(model.parameters["wrong"])
+    Traceback (most recent call last):
+    ...
+    TypeError: There is no parameter subgroup named `wrong`.
+    >>> model.parameters["model"]
+    Traceback (most recent call last):
+    ...
+    TypeError: Attribute `model` is of type `Model`, which is not a subtype of class \
+`SubParameters`.
     """
 
     model: "modeltools.Model"
@@ -418,6 +426,18 @@ set yet: c1(?).
         for subpars in (self.derived, self.solver):
             yield subpars
 
+    def __getitem__(self, item: str) -> "SubParameters":
+        try:
+            subpars = getattr(self, item)
+        except AttributeError:
+            raise TypeError(f"There is no parameter subgroup named `{item}`.") from None
+        if isinstance(subpars, SubParameters):
+            return subpars
+        raise TypeError(
+            f"Attribute `{item}` is of type `{type(subpars).__name__}`, "
+            f"which is not a subtype of class `SubParameters`."
+        )
+
     def __iter__(self) -> Iterator["SubParameters"]:
         for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
@@ -425,16 +445,6 @@ set yet: c1(?).
 
     def __len__(self):
         return sum(1 for _ in self)
-
-    def __dir__(self) -> List[str]:
-        """
-        >>> from hydpy.models.hstream_v1 import *
-        >>> parameterstep()
-        >>> dir(model.parameters)
-        ['control', 'derived', 'fixed', 'model', 'save_controls', \
-'secondary_subpars', 'solver', 'update', 'verify']
-        """
-        return objecttools.dir_(self)
 
 
 class FastAccessParameter(variabletools.FastAccess):
@@ -918,6 +928,24 @@ raise_exception=False)
             )
         return
 
+    def clear(self) -> None:
+        """Clear the current object contents and set attribute |KeywordArguments.valid|
+        to |False|.
+
+        >>> from hydpy import KeywordArguments
+        >>> kwa =KeywordArguments(x=1, y=2)
+        >>> kwa
+        KeywordArguments(x=1, y=2)
+        >>> kwa.valid
+        True
+        >>> kwa.clear()
+        >>> kwa
+        KeywordArguments()
+        >>> kwa.valid
+        True
+        """
+        self._name2value.clear()
+
     def __getitem__(self, key: str) -> T:
         try:
             return self._name2value[key]
@@ -1099,7 +1127,7 @@ could not be set based on the given keyword arguments.
     Traceback (most recent call last):
     ...
     TypeError: While trying to set the value(s) of variable `par`, the \
-following error occurred: The given value `[ 1.  2.]` cannot be converted \
+following error occurred: The given value `[1. 2.]` cannot be converted \
 to type `float`.
 
     Passing no argument or both positional and keyword arguments are also
@@ -1151,19 +1179,19 @@ keyword arguments are given, which is ambiguous.
     >>> par
     par(3.0)
     >>> par.values
-    array([ 6.,  6.])
+    array([6., 6.])
 
     >>> par([0.0, 4.0])
     >>> par
     par(0.0, 4.0)
     >>> par.values
-    array([ 0.,  8.])
+    array([0., 8.])
 
     >>> par(1.0, 2.0)
     >>> par
     par(1.0, 2.0)
     >>> par.values
-    array([ 2.,  4.])
+    array([2., 4.])
 
     Using the `call` syntax to set parameter values triggers method
     |trim| automatically:
@@ -1177,7 +1205,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(0.0, 3.0)
     >>> par.values
-    array([ 0.,  6.])
+    array([0., 6.])
 
     You are free to change the parameter step size (temporarily) to change
     the string representation of |Parameter| handling time-dependent values
@@ -1187,11 +1215,11 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     ...     print(par)
     ...     print(repr(par.values))
     par(0.0, 6.0)
-    array([ 0.,  6.])
+    array([0., 6.])
     >>> par
     par(0.0, 3.0)
     >>> par.values
-    array([ 0.,  6.])
+    array([0., 6.])
 
     The highest number of dimensions of |Parameter| subclasses supported
     is currently two.  The following examples repeat some examples from
@@ -1212,8 +1240,8 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(9.0)
     >>> par.values
-    array([[ 4.5,  4.5,  4.5],
-           [ 4.5,  4.5,  4.5]])
+    array([[4.5, 4.5, 4.5],
+           [4.5, 4.5, 4.5]])
 
     >>> par([[1.0, 2.0, 3.0],
     ...      [4.0, 5.0, 6.0]])
@@ -1221,17 +1249,16 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     par([[1.0, 2.0, 3.0],
          [4.0, 5.0, 6.0]])
     >>> par.values
-    array([[ 0.5,  1. ,  1.5],
-           [ 2. ,  2.5,  3. ]])
+    array([[0.5, 1. , 1.5],
+           [2. , 2.5, 3. ]])
 
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `par`, \
-the following error occurred: While trying to convert the value(s) \
-`[ 0.5  1. ]` to a numpy ndarray with shape `(2, 3)` and type `float`, \
-the following error occurred: could not broadcast input array from \
-shape (2,) into shape (2,3)
+    ValueError: While trying to set the value(s) of variable `par`, the following \
+error occurred: While trying to convert the value(s) `[0.5 1. ]` to a numpy ndarray \
+with shape `(2, 3)` and type `float`, the following error occurred: could not \
+broadcast input array from shape (2,) into shape (2,3)
     """
 
     TIME: Optional[bool]
@@ -1241,9 +1268,8 @@ shape (2,) into shape (2,3)
     def __call__(self, *args, **kwargs):
         if args and kwargs:
             raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} "
-                f"both positional and keyword arguments are given, "
-                f"which is ambiguous."
+                f"For parameter {objecttools.elementphrase(self)} both positional "
+                f"and keyword arguments are given, which is ambiguous."
             )
         if not args and not kwargs:
             raise ValueError(
@@ -1254,10 +1280,9 @@ shape (2,) into shape (2,3)
         if auxfile:
             if kwargs:
                 raise ValueError(
-                    f"It is not allowed to combine keyword `auxfile` with "
-                    f"other keywords, but for parameter "
-                    f"{objecttools.elementphrase(self)} also the following "
-                    f"keywords are used: "
+                    f"It is not allowed to combine keyword `auxfile` with other "
+                    f"keywords, but for parameter {objecttools.elementphrase(self)} "
+                    f"also the following keywords are used: "
                     f"{objecttools.enumeration(kwargs.keys())}."
                 )
             self.values = self._get_values_from_auxiliaryfile(auxfile)
@@ -1319,13 +1344,16 @@ shape (2,) into shape (2,3)
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM:
+            if exceptiontools.attrready(self, "shape"):
+                return
             setattr(self.fastaccess, self.name, None)
-        else:
-            initvalue, initflag = self.initinfo
-            if initflag:
-                setattr(self, "value", initvalue)
-            else:
-                setattr(self.fastaccess, self.name, initvalue)
+            return
+        initvalue, initflag = self.initinfo
+        if initflag:
+            setattr(self, "value", initvalue)
+            return
+        setattr(self.fastaccess, self.name, initvalue)
+        return
 
     @property
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
@@ -1596,14 +1624,13 @@ implement method `update`.
         return KeywordArguments(False)
 
     def compress_repr(self) -> Optional[str]:
-        """Try to find a compressed parameter value representation and
-        return it.
+        """Try to find a compressed parameter value representation and return it.
 
-        |Parameter.compress_repr| raises a |NotImplementedError| when
-        failing to find a compressed representation.
+        |Parameter.compress_repr| raises a |NotImplementedError| when failing to find a
+        compressed representation.
 
-        For the following examples, we define a 1-dimensional sequence
-        handling time-dependent floating-point values:
+        For the following examples, we define a 1-dimensional sequence handling
+        time-dependent floating-point values:
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Test(Parameter):
@@ -1612,8 +1639,7 @@ implement method `update`.
         ...     TIME = True
         >>> test = Test(None)
 
-        Before and directly after defining the parameter shape, `nan`
-        is returned:
+        Before and directly after defining the parameter shape, `nan` is returned:
 
         >>> test.compress_repr()
         '?'
@@ -1623,8 +1649,8 @@ implement method `update`.
         >>> test
         test(?)
 
-        Due to the time-dependence of the values of our test class,
-        we need to specify a parameter and a simulation time step:
+        Due to the time-dependence of the values of our test class, we need to specify
+        a parameter and a simulation time step:
 
         >>> from hydpy import pub
         >>> pub.options.parameterstep = "1d"
@@ -1634,22 +1660,21 @@ implement method `update`.
 
         >>> test(3.0, 3.0, 3.0, 3.0)
         >>> test.values
-        array([ 1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1.])
         >>> test.compress_repr()
         '3.0'
         >>> test
         test(3.0)
 
-        Method |Parameter.compress_repr| returns |None| in case the
-        required values are not identical:
+        Method |Parameter.compress_repr| returns |None| in case the required values are
+        not identical:
 
         >>> test(1.0, 2.0, 3.0, 3.0)
         >>> test.compress_repr()
         >>> test
         test(1.0, 2.0, 3.0, 3.0)
 
-        If some values are not required, indicate this by the `mask`
-        descriptor:
+        If some values are not required, indicate this by the `mask` descriptor:
 
         >>> import numpy
         >>> test(3.0, 3.0, 3.0, numpy.nan)
@@ -1678,9 +1703,9 @@ implement method `update`.
         >>> test
         test([])
 
-        Method |Parameter.compress_repr| works similarly for different
-        |Parameter| subclasses.  The following examples focus on a
-        2-dimensional parameter handling integer values:
+        Method |Parameter.compress_repr| works similarly for different |Parameter|
+        subclasses.  The following examples focus on a 2-dimensional parameter handling
+        integer values:
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Test(Parameter):
@@ -1734,13 +1759,15 @@ implement method `update`.
             return objecttools.repr_(unique[0])
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.NDIM:
             values = self.compress_repr()
             if values is None:
                 values = self.revert_timefactor(self.values)
-            islong = (len(self) > 255) if (values is None) else False
-            return variabletools.to_repr(self, values, islong)
+            brackets = (isinstance(values, str) and (values == "?")) or (
+                (self.NDIM == 2) and (self.shape[0] != 1)
+            )
+            return variabletools.to_repr(self, values, brackets)
         lines = self.commentrepr
         if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
@@ -1748,20 +1775,6 @@ implement method `update`.
             value = "?"
         lines.append(f"{self.name}({objecttools.repr_(value)})")
         return "\n".join(lines)
-
-    def __dir__(self):
-        """
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     pass
-        >>> dir(Par(None))
-        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'apply_timefactor', \
-'availablemasks', 'average_values', 'commentrepr', 'compress_repr', 'fastaccess', \
-'get_submask', 'get_timefactor', 'initinfo', 'keywordarguments', 'mask', 'name', \
-'refweights', 'revert_timefactor', 'shape', 'strict_valuehandling', 'subpars', \
-'subvars', 'trim', 'unit', 'update', 'value', 'values', 'verify']
-        """
-        return objecttools.dir_(self)
 
 
 class NameParameter(Parameter):
@@ -1819,18 +1832,6 @@ class NameParameter(Parameter):
     landtype(WATER, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
              SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL, SOIL,
              SOIL, GLACIER)
-
-    For very high numbers of entries, the string representation puts the
-    names of the constants within a list (to make the string representations
-    executable under Python 3.6; this behaviour will change as soon
-    as Python 3.7 becomes the oldest supported version):
-
-    >>> landtype.shape = 256
-    >>> landtype(SOIL)
-    >>> landtype.values[0] = WATER
-    >>> landtype.values[-1] = GLACIER
-    >>> landtype   # doctest: +ELLIPSIS
-    landtype([WATER, SOIL, ..., SOIL, GLACIER])
     """
 
     NDIM = 1
@@ -1848,18 +1849,11 @@ class NameParameter(Parameter):
             values = [int(string)]
         get = self.CONSTANTS.value2name.get
         names = tuple(get(value, repr(value)) for value in values)
-        if len(self) > 255:
-            string = objecttools.assignrepr_list(
-                values=names,
-                prefix=f"{self.name}(",
-                width=70,
-            )
-        else:
-            string = objecttools.assignrepr_values(
-                values=names,
-                prefix=f"{self.name}(",
-                width=70,
-            )
+        string = objecttools.assignrepr_values(
+            values=names,
+            prefix=f"{self.name}(",
+            width=70,
+        )
         return f"{string})"
 
 
@@ -1950,7 +1944,7 @@ class ZipParameter(Parameter):
     >>> par
     par(2.0)
     >>> par.values
-    array([ 1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1.])
 
     The extended feature of class |ZipParameter| is to allow passing
     values via keywords, each keyword corresponding to one of the
@@ -1961,7 +1955,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=6.0, soil=4.0)
     >>> par.values
-    array([  2.,  nan,   3.,  nan,   2.])
+    array([ 2., nan,  3., nan,  2.])
 
     Use the `default` argument if you want to assign the same value
     to entries with different constants:
@@ -1970,7 +1964,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=8.0, soil=2.0)
     >>> par.values
-    array([  1.,  nan,   4.,  nan,   1.])
+    array([ 1., nan,  4., nan,  1.])
 
     Using a keyword argument corresponding to an existing, but not
     relevant constant (in our example: `WATER`) is silently ignored:
@@ -1979,7 +1973,7 @@ class ZipParameter(Parameter):
     >>> par
     par(glacier=6.0, soil=4.0)
     >>> par.values
-    array([  2.,  nan,   3.,  nan,   2.])
+    array([ 2., nan,  3., nan,  2.])
 
     However, using a keyword not corresponding to any constant raises
     an exception:
@@ -2014,7 +2008,7 @@ The given keywords are incomplete and no default value is available.
     constant via attribute access:
 
     >>> par.soil
-    array([ 0.,  0.])
+    array([0., 0.])
     >>> par.soil = 2.5
     >>> par
     par(glacier=10.0, soil=5.0)
@@ -2197,26 +2191,20 @@ error occurred: could not convert string to float: 'test'
         )
         return f"{string})"
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
-        >>> dir(treft)
-        ['INIT', 'MODEL_CONSTANTS', 'NDIM', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', \
-'TIME', 'TYPE', 'acker', 'apply_timefactor', 'availablemasks', 'average_values', \
-'baumb', 'boden', 'commentrepr', 'compress_repr', 'fastaccess', 'feucht', 'fluss', \
-'get_submask', 'get_timefactor', 'glets', 'grue_e', 'grue_i', 'initinfo', \
-'keywordarguments', 'laubw', 'mask', 'mischw', 'nadelw', 'name', 'obstb', \
-'refweights', 'revert_timefactor', 'see', 'shape', 'sied_d', 'sied_l', \
-'strict_valuehandling', 'subpars', 'subvars', 'trim', 'unit', 'update', 'value', \
-'values', 'verify', 'vers', 'wasser', 'weinb']
+        >>> sorted(set(dir(treft)) - set(object.__dir__(treft)))
+        ['acker', 'baumb', 'boden', 'feucht', 'fluss', 'glets', 'grue_e', 'grue_i', \
+'laubw', 'mischw', 'nadelw', 'obstb', 'see', 'sied_d', 'sied_l', 'vers', 'wasser', \
+'weinb']
         """
-        return list(
-            itertools.chain(
-                super().__dir__(),
-                (key.lower() for key in self.MODEL_CONSTANTS.keys()),
-            )
+        names = itertools.chain(
+            cast(List[str], super().__dir__()),
+            (key.lower() for key in self.MODEL_CONSTANTS.keys()),
         )
+        return list(names)
 
 
 class SeasonalParameter(Parameter):
@@ -2344,7 +2332,7 @@ a normal attribute nor does it handle a "time of year" named `2_1`.
     ...
     TypeError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `par` of element `?`, the \
-following error occurred: float() argument must be a string or a number...
+following error occurred: float() argument must be a string or a... number...
     >>> par = Par(None)
     >>> par.NDIM = 2
     >>> par.shape = (None, 3)
@@ -2374,11 +2362,10 @@ into shape (3,)
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `par`, \
-the following error occurred: While trying to convert the value(s) \
-`[ 1.  2.]` to a numpy ndarray with shape `(366, 3)` and type `float`, \
-the following error occurred: could not broadcast input array from \
-shape (2,) into shape (366,3)
+    ValueError: While trying to set the value(s) of variable `par`, the following \
+error occurred: While trying to convert the value(s) `[1. 2.]` to a numpy ndarray \
+with shape `(366, 3)` and type `float`, the following error occurred: could not \
+broadcast input array from shape (2,) into shape (366,3)
 
     .. testsetup::
 
@@ -2496,12 +2483,12 @@ shape (2,) into shape (366,3)
         >>> par.toy_1_2_12 = 2.0
         >>> par.toy_1_6_12 = 0.0, 2.0, 4.0
         >>> par.values[:6]
-        array([[ nan,  nan,  nan],
-               [ 2. ,  2. ,  2. ],
-               [ 1.5,  2. ,  2.5],
-               [ 1. ,  2. ,  3. ],
-               [ nan,  nan,  nan],
-               [ nan,  nan,  nan]])
+        array([[nan, nan, nan],
+               [2. , 2. , 2. ],
+               [1.5, 2. , 2.5],
+               [1. , 2. , 3. ],
+               [nan, nan, nan],
+               [nan, nan, nan]])
 
         .. testsetup::
 
@@ -2784,15 +2771,14 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         >>> par.NDIM = 1
         >>> par.shape = (None,)
         >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
-        >>> dir(par)   # doctest: +ELLIPSIS
-        [... 'subvars', 'toy_1_1_0_0_0', 'toy_3_1_0_0_0', \
-'toy_7_1_0_0_0', 'toys', 'trim', ...]
+        >>> sorted(set(dir(par)) - set(object.__dir__(par)))
+        ['toy_1_1_0_0_0', 'toy_3_1_0_0_0', 'toy_7_1_0_0_0']
 
         .. testsetup::
 
             >>> del pub.timegrids
         """
-        return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
+        return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
 class KeywordParameter1D(Parameter):
@@ -2829,7 +2815,7 @@ class KeywordParameter1D(Parameter):
     >>> ishot
     ishot(winter=True, summer=False)
     >>> ishot.values
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
     We check the given keyword arguments for correctness and completeness:
 
@@ -2965,17 +2951,18 @@ index 1 is out of bounds for axis 0 with size 1
             lines[-1] += ")"
         return "\n".join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class Season(KeywordParameter1D):
         ...     TYPE = bool
         ...     TIME = None
         ...     ENTRYNAMES = ("winter", "summer")
-        >>> dir(Season(None))   # doctest: +ELLIPSIS
-        [...'subvars', 'summer', 'trim', ... 'verify', 'winter']
+        >>> season = Season(None)
+        >>> sorted(set(dir(season)) - set(object.__dir__(season)))
+        ['summer', 'winter']
         """
-        return tuple(objecttools.dir_(self)) + self.ENTRYNAMES
+        return cast(List[str], super().__dir__()) + list(self.ENTRYNAMES)
 
 
 class MonthParameter(KeywordParameter1D):
@@ -3054,7 +3041,7 @@ class KeywordParameter2D(Parameter):
            south=[False, True])
     >>> iswarm.values
     array([[ True, False],
-           [False,  True]], dtype=bool)
+           [False,  True]])
 
     If a keyword is missing, it raises a |ValueError|:
 
@@ -3069,13 +3056,13 @@ as a keyword, but the following keywords are not: `south`.
 
     >>> iswarm.north = False, False
     >>> iswarm.north
-    array([False, False], dtype=bool)
+    array([False, False])
 
     The same holds for the columns:
 
     >>> iswarm.apr2sep = True, False
     >>> iswarm.apr2sep
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
     Also, combined row-column access is possible:
 
@@ -3262,7 +3249,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         else:
             super().__setattr__(key, values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
@@ -3275,7 +3262,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         lines[-1] = lines[-1][:-1] + ")"
         return "\n".join(lines)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
@@ -3283,43 +3270,20 @@ a normal attribute nor a row or column related attribute named `wrong`.
         ...     TIME = None
         ...     ROWNAMES = ("north", "south")
         ...     COLNAMES = ("apr2sep", "oct2mar")
-        >>> dir(IsWarm(None))   # doctest: +ELLIPSIS
-        [...'apply_timefactor', 'apr2sep'...'north', 'north_apr2sep', \
-'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
-'strict_valuehandling'...]
+        >>> iswarm = IsWarm(None)
+        >>> sorted(set(dir(iswarm)) - set(object.__dir__(iswarm)))
+        ['apr2sep', 'north', 'north_apr2sep', 'north_oct2mar', 'oct2mar', 'south', \
+'south_apr2sep', 'south_oct2mar']
         """
         return (
-            tuple(objecttools.dir_(self))
-            + self.ROWNAMES
-            + self.COLNAMES
-            + tuple(self._ROWCOLMAPPINGS.keys())
+            cast(List[str], super().__dir__())
+            + list(self.ROWNAMES)
+            + list(self.COLNAMES)
+            + list(self._ROWCOLMAPPINGS.keys())
         )
 
 
-class RelSubweightsMixin:
-    """Mixin class for derived parameters reflecting some absolute
-    values of the referenced weighting parameter in relative terms.
-
-    |RelSubweightsMixin| is supposed to be combined with parameters
-    implementing property `refweights`.
-
-    The documentation on base model |hland| provides some example
-    implementations like class |hland_derived.RelSoilZoneArea|.
-    """
-
-    mask: "masktools.BaseMask"
-    refweights: Parameter
-    __setitem__: Callable
-
-    def update(self) -> None:
-        """Update subclass of |RelSubweightsMixin| based on `refweights`."""
-        mask = self.mask
-        weights = self.refweights[mask]
-        self[~mask] = numpy.nan
-        self[mask] = weights / numpy.sum(weights)
-
-
-class LeftRightParameter(Parameter):
+class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     """Base class for handling two values, a left one and a right one.
 
     The original purpose of class |LeftRightParameter| is to make the
@@ -3385,6 +3349,7 @@ parameter value must be given, but is not.
     """
 
     NDIM = 1
+    SHAPE = (2,)
     strict_valuehandling: bool = False
 
     def __call__(self, *args, **kwargs) -> None:
@@ -3409,10 +3374,6 @@ parameter value must be given, but is not.
                     f"parameter value must be given, but is not."
                 ) from None
             self.right = right
-
-    def __hydpy__connect_variable2subgroup__(self) -> None:
-        super().__hydpy__connect_variable2subgroup__()
-        self.shape = 2
 
     @property
     def left(self) -> float:

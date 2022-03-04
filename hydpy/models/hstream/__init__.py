@@ -14,4 +14,3 @@ from hydpy.models.hstream.hstream_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

@@ -1,4 +1,4 @@
-venv
+venv*
 *.spyderproject
 *.spyderworkspace
 .pydevproject
@@ -27,6 +27,7 @@ hydpy/tests/iotesting/*
 build
 _build
 dist
+release
 gui
 helpers
 examples

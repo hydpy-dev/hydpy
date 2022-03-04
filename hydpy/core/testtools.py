@@ -32,7 +32,6 @@ from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import objecttools
-from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
@@ -40,7 +39,6 @@ from hydpy.core import variabletools
 from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
-    # pylint: disable=ungrouped-imports
     import matplotlib
     from matplotlib import pyplot
     import pandas
@@ -137,9 +135,12 @@ class Tester:
         >>> from pprint import pprint
         >>> pprint(hland.tester.filenames)
         ['__init__.py',
+         'hland_aides.py',
          'hland_constants.py',
          'hland_control.py',
          'hland_derived.py',
+         'hland_factors.py',
+         'hland_fixed.py',
          'hland_fluxes.py',
          'hland_inputs.py',
          'hland_logs.py',
@@ -153,11 +154,8 @@ class Tester:
         ['hland_v1.py']
         """
         if self.ispackage:
-            return sorted(
-                fn
-                for fn in os.listdir(os.path.dirname(self.filepath))
-                if fn.endswith(".py")
-            )
+            filenames = os.listdir(os.path.dirname(self.filepath))
+            return sorted(fn for fn in filenames if fn.endswith(".py"))
         return [os.path.split(self.filepath)[1]]
 
     @property
@@ -167,9 +165,12 @@ class Tester:
         >>> from hydpy.models import hland, hland_v1
         >>> from pprint import pprint
         >>> pprint(hland.tester.modulenames)
-        ['hland_constants',
+        ['hland_aides',
+         'hland_constants',
          'hland_control',
          'hland_derived',
+         'hland_factors',
+         'hland_fixed',
          'hland_fluxes',
          'hland_inputs',
          'hland_logs',
@@ -197,7 +198,7 @@ class Tester:
         However, you are free to call it any time when in doubt of the functionality
         of a particular base or application model.  Doing so might change some of the
         states of your current configuration, but only temporarily (besides
-        "projectname" we pick the |Timegrids| object of module |pub| as an example,
+        "projectname") we pick the |Timegrids| object of module |pub| as an example,
         which is changed multiple times during testing but finally reset to the
         original value):
 
@@ -208,11 +209,17 @@ class Tester:
         >>> from hydpy.models import hland, hland_v1
         >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
+            * hland_aides:
+                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:
                 no failures occurred
             * hland_derived:
+                no failures occurred
+            * hland_factors:
+                no failures occurred
+            * hland_fixed:
                 no failures occurred
             * hland_fluxes:
                 no failures occurred
@@ -245,10 +252,9 @@ class Tester:
                   "2001-01-01 00:00:00",
                   "1d")
 
-        To show the reporting of possible errors, we change the
-        string representation of parameter |hland_control.ZoneType|
-        temporarily.  Again, the |Timegrids| object is reset to its
-        initial state after testing:
+        To show the reporting of possible errors, we change the string representation
+        of parameter |hland_control.ZoneType| temporarily.  Again, the |Timegrids|
+        object is reset to its initial state after testing:
 
         >>> from unittest import mock
         >>> with mock.patch(
@@ -256,6 +262,8 @@ class Tester:
         ...     return_value="damaged"):
         ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
+            * hland_aides:
+                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:
@@ -289,62 +297,55 @@ hydpy.models.hland.hland_control.ZoneType
                   "1d")
         """
         opt = hydpy.pub.options
-        color = 34 if hydpy.pub.options.usecython else 36
-        with printtools.PrintStyle(color=color, font=4):
-            print(
-                f"Test {'package' if self.ispackage else 'module'} "
-                f"{self.package if self.ispackage else self.modulenames[0]} "
-                f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
-            )
-        with printtools.PrintStyle(color=color, font=2):
-            for name in self.modulenames:
-                print(f"    * {name}:")
-                # pylint: disable=not-callable
-                # pylint does understand that all options are callable
-                # except option `printincolor`!?
-                with StdOutErr(indent=8), opt.ellipsis(0), opt.printincolor(
-                    False
-                ), opt.printprogress(False), opt.reprcomments(False), opt.reprdigits(
-                    6
-                ), opt.usedefaultvalues(
-                    False
-                ), opt.utclongitude(
-                    15
-                ), opt.utcoffset(
-                    60
-                ), opt.warnsimulationstep(
-                    False
-                ), opt.warntrim(
-                    False
-                ), opt.parameterstep(
-                    timetools.Period("1d")
-                ), opt.simulationstep(
-                    timetools.Period()
-                ), devicetools.clear_registries_temporarily():
-                    # pylint: enable=not-callable
-                    projectname = exceptiontools.getattr_(
-                        hydpy.pub, "projectname", None, str
-                    )
-                    del hydpy.pub.projectname
-                    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
-                    del hydpy.pub.timegrids
-                    plotting_options = IntegrationTest.plotting_options
-                    IntegrationTest.plotting_options = PlottingOptions()
-                    try:
-                        modulename = ".".join((self.package, name))
-                        module = importlib.import_module(modulename)
-                        with warnings.catch_warnings():
-                            doctest.testmod(
-                                module,
-                                extraglobs={"testing": True},
-                                optionflags=doctest.ELLIPSIS,
-                            )
-                    finally:
-                        if projectname is not None:
-                            hydpy.pub.projectname = projectname
-                        if timegrids is not None:
-                            hydpy.pub.timegrids = timegrids
-                        IntegrationTest.plotting_options = plotting_options
+        print(
+            f"Test {'package' if self.ispackage else 'module'} "
+            f"{self.package if self.ispackage else self.modulenames[0]} "
+            f"in {'C' if hydpy.pub.options.usecython else 'P'}ython mode."
+        )
+        for name in self.modulenames:
+            print(f"    * {name}:")
+            # pylint: disable=not-callable
+            with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
+                False
+            ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
+                False
+            ), opt.utclongitude(
+                15
+            ), opt.utcoffset(
+                60
+            ), opt.warnsimulationstep(
+                False
+            ), opt.warntrim(
+                False
+            ), opt.parameterstep(
+                timetools.Period("1d")
+            ), opt.simulationstep(
+                timetools.Period()
+            ), devicetools.clear_registries_temporarily():
+                # pylint: enable=not-callable
+                projectname = exceptiontools.getattr_(
+                    hydpy.pub, "projectname", None, str
+                )
+                del hydpy.pub.projectname
+                timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
+                del hydpy.pub.timegrids
+                plotting_options = IntegrationTest.plotting_options
+                IntegrationTest.plotting_options = PlottingOptions()
+                try:
+                    modulename = ".".join((self.package, name))
+                    module = importlib.import_module(modulename)
+                    with warnings.catch_warnings():
+                        doctest.testmod(
+                            module,
+                            extraglobs={"testing": True},
+                            optionflags=doctest.ELLIPSIS,
+                        )
+                finally:
+                    if projectname is not None:
+                        hydpy.pub.projectname = projectname
+                    if timegrids is not None:
+                        hydpy.pub.timegrids = timegrids
+                    IntegrationTest.plotting_options = plotting_options
 
 
 class Array:
@@ -363,8 +364,14 @@ class ArrayDescriptor:
     def __set__(self, obj, values):
         self.__delete__(obj)
         if values is not None:
+            names = tuple(value[0].name for value in values)
+            duplicates = any(names.count(name) > 1 for name in names)
             for (key, value) in values:
-                setattr(self.values, key.name, value)
+                if duplicates:
+                    name = objecttools.devicename(key)
+                    setattr(self.values, f"{name}_{key.name}", value)
+                else:
+                    setattr(self.values, key.name, value)
 
     def __get__(self, obj, type_=None):
         return self.values
@@ -438,7 +445,9 @@ class Test:
                 elif len(parseq) == 0:
                     strings[-1].append("-")
                 else:
-                    strings[-1].extend(objecttools.repr_(value) for value in array[idx])
+                    strings[-1].extend(
+                        objecttools.repr_(value) for value in array[idx].flatten()
+                    )
         return strings
 
     @property
@@ -617,11 +626,11 @@ class IntegrationTest(Test):
         get_conditions=None,
         use_conditions=None,
     ):
-        """Prepare and perform an integration test and print and eventually
-        plot its results.
+        """Prepare and perform an integration test and print and eventually plot its
+        results.
 
-        Note that the conditions defined under |IntegrationTest.inits|
-        override the ones given via keyword `use_conditions`.
+        Note that the conditions defined under |IntegrationTest.inits| override the
+        ones given via keyword `use_conditions`.
         """
         self.prepare_model(
             update_parameters=update_parameters,
@@ -630,11 +639,7 @@ class IntegrationTest(Test):
         seq2value = self._perform_simulation(get_conditions)
         self.print_table()
         if filename:
-            self.plot(
-                filename=filename,
-                axis1=axis1,
-                axis2=axis2,
-            )
+            self.plot(filename=filename, axis1=axis1, axis2=axis2)
         return seq2value
 
     def _perform_simulation(self, get_conditions):
@@ -738,20 +743,21 @@ datetime of the Python standard library for for further information.
             if not node.entries:
                 node.deploymode = "oldsim"
             sim = node.sequences.sim
-            sim.activate_ram()
+            sim.prepare_series(allocate_ram=False)
+            sim.prepare_series(allocate_ram=True)
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
-        subseqs = getattr(self.element.model.sequences, "inputs", ())
-        for seq in subseqs:
-            seq.activate_ram()
+        prepare_series = self.element.model.sequences.inputs.prepare_series
+        prepare_series(allocate_ram=False)
+        prepare_series(allocate_ram=True)
 
     def extract_print_sequences(self):
-        """Return a list of all input, flux and state sequences of the model
-        as well as the simulation sequences of all nodes."""
+        """Return a list of all input, factor, flux, and state sequences of the model
+        and the simulation sequences of all nodes."""
         seqs = []
-        for name in ("inputs", "fluxes", "states"):
+        for name in ("inputs", "factors", "fluxes", "states"):
             subseqs = getattr(self.element.model.sequences, name, ())
             for seq in subseqs:
                 seqs.append(seq)
@@ -768,8 +774,10 @@ datetime of the Python standard library for for further information.
         series and set the initial conditions."""
         if update_parameters:
             self.model.parameters.update()
-        self.element.prepare_fluxseries()
-        self.element.prepare_stateseries()
+        for flag in (False, True):
+            self.element.prepare_factorseries(allocate_ram=flag)
+            self.element.prepare_fluxseries(allocate_ram=flag)
+            self.element.prepare_stateseries(allocate_ram=flag)
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
@@ -787,13 +795,15 @@ datetime of the Python standard library for for further information.
     def reset_inits(self):
         """Set all initial conditions of all models."""
         with hydpy.pub.options.trimvariables(False):
+            inits = self.inits
             for subname in ("states", "logs"):
                 for element in self.elements:
                     for seq in getattr(element.model.sequences, subname, ()):
-                        try:
-                            seq(getattr(self.inits, seq.name))
-                        except AttributeError:
-                            pass
+                        value = getattr(inits, seq.name, None)
+                        if value is None:
+                            value = getattr(inits, f"{element.name}_{seq.name}", None)
+                        if value is not None:
+                            seq(value)
 
     def plot(
         self,
@@ -849,35 +859,27 @@ datetime of the Python standard library for for further information.
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series))
                 _update_act_names(sequence, name)
-            elif sequence.shape[0] == 1:
+            elif all(length == 1 for length in sequence.shape):
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
                 sel_series.append(list(sequence.series[:, 0]))
                 _update_act_names(sequence, name)
             else:
-                for idx in range(sequence.shape[0]):
-                    subname = f"{name}_{idx+1}"
+                ranges = (range(length) for length in sequence.shape)
+                for idxs in itertools.product(*ranges):
+                    subname = f"{name}_{'-'.join(str(idx+1) for idx in idxs)}"
                     sel_names.append(subname)
                     sel_units.append(sequence.unit)
-                    sel_series.append(list(sequence.series[:, idx]))
+                    series = sequence.series
+                    for idx in idxs:
+                        series = series[:, idx]
+                    sel_series.append(list(series))
                     _update_act_names(sequence, subname)
 
-        fig = subplots.make_subplots(
-            rows=1,
-            cols=1,
-            specs=[[dict(secondary_y=True)]],
-        )
-        fig.update_xaxes(
-            showgrid=False,
-            zeroline=False,
-        )
-        fig.update_yaxes(
-            showgrid=False,
-            zeroline=False,
-        )
-        fig.update_layout(
-            showlegend=True,
-        )
+        fig = subplots.make_subplots(rows=1, cols=1, specs=[[dict(secondary_y=True)]])
+        fig.update_xaxes(showgrid=False, zeroline=False)
+        fig.update_yaxes(showgrid=False, zeroline=False)
+        fig.update_layout(showlegend=True)
 
         cmap = pyplot.get_cmap("tab20", 2 * len(sel_names))
         dates = list(
@@ -966,7 +968,7 @@ datetime of the Python standard library for for further information.
             legend=dict(tracegroupgap=100),
         )
 
-        docspath = docs.__path__[0]  # type: ignore[attr-defined, name-defined]
+        docspath = docs.__path__[0]
         fig.write_html(os.path.join(docspath, "html_", filename))
 
 
@@ -1045,7 +1047,9 @@ class UnitTest(Test):
     def memorise_inits(self):
         """Memorise all initial conditions."""
         for parseq in self.parseqs:
-            setattr(self.inits, parseq.name, parseq.values)
+            value = exceptiontools.getattr_(parseq, "value", None)
+            if value is not None:
+                setattr(self.inits, parseq.name, value)
 
     def prepare_output_arrays(self):
         """Prepare arrays for storing the calculated results for the
@@ -1285,24 +1289,31 @@ class TestIO:
     reported as uncovered.
     """
 
-    def __init__(self, clear_own=False, clear_all=False):
+    def __init__(
+        self,
+        clear_own: bool = False,
+        clear_all: bool = False,
+    ) -> None:
         self._clear_own = clear_own
         self._clear_all = clear_all
         self._path = None
         self._olds = None
 
-    def __enter__(self):
+    def __enter__(self) -> "TestIO":
         self._path = os.getcwd()
-        iotestingpath: str = iotesting.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
+        iotestingpath: str = iotesting.__path__[0]
         os.chdir(os.path.join(iotestingpath))
         if self._clear_own:
-            self._olds = os.listdir(".")
+            self._olds = sorted(os.listdir("."))
         return self
 
-    def __exit__(self, exception, message, traceback_):
-        for file in os.listdir("."):
-            if file.startswith(".coverage"):
-                shutil.move(file, os.path.join(self._path, file))
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
+        for file in sorted(os.listdir(".")):
             if (file != "__init__.py") and (
                 self._clear_all or (self._clear_own and (file not in self._olds))
             ):
@@ -1314,36 +1325,35 @@ class TestIO:
         os.chdir(self._path)
 
     @classmethod
-    def clear(cls):
+    def clear(cls) -> None:
         """Remove all files from the `iotesting` folder."""
         with cls(clear_all=True):
             pass
 
 
 def make_abc_testable(abstract: Type) -> Type:
-    """Return a concrete version of the given abstract base class for
-    testing purposes.
+    """Return a concrete version of the given abstract base class for testing purposes.
 
-    Abstract base classes cannot be (and, at least in production code,
-    should not be) instantiated:
+    Abstract base classes cannot be (and, at least in production code, should not be)
+    instantiated:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableBase
     >>> ncvar = NetCDFVariableBase()
     Traceback (most recent call last):
     ...
-    TypeError: Can't instantiate abstract class NetCDFVariableBase with \
-abstract methods array, dimensions, read, subdevicenames, write
+    TypeError: Can't instantiate abstract class NetCDFVariableBase with abstract \
+methods array, read, subdevicenames
 
-    However, it is convenient to do so for testing (partly) abstract
-    base classes in doctests.  The derived class returned by function
-    |make_abc_testable| is identical with the original one, except that
-    its protection against initialisation is disabled:
+    However, it is convenient to do so for testing (partly) abstract base classes in
+    doctests.  The derived class returned by function |make_abc_testable| is identical
+    with the original one, except that its protection against initialisation is
+    disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, 1)
 
-    To avoid confusion, |make_abc_testable| appends an underscore the
-    original class-name:
+    To avoid confusion, |make_abc_testable| appends an underscore the original
+    class-name:
 
     >>> classname(ncvar)
     'NetCDFVariableBase_'
@@ -1511,7 +1521,7 @@ class NumericalDifferentiator:
 
 def update_integrationtests(
     applicationmodel: Union[types.ModuleType, str],
-    resultfilepath: str,
+    resultfilepath: str = "update_integrationtests.txt",
 ) -> None:
     """Write the docstring of the given application model, updated with
     the current simulation results, to file.
@@ -1839,6 +1849,7 @@ def check_selectedvariables(
         "der",
         "fix",
         "inp",
+        "fac",
         "flu",
         "sta",
         "old",
@@ -2023,7 +2034,7 @@ def save_autofig(
 
     When passing no figure, function |save_autofig| takes the currently active one.
     """
-    filepath = f"{autofigs.__path__[0]}/{filename}"  # type: ignore[attr-defined]
+    filepath = f"{autofigs.__path__[0]}/{filename}"
     if figure:
         figure.savefig(filepath)
         figure.clear()

@@ -4,8 +4,7 @@
 """
 *HydPy*
 
-An interactive framework for the developement and a application of
-hydrological models.
+An interactive framework for the developement and a application of hydrological models.
 """
 # import...
 # ...from standard library
@@ -69,6 +68,7 @@ from hydpy.core.importtools import (
 from hydpy.core.itemtools import (
     AddItem,
     GetItem,
+    MultiplyItem,
     SetItem,
 )
 from hydpy.core.objecttools import (
@@ -113,8 +113,6 @@ from hydpy.auxs.armatools import (
 )
 from hydpy.auxs.anntools import (
     ANN,
-    ann,
-    SeasonalANN,
 )
 from hydpy.auxs.calibtools import (
     Add,
@@ -123,12 +121,17 @@ from hydpy.auxs.calibtools import (
     CalibSpec,
     CalibSpecs,
     FactorAdaptor,
+    make_rules,
     Multiply,
+    MultiplyIUH,
     Replace,
     ReplaceIUH,
     Rule,
     SumAdaptor,
     TargetFunction,
+)
+from hydpy.auxs.interptools import (
+    SeasonalInterpolator,
 )
 from hydpy.auxs.iuhtools import (
     LinearStorageCascade,
@@ -139,11 +142,16 @@ from hydpy.auxs.networktools import (
     RiverBasinNumbers,
     RiverBasinNumbers2Selection,
 )
+from hydpy.auxs.ppolytools import (
+    Poly,
+    PPoly,
+)
 from hydpy.auxs.statstools import (
     bias_abs,
     bias_rel,
     calc_mean_time,
     calc_mean_time_deviation,
+    calc_weights,
     corr,
     corr2,
     filter_series,
@@ -157,6 +165,9 @@ from hydpy.auxs.statstools import (
     prepare_arrays,
     rmse,
     std_ratio,
+    SummaryRowSimple,
+    SummaryRowWeighted,
+    var_ratio,
 )
 from hydpy.auxs.xmltools import (
     XMLInterface,
@@ -166,10 +177,10 @@ from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
     execute_scriptfunction,
+    run_doctests,
     run_subprocess,
     start_shell,
     print_latest_logfile,
-    test_everything,
 )
 from hydpy.exe.replacetools import (
     xml_replace,
@@ -186,21 +197,13 @@ pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 
-# Numpy introduced new string representations in version 1.14 affecting
-# our doctests.  Hence, the old style is selected for now:
-try:
-    # pylint: disable=unexpected-keyword-arg
-    numpy.set_printoptions(legacy="1.13")
-except TypeError:  # pragma: no cover
-    pass
-
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands
 pub.scriptfunctions["exec_script"] = exec_script
+pub.scriptfunctions["run_doctests"] = run_doctests
 pub.scriptfunctions["run_simulation"] = run_simulation
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
-pub.scriptfunctions["test_everything"] = test_everything
 pub.scriptfunctions["xml_replace"] = xml_replace
 
 __all__ = [
@@ -222,6 +225,7 @@ __all__ = [
     "reverse_model_wildcard_import",
     "AddItem",
     "GetItem",
+    "MultiplyItem",
     "SetItem",
     "print_values",
     "classname",
@@ -248,30 +252,34 @@ __all__ = [
     "ARMA",
     "MA",
     "ANN",
-    "ann",
-    "SeasonalANN",
     "Adaptor",
     "Add",
     "CalibrationInterface",
     "CalibSpec",
     "CalibSpecs",
     "FactorAdaptor",
+    "make_rules",
     "Multiply",
+    "MultiplyIUH",
     "Replace",
     "ReplaceIUH",
     "Rule",
     "SumAdaptor",
     "TargetFunction",
+    "SeasonalInterpolator",
     "LinearStorageCascade",
     "TranslationDiffusionEquation",
     "RiverBasinNumber",
     "RiverBasinNumbers",
     "RiverBasinNumbers2Selection",
+    "Poly",
+    "PPoly",
     "nan",
     "bias_abs",
     "bias_rel",
     "calc_mean_time",
     "calc_mean_time_deviation",
+    "calc_weights",
     "corr",
     "corr2",
     "filter_series",
@@ -285,13 +293,16 @@ __all__ = [
     "prepare_arrays",
     "rmse",
     "std_ratio",
+    "SummaryRowSimple",
+    "SummaryRowWeighted",
+    "var_ratio",
     "XMLInterface",
     "run_simulation",
     "exec_commands",
-    "test_everything",
     "exec_script",
     "execute_scriptfunction",
     "start_shell",
+    "run_doctests",
     "run_subprocess",
     "print_latest_logfile",
     "xml_replace",
@@ -315,24 +326,21 @@ if config.USEAUTODOC:
 
         substituter = autodoctools.prepare_mainsubstituter()
         for subpackage in (auxs, core, cythons, exe):
-            subpackagepath = subpackage.__path__[0]  # type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long
-            for filename in os.listdir(subpackagepath):
+            subpackagepath = subpackage.__path__[0]
+            for filename in sorted(os.listdir(subpackagepath)):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     module = importlib.import_module(
                         f"{subpackage.__name__}.{filename[:-3]}"
                     )
                     autodoctools.autodoc_module(module)
         autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
-        with pub.options.autocompile(False):
-            modelpath: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]  # pylint: disable=line-too-long
-            for filename in os.listdir(modelpath):
-                path = os.path.join(modelpath, filename)
-                if os.path.isdir(path) and not filename.startswith("_"):
-                    module = importlib.import_module(f"{models.__name__}.{filename}")
-                    autodoctools.autodoc_basemodel(module)
-            for filename in os.listdir(modelpath):
-                if filename.endswith(".py") and not filename.startswith("_"):
-                    module = importlib.import_module(
-                        f"{models.__name__}.{filename[:-3]}"
-                    )
-                    autodoctools.autodoc_applicationmodel(module)
+        modelpath: str = models.__path__[0]
+        for filename in sorted(os.listdir(modelpath)):
+            path = os.path.join(modelpath, filename)
+            if os.path.isdir(path) and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename}")
+                autodoctools.autodoc_basemodel(module)
+        for filename in sorted(os.listdir(modelpath)):
+            if filename.endswith(".py") and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename[:-3]}")
+                autodoctools.autodoc_applicationmodel(module)

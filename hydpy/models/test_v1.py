@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """This simple test model is thought for testing numerical integration
 strategies.  It can be seen from two perspectives.  On the one hand
 it implements the Dahlquist test equation (on the real axis only), which is
@@ -39,4 +39,3 @@ class Model(modeltools.ELSModel):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

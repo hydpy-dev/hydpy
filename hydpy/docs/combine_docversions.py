@@ -1,11 +1,10 @@
-"""Combine the currently generated documentation with the existing ones of
-the `available_doc_versions` branch and update this branch (which delete its
-history entirely).
+"""Combine the currently generated documentation with the existing ones of the
+`available_doc_versions` branch and update this branch (which delete its history
+entirely).
 
-This script works on Travis-CI.  To use it somewhere else, set the environment
-variable `TRAVIS_BRANCH` to the current branch name.  But we aware of the
-"git config..." command below.  I do not know if it modifies  your git
-configuration permanently.
+This script works on Travis-CI.  To use it somewhere else, set the environment variable
+`TRAVIS_BRANCH` to the current branch name.  But we aware of the "git config..."
+command below.  I do not know if it modifies  your git configuration permanently.
 
 This script does not push anything to Github-Pages.
 """
@@ -29,7 +28,7 @@ def call(command: str) -> None:
         sys.exit(1)
 
 
-shutil.copy("publish_docs.py", "publish_docs_copy.py")
+shutil.copy("hydpy/docs/publish_docs.py", "publish_docs_copy.py")
 
 print_('Check out the "available_doc_versions" branch:')
 call("git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*")
@@ -37,7 +36,7 @@ call("git fetch --all")
 call("git checkout --track origin/available_doc_versions")
 
 branch2version: Dict[str, str] = {}
-with open("relevant_branches.txt") as file_:
+with open("relevant_branches.txt", encoding="utf-8") as file_:
     for line in file_.readlines()[1:]:
         try:
             branch, version = line.split()
@@ -61,10 +60,14 @@ if os.path.exists(actual_version):
     print_("Remove the old documentation of branch", actual_branch)
     shutil.rmtree(actual_version)
 print_("Activate the new documentation of branch", actual_branch)
-shutil.move(
-    "hydpy/docs/auto/build",
-    actual_version,
-)
+for dirpath, _, _ in os.walk(os.path.join(".nox", "sphinx")):
+    if os.path.split(dirpath)[-1] == "site-packages":
+        buildpath = os.path.join(dirpath, "hydpy", "docs", "auto", "build")
+        if os.path.exists(buildpath):
+            break
+else:
+    raise RuntimeError("Cannot find Sphinx's build path.")
+shutil.move(buildpath, actual_version)
 
 token = os.environ["GH_TOKEN"]
 repo = os.environ["TRAVIS_REPO_SLUG"]

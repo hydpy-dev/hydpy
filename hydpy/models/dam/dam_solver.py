@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from site-packages
@@ -12,7 +11,7 @@ from hydpy.models.dam import dam_control
 
 
 class AbsErrorMax(parametertools.SolverParameter):
-    """Absolute numerical error tolerance [m3/s]."""
+    """Absolute numerical error tolerance [m³/s]."""
 
     NDIM = 0
     TYPE = float
@@ -23,13 +22,12 @@ class AbsErrorMax(parametertools.SolverParameter):
     CONTROLPARAMETERS = (dam_control.CatchmentArea,)
 
     def modify_init(self):
-        """ ""Adjust and return the value of class constant `INIT`.
+        r"""Adjust and return the value of class constant `INIT`.
 
-        Note that the default initial value 0.01 refers to mm and the
-        actual simulation step size.  Hence the actual default initial
-        value in m³/s is:
+        Note that the default initial value 0.01 refers to mm/T.  Hence the actual
+        default initial value in m³/s is:
 
-        :math:`AbsErrorMax = 0.01 \\cdot CatchmentArea \\cdot 1000 / Seconds`
+        :math:`AbsErrorMax = 0.01 \cdot CatchmentArea \cdot 1000 / Seconds`
 
         >>> from hydpy.models.dam import *
         >>> parameterstep("1d")

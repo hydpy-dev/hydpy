@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
@@ -75,7 +74,7 @@ class MFM(parametertools.Parameter):
             mfm(10.0)
         """
         con = self.subpars.pars.control
-        self(con.ekm * con.skm * con.gef ** 0.5)
+        self(con.ekm * con.skm * con.gef**0.5)
 
 
 class MFV(parametertools.LeftRightParameter):
@@ -105,7 +104,7 @@ class MFV(parametertools.LeftRightParameter):
             mfv(left=5.0, right=20.0)
         """
         con = self.subpars.pars.control
-        self(con.ekv * con.skv * con.gef ** 0.5)
+        self(con.ekv * con.skv * con.gef**0.5)
 
 
 class BNMF(parametertools.Parameter):
@@ -128,7 +127,7 @@ class BNMF(parametertools.Parameter):
             >>> derived.bnmf
             bnmf(2.236068)
         """
-        self((1.0 + self.subpars.pars.control.bnm ** 2) ** 0.5)
+        self((1.0 + self.subpars.pars.control.bnm**2) ** 0.5)
 
 
 class BNVF(parametertools.LeftRightParameter):
@@ -151,7 +150,7 @@ class BNVF(parametertools.LeftRightParameter):
             >>> derived.bnvf
             bnvf(left=2.236068, right=3.162278)
         """
-        self((1.0 + self.subpars.pars.control.bnv ** 2) ** 0.5)
+        self((1.0 + self.subpars.pars.control.bnv**2) ** 0.5)
 
 
 class BNVRF(parametertools.LeftRightParameter):
@@ -174,7 +173,7 @@ class BNVRF(parametertools.LeftRightParameter):
             >>> derived.bnvrf
             bnvrf(left=2.236068, right=3.162278)
         """
-        self((1.0 + self.subpars.pars.control.bnvr ** 2) ** 0.5)
+        self((1.0 + self.subpars.pars.control.bnvr**2) ** 0.5)
 
 
 class HRP(parametertools.Parameter):

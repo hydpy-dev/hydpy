@@ -81,7 +81,7 @@ it interactively to find out about its features:
 >>> type(obj) is str
 True
 
->>> dir(obj)
+>>> dir(obj)  # doctest: +ELLIPSIS
 [..., 'title', 'translate', 'upper', 'zfill']
 >>> print(obj.upper())
 TEST

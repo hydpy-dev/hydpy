@@ -1,12 +1,16 @@
 attrs
 black
 bokeh
+build
+click
 coverage
 Cython
 docutils
+lastversion
 matplotlib
 netcdf4
 networkx
+nox
 numpy
 packaging
 pandas

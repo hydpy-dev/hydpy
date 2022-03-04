@@ -8,29 +8,27 @@
 HydPy-D (DAM)
 =============
 
-The HydPy-D model family implements dams and similar natural and
-anthropogenic flow barriers.
+The HydPy-D model family implements dams and similar natural and anthropogenic
+flow barriers.
 
-At the current state of development, all its application models rely
-on an adaptive explicit Runge-Kutta method. This integration method
-allows for performing simulations with adjustable numerical precision.
-However, it works best for continuous differential equations. Hence,
-most process equations of base model |dam| are either continuous by nature
-or are "regularisable", meaning one can smooth their discontinuities by
-a degree one considers useful.
+At the current state of development, all its application models rely on an
+adaptive explicit Runge-Kutta method. This integration method allows for
+performing simulations with adjustable numerical precision. However, it works
+best for continuous differential equations. Hence, most process equations of
+base model |dam| are either continuous by nature or "regularisable", meaning
+one can smooth their discontinuities by a degree one considers useful.
 
-Each application model provides a different combination of control
-capabilities.. Many take "remote locations" into account, for example,
-to release additional water to the downstream river channel to increase
-water stages at remote gauges.
+Each application model provides a different combination of control capabilities.
+Many take "remote locations" into account, for example, to release additional
+water to the downstream river channel to increase water stages at remote gauges.
 
-All application models are tested and ready for use.  However, please note
-that some improvements in style and structure (e.g. changes in some
-variable names) might be necessary for the future. At the moment, it is a
-little hard to pick the correct application model.  We will have to find
-a way to prevent selecting the right model becoming too hard when the
-set of application models grows.  For the moment, the following overview
-over the first five application models might be helpful:
+All application models are tested and ready for use.  However, please note that
+some improvements in style and structure (e.g. changes in some variable names)
+might be necessary for the future. At the moment, it is a little hard to pick
+the correct application model.  We will have to find a way to prevent selecting
+a suitable model from becoming too hard when the collection of application
+models grows.  For the moment, the following overview over the first five
+application models might be helpful:
 
 ================================================================= ==== ==== ==== ==== ====
 Does the dam model…                                               v001 v002 v003 v004 v005
@@ -48,18 +46,18 @@ Does the dam model…                                               v001 v002 v0
 …allow for discharge from a remote location for flood protection? no   no   no   no   yes
 ================================================================= ==== ==== ==== ==== ====
 
-These five application models are independent implementations, developed
-for the forecasting system of the German federal state of Saxony and run
-by the `Landeshochwasserzentrum (LHWZ)`_.  More recently, we added the
-application models |dam_v006|, |dam_v007|, and |dam_v008| on behalf of
-the `German Federal Institute of Hydrology (BfG)`_.  Conceptionally, these
-*HydPy* models correspond the `LARSIM`_ models "SEEG" (controlled lake),
-"RUEC" (retention basin) and "TALS" (reservoir).
+These five application models are independent implementations, developed for
+the forecasting system of the German federal state of Saxony and run by the
+`Landeshochwasserzentrum (LHWZ)`_.  More recently, we added the application
+models |dam_v006|, |dam_v007|, and |dam_v008| on behalf of the `German Federal
+Institute of Hydrology (BfG)`_.  Conceptionally, these *HydPy* models
+correspond to the `LARSIM`_ models "SEEG" (controlled lake), "RUEC" (retention
+basin) and "TALS" (reservoir).
 
-|dam_v001| has been the starting point for the development of the
-other application models. Hence its documentation is very comprehensive,
-and it seems to be a good starting point to become acquainted with any
-of the application models prepared so far.
+|dam_v001| has been the starting point for the development of the other
+application models. Hence its documentation is very comprehensive, and it seems
+to be a good starting point to become acquainted with any of the application
+models prepared so far.
 
 Base model:
 

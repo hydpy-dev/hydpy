@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from standard-library
@@ -12,6 +11,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Responses(parametertools.Parameter):
@@ -30,17 +30,17 @@ class Responses(parametertools.Parameter):
 
     One can assign ARMA models as attributes to it:
 
-    >>> responses.th_0_0 = ((1, 2), (3, 4, 6))
+    >>> responses.th_0_0 = ((1.0, 2.0), (3.0, 4.0, 6.0))
 
     `th_0_0` stands for a threshold discharge value of 0.0 m³/s, which the
     given ARMA model corresponds to.  For integer discharge values, one can
     omit the decimal digit:
 
-    >>> responses.th_1 = ((), (7,))
+    >>> responses.th_1 = ((), (7.0,))
 
     One can also omit the leading letters, but not the underscore:
 
-    >>> responses.th_2_5 = ([8], range(9, 20))
+    >>> responses.th_2_5 = ([8.0], range(9, 20))
 
     Internally, all threshold keys are brought into the standard format:
 
@@ -64,7 +64,7 @@ class Responses(parametertools.Parameter):
 
     >>> responses.th_1[1][0]
     7.0
-    >>> responses.th_1_0[1][0] = 77
+    >>> responses.th_1_0[1][0] = 77.0
     Traceback (most recent call last):
     ...
     TypeError: 'tuple' object does not support item assignment
@@ -72,7 +72,7 @@ class Responses(parametertools.Parameter):
     Instead, one can delete and or overwrite existing ARMA models:
 
     >>> del responses.th_2_5
-    >>> responses.th_1 = ((), (77,))
+    >>> responses.th_1 = ((), (77.0,))
     >>> responses
     responses(th_0_0=((1.0, 2.0),
                       (3.0, 4.0, 6.0)),
@@ -102,9 +102,8 @@ threshold value identifier.
     >>> responses._0_1
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have \
-an attribute attribute named `_0_1` nor an arma model corresponding to \
-a threshold value named `th_0_1`.
+    AttributeError: Parameter `responses` of element `?` does not have an attribute \
+named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
 
     The above examples show that all AR and MA coefficients are converted to
     floating point values.  It this is not possible or something else goes
@@ -128,9 +127,9 @@ occurred: tuple index out of range
     Storage Cascade:
 
     >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
-    >>> tde = TranslationDiffusionEquation(d=5., u=2., x=4.)
+    >>> tde = TranslationDiffusionEquation(d=5.0, u=2.0, x=4.0)
     >>> from hydpy.auxs.iuhtools import LinearStorageCascade
-    >>> lsc = LinearStorageCascade(n=2.5, k=1.)
+    >>> lsc = LinearStorageCascade(n=2.5, k=1.0)
 
     The following line deletes the coefficients defined above and assigns the
     ARMA approximations of both iuh models:
@@ -141,7 +140,7 @@ occurred: tuple index out of range
     assign it to the `responses` parameter, without affecting the ARMA
     coefficients of the first tde parametrization:
 
-    >>> tde.u = 1.
+    >>> tde.u = 1.0
     >>> responses._5 = tde
     >>> responses
     responses(th_0_0=((1.001744, -0.32693, 0.034286),
@@ -193,13 +192,13 @@ Most probably, you defined the same threshold value(s) twice.
     be queried as numpy arrays:
 
     >>> responses.thresholds
-    array([ 0.,  1.])
+    array([0., 1.])
     >>> responses.ar_coefs
-    array([[  1.,   2.],
-           [ nan,  nan]])
+    array([[ 1.,  2.],
+           [nan, nan]])
     >>> responses.ma_coefs
-    array([[  3.,   4.,   6.],
-           [  7.,  nan,  nan]])
+    array([[ 3.,  4.,  6.],
+           [ 7., nan, nan]])
 
     Technical notes:
 
@@ -211,26 +210,26 @@ Most probably, you defined the same threshold value(s) twice.
     `arrays in list` type in Cython.
     """
 
+    _coefs: Dict[str, Tuple[Vector[float], Vector[float]]]
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def __init__(self, subvars: parametertools.SubParameters):
+    def __init__(self, subvars: parametertools.SubParameters) -> None:
         with objecttools.ResetAttrFuncs(self):
             super().__init__(subvars)
             self.fastaccess = None
-            self._coefs: Dict[str, numpy.ndarray] = {}
+            self._coefs = {}
 
-    def __hydpy__connect_variable2subgroup__(self):
+    def __hydpy__connect_variable2subgroup__(self) -> None:
         """Do nothing due to the reasons explained in the main
         documentation on class |Responses|."""
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(
-                f"For parameter `{self.name}` of element "
-                f"`{objecttools.devicename(self.subpars)}` at most "
-                f"one positional argument is allowed, but "
-                f"`{len(args)}` are given."
+                f"For parameter {objecttools.elementphrase(self)} at most one "
+                f"positional argument is allowed, but `{len(args)}` are given."
             )
         for (key, value) in kwargs.items():
             setattr(self, key, value)
@@ -246,26 +245,24 @@ Most probably, you defined the same threshold value(s) twice.
                 f"threshold value(s) twice."
             )
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> Tuple[Vector[float], Vector[float]]:
         try:
             std_key = self._standardize_key(key)
         except AttributeError as exc:
             raise AttributeError(
-                f"Parameter `{self.name}` of element "
-                f"`{objecttools.devicename(self.subpars)}` does not "
-                f"have an attribute named `{key}` and the name `{key}` "
-                f"is also not a valid threshold value identifier."
+                f"Parameter {objecttools.elementphrase(self)} does not have an "
+                f"attribute named `{key}` and the name `{key}` is also not a valid "
+                f"threshold value identifier."
             ) from exc
         if std_key in self._coefs:
             return self._coefs[std_key]
         raise AttributeError(
-            f"Parameter `{self.name}` of element "
-            f"`{objecttools.devicename(self.subpars)}` does not have "
-            f"an attribute attribute named `{key}` nor an arma model "
-            f"corresponding to a threshold value named `{std_key}`."
+            f"Parameter {objecttools.elementphrase(self)} does not have an attribute "
+            f"named `{key}` nor an arma model corresponding to a threshold value "
+            f"named `{std_key}`."
         )
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: object) -> None:
         if hasattr(self, key) and not key.startswith("th_"):
             object.__setattr__(self, key, value)
         else:
@@ -280,17 +277,16 @@ Most probably, you defined the same threshold value(s) twice.
                     )
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to set a new threshold ({key}) "
-                    f"coefficient pair for parameter `{self.name}` "
-                    f"of element `{objecttools.devicename(self.subpars)}`"
+                    f"While trying to set a new threshold ({key}) coefficient pair "
+                    f"for parameter {objecttools.elementphrase(self)}"
                 )
 
-    def __delattr__(self, key):
+    def __delattr__(self, key: str) -> None:
         std_key = self._standardize_key(key)
         if std_key in self._coefs:
             del self._coefs[std_key]
 
-    def _standardize_key(self, key):
+    def _standardize_key(self, key: str) -> str:
         try:
             tuple_ = str(key).split("_")
             if (len(tuple_) > 1) and tuple_[-2].isdigit():
@@ -302,44 +298,41 @@ Most probably, you defined the same threshold value(s) twice.
             return "_".join(("th", str(integer), str(decimal)))
         except BaseException as exc:
             raise AttributeError(
-                f"To define different response functions for "
-                f"parameter `{self.name}` of element "
-                f"`{objecttools.devicename(self.subpars)}`, one has "
-                f"to pass them as keyword arguments or set them as "
-                f"additional attributes.  The used name must meet a "
-                f"specific format (see the documentation for further "
-                f"information).  The given name `{key}` does not "
-                f"meet this format."
+                f"To define different response functions for parameter "
+                f"{objecttools.elementphrase(self)}, one has to pass them as keyword "
+                f"arguments or set them as additional attributes.  The used name must "
+                f"meet a specific format (see the documentation for further "
+                f"information).  The given name `{key}` does not meet this format."
             ) from exc
 
     @property
-    def thresholds(self):
+    def thresholds(self) -> Vector[float]:
         """Threshold values of the response functions."""
         return numpy.array(
             sorted(self._key2float(key) for key in self._coefs), dtype=float
         )
 
     @staticmethod
-    def _key2float(key):
+    def _key2float(key: str) -> float:
         return float(key[3:].replace("_", "."))
 
-    def _get_orders(self, index) -> Tuple[int, ...]:
+    def _get_orders(self, index: int) -> Tuple[int, ...]:
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))
         return tuple(orders)
 
     @property
-    def ar_orders(self):
+    def ar_orders(self) -> Tuple[int, ...]:
         """Number of AR coefficients of the different response functions."""
         return self._get_orders(0)
 
     @property
-    def ma_orders(self):
+    def ma_orders(self) -> Tuple[int, ...]:
         """Number of MA coefficients of the different response functions."""
         return self._get_orders(1)
 
-    def _get_coefs(self, index):
+    def _get_coefs(self, index: int) -> Matrix[float]:
         orders = self._get_orders(index)
         max_orders = max(orders) if orders else 0
         coefs = numpy.full((len(self), max_orders), numpy.nan)
@@ -348,7 +341,7 @@ Most probably, you defined the same threshold value(s) twice.
         return coefs
 
     @property
-    def ar_coefs(self):
+    def ar_coefs(self) -> Matrix[float]:
         """AR coefficients of the different response functions.
 
         The first row contains the AR coefficients related to the the smallest
@@ -358,7 +351,7 @@ Most probably, you defined the same threshold value(s) twice.
         return self._get_coefs(0)
 
     @property
-    def ma_coefs(self):
+    def ma_coefs(self) -> Matrix[float]:
         """AR coefficients of the different response functions.
 
         The first row contains the MA coefficients related to the the smallest
@@ -367,25 +360,23 @@ Most probably, you defined the same threshold value(s) twice.
         highest number of MA coefficients among all response functions."""
         return self._get_coefs(1)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._coefs)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return len(self._coefs) > 0
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[str, Tuple[Vector[float], Vector[float]]]]:
         for key in sorted(self._coefs.keys(), key=self._key2float):
             yield key, self._coefs[key]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         strings = self.commentrepr
-        prefix = "%s(" % self.name
+        prefix = f"{self.name}("
         blanks = " " * len(prefix)
         if self:
             for idx, (th, coefs) in enumerate(self):
-                subprefix = (
-                    "%s%s=" % (prefix, th) if idx == 0 else "%s%s=" % (blanks, th)
-                )
+                subprefix = f"{prefix}{th}=" if idx == 0 else f"{blanks}{th}="
                 strings.append(
                     objecttools.assignrepr_tuple2(coefs, subprefix, 75) + ","
                 )
@@ -394,7 +385,5 @@ Most probably, you defined the same threshold value(s) twice.
             strings.append(prefix + ")")
         return "\n".join(strings)
 
-    def __dir__(self):
-        attrs = objecttools.dir_(self)
-        attrs.extend(self._coefs.keys())
-        return attrs
+    def __dir__(self) -> List[str]:
+        return cast(List[str], super().__dir__()) + list(self._coefs.keys())

@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
 
 
-class Input(sequencetools.FluxSequence):
-    """Total input [e.g. m³/s]."""
+class OriginalInput(sequencetools.FluxSequence):
+    """Unadjusted total input [e.g. m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class AdjustedInput(sequencetools.FluxSequence):
+    """Adjusted total input [e.g. m³/s]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -18,14 +23,14 @@ class Outputs(sequencetools.FluxSequence):
 
     NDIM, NUMERIC = 1, False
 
-    def __repr__(self):
-        nodenames = self.subseqs.seqs.model.nodenames
+    def __repr__(self) -> str:
+        names = self.subseqs.seqs.model.nodenames
         lines = []
-        for (idx, value) in enumerate(self.values):
-            line = "%s=%s," % (nodenames[idx], repr(value))
+        for idx, (name, values) in enumerate(zip(names, self.values)):
+            line = f"{name}={repr(values)},"
             if not idx:
-                lines.append("outputs(" + line)
+                lines.append(f"outputs({line}")
             else:
-                lines.append("        " + line)
-        lines[-1] = lines[-1][:-1] + ")"
+                lines.append(f"        {line}")
+        lines[-1] = f"{lines[-1][:-1]})"
         return "\n".join(lines)

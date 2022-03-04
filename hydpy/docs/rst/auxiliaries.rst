@@ -19,8 +19,10 @@ what purpose it could serve.
    anntools
    armatools
    calibtools
+   interptools
    iuhtools
    networktools
+   ppolytools
    quadtools
    roottools
    smoothtools

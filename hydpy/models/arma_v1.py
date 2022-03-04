@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 Version 1 of the HydPy-A model generalises the RIMO/RIDO flood routing
 approach.
@@ -391,4 +390,3 @@ class Model(modeltools.AdHocModel):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

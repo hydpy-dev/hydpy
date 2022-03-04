@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
@@ -872,7 +870,7 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin
         dmin(0.01008)
         >>> dmin.values
-        array([ 0.24192])
+        array([0.24192])
 
         A wrong keyword results in the right answer:
 
@@ -955,7 +953,7 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax
         dmax(1.008)
         >>> dmax.values
-        array([ 24.192])
+        array([24.192])
 
         A wrong keyword results in the right answer:
 
@@ -1406,7 +1404,7 @@ must be given.
                     f"{objecttools.devicename(self)}, the values `{tal}`, "
                     f"`{hot}` and `{hut}` were given respectively."
                 ) from None
-            self.value = (0.868 * tal ** 3 / (hot - hut)) ** 0.385
+            self.value = (0.868 * tal**3 / (hot - hut)) ** 0.385
             if (self > 1000.0) or (self < 0.001):
                 warnings.warn(
                     f"Due to the given values for the keyword arguments "

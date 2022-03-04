@@ -42,4 +42,3 @@ from hydpy.models.wland.wland_masks import Masks
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

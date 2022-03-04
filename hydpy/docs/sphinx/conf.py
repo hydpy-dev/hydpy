@@ -67,7 +67,10 @@ intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
 }
 
-mathjax_config = {"displayAlign": "left"}
+mathjax_path = (
+    "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+)
+mathjax3_config = {"displayAlign": "left"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -82,8 +85,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"HydPy"
-copyright = u"2021, HydPy Developers"
+project = "HydPy"
+copyright = "2021, HydPy Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -228,7 +231,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "HydPy.tex", u"HydPy Documentation", u"HydPy Developers", "manual"),
+    ("index", "HydPy.tex", "HydPy Documentation", "HydPy Developers", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -256,7 +259,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "hydpy", u"HydPy Documentation", [u"HydPy Developers"], 1)]
+man_pages = [("index", "hydpy", "HydPy Documentation", ["HydPy Developers"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -271,8 +274,8 @@ texinfo_documents = [
     (
         "index",
         "HydPy",
-        u"HydPy Documentation",
-        u"HydPy Developers",
+        "HydPy Documentation",
+        "HydPy Developers",
         "HydPy",
         "One line description of project.",
         "Miscellaneous",

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""This module implements |property| like classes with similar or
-additional behaviour."""
+"""This module implements |property| like classes with similar or additional
+behaviour."""
 
 # import...
 # ...from standard-library
+from __future__ import annotations
 import abc
 import inspect
 import types
@@ -15,6 +16,7 @@ from typing_extensions import Protocol  # type: ignore[misc]
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 InputType = TypeVar("InputType")
 InputType_contra = TypeVar("InputType_contra", contravariant=True)
@@ -48,7 +50,7 @@ class BaseDescriptor:
         self.module = inspect.getmodule(objtype)
         if self.module is not None:
             if not hasattr(self.module, "__test__"):
-                self.module.__dict__["__test__"] = dict()
+                self.module.__dict__["__test__"] = {}
         self.name = name
         doc = getattr(self, "__doc__")
         if doc:
@@ -116,10 +118,7 @@ class BaseProperty(Generic[InputType, OutputType], BaseDescriptor):
         raise RuntimeError
 
     @staticmethod
-    def _fsetdummy(
-        __obj: Any,
-        __value: InputType,
-    ) -> None:
+    def _fsetdummy(__obj: Any, __value: InputType) -> None:
         raise RuntimeError
 
     @staticmethod
@@ -128,25 +127,17 @@ class BaseProperty(Generic[InputType, OutputType], BaseDescriptor):
 
     @overload
     def __get__(
-        self,
-        obj: None,
-        objtype: Type[Any],
-    ) -> "BaseProperty[InputType, OutputType]":
+        self, obj: None, objtype: Type[Any]
+    ) -> BaseProperty[InputType, OutputType]:
         ...
 
     @overload
-    def __get__(
-        self,
-        obj: Any,
-        objtype: Type[Any],
-    ) -> OutputType:
+    def __get__(self, obj: Any, objtype: Type[Any]) -> OutputType:
         ...
 
     def __get__(
-        self,
-        obj: Optional[Any],
-        objtype: Type[Any],
-    ) -> Union["BaseProperty[InputType, OutputType]", OutputType]:
+        self, obj: Optional[Any], objtype: Type[Any]
+    ) -> Union[BaseProperty[InputType, OutputType], OutputType]:
         if obj is None:
             return self
         if self.fget is self._fgetdummy:
@@ -266,19 +257,19 @@ class Property(BaseProperty[InputType, OutputType]):
         """Call `fdel` without additional functionalities."""
         self.fdel(obj)
 
-    def getter(self, fget: FGet[OutputType]) -> "Property[InputType, OutputType]":
+    def getter(self, fget: FGet[OutputType]) -> Property[InputType, OutputType]:
         """Add the given getter function and its docstring to the property and
         return it."""
         self.fget = fget
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(self, fset: FSet[InputType]) -> "Property[InputType, OutputType]":
+    def setter(self, fset: FSet[InputType]) -> Property[InputType, OutputType]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> "Property[InputType, OutputType]":
+    def deleter(self, fdel: FDel) -> Property[InputType, OutputType]:
         """Add the given deleter function to the property and return it."""
         setattr(self, "fdel", fdel)
         return self
@@ -387,14 +378,12 @@ has not been prepared so far.
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(
-        self, fset: FSet[InputType]
-    ) -> "ProtectedProperty[InputType, OutputType]":
+    def setter(self, fset: FSet[InputType]) -> ProtectedProperty[InputType, OutputType]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> "ProtectedProperty[InputType, OutputType]":
+    def deleter(self, fdel: FDel) -> ProtectedProperty[InputType, OutputType]:
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
@@ -570,21 +559,19 @@ is not usable so far.  At least, you have to prepare attribute `x` first.
 
     def getter(
         self, fget: FGet[OutputType]
-    ) -> "DependentProperty[InputType, OutputType]":
+    ) -> DependentProperty[InputType, OutputType]:
         """Add the given getter function and its docstring to the property and
         return it."""
         self.fget = fget
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(
-        self, fset: FSet[InputType]
-    ) -> "DependentProperty[InputType, OutputType]":
+    def setter(self, fset: FSet[InputType]) -> DependentProperty[InputType, OutputType]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> "DependentProperty[InputType, OutputType]":
+    def deleter(self, fdel: FDel) -> DependentProperty[InputType, OutputType]:
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
@@ -668,5 +655,16 @@ class DefaultProperty(BaseProperty[InputType, OutputType]):
         """Do nothing."""
 
 
+DefaultPropertyBool = DefaultProperty[bool, bool]
+"""|DefaultProperty| for handling |bool| objects."""
+
 DefaultPropertyStr = DefaultProperty[str, str]
 """|DefaultProperty| for handling |str| objects."""
+
+DefaultPropertySeriesFileType = DefaultProperty[SeriesFileType, SeriesFileType]
+"""|DefaultProperty| for handling |SeriesFileType| literals."""
+
+DefaultPropertySeriesAggregationType = DefaultProperty[
+    SeriesAggregationType, SeriesAggregationType
+]
+"""|DefaultProperty| for handling |SeriesAggregationType| literals."""

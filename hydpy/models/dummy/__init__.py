@@ -13,4 +13,3 @@ from hydpy.models.dummy.dummy_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

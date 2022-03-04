@@ -11,8 +11,9 @@
             <sequence>
                 <element ref="hpcb:options"/>
                 <element ref="hpcb:timegrid"/>
+                <element ref="hpcb:add_selections" minOccurs="0"/>
                 <element ref="hpcb:selections"/>
-                <element ref="hpcb:devices"/>
+                <element ref="hpcb:control_io" minOccurs="0"/>
                 <element ref="hpcb:conditions_io"/>
                 <element ref="hpcb:series_io"/>
             </sequence>

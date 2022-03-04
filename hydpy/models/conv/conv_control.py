@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from standard library
@@ -41,7 +40,7 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     >>> inputcoordinates
     inputcoordinates(in1=(1.0, 3.0))
     >>> inputcoordinates.values
-    array([[ 1.,  3.]])
+    array([[1., 3.]])
 
     Defining new coordinates removes the old ones:
 
@@ -53,9 +52,9 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
                      in0=(3.0, 5.0),
                      in3=(4.0, 6.0))
     >>> inputcoordinates.values
-    array([[ 2.,  4.],
-           [ 3.,  5.],
-           [ 4.,  6.]])
+    array([[2., 4.],
+           [3., 5.],
+           [4., 6.]])
 
     You are free to change individual coordinate values (the rows of the
     data array contain the different value pairs; the row order
@@ -147,7 +146,7 @@ variable `inputheights` can only be retrieved after it has been defined.
     >>> inputheights
     inputheights(in1=1.0)
     >>> inputheights.values
-    array([ 1.])
+    array([1.])
 
     Defining new heights removes the old ones:
 
@@ -159,7 +158,7 @@ variable `inputheights` can only be retrieved after it has been defined.
                  in0=3.0,
                  in3=4.0)
     >>> inputheights.values
-    array([ 2.,  3.,  4.])
+    array([2., 3., 4.])
 
     You are free to change individual height values (the row order corresponds
     to the definition order when "calling" the parameter):

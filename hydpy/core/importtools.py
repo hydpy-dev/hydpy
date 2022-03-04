@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """This module implements features related to importing models.
 
-The implemented tools are primarily designed for hiding model initialisation
-routines from model users and for allowing writing readable doctests.
+The implemented tools are primarily designed for hiding model initialisation routines
+from model users and for allowing writing readable doctests.
 """
 # import...
 # ...from standard library
@@ -30,15 +30,14 @@ if TYPE_CHECKING:
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
-    Function |parameterstep| should usually be applied in a line immediately
-    behind the model import or behind calling function |simulationstep|.
-    Defining the step size of time-dependent parameters is a prerequisite to
-    access any model-specific parameter.
+    Function |parameterstep| should usually be applied in a line immediately behind the
+    model import or behind calling function |simulationstep|.  Defining the step size
+    of time-dependent parameters is a prerequisite to access any model-specific
+    parameter.
 
-    Note that |parameterstep| implements some namespace magic utilising
-    the module |inspect|, which makes things a little complicated for
-    framework developers.  Still it eases the definition of parameter
-    control files for framework users.
+    Note that |parameterstep| implements some namespace magic utilising the module
+    |inspect|, which makes things a little complicated for framework developers.  Still
+    it eases the definition of parameter control files for framework users.
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timestep
@@ -106,6 +105,7 @@ def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
         cls_inlets=dict_.get("InletSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
         cls_inputs=dict_.get("InputSequences"),
+        cls_factors=dict_.get("FactorSequences"),
         cls_fluxes=dict_.get("FluxSequences"),
         cls_states=dict_.get("StateSequences"),
         cls_logs=dict_.get("LogSequences"),
@@ -322,16 +322,14 @@ def controlcheck(
 ) -> None:
     """Define the corresponding control file within a condition file.
 
-    Function |controlcheck| serves similar purposes as function
-    |parameterstep|.  It is the reason why one can interactively
-    access the state and the log sequences within condition files
-    as `land_dill.py` of the example project `LahnH`.  It is called
-    `controlcheck` due to its feature to check for possible inconsistencies
-    between control and condition files.  The following test, where we
-    write a number of soil moisture values (|hland_states.SM|) into
-    condition file `land_dill.py`, which does not agree with the number
-    of hydrological response units (|hland_control.NmbZones|) defined in
-    control file `land_dill.py`, verifies that this, in fact, works within
+    Function |controlcheck| serves similar purposes as function |parameterstep|.  It is
+    the reason why one can interactively access the state and the log sequences within
+    condition files as `land_dill.py` of the example project `LahnH`.  It is called
+    `controlcheck` due to its feature to check for possible inconsistencies between
+    control and condition files.  The following test, where we write a number of soil
+    moisture values (|hland_states.SM|) into condition file `land_dill.py`, which does
+    not agree with the number of hydrological response units (|hland_control.NmbZones|)
+    defined in control file `land_dill.py`, verifies that this, in fact, works within
     a separate Python process:
 
     >>> from hydpy.examples import prepare_full_example_1
@@ -357,16 +355,16 @@ a numpy ndarray with shape `(12,)` and type `float`, the following error \
 occurred: could not broadcast input array from shape (2...) into shape (12...)
     ...
 
-    With a little trick, we can fake to be "inside" condition file
-    `land_dill.py`.  Calling |controlcheck| then, for example, prepares the
-    shape of sequence |hland_states.Ic| as specified by the value of parameter
-    |hland_control.NmbZones| given in the corresponding control file:
+    With a little trick, we can fake to be "inside" condition file `land_dill.py`.
+    Calling |controlcheck| then, for example, prepares the shape of sequence
+    |hland_states.Ic| as specified by the value of parameter |hland_control.NmbZones|
+    given in the corresponding control file:
 
     >>> from hydpy.models.hland_v1 import *
     >>> __file__ = "land_dill.py"
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     controlcheck()
+    ...     controlcheck(firstdate="1996-01-01", stepsize="1d")
     >>> ic.shape
     (12,)
 
@@ -394,12 +392,11 @@ the following error occurred: ...
     periods with high leaf area indices than during periods with small
     leaf area indices.
 
-    To show the related functionalities, we first replace the |hland_v1|
-    application model of element `land_dill` with a |lland_v1| model object,
-    define some of its parameter values, and write its control and condition
-    files.  Note that the
-    |lland_control.LAI| value of the only relevant land-use
-    (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
+    To show the related functionalities, we first replace the |hland_v1| application
+    model of element `land_dill` with a |lland_v1| model object, define some of its
+    parameter values, and write its control and condition files.  Note that the
+    |lland_control.LAI| value of the only relevant land-use (|lland_constants.ACKER|)
+    is 0.5 during January and 5.0 during July:
 
     >>> from hydpy import HydPy, prepare_model, pub
     >>> from hydpy.models.lland_v1 import ACKER

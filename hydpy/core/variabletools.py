@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-"""This module implements general features for defining and working with
-model parameters and sequences.
+"""This module implements general features for defining and working with model
+parameters and sequences.
 
-Features more specific to either parameters or sequences are implemented
-in modules |parametertools| and |sequencetools| respectively.
+Features more specific to either parameters or sequences are implemented in modules
+|parametertools| and |sequencetools|, respectively.
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import copy
 import inspect
 import textwrap
 import warnings
 from typing import *
+from typing import NoReturn
 from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
@@ -53,8 +55,8 @@ FastAccessType = TypeVar(
 )
 
 INT_NAN: int = -999999
-"""Surrogate for `nan`, which is available for floating point values
-but not for integer values."""
+"""Surrogate for `nan`, which is available for floating-point values but not for 
+integer values."""
 
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
@@ -62,21 +64,18 @@ TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 def trim(self: "Variable", lower=None, upper=None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
-    Usually, users do not need to apply function |trim| directly.
-    Instead, some |Variable| subclasses implement their own `trim`
-    methods relying on function |trim|.  Model developers should
-    implement individual `trim` methods for their |Parameter| or
-    |Sequence_| subclasses when their boundary values depend on the
-    actual project configuration (one example is soil moisture;
-    its lowest possible value should possibly be zero in all cases,
-    but its highest possible value could depend on another parameter
-    defining the maximum storage capacity).
+    Usually, users do not need to apply the |trim| function directly. Instead, some
+    |Variable| subclasses implement their own `trim` methods relying on function |trim|.
+    Model developers should implement individual `trim` methods for their |Parameter|
+    or |Sequence_| subclasses when their boundary values depend on the actual project
+    configuration (one example is soil moisture; its lowest possible value should
+    possibly be zero in all cases, but its highest possible value could depend on
+    another parameter defining the maximum storage capacity).
 
-    For the following examples, we prepare a simple (not fully
-    functional) |Variable| subclass, making use of function |trim|
-    without any modifications.  Function |trim| works slightly
-    different for variables handling |float|, |int|, and |bool|
-    values.  We start with the most common content type |float|:
+    For the following examples, we prepare a simple (not fully functional) |Variable|
+    subclass, making use of function |trim| without any modifications.  Function |trim|
+    works slightly different for variables handling |float|, |int|, and |bool| values.
+    We start with the most common content type, |float|:
 
     >>> from hydpy.core.variabletools import trim, Variable
     >>> class Var(Variable):
@@ -212,7 +211,7 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
 The old and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, \
 respectively.
     >>> var
-    var([[1.0, 1.0, 2.0]])
+    var(1.0, 1.0, 2.0)
 
     >>> var.values = 2.0, 3.0, 4.0
     >>> var.trim()
@@ -222,19 +221,19 @@ respectively.
 The old and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, \
 respectively.
     >>> var
-    var([[2.0, 3.0, 3.0]])
+    var(2.0, 3.0, 3.0)
 
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
     >>> var.values == (1.0, 2.0, 3.0)
-    array([[False,  True, False]], dtype=bool)
+    array([[False,  True, False]])
     >>> var.trim()
     >>> var.values == (1.0, 2.0, 3.0)
-    array([[ True,  True,  True]], dtype=bool)
+    array([[ True,  True,  True]])
 
     >>> var.values = 0.0, 2.0, 4.0
     >>> var.trim(lower=numpy.nan, upper=numpy.nan)
     >>> var
-    var([[0.0, 2.0, 4.0]])
+    var(0.0, 2.0, 4.0)
 
     >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
     Traceback (most recent call last):
@@ -329,7 +328,7 @@ respectively.
     ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
     >>> var
-    var([[0, 1, 2]])
+    var(0, 1, 2)
     >>> var.values = 2, 3, 4
     >>> var.trim()
     Traceback (most recent call last):
@@ -337,7 +336,7 @@ is not valid.
     ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
     >>> var
-    var([[2, 3, 4]])
+    var(2, 3, 4)
 
 
     >>> var.values = 0, 0, 2
@@ -346,9 +345,8 @@ is not valid.
     >>> var.values = 2, 4, 4
     >>> var.trim(upper=[2, INT_NAN, 4])
 
-    For |bool| values, defining outliers does not make much sense,
-    which is why function |trim| does nothing when applied on
-    variables handling |bool| values:
+    For |bool| values, defining outliers does not make much sense, which is why
+    function |trim| does nothing when applied to variables handling |bool| values:
 
     >>> Var.TYPE = bool
     >>> var.trim()
@@ -360,9 +358,9 @@ is not valid.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    NotImplementedError: Method `trim` can only be applied on parameters \
-handling floating point, integer, or boolean values, but the "value type" \
-of parameter `var` is `str`.
+    NotImplementedError: Method `trim` can only be applied on parameters handling \
+floating-point, integer, or boolean values, but the "value type" of parameter `var` \
+is `str`.
 
     >>> pub.options.warntrim = False
     """
@@ -386,10 +384,9 @@ of parameter `var` is `str`.
             pass
         else:
             raise NotImplementedError(
-                f"Method `trim` can only be applied on parameters "
-                f"handling floating point, integer, or boolean values, "
-                f'but the "value type" of parameter `{self.name}` is '
-                f"`{self.TYPE.__name__}`."
+                f"Method `trim` can only be applied on parameters handling "
+                f'floating-point, integer, or boolean values, but the "value type" of '
+                f"parameter `{self.name}` is `{self.TYPE.__name__}`."
             )
 
 
@@ -423,12 +420,12 @@ def _trim_float_nd(self, lower, upper):
         upper = numpy.inf
     upper = numpy.full(shape, upper, dtype=float)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
-    idxs = numpy.where(numpy.isnan(values))
+    idxs = numpy.isnan(values)
     values[idxs] = lower[idxs]
     if numpy.any(values < lower) or numpy.any(values > upper):
         old = values.copy()
         trimmed = numpy.clip(values, lower, upper)
-        self.values = trimmed
+        values[:] = trimmed
         if numpy.any(
             (old + get_tolerance(old)) < (lower - get_tolerance(lower))
         ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
@@ -468,7 +465,7 @@ def _trim_int_nd(self, lower, upper):
 
 def get_tolerance(values):
     """Return some "numerical accuracy" to be expected for the
-    given floating point value(s).
+    given floating-point value(s).
 
     The documentation on function |trim| explains also function
     |get_tolerance|.  However, note the special case of infinite
@@ -668,18 +665,18 @@ For variable `var`, no value has been defined so far.
     >>> var.shape = (2,)
     >>> var.values = 2.0
     >>> var + var
-    array([ 4.,  4.])
+    array([4., 4.])
     >>> var + 3.0
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> [4.0, 0.0] + var
-    array([ 6.,  2.])
+    array([6., 2.])
     >>> var += 1
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 3.0
     >>> var - [1.0, 0.0]
-    array([ 2.,  3.])
+    array([2., 3.])
     >>> [7.0, 0.0] - var
     array([ 4., -3.])
     >>> var -= [2.0, 0.0]
@@ -688,62 +685,62 @@ For variable `var`, no value has been defined so far.
 
     >>> var.values = 2.0
     >>> var * [3.0, 1.0]
-    array([ 6.,  2.])
+    array([6., 2.])
     >>> [4.0, 1.0] * var
-    array([ 8.,  2.])
+    array([8., 2.])
     >>> var *= [0.5, 1.0]
     >>> var
     var(1.0, 2.0)
 
     >>> var.values = 3.0
     >>> var / [2.0, 1.0]
-    array([ 1.5,  3. ])
+    array([1.5, 3. ])
     >>> [7.5, 3.0] / var
-    array([ 2.5,  1. ])
+    array([2.5, 1. ])
     >>> var /= [6.0, 1.]
     >>> var
     var(0.5, 3.0)
 
     >>> var.values = 3.0
     >>> var // [2.0, 1.0]
-    array([ 1.,  3.])
+    array([1., 3.])
     >>> [7.5, 3.0] // var
-    array([ 2.,  1.])
+    array([2., 1.])
     >>> var //= [0.9, 1.0]
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 5.0
     >>> var % [2.0, 5.0]
-    array([ 1.,  0.])
+    array([1., 0.])
     >>> [7.5, 5.0] % var
-    array([ 2.5,  0. ])
+    array([2.5, 0. ])
     >>> var %= [3.0, 5.0]
     >>> var
     var(2.0, 0.0)
 
     >>> var.values = 2.0
     >>> var**[3.0, 1.0]
-    array([ 8.,  2.])
+    array([8., 2.])
     >>> [3.0, 1.0]**var
-    array([ 9.,  1.])
+    array([9., 1.])
     >>> var **= [4.0, 1.0]
     >>> var
     var(16.0, 2.0)
 
     >>> var.value = 5.0
     >>> divmod(var, [3.0, 5.0])
-    (array([ 1.,  1.]), array([ 2.,  0.]))
+    (array([1., 1.]), array([2., 0.]))
     >>> divmod([13.0, 5.0], var)
-    (array([ 2.,  1.]), array([ 3.,  0.]))
+    (array([2., 1.]), array([3., 0.]))
 
     >>> var.values = -5.0
     >>> +var
     array([-5., -5.])
     >>> -var
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> abs(var)
-    array([ 5.,  5.])
+    array([5., 5.])
     >>> ~var
     array([-0.2, -0.2])
     >>> var.value = 2.5
@@ -754,7 +751,7 @@ For variable `var`, no value has been defined so far.
     array([3, 3])
     >>> var.values = 1.67
     >>> round(var, 1)
-    array([ 1.7,  1.7])
+    array([1.7, 1.7])
     >>> bool(var)
     True
     >>> int(var)
@@ -801,10 +798,9 @@ with key `1`, the following error occurred: The only allowed keys for \
 with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
-    Comparisons with |Variable| objects containing multiple values
-    return a single boolean value.  Two objects are equal if all of
-    their value-pairs are equal, and they are unequal if at least
-    one of their value-pairs is unequal:
+    Comparisons with |Variable| objects containing multiple values return a single
+    boolean value.  Two objects are equal if all of their value pairs are equal, and
+    they are unequal if at least one of their value pairs is unequal:
 
     >>> var.shape = (2,)
     >>> var.values = 1.0, 3.0
@@ -1027,7 +1023,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.__valueready = False
         self.__shapeready = False
 
-    def __init_subclass__(cls) -> None:
+    # We do not want to implement the signature of Generic.__init_subclass__ here:
+    def __init_subclass__(cls) -> None:  # pylint: disable=arguments-differ
         super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()
@@ -1048,6 +1045,12 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         """To be called by the |SubVariables| object when preparing a
         new |Variable| object."""
         self.fastaccess = self.subvars.fastaccess
+        self._finalise_connections()
+
+    def _finalise_connections(self) -> None:
+        """A hook method, called at the end of method
+        `__hydpy__connect_variable2subgroup__` for initialising
+        values and some related attributes."""
 
     @property
     @abc.abstractmethod
@@ -1207,24 +1210,23 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 value = numpy.full(self.shape, value, dtype=type_)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to convert the value(s) `{value}` "
-                    f"to a numpy ndarray with shape `{self.shape}` "
-                    f"and type `{self.TYPE.__name__}`"
+                    f"While trying to convert the value(s) `{value}` to a numpy "
+                    f"ndarray with shape `{self.shape}` and type `{self.TYPE.__name__}`"
                 )
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
                     raise ValueError(
-                        f"{len(value)} values are assigned to the scalar "
-                        f"variable {objecttools.devicephrase(self)}."
+                        f"{len(value)} values are assigned to the scalar variable "
+                        f"{objecttools.devicephrase(self)}."
                     )
                 value = value[0]
             try:
                 value = self.TYPE(value)
             except BaseException:
                 raise TypeError(
-                    f"The given value `{value}` cannot be converted "
-                    f"to type `{self.TYPE.__name__}`."
+                    f"The given value `{value}` cannot be converted to type "
+                    f"`{self.TYPE.__name__}`."
                 ) from None
         return value
 
@@ -1272,7 +1274,7 @@ variable `var` can only be retrieved after it has been defined.
         >>> var.shape
         (3,)
         >>> var.values
-        array([ 3.,  3.,  3.])
+        array([3., 3., 3.])
 
         For the |Variable.initinfo| flag (second |tuple| entry) being
         |False|, the array is still prepared but not directly accessible
@@ -1292,7 +1294,7 @@ variable `var` can only be retrieved after it has been defined.
 values have been defined so far.
 
         >>> var.fastaccess.var
-        array([ nan,  nan,  nan])
+        array([nan, nan, nan])
 
         Property |Variable.shape| tries to normalise assigned values and
         raises errors like the following, if not possible:
@@ -1379,9 +1381,8 @@ as `var` can only be `()`, but `(2,)` is given.
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
             raise exceptiontools.AttributeNotReady(
-                f"Shape information for variable "
-                f"{objecttools.devicephrase(self)} can only "
-                f"be retrieved after it has been defined."
+                f"Shape information for variable {objecttools.devicephrase(self)} can "
+                f"only be retrieved after it has been defined."
             )
         return ()
 
@@ -1425,11 +1426,14 @@ as `var` can only be `()`, but `(2,)` is given.
         )
 
     def verify(self) -> None:
-        """Raises a |RuntimeError| if at least one of the required values
-        of a |Variable| object is |None| or |numpy.nan|. The descriptor
-        `mask` defines, which values are considered to be necessary.
+        """Raise a |RuntimeError| if at least one of the required values of a |Variable|
+        object is |None| or |numpy.nan|.
 
-        Example on a 0-dimensional |Variable|:
+        The descriptor |Variable.mask| defines which values are considered necessary.
+        For |Variable| subclasses defining |numpy.nan| as their |Variable.INIT| value,
+        method |Variable.verify| assumes that |numpy.nan| are not problematic.
+
+        Examples on a 0-dimensional |Variable|:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class Var(Variable):
@@ -1446,10 +1450,13 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been \
-set yet: var(nan).
+        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+var(nan).
 
-        Example on a 2-dimensional |Variable|:
+        >>> var.INIT = numpy.nan
+        >>> var.verify()
+
+        Examples on a 2-dimensional |Variable|:
 
         >>> Var.NDIM = 2
         >>> var = Var(None)
@@ -1459,16 +1466,16 @@ set yet: var(nan).
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 2 required values have not been \
-set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
+        RuntimeError: For variable `var`, 2 required values have not been set yet: \
+var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask = var.mask
         >>> Var.mask[0, 1] = False
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been \
-set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
+        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask[1, 1] = False
         >>> var.verify()
@@ -1476,24 +1483,68 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         valueready = self.__valueready
         try:
             self.__valueready = True
-            # noinspection PyTypeChecker
             nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
         finally:
             self.__valueready = valueready
-        if nmbnan:
+        if nmbnan and ((self.INIT is None) or ~numpy.isnan(self.INIT)):
             text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(
-                f"For variable {objecttools.devicephrase(self)}, "
-                f"{nmbnan} required {text} not been set yet: "
-                f"{objecttools.flatten_repr(self)}."
+                f"For variable {objecttools.devicephrase(self)}, {nmbnan} required "
+                f"{text} not been set yet: {objecttools.flatten_repr(self)}."
             )
 
     @property
-    def refweights(self) -> "Variable":
-        """Reference to a |Parameter| object that defines weighting
+    def valuevector(self) -> Vector:
+        """The values of the actual |Variable| object, arranged in a 1-dimensional
+        vector.
+
+        For a 1-dimensional variable object, property |Variable.valuevector| returns
+        the original values without any modification:
+
+        >>> from hydpy.models.hland import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(3)
+        >>> sclass(2)
+        >>> states.sm.values = 1.0, 2.0, 3.0
+        >>> from hydpy import print_values
+        >>> print_values(states.sm.valuevector)
+        1.0, 2.0, 3.0
+
+        For all other variables, |Variable.valuevector| raises the following error by
+        default:
+
+        >>> states.uz.valuevector
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Variable `uz` does not implement a method for converting \
+its values to a 1-dimensional vector.
+
+        If considered appropriate, model developers should override
+        |Variable.valuevector| for individual multidimensional variables, to support
+        methods like |Variable.average_values|, which rely on 1-dimensional data.  One
+        example is the state sequence |hland_states.SP| of base model |hland|, which
+        handles values for individual zones (second axis) and snow classes (first axis).
+        Here we decided to let |hland_sequences.State2DSequence.valuevector| return the
+        sums of all snow classes for each zone so that the content of the returned
+        vector agrees with the contents of most 1-dimensional sequences of |hland|:
+
+        >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        >>> print_values(states.sp.valuevector)
+        2.5, 3.5, 4.5
+        """
+        if self.NDIM == 1:
+            return self.value
+        raise NotImplementedError(
+            f"Variable {objecttools.devicephrase(self)} does not implement a method "
+            f"for converting its values to a 1-dimensional vector."
+        )
+
+    @property
+    def refweights(self) -> Union[parametertools.Parameter, Vector[float]]:
+        """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
-        |Variable.average_values|.  Must be overwritten by subclasses,
-        when required."""
+        |Variable.average_values|.  Must be overwritten by subclasses when required."""
         raise AttributeError(
             f"Variable {objecttools.devicephrase(self)} does "
             f"not define any weighting coefficients."
@@ -1503,9 +1554,8 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         """Average the actual values of the |Variable| object.
 
         For 0-dimensional |Variable| objects, the result of method
-        |Variable.average_values| equals |Variable.value|.  The
-        following example shows this for the sloppily defined class
-        `SoilMoisture`:
+        |Variable.average_values| equals |Variable.value|.  The following example shows
+        this for the poorly defined class `SoilMoisture`:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class SoilMoisture(Variable):
@@ -1515,14 +1565,13 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         ...     availablemasks = None
         ...     initinfo = None
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        ...     value = 200.0
         >>> sm = SoilMoisture(None)
-        >>> sm.value = 200.0
         >>> sm.average_values()
         200.0
 
-        When the dimensionality of this class is increased to one,
-        applying method |Variable.average_values| results in the
-        following error:
+        When the dimensionality of this class is increased to one, applying method
+        |Variable.average_values| results in the following error:
 
         >>> SoilMoisture.NDIM = 1
         >>> import numpy
@@ -1531,14 +1580,13 @@ set yet: var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> sm.average_values()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to calculate the mean value \
-of variable `soilmoisture`, the following error occurred: Variable \
-`soilmoisture` does not define any weighting coefficients.
+        AttributeError: While trying to calculate the mean value of variable \
+`soilmoisture`, the following error occurred: Variable `soilmoisture` does not define \
+any weighting coefficients.
 
-        So model developers have to define another (in this case
-        1-dimensional) |Variable| subclass (usually a |Parameter|
-        subclass), and make the relevant object available via property
-        |Variable.refweights|:
+        So model developers have to define another (in this case 1-dimensional)
+        |Variable| subclass (usually a |Parameter| subclass) and make the relevant
+        object available via property |Variable.refweights|:
 
         >>> class Area(Variable):
         ...     NDIM = 1
@@ -1551,14 +1599,13 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values()
         400.0
 
-        In the examples above, all single entries of `values` are relevant,
-        which is the default case.  However, subclasses of |Variable| can
-        define an alternative mask, allowing to make some entries
-        irrelevant. Assume for example, that our `SoilMoisture` object
-        contains three single values, each one associated with a specific
-        hydrological response unit (hru).  To indicate that soil moisture
-        is undefined for the third unit, (maybe because it is a water area),
-        we set the third entry of the verification mask to |False|:
+        In the examples above, all single entries of `values` are relevant, which is
+        the default case.  However, subclasses of |Variable| can define an alternative
+        mask, allowing to make some entries irrelevant. Assume, for example, that our
+        `SoilMoisture` object contains three single values, each one associated with a
+        specific hydrological response unit (hru).  To indicate that soil moisture is
+        undefined for the third unit (maybe because it is a water area), we set the
+        third entry of the verification mask to |False|:
 
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
@@ -1569,14 +1616,12 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values()
         300.0
 
-        Alternatively, method |Variable.average_values| accepts additional
-        masking information as positional or keyword arguments.  Therefore,
-        the corresponding model must implement some alternative masks,
-        which are provided by property |Variable.availablemasks|.
-        We mock this property with a new |Masks| object, handling one
-        mask for flat soils (only the first hru), one mask for deep soils
-        (only the second hru), and one mask for water areas (only the
-        third hru):
+        Alternatively, method |Variable.average_values| accepts additional masking
+        information as positional or keyword arguments.  Therefore, the corresponding
+        model must implement some alternative masks, which are provided by property
+        |Variable.availablemasks|.  We mock this property with a new |Masks| object,
+        handling one mask for flat soils (only the first hru), one mask for deep soils
+        (only the second hru), and one mask for water areas (only the third hru):
 
         >>> class FlatSoil(DefaultMask):
         ...     @classmethod
@@ -1620,8 +1665,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
 `('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
 has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
-        Applying masks with custom options is also supported.  One can change
-        the behaviour of the following mask via the argument `complete`:
+        Applying masks with custom options is also supported.  One can change the
+        behaviour of the following mask via the argument `complete`:
 
         >>> class AllOrNothing(DefaultMask):
         ...     @classmethod
@@ -1638,8 +1683,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ...                AllOrNothing)
         >>> SoilMoisture.availablemasks = Masks()
 
-        Again, one can apply the mask class directly (but note that one
-        has to pass the relevant variable as the first argument.):
+        Again, one can apply the mask class directly (but note that one has to pass the
+        relevant variable as the first argument):
 
         >>> sm.average_values(   # doctest: +ELLIPSIS
         ...     sm.availablemasks.allornothing(sm, complete=True))
@@ -1647,8 +1692,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ...
         ValueError: While trying to...
 
-        Alternatively, one can pass the mask name as a keyword and pack
-        the mask's options into a |dict| object:
+        Alternatively, one can pass the mask name as a keyword and pack the mask's
+        options into a |dict| object:
 
         >>> sm.average_values(allornothing={"complete": False})
         nan
@@ -1659,12 +1704,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         300.0
         """
         try:
-            if not self.NDIM:
+            if self.NDIM == 0:
                 return self.value
             mask = self.get_submask(*args, **kwargs)
             if numpy.any(mask):
                 weights = self.refweights[mask]
-                return numpy.sum(weights * self[mask]) / numpy.sum(weights)
+                values = self.valuevector[mask]
+                return numpy.sum(weights * values) / numpy.sum(weights)
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
@@ -1674,9 +1720,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def availablemasks(self) -> masktools.Masks:
-        """For |ModelSequence| objects, a |Masks| object provided by the
-        corresponding |Model| object; for |NodeSequence| object, a suitable
-        |DefaultMask|.
+        """For |ModelSequence| objects, a |Masks| object provided by the corresponding
+        |Model| object; for |NodeSequence| object, a suitable |DefaultMask|.
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1684,12 +1729,15 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         >>> hp.elements["land_dill"].model.parameters.control.fc.availablemasks
         complete of module hydpy.models.hland.hland_masks
         land of module hydpy.models.hland.hland_masks
-        noglacier of module hydpy.models.hland.hland_masks
+        upperzone of module hydpy.models.hland.hland_masks
+        snow of module hydpy.models.hland.hland_masks
         soil of module hydpy.models.hland.hland_masks
         field of module hydpy.models.hland.hland_masks
         forest of module hydpy.models.hland.hland_masks
         ilake of module hydpy.models.hland.hland_masks
         glacier of module hydpy.models.hland.hland_masks
+        sealed of module hydpy.models.hland.hland_masks
+        noglacier of module hydpy.models.hland.hland_masks
 
         >>> hp.nodes.dill.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools
@@ -2017,11 +2065,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def commentrepr(self) -> List[str]:
-        """A list with comments for making string representations
-        more informative.
+        """A list with comments for making string representations more informative.
 
-        With option |Options.reprcomments| being disabled,
-        |Variable.commentrepr| is empty.
+        With the |Options.reprcomments| option disabled, |Variable.commentrepr| is
+        empty.
         """
         if hydpy.pub.options.reprcomments:
             return [
@@ -2035,7 +2082,56 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return []
 
     def __repr__(self):
-        return to_repr(self, self.value)
+        brackets = (self.NDIM == 2) and (self.shape[0] != 1)
+        return to_repr(self, self.value, brackets)
+
+
+class MixinFixedShape:
+    """Mixin class for defining variables with a fixed shape."""
+
+    SHAPE: Union[Tuple[int, ...]]
+
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
+        self.shape = self.SHAPE
+
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """Variables that mix in |MixinFixedShape| are generally initialised with a
+        fixed shape.
+
+        We take parameter |lstream_control.BV| of base model |lstream| and sequence
+        |exch_factors.WaterLevel| of base model |exch| as examples:
+
+        >>> from hydpy import prepare_model
+        >>> prepare_model("lstream").parameters.control.bv.shape
+        (2,)
+        >>> waterlevel = prepare_model("exch").sequences.factors.waterlevel
+        >>> waterlevel.shape
+        (2,)
+
+        If we try to set a new shape, |MixinFixedShape| responds with the following
+        exceptions:
+
+        >>> waterlevel.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of variable `waterlevel` cannot be changed but this \
+was attempted for element `?`.
+
+        See the documentation on property |Variable.shape| of class |Variable| for
+        further information.
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Tuple[int, ...]) -> NoReturn:
+        if exceptiontools.attrready(self, "shape"):
+            raise AttributeError(
+                f"The shape of variable `{self.name}` cannot be changed but this "
+                f"was attempted for element `{objecttools.devicename(self)}`."
+            )
+        super().__hydpy__set_shape__(shape)
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 @overload
@@ -2057,8 +2153,8 @@ def sort_variables(
 ) -> Tuple[Union[Type[VariableType], Tuple[Type[VariableType], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
-    When defined in one module, the initialisation order corresponds to the
-    order within the file:
+    When defined in one module, the initialisation order corresponds to the order
+    within the file:
 
     >>> from hydpy import classname, sort_variables
     >>> from hydpy.models.hland.hland_control import Area, NmbZones, ZoneType
@@ -2069,32 +2165,50 @@ def sort_variables(
     NmbZones
     ZoneType
 
-    Function |sort_variables| also supports sorting tuples.  Each first entry
-    must be a |Variable| subclass:
+    Function |sort_variables| also supports sorting tuples.  Each first entry must be
+    a |Variable| subclass:
 
     >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
     ...     print(classname(var), idx)
     Area 3
     NmbZones 1
     ZoneType 2
+
+    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), idx)
+    Area 3
+    NmbZones 1
+    ZoneType 2
+
+    |sort_variables| does not remove duplicates:
+
+    >>> for var, idx in \
+sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
+    ...     print(classname(var), idx)
+    Area 1
+    Area 3
+    Area 3
+    ZoneType 2
     """
-    idx2value = {}
-    for value in values:
-        variable = value[0] if isinstance(value, tuple) else value
-        idx2value[variable.__hydpy__subclasscounter__] = value
-    return tuple(value for idx, value in sorted(idx2value.items()))
+    counter_value = (
+        (value[0].__hydpy__subclasscounter__, value)
+        if isinstance(value, tuple)
+        else (value.__hydpy__subclasscounter__, value)
+        for value in values
+    )
+    return tuple(value for _, value in sorted(counter_value))
 
 
 class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    Each subclass of class |SubVariables| is thought for handling a certain
-    group of |Parameter| or |Sequence_| objects.  One specific example is
-    subclass |sequencetools.InputSequences|, collecting all |InputSequence|
-    objects of a specific hydrological model.
+    Each subclass of class |SubVariables| is thought for handling a certain group of
+    |Parameter| or |Sequence_| objects.  One specific example is subclass
+    |sequencetools.InputSequences|, collecting all |InputSequence| objects of a
+    specific hydrological model.
 
-    For the following examples, we first prepare a (not fully
-    functional) |Variable| subclass:
+    For the following examples, we first prepare a (not fully functional) |Variable|
+    subclass:
 
     >>> from hydpy.core.variabletools import FastAccess, SubVariables, Variable
     >>> class TestVar(Variable):
@@ -2136,9 +2250,8 @@ class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
     testvar(?)
     >>> pub.options.reprcomments = False
 
-    Class |SubVariables| provides attribute access to the handled
-    |Variable| objects, and protects |Variable| objects from
-    accidental overwriting:
+    Class |SubVariables| provides attribute access to the handled |Variable| objects
+    and protects |Variable| objects from accidental overwriting:
 
     >>> subvars.testvar = 3.0
     >>> subvars.testvar
@@ -2283,23 +2396,19 @@ named `wrong`.
         ...     CLASSES = (TestVar,)
         ...     name = None
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
-        >>> dir(TestSubVars(None))
-        ['CLASSES', 'fastaccess', 'name', 'testvar', 'vars']
+        >>> testsubvars = TestSubVars(None)
+        >>> sorted(set(dir(testsubvars)) - set(object.__dir__(testsubvars)))
+        ['testvar']
         """
-        return objecttools.dir_(self) + list(self._name2variable.keys())
+        return cast(List[str], super().__dir__()) + list(self._name2variable.keys())
 
 
-def to_repr(
-    self: Variable,
-    values,
-    brackets1d: Optional[bool] = False,
-) -> str:
-    """Return a valid string representation for the given |Variable|
-    object.
+def to_repr(self: Variable, values, brackets: bool = False) -> str:
+    """Return a valid string representation for the given |Variable| object.
 
-    Function |to_repr| is thought for internal purposes only, more
-    specifically for defining string representations of subclasses
-    of class |Variable| like the following:
+    Function |to_repr| is thought for internal purposes only, more specifically for
+    defining string representations of subclasses of class |Variable| like the
+    following:
 
     >>> from hydpy.core.variabletools import to_repr, Variable
     >>> class Var(Variable):
@@ -2312,10 +2421,9 @@ def to_repr(
     >>> var
     var(2)
 
-    The following examples demonstrate all covered cases.  Note that
-    option `brackets1d` allows choosing between a "vararg" and an
-    "iterable" string representation for 1-dimensional variables
-    (the first one being the default):
+    The following examples demonstrate all covered cases.  Note that option `brackets`
+    allows choosing between a "vararg" and an "iterable" string representation for
+    multidimensional variables:
 
     >>> print(to_repr(var, 2))
     var(2)
@@ -2338,13 +2446,21 @@ def to_repr(
     >>> var = Var(None)
     >>> var.shape = (2, 3)
     >>> print(to_repr(var, [range(3), range(3, 6)]))
+    var(0, 1, 2,
+        3, 4, 5)
+    >>> print(to_repr(var, [range(3), range(3, 6)], True))
     var([[0, 1, 2],
          [3, 4, 5]])
-    >>> print(to_repr(var, [range(30), range(30, 60)]))
+    >>> print(to_repr(var, [range(30), range(30, 60)], True))
     var([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
           19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
          [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
           46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
+    >>> print(to_repr(var, [range(30), range(30, 60)]))
+    var(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+        19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+        47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59)
     """
     prefix = f"{self.name}("
     if isinstance(values, str):
@@ -2352,10 +2468,13 @@ def to_repr(
     elif self.NDIM == 0:
         string = f"{self.name}({objecttools.repr_(values)})"
     elif self.NDIM == 1:
-        if brackets1d:
+        if brackets:
             string = objecttools.assignrepr_list(values, prefix, 72) + ")"
         else:
             string = objecttools.assignrepr_values(values, prefix, 72) + ")"
     else:
-        string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
+        if brackets:
+            string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
+        else:
+            string = objecttools.assignrepr_values2(values, prefix, 72) + ")"
     return "\n".join(self.commentrepr + [string])

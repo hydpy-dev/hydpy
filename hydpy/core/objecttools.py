@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools to help to standardize the functionality
-of the different objects defined by the HydPy framework."""
+"""This module implements tools to help to standardize the functionality of the
+different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
 import builtins
+import collections
 import contextlib
 import copy
 import inspect
@@ -19,11 +20,12 @@ from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import black
+import numpy
 import wrapt
 
 # ...from HydPy
 import hydpy
-from hydpy.core import typingtools
+from hydpy import config
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -42,46 +44,6 @@ ReprArg = Union[
 ]
 
 
-def dir_(self: object) -> List[str]:
-    """The prefered way for HydPy objects to respond to |dir|.
-
-    Note the depencence on the `pub.options.dirverbose`.  If this option is
-    set `True`, all attributes and methods of the given instance and its
-    class (including those inherited from the parent classes) are returned:
-
-    >>> from hydpy import pub
-    >>> pub.options.dirverbose = True
-    >>> from hydpy.core.objecttools import dir_
-    >>> class Test:
-    ...     only_public_attribute =  None
-    >>> print(len(dir_(Test())) > 1) # Long list, try it yourself...
-    True
-
-    If the option is set to `False`, only the `public` attributes and methods
-    (which do need begin with `_`) are returned:
-
-    >>> pub.options.dirverbose = False
-    >>> print(dir_(Test())) # Short list with one single entry...
-    ['only_public_attribute']
-
-    If none of those does exists, |dir_| returns a list with a single string
-    containing a single empty space (which seems to work better for most
-    IDEs than returning an emtpy list):
-
-    >>> del Test.only_public_attribute
-    >>> print(dir_(Test()))
-    [' ']
-    """
-    names = set()
-    for thing in itertools.chain(inspect.getmro(type(self)), (self,)):
-        for key in vars(thing).keys():
-            if hydpy.pub.options.dirverbose or not key.startswith("_"):
-                names.add(key)
-    if names:
-        return list(names)
-    return [" "]
-
-
 def classname(self: object) -> str:
     """Return the class name of the given instance object or class.
 
@@ -93,7 +55,7 @@ def classname(self: object) -> str:
     'Options'
     """
     if inspect.isclass(self):
-        return self.__name__  # type: ignore [attr-defined, no-any-return]
+        return self.__name__
     return type(self).__name__
 
 
@@ -471,7 +433,6 @@ type(s) for +=: 'int' and 'str'
     @wrapt.decorator
     def wrapper(wrapped, instance, args, kwargs):  # type: ignore[no-untyped-def]
         """Apply |augment_excmessage| when the wrapped function fails."""
-        # pylint: disable=unused-argument
         try:
             return wrapped(*args, **kwargs)
         except BaseException:
@@ -642,11 +603,97 @@ def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
     See the documentation on class |ResetAttrFuncs| for further information.
     """
     with ResetAttrFuncs(self):
-        return copy.deepcopy(self, memo)  # type: ignore [return-value]  # ???
+        return copy.deepcopy(self, memo)
 
 
 class _PreserveStrings:
-    """Helper class for |_Repr_|."""
+    r"""Modifies |repr| for strings and floats, mainly for supporting clean float and
+    path representations that are compatible with |doctest|.
+
+    Use the already available instance `repr_` instead of initialising a new |Repr_|
+    object.
+
+    When value is a string, it is returned without any modification, except that the
+    path separator "\" (Windows) is replaced with "/" (Linux):
+
+    >>> from hydpy.core.objecttools import repr_
+
+    >>> print(r"directory\file")
+    directory\file
+    >>> print(repr(r"directory\file"))
+    'directory\\file'
+    >>> print(repr_(r"directory\file"))
+    directory/file
+
+    You can change this behaviour of function object |repr|, when necessary:
+
+    >>> with repr_.preserve_strings(True):
+    ...     print(repr_(r"directory\file"))
+    "directory/file"
+
+    Behind the with block, |repr_| works as before
+    (even in case of an error):
+
+    >>> print(repr_(r"directory\file"))
+    directory/file
+
+    When value is a float, the result depends on how the option |Options.reprdigits| is
+    set.  Without defining a special value, |repr| defines the number of digits in the
+    usual, system dependent manner:
+
+    >>> from hydpy import pub
+    >>> with pub.options.reprdigits(-1):
+    ...     repr(1.0/3.0) == repr_(1.0/3.0)
+    True
+
+    Through setting |Options.reprdigits| to a positive integer value, one defines the
+    maximum number of decimal places, which allows for doctesting across different
+    systems and Python versions:
+
+    >>> repr_(1.0/3.0)
+    '0.333333'
+    >>> repr_(2.0/3.0)
+    '0.666667'
+    >>> repr_(1.0/2.0)
+    '0.5'
+
+    Changing the number of decimal places can be done via a with block:
+
+    >>> with pub.options.reprdigits(3):
+    ...     print(repr_(1.0/3.0))
+    0.333
+
+    Such a change is only temporary (even in case of an error):
+
+    >>> repr_(1.0/3.0)
+    '0.333333'
+
+    |repr| can also be applied on numpy's float types:
+
+    >>> import numpy
+    >>> repr_(numpy.float64(1.0/3.0))
+    '0.333333'
+    >>> repr_(numpy.float32(1.0/3.0))
+    '0.333333'
+    >>> repr_(numpy.float16(1.0/3.0))
+    '0.333252'
+
+    Note that the deviation from the `true` result in the last example is due to the
+    low precision of |numpy.float16|.
+
+    For scalar |numpy.ndarray| objects, |repr_| returns its item's string
+    representation:
+
+    >>> repr_(numpy.array(1.0/3.0))
+    '0.333333'
+
+    On all types not mentioned above, the usual |repr| function is applied, e.g.:
+
+    >>> repr([1, 2, 3])
+    '[1, 2, 3]'
+    >>> repr_([1, 2, 3])
+    '[1, 2, 3]'
+    """
 
     newvalue: bool
     oldvalue: bool
@@ -668,8 +715,8 @@ class _PreserveStrings:
 
 
 class _Repr:
-    """Modifies |repr| for strings and floats, mainly for supporting
-    clean float and path representations that are compatible with |doctest|."""
+    """Modifies |repr| for strings and floats, mainly for supporting clean float and
+    path representations that are compatible with |doctest|."""
 
     def __init__(self) -> None:
         self._preserve_strings = False
@@ -686,12 +733,14 @@ class _Repr:
             if self._preserve_strings:
                 return f'"{string}"'
             return string
+        if isinstance(value, numpy.ndarray) and not value.ndim:
+            value = value.item()
         if isinstance(value, numbers.Real) and (
             not isinstance(value, numbers.Integral)
         ):
             value = float(value)
             if decimals > -1:
-                string = "{0:.{1}f}".format(value, decimals)
+                string = f"{value:.{decimals}f}"
                 string = string.rstrip("0")
                 if string.endswith("."):
                     string += "0"
@@ -707,15 +756,13 @@ class _Repr:
 
 
 repr_ = _Repr()
-r"""Modifies |repr| for strings and floats, mainly for supporting
-clean float and path representations that are compatible with |doctest|.
+r"""Modifies |repr| for strings and floats, mainly for supporting clean float and path 
+representations that are compatible with |doctest|.
 
-Use the already available instance `repr_` instead of initialising
-a new |Repr_| object.
+Use the already available instance `repr_` instead of initialising a new |Repr_| object.
 
-When value is a string, it is returned without any modification,
-except that the path separator "\" (Windows) is replaced with "/"
-(Linux):
+When value is a string, it is returned without any modification, except that the path 
+separator "\" (Windows) is replaced with "/" (Linux):
 
 >>> from hydpy.core.objecttools import repr_
 
@@ -726,8 +773,7 @@ directory\file
 >>> print(repr_(r"directory\file"))
 directory/file
 
-You can change this behaviour of function object |repr|,
-when necessary:
+You can change this behaviour of function object |repr|, when necessary:
 
 >>> with repr_.preserve_strings(True):
 ...     print(repr_(r"directory\file"))
@@ -739,55 +785,56 @@ Behind the with block, |repr_| works as before
 >>> print(repr_(r"directory\file"))
 directory/file
 
-When value is a float, the result depends on how the option
-|Options.reprdigits| is set.  Without defining a special value,
-|repr| defines the number of digits in the usual, system dependent
-manner:
+When value is a float, the result depends on how the option |Options.reprdigits| is set.  
+Without defining a special value, |repr| defines the number of digits in the usual, 
+system dependent manner:
 
 >>> from hydpy import pub
->>> del pub.options.reprdigits
->>> repr(1./3.) == repr_(1./3.)
+>>> with pub.options.reprdigits(-1):
+...     repr(1.0/3.0) == repr_(1.0/3.0)
 True
 
-Through setting |Options.reprdigits| to a positive integer value,
-one defines the maximum number of decimal places, which allows for
-doctesting across different systems and Python versions:
+Through setting |Options.reprdigits| to a positive integer value, one defines the 
+maximum number of decimal places, which allows for doctesting across different systems 
+and Python versions:
 
->>> pub.options.reprdigits = 6
->>> repr_(1./3.)
+>>> repr_(1.0/3.0)
 '0.333333'
->>> repr_(2./3.)
+>>> repr_(2.0/3.0)
 '0.666667'
->>> repr_(1./2.)
+>>> repr_(1.0/2.0)
 '0.5'
 
 Changing the number of decimal places can be done via a with block:
 
 >>> with pub.options.reprdigits(3):
-...     print(repr_(1./3.))
+...     print(repr_(1.0/3.0))
 0.333
 
 Such a change is only temporary (even in case of an error):
->>> repr_(1./3.)
+
+>>> repr_(1.0/3.0)
 '0.333333'
 
 |repr| can also be applied on numpy's float types:
 
 >>> import numpy
->>> repr_(numpy.float(1./3.))
+>>> repr_(numpy.float64(1.0/3.0))
 '0.333333'
->>> repr_(numpy.float64(1./3.))
+>>> repr_(numpy.float32(1.0/3.0))
 '0.333333'
->>> repr_(numpy.float32(1./3.))
-'0.333333'
->>> repr_(numpy.float16(1./3.))
+>>> repr_(numpy.float16(1.0/3.0))
 '0.333252'
 
-Note that the deviation from the `true` result in the last example is due
-to the low precision of |numpy.float16|.
+Note that the deviation from the `true` result in the last example is due to the low 
+precision of |numpy.float16|.
 
-On all types not mentioned above, the usual |repr| function is
-applied, e.g.:
+For scalar |numpy.ndarray| objects, |repr_| returns its item's string representation:
+
+>>> repr_(numpy.array(1.0/3.0))
+'0.333333'
+
+On all types not mentioned above, the usual |repr| function is applied, e.g.:
 
 >>> repr([1, 2, 3])
 '[1, 2, 3]'
@@ -1128,6 +1175,7 @@ test = [10,]
 def assignrepr_values2(
     values: Iterable[Iterable[object]],
     prefix: str,
+    width: Optional[int] = None,
 ) -> str:
     """Return a prefixed and properly aligned string representation
     of the given 2-dimensional value matrix using function |repr|.
@@ -1148,9 +1196,9 @@ def assignrepr_values2(
     blanks = " " * len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(f"{prefix}{repr_values(subvalues)},")
+            lines.append(f"{assignrepr_values(subvalues, prefix=prefix, width=width)},")
         else:
-            lines.append(f"{blanks}{repr_values(subvalues)},")
+            lines.append(f"{assignrepr_values(subvalues, prefix=blanks, width=width)},")
     lines[-1] = lines[-1][:-1]
     return "\n".join(lines)
 
@@ -1397,7 +1445,7 @@ def flatten_repr(self: object) -> str:
     given object.
 
     Complex string representations like the following one convenient when working
-    interactively, but cause line breaks when included in strings like in exception
+    interactively but cause line breaks when included in strings like in exception
     messages:
 
     >>> from hydpy import Node
@@ -1525,24 +1573,31 @@ def round_(
 ) -> None:
     """Prints values with a maximum number of digits in doctests.
 
-    See the documentation on function |repr| for more details.  And
-    note thate the option keyword arguments are passed to the print function.
+    See the documentation on function |repr| for more details, and note that the
+    optional keyword arguments are passed to the print function.
 
-    Usually one would apply function |round_| on a single or a vector
-    of numbers:
+    Usually one would apply function |round_| on a single or a vector of numbers:
 
     >>> from hydpy import round_
-    >>> round_(1./3., decimals=6)
+    >>> round_(1.0/3.0, decimals=6)
     0.333333
-    >>> round_((1./2., 1./3., 1./4.), decimals=4)
+    >>> round_((1.0/2.0, 1.0/3.0, 1.0/4.0), decimals=4)
     0.5, 0.3333, 0.25
 
+    The special case of 0-dimensional |numpy| |numpy.ndarray| objects does not cause
+    a problem:
+
+    >>> from numpy import array
+    >>> round_(array(1.0/3.0))
+    0.333333
+
     Additionally, one can supply a `width` and a `rfill` argument:
+
     >>> round_(1.0, width=6, rfill="0")
     1.0000
 
-    Alternatively, one can use the `lfill` arguments, which
-    might e.g. be usefull for aligning different strings:
+    Alternatively, one can use the `lfill` arguments, which might e.g. be usefull for
+    aligning different strings:
 
     >>> round_("test", width=6, lfill="_")
     __test
@@ -1558,7 +1613,11 @@ arguments `lfill` and `rfill`.  This is not allowed.
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
     with hydpy.pub.options.reprdigits(decimals):
-        if isinstance(values, typingtools.IterableNonString):
+        if isinstance(values, numpy.ndarray) and (values.ndim == 0):
+            string = repr_(values.item())
+        elif isinstance(values, str):
+            string = repr_(values)
+        elif isinstance(values, collections.abc.Iterable):
             string = repr_values(values)
         else:
             string = repr_(values)
@@ -1678,8 +1737,7 @@ def enumeration(
 ) -> str:
     """Return an enumeration string based on the given values.
 
-    The following four examples show the standard output of function
-    |enumeration|:
+    The following four examples show the standard output of function |enumeration|:
 
     >>> from hydpy.core.objecttools import enumeration
     >>> enumeration(("text", 3, []))
@@ -1691,16 +1749,15 @@ def enumeration(
     >>> enumeration(())
     ''
 
-    All given objects are converted to strings by function |str|, as shown
-    by the first two examples.  This behaviour can be changed by another
-    function expecting a single argument and returning a string:
+    All given objects are converted to strings by function |str|, as shown by the first
+    two examples.  This behaviour can be changed by another function expecting a single
+    argument and returning a string:
 
     >>> from hydpy import classname
     >>> enumeration(("text", 3, []), converter=classname)
     'str, int, and list'
 
-    You can define a default string that is returned in case an empty
-    iterable is given:
+    You can define a default string that is returned in case an empty iterable is given:
 
     >>> enumeration((), default="nothing")
     'nothing'
@@ -1728,8 +1785,7 @@ def enumeration(
 def description(self: object) -> str:
     """Returns the first "paragraph" of the docstring of the given object.
 
-    Note that ugly things like multiple whitespaces and newline characters
-    are removed:
+    Note that ugly things like multiple whitespaces and newline characters are removed:
 
     >>> from hydpy.core.objecttools import description, augment_excmessage
     >>> description(augment_excmessage)
@@ -1773,8 +1829,8 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     ...         print(testfile1.read())
     printtarget = testfile1
 
-    When receiving a file name, it creates a new file and closes it after leaving
-    the `with` block:
+    It creates a new file and closes it after leaving the `with` block when receiving a
+    file name:
 
     >>> with TestIO():
     ...     with get_printtarget("testfile2.txt") as printtarget:
@@ -1787,7 +1843,7 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     if file_ is None:
         yield sys.stdout
     elif isinstance(file_, str):
-        with open(file_, "w") as printobject:
+        with open(file_, "w", encoding=config.ENCODING) as printobject:
             yield printobject
     else:
         yield file_
@@ -1837,3 +1893,44 @@ string=f"a {10*'very '}long test"))
         f"{name}({arguments})",
         mode=_black_filemode,
     )[:-1]
+
+
+def assert_never(value: NoReturn) -> NoReturn:
+    """Function |assert_never| serves for exhaustiveness checking.
+
+    >>> from hydpy.core.objecttools import assert_never
+    >>> assert_never(1.0)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Cannot handle value `1.0` of type `float`.
+    """
+    assert False, f"Cannot handle {value_of_type(value)}."
+
+
+def value2bool(argument: str, value: Union[str, int]) -> bool:
+    """Convert the given string or integer value to a boolean and return it.
+
+    >>> from hydpy.core.objecttools import value2bool
+    >>> value2bool("x", 0), value2bool("x", 1)
+    (False, True)
+    >>> for value in ("1", "tRue", "T", "yEs", "y", "oN"):
+    ...     assert value2bool("x", value)
+    >>> for value in ("0 ", "False", "f", "No", "N", "OfF"):
+    ...     assert not value2bool("x", value)
+    >>> value2bool("x", "Tr ue")
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `Tr ue` given for argument `x` cannot be interpreted as a \
+boolean.
+    """
+    if isinstance(value, int):
+        return bool(value)
+    normed = value.strip().lower()
+    if normed in ("1", "true", "t", "yes", "y", "on"):
+        return True
+    if normed in ("0", "false", "f", "no", "n", "off"):
+        return False
+    raise ValueError(
+        f"The value `{value}` given for argument `{argument}` cannot be interpreted "
+        f"as a boolean."
+    )

@@ -589,7 +589,7 @@ import cython
 from libc.math cimport exp, log
 from libc.math cimport INFINITY as inf
 
-cpdef double MAX_LOG_FLOAT = 700.0
+cdef double MAX_LOG_FLOAT = 700.0
 
 
 cpdef inline double _max1(

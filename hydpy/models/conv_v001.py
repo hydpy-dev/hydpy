@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Nearest-neighbour interpolation.
 
 Version 1 of HydPy-C performs simple nearest-neighbour interpolations between
@@ -13,7 +13,7 @@ Integration tests
 
 We perform the following examples over a simulation period of 3 days:
 
->>> from hydpy import pub, Nodes, Element
+>>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
 |conv_v001| implements no parameter with values depending on the simulation
@@ -27,7 +27,6 @@ Due to the following configuration, |conv_v001| queries its input from the
 inlet nodes `in1` and `in2` and passes the interpolation results to the
 outlet nodes `out1`, `out2`, `out3`, and `out4`:
 
->>> from hydpy import *
 >>> in1, in2 = Node("in1"), Node("in2")
 >>> element = Element("conv",
 ...                   inlets=(in1, in2),
@@ -109,4 +108,3 @@ class Model(conv_model.Model):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

@@ -18,7 +18,7 @@ def print_(*message: str) -> None:
 
 
 actual_branch = os.environ["TRAVIS_BRANCH"]
-with open("relevant_branches.txt") as file_:
+with open("relevant_branches.txt", encoding="utf-8") as file_:
     lines = file_.readlines()[1:]
 
 token = os.environ["GH_TOKEN"]

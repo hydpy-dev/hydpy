@@ -3,9 +3,13 @@
 eventually dynamical) typing."""
 # import...
 # ...from standard library
-import abc
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 from typing_extensions import Protocol  # type: ignore[misc]
+
+# ...from site-packages
+import numpy
+import numpy.typing
 
 # ...from hydpy
 if TYPE_CHECKING:
@@ -27,6 +31,10 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
+Collection1 = Union[T, Collection[T]]
+Collection2 = Union[T1, T2, Collection[Union[T1, T2]]]
+Collection3 = Union[T1, T2, T3, Collection[Union[T1, T2, T3]]]
+
 Sequence1 = Union[T, Sequence[T]]
 Sequence2 = Union[T1, T2, Sequence[Union[T1, T2]]]
 Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
@@ -34,6 +42,8 @@ Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
 Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
+
+NDArrayFloat = numpy.typing.NDArray[numpy.float_]
 
 
 class VectorInput(Protocol[Float_co]):
@@ -59,10 +69,12 @@ class VectorInput(Protocol[Float_co]):
     ) -> Union[Float_co, "VectorInput[Float_co]"]:
         ...
 
-    def __len__(self) -> int:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         ...
 
-    def __iter__(self) -> Iterator[Float_co]:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __iter__(self) -> Iterator[Float_co]:  # pylint: disable=non-iterator-returned
         ...
 
 
@@ -295,10 +307,14 @@ class Matrix(MatrixInput[Float1]):
     ) -> None:
         ...
 
-    def __len__(self) -> int:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         ...
 
-    def __iter__(self) -> Iterator[Vector[Float1]]:
+    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
+    def __iter__(  # pylint: disable=non-iterator-returned
+        self,
+    ) -> Iterator[Vector[Float1]]:
         ...
 
     def __invert__(self) -> "Matrix[Float1]":
@@ -400,6 +416,7 @@ class Matrix(MatrixInput[Float1]):
     ) -> "Matrix[bool]":
         ...
 
+    @property
     def shape(self) -> Tuple[int, int]:
         """Length of both matrix axes."""
 
@@ -410,27 +427,6 @@ ArrayFloat = TypeVar(
     Vector[float],
     Matrix[float],
 )
-
-
-class IterableNonString(Iterable[object], abc.ABC):
-    """Abstract base class for checking if an object is iterable but not a string.
-
-    >>> from hydpy.core.typingtools import IterableNonString
-    >>> isinstance("asdf", IterableNonString)
-    False
-    >>> isinstance(["asdf"], IterableNonString)
-    True
-    >>> issubclass(str, IterableNonString)
-    False
-    >>> issubclass(list, IterableNonString)
-    True
-    """
-
-    @classmethod
-    def __subclasshook__(cls, subclass: Type[object]) -> bool:
-        return hasattr(subclass, "__iter__") and not (
-            isinstance(subclass, str) or issubclass(subclass, str)
-        )
 
 
 class VariableProtocol(Protocol):
@@ -482,10 +478,15 @@ class ScriptFunction(Protocol):
         ...
 
 
+SeriesFileType = Literal["npy", "asc", "nc"]
+SeriesAggregationType = Literal["none", "mean"]
+
 __all__ = [
     "ArrayFloat",
     "CyModelProtocol",
-    "IterableNonString",
+    "Collection1",
+    "Collection2",
+    "Collection3",
     "MatrixInput",
     "Matrix",
     "Mayberable1",
@@ -495,7 +496,10 @@ __all__ = [
     "MayNonerable2",
     "MayNonerable3",
     "Name",
+    "NDArrayFloat",
     "ScriptFunction",
+    "SeriesAggregationType",
+    "SeriesFileType",
     "Sequence1",
     "Sequence2",
     "Sequence3",

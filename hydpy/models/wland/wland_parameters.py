@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from standard library
@@ -162,8 +161,7 @@ class LanduseParameter(parametertools.ZipParameter):
         pasture=5.0, sealed=0.0, soil=4.0, trees=7.0, wetland=6.0,
         wine=2.0)
     >>> ddf.values
-    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-             0.])
+    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0.])
 
     You can average the current values with regard to the hydrological
     response area fractions, defined via parameter |AUR|:
@@ -177,7 +175,7 @@ class LanduseParameter(parametertools.ZipParameter):
     via attribute access:
 
     >>> ddf.sealed
-    array([ 0.,  0.])
+    array([0., 0.])
     >>> ddf.sealed = 11.0, 12.0
     >>> ddf
     ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0)

@@ -9,4 +9,3 @@ from hydpy.models.conv.conv_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

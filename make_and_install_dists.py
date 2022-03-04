@@ -10,7 +10,7 @@ try:
     python = sys.executable
 
     sitepackagepath = os.path.split(numpy.__path__[0])[0]
-    for name in os.listdir(sitepackagepath):
+    for name in sorted(os.listdir(sitepackagepath)):
         if "hydpy" in name.lower():
             path = os.path.join(sitepackagepath, name)
             try:
@@ -28,7 +28,7 @@ try:
 
     pyversion = f"cp{sys.version_info.major}{sys.version_info.minor}"
 
-    if pyversion == "cp36":
+    if pyversion == "cp37":
         subprocess.run([python, "setup.py", "sdist"])
     subprocess.run([python, "setup.py", "bdist_wheel"])
 

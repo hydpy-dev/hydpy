@@ -12,10 +12,9 @@ concentration.
 from hydpy.exe.modelimports import *
 
 # ...from hland
-from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
+from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, SEALED
 from hydpy.models.hland.hland_masks import Masks
 from hydpy.models.hland.hland_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

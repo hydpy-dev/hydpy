@@ -1,16 +1,9 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
-
-
-class Q(sequencetools.SenderSequence):
-    """Discharge [m³/s]."""
-
-    NDIM, NUMERIC = 0, False
 
 
 class D(sequencetools.SenderSequence):
@@ -20,12 +13,12 @@ class D(sequencetools.SenderSequence):
 
 
 class S(sequencetools.SenderSequence):
-    """Water supply [m³/s]."""
+    """Required water supply [m³/s]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class R(sequencetools.SenderSequence):
-    """Water relief [m³/s]."""
+    """Required water relief [m³/s]."""
 
     NDIM, NUMERIC = 0, False

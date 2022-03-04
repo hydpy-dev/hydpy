@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
@@ -160,7 +159,7 @@ of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
         try:
             return f'{self.name}("{timetools.Period.from_seconds(self.value)}")'
         except BaseException:
-            return "%s(?)" % self.name
+            return f"{self.name}(?)"
 
 
 class MaxDW(parametertools.SeasonalParameter):

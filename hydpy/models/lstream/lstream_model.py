@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from standard library
@@ -1956,8 +1955,7 @@ class Calc_QG_V2(modeltools.Method):
         >>> gts(2)
         >>> laen(10.0)
         >>> ek(0.5)
-        >>> vg2fg(weights_input=1.0, weights_output=1.0,
-        ...       intercepts_hidden=0.0, intercepts_output=0.0, activation=0)
+        >>> vg2fg(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qg_v2,
@@ -2443,26 +2441,37 @@ class Update_VG_V1(modeltools.Method):
 class Calc_QA_V1(modeltools.Method):
     """Query the actual outflow.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> gts(3)
+        >>> fluxes.qz = 1.0
         >>> fluxes.qg = 2.0, 3.0, 4.0
         >>> model.calc_qa_v1()
         >>> fluxes.qa
         qa(4.0)
+        >>> gts(0)
+        >>> model.calc_qa_v1()
+        >>> fluxes.qa
+        qa(1.0)
     """
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (lstream_fluxes.QG,)
+    REQUIREDSEQUENCES = (
+        lstream_fluxes.QZ,
+        lstream_fluxes.QG,
+    )
     RESULTSEQUENCES = (lstream_fluxes.QA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.qa = flu.qg[con.gts - 1]
+        if con.gts > 0:
+            flu.qa = flu.qg[con.gts - 1]
+        else:
+            flu.qa = flu.qz
 
 
 class Pass_Q_V1(modeltools.Method):

@@ -72,7 +72,7 @@ mathjax_path = (
 )
 mathjax3_config = {"displayAlign": "left"}
 
-bibtex_bibfiles = ['refs.bib']
+bibtex_bibfiles = ["refs.bib"]
 bibtex_reference_style = "author_year"
 
 # Add any paths that contain templates here, relative to this directory.

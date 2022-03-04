@@ -930,6 +930,52 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
         log.loggedsunshineduration[0] = inp.sunshineduration
 
 
+class Update_LoggedGlobalRadiation_V1(modeltools.Method):
+    """Log the global radiation values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively moves the
+        three memorised values to the right and stores the respective new value on the
+        most left position:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedglobalradiation.shape = 3
+        >>> logs.loggedglobalradiation = 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedglobalradiation_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(inputs.globalradiation,
+        ...                          logs.loggedglobalradiation))
+        >>> test.nexts.globalradiation = 1.0, 3.0, 2.0, 4.0
+        >>> del test.inits.loggedglobalradiation
+        >>> test()
+        | ex. | globalradiation |           loggedglobalradiation |
+        -----------------------------------------------------------
+        |   1 |             1.0 | 1.0  0.0                    0.0 |
+        |   2 |             3.0 | 3.0  1.0                    0.0 |
+        |   3 |             2.0 | 2.0  3.0                    1.0 |
+        |   4 |             4.0 | 4.0  2.0                    3.0 |
+
+    """
+
+    DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (meteo_inputs.GlobalRadiation,)
+    UPDATEDSEQUENCES = (meteo_logs.LoggedGlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx - 1]
+        log.loggedglobalradiation[0] = inp.globalradiation
+
+
 class Calc_DailySunshineDuration_V1(modeltools.Method):
     """Calculate the sunshine duration sum of the last 24 hours.
 
@@ -957,6 +1003,35 @@ class Calc_DailySunshineDuration_V1(modeltools.Method):
         fac.dailysunshineduration = 0.0
         for idx in range(der.nmblogentries):
             fac.dailysunshineduration += log.loggedsunshineduration[idx]
+
+
+class Calc_DailyGlobalRadiation_V2(modeltools.Method):
+    """Calculate the global radiation sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedglobalradiation.shape = 3
+        >>> logs.loggedglobalradiation = 1.0, 5.0, 3.0
+        >>> model.calc_dailyglobalradiation_v2()
+        >>> fluxes.dailyglobalradiation
+        dailyglobalradiation(9.0)
+    """
+
+    DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (meteo_logs.LoggedGlobalRadiation,)
+    UPDATEDSEQUENCES = (meteo_fluxes.DailyGlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.dailyglobalradiation = 0.0
+        for idx in range(der.nmblogentries):
+            flu.dailyglobalradiation += log.loggedglobalradiation[idx]
 
 
 class Calc_PortionDailyRadiation_V1(modeltools.Method):
@@ -1391,7 +1466,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
-    r"""Calculate the global radiation according to :cite:`ref-LARSIM`.
+    r"""Calculate the unadjusted global radiation according to :cite:t:`ref-LARSIM`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -1423,7 +1498,6 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         >>> parameterstep()
         >>> derived.moy.update()
         >>> derived.days.update()
-        >>> angstromconstant.jan = 0.1
         >>> angstromconstant.jan = 0.1
         >>> angstromfactor.jan = 0.5
         >>> angstromalternative.jan = 0.2
@@ -1490,7 +1564,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
 
 
 class Update_LoggedUnadjustedGlobalRadiation_V1(modeltools.Method):
-    """Log the global radiation values of the last 24 hours.
+    """Log the unadjusted global radiation values of the last 24 hours.
 
     Example:
 
@@ -1630,6 +1704,180 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         )
 
 
+class Return_SunshineDuration_V1(modeltools.Method):
+    r"""Calculate the sunshine duration reversely to |Return_DailyGlobalRadiation_V1|
+    and return it.
+
+    Basic equation:
+      :math:`\frac{possiblesunshineduration}{AngstromFactor} \cdot \left(
+      \frac{globalradiation}{extraterrestrialradiation} - AngstromConstant \right)`
+
+    Example:
+
+        Essentially, |Return_SunshineDuration_V1| tries to invert
+        |Return_DailyGlobalRadiation_V1| and thus also relies on the Ångström formula.
+        Instead of estimating global radiation from sunshine duration, it estimates
+        sunshine duration from global radiation.  We demonstrate this by repeating the
+        first examples of |Calc_GlobalRadiation_V1| "backwards":
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.moy.update()
+        >>> angstromconstant.jan = 0.1
+        >>> angstromfactor.jan = 0.5
+        >>> angstromalternative.jan = 0.2
+        >>> angstromconstant.feb = 0.2
+        >>> angstromfactor.feb = 0.6
+        >>> angstromalternative.feb = 0.3
+        >>> model.idx_sim = 1
+        >>> round_(model.return_sunshineduration_v1(0.68, 1.7, 1.0))
+        0.6
+        >>> model.idx_sim = 2
+        >>> round_(model.return_sunshineduration_v1(0.952, 1.7, 1.0))
+        0.6
+
+        In contrast to |Return_DailyGlobalRadiation_V1|, |Return_SunshineDuration_V1|
+        never applies |AngstromAlternative| instead of |AngstromConstant|.  Hence, as
+        in the following repeated examples, |Return_SunshineDuration_V1| might invert
+        |Return_DailyGlobalRadiation_V1| only roughly during periods with little
+        sunshine:
+
+        >>> model.idx_sim = 1
+        >>> round_(model.return_sunshineduration_v1(0.34, 1.7, 1.0))
+        0.2
+        >>> model.idx_sim = 2
+        >>> round_(model.return_sunshineduration_v1(0.51, 1.7, 1.0))
+        0.166667
+
+        We must consider additional corner cases.  The first one deals with a potential
+        zero division during nighttime.  If extraterrestrial radiation is zero,
+        |Return_SunshineDuration_V1| takes the astronomically possible sunshine
+        duration (which should ideally also be zero) as the actual sunshine duration:
+
+        >>> model.idx_sim = 1
+        >>> round_(model.return_sunshineduration_v1(0.68, 0.0, 0.00001))
+        0.00001
+
+        Measured global radiation smaller than estimated diffusive radiation would
+        result in negative sunshine durations when following the Ångström formula
+        strictly.  Additionally, measured global radiation larger than estimated
+        clear-sky radiation would result in sunshine durations larger than the
+        astronomically possible sunshine duration.  The following example shows that
+        method |Return_SunshineDuration_V1| prevents such inconsistencies by trimming
+        the estimated sunshine duration when necessary:
+
+        >>> for globrad in (0.0, 0.17, 0.18, 0.68, 1.01, 1.02, 1.7):
+        ...     sundur = model.return_sunshineduration_v1(globrad, 1.7, 1.0)
+        ...     round_((globrad, sundur))
+        0.0, 0.0
+        0.17, 0.0
+        0.18, 0.011765
+        0.68, 0.6
+        1.01, 0.988235
+        1.02, 1.0
+        1.7, 1.0
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMETHODS = ()
+    CONTROLPARAMETERS = (
+        meteo_control.AngstromConstant,
+        meteo_control.AngstromFactor,
+    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model,
+        globalradiation: float,
+        extraterrestrialradiation: float,
+        possiblesunshineduration: float,
+    ) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        if extraterrestrialradiation <= 0.0:
+            return possiblesunshineduration
+        idx = der.moy[model.idx_sim]
+        d_sd = (possiblesunshineduration / con.angstromfactor[idx]) * (
+            globalradiation / extraterrestrialradiation - con.angstromconstant[idx]
+        )
+        return min(max(d_sd, 0.0), possiblesunshineduration)
+
+
+class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
+    r"""Calculate the unadjusted sunshine duration reversely to
+    |Calc_UnadjustedGlobalRadiation_V1|.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      :math:`UnadjustedSunshineDuration = Return\_SunshineDuration
+      \left( GlobalRadiation,
+      \frac{PortionDailyRadiation}{100} \cdot ExtraterrestrialRadiation,
+      PossibleSunshineDuration \right)`
+
+    Example:
+
+        Method |Calc_UnadjustedSunshineDuration_V1| relies on
+        |Return_SunshineDuration_V1| and thus comes with the same limitation regarding
+        periods with little sunshine.  See its documentation for further information.
+        Here, we only demonstrate the proper passing of |meteo_inputs.GlobalRadiation|,
+        |ExtraterrestrialRadiation| (eventually reduced by |PortionDailyRadiation|) and
+        |PossibleSunshineDuration|:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.moy.update()
+        >>> angstromconstant.jan = 0.1
+        >>> angstromfactor.jan = 0.5
+        >>> inputs.globalradiation = 0.34
+        >>> factors.possiblesunshineduration = 1.0
+        >>> factors.portiondailyradiation = 50.0
+        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> model.idx_sim = 1
+        >>> model.calc_unadjustedsunshineduration_v1()
+        >>> factors.unadjustedsunshineduration
+        unadjustedsunshineduration(0.6)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMETHODS = (Return_SunshineDuration_V1,)
+    CONTROLPARAMETERS = (
+        meteo_control.AngstromConstant,
+        meteo_control.AngstromFactor,
+    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY,)
+    REQUIREDSEQUENCES = (
+        meteo_inputs.GlobalRadiation,
+        meteo_factors.PossibleSunshineDuration,
+        meteo_factors.PortionDailyRadiation,
+        meteo_fluxes.ExtraterrestrialRadiation,
+    )
+    RESULTSEQUENCES = (meteo_factors.UnadjustedSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        fac.unadjustedsunshineduration = model.return_sunshineduration_v1(
+            inp.globalradiation,
+            flu.extraterrestrialradiation * fac.portiondailyradiation / 100.0,
+            fac.possiblesunshineduration,
+        )
+
+
 class Calc_GlobalRadiation_V2(modeltools.Method):
     r"""Adjust the current global radiation to the daily global radiation according to
      :cite:`ref-LARSIM`.
@@ -1699,10 +1947,8 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
 
         >>> fluxes.unadjustedglobalradiation = 0.8
         >>> logs.loggedunadjustedglobalradiation = (
-        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0,
-        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...     0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
+        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
 
         Compared with the total 24 hours, the simulation time steps around noon are
         relatively sunny, both for the current and the last day (see the first and the
@@ -1836,6 +2082,202 @@ class Calc_SunshineDuration_V1(modeltools.Method):
             fac.sunshineduration = 0.0
 
 
+class Update_LoggedUnadjustedSunshineDuration_V1(modeltools.Method):
+    """Log the unadjusted sunshine duration values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively moves the
+        three memorised values to the right and stores the respective new value on the
+        most left position:
+
+        >>> from hydpy.models.meteo import *
+        >>> simulationstep("8h")
+        >>> parameterstep()
+        >>> derived.nmblogentries.update()
+        >>> logs.loggedunadjustedsunshineduration = 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedunadjustedsunshineduration_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(factors.unadjustedsunshineduration,
+        ...                          logs.loggedunadjustedsunshineduration))
+        >>> test.nexts.unadjustedsunshineduration = 1.0, 3.0, 2.0, 4.0
+        >>> del test.inits.loggedunadjustedsunshineduration
+        >>> test()  # doctest: +ELLIPSIS
+        | ex. | unadjustedsunshineduration | ... loggedunadjustedsunshineduration |
+        -------------------------------------...-----------------------------------
+        |   1 |                        1.0 | 1.0  0.0           ...           0.0 |
+        |   2 |                        3.0 | 3.0  1.0           ...           0.0 |
+        |   3 |                        2.0 | 2.0  3.0           ...           1.0 |
+        |   4 |                        4.0 | 4.0  2.0           ...           3.0 |
+    """
+
+    DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (meteo_factors.UnadjustedSunshineDuration,)
+    UPDATEDSEQUENCES = (meteo_logs.LoggedUnadjustedSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            log.loggedunadjustedsunshineduration[
+                idx
+            ] = log.loggedunadjustedsunshineduration[idx - 1]
+        log.loggedunadjustedsunshineduration[0] = fac.unadjustedsunshineduration
+
+
+class Calc_DailySunshineDuration_V2(modeltools.Method):
+    r"""Calculate the daily sunshine duration reversely to
+    |Calc_DailyGlobalRadiation_V1|.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      :math:`DailySunshineDuration = Return\_SunshineDuration \left(
+      DailyGlobalRadiation, ExtraterrestrialRadiation, DailyPossibleSunshineDuration
+      \right)`
+
+    Example:
+
+        Method |Calc_UnadjustedSunshineDuration_V1| relies on
+        |Return_SunshineDuration_V1| and thus comes with the same limitation regarding
+        periods with little sunshine.  See its documentation for further information.
+        Here, we only demonstrate the proper passing of |DailyGlobalRadiation|,
+        |ExtraterrestrialRadiation|, and |DailyPossibleSunshineDuration|:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.moy.update()
+        >>> angstromconstant.jan = 0.1
+        >>> angstromfactor.jan = 0.5
+        >>> factors.dailypossiblesunshineduration = 5.0
+        >>> fluxes.dailyglobalradiation = 0.68
+        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> model.idx_sim = 1
+        >>> model.calc_dailysunshineduration_v2()
+        >>> factors.dailysunshineduration
+        dailysunshineduration(3.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMETHODS = (Return_SunshineDuration_V1,)
+    CONTROLPARAMETERS = (
+        meteo_control.AngstromConstant,
+        meteo_control.AngstromFactor,
+    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY,)
+    REQUIREDSEQUENCES = (
+        meteo_factors.DailyPossibleSunshineDuration,
+        meteo_fluxes.DailyGlobalRadiation,
+        meteo_fluxes.ExtraterrestrialRadiation,
+    )
+    RESULTSEQUENCES = (meteo_factors.DailySunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        fac.dailysunshineduration = model.return_sunshineduration_v1(
+            flu.dailyglobalradiation,
+            flu.extraterrestrialradiation,
+            fac.dailypossiblesunshineduration,
+        )
+
+
+class Calc_SunshineDuration_V2(modeltools.Method):
+    r"""Adjust the current sunshine duration to the daily sunshine duration like
+    |Calc_GlobalRadiation_V2| adjusts the current global radiation to the daily global
+    radiation.
+
+    Additional requirements:
+      |Model.idx_sim|
+
+    Basic equation:
+      :math:`SunshineDuration = UnadjustedSunshineDuration \cdot
+      \frac{DailySunshineDuration}{\sum LoggedUnadjustedSunshineDuration}`
+
+    Examples:
+
+        |Calc_SunshineDuration_V2| implements a standardisation approach following the
+        reasons and strategy explained in the documentation on method
+        |Calc_GlobalRadiation_V2|.  Hence, we first adopt its examples without repeated
+        explanations:
+
+        >>> from hydpy.models.meteo import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> derived.nmblogentries.update()
+        >>> model.idx_sim = 1
+        >>> factors.unadjustedsunshineduration = 4.0
+        >>> factors.dailysunshineduration = 4.0
+        >>> logs.loggedunadjustedsunshineduration = 4.0
+        >>> model.calc_sunshineduration_v2()
+        >>> factors.sunshineduration
+        sunshineduration(4.0)
+        >>> factors.dailysunshineduration = 5.6
+        >>> model.calc_sunshineduration_v2()
+        >>> factors.sunshineduration
+        sunshineduration(5.6)
+
+        >>> simulationstep("1h")
+        >>> derived.nmblogentries.update()
+        >>> factors.dailysunshineduration = 4.0
+        >>> factors.unadjustedsunshineduration = 0.8
+        >>> logs.loggedunadjustedsunshineduration = (
+        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
+        >>> model.calc_sunshineduration_v2()
+        >>> factors.sunshineduration
+        sunshineduration(0.695652)
+
+        The global radiation of a day cannot be zero due to diffusive radiations, but
+        the sunshine duration can.  Hence, |Calc_SunshineDuration_V2| requires a
+        safeguard against zero-divisions not relevant for |Calc_GlobalRadiation_V2|.
+        We decided to generally set the adjusted sunshine duration to zero if the
+        directly calculated daily sunshine duration or the current unadjusted sunshine
+        duration is zero. (Note the sum of the logged unadjusted sunshine duration can
+        only be zero if the present unadjusted sunshine duration is zero):
+
+        >>> factors.unadjustedsunshineduration = 0.0
+        >>> logs.loggedunadjustedsunshineduration = 0.0
+        >>> model.calc_sunshineduration_v2()
+        >>> factors.sunshineduration
+        sunshineduration(0.0)
+    """
+
+    DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (
+        meteo_factors.UnadjustedSunshineDuration,
+        meteo_factors.DailySunshineDuration,
+        meteo_factors.PossibleSunshineDuration,
+        meteo_logs.LoggedUnadjustedSunshineDuration,
+    )
+    RESULTSEQUENCES = (meteo_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        log = model.sequences.logs.fastaccess
+        d_nom = fac.unadjustedsunshineduration * fac.dailysunshineduration
+        if d_nom == 0.0:
+            fac.sunshineduration = 0.0
+        else:
+            d_denom = 0.0
+            for idx in range(der.nmblogentries):
+                d_denom += log.loggedunadjustedsunshineduration[idx]
+            fac.sunshineduration = min(d_nom / d_denom, fac.possiblesunshineduration)
+
+
 class Model(modeltools.AdHocModel):
     """The Meteo base model."""
 
@@ -1853,18 +2295,27 @@ class Model(modeltools.AdHocModel):
         Calc_PossibleSunshineDuration_V2,
         Update_LoggedSunshineDuration_V1,
         Calc_DailySunshineDuration_V1,
-        Calc_SunshineDuration_V1,
-        Calc_PortionDailyRadiation_V1,
+        Update_LoggedGlobalRadiation_V1,
+        Calc_DailyGlobalRadiation_V2,
         Calc_ExtraterrestrialRadiation_V1,
         Calc_ExtraterrestrialRadiation_V2,
+        Calc_DailySunshineDuration_V2,
+        Calc_SunshineDuration_V1,
+        Calc_PortionDailyRadiation_V1,
         Calc_ClearSkySolarRadiation_V1,
         Calc_GlobalRadiation_V1,
         Calc_UnadjustedGlobalRadiation_V1,
+        Calc_UnadjustedSunshineDuration_V1,
         Update_LoggedUnadjustedGlobalRadiation_V1,
+        Update_LoggedUnadjustedSunshineDuration_V1,
         Calc_DailyGlobalRadiation_V1,
         Calc_GlobalRadiation_V2,
+        Calc_SunshineDuration_V2,
     )
-    ADD_METHODS = (Return_DailyGlobalRadiation_V1,)
+    ADD_METHODS = (
+        Return_DailyGlobalRadiation_V1,
+        Return_SunshineDuration_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELS = ()

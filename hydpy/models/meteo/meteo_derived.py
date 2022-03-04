@@ -54,27 +54,22 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
-        >>> logs
+        >>> logs  # doctest: +ELLIPSIS
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
-        loggedunadjustedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan,
-                                        nan, nan, nan, nan, nan, nan, nan, nan,
-                                        nan, nan, nan, nan, nan, nan, nan, nan)
+        ...
 
         To prevent losing information, updating parameter |NmbLogEntries| resets the
         shape of the relevant log sequences only when necessary:
 
         >>> logs.loggedsunshineduration = 1.0
-        >>> logs.loggedunadjustedglobalradiation = 2.0
         >>> derived.nmblogentries(24)
-        >>> logs
+        >>> logs  # doctest: +ELLIPSIS
         loggedsunshineduration(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
                                1.0, 1.0, 1.0, 1.0)
-        loggedunadjustedglobalradiation(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                                        2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                                        2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+        ...
 
         There is an explicit check for inappropriate simulation step sizes:
 

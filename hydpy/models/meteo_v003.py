@@ -50,7 +50,7 @@ nodes:
 >>> element = Element("element", outputs=(node1, node2))
 >>> element.model = model
 
-We will use the same coordinates and Ångström coefficients  in all examples:
+We will use the same coordinates and Ångström coefficients in all examples:
 
 >>> latitude(54.1)
 >>> longitude(9.7)

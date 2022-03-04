@@ -54,6 +54,12 @@ class DailyPossibleSunshineDuration(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
+class UnadjustedSunshineDuration(sequencetools.FactorSequence):
+    """Unadjusted sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class SunshineDuration(sequencetools.FactorSequence):
     """Actual sunshine duration [h]."""
 

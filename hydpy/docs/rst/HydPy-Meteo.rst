@@ -25,3 +25,4 @@ Application models:
    meteo_v001 (global radiation, FAO) <meteo_v001>
    meteo_v002 (sunshine duration, FAO) <meteo_v002>
    meteo_v003 (global radiation, LARSIM) <meteo_v003>
+   meteo_v004 (sunshine duration, LARSIM) <meteo_v004>

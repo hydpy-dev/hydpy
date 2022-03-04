@@ -13,6 +13,18 @@ class LoggedSunshineDuration(sequencetools.LogSequence):
     NDIM, NUMERIC = 1, False
 
 
+class LoggedGlobalRadiation(sequencetools.LogSequence):
+    """Logged global radiation [ToDo]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedUnadjustedSunshineDuration(sequencetools.LogSequence):
+    """Logged unadjusted sunshine duration [h]."""
+
+    NDIM, NUMERIC = 1, False
+
+
 class LoggedUnadjustedGlobalRadiation(sequencetools.LogSequence):
     """Logged unadjusted global radiation [ToDo]."""
 

@@ -350,6 +350,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> List[str]:
             sequencetools.InletSequence,
             sequencetools.ReceiverSequence,
             sequencetools.InputSequence,
+            sequencetools.FactorSequence,
             sequencetools.FluxSequence,
             sequencetools.StateSequence,
             sequencetools.LogSequence,

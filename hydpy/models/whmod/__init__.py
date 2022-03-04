@@ -12,4 +12,3 @@ from hydpy.models.whmod.whmod_masks import Masks
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

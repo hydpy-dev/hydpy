@@ -36,6 +36,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
@@ -613,7 +614,7 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg = None,
-        use_conditions: Optional[timetools.DateConstrArg] = None,
+        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]] = None,
     ) -> Dict[sequencetools.IOSequence, Union[float, numpy.array]]:
         """do return conditions"""
 
@@ -651,9 +652,11 @@ class IntegrationTest(Test):
                 stepsize=hydpy.pub.timegrids.stepsize,
             )
             self.hydpy.simulate()
-            seq2value = {}
-            for seq in self.element.model.sequences.conditionsequences:
-                seq2value[seq] = copy.deepcopy(seq.value)
+            seq2value = {"states": {}, "logs": {}}
+            for seq in self.element.model.sequences.states:
+                seq2value["states"][seq.name] = copy.deepcopy(seq.value)
+            for seq in self.element.model.sequences.logs:
+                seq2value["logs"][seq.name] = copy.deepcopy(seq.value)
             hydpy.pub.timegrids.sim = timetools.Timegrid(
                 firstdate=date,
                 lastdate=hydpy.pub.timegrids.init.lastdate,
@@ -768,7 +771,7 @@ datetime of the Python standard library for for further information.
     def prepare_model(
         self,
         update_parameters: bool,
-        use_conditions: Optional[timetools.DateConstrArg],
+        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]],
     ) -> None:
         """Derive the secondary parameter values, prepare all required time
         series and set the initial conditions."""
@@ -781,13 +784,14 @@ datetime of the Python standard library for for further information.
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
-                for seq in self.element.model.sequences.conditionsequences:
-                    seq(use_conditions[seq])
+                for seq in self.element.model.sequences.states:
+                    seq(use_conditions["states"][seq.name])
+                for seq in self.element.model.sequences.logs:
+                    seq(use_conditions["logs"][seq.name])
         self.reset_inits()
 
     def reset_outputs(self):
-        """Set the values of the simulation sequences of all outlet nodes to
-        zero."""
+        """Set the values of the simulation sequences of all outlet nodes to zero."""
         for node in self.nodes:
             if (node in self.element.outlets) or (node in self.element.senders):
                 node.sequences.sim[:] = 0.0

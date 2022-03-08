@@ -7,30 +7,30 @@ from hydpy.core import sequencetools
 
 
 class ExtraterrestrialRadiation(sequencetools.FluxSequence):
-    """Extraterrestial radiation [MJ/m²/T]."""
+    """Extraterrestial radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class ClearSkySolarRadiation(sequencetools.FluxSequence):
-    """Clear sky solar radiation [MJ/m²/T]."""
+    """Clear sky solar radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class UnadjustedGlobalRadiation(sequencetools.FluxSequence):
-    """Unadjusted global radiation [MJ/m²]."""
+    """Unadjusted global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class DailyGlobalRadiation(sequencetools.FluxSequence):
-    """Daily sum of global radiation [MJ/m²/d]."""
+    """Daily sum of global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class GlobalRadiation(sequencetools.FluxSequence):
-    """Global radiation [MJ/m²/T]."""
+    """Global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False

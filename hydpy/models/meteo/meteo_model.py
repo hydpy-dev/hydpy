@@ -421,20 +421,20 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
     Basic equation for daily simulation steps (:cite:`ref-Allen1998`, equation 21):
       :math:`ExternalTerrestrialRadiation =
-      \frac{Seconds \ 4.92}{Pi \ 60 \cdot 60} \cdot EarthSunDistance \cdot (
+      \frac{SolarConstant}{Pi} \cdot EarthSunDistance \cdot (
       SunsetHourAngle \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot sin(SunsetHourAngle))`
 
     Basic equation for (sub)hourly steps (:cite:`ref-Allen1998`, eq. 28 to 30):
       :math:`ExternalTerrestrialRadiation =
-      \frac{12 \cdot 4.92}{Pi} \cdot EarthSunDistance \cdot (
+      \frac{12 \cdot SolarConstant}{Pi} \cdot EarthSunDistance \cdot \Big(
       (\omega_2 - \omega_1) \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot (sin(\omega_2) -
-      sin(\omega_1)))`
+      sin(\omega_1)) \Big)`
 
-      :math:`\omega_1 = SolarTimeAngle - \frac{Pi \cdot Seconds}{60 \cdot 60 \cdot 24}`
+      :math:`\omega_1 = SolarTimeAngle - Pi \cdot Days`
 
-      :math:`\omega_2 = SolarTimeAngle + \frac{Pi \cdot Seconds}{60 \cdot 60 \cdot 24}`
+      :math:`\omega_2 = SolarTimeAngle + Pi \cdot Days`
 
     Examples:
 
@@ -443,14 +443,14 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
-        >>> derived.seconds(60*60*24)
+        >>> derived.days(1)
         >>> derived.latituderad(-0.35)
         >>> factors.earthsundistance = 0.985
         >>> factors.solardeclination = 0.12
         >>> factors.sunsethourangle = 1.527
         >>> model.calc_extraterrestrialradiation_v1()
         >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(32.173851)
+        extraterrestrialradiation(372.473355)
 
         The following calculation repeats the above example for an hourly simulation
         time step, still covering the whole day:
@@ -458,7 +458,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         >>> import numpy
         >>> longitude(-20)
         >>> derived.utclongitude(-20)
-        >>> derived.seconds(60*60)
+        >>> derived.days(1/24)
         >>> derived.doy.shape = 24
         >>> derived.doy(246)
         >>> derived.sct.shape = 24
@@ -478,18 +478,18 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         3: 0.0
         4: 0.0
         5: 0.0
-        6: 0.418507
-        7: 1.552903
-        8: 2.567915
-        9: 3.39437
-        10: 3.975948
-        11: 4.273015
-        12: 4.265326
-        13: 3.953405
-        14: 3.35851
-        15: 2.52118
-        16: 1.49848
-        17: 0.360103
+        6: 116.280258
+        7: 431.467206
+        8: 713.483659
+        9: 943.11066
+        10: 1104.699509
+        11: 1187.238194
+        12: 1185.101838
+        13: 1098.436032
+        14: 933.146907
+        15: 700.498642
+        16: 416.345834
+        17: 100.053027
         18: 0.0
         19: 0.0
         20: 0.0
@@ -503,27 +503,26 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         time`_).
 
         There is a slight deviation between the directly calculated daily value and the
-        sum of the hourly values:
+        mean of the hourly values:
 
-        >>> round_(sum_)
-        32.139663
+        >>> round_(sum_/24)
+        372.077574
 
         For sub-daily simulation time steps, results are most accurate for the shortest
         step size.  On the other hand, they can be (extremely) inaccurate for timesteps
-        between one hour and one day.  We demonstrate this by comparing the sum of the
+        between one hour and one day.  We demonstrate this by comparing the mean
         sub-daily values of different step sizes with the directly calculated daily
         value (note the apparent total fail of method
         |Calc_ExtraterrestrialRadiation_V1| for a step size of 720 minutes):
 
         >>> for minutes in [1, 5, 15, 30, 60, 90, 120, 144, 160,
         ...                 180, 240, 288, 360, 480, 720, 1440]:
-        ...     derived.seconds(minutes*60)
+        ...     derived.days(minutes/60/24)
         ...     nmb = int(1440/minutes)
         ...     derived.doy.shape = nmb
         ...     derived.doy(246)
         ...     derived.sct.shape = nmb
-        ...     derived.sct = numpy.linspace(
-        ...         minutes/60/2, 24-minutes/60/2, nmb)
+        ...     derived.sct = numpy.linspace(minutes/60/2, 24-minutes/60/2, nmb)
         ...     sum_ = 0.0
         ...     for idx in range(nmb):
         ...         model.idx_sim = idx
@@ -531,28 +530,31 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         ...         model.calc_extraterrestrialradiation_v1()
         ...         sum_ += fluxes.extraterrestrialradiation
         ...     print(minutes, end=": ")
-        ...     round_(sum_-32.173851)
-        1: -0.000054
-        5: -0.000739
-        15: -0.008646
-        30: -0.034188
-        60: -0.034188
-        90: -0.034188
-        120: -0.034188
-        144: -1.246615
-        160: -0.823971
-        180: -0.034188
-        240: -3.86418
-        288: -2.201488
-        360: -0.034188
-        480: -3.86418
-        720: -32.173851
-        1440: 0.0
+        ...     round_(sum_/24 - 372.473355)
+        1: -0.000626
+        5: -0.008549
+        15: -0.100092
+        30: -0.395781
+        60: -0.395781
+        90: -0.395781
+        120: -0.395781
+        144: -14.43193
+        160: -9.539017
+        180: -0.395781
+        240: -44.735212
+        288: -25.486399
+        360: -0.395781
+        480: -44.735212
+        720: -372.473355
+        1440: -356.953632
     """
 
-    FIXEDPARAMETERS = (meteo_fixed.Pi,)
+    FIXEDPARAMETERS = (
+        meteo_fixed.Pi,
+        meteo_fixed.SolarConstant,
+    )
     DERIVEDPARAMETERS = (
-        meteo_derived.Seconds,
+        meteo_derived.Days,
         meteo_derived.LatitudeRad,
     )
     REQUIREDSEQUENCES = (
@@ -569,12 +571,12 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if der.seconds < 60.0 * 60.0 * 24.0:
-            d_delta = fix.pi * der.seconds / 60.0 / 60.0 / 24.0
+        if der.days < 1.0:
+            d_delta = fix.pi * der.days
             d_omega1 = fac.solartimeangle - d_delta
             d_omega2 = fac.solartimeangle + d_delta
             flu.extraterrestrialradiation = max(
-                (12.0 * 4.92 / fix.pi * fac.earthsundistance)
+                (12.0 * fix.solarconstant / fix.pi * fac.earthsundistance)
                 * (
                     (
                         (d_omega2 - d_omega1)
@@ -591,7 +593,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
             )
         else:
             flu.extraterrestrialradiation = (
-                der.seconds * 0.0820 / 60.0 / fix.pi * fac.earthsundistance
+                fix.solarconstant / fix.pi * fac.earthsundistance
             ) * (
                 (
                     fac.sunsethourangle
@@ -612,7 +614,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
 
     Basic equation:
       :math:`ExternalTerrestrialRadiation =
-      \frac{Sol \cdot EarthSunDistance \cdot (
+      \frac{SolarConstant \cdot EarthSunDistance \cdot (
       SunsetHourAngle \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot sin(SunsetHourAngle)
       )}{PI}`
@@ -629,8 +631,8 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
         >>> derived.latituderad(0.9)
 
         The sunshine duration varies between seven hours at the winter solstice and 16
-        hours at summer solstice, which corresponds to daily radiation sums of 6.1 and
-        44.4 MJ/m²:
+        hours at summer solstice, corresponding to mean daily radiations of 70 and
+        514 W/m².
 
         >>> factors.solardeclination = -0.41
         >>> factors.earthsundistance = 0.97
@@ -638,7 +640,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
         >>> factors.timeofsunset = 15.6
         >>> model.calc_extraterrestrialradiation_v2()
         >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(6.087605)
+        extraterrestrialradiation(70.458396)
 
         >>> factors.solardeclination = 0.41
         >>> factors.earthsundistance = 1.03
@@ -646,7 +648,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
         >>> factors.timeofsunset = 20.0
         >>> model.calc_extraterrestrialradiation_v2()
         >>> fluxes.extraterrestrialradiation
-        extraterrestrialradiation(44.44131)
+        extraterrestrialradiation(514.367012)
     """
 
     DERIVEDPARAMETERS = (meteo_derived.LatitudeRad,)
@@ -689,7 +691,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
     Basic equation for (sub)hourly timesteps:
       :math:`PossibleSunshineDuration =
-      min(max(12 / Pi \cdot (SunsetHourAngle - \tau), 0), \frac{Seconds}{60 \cdot 60})`
+      min(max(12 / Pi \cdot (SunsetHourAngle - \tau), 0), Hours)`
 
       .. math::
         \tau =
@@ -705,7 +707,8 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
-        >>> derived.seconds(60*60*24)
+        >>> derived.days(1)
+        >>> derived.hours(24)
         >>> factors.sunsethourangle(1.527)
         >>> model.calc_possiblesunshineduration_v1()
         >>> factors.possiblesunshineduration
@@ -717,7 +720,8 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
         >>> from hydpy import round_
         >>> import numpy
-        >>> derived.seconds(60*60)
+        >>> derived.days(1/24)
+        >>> derived.hours(1)
         >>> solartimeangles = numpy.linspace(-3.004157, 3.017229, 24)
         >>> sum_ = 0.
         >>> for hour, solartimeangle in enumerate(solartimeangles):
@@ -745,7 +749,10 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     """
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
-    DERIVEDPARAMETERS = (meteo_derived.Seconds,)
+    DERIVEDPARAMETERS = (
+        meteo_derived.Days,
+        meteo_derived.Hours,
+    )
     REQUIREDSEQUENCES = (
         meteo_factors.SolarTimeAngle,
         meteo_factors.SunsetHourAngle,
@@ -757,15 +764,13 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_hours = der.seconds / 60.0 / 60.0
-        d_days = d_hours / 24.0
-        if d_hours < 24.0:
+        if der.hours < 24.0:
             if fac.solartimeangle <= 0.0:
-                d_thresh = -fac.solartimeangle - fix.pi * d_days
+                d_thresh = -fac.solartimeangle - fix.pi * der.days
             else:
-                d_thresh = fac.solartimeangle - fix.pi * d_days
+                d_thresh = fac.solartimeangle - fix.pi * der.days
             fac.possiblesunshineduration = min(
-                max(12.0 / fix.pi * (fac.sunsethourangle - d_thresh), 0.0), d_hours
+                max(12.0 / fix.pi * (fac.sunsethourangle - d_thresh), 0.0), der.hours
             )
         else:
             fac.possiblesunshineduration = 24.0 / fix.pi * fac.sunsethourangle
@@ -1014,10 +1019,10 @@ class Calc_DailyGlobalRadiation_V2(modeltools.Method):
         >>> parameterstep()
         >>> derived.nmblogentries(3)
         >>> logs.loggedglobalradiation.shape = 3
-        >>> logs.loggedglobalradiation = 1.0, 5.0, 3.0
+        >>> logs.loggedglobalradiation = 100.0, 800.0, 600.0
         >>> model.calc_dailyglobalradiation_v2()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(9.0)
+        dailyglobalradiation(500.0)
     """
 
     DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
@@ -1032,6 +1037,7 @@ class Calc_DailyGlobalRadiation_V2(modeltools.Method):
         flu.dailyglobalradiation = 0.0
         for idx in range(der.nmblogentries):
             flu.dailyglobalradiation += log.loggedglobalradiation[idx]
+        flu.dailyglobalradiation /= der.nmblogentries
 
 
 class Calc_PortionDailyRadiation_V1(modeltools.Method):
@@ -1260,13 +1266,13 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         >>> angstromconstant.feb = 0.2
         >>> angstromfactor.feb = 0.6
         >>> angstromalternative.feb = 0.3
-        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> fluxes.extraterrestrialradiation = 340.0
         >>> model.idx_sim = 1
         >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
-        0.68
+        136.0
         >>> model.idx_sim = 2
         >>> round_(model.return_dailyglobalradiation_v1(0.6, 1.0))
-        0.952
+        190.4
 
         If the possible sunshine duration is zero, we generally set global radiation to
         zero (even if the actual sunshine duration is larger than zero, which might
@@ -1280,10 +1286,10 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
 
         >>> model.idx_sim = 1
         >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.34
+        68.0
         >>> model.idx_sim = 2
         >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.51
+        102.0
 
         All of the examples and explanations above hold for short simulation timesteps,
         except that |AngstromAlternative| never replaces |AngstromConstant|:
@@ -1293,7 +1299,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         >>> derived.days.update()
         >>> model.idx_sim = 1
         >>> round_(model.return_dailyglobalradiation_v1(0.0, 1.0))
-        0.17
+        34.0
 
         .. testsetup::
 
@@ -1353,15 +1359,15 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
         >>> angstromconstant.feb = 0.25
         >>> angstromfactor.feb = 0.5
         >>> derived.moy.update()
-        >>> fluxes.extraterrestrialradiation = 40.0
+        >>> fluxes.extraterrestrialradiation = 200.0
         >>> model.idx_sim = 1
         >>> model.calc_clearskysolarradiation_v1()
         >>> fluxes.clearskysolarradiation
-        clearskysolarradiation(29.6)
+        clearskysolarradiation(148.0)
         >>> model.idx_sim = 2
         >>> model.calc_clearskysolarradiation_v1()
         >>> fluxes.clearskysolarradiation
-        clearskysolarradiation(30.0)
+        clearskysolarradiation(150.0)
 
         .. testsetup::
 
@@ -1411,15 +1417,15 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         >>> derived.moy.update()
         >>> inputs.sunshineduration = 12.0
         >>> factors.possiblesunshineduration = 14.0
-        >>> fluxes.extraterrestrialradiation = 40.0
+        >>> fluxes.extraterrestrialradiation = 200.0
         >>> model.idx_sim = 1
         >>> model.calc_globalradiation_v1()
         >>> fluxes.globalradiation
-        globalradiation(26.457143)
+        globalradiation(132.285714)
         >>> model.idx_sim = 2
         >>> model.calc_globalradiation_v1()
         >>> fluxes.globalradiation
-        globalradiation(27.142857)
+        globalradiation(135.714286)
 
         For zero possible sunshine durations, |Calc_GlobalRadiation_V1| sets
         |meteo_fluxes.GlobalRadiation| to zero:
@@ -1473,7 +1479,8 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        UnadjustedGlobalRadiation = \frac{SP}{100} \cdot \begin{cases}
+        UnadjustedGlobalRadiation =
+        NmbLogEntries \cdot \frac{SP}{100} \cdot \begin{cases}
         Return\_DailyGlobalRadiation\_V1(
         SunshineDuration, PossibleSunshineDuration)
         &|\
@@ -1493,9 +1500,10 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         |meteo_inputs.SunshineDuration| and |PossibleSunshineDuration|:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> pub.timegrids = "2000-01-31", "2000-02-02", "6h"
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
+        >>> derived.nmblogentries.update()
         >>> derived.moy.update()
         >>> derived.days.update()
         >>> angstromconstant.jan = 0.1
@@ -1503,12 +1511,12 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         >>> angstromalternative.jan = 0.2
         >>> inputs.sunshineduration = 0.6
         >>> factors.possiblesunshineduration = 1.0
-        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> fluxes.extraterrestrialradiation = 340.0
         >>> factors.portiondailyradiation = 50.0
-        >>> model.idx_sim = 1
+        >>> model.idx_sim = 3
         >>> model.calc_unadjustedglobalradiation_v1()
         >>> fluxes.unadjustedglobalradiation
-        unadjustedglobalradiation(0.34)
+        unadjustedglobalradiation(272.0)
 
         During nighttime periods, the value of |PossibleSunshineDuration| is zero.
         Then, |Calc_GlobalRadiation_V1| uses the values of |DailySunshineDuration| and
@@ -1517,10 +1525,9 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         >>> factors.possiblesunshineduration = 0.0
         >>> factors.dailysunshineduration = 4.0
         >>> factors.dailypossiblesunshineduration = 10.0
-
         >>> model.calc_unadjustedglobalradiation_v1()
         >>> fluxes.unadjustedglobalradiation
-        unadjustedglobalradiation(0.255)
+        unadjustedglobalradiation(204.0)
 
         .. testsetup::
 
@@ -1534,6 +1541,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         meteo_control.AngstromAlternative,
     )
     DERIVEDPARAMETERS = (
+        meteo_derived.NmbLogEntries,
         meteo_derived.MOY,
         meteo_derived.Days,
     )
@@ -1549,6 +1557,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1559,7 +1568,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
             d_act = fac.dailysunshineduration
             d_pos = fac.dailypossiblesunshineduration
         flu.unadjustedglobalradiation = (
-            fac.portiondailyradiation / 100.0
+            der.nmblogentries * fac.portiondailyradiation / 100.0
         ) * model.return_dailyglobalradiation_v1(d_act, d_pos)
 
 
@@ -1630,10 +1639,10 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         >>> angstromconstant.feb = 0.2
         >>> angstromfactor.feb = 0.6
 
-        We set the extraterrestrial radiation to 10 MJ/m² and the possible sunshine
+        We set the extraterrestrial radiation to 200 W/m² and the possible sunshine
         duration to 12 hours:
 
-        >>> fluxes.extraterrestrialradiation = 10.0
+        >>> fluxes.extraterrestrialradiation = 200.0
         >>> factors.dailypossiblesunshineduration = 12.0
 
         We define a daily simulation step size and update the relevant derived
@@ -1644,23 +1653,22 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
 
         Applying the Ångström coefficients for January and February on the defined
         extraterrestrial radiation and a sunshine duration of 7.2 hours results in a
-        daily global radiation sum of 4.0 MJ/m² and 5.6 MJ/m², respectively:
+        daily global radiation average of 80 and 112 W/m², respectively:
 
         >>> model.idx_sim = 1
         >>> factors.dailysunshineduration = 7.2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(4.0)
+        dailyglobalradiation(80.0)
 
         >>> model.idx_sim = 2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(5.6)
+        dailyglobalradiation(112.0)
 
-        Finally, we demonstrate for January that method
-        |Calc_DailyGlobalRadiation_V1| calculates the same values for an
-        hourly simulation time step, as long as the daily sum of sunshine
-        duration remains identical:
+        Finally, we demonstrate for January that method |Calc_DailyGlobalRadiation_V1|
+        calculates the same values for an hourly simulation time step, as long as the
+        daily sum of sunshine duration remains identical:
 
         >>> pub.timegrids = "2000-01-30", "2000-02-03", "1h"
         >>> derived.moy.update()
@@ -1671,7 +1679,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         >>> factors.dailysunshineduration = 7.2
         >>> model.calc_dailyglobalradiation_v1()
         >>> fluxes.dailyglobalradiation
-        dailyglobalradiation(4.0)
+        dailyglobalradiation(80.0)
 
         .. testsetup::
 
@@ -1732,10 +1740,10 @@ class Return_SunshineDuration_V1(modeltools.Method):
         >>> angstromfactor.feb = 0.6
         >>> angstromalternative.feb = 0.3
         >>> model.idx_sim = 1
-        >>> round_(model.return_sunshineduration_v1(0.68, 1.7, 1.0))
+        >>> round_(model.return_sunshineduration_v1(136.0, 340.0, 1.0))
         0.6
         >>> model.idx_sim = 2
-        >>> round_(model.return_sunshineduration_v1(0.952, 1.7, 1.0))
+        >>> round_(model.return_sunshineduration_v1(190.4, 340.0, 1.0))
         0.6
 
         In contrast to |Return_DailyGlobalRadiation_V1|, |Return_SunshineDuration_V1|
@@ -1745,10 +1753,10 @@ class Return_SunshineDuration_V1(modeltools.Method):
         sunshine:
 
         >>> model.idx_sim = 1
-        >>> round_(model.return_sunshineduration_v1(0.34, 1.7, 1.0))
+        >>> round_(model.return_sunshineduration_v1(68.0, 340.0, 1.0))
         0.2
         >>> model.idx_sim = 2
-        >>> round_(model.return_sunshineduration_v1(0.51, 1.7, 1.0))
+        >>> round_(model.return_sunshineduration_v1(102.0, 340.0, 1.0))
         0.166667
 
         We must consider additional corner cases.  The first one deals with a potential
@@ -1757,7 +1765,7 @@ class Return_SunshineDuration_V1(modeltools.Method):
         duration (which should ideally also be zero) as the actual sunshine duration:
 
         >>> model.idx_sim = 1
-        >>> round_(model.return_sunshineduration_v1(0.68, 0.0, 0.00001))
+        >>> round_(model.return_sunshineduration_v1(136.0, 0.0, 0.00001))
         0.00001
 
         Measured global radiation smaller than estimated diffusive radiation would
@@ -1768,16 +1776,16 @@ class Return_SunshineDuration_V1(modeltools.Method):
         method |Return_SunshineDuration_V1| prevents such inconsistencies by trimming
         the estimated sunshine duration when necessary:
 
-        >>> for globrad in (0.0, 0.17, 0.18, 0.68, 1.01, 1.02, 1.7):
-        ...     sundur = model.return_sunshineduration_v1(globrad, 1.7, 1.0)
+        >>> for globrad in (0.0, 34.0, 35.0, 136.0, 203.0, 204.0, 340.0):
+        ...     sundur = model.return_sunshineduration_v1(globrad, 340.0, 1.0)
         ...     round_((globrad, sundur))
         0.0, 0.0
-        0.17, 0.0
-        0.18, 0.011765
-        0.68, 0.6
-        1.01, 0.988235
-        1.02, 1.0
-        1.7, 1.0
+        34.0, 0.0
+        35.0, 0.005882
+        136.0, 0.6
+        203.0, 0.994118
+        204.0, 1.0
+        340.0, 1.0
 
         .. testsetup::
 
@@ -1818,9 +1826,8 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
 
     Basic equation:
       :math:`UnadjustedSunshineDuration = Return\_SunshineDuration
-      \left( GlobalRadiation,
-      \frac{PortionDailyRadiation}{100} \cdot ExtraterrestrialRadiation,
-      PossibleSunshineDuration \right)`
+      \left( GlobalRadiation, NmbLogEntries \cdot \frac{PortionDailyRadiation}{100}
+      \cdot ExtraterrestrialRadiation, PossibleSunshineDuration \right)`
 
     Example:
 
@@ -1832,17 +1839,18 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
         |PossibleSunshineDuration|:
 
         >>> from hydpy import pub
-        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> pub.timegrids = "2000-01-31", "2000-02-02", "6h"
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
+        >>> derived.nmblogentries.update()
         >>> derived.moy.update()
         >>> angstromconstant.jan = 0.1
         >>> angstromfactor.jan = 0.5
-        >>> inputs.globalradiation = 0.34
+        >>> inputs.globalradiation = 272.0
         >>> factors.possiblesunshineduration = 1.0
         >>> factors.portiondailyradiation = 50.0
-        >>> fluxes.extraterrestrialradiation = 1.7
-        >>> model.idx_sim = 1
+        >>> fluxes.extraterrestrialradiation = 340.0
+        >>> model.idx_sim = 3
         >>> model.calc_unadjustedsunshineduration_v1()
         >>> factors.unadjustedsunshineduration
         unadjustedsunshineduration(0.6)
@@ -1857,7 +1865,10 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
         meteo_control.AngstromConstant,
         meteo_control.AngstromFactor,
     )
-    DERIVEDPARAMETERS = (meteo_derived.MOY,)
+    DERIVEDPARAMETERS = (
+        meteo_derived.MOY,
+        meteo_derived.NmbLogEntries,
+    )
     REQUIREDSEQUENCES = (
         meteo_inputs.GlobalRadiation,
         meteo_factors.PossibleSunshineDuration,
@@ -1868,12 +1879,16 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         fac.unadjustedsunshineduration = model.return_sunshineduration_v1(
             inp.globalradiation,
-            flu.extraterrestrialradiation * fac.portiondailyradiation / 100.0,
+            flu.extraterrestrialradiation
+            * der.nmblogentries
+            * fac.portiondailyradiation
+            / 100.0,
             fac.possiblesunshineduration,
         )
 
@@ -1887,13 +1902,13 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
 
     Basic equation:
       :math:`GlobalRadiation = UnadjustedGlobalRadiation \cdot
-      \frac{DailyGlobalRadiation}{\sum LoggedUnadjustedGlobalRadiation}`
+      \frac{DailyGlobalRadiation}{\sum LoggedUnadjustedGlobalRadiation / NmbLogEntries}`
 
     Examples:
 
         The purpose of method |Calc_GlobalRadiation_V2| is to adjust hourly global
         radiation values (or those of other short simulation time steps) so that their
-        sum over the last 24 hours equals the global radiation value directly
+        mean over the last 24 hours equals the global radiation value directly
         calculated with the relative sunshine duration over the last 24 hours.  We try
         to explain this somewhat counterintuitive approach by extending the
         documentation examples on method |Calc_DailyGlobalRadiation_V1|.
@@ -1910,25 +1925,25 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
         |LoggedUnadjustedGlobalRadiation| must be identical:
 
         >>> model.idx_sim = 1
-        >>> fluxes.unadjustedglobalradiation = 4.0
-        >>> fluxes.dailyglobalradiation = 4.0
-        >>> logs.loggedunadjustedglobalradiation = 4.0
+        >>> fluxes.unadjustedglobalradiation = 200.0
+        >>> fluxes.dailyglobalradiation = 200.0
+        >>> logs.loggedunadjustedglobalradiation = 200.0
 
         After calling |Calc_GlobalRadiation_V2|, the same holds for the adjusted global
         radiation sum:
 
         >>> model.calc_globalradiation_v2()
         >>> fluxes.globalradiation
-        globalradiation(4.0)
+        globalradiation(200.0)
 
         Intuitively, one would not expect method |Calc_GlobalRadiation_V2| to have any
         effect when applied on daily simulation time steps at all.  However, it
         corrects "wrong" predefined global radiation values:
 
-        >>> fluxes.dailyglobalradiation = 5.6
+        >>> fluxes.dailyglobalradiation = 280.0
         >>> model.calc_globalradiation_v2()
         >>> fluxes.globalradiation
-        globalradiation(5.6)
+        globalradiation(280.0)
 
         We now demonstrate how method |Calc_GlobalRadiation_V2| works for hourly
         simulation time steps:
@@ -1937,30 +1952,30 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
         >>> derived.nmblogentries.update()
 
         The daily global radiation value does not depend on the simulation timestep.
-        We reset it to 4 MJ/m²/d:
+        We reset it to 200 W/m²:
 
-        >>> fluxes.dailyglobalradiation = 4.0
+        >>> fluxes.dailyglobalradiation = 200.0
 
         The other global radiation values must be smaller and vary throughout the day.
         We set them in agreement with the logged sunshine duration specified in the
         documentation on method |Calc_DailyGlobalRadiation_V1|:
 
-        >>> fluxes.unadjustedglobalradiation = 0.8
+        >>> fluxes.unadjustedglobalradiation = 960.0
         >>> logs.loggedunadjustedglobalradiation = (
-        ...     0.8, 0.8, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.4, 0.6, 0.7, 0.8)
+        ...     960.0, 960.0, 240.0, 120.0, 120.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 120.0, 480.0, 720.0, 840.0, 960.0)
 
         Compared with the total 24 hours, the simulation time steps around noon are
         relatively sunny, both for the current and the last day (see the first and the
         last entry of the log sequence for the sunshine duration).  Accordingly, the
-        sum of the hourly global radiation values (4.6 W/m²) is larger than the
-        directly calculated daily sum (4.0 W/m²).  Method |Calc_GlobalRadiation_V2|
-        uses the fraction of both sums to calculate the adjusted global radiation
-        (:math:`0.8 \\cdot 4.0 / 4.6`):
+        hourly global radiation values' mean (230 W/m²) is larger than the directly
+        calculated daily mean (200 W/m²).  Method |Calc_GlobalRadiation_V2| uses the
+        fraction of both sums to calculate the adjusted global radiation
+        (:math:`960 \cdot 200 / 230`):
 
         >>> model.calc_globalradiation_v2()
         >>> fluxes.globalradiation
-        globalradiation(0.695652)
+        globalradiation(834.782609)
     """
 
     DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
@@ -1979,8 +1994,9 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
         d_glob_sum = 0.0
         for idx in range(der.nmblogentries):
             d_glob_sum += log.loggedunadjustedglobalradiation[idx]
+        d_glob_mean = d_glob_sum / der.nmblogentries
         flu.globalradiation = (
-            flu.unadjustedglobalradiation * flu.dailyglobalradiation / d_glob_sum
+            flu.unadjustedglobalradiation * flu.dailyglobalradiation / d_glob_mean
         )
 
 
@@ -2010,14 +2026,14 @@ class Calc_SunshineDuration_V1(modeltools.Method):
         >>> angstromfactor.feb = 0.5
         >>> derived.moy.update()
         >>> factors.possiblesunshineduration = 14.0
-        >>> fluxes.extraterrestrialradiation = 40.0
+        >>> fluxes.extraterrestrialradiation = 200.0
         >>> model.idx_sim = 1
-        >>> inputs.globalradiation = 26.457143
+        >>> inputs.globalradiation = 132.285714
         >>> model.calc_sunshineduration_v1()
         >>> factors.sunshineduration
         sunshineduration(12.0)
         >>> model.idx_sim = 2
-        >>> inputs.globalradiation = 27.142857
+        >>> inputs.globalradiation = 135.714286
         >>> model.calc_sunshineduration_v1()
         >>> factors.sunshineduration
         sunshineduration(12.0)
@@ -2036,8 +2052,8 @@ class Calc_SunshineDuration_V1(modeltools.Method):
         too high values to the possible sunshine duration and increasing too low values
         to zero:
 
-        >>> fluxes.extraterrestrialradiation = 40.0
-        >>> inputs.globalradiation = 50.0
+        >>> fluxes.extraterrestrialradiation = 200.0
+        >>> inputs.globalradiation = 210.0
         >>> model.calc_sunshineduration_v1()
         >>> factors.sunshineduration
         sunshineduration(14.0)
@@ -2156,13 +2172,13 @@ class Calc_DailySunshineDuration_V2(modeltools.Method):
         >>> derived.moy.update()
         >>> angstromconstant.jan = 0.1
         >>> angstromfactor.jan = 0.5
-        >>> factors.dailypossiblesunshineduration = 5.0
-        >>> fluxes.dailyglobalradiation = 0.68
-        >>> fluxes.extraterrestrialradiation = 1.7
+        >>> factors.dailypossiblesunshineduration = 12.0
+        >>> fluxes.dailyglobalradiation = 80.0
+        >>> fluxes.extraterrestrialradiation = 200.0
         >>> model.idx_sim = 1
         >>> model.calc_dailysunshineduration_v2()
         >>> factors.dailysunshineduration
-        dailysunshineduration(3.0)
+        dailysunshineduration(7.2)
 
         .. testsetup::
 

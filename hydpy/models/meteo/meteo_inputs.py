@@ -13,6 +13,6 @@ class SunshineDuration(sequencetools.InputSequence):
 
 
 class GlobalRadiation(sequencetools.InputSequence):
-    """Global radiation [MJ/m²/T]."""
+    """Global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False

@@ -14,7 +14,7 @@ class Pi(parametertools.FixedParameter):
 
 
 class SolarConstant(parametertools.FixedParameter):
-    """Solar constant [MJ/m²/d]."""
+    """Solar constant [W/m²]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 118.1088
+    INIT = 1367.0

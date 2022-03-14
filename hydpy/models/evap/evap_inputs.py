@@ -25,7 +25,7 @@ class WindSpeed(sequencetools.InputSequence):
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
-    """Atmospheric pressure [kPA]."""
+    """Atmospheric pressure [hPa]."""
 
     NDIM, NUMERIC = 0, False
 

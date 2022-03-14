@@ -56,6 +56,6 @@ class PET(sequencetools.InputSequence):
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
-    """Luftdruck (atmospheric pressure) [kPa]."""
+    """Luftdruck (atmospheric pressure) [hPa]."""
 
     NDIM, NUMERIC = 0, False

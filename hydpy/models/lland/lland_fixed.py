@@ -131,18 +131,18 @@ class CPLuft(parametertools.FixedParameter):
 
 class Psy(parametertools.FixedParameter):
     """Psychrometerkonstante bei Normaldruck (psychrometric constant at
-    normal pressure) [kPa/K]."""
+    normal pressure) [hPa/K]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 0.0655
+    INIT = 0.655
 
 
 class PsyInv(parametertools.FixedParameter):
     """Kehrwert der Psychrometerkonstante über Schnee und Eis bei 0°C
-    (inverse psychrometric constant for ice and snow at 0°C) [K/kPa]."""
+    (inverse psychrometric constant for ice and snow at 0°C) [K/hPa]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 17.6
+    INIT = 1.76
 
 
 class Z0(parametertools.FixedParameter):

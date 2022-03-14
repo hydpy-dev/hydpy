@@ -89,7 +89,7 @@ class Pegasus(modeltools.Submodel):
         >>> states.waes.values = 1.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationsnow = 10.0
         >>> aides.temps = -2.0
         >>> aides.rlatm = 200.0

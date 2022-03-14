@@ -2658,13 +2658,13 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
 
 
 class Return_SaturationVapourPressure_V1(modeltools.Method):
-    """Calculate and return the saturation vapour pressure over an
+    r"""Calculate and return the saturation vapour pressure over an
     arbitrary surface for the given temperature :cite:`ref-LARSIM`
     (based on :cite:`ref-Weischt1983`).
 
     Basic equation:
-      :math:`0.61078 \\cdot
-      2.71828^{\\frac{17.08085 \\cdot temperature}{temperature + 234.175}}`
+      :math:`6.1078 \cdot
+      2.71828^{\frac{17.08085 \cdot temperature}{temperature + 234.175}}`
 
     Example:
 
@@ -2672,7 +2672,7 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import round_
         >>> round_(model.return_saturationvapourpressure_v1(10.0))
-        1.229385
+        12.293852
     """
 
     @staticmethod
@@ -2680,16 +2680,16 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
         model: modeltools.Model,
         temperature: float,
     ) -> float:
-        return 0.61078 * 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
+        return 6.1078 * 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
 
 
 class Return_SaturationVapourPressureSlope_V1(modeltools.Method):
-    """Calculate and return the saturation vapour pressure slope over an
+    r"""Calculate and return the saturation vapour pressure slope over an
     arbitrary surface for the given temperature.
 
     Basic equation (derivative of |Return_SaturationVapourPressure_V1|:
-      :math:`\\frac{2443.06 \\cdot
-      exp((17.08085 \\cdot temperature) / (temperature + 234.175)}
+      :math:`\frac{24430.6 \cdot
+      exp((17.08085 \cdot temperature) / (temperature + 234.175)}
       {(temperature+234.175)^2}`
 
     Example:
@@ -2698,11 +2698,11 @@ class Return_SaturationVapourPressureSlope_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import round_
         >>> round_(model.return_saturationvapourpressureslope_v1(10.0))
-        0.082477
+        0.824774
         >>> dx = 1e-6
         >>> round_((model.return_saturationvapourpressure_v1(10.0+dx) -
         ...         model.return_saturationvapourpressure_v1(10.0-dx))/2/dx)
-        0.082477
+        0.824775
     """
 
     @staticmethod
@@ -2711,7 +2711,7 @@ class Return_SaturationVapourPressureSlope_V1(modeltools.Method):
         temperature: float,
     ) -> float:
         return (
-            2443.06
+            24430.6
             * modelutils.exp(17.08085 * temperature / (temperature + 234.175))
             / (temperature + 234.175) ** 2
         )
@@ -2732,7 +2732,7 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
         >>> fluxes.tkor = -10.0, 0.0, 10.0
         >>> model.calc_saturationvapourpressure_v1()
         >>> fluxes.saturationvapourpressure
-        saturationvapourpressure(0.285087, 0.61078, 1.229385)
+        saturationvapourpressure(2.850871, 6.1078, 12.293852)
     """
 
     SUBMETHODS = (Return_SaturationVapourPressure_V1,)
@@ -2765,7 +2765,7 @@ class Calc_DailySaturationVapourPressure_V1(modeltools.Method):
         >>> fluxes.tkortag = -10.0, 0.0, 10.0
         >>> model.calc_dailysaturationvapourpressure_v1()
         >>> fluxes.dailysaturationvapourpressure
-        dailysaturationvapourpressure(0.285087, 0.61078, 1.229385)
+        dailysaturationvapourpressure(2.850871, 6.1078, 12.293852)
     """
 
     SUBMETHODS = (Return_SaturationVapourPressure_V1,)
@@ -2796,10 +2796,9 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(3)
         >>> fluxes.tkor = -10.0, 0.0, 10.0
-        >>> fluxes.saturationvapourpressure = 0.285096, 0.6108, 1.229426
         >>> model.calc_saturationvapourpressureslope_v1()
         >>> fluxes.saturationvapourpressureslope
-        saturationvapourpressureslope(0.022691, 0.044551, 0.082477)
+        saturationvapourpressureslope(0.226909, 0.445506, 0.824774)
     """
 
     SUBMETHODS = (Return_SaturationVapourPressureSlope_V1,)
@@ -2832,7 +2831,7 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
         >>> fluxes.tkortag = 10.0, 0.0, -10.0
         >>> model.calc_dailysaturationvapourpressureslope_v1()
         >>> fluxes.dailysaturationvapourpressureslope
-        dailysaturationvapourpressureslope(0.082477, 0.044551, 0.022691)
+        dailysaturationvapourpressureslope(0.824774, 0.445506, 0.226909)
     """
 
     SUBMETHODS = (Return_SaturationVapourPressureSlope_V1,)
@@ -2863,8 +2862,8 @@ class Return_ActualVapourPressure_V1(modeltools.Method):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> from hydpy import round_
-        >>> round_(model.return_actualvapourpressure_v1(2.0, 60.0))
-        1.2
+        >>> round_(model.return_actualvapourpressure_v1(20.0, 60.0))
+        12.0
     """
 
     @staticmethod
@@ -2891,10 +2890,10 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
         >>> nhru(1)
         >>> derived.nmblogentries.update()
         >>> inputs.relativehumidity = 60.0
-        >>> fluxes.saturationvapourpressure = 2.0
+        >>> fluxes.saturationvapourpressure = 20.0
         >>> model.calc_actualvapourpressure_v1()
         >>> fluxes.actualvapourpressure
-        actualvapourpressure(1.2)
+        actualvapourpressure(12.0)
     """
 
     SUBMETHODS = (Return_ActualVapourPressure_V1,)
@@ -2931,10 +2930,10 @@ class Calc_DailyActualVapourPressure_V1(modeltools.Method):
         >>> nhru(1)
         >>> derived.nmblogentries.update()
         >>> fluxes.dailyrelativehumidity = 40.0
-        >>> fluxes.dailysaturationvapourpressure = 4.0
+        >>> fluxes.dailysaturationvapourpressure = 40.0
         >>> model.calc_dailyactualvapourpressure_v1()
         >>> fluxes.dailyactualvapourpressure
-        dailyactualvapourpressure(1.6)
+        dailyactualvapourpressure(16.0)
     """
 
     SUBMETHODS = (Return_ActualVapourPressure_V1,)
@@ -2957,16 +2956,16 @@ class Calc_DailyActualVapourPressure_V1(modeltools.Method):
 
 
 class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
-    """Calculate the daily net longwave radiation.
+    r"""Calculate the daily net longwave radiation.
 
     Basic equation above a snow-free surface:
        :math:`DailyNetLongwaveRadiation =
-       Sigma \\cdot (TKorTag + 273.15)^4 \\cdot
-       \\left(Emissivity - FrAtm \\cdot
-       \\left(\\frac{DailyActualVapourPressure \\cdot 10}
-       {TKorTag + 273.15}\\right)^{1/7}\\right) \\cdot
-       \\left(0.2 + 0.8 \\cdot
-       \\frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\\right)`
+       Sigma \cdot (TKorTag + 273.15)^4 \cdot
+       \left(Emissivity - FrAtm \cdot
+       \left(\frac{DailyActualVapourPressure}
+       {TKorTag + 273.15}\right)^{1/7}\right) \cdot
+       \left(0.2 + 0.8 \cdot
+       \frac{DailySunshineDuration}{DailyPossibleSunshineDuration}\right)`
 
     Example:
 
@@ -2975,7 +2974,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
         >>> nhru(2)
         >>> emissivity(0.95)
         >>> fluxes.tkortag = 22.1, 0.0
-        >>> fluxes.dailyactualvapourpressure = 1.6, 0.6
+        >>> fluxes.dailyactualvapourpressure = 16.0, 6.0
         >>> fluxes.dailysunshineduration = 12.0
         >>> fluxes.dailypossiblesunshineduration = 14.0
         >>> model.calc_dailynetlongwaveradiation_v1()
@@ -3013,7 +3012,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
                 * (
                     con.emissivity
                     - fix.fratm
-                    * (flu.dailyactualvapourpressure[k] * 10.0 / d_temp) ** (1.0 / 7.0)
+                    * (flu.dailyactualvapourpressure[k] / d_temp) ** (1.0 / 7.0)
                 )
             )
 
@@ -3026,7 +3025,7 @@ class Calc_RLAtm_V1(modeltools.Method):
 
       :math:`RLAtm =
       FrAtm \cdot Sigma \cdot  (Tkor + 273.15)^4 \cdot
-      \left( \frac{ActualVapourPressure \cdot 10}{TKor + 273.15} \right) ^{1/7}
+      \left( \frac{ActualVapourPressure}{TKor + 273.15} \right) ^{1/7}
       \cdot \left(1 + 0.22 \cdot \left(
       1 - \frac{DailySunshineDuration}{DailyPossibleSunshineDuration} \right)^2
       \right)`
@@ -3038,7 +3037,7 @@ class Calc_RLAtm_V1(modeltools.Method):
         >>> nhru(2)
         >>> emissivity(0.95)
         >>> fluxes.tkor = 0.0, 10.0
-        >>> fluxes.actualvapourpressure = 0.6
+        >>> fluxes.actualvapourpressure = 6.0
         >>> fluxes.dailysunshineduration = 12.0
         >>> fluxes.dailypossiblesunshineduration = 14.0
         >>> model.calc_rlatm_v1()
@@ -3070,7 +3069,7 @@ class Calc_RLAtm_V1(modeltools.Method):
         for k in range(con.nhru):
             d_t = flu.tkor[k] + 273.15
             aid.rlatm[k] = d_common * (
-                d_t**4 * (flu.actualvapourpressure[k] * 10.0 / d_t) ** (1.0 / 7.0)
+                d_t**4 * (flu.actualvapourpressure[k] / d_t) ** (1.0 / 7.0)
             )
 
 
@@ -4295,8 +4294,8 @@ class Return_WLatInz_V1(modeltools.Method):
         >>> turb0(2.0)
         >>> turb1(2.0)
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.saturationvapourpressureinz = 0.4, 0.8
-        >>> fluxes.actualvapourpressure = 0.6108
+        >>> fluxes.saturationvapourpressureinz = 4.0, 8.0
+        >>> fluxes.actualvapourpressure = 6.108
         >>> from hydpy import round_
         >>> round_(model.return_wlatinz_v1(0))
         -29.68064
@@ -4343,8 +4342,8 @@ class Return_WLatSnow_V1(modeltools.Method):
         >>> turb0(2.0)
         >>> turb1(2.0)
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.saturationvapourpressuresnow = 0.4, 0.8
-        >>> fluxes.actualvapourpressure = .6108
+        >>> fluxes.saturationvapourpressuresnow = 4.0, 8.0
+        >>> fluxes.actualvapourpressure = 6.108
         >>> from hydpy import round_
         >>> round_(model.return_wlatsnow_v1(0))
         -29.68064
@@ -4555,7 +4554,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         >>> states.waes = 1.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationsnow = 20.0
         >>> derived.nmblogentries.update()
         >>> aides.temps = -2.0
@@ -4573,7 +4572,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         the following flux sequences for the given snow surface temperature:
 
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.453913)
+        saturationvapourpressuresnow(4.539126)
         >>> fluxes.netlongwaveradiationsnow
         netlongwaveradiationsnow(97.550439)
         >>> fluxes.netradiationsnow
@@ -4706,7 +4705,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> states.waes = 0.0, 1.0, 1.0, 1.0, 1.0, 1.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationsnow = 10.0, 10.0, 20.0, 20.0, 20.0, 200.0
         >>> aides.temps = nan, -2.0, -2.0, -50.0, -200.0, -2.0
         >>> aides.rlatm = 200.0
@@ -4877,7 +4876,7 @@ class Return_WSurfInz_V1(modeltools.Method):
         >>> inputs.relativehumidity = 60.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationinz = 20.0
         >>> fluxes.dailysunshineduration = 10.0
         >>> fluxes.dailypossiblesunshineduration = 12.0
@@ -4889,7 +4888,7 @@ class Return_WSurfInz_V1(modeltools.Method):
         21.616068
 
         >>> fluxes.saturationvapourpressureinz
-        saturationvapourpressureinz(0.489349)
+        saturationvapourpressureinz(4.893489)
         >>> fluxes.netlongwaveradiationinz
         netlongwaveradiationinz(42.94817)
         >>> fluxes.netradiationinz
@@ -4997,7 +4996,7 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
         >>> states.stinz = 100.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationinz = 20.0
         >>> states.esnowinz = -1.0
         >>> fluxes.dailysunshineduration = 10.0
@@ -5012,7 +5011,7 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
         >>> aides.tempsinz
         tempsinz(-6.675053)
         >>> fluxes.saturationvapourpressureinz
-        saturationvapourpressureinz(0.489349)
+        saturationvapourpressureinz(4.893489)
         >>> fluxes.netlongwaveradiationinz
         netlongwaveradiationinz(42.94817)
         >>> fluxes.netradiationinz
@@ -5145,7 +5144,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> states.wats = 10.0
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationsnow = 20.0
         >>> states.esnow = -1.0
         >>> fluxes.tz = 0.0
@@ -5169,7 +5168,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> fluxes.tempssurface
         tempssurface(-6.96038)
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.361944)
+        saturationvapourpressuresnow(3.619445)
         >>> fluxes.netlongwaveradiationsnow
         netlongwaveradiationsnow(84.673816)
         >>> fluxes.netradiationsnow
@@ -5206,7 +5205,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> fluxes.tempssurface
         tempssurface(-9.022755)
         >>> fluxes.saturationvapourpressuresnow
-        saturationvapourpressuresnow(0.308043)
+        saturationvapourpressuresnow(3.080429)
         >>> fluxes.netlongwaveradiationsnow
         netlongwaveradiationsnow(75.953474)
         >>> fluxes.netradiationsnow
@@ -5327,7 +5326,7 @@ class Update_ESnowInz_V1(modeltools.Method):
         >>> states.stinz = 0.0, 100.0, 12.0, 1.0, 0.10, 0.010, 1.0e-6, 1.0e-12
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationinz = 20.0
         >>> states.esnowinz = -1.0
         >>> aides.rlatm = 200.0
@@ -5478,7 +5477,7 @@ class Update_ESnow_V1(modeltools.Method):
         >>> states.wats = 0.0, 100.0, 12.0, 1.0, 0.10, 0.010, 1.0e-6, 1.0e-12
         >>> fluxes.tkor = -3.0
         >>> fluxes.reducedwindspeed2m = 3.0
-        >>> fluxes.actualvapourpressure = 0.29
+        >>> fluxes.actualvapourpressure = 2.9
         >>> fluxes.netshortwaveradiationsnow = 20.0
         >>> states.esnow = -1.0
         >>> fluxes.tz = 0.0
@@ -6165,11 +6164,11 @@ class Calc_DryAirPressure_V1(modeltools.Method):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> fluxes.actualvapourpressure = 0.9, 1.1, 2.5
-        >>> inputs.atmosphericpressure = 120.0
+        >>> fluxes.actualvapourpressure = 9.0, 11.0, 25.0
+        >>> inputs.atmosphericpressure = 1200.0
         >>> model.calc_dryairpressure_v1()
         >>> fluxes.dryairpressure
-        dryairpressure(119.1, 118.9, 117.5)
+        dryairpressure(1191.0, 1189.0, 1175.0)
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
@@ -6195,15 +6194,15 @@ class Calc_DensityAir_V1(modeltools.Method):
 
     Basic equation:
        :math:`DensityAir =
-       \frac{1000 \cdot DryAirPressure}{RDryAir \cdot (TKor + 273.15)}
-       + \frac{1000 \cdot ActualVapourPressure}{RWaterVapour \cdot (TKor + 273.15)}`
+       \frac{100 \cdot DryAirPressure}{RDryAir \cdot (TKor + 273.15)}
+       + \frac{100 \cdot ActualVapourPressure}{RWaterVapour \cdot (TKor + 273.15)}`
 
     Example:
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> fluxes.dryairpressure = 119.1, 100.0, 115.0
-        >>> fluxes.actualvapourpressure = 0.8, 0.7, 1.0
+        >>> fluxes.dryairpressure = 1191.0, 1000.0, 1150.0
+        >>> fluxes.actualvapourpressure = 8.0, 7.0, 10.0
         >>> fluxes.tkor = 10.0, 12.0, 14.0
         >>> model.calc_densityair_v1()
         >>> fluxes.densityair
@@ -6229,7 +6228,7 @@ class Calc_DensityAir_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             d_t = flu.tkor[k] + 273.15
-            flu.densityair[k] = 1000.0 * (
+            flu.densityair[k] = 100.0 * (
                 flu.dryairpressure[k] / (fix.rdryair * d_t)
                 + flu.actualvapourpressure[k] / (fix.rwatervapour * d_t)
             )
@@ -6471,38 +6470,38 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 
 
 class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
-    """Calculate the surface resistance of vegetation, water and sealed areas.
+    r"""Calculate the surface resistance of vegetation, water and sealed areas.
     :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`)
 
     Basic equations:
-       :math:`LanduseSurfaceResistance = SR^* \\cdot \\left(3.5 \\cdot
-       \\left(1 - \\frac{min(BoWa, PY)}{PY}\\right) +
-       exp\\left(\\frac{0.2 \\cdot PY}{max(BoWa, 0)}\\right)\\right)`
+       :math:`LanduseSurfaceResistance = SR^* \cdot \left(3.5 \cdot
+       \left(1 - \frac{min(BoWa, PY)}{PY}\right) +
+       exp\left(\frac{0.2 \cdot PY}{max(BoWa, 0)}\right)\right)`
 
       .. math::
-        SR^* = \\begin{cases}
+        SR^* = \begin{cases}
         SurfaceResistance
-        &|\\
-        Lnk \\neq NADELW
-        \\\\
-        10\\,000
-        &|\\
-        Lnk = NADELW \\;\\; \\land \\;\\;
-        (TKor \\leq -5 \\;\\; \\lor \\;\\; \\Delta \\geq 2)
-        \\\\
-        min\\left(\\frac{25 \\cdot SurfaceResistance}{(TKor + 5)
-       \\cdot (1 - \\Delta/2)}, 10\\,000\\right)
-        &|\\
-        Lnk = NADELW \\;\\; \\land \\;\\;
-        (-5 < TKor < 20 \\;\\; \\land \\;\\; \\Delta < 2)
-        \\\\
-        min\\left(\\frac{SurfaceResistance}{(1 - \\Delta/2)}, 10\\,000\\right)
-        &|\\
-        Lnk = NADELW \\;\\; \\land \\;\\;
-        (20 \\leq TKor \\;\\; \\land \\;\\; \\Delta < 2)
-        \\end{cases}
+        &|\
+        Lnk \neq NADELW
+        \\
+        10\,000
+        &|\
+        Lnk = NADELW \;\; \land \;\;
+        (TKor \leq -5 \;\; \lor \;\; \Delta \geq 20)
+        \\
+        min\left(\frac{25 \cdot SurfaceResistance}{(TKor + 5)
+       \cdot (1 - \Delta / 20)}, 10\,000\right)
+        &|\
+        Lnk = NADELW \;\; \land \;\;
+        (-5 < TKor < 20 \;\; \land \;\; \Delta < 20)
+        \\
+        min\left(\frac{SurfaceResistance}{1 - \Delta / 20}, 10\,000\right)
+        &|\
+        Lnk = NADELW \;\; \land \;\;
+        (20 \leq TKor \;\; \land \;\; \Delta < 20)
+        \end{cases}
 
-      :math:`\\Delta = SaturationVapourPressure - ActualVapourPressure`
+      :math:`\Delta = SaturationVapourPressure - ActualVapourPressure`
 
 
     Example:
@@ -6565,20 +6564,20 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         >>> surfaceresistance.nadelw_jun = 80.0
         >>> states.bowa = 20.0
         >>> fluxes.tkor = 30.0
-        >>> fluxes.saturationvapourpressure = 3.0
-        >>> fluxes.actualvapourpressure = 0.0, 1.0, 2.0, 3.0
+        >>> fluxes.saturationvapourpressure = 30.0
+        >>> fluxes.actualvapourpressure = 0.0, 10.0, 20.0, 30.0
         >>> model.calc_landusesurfaceresistance_v1()
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(12214.027582, 12214.027582, 195.424441,
                                  97.712221)
 
-        >>> fluxes.actualvapourpressure = 1.0, 1.01, 1.1, 1.2
+        >>> fluxes.actualvapourpressure = 10.0, 10.1, 11.0, 12.0
         >>> model.calc_landusesurfaceresistance_v1()
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(12214.027582, 12214.027582, 1954.244413,
                                  977.122207)
 
-        >>> fluxes.actualvapourpressure = 2.0
+        >>> fluxes.actualvapourpressure = 20.0
         >>> fluxes.tkor = -10.0, 5.0, 20.0, 35.0
         >>> model.calc_landusesurfaceresistance_v1()
         >>> fluxes.landusesurfaceresistance
@@ -6626,16 +6625,16 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
             d_res = con.surfaceresistance[con.lnk[k] - 1, der.moy[model.idx_sim]]
             if con.lnk[k] == NADELW:
                 d_def = flu.saturationvapourpressure[k] - flu.actualvapourpressure[k]
-                if (flu.tkor[k] <= -5.0) or (d_def >= 2.0):
+                if (flu.tkor[k] <= -5.0) or (d_def >= 20.0):
                     flu.landusesurfaceresistance[k] = 10000.0
                 elif flu.tkor[k] < 20.0:
                     flu.landusesurfaceresistance[k] = min(
-                        (25.0 * d_res) / (flu.tkor[k] + 5.0) / (1.0 - 0.5 * d_def),
+                        (25.0 * d_res) / (flu.tkor[k] + 5.0) / (1.0 - 0.05 * d_def),
                         10000.0,
                     )
                 else:
                     flu.landusesurfaceresistance[k] = min(
-                        d_res / (1.0 - 0.5 * d_def), 10000.0
+                        d_res / (1.0 - 0.05 * d_def), 10000.0
                     )
             else:
                 flu.landusesurfaceresistance[k] = d_res
@@ -6818,7 +6817,7 @@ class Return_Penman_V1(modeltools.Method):
 
     Basic equation:
       :math:`\frac{DailySaturationVapourPressureSlope \cdot DailyNetRadiation/ LW
-      + Days \cdot Psy \cdot (1.3 + 0.94 \cdot DailyWindSpeed2m) \cdot
+      + Days \cdot Psy \cdot (0.13 + 0.094 \cdot DailyWindSpeed2m) \cdot
       (DailySaturationVapourPressure - DailyActualVapourPressure)}
       {DailySaturationVapourPressureSlope + Psy}`
 
@@ -6836,9 +6835,9 @@ class Return_Penman_V1(modeltools.Method):
         >>> derived.days.update()
         >>> fluxes.dailynetradiation = 0.0, 50.0, 100.0, 0.0, 0.0, 0.0, 100.0
         >>> fluxes.dailywindspeed2m = 2.0
-        >>> fluxes.dailysaturationvapourpressure = 1.2
-        >>> fluxes.dailysaturationvapourpressureslope = 0.08
-        >>> fluxes.dailyactualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
+        >>> fluxes.dailysaturationvapourpressure = 12.0
+        >>> fluxes.dailysaturationvapourpressureslope = 0.8
+        >>> fluxes.dailyactualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
         >>> from hydpy import print_values
         >>> for hru in range(7):
         ...     deficit = (fluxes.dailysaturationvapourpressure[hru] -
@@ -6849,9 +6848,9 @@ class Return_Penman_V1(modeltools.Method):
         50.0, 0.0, 0.964611
         100.0, 0.0, 1.929222
         0.0, 0.0, 0.0
-        0.0, 0.6, 0.858928
-        0.0, 1.2, 1.717856
-        100.0, 1.2, 3.647077
+        0.0, 6.0, 0.858928
+        0.0, 12.0, 1.717856
+        100.0, 12.0, 3.647077
 
         The above results apply for a daily simulation time step.  The
         following example demonstrates that  we get equivalent results
@@ -6869,9 +6868,9 @@ class Return_Penman_V1(modeltools.Method):
         50.0, 0.0, 0.964611
         100.0, 0.0, 1.929222
         0.0, 0.0, 0.0
-        0.0, 0.6, 0.858928
-        0.0, 1.2, 1.717856
-        100.0, 1.2, 3.647077
+        0.0, 6.0, 0.858928
+        0.0, 12.0, 1.717856
+        100.0, 12.0, 3.647077
     """
 
     DERIVEDPARAMETERS = (lland_derived.Days,)
@@ -6901,7 +6900,7 @@ class Return_Penman_V1(modeltools.Method):
             / fix.lw
             + fix.psy
             * der.days
-            * (1.3 + 0.94 * flu.dailywindspeed2m)
+            * (0.13 + 0.094 * flu.dailywindspeed2m)
             * (flu.dailysaturationvapourpressure[k] - flu.dailyactualvapourpressure[k])
         ) / (flu.dailysaturationvapourpressureslope[k] + fix.psy)
 
@@ -6948,9 +6947,9 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
         >>> fluxes.g = -10.0
-        >>> fluxes.saturationvapourpressure = 1.2
-        >>> fluxes.saturationvapourpressureslope = 0.08
-        >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
+        >>> fluxes.saturationvapourpressure = 12.0
+        >>> fluxes.saturationvapourpressureslope = 0.8
+        >>> fluxes.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
         >>> fluxes.densityair = 1.24
         >>> fluxes.actualsurfaceresistance = 0.0
         >>> fluxes.aerodynamicresistance = 106.0
@@ -6975,9 +6974,9 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
         0.0, 0.0, 0.0
-        0.0, 0.6, 2.031724
-        0.0, 1.2, 4.063447
-        90.0, 1.2, 5.523429
+        0.0, 6.0, 2.031724
+        0.0, 12.0, 4.063447
+        90.0, 12.0, 5.523429
 
         Next, we repeat the above calculations using resistances relevant
         for vegetated surfaces (note that this also changes the results
@@ -6996,9 +6995,9 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         40.0, 0.0, 0.364933
         90.0, 0.0, 0.8211
         0.0, 0.0, 0.0
-        0.0, 0.6, 2.469986
-        0.0, 1.2, 4.939972
-        90.0, 1.2, 5.761072
+        0.0, 6.0, 2.469986
+        0.0, 12.0, 4.939972
+        90.0, 12.0, 5.761072
 
         The above results are sensitive to the relation of
         |ActualSurfaceResistance| and |AerodynamicResistance|.  The
@@ -7028,7 +7027,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         limiting the value of |AerodynamicResistance| to the interval
         :math:`[10^{-6}, 10^6]`:
 
-        >>> fluxes.actualvapourpressure = 0.6
+        >>> fluxes.actualvapourpressure = 6.0
         >>> fluxes.actualsurfaceresistance = 80.0
         >>> fluxes.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
         >>> for hru in range(7):
@@ -7052,7 +7051,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         >>> fixed.lw.restore()
         >>> fixed.cpluft.restore()
         >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
-        >>> fluxes.actualvapourpressure = 1.2, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0
+        >>> fluxes.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
         >>> fluxes.actualsurfaceresistance = 0.0
         >>> fluxes.aerodynamicresistance = 106.0
         >>> for hru in range(7):
@@ -7065,9 +7064,9 @@ class Return_PenmanMonteith_V1(modeltools.Method):
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
         0.0, 0.0, 0.0
-        0.0, 0.6, 2.031724
-        0.0, 1.2, 4.063447
-        90.0, 1.2, 5.523429
+        0.0, 6.0, 2.031724
+        0.0, 12.0, 4.063447
+        90.0, 12.0, 5.523429
     """
 
     CONTROLPARAMETERS = (lland_control.Emissivity,)
@@ -7149,10 +7148,10 @@ class Calc_EvPo_V2(modeltools.Method):
         >>> fluxes.netradiation = 90.0
         >>> fluxes.dailynetradiation = 80.0
         >>> fluxes.g = -10.0
-        >>> fluxes.saturationvapourpressure = 1.2
-        >>> fluxes.dailysaturationvapourpressure = 1.2
-        >>> fluxes.saturationvapourpressureslope = 0.08
-        >>> fluxes.dailysaturationvapourpressureslope = 0.08
+        >>> fluxes.saturationvapourpressure = 12.0
+        >>> fluxes.dailysaturationvapourpressure = 12.0
+        >>> fluxes.saturationvapourpressureslope = 0.8
+        >>> fluxes.dailysaturationvapourpressureslope = 0.8
         >>> fluxes.actualvapourpressure = 0.0
         >>> fluxes.dailyactualvapourpressure = 0.0
         >>> fluxes.windspeed2m = 2.0
@@ -7577,8 +7576,8 @@ class Calc_EvB_V2(modeltools.Method):
         >>> derived.seconds.update()
         >>> fluxes.netradiation = 100.0, 100.0, 100.0, 100.0, 100.0, -300.0
         >>> fluxes.g = -11.574074074074
-        >>> fluxes.saturationvapourpressure = 1.2
-        >>> fluxes.saturationvapourpressureslope = 0.08
+        >>> fluxes.saturationvapourpressure = 12.0
+        >>> fluxes.saturationvapourpressureslope = 0.8
         >>> fluxes.actualvapourpressure = 0.0
         >>> fluxes.densityair = 1.24
         >>> fluxes.actualsurfaceresistance = 0.0

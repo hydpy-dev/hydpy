@@ -107,14 +107,14 @@ class WindSpeed10m(sequencetools.FluxSequence):
 
 
 class SaturationVapourPressure(lland_sequences.Flux1DSequence):
-    """Saturation vapour pressure [kPa]."""
+    """Saturation vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class DailySaturationVapourPressure(lland_sequences.Flux1DSequence):
-    """Daily satuarion vapour pressure [kPa]."""
+    """Daily satuarion vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -123,49 +123,49 @@ class DailySaturationVapourPressure(lland_sequences.Flux1DSequence):
 class SaturationVapourPressureInz(lland_sequences.Flux1DSequence):
     """Sättigungsdampdruck unmittelbar oberhalb der Oberfläche des interzepierten
     Schnees (saturation vapour pressure directly above the surface of the intercepted
-    snow) [kPa]."""
+    snow) [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
 
 
 class SaturationVapourPressureSnow(lland_sequences.Flux1DSequence):
-    """Saturation vapour pressure snow [kPa]."""
+    """Saturation vapour pressure snow [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
 
 
 class SaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
-    """The slope of the saturation vapour pressure curve [kPa/K]."""
+    """The slope of the saturation vapour pressure curve [hPa/K]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class DailySaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
-    """Daily satuarion vapour pressure [kPa/K]."""
+    """Daily satuarion vapour pressure [hPa/K]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class ActualVapourPressure(lland_sequences.Flux1DSequence):
-    """Actual vapour pressure [kPa]."""
+    """Actual vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class DailyActualVapourPressure(lland_sequences.Flux1DSequence):
-    """Daily actual vapour pressure [kPa]."""
+    """Daily actual vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class DryAirPressure(lland_sequences.Flux1DSequence):
-    """Dry air pressure [kPa]."""
+    """Dry air pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()

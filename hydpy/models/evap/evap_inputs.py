@@ -31,12 +31,12 @@ class AtmosphericPressure(sequencetools.InputSequence):
 
 
 class GlobalRadiation(sequencetools.InputSequence):
-    """Global radiation [MJ/m²/T]."""
+    """Global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class ClearSkySolarRadiation(sequencetools.InputSequence):
-    """Clear sky solar radiation [MJ/m²/T]."""
+    """Clear sky solar radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False

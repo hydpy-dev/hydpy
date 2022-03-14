@@ -7,12 +7,12 @@ from hydpy.core import sequencetools
 
 
 class LoggedGlobalRadiation(sequencetools.LogSequence):
-    """Logged global radiation [MJ/m²/T]."""
+    """Logged global radiation [W/m²]."""
 
     NDIM, NUMERIC = 1, False
 
 
 class LoggedClearSkySolarRadiation(sequencetools.LogSequence):
-    """Logged clear sky radiation [MJ/m²/T]."""
+    """Logged clear sky radiation [W/m²]."""
 
     NDIM, NUMERIC = 1, False

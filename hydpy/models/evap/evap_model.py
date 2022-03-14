@@ -255,10 +255,10 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> inputs.globalradiation = 20.0
+        >>> inputs.globalradiation = 200.0
         >>> model.calc_netshortwaveradiation_v1()
         >>> fluxes.netshortwaveradiation
-        netshortwaveradiation(15.4)
+        netshortwaveradiation(154.0)
     """
 
     REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation,)
@@ -276,7 +276,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
     Basic equations (:cite:`ref-Allen1998`, equation 39, modified):
       :math:`NetLongwaveRadiation =
-      \sigma \cdot Days \cdot (AirTemperature+273.16)^4
+      \sigma \cdot (AirTemperature + 273.16)^4
       \cdot \left( 0.34 - 0.14 \sqrt{ActualVapourPressure / 10} \right) \cdot
       (1.35 \cdot GR / CSSR - 0.35)`
 
@@ -296,7 +296,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         \sum{LoggedClearSkySolarRadiation} &|\ ClearSkySolarRadiation = 0
         \end{cases}
 
-      :math:`\sigma = 5.6747685185185184 \cdot 10^{-14}`
+      :math:`\sigma = 5.6747685185185184 \cdot 10^{-8}`
 
     Note that when clear sky radiation is zero during night periods, we use the global
     radiation and clear sky radiation sums of the last 24 hours.  The averaging over
@@ -309,30 +309,26 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> derived.days(1)
         >>> derived.nmblogentries(1)
         >>> inputs.airtemperature = 22.1
-        >>> inputs.globalradiation = 14.5
-        >>> inputs.clearskysolarradiation = 18.8
+        >>> inputs.globalradiation = 167.824074
+        >>> inputs.clearskysolarradiation = 217.592593
         >>> factors.actualvapourpressure = 21.0
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(3.531847)
+        netlongwaveradiation(40.87786)
 
         >>> inputs.clearskysolarradiation = 0.0
         >>> logs.loggedclearskysolarradiation.shape = 1
-        >>> logs.loggedclearskysolarradiation = 12.0
+        >>> logs.loggedclearskysolarradiation = 138.888889
         >>> logs.loggedglobalradiation.shape = 1
-        >>> logs.loggedglobalradiation = 10.0
+        >>> logs.loggedglobalradiation = 115.740741
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(3.959909)
+        netlongwaveradiation(45.832275)
     """
 
-    DERIVEDPARAMETERS = (
-        evap_derived.NmbLogEntries,
-        evap_derived.Days,
-    )
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_inputs.ClearSkySolarRadiation,
@@ -360,7 +356,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
                 d_clearskysolarradiation += log.loggedclearskysolarradiation[idx]
                 d_globalradiation += log.loggedglobalradiation[idx]
         flu.netlongwaveradiation = (
-            (4.903e-9 * der.days)
+            5.674768518518519e-08
             * (inp.airtemperature + 273.16) ** 4
             * (0.34 - 0.14 * (fac.actualvapourpressure / 10.0) ** 0.5)
             * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
@@ -379,11 +375,11 @@ class Calc_NetRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> fluxes.netshortwaveradiation  = 11.1
-        >>> fluxes.netlongwaveradiation  = 3.5
+        >>> fluxes.netshortwaveradiation  = 111.0
+        >>> fluxes.netlongwaveradiation  = 35.0
         >>> model.calc_netradiation_v1()
         >>> fluxes.netradiation
-        netradiation(7.6)
+        netradiation(76.0)
     """
 
     REQUIREDSEQUENCES = (
@@ -423,25 +419,25 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> derived.days(1/24)
-        >>> fluxes.netradiation = 10.0
+        >>> fluxes.netradiation = 100.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
-        soilheatflux(1.0)
-        >>> fluxes.netradiation = -2.0
+        soilheatflux(10.0)
+        >>> fluxes.netradiation = -20.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
-        soilheatflux(-1.0)
+        soilheatflux(-10.0)
 
         For any simulation step size of at least one day, method |Calc_SoilHeatFlux_V1|
         sets the |SoilHeatFlux| to zero, which :cite:`ref-Allen1998` suggests for daily
         simulation steps only:
 
         >>> derived.days(1)
-        >>> fluxes.netradiation = 10.0
+        >>> fluxes.netradiation = 100.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
-        >>> fluxes.netradiation = -2.0
+        >>> fluxes.netradiation = -20.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
@@ -522,6 +518,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> derived.days(1)
         >>> derived.hours(24)
         >>> inputs.airtemperature = 16.9
         >>> factors.psychrometricconstant = 0.666
@@ -529,7 +526,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         >>> factors.actualvapourpressure = 14.09
         >>> factors.saturationvapourpressure = 19.97
         >>> factors.saturationvapourpressureslope = 1.22
-        >>> fluxes.netradiation = 13.28
+        >>> fluxes.netradiation = 153.7037
         >>> fluxes.soilheatflux = 0.0
         >>> model.calc_referenceevapotranspiration_v1()
         >>> fluxes.referenceevapotranspiration
@@ -540,6 +537,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         using 37.5 instead of 37 that is smaller than the precision of the results
         tabulated by :cite:`ref-Allen1998`:
 
+        >>> derived.days(1/24)
         >>> derived.hours(1)
         >>> inputs.airtemperature = 38.0
         >>> factors.psychrometricconstant = 0.673
@@ -547,14 +545,17 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         >>> factors.actualvapourpressure = 34.45
         >>> factors.saturationvapourpressure = 66.25
         >>> factors.saturationvapourpressureslope = 3.58
-        >>> fluxes.netradiation = 1.749
-        >>> fluxes.soilheatflux = 0.175
+        >>> fluxes.netradiation = 485.8333
+        >>> fluxes.soilheatflux = 48.6111
         >>> model.calc_referenceevapotranspiration_v1()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(0.629106)
     """
 
-    DERIVEDPARAMETERS = (evap_derived.Hours,)
+    DERIVEDPARAMETERS = (
+        evap_derived.Days,
+        evap_derived.Hours,
+    )
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_factors.SaturationVapourPressureSlope,
@@ -574,7 +575,8 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.referenceevapotranspiration = (
-            0.408
+            0.0352512
+            * der.days
             * fac.saturationvapourpressureslope
             * (flu.netradiation - flu.soilheatflux)
             + (fac.psychrometricconstant * 3.75 * der.hours)

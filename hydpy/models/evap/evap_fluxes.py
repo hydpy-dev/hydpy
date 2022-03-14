@@ -7,25 +7,25 @@ from hydpy.core import sequencetools
 
 
 class NetShortwaveRadiation(sequencetools.FluxSequence):
-    """Net shortwave radiation [MJ/m²/T]."""
+    """Net shortwave radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class NetLongwaveRadiation(sequencetools.FluxSequence):
-    """Net longwave radiation [MJ/m²/T]."""
+    """Net longwave radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class NetRadiation(sequencetools.FluxSequence):
-    """Total net radiation [MJ/m²/T]."""
+    """Total net radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class SoilHeatFlux(sequencetools.FluxSequence):
-    """Soil heat flux [MJ/m²/T]."""
+    """Soil heat flux [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 

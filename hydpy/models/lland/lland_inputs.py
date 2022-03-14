@@ -31,14 +31,8 @@ class PossibleSunshineDuration(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Glob(sequencetools.InputSequence):
-    """Globalstrahlung (global radiation) [W/m²]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class GlobalRadiation(sequencetools.InputSequence):
-    """Globalstrahlung (global radiation) [MJ/m²/T]."""
+    """Globalstrahlung (global radiation) [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 

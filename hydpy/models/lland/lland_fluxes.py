@@ -137,14 +137,14 @@ class SaturationVapourPressureSnow(lland_sequences.Flux1DSequence):
 
 
 class SaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
-    """The slope of the saturation vapour pressure curve [kPa/°C]."""
+    """The slope of the saturation vapour pressure curve [kPa/K]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class DailySaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
-    """Daily satuarion vapour pressure [kPa]."""
+    """Daily satuarion vapour pressure [kPa/K]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -179,7 +179,7 @@ class DensityAir(lland_sequences.Flux1DSequence):
 
 
 class G(lland_sequences.Flux1DSequence):
-    """ "MORECS" Bodenwärmestrom ("MORECS" soil heat flux) [MJ/m²].
+    """ "MORECS" Bodenwärmestrom ("MORECS" soil heat flux) [W/m²].
 
     With positive values, the soil looses heat to the atmosphere or the
     snow-layer.
@@ -197,7 +197,7 @@ class TZ(lland_sequences.Flux1DSequence):
 
 
 class WG(lland_sequences.Flux1DSequence):
-    """ "Dynamischer" Bodenwärmestrom ("dynamic" soil heat flux) [MJ/m²].
+    """ "Dynamischer" Bodenwärmestrom ("dynamic" soil heat flux) [W/m²].
 
     With positive values, the soil looses heat to the atmosphere or the
     snow-layer.
@@ -208,7 +208,7 @@ class WG(lland_sequences.Flux1DSequence):
 
 
 class NetShortwaveRadiation(lland_sequences.Flux1DSequence):
-    """Netto kurzwellige Strahlungsbilanz (net shortwave radiation) [MJ/m²].
+    """Netto kurzwellige Strahlungsbilanz (net shortwave radiation) [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -219,7 +219,7 @@ class NetShortwaveRadiation(lland_sequences.Flux1DSequence):
 
 class NetShortwaveRadiationInz(lland_sequences.Flux1DSequence):
     """Kurzwellige Netto-Strahlungsbilanz für den interzipierten Schnee (net shortwave
-    radiation for intercepted snow) [MJ/m²].
+    radiation for intercepted snow) [W/m²].
 
     With positive values, the soil gains heat from radiation.  Without intercepted
     snow, |NetShortwaveRadiationInz| is |numpy.nan|.
@@ -231,7 +231,7 @@ class NetShortwaveRadiationInz(lland_sequences.Flux1DSequence):
 
 class NetShortwaveRadiationSnow(lland_sequences.Flux1DSequence):
     """Kurzwellige Netto-Strahlungsbilanz für Schneeoberflächen (net shortwave
-    radiation for snow surfaces) [MJ/m²].
+    radiation for snow surfaces) [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -241,7 +241,7 @@ class NetShortwaveRadiationSnow(lland_sequences.Flux1DSequence):
 
 
 class DailyNetShortwaveRadiation(lland_sequences.Flux1DSequence):
-    """Daily not shortwave radiation [MJ/m²/d].
+    """Daily not shortwave radiation [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -251,7 +251,7 @@ class DailyNetShortwaveRadiation(lland_sequences.Flux1DSequence):
 
 
 class DailyNetLongwaveRadiation(lland_sequences.Flux1DSequence):
-    """Daily net longwave radiation [MJ/m²/d].
+    """Daily net longwave radiation [W/m²].
 
     With positive values, the soil looses heat from radiation.
     """
@@ -262,7 +262,7 @@ class DailyNetLongwaveRadiation(lland_sequences.Flux1DSequence):
 
 class NetLongwaveRadiationInz(lland_sequences.Flux1DSequence):
     """Langwellige Nettostrahlung des interzepierten Schnees (net longwave radiation
-    of the intercepted snow [MJ/m²].
+    of the intercepted snow [W/m²].
 
     With positive values, the snow-layer gains heat from radiation.
     """
@@ -272,7 +272,7 @@ class NetLongwaveRadiationInz(lland_sequences.Flux1DSequence):
 
 
 class NetLongwaveRadiationSnow(lland_sequences.Flux1DSequence):
-    """Net longwave radiation for snow-surfaces [MJ/m²].
+    """Net longwave radiation for snow-surfaces [W/m²].
 
     With positive values, the snow-layer gains heat from radiation.
     """
@@ -282,7 +282,7 @@ class NetLongwaveRadiationSnow(lland_sequences.Flux1DSequence):
 
 
 class NetRadiation(lland_sequences.Flux1DSequence):
-    """Total net radiation [MJ/m²].
+    """Total net radiation [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -293,7 +293,7 @@ class NetRadiation(lland_sequences.Flux1DSequence):
 
 class NetRadiationInz(lland_sequences.Flux1DSequence):
     """Nettostrahlung des interzepierten Schnees (total net radiation of the
-    intercepted snow [MJ/m²].
+    intercepted snow [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -303,7 +303,7 @@ class NetRadiationInz(lland_sequences.Flux1DSequence):
 
 
 class NetRadiationSnow(lland_sequences.Flux1DSequence):
-    """Total net radiation for snow-surfaces [MJ/m²].
+    """Total net radiation for snow-surfaces [W/m²].
 
     With positive values, the snow-layer gains heat from radiation.
     """
@@ -313,7 +313,7 @@ class NetRadiationSnow(lland_sequences.Flux1DSequence):
 
 
 class DailyNetRadiation(lland_sequences.Flux1DSequence):
-    """Daily not radiation [MJ/m²/d].
+    """Daily net radiation [W/m²].
 
     With positive values, the soil gains heat from radiation.
     """
@@ -399,7 +399,7 @@ class SBesInz(lland_sequences.Flux1DSequence):
 
 class WNiedInz(lland_sequences.Flux1DSequence):
     """Niederschlagsbedingter Wärmestrom in den Schneeinterzeptionsspeicher (heat flux
-    into the snow interception storage due to precipitation) [MJ/m²].
+    into the snow interception storage due to precipitation) [W/m²].
 
     With positive values, the snow layer gains heat from precipitation.
     """
@@ -507,7 +507,7 @@ class EvS(lland_sequences.Flux1DSequence):
 class WGTF(lland_sequences.Flux1DSequence):
     """Mit dem Grad-Tag-Verfahren berechneter Wärmeestrom in die Schneedecke
     (heat flux into the snow layer calculated with the degree-day method)
-    [MJ/m²].
+    [W/m²].
 
     With positive values, the snow layer gains heat from the atmosphere and
     from radiation.
@@ -519,7 +519,7 @@ class WGTF(lland_sequences.Flux1DSequence):
 
 class WNied(lland_sequences.Flux1DSequence):
     """Niederschlagsbedingter Wärmestrom in die Schneedecke (heat flux
-    into the snow layer due to precipitation) [MJ/m²].
+    into the snow layer due to precipitation) [W/m²].
 
     With positive values, the snow layer gains heat from precipitation.
     """
@@ -582,7 +582,7 @@ class Gefr(lland_sequences.Flux1DSequence):
 
 class WLatInz(lland_sequences.Flux1DSequence):
     """Latente Wärmestrom interzepierter Schnee/Atmosphäre (latent heat flux between
-    the intercepted snow and the atmosphere) [MJ/m²].
+    the intercepted snow and the atmosphere) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """
@@ -593,7 +593,7 @@ class WLatInz(lland_sequences.Flux1DSequence):
 
 class WLatSnow(lland_sequences.Flux1DSequence):
     """Latente Wärmestrom Schnee/Atmosphäre (latent heat flux between
-    the snow-layer and the atmosphere) [MJ/m²].
+    the snow-layer and the atmosphere) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """
@@ -604,7 +604,7 @@ class WLatSnow(lland_sequences.Flux1DSequence):
 
 class WSensInz(lland_sequences.Flux1DSequence):
     """Fühlbare Wärmestrom interzipierter Schnee/Atmosphäre (sensible heat flux
-    between the intercepted snow and the atmosphere) [MJ/m²].
+    between the intercepted snow and the atmosphere) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """
@@ -615,7 +615,7 @@ class WSensInz(lland_sequences.Flux1DSequence):
 
 class WSensSnow(lland_sequences.Flux1DSequence):
     """Fühlbare Wärmestrom Schnee/Atmosphäre (sensible heat flux between
-    the snow-layer and the atmosphere) [MJ/m²].
+    the snow-layer and the atmosphere) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """
@@ -626,7 +626,7 @@ class WSensSnow(lland_sequences.Flux1DSequence):
 
 class WSurfInz(lland_sequences.Flux1DSequence):
     """Wärmestrom vom Körper des interzepierten Schnees bis zu dessen Schneeoberfläche
-    (heat flux from the body of the intercepted snow to its surface) [MJ/m²].
+    (heat flux from the body of the intercepted snow to its surface) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """
@@ -637,7 +637,7 @@ class WSurfInz(lland_sequences.Flux1DSequence):
 
 class WSurf(lland_sequences.Flux1DSequence):
     """Wärmestrom von der Schneedecke zur Schneeoberfläche (heat flux from
-    the snow layer to the snow surface) [MJ/m²].
+    the snow layer to the snow surface) [W/m²].
 
     With positive values, the snow-layer looses heat to the atmosphere.
     """

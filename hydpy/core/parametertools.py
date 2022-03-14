@@ -3446,26 +3446,26 @@ class FixedParameter(Parameter):
         Method |FixedParameter.restore| is relevant for testing mainly.
         Note that it might be necessary to call it after changing the
         simulation step size, as shown in the following example using
-        the parameter |lland_fixed.LambdaG| of base model |lland|:
+        the parameter |lland_fixed.LW| of base model |lland|:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> from hydpy import round_
-        >>> fixed.lambdag
-        lambdag(0.05184)
-        >>> round_(fixed.lambdag.value)
-        0.05184
+        >>> fixed.lw
+        lw(28.5)
+        >>> round_(fixed.lw.value)
+        28.5
         >>> simulationstep("12h")
-        >>> fixed.lambdag
-        lambdag(0.10368)
-        >>> round_(fixed.lambdag.value)
-        0.05184
-        >>> fixed.lambdag.restore()
-        >>> fixed.lambdag
-        lambdag(0.05184)
-        >>> round_(fixed.lambdag.value)
-        0.02592
+        >>> fixed.lw
+        lw(14.25)
+        >>> round_(fixed.lw.value)
+        28.5
+        >>> fixed.lw.restore()
+        >>> fixed.lw
+        lw(28.5)
+        >>> round_(fixed.lw.value)
+        57.0
         """
         with hydpy.pub.options.parameterstep("1d"):
             self(self.INIT)

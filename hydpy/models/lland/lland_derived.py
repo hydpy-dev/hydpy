@@ -184,9 +184,9 @@ class KInz(lland_parameters.LanduseMonthParameter):
 
 
 class HeatOfFusion(lland_parameters.ParameterLand):
-    """Heat which is necessary to melt the frozen soil water content."""
+    """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
     FIXEDPARAMETERS = (
         lland_fixed.BoWa2Z,
@@ -201,12 +201,16 @@ class HeatOfFusion(lland_parameters.ParameterLand):
            :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
         >>> derived.heatoffusion.update()
         >>> derived.heatoffusion
-        heatoffusion(26.72)
+        heatoffusion(309.259259)
+        >>> from hydpy import round_
+        >>> round_(derived.heatoffusion.values)
+        618.518519, 618.518519
         """
         fixed = self.subpars.pars.fixed
         self.value = fixed.rschmelz * fixed.bowa2z

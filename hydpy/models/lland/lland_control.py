@@ -199,25 +199,25 @@ class SnowAgingFactor(parametertools.Parameter):
 class Turb0(parametertools.Parameter):
     """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
     (parameter of transition coefficient for turbulent heat flux)
-    [MJ/m²/K/T].
+    [W/m²/K].
 
     Parameter |Turb0| corresponds to the LARSIM parameter `A0`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-    INIT = 0.1728
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 2.0
 
 
 class Turb1(parametertools.Parameter):
     """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
     (parameter of transition coefficient for turbulent heat flux)
-    [(MJ*s)/m³/K/T].
+    [J/m³/K].
 
     Parameter |Turb0| corresponds to the LARSIM parameter `A1`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-    INIT = 0.1728
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 2.0
 
 
 class Emissivity(parametertools.Parameter):
@@ -471,7 +471,7 @@ class RefreezeFlag(parametertools.Parameter):
 
 class KTSchnee(parametertools.Parameter):
     """Effektive Wärmeleitfähigkeit der obersten Schneeschicht (effective
-    thermal conductivity of the top snow layer) [MJ/m²/K/T].
+    thermal conductivity of the top snow layer) [W/m²/K].
 
     Note that, at least for application model |lland_v3|, it is fine to
     set the value of parameter |KTSchnee| to |numpy.inf| to disable the
@@ -482,13 +482,13 @@ class KTSchnee(parametertools.Parameter):
     with the the snow bulk temperature, which decreases computation times.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, numpy.inf)
-    INIT = 0.432
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, numpy.inf)
+    INIT = 5.0
 
 
 class WG2Z(parametertools.MonthParameter):
     """Bodenwärmestrom in der Tiefe 2z (soil heat flux at depth 2z)
-    [MJ/m²/d]."""
+    [W/m²]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.0

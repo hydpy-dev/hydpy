@@ -8,7 +8,7 @@ from hydpy.core import sequencetools
 
 class WET0(sequencetools.LogSequence):
     """Zeitlich gewichtete Grasreferenzverdunstung (temporally weighted
-    reference evapotranspiration) [mm]."""
+    reference evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 2, False
 

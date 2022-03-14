@@ -473,7 +473,7 @@ class QBGAMax(parametertools.Parameter):
 
 
 class QFactor(parametertools.Parameter):
-    """Factor for converting mm/stepsize to m³/s."""
+    """Factor for converting mm/T to m³/s."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 

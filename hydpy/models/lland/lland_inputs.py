@@ -7,7 +7,7 @@ from hydpy.core import sequencetools
 
 
 class Nied(sequencetools.InputSequence):
-    """Niederschlag (precipitation) [mm]."""
+    """Niederschlag (precipitation) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -50,7 +50,7 @@ class WindSpeed(sequencetools.InputSequence):
 
 
 class PET(sequencetools.InputSequence):
-    """Potenzielle Verdunstung (potential evapotranspiration) [mm]."""
+    """Potenzielle Verdunstung (potential evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 

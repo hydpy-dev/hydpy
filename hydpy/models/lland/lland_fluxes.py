@@ -21,7 +21,7 @@ class QZ(sequencetools.FluxSequence):
 
 
 class QZH(sequencetools.FluxSequence):
-    """Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm]."""
+    """Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -60,7 +60,7 @@ class DailyGlobalRadiation(sequencetools.FluxSequence):
 
 
 class NKor(lland_sequences.Flux1DSequence):
-    """Korrigierter Niederschlag (corrected precipitation) [mm]."""
+    """Korrigierter Niederschlag (corrected precipitation) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -351,14 +351,14 @@ class ActualSurfaceResistance(lland_sequences.Flux1DSequence):
 
 
 class NBes(lland_sequences.Flux1DSequence):
-    """Gesamter Bestandsniederschlag (total stand precipitation) [mm]."""
+    """Gesamter Bestandsniederschlag (total stand precipitation) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
 
 
 class SBes(lland_sequences.Flux1DSequence):
-    """Schneeanteil Bestandsniederschlag (frozen stand precipitation) [mm]."""
+    """Schneeanteil Bestandsniederschlag (frozen stand precipitation) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -382,7 +382,7 @@ class SnowIntRate(lland_sequences.Flux1DSequence):
 
 class NBesInz(lland_sequences.Flux1DSequence):
     """Gesamter Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht
-    (total stand precipitation reaching the snow interception storage) [mm]."""
+    (total stand precipitation reaching the snow interception storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -391,7 +391,7 @@ class NBesInz(lland_sequences.Flux1DSequence):
 class SBesInz(lland_sequences.Flux1DSequence):
     """Gefrorener Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht
     (frozen amount of stand precipitation reaching the snow interception storage)
-    [mm]."""
+    [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -421,7 +421,7 @@ class ActualAlbedoInz(lland_sequences.Flux1DSequence):
 
 class WaDaInz(lland_sequences.Flux1DSequence):
     """Wasserdargebot des Schneeinterzeptionsspeichers (water leaving the snow
-    interception storage) [mm]."""
+    interception storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -429,7 +429,7 @@ class WaDaInz(lland_sequences.Flux1DSequence):
 
 class SchmPotInz(lland_sequences.Flux1DSequence):
     """Potentielle Schmelze des interzepierten Schnees (potential amount of snow
-    melting within the snow interception storage) [mm]."""
+    melting within the snow interception storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -437,7 +437,7 @@ class SchmPotInz(lland_sequences.Flux1DSequence):
 
 class SchmInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Schmelze des interzepierten Schnees (actual amount of snow
-    melting within the snow cover) [mm]."""
+    melting within the snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -445,7 +445,7 @@ class SchmInz(lland_sequences.Flux1DSequence):
 
 class GefrPotInz(lland_sequences.Flux1DSequence):
     """Potentielles Wiedergefrieren des interzipierten Schnees (potential amount
-    of water refreezing within the snow interception storage) [mm]."""
+    of water refreezing within the snow interception storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -453,7 +453,7 @@ class GefrPotInz(lland_sequences.Flux1DSequence):
 
 class GefrInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Wiedergefrieren des interzipierten Schnees (actual amount of
-    water refreezing within the snow interception storage) [mm]."""
+    water refreezing within the snow interception storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
@@ -461,21 +461,21 @@ class GefrInz(lland_sequences.Flux1DSequence):
 
 class EvSInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Verdunstung des interzepierten Schnees (actual evaporation of
-    the intercepted snow) [mm]."""
+    the intercepted snow) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Forest()
 
 
 class ET0(lland_sequences.Flux1DSequence):
-    """Grasreferenzverdunstung (reference evapotranspiration) [mm]."""
+    """Grasreferenzverdunstung (reference evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class EvPo(lland_sequences.Flux1DSequence):
-    """Evapotranspiration (evapotranspiration) [mm]."""
+    """Evapotranspiration (evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -483,7 +483,7 @@ class EvPo(lland_sequences.Flux1DSequence):
 
 class EvI(lland_sequences.Flux1DSequence):
     """Tatsächliche Interzeptionsverdunstung (actual evaporation of
-    intercepted water) [mm]."""
+    intercepted water) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -491,14 +491,14 @@ class EvI(lland_sequences.Flux1DSequence):
 
 class EvB(lland_sequences.Flux1DSequence):
     """Tatsächliche Verdunstung von Bodenwasser (actual evaporation of soil
-    water) [mm]."""
+    water) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
 
 
 class EvS(lland_sequences.Flux1DSequence):
-    """Tatsächliche Schneeverdunstung (actual evaporation of snow-water) [mm]."""
+    """Tatsächliche Schneeverdunstung (actual evaporation of snow-water) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -550,7 +550,7 @@ class ActualAlbedo(lland_sequences.Flux1DSequence):
 
 class SchmPot(lland_sequences.Flux1DSequence):
     """Potentielle Schneeschmelze (potential amount of water melting within the
-    snow cover) [mm]."""
+    snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -558,7 +558,7 @@ class SchmPot(lland_sequences.Flux1DSequence):
 
 class Schm(lland_sequences.Flux1DSequence):
     """Tatsächliche Schneeschmelze (actual amount of water melting within the
-    snow cover) [mm]."""
+    snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -566,7 +566,7 @@ class Schm(lland_sequences.Flux1DSequence):
 
 class GefrPot(lland_sequences.Flux1DSequence):
     """Potentielles Schnee-Wiedergefrieren (potential amount of water
-    refreezing within the snow cover) [mm]."""
+    refreezing within the snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -574,7 +574,7 @@ class GefrPot(lland_sequences.Flux1DSequence):
 
 class Gefr(lland_sequences.Flux1DSequence):
     """Tatsächliche Schnee-Wiedergefrieren (actual amount of water
-    refreezing within the snow cover) [mm]."""
+    refreezing within the snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -662,7 +662,7 @@ class FVG(lland_sequences.Flux1DSequence):
 
 
 class WaDa(lland_sequences.Flux1DSequence):
-    """Wasserdargebot (water reaching the soil routine) [mm]."""
+    """Wasserdargebot (water reaching the soil routine) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
@@ -670,7 +670,7 @@ class WaDa(lland_sequences.Flux1DSequence):
 
 class QDB(lland_sequences.Flux1DSequence):
     """Direktabfluss-Abgabe aus dem Bodenspeicher (direct runoff release
-    from the soil storage) [mm]."""
+    from the soil storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -678,7 +678,7 @@ class QDB(lland_sequences.Flux1DSequence):
 
 class QIB1(lland_sequences.Flux1DSequence):
     """Erste Komponente der Interflow-Abgabe aus dem Bodenspeicher (first
-    component of the interflow release from the soil storage) [mm]."""
+    component of the interflow release from the soil storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -686,7 +686,7 @@ class QIB1(lland_sequences.Flux1DSequence):
 
 class QIB2(lland_sequences.Flux1DSequence):
     """Zweite Komponente der Interflow-Abgabe aus dem Bodenspeicher (second
-    component of the interflow release from the soil storage) [mm]."""
+    component of the interflow release from the soil storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -694,7 +694,7 @@ class QIB2(lland_sequences.Flux1DSequence):
 
 class QBB(lland_sequences.Flux1DSequence):
     """Basisabfluss-Abgabe aus dem Bodenspeicher (base flow release
-    from the soil storage) [mm]."""
+    from the soil storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -702,7 +702,7 @@ class QBB(lland_sequences.Flux1DSequence):
 
 class QKap(lland_sequences.Flux1DSequence):
     """Kapillarer Aufstieg in den Bodenspeicher (capillary rise to soil
-    storage) [mm]."""
+    storage) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -710,13 +710,13 @@ class QKap(lland_sequences.Flux1DSequence):
 
 class QDGZ(sequencetools.FluxSequence):
     """Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow
-    into both storage compartments for direct runoff) [mm]."""
+    into both storage compartments for direct runoff) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QAH(sequencetools.FluxSequence):
-    """Abflussspende des Teilgebiets (runoff at the catchment outlet) [mm]."""
+    """Abflussspende des Teilgebiets (runoff at the catchment outlet) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 

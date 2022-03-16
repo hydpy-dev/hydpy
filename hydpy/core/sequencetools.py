@@ -1789,27 +1789,81 @@ correctly.
         self._set_fastaccessattribute("ncarray", ncarray)
 
     def prepare_series(
-        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+        self,
+        allocate_ram: Optional[bool] = True,
+        read_jit: Optional[bool] = False,
+        write_jit: Optional[bool] = False,
     ) -> None:
         """Define how to handle the time-series data of the current |IOSequence| object.
 
-        See the main documentation on class |IOSequence| for further information.
+        See the main documentation on class |IOSequence| for general information on
+        method |IOSequence.prepare_series|.  Here, we only discuss the special case of
+        passing |None| to it to preserve predefined settings.
+
+        When leaving out certain arguments, |IOSequence.prepare_series| takes their
+        boolean defaults.  That means subsequent calls overwrite previous ones:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t.prepare_series(allocate_ram=False, read_jit=True)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+        >>> t.prepare_series(write_jit=True)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (True, False, True)
+
+        If you want to change one setting without modifying the others, pass |None| to
+        the latter:
+
+        >>> t.prepare_series(allocate_ram=False, read_jit=None, write_jit=None)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, False, True)
+        >>> t.prepare_series(allocate_ram=None, read_jit=True, write_jit=False)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+        >>> t.prepare_series(allocate_ram=None, read_jit=None, write_jit=None)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+
+        The check for configurations attempting to both read and write "just in time"
+        takes predefined flags into account:
+
+        >>> t.prepare_series(read_jit=None, write_jit=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `t` of element \
+`land_lahn_1`.
+
+        >>> t.prepare_series(read_jit=False, write_jit=True)
+        >>> t.prepare_series(read_jit=True, write_jit=None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `t` of element \
+`land_lahn_1`.
         """
-        if read_jit and write_jit:
+        readflag = read_jit or ((read_jit is None) and self.diskflag_reading)
+        writeflag = write_jit or ((write_jit is None) and self.diskflag_writing)
+        if readflag and writeflag:
             raise ValueError(
-                f'Reading from and writing into the same NetCDF file "just in '
-                f'time" during a simulation run is not supported but tried for '
-                f"sequence {objecttools.devicephrase(self)}."
+                f'Reading from and writing into the same NetCDF file "just in time" '
+                f"during a simulation run is not supported but tried for sequence "
+                f"{objecttools.devicephrase(self)}."
             )
-        ramflag = self.ramflag
-        if allocate_ram and not ramflag:
-            self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
-        if ramflag and not allocate_ram:
-            del self.series
-        self._set_fastaccessattribute("ramflag", allocate_ram)
-        inputflag = self._get_fastaccessattribute("inputflag", False)
-        self._set_fastaccessattribute("diskflag_reading", read_jit and not inputflag)
-        self._set_fastaccessattribute("diskflag_writing", write_jit)
+        if allocate_ram is not None:
+            ramflag = self.ramflag
+            if allocate_ram and not ramflag:
+                self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
+            if ramflag and not allocate_ram:
+                del self.series
+            self._set_fastaccessattribute("ramflag", allocate_ram)
+        if read_jit is not None:
+            inflag = self._get_fastaccessattribute("inputflag", False)
+            self._set_fastaccessattribute("diskflag_reading", read_jit and not inflag)
+        if write_jit is not None:
+            self._set_fastaccessattribute("diskflag_writing", write_jit)
         self.update_fastaccess()
 
     @property

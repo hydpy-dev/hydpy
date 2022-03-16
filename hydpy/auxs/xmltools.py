@@ -1899,11 +1899,15 @@ class XMLExchange(XMLBase):
         """Prepare all required |IOSequence.series| arrays via the
         |IOSequence.prepare_series| method.
         """
-        for item in itertools.chain(self.inputitems, self.conditionitems, self.getitems):
+        for item in itertools.chain(
+            self.inputitems, self.conditionitems, self.getitems
+        ):
             for target in item.device2target.values():
                 if item.targetspecs.series:
                     assert isinstance(target, sequencetools.IOSequence)
-                    target.prepare_series()
+                    target.prepare_series(
+                        allocate_ram=True, read_jit=None, write_jit=None
+                    )
                 # for base in getattr(item, "device2base", {}).values():
                 #     if item.basespecs.series and not base.ramflag:
                 #         base.prepare_series()   ToDo

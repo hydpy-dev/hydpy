@@ -458,7 +458,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
 
 
 class Calc_NKor_V1(modeltools.Method):
-    """Adjust the given precipitation value :cite:`ref-LARSIM`.
+    """Adjust the given precipitation value according to :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`NKor = KG \\cdot Nied`
@@ -560,7 +560,7 @@ class Calc_TKorTag_V1(modeltools.Method):
 
 class Return_AdjustedWindSpeed_V1(modeltools.Method):
     """Adjust and return the measured wind speed to the given defined
-    height above the ground :cite:`ref-LARSIM`.
+    height above the ground according to :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`WindSpeed \\cdot
@@ -630,8 +630,8 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
 
 class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
     """Calculate the landuse-use-specific wind speed at height of 2 meters
-    :cite:`ref-LARSIM` (based on :cite:`ref-LUBW2006a`,
-    :cite:`ref-LUBWLUWG2015`).
+    according to :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBW2006a`,
+    :cite:t:`ref-LUBWLUWG2015`).
 
 
     Basic equation (for forests):
@@ -1133,7 +1133,8 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
 
 
 class Calc_SNRatio_V1(modeltools.Method):
-    """Calculate the ratio of frozen to total precipitation :cite:`ref-LARSIM`.
+    """Calculate the ratio of frozen to total precipitation according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`SNRatio =
@@ -1229,9 +1230,10 @@ class Calc_SBes_V1(modeltools.Method):
 
 
 class Calc_SnowIntMax_V1(modeltools.Method):
-    r"""Calculate the current capacity of the snow interception storage.
+    r"""Calculate the current capacity of the snow interception storage according to
+    :cite:t:`ref-LARSIM`.
 
-    Basic equation (see :cite:`ref-LARSIM`, equations 3.69 to 3.71):
+    Basic equation:
       .. math::
         SnowIntMax = \bigg( P1SIMax +  P2SIMax \cdot LAI \bigg) \cdot \begin{cases}
         1 &|\ TKor  \leq -3
@@ -1305,9 +1307,9 @@ class Calc_SnowIntMax_V1(modeltools.Method):
 
 class Calc_SnowIntRate_V1(modeltools.Method):
     r"""Calculate the ratio between the snow interception rate and precipitation
-    intensity.
+    intensity according to :cite:t:`ref-LARSIM`.
 
-    Basic equation (see :cite:`ref-LARSIM`, equations 3.72 to 3.74):
+    Basic equation:
        :math:`SnowIntRate = min\big(  P1SIRate +  P2SIRate \cdot LAI
        + P3SIRate \cdot SInz, 1 \big))`
 
@@ -2464,8 +2466,8 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
 
 
 class Calc_WGTF_V1(modeltools.Method):
-    """Calculate the heat flux according to the degree-day method
-    :cite:`ref-LARSIM`.
+    """Calculate the heat flux according to the degree-day method according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`WGTF = GTF \\cdot (TKor - TRefT) \\cdot RSchmelz`
@@ -2532,7 +2534,7 @@ class Calc_WGTF_V1(modeltools.Method):
 
 class Calc_WNied_V1(modeltools.Method):
     """Calculate the heat flux into the snow layer due to the total amount
-    of ingoing precipitation (:cite:`ref-LARSIM`, modified).
+    of ingoing precipitation (:cite:t:`ref-LARSIM`, modified).
 
     Method |Calc_WNied_V1| assumes that the temperature of precipitation
     equals air temperature minus |TRefN|.
@@ -2659,8 +2661,8 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
 
 class Return_SaturationVapourPressure_V1(modeltools.Method):
     r"""Calculate and return the saturation vapour pressure over an
-    arbitrary surface for the given temperature :cite:`ref-LARSIM`
-    (based on :cite:`ref-Weischt1983`).
+    arbitrary surface for the given temperature according to :cite:t:`ref-LARSIM`
+    (based on :cite:t:`ref-Weischet1983`).
 
     Basic equation:
       :math:`6.1078 \cdot
@@ -2851,8 +2853,8 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
 
 class Return_ActualVapourPressure_V1(modeltools.Method):
     """Calculate and return the actual vapour pressure for the given
-    saturation vapour pressure and relative humidity. :cite:`ref-LARSIM`
-    (based on `ref-Weischet1983`)
+    saturation vapour pressure and relative humidity according to :cite:t:`ref-LARSIM`
+    (based on :cite:t:`ref-Weischet1983`).
 
     Basic equation:
       :math:`saturationvapourpressure \\cdot relativehumidity / 100`
@@ -3018,10 +3020,10 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
 
 
 class Calc_RLAtm_V1(modeltools.Method):
-    r"""Calculate the longwave radiation emitted from the atmosphere
-     :cite:`ref-Thompson1981`.
+    r"""Calculate the longwave radiation emitted from the atmosphere according to
+    :cite:t:`ref-LARSIM` (based on :cite:t:`ref-Thompson1981`).
 
-    Basic equation (see :cite:`ref-LARSIM`, equation 3.40):
+    Basic equation:
 
       :math:`RLAtm =
       FrAtm \cdot Sigma \cdot  (Tkor + 273.15)^4 \cdot
@@ -3152,7 +3154,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     radiation stems from the atmosphere only.  This atmospheric radiation is partly
     replaced by the longwave radiation emitted by the tree canopies for forests.  The
     lower the value of parameter |Fr|, the higher this shading effect of the canopies.
-    See :cite:`ref-LARSIM` and:cite:`ref-Thompson1981` for further information.
+    See :cite:t:`ref-LARSIM` and :cite:t:`ref-Thompson1981` for further information.
 
     Basic equation:
 
@@ -3218,8 +3220,8 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
 
 
 class Update_TauS_V1(modeltools.Method):
-    """Calculate the dimensionless age of the snow layer :cite:`ref-LARSIM`
-    (based on :cite:`ref-LUBW2006b`).
+    """Calculate the dimensionless age of the snow layer according to
+    :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBW2006b`).
 
     Basic equations:
       :math:`TauS_{new} = TauS_{old} \\cdot max(1 - 0.1 \\cdot SBes), 0) +
@@ -3288,8 +3290,8 @@ class Update_TauS_V1(modeltools.Method):
 
 
 class Calc_ActualAlbedo_V1(modeltools.Method):
-    """Calculate the current albedo value :cite:`ref-LARSIM` (based on
-    :cite:`ref-LUBW2006b`).
+    """Calculate the current albedo value according to :cite:t:`ref-LARSIM` (based on
+    :cite:t:`ref-LUBW2006b`).
 
     For snow-free surfaces, method |Calc_ActualAlbedo_V1| takes the
     value of parameter |Albedo| relevant for the given landuse and month.
@@ -3501,8 +3503,8 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
 
 
 class Return_TempS_V1(modeltools.Method):
-    """Calculate and return the average temperature of the snow layer
-    :cite:`ref-LARSIM`.
+    """Calculate and return the average temperature of the snow layer according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`max\\left(
@@ -3609,7 +3611,7 @@ class Return_ESnowInz_V1(modeltools.Method):
 
 class Return_ESnow_V1(modeltools.Method):
     """Calculate and return the thermal energy content of the snow layer for
-    the given bulk temperature :cite:`ref-LARSIM`.
+    the given bulk temperature according to :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`temps \\cdot (WATS \\cdot CPEis + (WAeS-WATS)\\cdot CPWasser)`
@@ -3698,8 +3700,8 @@ class Calc_TempS_V1(modeltools.Method):
 
 
 class Calc_TZ_V1(modeltools.Method):
-    """Calculate the mean temperature in the top-layer of the soil
-    :cite:`ref-LARSIM` (based on :cite:`ref-LUBW2006b`).
+    """Calculate the mean temperature in the top-layer of the soil according to
+    :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBW2006b`).
 
     Basic equation:
       .. math::
@@ -3772,7 +3774,7 @@ class Calc_TZ_V1(modeltools.Method):
 
 class Calc_G_V1(modeltools.Method):
     """Calculate and return the "MORECS" soil heat flux (modified
-    :cite:`ref-LARSIM`, based on :cite:`ref-Thompson1981`).
+    :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`).
 
     Basic equations:
       :math:`G = \\frac{PossibleSunshineDuration}
@@ -4010,7 +4012,8 @@ class Calc_G_V2(modeltools.Method):
 
 
 class Return_WG_V1(modeltools.Method):
-    """Calculate and return the "dynamic" soil heat flux :cite:`ref-LARSIM`.
+    """Calculate and return the "dynamic" soil heat flux according to
+    :cite:t:`ref-LARSIM`.
 
     The soil heat flux |WG| depends on the temperature gradient between
     depth z and the surface.  We set the soil surface temperature to the air
@@ -4127,8 +4130,8 @@ class Calc_WG_V1(modeltools.Method):
 
 
 class Update_EBdn_V1(modeltools.Method):
-    """Update the thermal energy content of the upper soil layer
-    :cite:`ref-LARSIM`.
+    """Update the thermal energy content of the upper soil layer according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`\\frac{dEBdn}{dt} = WG2Z - WG`
@@ -4233,8 +4236,8 @@ class Return_WSensInz_V1(modeltools.Method):
 
 
 class Return_WSensSnow_V1(modeltools.Method):
-    """Calculate and return the sensible heat flux of the snow surface
-    :cite:`ref-LARSIM`.
+    """Calculate and return the sensible heat flux of the snow surface according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`(Turb0 + Turb1 \\cdot WindSpeed2m) \\cdot (TempSSurface - TKor)`
@@ -4327,8 +4330,8 @@ class Return_WLatInz_V1(modeltools.Method):
 
 
 class Return_WLatSnow_V1(modeltools.Method):
-    """Calculate and return the latent heat flux of the snow surface
-    :cite:`ref-LARSIM`.
+    """Calculate and return the latent heat flux of the snow surface according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`(Turb0 + Turb1 \\cdot ReducedWindSpeed2m) \\cdot
@@ -4375,8 +4378,8 @@ class Return_WLatSnow_V1(modeltools.Method):
 
 
 class Return_WSurf_V1(modeltools.Method):
-    """Calculate and return the snow surface heat flux :cite:`ref-LARSIM`
-    (based on :cite:`ref-LUBW2006b`).
+    """Calculate and return the snow surface heat flux according to :cite:t:`ref-LARSIM`
+    (based on :cite:t:`ref-LUBW2006b`).
 
     Basic equation:
       :math:`KTSchnee \\cdot (TempS - TempSSurface)`
@@ -4522,7 +4525,7 @@ class Calc_DailyNetRadiation_V1(modeltools.Method):
 
 class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     """Calculate and return the net energy gain of the snow surface
-    (:cite:`ref-LARSIM` :cite:`ref-LUBW2006b`, modified).
+    (:cite:t`ref-LARSIM` based on :cite:t:`ref-LUBW2006b`, modified).
 
     As surface cannot store any energy, method |Return_EnergyGainSnowSurface_V1|
     returns zero if one supplies it with the correct temperature of the
@@ -4672,8 +4675,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
 
 
 class Return_TempSSurface_V1(modeltools.Method):
-    """Determine and return the snow surface temperature (:cite:`ref-LARSIM`
-    based on :cite:`ref-LUBW2006b`, modified).
+    """Determine and return the snow surface temperature (:cite:t:`ref-LARSIM`
+    based on :cite:t:`ref-LUBW2006b`, modified).
 
     |Return_TempSSurface_V1| needs to determine the snow surface temperature
     via iteration.  Therefore, it uses the class |PegasusTempSSurface|
@@ -4856,8 +4859,7 @@ class Return_WSurfInz_V1(modeltools.Method):
 
     The reason for using the maximum of the intercepted snow temperature (|TempSInz|)
     and the air temperature (|TKor|) is to increase the evaporation of intercepted
-    snow (|EvSInz|). See :cite:`ref-LARSIM`, section 3.4.6.1, for a more detailed
-    discussion.
+    snow (|EvSInz|). See :cite:t:`ref-LARSIM`.
 
     Example:
 
@@ -5113,7 +5115,7 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
 class Return_BackwardEulerError_V1(modeltools.Method):
     """Calculate and return the "Backward Euler error" regarding the
     update of |ESnow| due to the energy fluxes |WG| and |WSurf|
-    (:cite:`ref-LARSIM` based on :cite:`ref-LUBW2006b`, modified).
+    (:cite:t:`ref-LARSIM` based on :cite:t:`ref-LUBW2006b`, modified).
 
     Basic equation:
       :math:`ESnow_{old} - esnow_{new} + WG(esnow{new}) - WSurf(esnow{new})`
@@ -5439,8 +5441,8 @@ class Update_ESnowInz_V1(modeltools.Method):
 class Update_ESnow_V1(modeltools.Method):
     """Update the thermal energy content of the snow layer with regard to the
     energy fluxes from the soil and the atmosphere (except the one related
-    to the heat content of precipitation). :cite:`ref-LARSIM` based on
-    :cite:`ref-LUBW2006b`, modified.
+    to the heat content of precipitation). :cite:t:`ref-LARSIM` based on
+    :cite:t:`ref-LUBW2006b`, modified.
 
     Basic equation:
       :math:`\\frac{dESnow}{dt} = WG - WSurf`
@@ -5997,7 +5999,7 @@ class Update_ESnow_V2(modeltools.Method):
 
 class Calc_SFF_V1(modeltools.Method):
     """Calculate the ratio between frozen water and total water within
-    the top soil layer :cite:`ref-LARSIM`.
+    the top soil layer according to :cite:t:`ref-LARSIM`.
 
     Basic equations:
       :math:`SFF = min\\left(max\\left(
@@ -6042,7 +6044,8 @@ class Calc_SFF_V1(modeltools.Method):
 
 
 class Calc_FVG_V1(modeltools.Method):
-    """Calculate the degree of frost sealing of the soil :cite:`ref-LARSIM`.
+    """Calculate the degree of frost sealing of the soil according to
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`FVG = min\\bigl(FVF \\cdot SFF^{BSFF}, 1\\bigl)`
@@ -6104,7 +6107,7 @@ class Calc_EvB_V1(modeltools.Method):
         sealed areas (see the first three hydrological reponse units of
         type |FLUSS|, |SEE|, and |VERS|).  All other land use classes are
         handled in accordance with a recommendation of the set of codes
-        described in DVWK-M 504 :cite:`ref-DVWK`.  In case maximum soil water
+        described in DVWK-M 504 :cite:p:`ref-DVWK`.  In case maximum soil water
         storage (|WMax|) is zero, soil evaporation (|EvB|) is generally set to
         zero (see the fourth hydrological response unit).  The last three
         response units demonstrate the rise in soil evaporation with increasing
@@ -6155,7 +6158,7 @@ class Calc_EvB_V1(modeltools.Method):
 
 
 class Calc_DryAirPressure_V1(modeltools.Method):
-    """Calculate the pressure of the dry air (based on :cite:`ref-DWD1987`).
+    """Calculate the pressure of the dry air (based on :cite:t:`ref-DWD1987`).
 
     Basic equation:
        :math:`DryAirPressure = AirPressure - ActualVapourPressure`
@@ -6190,7 +6193,7 @@ class Calc_DryAirPressure_V1(modeltools.Method):
 
 
 class Calc_DensityAir_V1(modeltools.Method):
-    r"""Calculate the density of the air (based on :cite:`ref-DWD1987`).
+    r"""Calculate the density of the air (based on :cite:t:`ref-DWD1987`).
 
     Basic equation:
        :math:`DensityAir =
@@ -6235,8 +6238,8 @@ class Calc_DensityAir_V1(modeltools.Method):
 
 
 class Calc_AerodynamicResistance_V1(modeltools.Method):
-    """Calculate the aerodynamic resistance :cite:`ref-LARSIM` (based on
-    :cite:`ref-Thompson1981`).
+    """Calculate the aerodynamic resistance according to :cite:t:`ref-LARSIM` (based on
+    :cite:t:`ref-Thompson1981`).
 
     Basic equations (:math:`z_0` after Quast and Boehm, 1997):
       .. math::
@@ -6355,8 +6358,8 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
 
 
 class Calc_SoilSurfaceResistance_V1(modeltools.Method):
-    """Calculate the surface resistance of the bare soil surface
-    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`).
+    """Calculate the surface resistance of the bare soil surface according to
+    :cite:t:`ref-LARSIM` (based on :cite:t:`ref-Thompson1981`).
 
     Basic equation:
       .. math::
@@ -6470,8 +6473,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 
 
 class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
-    r"""Calculate the surface resistance of vegetation, water and sealed areas.
-    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`)
+    r"""Calculate the surface resistance of vegetation, water and sealed areas
+    according to :cite:t:`ref-LARSIM` (based on :cite:t:`ref-Thompson1981`).
 
     Basic equations:
        :math:`LanduseSurfaceResistance = SR^* \cdot \left(3.5 \cdot
@@ -6650,8 +6653,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
 
 
 class Calc_ActualSurfaceResistance_V1(modeltools.Method):
-    """Calculate the total surface resistance. :cite:`ref-LARSIM`
-    (based on :cite:`ref-Grant1975`)
+    """Calculate the total surface resistance according to :cite:t:`ref-LARSIM`
+    (based on :cite:t:`ref-Grant1975`).
 
     Basic equations:
       :math:`ActualSurfaceResistance =
@@ -6813,7 +6816,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
 
 class Return_Penman_V1(modeltools.Method):
     r"""Calculate and return the evaporation from water surfaces according to
-    Penman :cite:`ref-LARSIM` (based on :cite:`ref-DVWK1996`).
+    Penman according to :cite:t:`ref-LARSIM` (based on :cite:t:`ref-DVWK1996`).
 
     Basic equation:
       :math:`\frac{DailySaturationVapourPressureSlope \cdot DailyNetRadiation/ LW
@@ -6906,8 +6909,8 @@ class Return_Penman_V1(modeltools.Method):
 
 
 class Return_PenmanMonteith_V1(modeltools.Method):
-    r"""Calculate and return the evapotranspiration according to Penman-Monteith.
-    :cite:`ref-LARSIM` (based on :cite:`ref-Thompson1981`)
+    r"""Calculate and return the evapotranspiration according to Penman-Monteith
+    according to :cite:t:`ref-LARSIM` (based on :cite:t:`ref-Thompson1981`).
 
     Basic equations:
       :math:`\frac{SaturationVapourPressureSlope \cdot (NetRadiation + G) +
@@ -8685,7 +8688,7 @@ class Calc_QBGA_V1(modeltools.Method):
 class Update_QDGZ_QBGZ_QBGA_V1(modeltools.Method):
     r"""Redirect the inflow into the storage compartment for base flow into
     the storage compartments for direct flow upon exceedance of the groundwater
-    aquifer's limited volume :cite:`ref-LARSIM`.
+    aquifer's limited volume according to :cite:t:`ref-LARSIM`.
 
     We gained the following equation for updating |QBGZ| by converting the
     equation used by method |Calc_QBGA_V1|.
@@ -8800,7 +8803,7 @@ class Update_QDGZ_QBGZ_QBGA_V1(modeltools.Method):
 class Update_QDGZ_QBGZ_QBGA_V2(modeltools.Method):
     r"""Redirect (a portion of) the inflow into the storage compartment for base
     flow into the storage compartments for direct flow due to the groundwater
-    table's too fast rise :cite:`ref-LARSIM`.
+    table's too fast rise according to :cite:t:`ref-LARSIM`.
 
     In contrast to restricting an aquifer's volume (implemented by the method
     |Update_QDGZ_QBGZ_QBGA_V1|), limiting the water table's increase seems a

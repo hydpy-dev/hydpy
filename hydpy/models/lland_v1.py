@@ -14,13 +14,13 @@ applications in central Europe.
 The following list summarises the main components of |lland_v1|:
 
  * Simple routines for adjusting the meteorological input data
- * Reference evapotranspiration after Turc-Wendling :cite:`ref-DVWK`
+ * Reference evapotranspiration after Turc-Wendling :cite:p:`ref-DVWK`
  * Mixed precipitation within a definable temperature-range
  * An enhanced degree-day method for calculating snowmelt
  * A simple snow retention routine
  * Landuse and month specific potential evapotranspiration.
- * Actual soil evapotranspiration after ATV-DVWK-504 (2002) :cite:`ref-DVWK`
- * A soil routine based on the Xinanjiang model :cite:`ref-zhao1977flood`
+ * Actual soil evapotranspiration after ATV-DVWK-504 :cite:p:`ref-DVWK`
+ * A soil routine based on the Xinanjiang model :cite:p:`ref-zhao1977flood`
  * One base flow, two interflow and two direct flow components
  * A freely configurable capillary rise routine
  * Options to limit the capacity of the base flow storage

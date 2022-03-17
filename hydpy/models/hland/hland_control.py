@@ -433,7 +433,8 @@ class SFDist(parametertools.Parameter):
 
     The first available keyword is `lognormal`.  Here, |SFDist| calculates factors
     resulting in a lognormal distribution of snowfall, similarly as implemented in
-    the COSERO model :cite:`ref-Frey2015CoseroSnow`.   Again, the lowest possible value,
+    the COSERO model :cite:p:`ref-Frey2015CoseroSnow`.   Again, the lowest possible
+    value,
     0.0, results in uniform snow distributions:
 
     >>> test(lognormal=0.0)

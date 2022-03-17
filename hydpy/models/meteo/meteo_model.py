@@ -16,16 +16,17 @@ from hydpy.models.meteo import meteo_logs
 
 
 class Calc_EarthSunDistance_V1(modeltools.Method):
-    r"""Calculate the relative inverse distance between the earth and the sun.
+    r"""Calculate the relative inverse distance between the earth and the sun
+    according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 23):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 23):
       :math:`EarthSunDistance = 1 + 0.033 \cdot cos(2 \cdot Pi / 366 \cdot (DOY + 1)`
 
     Note that this equation differs slightly from the one given by
-    :cite:`ref-Allen1998`.  The following examples show that |Calc_EarthSunDistance_V1|
-    calculates the same distance value for a specific "day" (e.g. the 1st March) both
-    for leap years and non-leap years.  Hence, there is a tiny "jump" between 28th
-    February and 1st March for non-leap years.
+    :cite:t:`ref-Allen1998`.  The following examples show that
+    |Calc_EarthSunDistance_V1| calculates the same distance value for a specific
+    "day" (e.g. the 1st March) both for leap years and non-leap years.  Hence,
+    there is a tiny "jump" between 28th February and 1st March for non-leap years.
 
     Examples:
 
@@ -67,7 +68,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
         2001-07-01: 0.967
         2001-12-31: 1.033
 
-        The following calculation agrees with example 8 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 8 of :cite:t:`ref-Allen1998`:
 
         >>> derived.doy(246)
         >>> model.idx_sim = 0
@@ -95,14 +96,14 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
 
 
 class Calc_SolarDeclination_V1(modeltools.Method):
-    r"""Calculate the solar declination.
+    r"""Calculate the solar declination according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 24):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 24):
       :math:`SolarDeclination =
       0.409 \cdot sin(2 \cdot Pi / 366 \cdot (DOY + 1) - 1.39)`
 
     Note that this equation differs slightly from the one given by
-    :cite:`ref-Allen1998` due to reasons explained in the documentation on method
+    :cite:t:`ref-Allen1998` due to reasons explained in the documentation on method
     |Calc_EarthSunDistance_V1|.
 
     Examples:
@@ -143,7 +144,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
         2001-03-01: -0.137476
         2001-12-31: -0.402334
 
-        The following calculation agrees with example 8 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 8 of :cite:t:`ref-Allen1998`:
 
         >>> derived.doy(246)
         >>> model.idx_sim = 0
@@ -171,7 +172,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
 
 
 class Calc_SolarDeclination_V2(modeltools.Method):
-    r"""Calculate the solar declination according to :cite:`ref-LARSIM`.
+    r"""Calculate the solar declination according to :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`SolarDeclination = 0.41 \cdot cos \left(
@@ -234,14 +235,14 @@ class Calc_SolarDeclination_V2(modeltools.Method):
 
 
 class Calc_SunsetHourAngle_V1(modeltools.Method):
-    r"""Calculate the sunset hour angle.
+    r"""Calculate the sunset hour angle according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 25):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 25):
       :math:`SunsetHourAngle = arccos(-tan(LatitudeRad) \cdot tan(SolarDeclination))`
 
     Example:
 
-        The following calculation agrees with example 8 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 8 of :cite:t:`ref-Allen1998`:
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
@@ -268,9 +269,10 @@ class Calc_SunsetHourAngle_V1(modeltools.Method):
 
 
 class Calc_SolarTimeAngle_V1(modeltools.Method):
-    r"""Calculate the solar time angle at the midpoint of the current period.
+    r"""Calculate the solar time angle at the midpoint of the current period according
+    to :cite:t:`ref-Allen1998`.
 
-    Basic equations (:cite:`ref-Allen1998`, equations 31 to 33):
+    Basic equations (:cite:t:`ref-Allen1998`, equations 31 to 33):
       :math:`SolarTimeAngle =
       Pi / 12 \cdot ((SCT + (Longitude - UTCLongitude) / 15 + S_c) - 12)`
 
@@ -280,7 +282,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
       :math:`b = (2 \cdot Pi \cdot (DOY - 80)) / 365`
 
     Note there are two slight deviations from the equations given by
-    :cite:`ref-Allen1998`.  The first one is that positive numbers correspond to
+    :cite:t:`ref-Allen1998`.  The first one is that positive numbers correspond to
     longitudes east of Greenwich and negative numbers to longitudes west of Greenwich.
     The second one is due to the definition of parameter |DOY|, as explained in the
     documentation on method |Calc_EarthSunDistance_V1|.
@@ -343,7 +345,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
 
 class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
     r"""Calculate the time of sunrise and sunset of the current day according to
-    :cite:`ref-LARSIM`, based on :cite:`ref-Thompson1981`.
+    :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`.
 
     Basic equations:
       :math:`TimeOfSunset^* = \frac{12}{Pi} \cdot acos \left(
@@ -417,15 +419,15 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
 
 
 class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
-    r"""Calculate the extraterrestrial radiation.
+    r"""Calculate the extraterrestrial radiation according to :cite:t:`ref-Allen1998`.
 
-    Basic equation for daily simulation steps (:cite:`ref-Allen1998`, equation 21):
+    Basic equation for daily simulation steps (:cite:t:`ref-Allen1998`, equation 21):
       :math:`ExternalTerrestrialRadiation =
       \frac{SolarConstant}{Pi} \cdot EarthSunDistance \cdot (
       SunsetHourAngle \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot sin(SunsetHourAngle))`
 
-    Basic equation for (sub)hourly steps (:cite:`ref-Allen1998`, eq. 28 to 30):
+    Basic equation for (sub)hourly steps (:cite:t:`ref-Allen1998`, eq. 28 to 30):
       :math:`ExternalTerrestrialRadiation =
       \frac{12 \cdot SolarConstant}{Pi} \cdot EarthSunDistance \cdot \Big(
       (\omega_2 - \omega_1) \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
@@ -438,7 +440,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
     Examples:
 
-        The following calculation agrees with example 8 of :cite:`ref-Allen1998` for
+        The following calculation agrees with example 8 of :cite:t:`ref-Allen1998` for
         daily time steps:
 
         >>> from hydpy.models.meteo import *
@@ -610,7 +612,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
 class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
     r"""Calculate the amount of extraterrestrial radiation according to
-    :cite:`ref-LARSIM`, based on :cite:`ref-Thompson1981`.
+    :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`.
 
     Basic equation:
       :math:`ExternalTerrestrialRadiation =
@@ -684,9 +686,10 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
 
 
 class Calc_PossibleSunshineDuration_V1(modeltools.Method):
-    r"""Calculate the astronomically possible sunshine duration.
+    r"""Calculate the astronomically possible sunshine duration according to
+    :cite:t:`ref-Allen1998`.
 
-    Basic equation for daily timesteps :cite:`ref-Allen1998` (equation 34):
+    Basic equation for daily timesteps :cite:t:`ref-Allen1998` (equation 34):
       :math:`PossibleSunshineDuration = 24 / Pi \cdot SunsetHourAngle`
 
     Basic equation for (sub)hourly timesteps:
@@ -703,7 +706,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
     Examples:
 
-        The following calculation agrees with example 9 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 9 of :cite:t:`ref-Allen1998`:
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
@@ -778,7 +781,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
 class Calc_PossibleSunshineDuration_V2(modeltools.Method):
     r"""Calculate the astronomically possible sunshine duration according to
-    :cite:`ref-LARSIM`.
+    :cite:t:`ref-LARSIM`.
 
     Basic equation:
       :math:`PossibleSunshineDuration = max \bigl(
@@ -1041,7 +1044,7 @@ class Calc_DailyGlobalRadiation_V2(modeltools.Method):
 
 
 class Calc_PortionDailyRadiation_V1(modeltools.Method):
-    r"""Calculate the relative sum of radiation according to :cite:`ref-LARSIM-Hilfe`.
+    r"""Calculate the relative sum of radiation according to :cite:t:`ref-LARSIM-Hilfe`.
 
     Basic equations:
 
@@ -1230,7 +1233,8 @@ class Calc_PortionDailyRadiation_V1(modeltools.Method):
 
 
 class Return_DailyGlobalRadiation_V1(modeltools.Method):
-    r"""Calculate and return the daily global radiation according to :cite:`ref-LARSIM`.
+    r"""Calculate and return the daily global radiation according to
+    :cite:t:`ref-LARSIM`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -1338,16 +1342,16 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
-    r"""Calculate the clear sky solar radiation.
+    r"""Calculate the clear sky solar radiation according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998` eq. 35):
+    Basic equation (:cite:t`ref-Allen1998`, eq. 35):
       :math:`ClearSkySolarRadiation =
       ExtraterrestrialRadiation \cdot (AngstromConstant + AngstromFactor)`
 
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended for Germany by
-        DVWK-M 504 :cite:`ref-DVWK` for January and the default values (a=0.25, b=0.5)
+        DVWK-M 504 :cite:t:`ref-DVWK` for January and the default values (a=0.25, b=0.5)
         for February:
 
         >>> from hydpy import pub
@@ -1394,16 +1398,16 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
 
 
 class Calc_GlobalRadiation_V1(modeltools.Method):
-    r"""Calculate the global radiation.
+    r"""Calculate the global radiation according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 35):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 35):
       :math:`GlobalRadiation = ExtraterrestrialRadiation \cdot (AngstromConstant +
       AngstromFactor \cdot SunshineDuration / PossibleSunshineDuration)`
 
     Example:
 
         We use the Ångström coefficients (a=0.19, b=0.55) recommended for Germany by
-        DVWK-M 504 :cite:`ref-DVWK` for January and the default values (a=0.25, b=0.5)
+        DVWK-M 504 :cite:t:`ref-DVWK` for January and the default values (a=0.25, b=0.5)
         for February:
 
         >>> from hydpy import pub, round_
@@ -1895,7 +1899,7 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
 
 class Calc_GlobalRadiation_V2(modeltools.Method):
     r"""Adjust the current global radiation to the daily global radiation according to
-     :cite:`ref-LARSIM`.
+     :cite:t:`ref-LARSIM`.
 
     Additional requirements:
       |Model.idx_sim|
@@ -2001,9 +2005,9 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
 
 
 class Calc_SunshineDuration_V1(modeltools.Method):
-    r"""Calculate the sunshine duration.
+    r"""Calculate the sunshine duration according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 35, rearranged):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 35, rearranged):
       :math:`SunshineDuration =
       \left(\frac{GlobalRadiation}{ExtraterrestrialRadiation}-AngstromConstant \right)
       \cdot \frac{PossibleSunshineDuration}{AngstromFactor}`

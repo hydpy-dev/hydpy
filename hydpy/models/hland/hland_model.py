@@ -2882,11 +2882,12 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
 
       :math:`QVs1 = \frac{BW1}{TVs1}`
 
-    We follow the new COSERO implementation described in :cite:`ref-Kling2005` and
-    :cite:`ref-Kling2006` and solve the given ordinary differential equation under the
+    We follow the new COSERO implementation described in :cite:t:`ref-Kling2005` and
+    :cite:t:`ref-Kling2006` and solve the given ordinary differential equation under the
     assumption of constant inflow (|R|).  Despite the simple appearance of the short
     equation, its solution is quite complicated due to the threshold |H1| used
-    (:cite:`ref-Kling2005` and :cite:`ref-Kling2006` explain the math in some detail).
+    (:cite:t:`ref-Kling2005` and :cite:t:`ref-Kling2006` explain the math in some
+    detail).
     Additionally, we allow setting either |TAb1| or |TVs1| to |numpy.inf| or zero,
     allowing for disabling certain surface flow reservoir functionalities.
     Consequently, our source code includes many branches, and extensive testing is

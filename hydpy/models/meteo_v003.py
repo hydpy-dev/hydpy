@@ -5,8 +5,8 @@
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Version 3 of *HydPy-Meteo* applies the equations given in :cite:`ref-LARSIM` and
-:cite:`ref-LARSIM-Hilfe` for estimating global radiation.  It is pretty similar to
+Version 3 of *HydPy-Meteo* applies the equations given in :cite:t:`ref-LARSIM` and
+:cite:t:`ref-LARSIM-Hilfe` for estimating global radiation.  It is pretty similar to
 |meteo_v001| for daily simulations.  However, it is more complicated for hourly (or
 other short) timesteps, as it implements an approach of adjusting hourly global
 radiation values to directly calculated daily global radiation sums.  The documentation

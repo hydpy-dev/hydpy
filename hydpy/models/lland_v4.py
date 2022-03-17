@@ -38,7 +38,7 @@ main differences to |lland_v3|:
  * During periods with intercepted snow, water evaporates (or sublimates) from the snow
    interception module (|EvSInz|) but not from the "normal" interception module (|EvI|).
 
-:cite:`ref-LARSIM` discusses many of these points in more detail.
+:cite:t:`ref-LARSIM` discusses many of these points in more detail.
 
 In our experience, |lland_v4| tends to calculate thicker snowpacks on the ground
 than |lland_v3| (the highest values of |WAeS| are usually larger when applying

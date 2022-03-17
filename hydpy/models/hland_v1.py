@@ -4,7 +4,8 @@
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
 Version 1 of HydPy-H-Land closely emulates the "land components" of HBV96
-:cite:`ref-Lindstrom1997HBV96` while providing additional functionalities (for example,
+:cite:p:`ref-Lindstrom1997HBV96` while providing additional functionalities (for
+example,
 the land-use type |SEALED|).  We implemented it on behalf of the `German Federal
 Institute of Hydrology (BfG)`_ for modelling large river basins in central Europe.
 

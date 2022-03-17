@@ -3,7 +3,7 @@
 """Implementation of the FAO reference evapotranspiration model.
 
 Version 1 of the HydPy-E model (Evap) follows the guide-line provided by
-:cite:`ref-Allen1998`.  However, there are some differences in input data assumptions
+:cite:t:`ref-Allen1998`.  However, there are some differences in input data assumptions
 (averaged daily temperature and relative humidity values instead of maximum and minimum
 values).  You can use the models of the `HydPy-Meteo` family to "pre-process" some of
 the required input data.  A suitable choice for |GlobalRadiation| and
@@ -37,7 +37,7 @@ ________________
 
 The first example deals with a daily simulation time step.  We calculate the reference
 evapotranspiration on 6 July in Uccle (Brussels, Belgium) and take the following
-parameter values and input values from example 18 of :cite:`ref-Allen1998`:
+parameter values and input values from example 18 of :cite:t:`ref-Allen1998`:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
@@ -54,14 +54,14 @@ parameter values and input values from example 18 of :cite:`ref-Allen1998`:
 
 The following global and clear sky solar radiation values are results of the
 :ref:`meteo_v001_daily_simulation` integration test of |meteo_v001| that also
-recalculates example 18 of :cite:`ref-Allen1998`:
+recalculates example 18 of :cite:t:`ref-Allen1998`:
 
 >>> inputs.globalradiation.series = 255.367464
 >>> inputs.clearskysolarradiation.series = 356.40121
 
 The calculated reference evapotranspiration is about 0.1 mm (3 %) smaller than the one
-given by :cite:`ref-Allen1998`. This discrepancy is mainly due to different ways to
-calculate |SaturationVapourPressure|.  :cite:`ref-Allen1998` estimates it both for the
+given by :cite:t:`ref-Allen1998`. This discrepancy is mainly due to different ways to
+calculate |SaturationVapourPressure|.  :cite:t:`ref-Allen1998` estimates it both for the
 minimum and maximum temperature and averages the results, while |evap_v001| directly
 applies the corresponding formula on the average air temperature.  The first approach
 results in higher pressure values due to the nonlinearity of the vapour pressure curve.
@@ -84,7 +84,7 @@ values from example 19 of `FAO`:
 
 >>> measuringheightwindspeed(2.0)
 
-Example 19 of :cite:`ref-Allen1998` gives results for the intervals between 2 and 3
+Example 19 of :t:ref-Allen1998` gives results for the intervals between 2 and 3
 o'clock and between 14 and 15 o'clock only.  We assume these clock times are referring
 to UTC-1:
 
@@ -111,7 +111,7 @@ and the second interval, which is also the end of the simulation period:
 >>> interpolate(inputs.atmosphericpressure, 1001.0, 1001.0)
 
 We again take global and clear sky solar radiation from |meteo_v001|, that recalculates
-example 19 of :cite:`ref-Allen1998` in its :ref:`meteo_v001_hourly_simulation`
+example 19 of :cite:t:`ref-Allen1998` in its :ref:`meteo_v001_hourly_simulation`
 integration test:
 
 >>> inputs.globalradiation.series = (
@@ -136,7 +136,7 @@ to one:
 
 Regarding reference evapotranspiration, the results match perfectly within the
 specified accuracy.  The better agreement with the results reported by
-:cite:`ref-Allen1998` compared with the above example is due to the more consistent
+:cite:t:`ref-Allen1998` compared with the above example is due to the more consistent
 calculation of the saturation vapour pressure:
 
 .. integration-test::

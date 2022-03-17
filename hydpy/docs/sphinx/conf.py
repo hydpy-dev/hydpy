@@ -13,8 +13,26 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import dataclasses
 import os
 import sys
+from typing import Any, Callable, Dict
+
+import pybtex.plugin
+from pybtex.database import Person
+from pybtex.richtext import Tag, Text
+from pybtex.style.formatting.plain import Style as PlainFormattingStyle
+from pybtex.style.names.plain import NameStyle as PlainNameStyle
+from pybtex.style.names import name_part
+from pybtex.style.template import Node
+
+import sphinxcontrib.bibtex.plugin
+from sphinxcontrib.bibtex.style.referencing import BracketStyle
+from sphinxcontrib.bibtex.style.referencing.author_year import AuthorYearReferenceStyle
+from sphinxcontrib.bibtex.style.referencing.basic_author_year import (
+    BasicAuthorYearTextualReferenceStyle,
+)
+from sphinxcontrib.bibtex.style.template import reference, join, year
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -72,8 +90,90 @@ mathjax_path = (
 )
 mathjax3_config = {"displayAlign": "left"}
 
+
+# Configure sphinxcontrib-bibtex *******************************************************
+
+
+HYDPYNAMESTYLE = "hydpynamestyle"
+HYDPYBIBLIOGRAPHYSTYLE = "hydpybibliographystyle"
+HYDPYREFERENCESTYLE = "hydpyreferencestyle"
+
+
+class HydPyNameStyle(PlainNameStyle):  # type: ignore[misc]
+    """Change compared to the base class: write last names in bold letters."""
+
+    def format(self, person: Person, abbr: bool = False) -> Text:
+        text_bold = [Tag("b", Text.from_latex(name)) for name in person.last_names]
+        return join[
+            name_part(tie=True, abbr=abbr)[
+                person.rich_first_names + person.rich_middle_names
+            ],
+            name_part(tie=True)[person.rich_prelast_names],
+            name_part[text_bold],
+            name_part(before=", ")[person.rich_lineage_names],
+        ]
+
+
+pybtex.plugin.register_plugin("pybtex.style.names", HYDPYNAMESTYLE, HydPyNameStyle)
+
+
+class HydPyBibliographyStyle(PlainFormattingStyle):  # type: ignore[misc]
+    """Change compared to the base class: use `HydPyNameStyle`."""
+
+    default_name_style = HYDPYNAMESTYLE
+
+
+pybtex.plugin.register_plugin(
+    "pybtex.style.formatting", HYDPYBIBLIOGRAPHYSTYLE, HydPyBibliographyStyle
+)
+
+
+class HydPyTextualReferenceStyle(BasicAuthorYearTextualReferenceStyle):
+    """Change compared to the base class: the hyperlink to the bibliography comprises
+    the full reference."""
+
+    def inner(self, role_name: str) -> Node:
+        return reference[
+            join(sep=self.text_reference_sep)[
+                self.person.author_or_editor_or_title(full="s" in role_name),
+                join[self.bracket.left, year, self.bracket.right],
+            ]
+        ]
+
+
+@dataclasses.dataclass
+class HydPyReferenceStyle(AuthorYearReferenceStyle):
+    """Changed compared to the base class: use round brackets instead of square
+    brackets; use `HydPyTextualReferenceStyle`."""
+
+    _make_bracketstylefield: Callable[[], Any] = lambda: dataclasses.field(
+        default_factory=lambda: BracketStyle(left="(", right=")")
+    )
+
+    bracket_parenthetical: BracketStyle = _make_bracketstylefield()
+    bracket_textual: BracketStyle = _make_bracketstylefield()
+    bracket_author: BracketStyle = _make_bracketstylefield()
+    bracket_label: BracketStyle = _make_bracketstylefield()
+    bracket_year: BracketStyle = _make_bracketstylefield()
+
+    def __post_init__(self) -> None:
+        super().__post_init__()  # type: ignore[no-untyped-call]
+        for style in self.styles:
+            if isinstance(style, BasicAuthorYearTextualReferenceStyle):
+                style.__class__ = HydPyTextualReferenceStyle
+
+
+sphinxcontrib.bibtex.plugin.register_plugin(
+    "sphinxcontrib.bibtex.style.referencing", HYDPYREFERENCESTYLE, HydPyReferenceStyle
+)
+
 bibtex_bibfiles = ["refs.bib"]
-bibtex_reference_style = "author_year"
+bibtex_default_style = HYDPYBIBLIOGRAPHYSTYLE
+bibtex_reference_style = HYDPYREFERENCESTYLE
+
+
+# **************************************************************************************
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -222,7 +322,7 @@ htmlhelp_basename = "HydPydoc"
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements = {
+latex_elements: Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').

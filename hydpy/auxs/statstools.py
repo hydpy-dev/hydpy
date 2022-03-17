@@ -806,7 +806,7 @@ def kge(
     skip_nan: bool = False,
     subperiod: Optional[bool] = None,
 ) -> float:
-    """Calculate the Kling-Gupta efficiency after :cite:`ref-Kling2012`.
+    """Calculate the Kling-Gupta efficiency according to :cite:t:`ref-Kling2012`.
 
     For a perfect fit, |kge| returns one:
 

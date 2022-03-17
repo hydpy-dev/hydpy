@@ -3,7 +3,7 @@
 """Model for calculating radiation terms based on sunshine duration following the FAO
 reference evapotranspiration model.
 
-Version 1 of `HydPy-Meteo` follows the guide-line provided by :cite:`ref-Allen1998`.
+Version 1 of `HydPy-Meteo` follows the guide-line provided by :cite:t:`ref-Allen1998`.
 There are a few differences, but, at least for the following example calculations, they
 seem to be of minor importance.  See the documentation on the individual methods for
 more detailed information.
@@ -48,7 +48,7 @@ ________________
 
 The first example deals with a daily simulation time step.  We calculate the radiation 
 terms on 6 July in Uccle (Brussels, Belgium) and take all input data from example 18 of 
-:cite:`ref-Allen1998`:
+:cite:t:`ref-Allen1998`:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
@@ -63,7 +63,7 @@ terms on 6 July in Uccle (Brussels, Belgium) and take all input data from exampl
 >>> inputs.sunshineduration.series = 9.25
 
 Both for |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|, the differences
-to the results given by :cite:`ref-Allen1998` are significantly less than 1 %:
+to the results given by :cite:t:`ref-Allen1998` are significantly less than 1 %:
 
 .. integration-test::
 
@@ -80,9 +80,9 @@ _________________
 The second example deals with an hourly simulation over multiple time steps.  We 
 calculate the different radiation terms from 30 September to 1 October in N'Diaye 
 (Senegal) and take (or try to derive as good as possible) all parameter and input 
-values from example 19 of :cite:`ref-Allen1998`.
+values from example 19 of :cite:t:`ref-Allen1998`.
 
-Example 19 of :cite:`ref-Allen1998` gives results for the intervals between 2 and 3
+Example 19 of :cite:t:`ref-Allen1998` gives results for the intervals between 2 and 3
 o'clock and between 14 and 15 o'clock only.  We assume these clock times refer to
 UTC-1:
 
@@ -106,7 +106,7 @@ let it linearly increase from 82 % to 88 % in the (incomplete) second daytime pe
 The exceedance of the potential sunshine duration during both sunsets does not affect
 the results negatively.  At the end of the simulation period, the given sunshine 
 duration of 88 % corresponds to a ratio of global radiation and clear sky radiation of 
-approximately 0.92, which is an intermediate result of :cite:`ref-Allen1998`:
+approximately 0.92, which is an intermediate result of :cite:t:`ref-Allen1998`:
 
 >>> import numpy
 >>> inputs.sunshineduration.series = 0.0
@@ -114,7 +114,7 @@ approximately 0.92, which is an intermediate result of :cite:`ref-Allen1998`:
 >>> inputs.sunshineduration.series[27:] = numpy.linspace(0.82, 0.88, 10)
 
 Again, the calculated |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|
-differs significantly less than 1 % from the results given by :cite:`ref-Allen1998`:
+differs significantly less than 1 % from the results given by :cite:t:`ref-Allen1998`:
 
 .. integration-test::
 

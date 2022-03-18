@@ -162,6 +162,7 @@ def main(  # pylint: disable=too-many-branches
                     opt.usedefaultvalues = False
                     opt.utclongitude = 15
                     opt.utcoffset = 60
+                    opt.timestampleft = True
                     opt.warnsimulationstep = False
                     opt.warntrim = False
                     testtools.IntegrationTest.plotting_options = (

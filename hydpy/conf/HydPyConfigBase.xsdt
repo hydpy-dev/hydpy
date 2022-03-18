@@ -50,6 +50,9 @@
                 <element name="utcoffset"
                          type="integer"
                          minOccurs="0"/>
+                <element name="timestampleft"
+                         type="boolean"
+                         minOccurs="0"/>
                 <element name="warnmissingobsfile"
                          type="boolean"
                          minOccurs="0"/>

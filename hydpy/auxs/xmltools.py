@@ -582,6 +582,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
+        >>> pub.options.timestampleft = False
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
         >>> pub.options
@@ -598,6 +599,7 @@ correctly refer to one of the available XML schema files \
             usedefaultvalues -> 0
             utclongitude -> 15
             utcoffset -> 60
+            timestampleft -> 1
             warnmissingcontrolfile -> 0
             warnmissingobsfile -> 1
             warnmissingsimfile -> 1

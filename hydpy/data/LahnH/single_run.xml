@@ -9,6 +9,7 @@
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
+        <timestampleft>true</timestampleft>
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>
         <warntrim>true</warntrim>

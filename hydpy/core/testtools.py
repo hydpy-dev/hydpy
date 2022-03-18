@@ -314,6 +314,8 @@ hydpy.models.hland.hland_control.ZoneType
                 15
             ), opt.utcoffset(
                 60
+            ), opt.timestampleft(
+                True
             ), opt.warnsimulationstep(
                 False
             ), opt.warntrim(

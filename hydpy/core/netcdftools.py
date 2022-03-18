@@ -166,6 +166,7 @@ import collections
 import contextlib
 import itertools
 import os
+import time
 from typing import *
 
 # ...from site-packages
@@ -1380,6 +1381,8 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         See the general documentation on class |NetCDFVariableFlat| for some examples.
         """
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
+            now = time.ctime(time.time())
+            ncfile.history = f"Created {now} by HydPy {hydpy.__version__}"
             ncfile.Conventions = "CF-1.6"
             self._insert_timepoints(ncfile, timepoints, timeunit)
             self.insert_subdevices(ncfile)

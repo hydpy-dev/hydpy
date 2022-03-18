@@ -14,6 +14,7 @@ import copy
 import datetime as datetime_
 import time
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from third party packages
 import numpy
@@ -34,6 +35,7 @@ TypeDate = TypeVar("TypeDate", bound="Date")
 TypePeriod = TypeVar("TypePeriod", bound="Period")
 TypeTimegrid = TypeVar("TypeTimegrid", bound="Timegrid")
 TypeTOY = TypeVar("TypeTOY", bound="TOY")
+TypeUnit = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
 
 
 class Date:
@@ -1369,7 +1371,7 @@ character is `D`.
         return cls.from_timedelta(datetime_.timedelta(0, int(seconds)))
 
     @classmethod
-    def from_cfunits(cls: Type[TypePeriod], units: str) -> TypePeriod:
+    def from_cfunits(cls: Type[TypePeriod], units: TypeUnit) -> TypePeriod:
         """Create a |Period| object representing the time unit of the given `units`
         string agreeing with the NetCDF-CF conventions and return it.
 
@@ -2094,25 +2096,21 @@ required, but the given array consist of 12 entries/rows only.
         cls: Type[TypeTimegrid],
         timepoints: Sequence[float],
         refdate: DateConstrArg,
-        unit: str = "hours",
+        unit: TypeUnit = "hours",
     ) -> TypeTimegrid:
         """Return a |Timegrid| object representing the given starting `timepoints`
         related to the given `refdate`.
 
-        The following examples are identical with the ones of method
-        |Timegrid.to_timepoints| but reversed.
-
         At least two given time points must be increasing and equidistant.  By default,
-        they are assumed to be the hours elapsed since the given reference date:
+        |Timegrid.from_timepoints| assumes them as hours elapsed since the given
+        reference date:
 
         >>> from hydpy import Timegrid
-        >>> Timegrid.from_timepoints(
-        ...     [0.0, 6.0, 12.0, 18.0], "01.01.2000")
+        >>> Timegrid.from_timepoints([0.0, 6.0, 12.0, 18.0], "01.01.2000")
         Timegrid("01.01.2000 00:00:00",
                  "02.01.2000 00:00:00",
                  "6h")
-        >>> Timegrid.from_timepoints(
-        ...     [24.0, 30.0, 36.0, 42.0], "1999-12-31")
+        >>> Timegrid.from_timepoints([24.0, 30.0, 36.0, 42.0], "1999-12-31")
         Timegrid("2000-01-01 00:00:00",
                  "2000-01-02 00:00:00",
                  "6h")
@@ -2120,35 +2118,60 @@ required, but the given array consist of 12 entries/rows only.
         You can pass other time units (`days` or `min`) explicitly (only the first
         character counts):
 
-        >>> Timegrid.from_timepoints(
-        ...     [0.0, 0.25, 0.5, 0.75], "01.01.2000", unit="d")
+        >>> Timegrid.from_timepoints([0.0, 0.25, 0.5, 0.75], "01.01.2000", unit="d")
         Timegrid("01.01.2000 00:00:00",
                  "02.01.2000 00:00:00",
                  "6h")
-        >>> Timegrid.from_timepoints(
-        ...     [1.0, 1.25, 1.5, 1.75], "1999-12-31", unit="day")
+        >>> Timegrid.from_timepoints([1.0, 1.25, 1.5, 1.75], "1999-12-31", unit="days")
         Timegrid("2000-01-01 00:00:00",
                  "2000-01-02 00:00:00",
+                 "6h")
+
+        When setting the |Options.timestampleft| option to |False|,
+        |Timegrid.from_timepoints| assumes each time point to define the right side
+        (the end) of a time interval.  Repeating the above examples with this
+        modification shifts the |Timegrid.firstdate| and the |Timegrid.lastdate| of the
+        returned |Timegrid| objects to the left:
+
+        >>> from hydpy import pub
+        >>> with pub.options.timestampleft(False):
+        ...     Timegrid.from_timepoints([0.0, 6.0, 12.0, 18.0], "01.01.2000")
+        Timegrid("31.12.1999 18:00:00",
+                 "01.01.2000 18:00:00",
+                 "6h")
+        >>> with pub.options.timestampleft(False):
+        ...     Timegrid.from_timepoints([24.0, 30.0, 36.0, 42.0], "1999-12-31")
+        Timegrid("1999-12-31 18:00:00",
+                 "2000-01-01 18:00:00",
+                 "6h")
+        >>> with pub.options.timestampleft(False):
+        ...     Timegrid.from_timepoints([0.0, 0.25, 0.5, 0.75], "01.01.2000", unit="d")
+        Timegrid("31.12.1999 18:00:00",
+                 "01.01.2000 18:00:00",
+                 "6h")
+        >>> with pub.options.timestampleft(False):
+        ...     Timegrid.from_timepoints([1.0, 1.25, 1.5, 1.75], "1999-12-31", unit="d")
+        Timegrid("1999-12-31 18:00:00",
+                 "2000-01-01 18:00:00",
                  "6h")
         """
         refdate = Date(refdate)
         period = Period.from_cfunits(unit)
         delta = timepoints[1] - timepoints[0]
-        firstdate = refdate + timepoints[0] * period
-        lastdate = refdate + (timepoints[-1] + delta) * period
+        shift = 0.0 if hydpy.pub.options.timestampleft else -delta
+        firstdate = refdate + (timepoints[0] + shift) * period
+        lastdate = refdate + (timepoints[-1] + delta + shift) * period
         stepsize = (lastdate - firstdate) / len(timepoints)
         return cls(firstdate, lastdate, stepsize)
 
     def to_timepoints(
-        self, unit: str = "hours", offset: Union[float, PeriodConstrArg] = 0.0
+        self, unit: TypeUnit = "hours", offset: Union[float, PeriodConstrArg] = 0.0
     ) -> numpy.ndarray:
         """Return a |numpy.ndarray| representing the starting time points of the
         |Timegrid| object.
 
-        The following examples are identical with the ones of method
-        |Timegrid.from_timepoints| but reversed.
-
-        By default, method |Timegrid.to_timepoints| returns the time points in hours:
+        By default, method |Timegrid.to_timepoints| returns the time elapsed since the
+        |Timegrid.firstdate| in hours:
 
         >>> from hydpy import Timegrid
         >>> timegrid = Timegrid("2000-01-01", "2000-01-02", "6h")
@@ -2168,13 +2191,38 @@ required, but the given array consist of 12 entries/rows only.
         array([24., 30., 36., 42.])
         >>> timegrid.to_timepoints(offset="1d")
         array([24., 30., 36., 42.])
-        >>> timegrid.to_timepoints(unit="day", offset="1d")
+        >>> timegrid.to_timepoints(unit="days", offset="1d")
         array([1.  , 1.25, 1.5 , 1.75])
+
+        When setting the |Options.timestampleft| option to |False|,
+        |Timegrid.to_timepoints| assumes each time point to define the right side
+        (the end) of a time interval.  Repeating the above examples with this
+        modification shifts the time points of the returned |numpy.ndarray| objects to
+        the right:
+
+        >>> from hydpy import pub
+        >>> with pub.options.timestampleft(False):
+        ...     timegrid.to_timepoints()
+        array([ 6., 12., 18., 24.])
+        >>> with pub.options.timestampleft(False):
+        ...     timegrid.to_timepoints(unit="d")
+        array([0.25, 0.5 , 0.75, 1.  ])
+        >>> with pub.options.timestampleft(False):
+        ...     timegrid.to_timepoints(offset=24)
+        array([30., 36., 42., 48.])
+        >>> with pub.options.timestampleft(False):
+        ...     timegrid.to_timepoints(offset="1d")
+        array([30., 36., 42., 48.])
+        >>> with pub.options.timestampleft(False):
+        ...     timegrid.to_timepoints(unit="days", offset="1d")
+        array([1.25, 1.5 , 1.75, 2.  ])
         """
         period = Period.from_cfunits(unit)
         if not isinstance(offset, (float, int)):
             offset = Period(offset) / period
         step = self.stepsize / period
+        if not hydpy.pub.options.timestampleft:
+            offset += step
         nmb = len(self)
         variable = numpy.linspace(offset, offset + step * (nmb - 1), nmb)
         return variable

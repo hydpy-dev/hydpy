@@ -1829,12 +1829,26 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     >>> len(timegrid)
     366
     >>> for date in timegrid:
-    ...     print(date)   # doctest: +ELLIPSIS
+    ...     print(date)  # doctest: +ELLIPSIS
     2000-01-01 00:00:00
     2000-01-02 00:00:00
     ...
     2000-12-30 00:00:00
     2000-12-31 00:00:00
+
+    By default, iteration yields the left-side timestamps (the start points) of the
+    respective intervals.  Set the |Options.timestampleft| option to |False| of you
+    prefer the right-side timestamps:
+
+    >>> from hydpy import pub
+    >>> with pub.options.timestampleft(False):
+    ...     for date in timegrid:
+    ...         print(date)  # doctest: +ELLIPSIS
+    2000-01-02 00:00:00
+    2000-01-03 00:00:00
+    ...
+    2000-12-31 00:00:00
+    2001-01-01 00:00:00
 
     You can check |Timegrid| instances for equality:
 
@@ -2459,6 +2473,9 @@ the step size `4d`.
         dt = copy.deepcopy(self.firstdate).datetime
         last_dt = self.lastdate.datetime
         td = self.stepsize.timedelta
+        if not hydpy.pub.options.timestampleft:
+            dt += td
+            last_dt += td
         from_datetime = Date.from_datetime
         while dt < last_dt:
             yield from_datetime(dt)

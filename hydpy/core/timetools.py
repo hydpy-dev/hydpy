@@ -39,8 +39,8 @@ TypeTOY = TypeVar("TypeTOY", bound="TOY")
 class Date:
     """Handles a single date.
 
-    We built class the |Date| on top of the Python module |datetime|.  In essence, it
-    wraps |datetime.datetime| objects and specialise this general class on the needs of
+    We built class the |Date| on top of the Python module |datetime|.  It wraps
+    |datetime.datetime| objects and specialise this general class on the needs of
     *HydPy* users.
 
     |Date| objects can be initialised via |datetime.datetime| objects directly:
@@ -278,9 +278,9 @@ given `datetime` object it is `2` instead.
         >>> Date.from_string("1997_11_01_00_00_00").style
         'os'
 
-        The `iso` styles are more legible and come in two flavours.  `iso1` following
-        ISO 8601, and `iso2` (which is the default style) omits the `T` between date
-        and time:
+        The `iso` styles are more legible and come in two flavours.  `iso1` follows
+        ISO 8601, and `iso2` (which is the default style) omits the `T` between the
+        date and the time:
 
         >>> Date.from_string("1997-11-01T00:00:00").style
         'iso1'
@@ -498,7 +498,7 @@ base 10: '0X'
         >>> Date.from_cfunits("m since 1992-10-8")
         Date("1992-10-08 00:00:00")
 
-        One can also pass the unmodified the example string from `Time Coordinate`_, as
+        One can also pass the unmodified example string from `Time Coordinate`_, as
         long as one omits any decimal fractions of a second different from zero:
 
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.")
@@ -750,7 +750,7 @@ decimal fraction of a second than "0" allowed.
 
         Setting it, for example, to 10 (October is another typical reference month in
         different countries) affects all |Date| instances, no matter if already
-        existing of if created afterwards:
+        existing or created afterwards:
 
         >>> date2 = Date("2010-01-01")
         >>> date1.refmonth = 10
@@ -995,8 +995,8 @@ twelve (December) but `0` is given
     def to_string(
         self, style: Optional[str] = None, utcoffset: Optional[int] = None
     ) -> str:
-        """Return a |str| object, representing the actual date following the given
-        style and the eventually given UTC offset (in minutes).
+        """Return a |str| object representing the actual date following the given style
+        and the eventually given UTC offset (in minutes).
 
         Without any input arguments, the actual |Date.style| is used to return a date
         string in your local time zone:
@@ -1006,7 +1006,7 @@ twelve (December) but `0` is given
         >>> date.to_string()
         '01.11.1997 00:00:00'
 
-        Passing a style string affects the returned |str| object, but not the
+        Passing a style string affects the returned |str| object but not the
         |Date.style| property:
 
         >>> date.style
@@ -1045,7 +1045,7 @@ twelve (December) but `0` is given
     def to_repr(
         self, style: Optional[str] = None, utcoffset: Optional[int] = None
     ) -> str:
-        """Similar as method |Date.to_string|, but returns a proper string
+        """Similar to method |Date.to_string|, but returns a proper string
         representation instead.
 
         See method |Date.to_string| for explanations on the following examples:
@@ -1069,9 +1069,9 @@ twelve (December) but `0` is given
 class Period:
     """Handles a single period.
 
-    We built the class |Period| on top of the Python module |datetime|.  In essence, it
-    wraps |datetime.timedelta| objects and specialises this general class on the needs
-    of *HydPy* users.
+    We built the class |Period| on top of the Python module |datetime|.  It wraps
+    |datetime.timedelta| objects and specialises this general class on the needs of
+    *HydPy* users.
 
     Be aware of the different minimum time resolution of module |datetime|
     (microseconds) and module |timetools| (seconds).
@@ -1129,7 +1129,7 @@ following error occurred: The supplied argument must be either an instance of \
     ...
     TypeError: Object `wrong` of type `str` cannot be added to a `Period` instance.
 
-    Subtraction works much alike addition:
+    Subtraction works much like addition:
 
     >>> period = Period("4d")
     >>> period - "1d"
@@ -1766,8 +1766,8 @@ class Timegrid:
     simulation.  Class |Timegrid| reflects this situation by representing equidistant
     dates.
 
-    To initialise a |Timegrid|, pass its first date, last date and stepsize as |str|
-    objects, |Date| and |Period| objects, or |datetime.datetime| and
+    To initialise a |Timegrid|, pass its first date, its last date and its stepsize as
+    |str| objects, |Date| and |Period| objects, or |datetime.datetime| and
     |datetime.timedelta| objects (combinations are allowed):
 
     >>> from hydpy import Date, Period, Timegrid
@@ -1813,7 +1813,7 @@ supplied argument must be either an instance of `Period`, `datetime.timedelta`, 
     >>> timegrid["2002-01-01"]
     731
 
-    However, dates not precisely matching the defined grid result in the following
+    However, dates that do not precisely match the defined grid result in the following
     error:
 
     >>> timegrid["2001-01-01 12:00"]
@@ -2211,7 +2211,7 @@ required, but the given array consist of 12 entries/rows only.
         >>> round_(series[12])
         3600.0
 
-        The last four value are the ones of the given vector:
+        The last four values are the ones of the given vector:
 
         >>> round_(series[-4:])
         1.0, 2.0, 3.5, 5.0
@@ -2248,8 +2248,8 @@ the following error occurred: setting an array element with a sequence. The requ
 array has an inhomogeneous shape after 1 dimensions. The detected shape was (2,) + \
 inhomogeneous part.
 
-        The following error occurs when the given array does not fit to the defined
-        time grid.
+        The following error occurs when the given array does not fit the defined time
+        grid:
 
         >>> timegrid.array2series([[1, 2], [3, 4]])
         Traceback (most recent call last):
@@ -2493,9 +2493,9 @@ class Timegrids:
     object at the beginning of your workflow.
 
     In many cases, one either wants to perform simulations and evaluations covering the
-    whole initialisation period or not to perform any simulation or evaluation at all.
-    In these situations, you can pass a single |Timegrid| instance to the constructor
-    of class |Timegrids|:
+    whole initialisation period or not perform any simulation or evaluation.  In these
+    situations, you can pass a single |Timegrid| instance to the constructor of class
+    |Timegrids|:
 
     >>> from hydpy import Timegrid, Timegrids
     >>> timegrids = Timegrids(Timegrid("2000-01-01", "2001-01-01", "1d"))
@@ -3129,7 +3129,7 @@ been set to `2`, but the given value is `30`.
     AttributeError: TOY (time of year) objects only allow to set the properties \
 month, day, hour, minute, and second, but `microsecond` is given.
 
-    You can pass any objects convertible to integers:
+    You can pass any objects that are convertible to integers:
 
     >>> t.second = "53"
     >>> t.second
@@ -3154,7 +3154,7 @@ within the range `(0, 59)`, but the given value is `60`.
 
     Note that the allowed values for `month` and `day` depend on each other, which is
     why the order one defines them might be of importance.  So, if January is
-    predefined, one can set day to the 31st:
+    predefined, one can set the day to the 31st:
 
     >>> t.month = 1
     >>> t.day = 31
@@ -3167,7 +3167,7 @@ within the range `(0, 59)`, but the given value is `60`.
     ValueError: The value of property `month` of the actual TOY (time of year) object \
 must not be the given value `4`, as the day has already been set to `31`.
 
-    First set `day` to a smaller value and then change `month`:
+    First, set `day` to a smaller value and change `month` afterwards:
 
     >>> t.day = 30
     >>> t.month = 4
@@ -3188,12 +3188,12 @@ must not be the given value `4`, as the day has already been set to `31`.
     >>> t1 > t1, t1 > t2, t2 > t1
     (False, False, True)
 
-    Subtracting two |TOY| object gives their time difference in seconds:
+    Subtracting two |TOY| objects gives their time difference in seconds:
 
     >>> TOY("1_1_0_3_0") - TOY("1_1_0_1_30")
     90
 
-    Subtraction never results in negative values, due to assuming the left operand is
+    Subtraction never results in negative values due to assuming the left operand is
     the posterior (eventually within the subsequent year):
 
     >>> TOY("1_1_0_1_30") - TOY("12_31_23_58_30")
@@ -3336,7 +3336,7 @@ must not be the given value `4`, as the day has already been set to `31`.
 
     @property
     def seconds_left(self) -> int:
-        """The remaining amount of time part of the year in seconds.
+        """The remaining amount of time part of the year (in seconds).
 
         In the first example, only one minute and thirty seconds of the year remain:
 
@@ -3375,10 +3375,10 @@ must not be the given value `4`, as the day has already been set to `31`.
     def centred_timegrid(cls) -> Tuple[Timegrid, numpy.ndarray]:
         """Return a |Timegrid| object defining the central time points of the year
         2000 and a boolean array describing its intersection with the current
-        initialisation period not taking the year information into account.
+        initialisation period, not taking the year information into account.
 
         The returned |Timegrid| object does not depend on the defined initialisation
-        period at all:
+        period:
 
         >>> from hydpy.core.timetools import TOY
         >>> from hydpy import pub
@@ -3423,8 +3423,8 @@ must not be the given value `4`, as the day has already been set to `31`.
         >>> TOY.centred_timegrid()[1][-5:]
         array([False, False, False,  True,  True])
 
-        It makes no difference whether initialisation periods not spanning a full year
-        contain the 29th of February or not:
+        It makes no difference whether initialisation periods not spanning an entire
+        year contain the 29th of February:
 
         >>> pub.timegrids = "2001-02-27", "2001-03-01", "1d"
         >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]

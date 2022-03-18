@@ -575,7 +575,7 @@ class IntegrationTest(Test):
         seqs=None,
         inits=None,
     ) -> None:
-        """Prepare the element and its nodes and put them into a HydPy object
+        """Prepare the element and its nodes, put them into a HydPy object,
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
@@ -737,7 +737,7 @@ datetime of the Python standard library for for further information.
         return parseqs.series
 
     def prepare_node_sequences(self):
-        """Prepare the simulations sequences of all nodes in.
+        """Prepare the simulations series of all nodes.
 
         This preparation might not be suitable for all types of integration
         tests.  Prepare those node sequences manually, for which this method
@@ -1242,7 +1242,7 @@ class TestIO:
     >>> os.path.exists("testfile.txt")
     False
 
-    Nevertheless, `testfile.txt` still exists in folder `iotesting`:
+    Nevertheless, `testfile.txt` still exists in the folder `iotesting`:
 
     >>> with TestIO():
     ...     print(os.path.exists("testfile.txt"))
@@ -1356,8 +1356,8 @@ methods array, read, subdevicenames
     >>> from hydpy import make_abc_testable, classname
     >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, 1)
 
-    To avoid confusion, |make_abc_testable| appends an underscore the original
-    class-name:
+    To avoid confusion, |make_abc_testable| appends an underscore to the original class
+    name:
 
     >>> classname(ncvar)
     'NetCDFVariableBase_'
@@ -1436,8 +1436,8 @@ class NumericalDifferentiator:
     Therefore, it must know the relationship between |lstream_aides.RHM| and
     |lstream_states.H|, being defined by method |lstream_model.Calc_RHM_V1|.
 
-    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|
-    which how to apply class |NumericalDifferentiator| on multiple target
+    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|,
+    which explains how to apply class |NumericalDifferentiator| on multiple target
     sequences (`ysequences`).  Note that, in order to calculate the correct
     derivatives of sequences |lstream_aides.AM| and |lstream_aides.UM|, we
     need not only to pass |lstream_model.Calc_AM_UM_V1|, but also methods
@@ -1447,7 +1447,7 @@ class NumericalDifferentiator:
     |lstream_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves the second order of accuracy, due to
+    |NumericalDifferentiator| achieves the second order of accuracy due to
     using the coefficients given `here`_.  If results are too inaccurate,
     you might improve them by changing the finite difference method
     (`backward` or `central` instead of `forward`) or by changing the
@@ -1535,7 +1535,7 @@ def update_integrationtests(
     modify the value of a fixed parameter, the results of possibly dozens
     of integration tests of your application model might become wrong.
     In such situations, function |update_integrationtests| helps you in
-    replacing all integration tests results at ones.  Therefore, it
+    replacing all integration tests results at once.  Therefore, it
     calculates the new results, updates the old module docstring and
     writes it.  You only need to copy-paste the printed result into the
     affected module.  But be aware that function |update_integrationtests|
@@ -1543,7 +1543,7 @@ def update_integrationtests(
     if the new results are really correct under all possible conditions,
     you should inspect and replace each integration test result manually.
 
-    The following example, we disable method |conv_model.Pass_Outputs_V1|
+    In the following example, we disable method |conv_model.Pass_Outputs_V1|
     temporarily.  Accordingly, application model |conv_v001| does not pass
     any output to its outlet nodes, which is why the last four columns of
     both integration test tables now contain zero value only (we can perform
@@ -1636,20 +1636,20 @@ def check_methodorder(
     """Check that *HydPy* calls the methods of the given application model
     in the correct order for each simulation step.
 
-    The purpose of this function is to help model developers to ensure
+    The purpose of this function is to help model developers ensure
     that each method uses only the values of those sequences that have
     been calculated by other methods beforehand.  *HydPy's* test routines
     apply |check_methodorder| automatically on each available application
     model. Alternatively, you can also execute it at the end of the
     docstring of an individual application model "manually", which
     suppresses the automatic execution and allows to check and discuss
-    exceptional cases were |check_methodorder| generates false alarms.
+    exceptional cases where |check_methodorder| generates false alarms.
 
     Function |check_methodorder| relies on the class constants
     `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES` of
     all relevant |Method| subclasses.  Hence, the correctness of its
     results depends on the correctness of these tuples.  However, even
-    of those tuples are well-defined, one cannot expect |check_methodorder|
+    if those tuples are well-defined, one cannot expect |check_methodorder|
     to catch all kinds of order-related errors.  For example, consider the
     case where one method calculates only some values of a multi-dimensional
     sequence and another method the  remaining ones.  |check_methodorder|
@@ -1740,7 +1740,7 @@ def check_selectedvariables(
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
-    The purpose of this function is to help model developers to ensure
+    The purpose of this function is to help model developers ensure
     that the class tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`,
     `FIXEDPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and
     `RESULTSEQUENCES` contain the correct parameter and sequence
@@ -1749,11 +1749,11 @@ def check_selectedvariables(
     Alternatively, you can also execute it at the end of the docstring
     of an individual |Method| subclass "manually", which suppresses
     the automatic execution and allows to check and discuss exceptional
-    cases were |check_selectedvariables| generates false alarms.
+    cases where |check_selectedvariables| generates false alarms.
 
     Do not expect |check_selectedvariables| to catch all possible
-    errors.  Also, false positives might occur.  However, in our experience
-    functions |check_selectedvariables| is of great help to prevent most
+    errors.  Also, false positives might occur.  However, in our experience,
+    function |check_selectedvariables| is of great help to prevent the most
     common mistakes when defining the parameter and sequence classes
     relevant for a specific method.
 
@@ -1830,7 +1830,7 @@ def check_selectedvariables(
     >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
     <BLANKLINE>
 
-    Some methods as |arma_model.Pick_Q_V1| of base model |arma| rely on
+    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on
     the `len` attribute of 1-dimensional sequences.  Function
     |check_selectedvariables| does not report false alarms in such cases:
 
@@ -1838,7 +1838,7 @@ def check_selectedvariables(
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
 
-    Some methods as |lland_model.Update_ESnow_V1| of base model |lland| update a
+    Some methods such as |lland_model.Update_ESnow_V1| of base model |lland| update a
     sequence (meaning, they require its old value and calculate a new one), but
     their submethods (in this case |lland_model.Return_BackwardEulerError_V1|)
     just require them as input.  Function |check_selectedvariables| does not
@@ -1965,7 +1965,7 @@ def perform_consistencychecks(
     """Perform all available consistency checks for the given application model.
 
     At the moment, function |perform_consistencychecks| calls function
-    |check_selectedvariables| for each relevant model methods and function
+    |check_selectedvariables| for each relevant model method and function
     |check_methodorder| for the application model itself.  Note that
     |perform_consistencychecks| executes only those checks not already
     executed in the doctest of the respective method or model.  This

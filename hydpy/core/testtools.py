@@ -2045,3 +2045,33 @@ def save_autofig(
     else:
         pyplot.savefig(filepath)
         pyplot.close()
+
+
+@contextlib.contextmanager
+def warn_later() -> Iterator[None]:
+    """Suppress warnings and print them upon exit.
+
+    The context manager |warn_later| helps demonstrate functionalities in doctests that
+    emit warnings:
+
+    >>> import warnings
+    >>> def get_number():
+    ...     warnings.warn("This is a warning.")
+    ...     return 1
+
+    >>> get_number()
+    Traceback (most recent call last):
+    ...
+    UserWarning: This is a warning.
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     get_number()
+    1
+    UserWarning: This is a warning.
+    """
+    with warnings.catch_warnings(record=True) as records:
+        warnings.resetwarnings()
+        yield
+    for record in records:
+        print(record.category.__name__, record.message, sep=": ")

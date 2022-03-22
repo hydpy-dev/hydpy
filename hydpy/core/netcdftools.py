@@ -406,30 +406,23 @@ def query_timegrid(ncfile: netcdf4.Dataset) -> timetools.Timegrid:
              "1d")
 
     If a file-specific setting is missing, |query_timegrid| applies the current
-    |Options.timestampleft| value but warns about this assumption:
+    |Options.timestampleft| value:
 
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     del ncfile.timestampleft
     >>> from hydpy.core.testtools import warn_later
-    >>> with TestIO(), warn_later() as records, Dataset(filepath) as ncfile:
+    >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile)
     Timegrid("1996-01-01 00:00:00",
              "2007-01-01 00:00:00",
              "1d")
-    UserWarning: The NetCDF file / does not clarify if the defined time points define \
-left or right interval bounds.  Falling back to the global `timestampleft` option, \
-with the current value `True`.
 
     >>> from hydpy import pub
-    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile, \
-pub.options.timestampleft(False):
+    >>> with TestIO(), Dataset(filepath) as ncfile, pub.options.timestampleft(False):
     ...     query_timegrid(ncfile)
     Timegrid("1995-12-31 00:00:00",
              "2006-12-31 00:00:00",
              "1d")
-    UserWarning: The NetCDF file / does not clarify if the defined time points define \
-left or right interval bounds.  Falling back to the global `timestampleft` option, \
-with the current value `False`.
 
     If the file-specific setting and |Options.timestampleft| conflict, |query_timegrid|
     favours the file attribute and warns about this assumption:
@@ -448,19 +441,12 @@ value `False`.
     timestampleft = getattr(ncfile, "timestampleft", None)
     if timestampleft is not None:
         timestampleft = objecttools.value2bool("timestampleft", timestampleft)
-    if timestampleft is None:
-        warnings.warn(
-            f"The NetCDF file {ncfile.name} does not clarify if the defined time "
-            f"points define left or right interval bounds.  Falling back to the "
-            f"global `timestampleft` option, with the current value "
-            f"`{bool(hydpy.pub.options.timestampleft)}`."
-        )
-    elif timestampleft != hydpy.pub.options.timestampleft:
-        warnings.warn(
-            f"The NetCDF file {ncfile.name} defines its `timestampleft` attribute "
-            f"different from the global `timestampleft` option.  Using the "
-            f"file-specific attribute with the value `{timestampleft}`."
-        )
+        if timestampleft != hydpy.pub.options.timestampleft:
+            warnings.warn(
+                f"The NetCDF file {ncfile.name} defines its `timestampleft` attribute "
+                f"different from the global `timestampleft` option.  Using the "
+                f"file-specific attribute with the value `{timestampleft}`."
+            )
     with hydpy.pub.options.timestampleft(timestampleft):
         timepoints = ncfile[varmapping["timepoints"]]
         refdate = timetools.Date.from_cfunits(timepoints.units)

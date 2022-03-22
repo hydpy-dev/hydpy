@@ -5998,12 +5998,12 @@ class Update_ESnow_V2(modeltools.Method):
 
 
 class Calc_SFF_V1(modeltools.Method):
-    """Calculate the ratio between frozen water and total water within
+    r"""Calculate the ratio between frozen water and total water within
     the top soil layer according to :cite:t:`ref-LARSIM`.
 
     Basic equations:
-      :math:`SFF = min\\left(max\\left(
-      1 - \\frac{EBdn}{BoWa2Z} \\cdot RSchmelz, 0\\right), 1\\right)`
+      :math:`SFF = min \left( max \left(
+      1 - \frac{EBdn}{BoWa2Z \cdot RSchmelz}, 0 \right), 1 \right)`
 
     Example:
 

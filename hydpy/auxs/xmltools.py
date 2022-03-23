@@ -111,11 +111,9 @@ from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import itemtools
-from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
-from hydpy.core import timetools
 from hydpy.exe import commandtools
 from hydpy.core.typingtools import *
 
@@ -622,60 +620,26 @@ correctly refer to one of the available XML schema files \
         """Update the |Timegrids| object available in the |pub| module with the values
         defined in the `timegrid` XML element.
 
-        Usually, one would prefer to define `firstdate`, `lastdate`, and `stepsize`
-        elements as in the XML configuration file of the `LahnH` example project:
-
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> from hydpy.auxs.xmltools import XMLInterface
-
         >>> hp = HydPy("LahnH")
         >>> with TestIO():
-        ...     hp.prepare_network()
         ...     XMLInterface("single_run.xml").update_timegrids()
         >>> pub.timegrids
         Timegrids("1996-01-01T00:00:00",
                   "1996-01-06T00:00:00",
                   "1d")
-
-        Alternatively, one can provide the file path to a `seriesfile`, which must be
-        a valid NetCDF file.  The |XMLInterface| object then interprets the file's
-        time information:
-
-        >>> name = "LahnH/series/default/hland_v1_input_p.nc"
-        >>> with TestIO():
-        ...     with open("LahnH/single_run.xml") as file_:
-        ...         lines = file_.readlines()
-        ...     for idx, line in enumerate(lines):
-        ...         if "<timegrid>" in line:
-        ...             break
-        ...     with open("LahnH/single_run.xml", "w") as file_:
-        ...         _ = file_.write("".join(lines[:idx+1]))
-        ...         _ = file_.write(
-        ...             f"        <seriesfile>{name}</seriesfile>\\n")
-        ...         _ = file_.write("".join(lines[idx+4:]))
-        ...     XMLInterface("single_run.xml").update_timegrids()
-        >>> pub.timegrids
-        Timegrids("1996-01-01 00:00:00",
-                  "2007-01-01 00:00:00",
-                  "1d")
         """
         timegrid_xml = self.find("timegrid", optional=False)
-        try:
-            firstdate = timegrid_xml[0].text
-            assert firstdate is not None
-            lastdate = timegrid_xml[1].text
-            assert lastdate is not None
-            stepsize = timegrid_xml[2].text
-            assert stepsize is not None
-            hydpy.pub.timegrids = (firstdate, lastdate, stepsize)
-        except IndexError:
-            seriesfile = find(timegrid_xml, "seriesfile", optional=False).text
-            with netcdf4.Dataset(seriesfile) as ncfile:
-                hydpy.pub.timegrids = timetools.Timegrids(
-                    netcdftools.query_timegrid(ncfile)
-                )
+        firstdate = timegrid_xml[0].text
+        assert firstdate is not None
+        lastdate = timegrid_xml[1].text
+        assert lastdate is not None
+        stepsize = timegrid_xml[2].text
+        assert stepsize is not None
+        hydpy.pub.timegrids = (firstdate, lastdate, stepsize)
 
     def update_selections(self) -> None:
         """Create |Selection| objects based on the `add_selections` XML element and

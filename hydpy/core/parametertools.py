@@ -8,6 +8,7 @@ import inspect
 import itertools
 import textwrap
 from typing import *
+from typing import NoReturn
 
 # ...from site-packages
 import numpy
@@ -1265,36 +1266,47 @@ broadcast input array from shape (2,) into shape (2,3)
 
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
+    def _raise_args_and_kwargs_error(self) -> NoReturn:
+        raise ValueError(
+            f"For parameter {objecttools.elementphrase(self)} both positional and "
+            f"keyword arguments are given, which is ambiguous."
+        )
+
+    def _raise_no_args_and_no_kwargs_error(self) -> NoReturn:
+        raise ValueError(
+            f"For parameter {objecttools.elementphrase(self)} neither a positional "
+            f"nor a keyword argument is given."
+        )
+
+    def _raise_kwargs_and_auxfile_error(self, kwargs: Mapping[str, object]) -> NoReturn:
+        raise ValueError(
+            f"It is not allowed to combine keyword `auxfile` with other keywords, but "
+            f"for parameter {objecttools.elementphrase(self)} also the following "
+            f"keywords are used: {objecttools.enumeration(kwargs.keys())}."
+        )
+
+    def _raise_wrong_kwargs_error(self) -> NoReturn:
+        raise NotImplementedError(
+            f"The value(s) of parameter {objecttools.elementphrase(self)} could not "
+            f"be set based on the given keyword arguments."
+        )
+
     def __call__(self, *args, **kwargs):
         if args and kwargs:
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} both positional "
-                f"and keyword arguments are given, which is ambiguous."
-            )
+            self._raise_args_and_kwargs_error()
         if not args and not kwargs:
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} neither "
-                f"a positional nor a keyword argument is given."
-            )
+            self._raise_no_args_and_no_kwargs_error()
         auxfile = kwargs.pop("auxfile", None)
         if auxfile:
             if kwargs:
-                raise ValueError(
-                    f"It is not allowed to combine keyword `auxfile` with other "
-                    f"keywords, but for parameter {objecttools.elementphrase(self)} "
-                    f"also the following keywords are used: "
-                    f"{objecttools.enumeration(kwargs.keys())}."
-                )
+                self._raise_kwargs_and_auxfile_error(kwargs)
             self.values = self._get_values_from_auxiliaryfile(auxfile)
         elif args:
             if len(args) == 1:
                 args = args[0]
             self.values = self.apply_timefactor(numpy.array(args))
         else:
-            raise NotImplementedError(
-                f"The value(s) of parameter {objecttools.elementphrase(self)} "
-                f"could not be set based on the given keyword arguments."
-            )
+            self._raise_wrong_kwargs_error()
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, auxfile: str):
@@ -1309,10 +1321,7 @@ broadcast input array from shape (2,) into shape (2,3)
             while frame:
                 namespace = frame.f_locals
                 try:
-                    subnamespace = {
-                        "model": namespace["model"],
-                        "focus": self,
-                    }
+                    subnamespace = {"model": namespace["model"], "focus": self}
                     break
                 except KeyError:
                     frame = frame.f_back

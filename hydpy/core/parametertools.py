@@ -1345,6 +1345,21 @@ broadcast input array from shape (2,) into shape (2,3)
                 f"`{self.name}` from file `{auxfile}`"
             )
 
+    def _find_kwargscombination(
+        self,
+        given_args: List[Any],
+        given_kwargs: Dict[str, Any],
+        allowed_combinations: Tuple[Set[str], ...],
+    ) -> Optional[int]:
+        if given_kwargs and ("auxfile" not in given_kwargs):
+            if given_args:
+                self._raise_args_and_kwargs_error()
+            try:
+                return allowed_combinations.index(set(given_kwargs))
+            except ValueError:
+                return None
+        return None
+
     @property
     def subpars(self) -> SubParameters:
         """Alias for attribute `subvars`."""

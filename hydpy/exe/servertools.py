@@ -366,6 +366,7 @@ class ServerState:
     outputconditiondirs: Dict[ID, str]
     serieswriterdirs: Dict[ID, str]
     seriesreaderdirs: Dict[ID, str]
+    outputcontroldirs: Dict[ID, str]
     idx1: int
     idx2: int
 
@@ -432,6 +433,7 @@ class ServerState:
         self.seriesreaderdirs = {}
         self.inputconditiondirs = {}
         self.outputconditiondirs = {}
+        self.outputcontroldirs = {}
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -1155,8 +1157,8 @@ registered under the id `0`.  There is nothing registered, so far.
     Above, we explained the recommended way to query the initial values of all or a
     subgroup of the available exchange items.  Alternatively, you can first register
     the initial values and query them later, which is a workaround for retrieving
-    initial and intermediate values with the same HTTP request (a requirement of
-    `OpenDA`_):
+    initial and intermediate values with the same HTTP request (an `OpenDA`_
+    requirement):
 
     >>> test("register_initialitemvalues", id_="1")
     <BLANKLINE>
@@ -1186,7 +1188,7 @@ registered under the id `0`.  There is nothing registered, so far.
     land_lahn_3_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
     dill_nodes_sim_series = [nan, nan, nan, nan, nan]
 
-    In contrast to running a single simulation via method |run_simulation|, the HydPy
+    In contrast to running a single simulation via method |run_simulation|, the *HydPy*
     server does (usually) not write calculated time-series automatically.  Instead, one
     must manually call method |HydPyServer.GET_save_allseries|:
 
@@ -1312,6 +1314,48 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("simulate", id_="0")
     <BLANKLINE>
+
+    As described for time series, one must explicitly pass (comparable) requests to
+    the *HydPy* Server to let it write parameter control files.  The control files
+    reflect the current parameter values of all model instances:
+
+    >>> test("register_outputcontroldir", id_="0", data="outputcontroldir = calibrated")
+    <BLANKLINE>
+    >>> test("query_outputcontroldir", id_="0")
+    outputcontroldir = calibrated
+
+    >>> test("save_controls", id_="0")
+    <BLANKLINE>
+    >>> with TestIO(), open("LahnH/control/calibrated/land_dill.py") as file_:
+    ...     print(file_.read())  # doctest: +ELLIPSIS
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.hland_v1 import *
+    <BLANKLINE>
+    simulationstep("1d")
+    parameterstep("1d")
+    ...
+    beta(1.0)
+    ...
+
+    >>> parameterstep = "hydpy.pub.options.parameterstep"
+    >>> simulationstep = "hydpy.pub.options.simulationstep"
+    >>> beta = "HydPyServer.state.hp.elements.land_dill.model.parameters.control.beta"
+    >>> test("evaluate", data=(f"simulationstep = {simulationstep}\\n"
+    ...                        f"parameterstep = {parameterstep}\\n"
+    ...                        f"beta = {beta}"))
+    simulationstep = Period("1d")
+    parameterstep = Period("1d")
+    beta = beta(1.0)
+
+    >>> test("deregister_outputcontroldir", id_="0")
+    <BLANKLINE>
+    >>> test("query_outputcontroldir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_outputcontroldir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
 
     To close the *HydPy* server, call |HydPyServer.GET_close_server|:
 
@@ -2017,6 +2061,26 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         """Save the time series of all sequences selected for (non-jit) writing."""
         state = self.state
         state.interface.series_io.save_series(state.serieswriterdirs.get(self._id))
+
+    def POST_register_outputcontroldir(self) -> None:
+        """Register the send output control directory under the given `id`."""
+        self.state.outputcontroldirs[self._id] = self._inputs["outputcontroldir"]
+
+    def GET_deregister_outputcontroldir(self) -> None:
+        """Remove the output control directory registered under the `id`."""
+        self.state.outputcontroldirs.pop(self._id, None)
+
+    def GET_query_outputcontroldir(self) -> None:
+        """Return the output control directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.outputcontroldirs)
+        self._outputs["outputcontroldir"] = dir_
+
+    def GET_save_controls(self) -> None:
+        """Save the control files of all model instances."""
+        state = self.state
+        controldir = self._get_registered_content(state.outputcontroldirs)
+        hydpy.pub.controlmanager.currentdir = controldir
+        state.hp.save_controls()
 
 
 class _HTTPServerBase(http.server.HTTPServer):

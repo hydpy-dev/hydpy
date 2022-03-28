@@ -3,10 +3,12 @@
 of hydrological models."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import copy
 import inspect
 import itertools
 import textwrap
+import warnings
 from typing import *
 from typing import NoReturn
 
@@ -27,6 +29,82 @@ if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import devicetools
     from hydpy.core import modeltools
+
+
+def trim_kwarg(
+    parameter: Parameter,
+    name: str,
+    value: float,
+    lower: float = -numpy.inf,
+    upper: float = numpy.inf,
+) -> float:
+    """Helper function for model developers for trimming scalar keyword arguments of
+    type |float|.
+
+    Function |trim_kwarg| works similar to function |trim| but targets defining
+    parameter values via parameter-specific keyword arguments.  Due to the individual
+    nature of calculating parameter values from keyword arguments, using |trim_kwarg|
+    is less standardisable than using |trim|.  Hence, model developers must include it
+    manually into the `__call__` methods of their |Parameter| subclasses when trimming
+    keyword arguments is required.
+
+    The following tests show that |trim_kwarg| returns the eventually trimmed value,
+    and, like |trim|, emits warnings only in case of boundary violations beyond the
+    size of pure precision-related artefacts:
+
+    >>> from hydpy.core.parametertools import Parameter, trim_kwarg
+    >>> parameter = Parameter(None)
+
+    >>> trim_kwarg(parameter, "x", 1.0) == 1.0
+    True
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", 0.0, lower=1.0) == 1.0
+    True
+    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
+with value `0.0` needed to be trimmed to `1.0`.
+
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", 2.0, upper=1.0) == 1.0
+    True
+    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
+with value `2.0` needed to be trimmed to `1.0`.
+
+    >>> x = 1.0 - 1e-15
+    >>> x == 1.0
+    False
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", x, lower=1.0) == 1.0
+    True
+
+    >>> x = 1.0 + 1e-15
+    >>> x == 1.0
+    False
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", x, upper=1.0) == 1.0
+    True
+    """
+    gt = variabletools.get_tolerance
+    if value < lower:
+        if (value + gt(value)) < (lower - gt(lower)):
+            _warn_trim_kwarg(parameter, name, value, lower)
+        return lower
+    if value > upper:
+        if (value - gt(value)) > (upper + gt(upper)):
+            _warn_trim_kwarg(parameter, name, value, upper)
+        return upper
+    return value
+
+
+def _warn_trim_kwarg(
+    parameter: Parameter, name: str, oldvalue: float, newvalue: float
+) -> None:
+    warnings.warn(
+        f"For parameter {objecttools.elementphrase(parameter)} the keyword argument "
+        f"`{name}` with value `{objecttools.repr_(oldvalue)}` needed to be trimmed to "
+        f"`{objecttools.repr_(newvalue)}`."
+    )
 
 
 def get_controlfileheader(

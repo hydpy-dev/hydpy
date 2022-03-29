@@ -2123,12 +2123,14 @@ was attempted for element `?`.
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape: Tuple[int, ...]) -> NoReturn:
-        if exceptiontools.attrready(self, "shape"):
+        oldshape = exceptiontools.getattr_(self, "shape", None)
+        if oldshape is None:
+            super().__hydpy__set_shape__(shape)
+        elif shape != oldshape:
             raise AttributeError(
-                f"The shape of variable `{self.name}` cannot be changed but this "
-                f"was attempted for element `{objecttools.devicename(self)}`."
+                f"The shape of variable `{self.name}` cannot be changed but this was "
+                f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super().__hydpy__set_shape__(shape)
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 

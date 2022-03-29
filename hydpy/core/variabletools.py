@@ -1837,8 +1837,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to {description} variable "
-                f"{objecttools.devicephrase(self)} and "
-                f"`{type(other).__name__}` instance `{other}`"
+                f"{objecttools.devicephrase(self)} and `{type(other).__name__}` "
+                f"instance `{objecttools.repr_(other)}`"
             )
 
     def __add__(self, other):

@@ -37,16 +37,16 @@ from hydpy.auxs import iuhtools
 from hydpy.models.arma import arma_control
 from hydpy.core.typingtools import *
 
-ParameterType = TypeVar("ParameterType", bound=parametertools.Parameter)
-RuleType1 = TypeVar(
-    "RuleType1",
+TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
+TypeRule1 = TypeVar(
+    "TypeRule1",
     bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
 )
-RuleType2 = TypeVar(
-    "RuleType2",
+TypeRule2 = TypeVar(
+    "TypeRule2",
     bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
 )
-RuleType = TypeVar("RuleType", "Replace", "Add", "Multiply")
+TypeRule = TypeVar("TypeRule", "Replace", "Add", "Multiply")
 Target = Optional[str]
 
 
@@ -298,7 +298,7 @@ class FactorAdaptor(Adaptor):
             target.value = self._rule.value * ref.value
 
 
-class Rule(abc.ABC, Generic[ParameterType]):
+class Rule(abc.ABC, Generic[TypeParameter]):
     """Base class for defining calibration rules.
 
     Each |Rule| object relates one calibration parameter with some model parameters.
@@ -532,7 +532,7 @@ handle any `musk_classic` model instances.
     parametername: str
     """The name of the addressed |Parameter| objects."""
 
-    parametertype: Type[ParameterType]
+    parametertype: Type[TypeParameter]
     """The type of the addressed |Parameter| objects."""
 
     keyword: Optional[str]
@@ -554,7 +554,7 @@ handle any `musk_classic` model instances.
         self,
         *,
         name: str,
-        parameter: Union[Type[ParameterType], ParameterType, str],
+        parameter: Union[Type[TypeParameter], TypeParameter, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -785,7 +785,7 @@ value `200.0` instead.
     def __str__(self) -> str:
         return self.name
 
-    def __iter__(self) -> Iterator[ParameterType]:
+    def __iter__(self) -> Iterator[TypeParameter]:
         for element in self.elements:
             yield getattr(
                 element.model.parameters.control,
@@ -1007,7 +1007,7 @@ hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
                 self._update_parameter(parameter, self.value * orig)
 
 
-class CalibrationInterface(Generic[RuleType1]):
+class CalibrationInterface(Generic[TypeRule1]):
     """Interface for the coupling of *HydPy* to optimisation libraries like `NLopt`_.
 
     Essentially, class |CalibrationInterface| is supposed for the structured handling
@@ -1482,7 +1482,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     _logfilelines: Deque[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
-    _rules: Dict[str, RuleType1]
+    _rules: Dict[str, TypeRule1]
     _elements: devicetools.Elements
 
     def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction):
@@ -1495,7 +1495,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         self._logfilelines = collections.deque()
         self.result = None
 
-    def add_rules(self, *rules: RuleType1) -> None:
+    def add_rules(self, *rules: TypeRule1) -> None:
         """Add some |Rule| objects to the actual |CalibrationInterface| object.
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1531,16 +1531,16 @@ does not agree with the one documentated in log file `example_calibration.log` (
             self._update_elements_when_adding_a_rule(rule)
 
     @overload
-    def get_rule(self, name: str) -> RuleType1:
+    def get_rule(self, name: str) -> TypeRule1:
         ...
 
     @overload
-    def get_rule(self, name: str, type_: Type[RuleType2]) -> RuleType2:
+    def get_rule(self, name: str, type_: Type[TypeRule2]) -> TypeRule2:
         ...
 
     def get_rule(
-        self, name: str, type_: Optional[Type[RuleType2]] = None
-    ) -> Union[RuleType1, RuleType2]:
+        self, name: str, type_: Optional[Type[TypeRule2]] = None
+    ) -> Union[TypeRule1, TypeRule2]:
         """Return a |Rule| object (of a specific type).
 
         Method |CalibrationInterface.get_rule| is a more typesafe alternative to simple
@@ -1596,7 +1596,7 @@ named `fc` of type `Add`.
             f"`{name}` of type `{type_.__name__}`."
         )
 
-    def remove_rules(self, *rules: Union[str, RuleType1]) -> None:
+    def remove_rules(self, *rules: Union[str, TypeRule1]) -> None:
         """Remove some |Rule| objects from the actual |CalibrationInterface| object.
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1792,7 +1792,7 @@ object named `fc`.
                 idx2rule[idx].value = float(value)
         self.result = result_best
 
-    def _update_elements_when_adding_a_rule(self, rule: RuleType1) -> None:
+    def _update_elements_when_adding_a_rule(self, rule: TypeRule1) -> None:
         self._elements += rule.elements
 
     def _update_elements_when_deleting_a_rule(self) -> None:
@@ -2151,11 +2151,11 @@ parameterstep="1d"))
     def __len__(self) -> int:
         return len(self._rules)
 
-    def __iter__(self) -> Iterator[RuleType1]:
+    def __iter__(self) -> Iterator[TypeRule1]:
         for rule in self._rules.values():
             yield rule
 
-    def __getattr__(self, item: str) -> RuleType1:
+    def __getattr__(self, item: str) -> TypeRule1:
         try:
             return self._rules[item]
         except KeyError:
@@ -2164,7 +2164,7 @@ parameterstep="1d"))
                 f"attribute nor a rule object named `{item}`."
             ) from None
 
-    def __getitem__(self, key: str) -> RuleType1:
+    def __getitem__(self, key: str) -> TypeRule1:
         try:
             return self._rules[key]
         except KeyError:
@@ -2928,7 +2928,7 @@ parameterstep="1d"),
 @overload
 def make_rules(
     *,
-    rule: Type[RuleType],
+    rule: Type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2937,14 +2937,14 @@ def make_rules(
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[RuleType]:
+) -> List[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[RuleType],
+    rule: Type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2955,14 +2955,14 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[RuleType]:
+) -> List[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[RuleType],
+    rule: Type[TypeRule],
     calibspecs: "CalibSpecs",
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2972,14 +2972,14 @@ def make_rules(
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[RuleType]:
+) -> List[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[RuleType],
+    rule: Type[TypeRule],
     calibspecs: "CalibSpecs",
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2990,13 +2990,13 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[RuleType]:
+) -> List[TypeRule]:
     ...
 
 
 def make_rules(
     *,
-    rule: Type[RuleType],
+    rule: Type[TypeRule],
     calibspecs: Optional["CalibSpecs"] = None,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -3008,7 +3008,7 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
     product: bool = False,
-) -> List[RuleType]:
+) -> List[TypeRule]:
     """Conveniently create multiple |Rule| objects at once.
 
     Please see the main documentation on class |CalibrationInterface| first, from

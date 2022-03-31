@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 
 class _PubProperty(
     propertytools.DefaultProperty[
-        propertytools.InputType,
-        propertytools.OutputType,
+        propertytools.TypeInput,
+        propertytools.TypeOutput,
     ]
 ):
     def __init__(self) -> None:

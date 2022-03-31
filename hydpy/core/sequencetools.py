@@ -33,30 +33,30 @@ if TYPE_CHECKING:
 
 
 InOutSequence = Union["InputSequence", "OutputSequence"]
-TypesInOutSequence = Union[Type["InputSequence"], Type["OutputSequence"]]
+InOutSequenceTypes = Union[Type["InputSequence"], Type["OutputSequence"]]
 
-SequencesType = TypeVar("SequencesType", "Sequences", "devicetools.Node")
+TypeSequences = TypeVar("TypeSequences", "Sequences", "devicetools.Node")
 
-SubSequencesType = TypeVar("SubSequencesType", bound="SubSequences")
-SequenceType = TypeVar("SequenceType", bound="Sequence_")
+TypeSubSequences = TypeVar("TypeSubSequences", bound="SubSequences")
+TypeSequence = TypeVar("TypeSequence", bound="Sequence_")
 
-IOSequencesType = TypeVar("IOSequencesType", bound="IOSequences")
-IOSequenceType = TypeVar("IOSequenceType", bound="IOSequence")
-FastAccessIOSequenceType = TypeVar(
-    "FastAccessIOSequenceType", bound="FastAccessIOSequence"
+TypeIOSequences = TypeVar("TypeIOSequences", bound="IOSequences")
+TypeIOSequence = TypeVar("TypeIOSequence", bound="IOSequence")
+TypeFastAccessIOSequence = TypeVar(
+    "TypeFastAccessIOSequence", bound="FastAccessIOSequence"
 )
 
-ModelSequencesType = TypeVar("ModelSequencesType", bound="ModelSequences")
-ModelSequenceType = TypeVar("ModelSequenceType", bound="ModelSequence")
+TypeModelSequences = TypeVar("TypeModelSequences", bound="ModelSequences")
+TypeModelSequence = TypeVar("TypeModelSequence", bound="ModelSequence")
 
-ModelIOSequencesType = TypeVar("ModelIOSequencesType", bound="ModelIOSequences")
-ModelIOSequenceType = TypeVar("ModelIOSequenceType", bound="ModelIOSequence")
+TypeModelIOSequences = TypeVar("TypeModelIOSequences", bound="ModelIOSequences")
+TypeModelIOSequence = TypeVar("TypeModelIOSequence", bound="ModelIOSequence")
 
-OutputSequencesType = TypeVar("OutputSequencesType", bound="OutputSequences")
-OutputSequenceType = TypeVar("OutputSequenceType", bound="OutputSequence")
+TypeOutputSequences = TypeVar("TypeOutputSequences", bound="OutputSequences")
+TypeOutputSequence = TypeVar("TypeOutputSequence", bound="OutputSequence")
 
-LinkSequencesType = TypeVar("LinkSequencesType", bound="LinkSequences")
-LinkSequenceType = TypeVar("LinkSequenceType", bound="LinkSequence")
+TypeLinkSequences = TypeVar("TypeLinkSequences", bound="LinkSequences")
+TypeLinkSequence = TypeVar("TypeLinkSequence", bound="LinkSequence")
 
 
 class FastAccessIOSequence(variabletools.FastAccess):
@@ -539,11 +539,11 @@ patch(template % "StateSequences") as states:
 
     def __prepare_subseqs(
         self,
-        default: Type[ModelSequencesType],
-        class_: Optional[Type[ModelSequencesType]],
+        default: Type[TypeModelSequences],
+        class_: Optional[Type[TypeModelSequences]],
         cymodel,
         cythonmodule,
-    ) -> ModelSequencesType:
+    ) -> TypeModelSequences:
         name = default.__name__
         if class_ is None:
             class_ = copy.copy(default)
@@ -877,7 +877,7 @@ element.
 
 class SubSequences(
     variabletools.SubVariables[
-        SequencesType, SequenceType, variabletools.FastAccessType
+        TypeSequences, TypeSequence, variabletools.TypeFastAccess
     ],
 ):
     """Base class for handling subgroups of sequences.
@@ -938,7 +938,7 @@ class SubSequences(
 
 
 class ModelSequences(
-    SubSequences[Sequences, ModelSequenceType, variabletools.FastAccessType],
+    SubSequences[Sequences, TypeModelSequence, variabletools.TypeFastAccess],
 ):
     """Base class for handling model-related subgroups of sequences."""
 
@@ -948,7 +948,7 @@ class ModelSequences(
     def __init__(
         self,
         master: Sequences,
-        cls_fastaccess: Optional[Type[variabletools.FastAccessType]] = None,
+        cls_fastaccess: Optional[Type[variabletools.TypeFastAccess]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.seqs = master
@@ -965,7 +965,7 @@ class ModelSequences(
 
 
 class IOSequences(
-    SubSequences[SequencesType, IOSequenceType, FastAccessIOSequenceType],
+    SubSequences[TypeSequences, TypeIOSequence, TypeFastAccessIOSequence],
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
@@ -995,8 +995,8 @@ class IOSequences(
 
 
 class ModelIOSequences(
-    IOSequences[Sequences, ModelIOSequenceType, FastAccessIOSequenceType],
-    ModelSequences[ModelIOSequenceType, FastAccessIOSequenceType],
+    IOSequences[Sequences, TypeModelIOSequence, TypeFastAccessIOSequence],
+    ModelSequences[TypeModelIOSequence, TypeFastAccessIOSequence],
 ):
     """Base class for handling model-related subgroups of |IOSequence| objects."""
 
@@ -1021,7 +1021,7 @@ class InputSequences(
 
 class OutputSequences(
     ModelIOSequences[
-        OutputSequenceType,
+        TypeOutputSequence,
         FastAccessOutputSequence,
     ],
 ):
@@ -1120,7 +1120,7 @@ class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelSequences[LinkSequenceType, FastAccessLinkSequence]):
+class LinkSequences(ModelSequences[TypeLinkSequence, FastAccessLinkSequence]):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
@@ -1142,7 +1142,7 @@ class SenderSequences(LinkSequences["SenderSequence"]):
     """Base class for handling "sender" |LinkSequence| objects."""
 
 
-class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAccessType]):
+class Sequence_(variabletools.Variable[TypeSubSequences, variabletools.TypeFastAccess]):
     """Base class for defining different kinds of sequences.
 
     Note that model developers should not derive their model-specific sequence classes
@@ -1197,7 +1197,7 @@ class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAcces
     strict_valuehandling: bool = False
 
     @property
-    def subseqs(self) -> SubSequencesType:
+    def subseqs(self) -> TypeSubSequences:
         """Alias for attribute |Variable.subvars|."""
         return self.subvars
 
@@ -1280,7 +1280,7 @@ class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAcces
         return variabletools.to_repr(self, self.value, brackets)
 
 
-class IOSequence(Sequence_[IOSequencesType, FastAccessIOSequenceType]):
+class IOSequence(Sequence_[TypeIOSequences, TypeFastAccessIOSequence]):
     """Base class for sequences with input/output functionalities.
 
     The documentation on modules |filetools| and |netcdftools| in some detail explains
@@ -2629,7 +2629,7 @@ element `element3`.
 
 
 class ModelSequence(
-    Sequence_[ModelSequencesType, variabletools.FastAccessType],
+    Sequence_[TypeModelSequences, variabletools.TypeFastAccess],
 ):
     """Base class for sequences to be handled by |Model| objects."""
 
@@ -2682,8 +2682,8 @@ class ModelSequence(
 
 
 class ModelIOSequence(
-    ModelSequence[ModelIOSequencesType, FastAccessIOSequenceType],
-    IOSequence[ModelIOSequencesType, FastAccessIOSequenceType],
+    ModelSequence[TypeModelIOSequences, TypeFastAccessIOSequence],
+    IOSequence[TypeModelIOSequences, TypeFastAccessIOSequence],
 ):
     """Base class for sequences with time-series functionalities to be handled by
     |Model| objects."""
@@ -2799,7 +2799,7 @@ class InputSequence(ModelIOSequence[InputSequences, FastAccessInputSequence]):
         return self._get_fastaccessattribute("inputflag")
 
 
-class OutputSequence(ModelIOSequence[OutputSequencesType, FastAccessOutputSequence]):
+class OutputSequence(ModelIOSequence[TypeOutputSequences, FastAccessOutputSequence]):
     """Base class for |FactorSequence|, |FluxSequence| and |StateSequence|.
 
     |OutputSequence| subclasses implement an optional output mechanism.  Generally, as
@@ -2933,7 +2933,7 @@ class OutputSequence(ModelIOSequence[OutputSequencesType, FastAccessOutputSequen
         return self._get_fastaccessattribute("outputflag")
 
 
-class DependentSequence(OutputSequence[OutputSequencesType]):
+class DependentSequence(OutputSequence[TypeOutputSequences]):
     """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
@@ -3001,7 +3001,7 @@ class FluxSequence(DependentSequence[FluxSequences]):
 
 
 class ConditionSequence(
-    ModelSequence[ModelSequencesType, variabletools.FastAccessType]
+    ModelSequence[TypeModelSequences, variabletools.TypeFastAccess]
 ):
     """Base class for |StateSequence| and |LogSequence|.
 
@@ -3375,7 +3375,7 @@ class AideSequence(ModelSequence[AideSequences, variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(ModelSequence[LinkSequencesType, FastAccessLinkSequence]):
+class LinkSequence(ModelSequence[TypeLinkSequences, FastAccessLinkSequence]):
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects do not handle values themselves.  Instead, they point to the

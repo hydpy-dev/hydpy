@@ -253,7 +253,7 @@ objects, but the type of the given argument is `str`.
             except KeyError:
                 pass
 
-    def find(self, device: devicetools.DeviceType) -> Selections:
+    def find(self, device: devicetools.TypeDevice) -> Selections:
         """Return all |Selection| objects containing the given |Node| or |Element|
         object.
 
@@ -662,8 +662,8 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         self.elements = devicetools.Elements(elements).copy()
 
     def _check_device(
-        self, device: devicetools.DeviceType, type_of_device: str
-    ) -> devicetools.DeviceType:
+        self, device: devicetools.TypeDevice, type_of_device: str
+    ) -> devicetools.TypeDevice:
         if isinstance(device, devicetools.Node):
             device = self.nodes[device.name]
         elif isinstance(device, devicetools.Element):
@@ -678,7 +678,7 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
 
     def search_upstream(
         self,
-        device: devicetools.DeviceType,
+        device: devicetools.TypeDevice,
         name: str = "upstream",
         inclusive: bool = True,
     ) -> Selection:
@@ -804,7 +804,7 @@ the "outlet device", but the given `device` value is of type `int`.
             )
 
     def select_upstream(
-        self, device: devicetools.DeviceType, inclusive: bool = True
+        self, device: devicetools.TypeDevice, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network upstream of the given starting
         point, including the starting point itself.
@@ -818,7 +818,7 @@ the "outlet device", but the given `device` value is of type `int`.
         return self
 
     def deselect_upstream(
-        self, device: devicetools.DeviceType, inclusive: bool = True
+        self, device: devicetools.TypeDevice, inclusive: bool = True
     ) -> Selection:
         """Remove the network upstream of the given starting point from the current
         selection, including the starting point itself.
@@ -833,7 +833,7 @@ the "outlet device", but the given `device` value is of type `int`.
 
     def search_downstream(
         self,
-        device: devicetools.DeviceType,
+        device: devicetools.TypeDevice,
         name: str = "downstream",
         inclusive: bool = True,
     ) -> Selection:
@@ -954,7 +954,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
             )
 
     def select_downstream(
-        self, device: devicetools.DeviceType, inclusive: bool = True
+        self, device: devicetools.TypeDevice, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network downstream of the given
         starting point, including the starting point itself.
@@ -968,7 +968,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         return self
 
     def deselect_downstream(
-        self, device: devicetools.DeviceType, inclusive: bool = True
+        self, device: devicetools.TypeDevice, inclusive: bool = True
     ) -> Selection:
         """Remove the network downstream of the given starting point from the current
         selection, including the starting point itself.

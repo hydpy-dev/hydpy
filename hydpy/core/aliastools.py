@@ -103,7 +103,7 @@ class LazyInOutSequenceImport:
         self._alias = alias
         self._namespace = namespace
 
-    def _get_sequencetype(self) -> sequencetools.TypesInOutSequence:
+    def _get_sequencetype(self) -> sequencetools.InOutSequenceTypes:
         dict_ = object.__getattribute__(self, "__dict__")
         module = importlib.import_module(dict_["_modulename"])
         return getattr(module, dict_["_classname"])  # type: ignore[no-any-return]
@@ -165,7 +165,7 @@ def write_sequencealiases() -> None:
             "outputs.py",
         ),
     ):
-        sequence2alias: Dict[sqt.TypesInOutSequence, str] = {}
+        sequence2alias: Dict[sqt.InOutSequenceTypes, str] = {}
         for moduleinfo in pkgutil.walk_packages([modelpath]):
             if not moduleinfo.ispkg:
                 continue

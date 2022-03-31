@@ -129,14 +129,14 @@ else:
     )
     xmlschema = exceptiontools.OptionalImport("xmlschema", ["xmlschema"], locals())
 
-_SetOrAddOrMultiplyItem = TypeVar(
-    "_SetOrAddOrMultiplyItem",
+_TypeSetOrAddOrMultiplyItem = TypeVar(
+    "_TypeSetOrAddOrMultiplyItem",
     itemtools.SetItem,
     itemtools.AddItem,
     itemtools.MultiplyItem,
 )
-_GetOrChangeItem = TypeVar(
-    "_GetOrChangeItem",
+_TypeGetOrChangeItem = TypeVar(
+    "_TypeSetOrAddOrMultiplyItem",
     itemtools.GetItem,
     itemtools.ChangeItem,
     itemtools.SetItem,
@@ -1719,10 +1719,10 @@ class XMLExchange(XMLBase):
         self.root: ElementTree.Element = root
 
     def _get_items_of_certain_item_types(
-        self, itemgroups: Iterable[str], itemtype: Type[_GetOrChangeItem]
-    ) -> List[_GetOrChangeItem]:
+        self, itemgroups: Iterable[str], itemtype: Type[_TypeGetOrChangeItem]
+    ) -> List[_TypeGetOrChangeItem]:
         """Return either all |GetItem| or all |ChangeItem| objects."""
-        items: List[_GetOrChangeItem] = []
+        items: List[_TypeGetOrChangeItem] = []
         for itemgroup in self.itemgroups:
             if (
                 issubclass(itemtype, itemtools.GetItem)
@@ -2200,13 +2200,13 @@ class XMLVar(XMLSelector):
         return item
 
     def _get_changeitem(
-        self, target: str, master: str, itemtype: Type[_SetOrAddOrMultiplyItem]
-    ) -> _SetOrAddOrMultiplyItem:
+        self, target: str, master: str, itemtype: Type[_TypeSetOrAddOrMultiplyItem]
+    ) -> _TypeSetOrAddOrMultiplyItem:
         name = cast(Name, self.find("name", optional=False).text)
         assert name is not None
         level = self.find("level", optional=False).text
         assert level is not None
-        item: _SetOrAddOrMultiplyItem
+        item: _TypeSetOrAddOrMultiplyItem
         # Simplify the following if-clauses after Mypy issue 10989 is fixed?
         if not issubclass(itemtype, itemtools.SetItem):
             item = itemtype(

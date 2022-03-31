@@ -404,9 +404,8 @@ class Test:
     def raw_first_col_strings(self) -> List[str]:
         """To be implemented by the subclasses of |Test|."""
 
-    @staticmethod
     @abc.abstractmethod
-    def get_output_array(parseqs):
+    def get_output_array(self, parseqs):
         """To be implemented by the subclasses of |Test|."""
 
     @property
@@ -732,10 +731,8 @@ datetime of the Python standard library for for further information.
             ) from exc
         vars(self)["dateformat"] = dateformat
 
-    @staticmethod
-    def get_output_array(parseqs):
-        """Return the array containing the output results of the given
-        sequence."""
+    def get_output_array(self, parseqs):
+        """Return the array containing the output results of the given sequence."""
         return parseqs.series
 
     def prepare_node_sequences(self):

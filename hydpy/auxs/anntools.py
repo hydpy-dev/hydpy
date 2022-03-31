@@ -24,8 +24,8 @@ from hydpy.cythons.autogen import annutils
 
 class _ANNArrayProperty(
     propertytools.DependentProperty[
-        propertytools.InputType,
-        propertytools.OutputType,
+        propertytools.TypeInput,
+        propertytools.TypeOutput,
     ],
 ):
 
@@ -53,11 +53,11 @@ class _ANNArrayProperty(
     def _shape(self) -> str:
         return f"shape_{self.name}"
 
-    def _fget(self, obj: "ANN") -> propertytools.OutputType:
+    def _fget(self, obj: "ANN") -> propertytools.TypeOutput:
         cann = self._obj2cann[obj]
         return numpy.asarray(getattr(cann, self.name))
 
-    def _fset(self, obj: "ANN", value: Optional[propertytools.InputType]) -> None:
+    def _fset(self, obj: "ANN", value: Optional[propertytools.TypeInput]) -> None:
         if value is None:
             self.fdel(obj)
         else:

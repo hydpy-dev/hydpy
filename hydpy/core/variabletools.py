@@ -35,24 +35,15 @@ if TYPE_CHECKING:
     from hydpy.cythons.autogen import sequenceutils
 
 
-GroupType = TypeVar(
-    "GroupType",
+TypeGroup = TypeVar(
+    "TypeGroup",
     "parametertools.Parameters",
     "sequencetools.Sequences",
     "devicetools.Node",
 )
-SubVariablesType = TypeVar(
-    "SubVariablesType",
-    bound="SubVariables",
-)
-VariableType = TypeVar(
-    "VariableType",
-    bound="Variable",
-)
-FastAccessType = TypeVar(
-    "FastAccessType",
-    bound="FastAccess",
-)
+TypeSubVariables = TypeVar("TypeSubVariables", bound="SubVariables")
+TypeVariable = TypeVar("TypeVariable", bound="Variable")
+TypeFastAccess = TypeVar("TypeFastAccess", bound="FastAccess")
 
 INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating-point values but not for 
@@ -515,7 +506,7 @@ class FastAccess:
                 yield key
 
 
-class Variable(Generic[SubVariablesType, FastAccessType]):
+class Variable(Generic[TypeSubVariables, TypeFastAccess]):
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -1004,7 +995,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     INIT: Union[int, float, bool, None] = None
 
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ("subvars", "fastaccess")
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess]]
 
     strict_valuehandling: bool = True
 
@@ -1012,12 +1003,12 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     name: str
     unit: str
-    fastaccess: FastAccessType
-    subvars: SubVariablesType
+    fastaccess: TypeFastAccess
+    subvars: TypeSubVariables
 
     mask = masktools.DefaultMask()
 
-    def __init__(self, subvars: SubVariablesType):
+    def __init__(self, subvars: TypeSubVariables):
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self.__valueready = False
@@ -2137,21 +2128,21 @@ was attempted for element `?`.
 
 @overload
 def sort_variables(
-    values: Iterable[Type[VariableType]],
-) -> Tuple[Type[VariableType], ...]:
+    values: Iterable[Type[TypeVariable]],
+) -> Tuple[Type[TypeVariable], ...]:
     ...
 
 
 @overload
 def sort_variables(
-    values: Iterable[Tuple[Type[VariableType], T]],
-) -> Tuple[Tuple[Type[VariableType], T], ...]:
+    values: Iterable[Tuple[Type[TypeVariable], T]],
+) -> Tuple[Tuple[Type[TypeVariable], T], ...]:
     ...
 
 
 def sort_variables(
-    values: Iterable[Union[Type[VariableType], Tuple[Type[VariableType], T]]]
-) -> Tuple[Union[Type[VariableType], Tuple[Type[VariableType], T]], ...]:
+    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
+) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2200,7 +2191,7 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     return tuple(value for _, value in sorted(counter_value))
 
 
-class SubVariables(Generic[GroupType, VariableType, FastAccessType]):
+class SubVariables(Generic[TypeGroup, TypeVariable, TypeFastAccess]):
     """Base class for |SubParameters| and |SubSequences|.
 
     Each subclass of class |SubVariables| is thought for handling a certain group of
@@ -2302,17 +2293,17 @@ named `wrong`.
     1
     """
 
-    CLASSES: Tuple[Type[VariableType], ...]
-    vars: GroupType
-    _name2variable: Dict[str, VariableType] = {}
-    fastaccess: FastAccessType
-    _cls_fastaccess: Optional[Type[FastAccessType]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccessType]]
+    CLASSES: Tuple[Type[TypeVariable], ...]
+    vars: TypeGroup
+    _name2variable: Dict[str, TypeVariable] = {}
+    fastaccess: TypeFastAccess
+    _cls_fastaccess: Optional[Type[TypeFastAccess]] = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess]]
 
     def __init__(
-        self: SubVariablesType,
-        master: GroupType,
-        cls_fastaccess: Optional[Type[FastAccessType]] = None,
+        self: TypeSubVariables,
+        master: TypeGroup,
+        cls_fastaccess: Optional[Type[TypeFastAccess]] = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2337,7 +2328,7 @@ named `wrong`.
         else:
             self.fastaccess = self._cls_fastaccess()
 
-    def __getitem__(self, item) -> VariableType:
+    def __getitem__(self, item) -> TypeVariable:
         try:
             return self._name2variable[item]
         except KeyError:
@@ -2346,7 +2337,7 @@ named `wrong`.
                 f"does not handle a variable named `{item}`."
             ) from None
 
-    def __getattr__(self, name) -> VariableType:
+    def __getattr__(self, name) -> TypeVariable:
         try:
             return self._name2variable[name]
         except KeyError:
@@ -2363,7 +2354,7 @@ named `wrong`.
         else:
             variable.__hydpy__set_value__(value)
 
-    def __iter__(self) -> Iterator[VariableType]:
+    def __iter__(self) -> Iterator[TypeVariable]:
         for variable in self._name2variable.values():
             yield variable
 

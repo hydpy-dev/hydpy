@@ -34,7 +34,7 @@ PeriodConstrArg = Union["Period", datetime_.timedelta, str]
 TypeDate = TypeVar("TypeDate", bound="Date")
 TypePeriod = TypeVar("TypePeriod", bound="Period")
 TypeTimegrid = TypeVar("TypeTimegrid", bound="Timegrid")
-TypeTOY = TypeVar("TypeTOY", bound="TOY")
+TypeTOY = TypeVar("TypeTOY", bound="TOY")  # pylint: disable=invalid-name
 TypeUnit = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
 
 

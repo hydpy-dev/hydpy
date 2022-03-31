@@ -107,9 +107,9 @@ else:
 
 _default_variable = "Q"
 
-DeviceType = TypeVar("DeviceType", "Node", "Element")
-DevicesTypeBound = TypeVar("DevicesTypeBound", bound="Devices")
-DevicesTypeUnbound = TypeVar("DevicesTypeUnbound", "Nodes", "Elements")
+TypeDevice = TypeVar("TypeDevice", "Node", "Element")
+TypeDevicesBound = TypeVar("TypeDevicesBound", bound="Devices")
+TypeDevicesUnbound = TypeVar("TypeDevicesUnbound", "Nodes", "Elements")
 
 NodesConstrArg = MayNonerable2["Node", str]
 ElementsConstrArg = MayNonerable2["Element", str]
@@ -118,7 +118,7 @@ ElementConstrArg = Union["Element", str]
 
 NodeVariableType = Union[
     str,
-    sequencetools.TypesInOutSequence,
+    sequencetools.InOutSequenceTypes,
     "FusedVariable",
 ]
 
@@ -423,11 +423,11 @@ unique identifier for fused variable instances.
 
     _name: str
     _aliases: Tuple[str]
-    _variables: Tuple[sequencetools.TypesInOutSequence, ...]
-    _alias2variable: Dict[str, sequencetools.TypesInOutSequence]
+    _variables: Tuple[sequencetools.InOutSequenceTypes, ...]
+    _alias2variable: Dict[str, sequencetools.InOutSequenceTypes]
 
     def __new__(
-        cls, name: str, *sequences: sequencetools.TypesInOutSequence
+        cls, name: str, *sequences: sequencetools.InOutSequenceTypes
     ) -> FusedVariable:
         self = super().__new__(cls)
         aliases = tuple(hydpy.sequence2alias[seq] for seq in sequences)
@@ -465,7 +465,7 @@ unique identifier for fused variable instances.
         """
         return _registry_fusedvariable.clear()
 
-    def __iter__(self) -> Iterator[sequencetools.TypesInOutSequence]:
+    def __iter__(self) -> Iterator[sequencetools.InOutSequenceTypes]:
         for variable in self._variables:
             yield variable
 
@@ -484,7 +484,7 @@ unique identifier for fused variable instances.
         return f'FusedVariable("{self._name}", {", ".join(self._aliases)})'
 
 
-class Devices(Generic[DeviceType]):
+class Devices(Generic[TypeDevice]):
     """Base class for class |Elements| and class |Nodes|.
 
     The following features are common to class |Nodes| and class |Elements|.  We
@@ -635,7 +635,7 @@ occurred: The given (sub)value `Element("ea")` is not an instance of the followi
 classes: Node and str.
     """
 
-    _name2device: Dict[str, DeviceType]
+    _name2device: Dict[str, TypeDevice]
     mutable: bool
     _shadowed_keywords: Set[str]
     forceiterable: bool = False
@@ -643,7 +643,7 @@ classes: Node and str.
     # We do not want to implement the signature of Generic.__new__ here:
     def __new__(  # pylint: disable=arguments-differ
         cls,
-        *values: MayNonerable2[DeviceType, str],
+        *values: MayNonerable2[TypeDevice, str],
         mutable: bool = True,
     ):
         if len(values) == 1 and isinstance(values[0], Devices):
@@ -667,10 +667,10 @@ classes: Node and str.
 
     @staticmethod
     @abc.abstractmethod
-    def get_contentclass() -> Type[DeviceType]:
+    def get_contentclass() -> Type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[DeviceType, str]) -> None:
+    def add_device(self, device: Union[TypeDevice, str]) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -711,7 +711,7 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(self, device: Union[DeviceType, str]) -> None:
+    def remove_device(self, device: Union[TypeDevice, str]) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -776,7 +776,7 @@ allowed.
         return tuple(device.name for device in self)
 
     @property
-    def devices(self) -> Tuple[DeviceType, ...]:
+    def devices(self) -> Tuple[TypeDevice, ...]:
         """A tuple of the handled devices sorted by the device names.
 
         >>> from hydpy import Nodes
@@ -848,9 +848,9 @@ allowed.
         )
 
     def search_keywords(
-        self: DevicesTypeBound,
+        self: TypeDevicesBound,
         *keywords: str,
-    ) -> DevicesTypeBound:
+    ) -> TypeDevicesBound:
         """Search for all devices handling at least one of the given keywords and
         return them.
 
@@ -876,7 +876,7 @@ allowed.
             *(device for device in self if keywords_.intersection(device.keywords))
         )
 
-    def copy(self: DevicesTypeBound) -> DevicesTypeBound:
+    def copy(self: TypeDevicesBound) -> TypeDevicesBound:
         """Return a shallow copy of the actual |Nodes| or |Elements| object.
 
         Method |Devices.copy| returns a semi-flat copy of |Nodes| or |Elements| objects
@@ -922,9 +922,9 @@ conflict with using their names as identifiers.
         return new
 
     def intersection(
-        self: DevicesTypeBound,
-        *other: DeviceType,
-    ) -> DevicesTypeBound:
+        self: TypeDevicesBound,
+        *other: TypeDevice,
+    ) -> TypeDevicesBound:
         """Return the intersection with the given |Devices| object.
 
         >>> from hydpy import Node, Nodes
@@ -949,16 +949,16 @@ conflict with using their names as identifiers.
             f"which is in conflict with using their names as identifiers."
         )
 
-    def __select_devices_by_keyword(self, name: str) -> DevicesTypeBound:
+    def __select_devices_by_keyword(self, name: str) -> TypeDevicesBound:
         devices = type(self)(*(device for device in self if name in device.keywords))
         vars(devices)["_shadowed_keywords"] = self._shadowed_keywords.copy()
         vars(devices)["_shadowed_keywords"].add(name)
         return devices
 
     def __getattr__(
-        self: DevicesTypeBound,
+        self: TypeDevicesBound,
         name: str,
-    ) -> Union[DeviceType, DevicesTypeBound]:
+    ) -> Union[TypeDevice, TypeDevicesBound]:
         try:
             name2device = self._name2device
             device = name2device[name]
@@ -1000,19 +1000,19 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: str) -> DeviceType:
+    def __getitem__(self, name: str) -> TypeDevice:
         try:
             return self._name2device[name]
         except KeyError:
             raise KeyError(f"No device named `{name}` available.") from None
 
-    def __setitem__(self, name: str, value: DeviceType) -> None:
+    def __setitem__(self, name: str, value: TypeDevice) -> None:
         self._name2device[name] = value
 
     def __delitem__(self, name: str) -> None:
         del self._name2device[name]
 
-    def __iter__(self) -> Iterator[DeviceType]:
+    def __iter__(self) -> Iterator[TypeDevice]:
         for (_, device) in sorted(self._name2device.items()):
             yield device
 
@@ -1028,9 +1028,9 @@ conflict with using their names as identifiers.
         return len(self._name2device)
 
     def __add__(
-        self: DevicesTypeBound,
-        other: Mayberable2[DeviceType, str],
-    ) -> DevicesTypeBound:
+        self: TypeDevicesBound,
+        other: Mayberable2[TypeDevice, str],
+    ) -> TypeDevicesBound:
         new = copy.copy(self)
         new.mutable = True
         for device in type(self)(other):
@@ -1038,17 +1038,17 @@ conflict with using their names as identifiers.
         return new
 
     def __iadd__(
-        self: DevicesTypeBound,
-        other: Mayberable2[DeviceType, str],
-    ) -> DevicesTypeBound:
+        self: TypeDevicesBound,
+        other: Mayberable2[TypeDevice, str],
+    ) -> TypeDevicesBound:
         for device in type(self)(other):
             self.add_device(device)
         return self
 
     def __sub__(
-        self: DevicesTypeBound,
-        other: Mayberable2[DeviceType, str],
-    ) -> DevicesTypeBound:
+        self: TypeDevicesBound,
+        other: Mayberable2[TypeDevice, str],
+    ) -> TypeDevicesBound:
         new = copy.copy(self)
         new.mutable = True
         for device in type(self)(other):
@@ -1059,9 +1059,9 @@ conflict with using their names as identifiers.
         return new
 
     def __isub__(
-        self: DevicesTypeBound,
-        other: Mayberable2[DeviceType, str],
-    ) -> DevicesTypeBound:
+        self: TypeDevicesBound,
+        other: Mayberable2[TypeDevice, str],
+    ) -> TypeDevicesBound:
         for device in type(self)(other):
             try:
                 self.remove_device(device)
@@ -1074,10 +1074,10 @@ conflict with using their names as identifiers.
             return func(set(self), set(other))
         return NotImplemented
 
-    def __lt__(self, other: DevicesTypeBound) -> bool:
+    def __lt__(self, other: TypeDevicesBound) -> bool:
         return self.__compare(other, operator.lt)
 
-    def __le__(self, other: DevicesTypeBound) -> bool:
+    def __le__(self, other: TypeDevicesBound) -> bool:
         return self.__compare(other, operator.le)
 
     def __eq__(self, other: Any) -> bool:
@@ -1086,10 +1086,10 @@ conflict with using their names as identifiers.
     def __ne__(self, other: Any) -> bool:
         return self.__compare(other, operator.ne)
 
-    def __ge__(self, other: DevicesTypeBound) -> bool:
+    def __ge__(self, other: TypeDevicesBound) -> bool:
         return self.__compare(other, operator.ge)
 
-    def __gt__(self, other: DevicesTypeBound) -> bool:
+    def __gt__(self, other: TypeDevicesBound) -> bool:
         return self.__compare(other, operator.gt)
 
     def __repr__(self) -> str:
@@ -1142,7 +1142,7 @@ class Nodes(Devices["Node"]):
 
     def __new__(
         cls,
-        *values: MayNonerable2[DeviceType, str],
+        *values: MayNonerable2[TypeDevice, str],
         mutable: bool = True,
         defaultvariable: NodeVariableType = "Q",
     ):
@@ -1526,7 +1526,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.sequences[name_subseqs].save_series()
 
 
-class Device(Generic[DevicesTypeUnbound]):
+class Device(Generic[TypeDevicesUnbound]):
     """Base class for class |Element| and class |Node|."""
 
     def __new__(cls, value, *args, **kwargs):
@@ -1553,7 +1553,7 @@ class Device(Generic[DevicesTypeUnbound]):
         """To be overridden."""
 
     @classmethod
-    def query_all(cls) -> DevicesTypeUnbound:
+    def query_all(cls) -> TypeDevicesUnbound:
         """Get all |Node| or |Element| objects initialised so far.
 
         See the main documentation on module |devicetools| for further information.
@@ -1561,7 +1561,7 @@ class Device(Generic[DevicesTypeUnbound]):
         return cls.get_handlerclass()(*_registry[cls].values())
 
     @classmethod
-    def extract_new(cls) -> DevicesTypeUnbound:
+    def extract_new(cls) -> TypeDevicesUnbound:
         """Gather all "new" |Node| or |Element| objects.
 
         See the main documentation on module |devicetools| for further information.

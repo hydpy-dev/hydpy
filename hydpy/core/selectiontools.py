@@ -1003,7 +1003,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "land_lahn_3"))
         >>> test.search_modeltypes(
-        ...     hland_v1, "hstream_v1", "lland_v1", name="MODELTYPES")
+        ...     hland_v1, "musk_classic", "lland_v1", name="MODELTYPES")
         Selection("MODELTYPES",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",

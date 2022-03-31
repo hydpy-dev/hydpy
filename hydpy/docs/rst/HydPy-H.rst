@@ -14,25 +14,24 @@ precise as possible regarding the implementation of the process equations.  The
 background of the scientifical development of the HBV96 model is more
 thoroughly covered in :cite:t:`ref-Lindstrom1997HBV96`.
 
-HydPy-H is divided into three base models, which can be used to compile
-different application models:
+HydPy-H is divided into two base models, which can be used to compile different
+application models:
 
 .. toctree::
    :maxdepth: 1
 
    hland (HydPy-H-Land) <hland>
-   hstream (HydPy-H-Stream) <hstream>
    hbranch (HydPy-H-Branch) <hbranch>
 
 So far the following application models are compiled:
 
 .. toctree::
+   :maxdepth: 1
 
    hland_v1 (HBV96) <hland_v1>
    hland_v2 (HBV96-SC) <hland_v2>
    hland_v3 (HBV96-SC/PREVAH) <hland_v3>
    hland_v4 (HBV96-SC/COSERO) <hland_v4>
-   hstream_v1 (HBV96) <hstream_v1>
    hbranch_v1 (HBV96) <hbranch_v1>
 
 All these application models are stand-alone models, which can be combined

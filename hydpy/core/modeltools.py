@@ -251,17 +251,17 @@ not available at the moment.
         to an |Element| object referencing the required |Node| objects:
 
         >>> from hydpy import prepare_model
-        >>> prepare_model("hstream_v1").connect()
+        >>> prepare_model("musk_classic").connect()
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `?`, the following error occurred: \
 'NoneType' object has no attribute 'inputs'
 
-        The application model |hstream_v1| can receive inflow from an arbitrary number
-        of upstream nodes and passes its outflow to a single downstream node (note that
-        property |Element.model| of class |Element| calls method |Model.connect|
-        automatically):
+        The application model |musk_classic| can receive inflow from an arbitrary
+        number of upstream nodes and passes its outflow to a single downstream node
+        (note that property |Element.model| of class |Element| calls method
+        |Model.connect| automatically):
 
         >>> from hydpy import Element, Node
         >>> in1 = Node("in1", variable="Q")
@@ -269,7 +269,7 @@ sequences of the model handled by element `?`, the following error occurred: \
         >>> out1 = Node("out1", variable="Q")
 
         >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
-        >>> element1.model = prepare_model("hstream_v1")
+        >>> element1.model = prepare_model("musk_classic")
 
         Now all connections work as expected:
 
@@ -299,7 +299,7 @@ sequences of the model handled by element `?`, the following error occurred: \
         Link sequence names must match the `variable` a node is handling:
 
         >>> element2 = Element("element2", inlets=(in1, in2), outlets=out3)
-        >>> element2.model = prepare_model("hstream_v1")
+        >>> element2.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `outlet` \
@@ -310,7 +310,7 @@ handling variable `Q`.
         One can connect a 0-dimensional link sequence to a single node sequence only:
 
         >>> element3 = Element("element3", inlets=(in1, in2), outlets=(out1, out2))
-        >>> element3.model = prepare_model("hstream_v1")
+        >>> element3.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `outlet` \
@@ -321,7 +321,7 @@ available which are handling variable `Q`.
         Method |Model.connect| generally reports about unusable node sequences:
 
         >>> element4 = Element("element4", inlets=(in1, in2), outlets=(out1, out3))
-        >>> element4.model = prepare_model("hstream_v1")
+        >>> element4.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `outlet` \
@@ -329,7 +329,7 @@ sequences of the model handled by element `element4`, the following error occurr
 The following nodes have not been connected to any sequences: out3.
 
         >>> element5 = Element("element5", inlets=(in1, in2, in3), outlets=out1)
-        >>> element5.model = prepare_model("hstream_v1")
+        >>> element5.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `inlet` \
@@ -337,7 +337,7 @@ sequences of the model handled by element `element5`, the following error occurr
 The following nodes have not been connected to any sequences: in3.
 
         >>> element6 = Element("element6", inlets=in1, outlets=out1, receivers=in2)
-        >>> element6.model = prepare_model("hstream_v1")
+        >>> element6.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `receiver` \
@@ -345,7 +345,7 @@ sequences of the model handled by element `element6`, the following error occurr
 The following nodes have not been connected to any sequences: in2.
 
         >>> element7 = Element("element7", inlets=in1, outlets=out1, senders=in2)
-        >>> element7.model = prepare_model("hstream_v1")
+        >>> element7.model = prepare_model("musk_classic")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `sender` \
@@ -353,7 +353,7 @@ sequences of the model handled by element `element7`, the following error occurr
 The following nodes have not been connected to any sequences: in2.
 
         The above examples explain how to connect link sequences to their nodes.  Such
-        connections are relatively hard requirements (|hstream_v1| definitively needs
+        connections are relatively hard requirements (|musk_classic| definitively needs
         inflow provided from a node, which the node itself typically receives from
         another model).  In contrast, connections between input or output sequences and
         nodes are optional.  If one defines such a connection for an input sequence, it

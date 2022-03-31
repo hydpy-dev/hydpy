@@ -198,10 +198,10 @@ class FactorAdaptor(Adaptor):
 
     >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
 
-    The `Dill` subcatchment, as the whole `Lahn` basin, does not contain any glaciers.
-    Hence it defines (identical) |hland_control.CFMax| values for the zones of type
-    |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify any
-    value for |hland_control.GMelt|:
+    The `Dill` subcatchment, like the whole `Lahn` basin, does not contain any
+    glaciers.  Hence it defines (identical) |hland_control.CFMax| values for the zones
+    of type |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify
+    any value for |hland_control.GMelt|:
 
     >>> control = hp.elements.land_dill.model.parameters.control
     >>> control.cfmax
@@ -231,8 +231,8 @@ class FactorAdaptor(Adaptor):
 
     Calculating values for response units that do not require these values can be
     misleading.  We can improve the situation by using the masks provided by the
-    respective model, in our example mask |hland_masks.Glacier|.  To make this clearer,
-    we set the  first six response units to |hland_control.ZoneType|
+    respective model; in our example, mask |hland_masks.Glacier|.  To make this
+    clearer, we set the  first six response units to |hland_control.ZoneType|
     |hland_constants.GLACIER|:
 
     >>> from hydpy.models.hland_v1 import *
@@ -283,7 +283,7 @@ class FactorAdaptor(Adaptor):
     ):
         self._rule = rule
         self._reference = str(getattr(reference, "name", reference))
-        self._mask = getattr(mask, "name", mask) if mask else None
+        self._mask = mask if ((mask is None) or isinstance(mask, str)) else mask.name
 
     def __call__(
         self,
@@ -326,10 +326,11 @@ class Rule(abc.ABC, Generic[ParameterType]):
     Replace(
         name="fc",
         parameter="fc",
+        value=100.0,
         lower=-inf,
         upper=inf,
+        keyword=None,
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -359,7 +360,7 @@ class Rule(abc.ABC, Generic[ParameterType]):
     relevant |Replace| object (see the documentation on class |SumAdaptor| or
     |FactorAdaptor| for more realistic examples):
 
-    >>> rule.adaptor = lambda target: target(2.0*rule.value)
+    >>> rule.adaptor = lambda target: target(2.0 * rule.value)
 
     Now, our rule does not apply the original but the adapted calibration parameter
     value:
@@ -376,6 +377,19 @@ class Rule(abc.ABC, Generic[ParameterType]):
     >>> fc
     fc(206.0)
 
+    Some parameter types support defining their values via custom keywords.
+    |hland_control.FC|, for example, allows setting the values of multiple zones of
+    the same land-use type via keyword arguments such as `forest`:
+
+    >>> rule = Replace(name="fc",
+    ...                parameter="fc",
+    ...                value=100.0,
+    ...                keyword="forest",
+    ...                model="hland_v1")
+    >>> rule.apply_value()
+    >>> fc
+    fc(field=206.0, forest=100.0)
+
     The value of parameter |hland_control.FC| is not time-dependent.  Therefore, any
     |Options.parameterstep| information given to its |Rule| object is ignored (note
     that we pass an example parameter object of type |hland_control.FC| instead of the
@@ -389,10 +403,11 @@ class Rule(abc.ABC, Generic[ParameterType]):
     Replace(
         name="fc",
         parameter="fc",
+        value=100.0,
         lower=-inf,
         upper=inf,
+        keyword=None,
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -416,10 +431,11 @@ class Rule(abc.ABC, Generic[ParameterType]):
     Replace(
         name="percmax",
         parameter="percmax",
+        value=5.0,
         lower=-inf,
         upper=inf,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -483,19 +499,19 @@ via option `parameterstep`.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
-following error occurred: Model `hstream_v1` of element `stream_dill_lahn_2` does not \
-define a control parameter named `fc`.
+following error occurred: Model `musk_classic` of element `stream_dill_lahn_2` does \
+not define a control parameter named `fc`.
 
     >>> Replace(name="fc",
     ...         parameter="fc",
     ...         value=100.0,
-    ...         model="hstream_v1",
+    ...         model="musk_classic",
     ...         selections=[pub.selections.headwaters, "nonheadwaters"])
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise the `Replace` rule object `fc`, the \
 following error occurred: Object `Selections("headwaters", "nonheadwaters")` does not \
-handle any `hstream_v1` model instances.
+handle any `musk_classic` model instances.
     """
 
     name: str
@@ -519,6 +535,10 @@ handle any `hstream_v1` model instances.
     parametertype: Type[ParameterType]
     """The type of the addressed |Parameter| objects."""
 
+    keyword: Optional[str]
+    """The name of the addressed keyword argument or, for a positional argument, 
+    |None|."""
+
     elements: devicetools.Elements
     """The |Element| objects, which handle the relevant target |Parameter| instances."""
 
@@ -538,6 +558,7 @@ handle any `hstream_v1` model instances.
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
+        keyword: Optional[str] = None,
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
         selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
         model: Optional[Union[types.ModuleType, str]] = None,
@@ -545,6 +566,7 @@ handle any `hstream_v1` model instances.
         try:
             self.name = name
             self.parametername = str(getattr(parameter, "name", parameter))
+            self.keyword = keyword
             self.upper = upper
             self.lower = lower
             self.value = value
@@ -589,7 +611,7 @@ handle any `hstream_v1` model instances.
             self.parametertype = type(  # type: ignore[assignment]
                 tuple(self.elements)[0].model.parameters.control[self.parametername]
             )
-            self.parameterstep = parameterstep
+            self.parameterstep = parameterstep  # type: ignore[assignment]
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
@@ -601,7 +623,9 @@ handle any `hstream_v1` model instances.
         self,
     ) -> Tuple[Union[float, Vector[float], Matrix[float]], ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
-            return tuple(par.revert_timefactor(par.value) for par in self)
+            if self.keyword is None:
+                return tuple(par.revert_timefactor(par.value) for par in self)
+            return tuple(par.keywordarguments[self.keyword] for par in self)
 
     @property
     def value(self) -> float:
@@ -627,10 +651,9 @@ handle any `hstream_v1` model instances.
         With option |Options.warntrim| enabled (the default), property |Rule.value|
         also emits a warning like the following:
 
-        >>> with pub.options.warntrim(True):
+        >>> from hydpy.core.testtools import warn_later
+        >>> with pub.options.warntrim(True), warn_later():
         ...     rule.value = 300.0
-        Traceback (most recent call last):
-        ...
         UserWarning: The value of the `Replace` object `fc` must not be smaller than \
 `50.0` or larger than `200.0`, but the given value is `300.0`.  Applying the trimmed \
 value `200.0` instead.
@@ -656,10 +679,23 @@ value `200.0` instead.
 
     @abc.abstractmethod
     def apply_value(self) -> None:
-        """Apply the current value on the relevant |Parameter| objects.
+        """Apply the current value to the relevant |Parameter| objects.
 
         To be overridden by the concrete subclasses.
         """
+
+    def _update_parameter(
+        self,
+        parameter: parametertools.Parameter,
+        value: Union[float, Vector[float], Matrix[float]],
+    ) -> None:
+        if self.keyword is None:
+            parameter(value)
+        else:
+            keywordarguments = parameter.keywordarguments
+            keywordarguments.valid = True
+            keywordarguments[self.keyword] = value
+            parameter(**dict(keywordarguments))
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
@@ -683,9 +719,10 @@ value `200.0` instead.
         """
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(orig)
+                self._update_parameter(parameter, orig)
 
-    def _get_parameterstep(self) -> Optional[timetools.Period]:
+    @property
+    def parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
         For non-time-dependent parameters, property |Rule.parameterstep| is (usually)
@@ -693,8 +730,14 @@ value `200.0` instead.
         """
         return self._parameterstep
 
-    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
-        if self.parametertype.TIME is None:
+    @parameterstep.setter
+    def parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+        if self.keyword is None:
+            time_ = self.parametertype.TIME
+        else:
+            keyword = self.parametertype.KEYWORDS.get(self.keyword, None)
+            time_ = self.parametertype.TIME if keyword is None else keyword.time
+        if time_ is None:
             self._parameterstep = None
         else:
             if value is None:
@@ -708,8 +751,6 @@ value `200.0` instead.
                         "it directly or define it via option `parameterstep`."
                     ) from None
             self._parameterstep = timetools.Period(value)
-
-    parameterstep = property(_get_parameterstep, _set_parameterstep)
 
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |Rule| object prefixed with the
@@ -728,10 +769,11 @@ value `200.0` instead.
             f"{prefix}{type(self).__name__}(\n"
             f'{blanks}name="{self}",\n'
             f'{blanks}parameter="{self.parametername}",\n'
+            f"{blanks}value={objecttools.repr_(self.value)},\n"
             f"{blanks}lower={objecttools.repr_(self.lower)},\n"
             f"{blanks}upper={objecttools.repr_(self.upper)},\n"
+            f"{blanks}keyword={_none_or_string(self.keyword)},\n"
             f"{blanks}parameterstep={_none_or_string(self.parameterstep)},\n"
-            f"{blanks}value={objecttools.repr_(self.value)},\n"
             f"{blanks}model={_none_or_string(self._model)},\n"
             f"{selline},\n"
             f"{indent*' '})"
@@ -766,7 +808,7 @@ class Replace(Rule[parametertools.Parameter]):
     """
 
     def apply_value(self) -> None:
-        """Apply the current value on the relevant |Parameter| objects.
+        """Apply the current value to the relevant |Parameter| objects.
 
         See the documentation on class |Rule| for further information.
         """
@@ -776,7 +818,7 @@ class Replace(Rule[parametertools.Parameter]):
                 if self.adaptor:
                     self.adaptor(parameter)
                 else:
-                    parameter(self.value)
+                    self._update_parameter(parameter, self.value)
 
 
 class Add(Rule[parametertools.Parameter]):
@@ -787,8 +829,8 @@ class Add(Rule[parametertools.Parameter]):
     modify some of these examples to show the unique features of class |Add|.
 
     The first example deals with the non-time-dependent parameter |hland_control.FC|.
-    The following |Add| object adds its current value to the original value of the
-    parameter:
+    The following |Add| object adds its current value to the parameter's original
+    values:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -797,7 +839,6 @@ class Add(Rule[parametertools.Parameter]):
     ...            parameter="fc",
     ...            value=100.0,
     ...            model="hland_v1")
-    >>> rule.adaptor = lambda parameter: 2.0*rule.value
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
@@ -805,40 +846,83 @@ class Add(Rule[parametertools.Parameter]):
     >>> fc
     fc(306.0)
 
-    The second example deals with the time-dependent parameter |hland_control.PercMax|
-    and shows that everything works even when the actual |Options.parameterstep| (2
-    days) differs from the current |Options.simulationstep| (1 day):
+    When specifying the keyword `field`, the |Add| rule modifies the field capacity of
+    zones of type |hland_constants.FIELD| only:
 
-    >>> rule = Add(name="percmax",
-    ...            parameter="percmax",
-    ...            value=5.0,
+    >>> fc(206.0)
+    >>> rule = Add(name="fc",
+    ...            parameter="fc",
+    ...            value=100.0,
+    ...            keyword="field",
+    ...            model="hland_v1")
+    >>> rule.apply_value()
+    >>> fc
+    fc(field=306.0, forest=206.0)
+
+    The second example deals with the time-dependent parameter |hland_control.CFMax|
+    and shows that everything works even when the actual |Options.parameterstep|
+    (2 days) differs from the current |Options.simulationstep| (1 day):
+
+    >>> rule = Add(name="cfmax",
+    ...            parameter="cfmax",
+    ...            value=2.0,
     ...            model="hland_v1",
     ...            parameterstep="2d")
-    >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
-    >>> percmax
-    percmax(1.02978)
+    >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
+    >>> cfmax
+    cfmax(field=5.0, forest=3.0)
     >>> rule.apply_value()
-    >>> percmax
-    percmax(3.52978)
+    >>> cfmax
+    cfmax(field=6.0, forest=4.0)
+
+    This time, we modify the |hland_constants.FOREST| zones only:
+
+    >>> cfmax(field=5.0, forest=3.0)
+    >>> rule = Add(name="cfmax",
+    ...            parameter="cfmax",
+    ...            value=2.0,
+    ...            keyword="forest",
+    ...            model="hland_v1",
+    ...            parameterstep="2d")
+    >>> rule.apply_value()
+    >>> cfmax
+    cfmax(field=5.0, forest=4.0)
+
+    In the third example, we modify the scalar parameter |musk_control.NmbSegments| by
+    its optional keyword argument `lag`:
+
+    >>> rule = Add(name="lag",
+    ...            parameter="nmbsegments",
+    ...            value=1.0,
+    ...            keyword="lag",
+    ...            model="musk_classic",
+    ...            parameterstep="2d")
+    >>> nmbsegments = \
+hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+    >>> nmbsegments
+    nmbsegments(lag=0.583)
+    >>> rule.apply_value()
+    >>> nmbsegments
+    nmbsegments(lag=2.583)
     """
 
     def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter| objects."""
+        """Apply the current (adapted) value to the relevant |Parameter| objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.value + orig)
+                self._update_parameter(parameter, self.value + orig)
 
 
 class Multiply(Rule[parametertools.Parameter]):
-    """|Rule| class, which multiplies the original model parameter value(s) by its
+    """|Rule| class for multiplying the original model parameter value(s) by its
     calibration factor.
 
     Please read the examples of the documentation on class |Rule| first.  Here, we
     modify some of these examples to show the unique features of class |Multiply|.
 
     The first example deals with the non-time-dependent parameter |hland_control.FC|.
-    The following |Multiply| object multiplies the original value of the parameter by
-    its current calibration factor:
+    The following |Multiply| object multiplies the parameter's original values by its
+    current calibration factor:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -854,29 +938,73 @@ class Multiply(Rule[parametertools.Parameter]):
     >>> fc
     fc(412.0)
 
-    The second example deals with the time-dependent parameter |hland_control.PercMax|
-    and shows that everything works even for situations where the actual
-    |Options.parameterstep| (2 days) differs from the current |Options.simulationstep|
-    (1 day):
+    When specifying the keyword `field`, the |Multiply| rule modifies the field
+    capacity of zones of type |hland_constants.FIELD| only:
 
-    >>> rule = Multiply(name="percmax",
-    ...                 parameter="percmax",
+    >>> fc(206.0)
+    >>> rule = Multiply(name="fc",
+    ...            parameter="fc",
+    ...            value=2.0,
+    ...            keyword="field",
+    ...            model="hland_v1")
+    >>> rule.apply_value()
+    >>> fc
+    fc(field=412.0, forest=206.0)
+
+    The second example deals with the time-dependent parameter |hland_control.CFMax|
+    and shows that everything works even when the actual |Options.parameterstep|
+    (2 days) differs from the current |Options.simulationstep| (1 day):
+
+    >>> rule = Multiply(name="cfmax",
+    ...                 parameter="cfmax",
     ...                 value=2.0,
     ...                 model="hland_v1",
     ...                 parameterstep="2d")
-    >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
-    >>> percmax
-    percmax(1.02978)
+    >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
+    >>> cfmax
+    cfmax(field=5.0, forest=3.0)
     >>> rule.apply_value()
-    >>> percmax
-    percmax(2.05956)
+    >>> cfmax
+    cfmax(field=10.0, forest=6.0)
+
+    This time, we modify the |hland_constants.FOREST| zones only:
+
+    >>> cfmax(field=5.0, forest=3.0)
+    >>> rule = Multiply(name="cfmax",
+    ...                 parameter="cfmax",
+    ...                 value=2.0,
+    ...                 keyword="forest",
+    ...                 model="hland_v1",
+    ...                 parameterstep="2d")
+    >>> cfmax
+    cfmax(field=5.0, forest=3.0)
+    >>> rule.apply_value()
+    >>> cfmax
+    cfmax(field=5.0, forest=6.0)
+
+    In the third example, we modify the scalar parameter |musk_control.NmbSegments| by
+    its optional keyword argument `lag`:
+
+    >>> rule = Multiply(name="lag",
+    ...            parameter="nmbsegments",
+    ...            value=2.0,
+    ...            keyword="lag",
+    ...            model="musk_classic",
+    ...            parameterstep="2d")
+    >>> nmbsegments = \
+hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+    >>> nmbsegments
+    nmbsegments(lag=0.583)
+    >>> rule.apply_value()
+    >>> nmbsegments
+    nmbsegments(lag=1.166)
     """
 
     def apply_value(self) -> None:
-        """Apply the current (adapted) value on the relevant |Parameter| objects."""
+        """Apply the current (adapted) value to the relevant |Parameter| objects."""
         with hydpy.pub.options.parameterstep(self.parameterstep):
             for parameter, orig in zip(self, self._original_parameter_values):
-                parameter(self.value * orig)
+                self._update_parameter(parameter, self.value * orig)
 
 
 class CalibrationInterface(Generic[RuleType1]):
@@ -914,6 +1042,7 @@ class CalibrationInterface(Generic[RuleType1]):
     ...                          names=["fc", "percmax"],
     ...                          parameters=["fc", "percmax"],
     ...                          values=[100.0, 5.0],
+    ...                          keywords=[None, None],
     ...                          lowers=[50.0, 1.0],
     ...                          uppers=[200.0, 10.0],
     ...                          parametersteps="1d",
@@ -925,37 +1054,40 @@ class CalibrationInterface(Generic[RuleType1]):
     Replace(
         name="fc",
         parameter="fc",
+        value=100.0,
         lower=50.0,
         upper=200.0,
+        keyword=None,
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("complete",),
     )
     Replace(
         name="percmax",
         parameter="percmax",
+        value=5.0,
         lower=1.0,
         upper=10.0,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("complete",),
     )
 
     Adding rules later does not remove already available ones.  For demonstration, we
-    add one for calibrating parameter |hstream_control.Damp| of application model
-    |hstream_v1|:
+    add one for calibrating parameter |musk_control.Coefficients| of application model
+    |musk_classic| via its keyword `damp`:
 
     >>> len(ci)
     2
     >>> ci.add_rules(Replace(name="damp",
-    ...                      parameter="damp",
+    ...                      parameter="coefficients",
     ...                      value=0.2,
     ...                      lower=0.0,
     ...                      upper=0.5,
+    ...                      keyword="damp",
     ...                      selections=["complete"],
-    ...                      model="hstream_v1"))
+    ...                      model="musk_classic"))
     >>> len(ci)
     3
 
@@ -965,10 +1097,11 @@ class CalibrationInterface(Generic[RuleType1]):
     Replace(
         name="fc",
         parameter="fc",
+        value=100.0,
         lower=50.0,
         upper=200.0,
+        keyword=None,
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -982,12 +1115,13 @@ attribute nor a rule object named `FC`.
     >>> ci["damp"]
     Replace(
         name="damp",
-        parameter="damp",
+        parameter="coefficients",
+        value=0.2,
         lower=0.0,
         upper=0.5,
+        keyword="damp",
         parameterstep=None,
-        value=0.2,
-        model="hstream_v1",
+        model="musk_classic",
         selections=("complete",),
     )
 
@@ -1002,6 +1136,8 @@ attribute nor a rule object named `FC`.
 
     >>> ci.names
     ('fc', 'percmax', 'damp')
+    >>> ci.keywords
+    (None, None, 'damp')
     >>> ci.values
     (100.0, 5.0, 0.2)
     >>> ci.lowers
@@ -1024,7 +1160,7 @@ attribute nor a rule object named `FC`.
     ...     node.sequences.obs.series = node.sequences.sim.series
     >>> hp.conditions = conditions
 
-    As the agreement between the simulated and the "observed" time-series is perfect
+    As the agreement between the simulated and the "observed" time series is perfect
     for all four gauges, method |CalibrationInterface.calculate_likelihood| returns the
     highest possible sum of four |nse| values and also stores it under the attribute
     `result`:
@@ -1041,13 +1177,8 @@ attribute nor a rule object named `FC`.
 
     >>> stream = hp.elements.stream_lahn_1_lahn_2.model
     >>> stream.parameters.control
-    lag(0.583)
-    damp(0.0)
-    >>> stream.parameters.derived
-    nmbsegments(1)
-    c1(0.0)
-    c3(0.0)
-    c2(1.0)
+    nmbsegments(lag=0.583)
+    coefficients(damp=0.0)
     >>> land = hp.elements.land_lahn_1.model
     >>> land.parameters.control.fc
     fc(206.0)
@@ -1055,26 +1186,22 @@ attribute nor a rule object named `FC`.
     percmax(1.02978)
 
     Method |CalibrationInterface.apply_values| of class |CalibrationInterface| calls
-    the method |Rule.apply_value| of all handled |Rule| objects, performs some
-    preparations (for example, it derives the values of the secondary parameters (see
-    parameter |hstream_derived.NmbSegments|), executes a simulation run, calls method
-    |CalibrationInterface.calculate_likelihood|, and returns the result:
+    method |Rule.apply_value| of all handled |Rule| objects, performs some preparations
+    (for example, it derives the values of the secondary parameters), executes a
+    simulation run, calls method |CalibrationInterface.calculate_likelihood|, and
+    returns the result:
 
     >>> result = ci.apply_values()
     >>> stream.parameters.control
-    lag(0.583)
-    damp(0.3)
-    >>> stream.parameters.derived
-    nmbsegments(1)
-    c1(0.230769)
-    c3(0.230769)
-    c2(0.538462)
+    nmbsegments(lag=0.583)
+    coefficients(damp=0.3)
     >>> land.parameters.control.fc
     fc(100.0)
     >>> land.parameters.control.percmax
     percmax(5.0)
 
-    Due to the changes in our parameter values, our simulation is not "perfect" anymore:
+    Due to the changes in our parameter values, our simulation is not "perfect"
+    anymore:
 
     >>> round_(ci.result)
     1.605136
@@ -1084,13 +1211,8 @@ attribute nor a rule object named `FC`.
 
     >>> ci.reset_parameters()
     >>> stream.parameters.control
-    lag(0.583)
-    damp(0.0)
-    >>> stream.parameters.derived
-    nmbsegments(1)
-    c1(0.0)
-    c3(0.0)
-    c2(1.0)
+    nmbsegments(lag=0.583)
+    coefficients(damp=0.0)
     >>> land = hp.elements.land_lahn_1.model
     >>> land.parameters.control.fc
     fc(206.0)
@@ -1111,13 +1233,8 @@ attribute nor a rule object named `FC`.
 
     >>> ci.apply_values(perform_simulation=False)
     >>> stream.parameters.control
-    lag(0.583)
-    damp(0.3)
-    >>> stream.parameters.derived
-    nmbsegments(1)
-    c1(0.230769)
-    c3(0.230769)
-    c2(0.538462)
+    nmbsegments(lag=0.583)
+    coefficients(damp=0.3)
     >>> land.parameters.control.fc
     fc(100.0)
     >>> land.parameters.control.percmax
@@ -1133,13 +1250,8 @@ attribute nor a rule object named `FC`.
     1.605136
 
     >>> stream.parameters.control
-    lag(0.583)
-    damp(0.3)
-    >>> stream.parameters.derived
-    nmbsegments(1)
-    c1(0.230769)
-    c3(0.230769)
-    c2(0.538462)
+    nmbsegments(lag=0.583)
+    coefficients(damp=0.3)
 
     >>> land.parameters.control.fc
     fc(100.0)
@@ -1175,11 +1287,10 @@ attribute nor a rule object named `FC`.
     cases and logs the inwritten data internally:
 
     >>> import os
-    >>> with TestIO():
+    >>> from hydpy.core.testtools import warn_later
+    >>> with TestIO(), warn_later():
     ...     ci._logfilepath = "dirname1/filename.log"
     ...     ci.update_logfile()
-    Traceback (most recent call last):
-    ...
     UserWarning: While trying to update the logfile `dirname1/filename.log`, the \
 following problem occured: [Errno 2] No such file or directory: 'dirname1/filename.log'.
 
@@ -1280,10 +1391,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     best, which we indicate by setting argument `maximisation` to |True|:
 
     >>> with TestIO():
-    ...     ci.read_logfile(
-    ...         logfilepath="example_calibration.log",
-    ...         maximisation=True,
-    ...     )
+    ...     ci.read_logfile(logfilepath="example_calibration.log", maximisation=True)
     >>> ci.fc.value
     200.0
     >>> ci.percmax.value
@@ -1299,10 +1407,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     |CalibrationInterface.read_logfile| returns the worst result in our example:
 
     >>> with TestIO():
-    ...     ci.read_logfile(
-    ...         logfilepath="example_calibration.log",
-    ...         maximisation=False,
-    ...     )
+    ...     ci.read_logfile(logfilepath="example_calibration.log", maximisation=False)
     >>> ci.fc.value
     50.0
     >>> ci.percmax.value
@@ -1320,10 +1425,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
 
     >>> ci.percmax.parameterstep = "2d"
     >>> with TestIO():
-    ...     ci.read_logfile(
-    ...         logfilepath="example_calibration.log",
-    ...         maximisation=True,
-    ...     )
+    ...     ci.read_logfile(logfilepath="example_calibration.log",maximisation=True)
     Traceback (most recent call last):
     ...
     RuntimeError: The current parameterstep of the `Replace` rule `percmax` (`2d`) \
@@ -1334,10 +1436,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
 
     >>> ci.remove_rules(ci.percmax)
     >>> with TestIO():
-    ...     ci.read_logfile(
-    ...         logfilepath="example_calibration.log",
-    ...         maximisation=True,
-    ...     )
+    ...     ci.read_logfile(logfilepath="example_calibration.log",maximisation=True)
     Traceback (most recent call last):
     ...
     RuntimeError: The names of the rules handled by the actual calibration interface \
@@ -1417,9 +1516,10 @@ does not agree with the one documentated in log file `example_calibration.log` (
         |Element| objects relevant for the |CalibrationInterface| object:
 
         >>> damp = Replace(name="damp",
-        ...                parameter="damp",
+        ...                parameter="coefficients",
         ...                value=0.2,
-        ...                model="hstream_v1")
+        ...                keyword="damp",
+        ...                model="musk_classic")
         >>> len(ci._elements)
         4
         >>> ci.add_rules(damp)
@@ -1458,6 +1558,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         ...                          names=["fc", "percmax"],
         ...                          parameters=["fc", "percmax"],
         ...                          values=[100.0, 5.0],
+        ...                          keywords=["forest", None],
         ...                          lowers=[50.0, 1.0],
         ...                          uppers=[200.0, 10.0],
         ...                          parametersteps="1d",
@@ -1512,9 +1613,10 @@ named `fc` of type `Add`.
         ...                      value=5.0,
         ...                      model="hland_v1"),
         ...              Replace(name="damp",
-        ...                      parameter="damp",
+        ...                      parameter="coefficients",
         ...                      value=0.2,
-        ...                      model="hstream_v1"))
+        ...                      keyword="damp",
+        ...                      model="musk_classic"))
 
         You can remove each rule either by passing itself or its name (note that method
         |CalibrationInterface.remove_rules| might change the number of |Element|
@@ -1544,13 +1646,14 @@ named `fc` of type `Add`.
 object named `fc`.
         """
         for rule in rules:
-            rulename = getattr(rule, "name", rule)
+            if not isinstance(rule, str):
+                rule = rule.name
             try:
-                del self._rules[rulename]
+                del self._rules[rule]
             except KeyError:
                 raise RuntimeError(
                     f"The actual calibration interface object does not handle a rule "
-                    f"object named `{rulename}`."
+                    f"object named `{rule}`."
                 ) from None
         self._update_elements_when_deleting_a_rule()
 
@@ -1716,6 +1819,15 @@ object named `fc`.
         return tuple(rule.value for rule in self)
 
     @property
+    def keywords(self) -> Tuple[Optional[str], ...]:
+        """The (optional) target keywords of all handled |Rule| objects.
+
+        See the main documentation on class |CalibrationInterface| for further
+        information.
+        """
+        return tuple(rule.keyword for rule in self)
+
+    @property
     def lowers(self) -> Tuple[float, ...]:
         """The lower boundaries of all handled |Rule| objects.
 
@@ -1857,7 +1969,7 @@ object named `fc`.
         |CalibrationInterface| and class |ReplaceIUH|, so please make sure to
         understand them before proceeding.
 
-        We again use the `Lahn` example project but replace the |hstream_v1| model
+        We again use the `Lahn` example project but replace the |musk_classic| model
         instances with those of application model |arma_v1|, which allows discussing
         some special cases concerning the handling of |RuleIUH|:
 
@@ -2080,6 +2192,7 @@ parameterstep="1d"))
         ...                          names=["fc", "percmax"],
         ...                          parameters=["fc", "percmax"],
         ...                          values=[100.0, 5.0],
+        ...                          keywords=["forest", None],
         ...                          lowers=[50.0, 1.0],
         ...                          uppers=[200.0, 10.0],
         ...                          parametersteps="1d",
@@ -2448,6 +2561,9 @@ class CalibSpec:
     >>> CalibSpec(name="par1", default=1.0)
     CalibSpec(name="par1", default=1.0)
 
+    >>> CalibSpec(name="par1", default=1.0, keyword="key1")
+    CalibSpec(name="par1", default=1.0, keyword="key1")
+
     >>> CalibSpec(name="par1", default=1.0, lower=2.0)
     Traceback (most recent call last):
     ...
@@ -2479,6 +2595,8 @@ parameterstep="1d"
     """Name of the calibration parameter."""
     default: float
     """The default value of the calibration parameter."""
+    keyword: Optional[str]
+    """The (optional) target keyword of the calibration parameter."""
     lower: float
     """Lower bound of the allowed calibration parameter value."""
     upper: float
@@ -2492,6 +2610,7 @@ parameterstep="1d"
         *,
         name: str,
         default: float,
+        keyword: Optional[None] = None,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
@@ -2504,6 +2623,7 @@ parameterstep="1d"
                 f"{objecttools.repr_(lower)}, upper={objecttools.repr_(upper)}."
             )
         self.default = default
+        self.keyword = keyword
         self.lower = lower
         self.upper = upper
         if parameterstep is None:
@@ -2519,6 +2639,8 @@ parameterstep="1d"
             f'name="{self.name}"',
             f"default={objecttools.repr_(self.default)}",
         ]
+        if self.keyword is not None:
+            arguments.append(f'keyword="{self.keyword}"')
         if not numpy.isinf(self.lower):
             arguments.append(f"lower={objecttools.repr_(self.lower)}")
         if not numpy.isinf(self.upper):
@@ -2544,13 +2666,13 @@ class CalibSpecs:
     ...     CalibSpec(
     ...         name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d"
     ...     ),
-    ...     CalibSpec(name="second", default=1.0, lower=0.0),
+    ...     CalibSpec(name="second", default=1.0, keyword="kw2", lower=0.0),
     ...     CalibSpec(name="first",default=2.0, upper=2.0))
     >>> calibspecs
     CalibSpecs(
         CalibSpec(name="third", default=3.0, lower=-10.0, upper=10.0, \
 parameterstep="1d"),
-        CalibSpec(name="second", default=1.0, lower=0.0),
+        CalibSpec(name="second", default=1.0, keyword="kw2", lower=0.0),
         CalibSpec(name="first", default=2.0, upper=2.0),
     )
 
@@ -2665,14 +2787,14 @@ object named `second`.
         >>> third = CalibSpec(
         ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
         >>> first = CalibSpec(name="first", default=1.0, lower=0.0)
-        >>> second = CalibSpec(name="second",default=2.0, upper=2.0)
+        >>> second = CalibSpec(name="second",default=2.0, keyword="kw2", upper=2.0)
         >>> calibspecs = CalibSpecs()
         >>> calibspecs.append(first)
         >>> calibspecs.append(second, third)
         >>> calibspecs
         CalibSpecs(
             CalibSpec(name="first", default=1.0, lower=0.0),
-            CalibSpec(name="second", default=2.0, upper=2.0),
+            CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0),
             CalibSpec(name="third", default=3.0, lower=-10.0, upper=10.0, \
 parameterstep="1d"),
         )
@@ -2702,13 +2824,31 @@ parameterstep="1d"),
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
         ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
-        >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
-        ...                         CalibSpec(name="second",default=2.0, upper=2.0))
+        >>> calibspecs = CalibSpecs(
+        ...     CalibSpec(name="first", default=1.0, lower=0.0),
+        ...     CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0))
         >>> calibspecs.append(third)
         >>> calibspecs.defaults
         (1.0, 2.0, 3.0)
         """
         return tuple(parspec.default for parspec in self._name2parspec.values())
+
+    @property
+    def keywords(self) -> Tuple[Optional[str], ...]:
+        """The (optional) target keywords of all |CalibSpec| objects in the order of
+        attachment.
+
+        >>> from hydpy import CalibSpec, CalibSpecs
+        >>> third = CalibSpec(
+        ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
+        >>> calibspecs = CalibSpecs(
+        ...     CalibSpec(name="first", default=1.0, lower=0.0),
+        ...     CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0))
+        >>> calibspecs.append(third)
+        >>> calibspecs.keywords
+        (None, 'kw2', None)
+        """
+        return tuple(parspec.keyword for parspec in self._name2parspec.values())
 
     @property
     def lowers(self) -> Tuple[float, ...]:
@@ -2718,8 +2858,9 @@ parameterstep="1d"),
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
         ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
-        >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
-        ...                         CalibSpec(name="second",default=2.0, upper=2.0))
+        >>> calibspecs = CalibSpecs(
+        ...     CalibSpec(name="first", default=1.0, lower=0.0),
+        ...     CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0))
         >>> calibspecs.append(third)
         >>> calibspecs.lowers
         (0.0, -inf, -10.0)
@@ -2734,8 +2875,9 @@ parameterstep="1d"),
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
         ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
-        >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
-        ...                         CalibSpec(name="second",default=2.0, upper=2.0))
+        >>> calibspecs = CalibSpecs(
+        ...     CalibSpec(name="first", default=1.0, lower=0.0),
+        ...     CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0))
         >>> calibspecs.append(third)
         >>> calibspecs.uppers
         (inf, 2.0, 10.0)
@@ -2749,8 +2891,9 @@ parameterstep="1d"),
         >>> from hydpy import CalibSpec, CalibSpecs
         >>> third = CalibSpec(
         ...     name="third", default=3.0, lower=-10.0, upper=10.0, parameterstep="1d")
-        >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0, lower=0.0),
-        ...                         CalibSpec(name="second",default=2.0, upper=2.0))
+        >>> calibspecs = CalibSpecs(
+        ...     CalibSpec(name="first", default=1.0, lower=0.0),
+        ...     CalibSpec(name="second", default=2.0, keyword="kw2", upper=2.0))
         >>> calibspecs.append(third)
         >>> calibspecs.parametersteps
         (None, None, Period("1d"))
@@ -2805,6 +2948,7 @@ def make_rules(
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
+    keywords: Sequence[Optional[str]],
     lowers: Sequence[float],
     uppers: Sequence[float],
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
@@ -2823,6 +2967,7 @@ def make_rules(
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,
+    keywords: Optional[Sequence[Optional[str]]] = None,
     lowers: Optional[Sequence[float]] = None,
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
@@ -2839,6 +2984,7 @@ def make_rules(
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,
+    keywords: Optional[Sequence[Optional[str]]] = None,
     lowers: Optional[Sequence[float]] = None,
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
@@ -2855,6 +3001,7 @@ def make_rules(
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,
+    keywords: Optional[Sequence[Optional[str]]] = None,
     lowers: Optional[Sequence[float]] = None,
     uppers: Optional[Sequence[float]] = None,
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
@@ -2884,6 +3031,7 @@ def make_rules(
     ...            names=["fc", "percmax"],
     ...            parameters=["fc", "percmax"],
     ...            values=[100.0, 5.0],
+    ...            keywords=["forest", None],
     ...            lowers=[50.0, 1.0],
     ...            uppers=[200.0],
     ...            parametersteps="1d",
@@ -2899,7 +3047,8 @@ must be of equal length.
 
     >>> from hydpy import CalibSpec, CalibSpecs
     >>> calibspecs = CalibSpecs(
-    ...     CalibSpec(name="fc", default=100.0, lower=50.0, upper=200.0),
+    ...     CalibSpec(name="fc", default=100.0, keyword="forest", lower=50.0, \
+upper=200.0),
     ...     CalibSpec(name="percmax", default=5.0, lower=1.0, upper=10.0, \
 parameterstep="1d"))
     >>> make_rules(rule=Replace,
@@ -2909,10 +3058,11 @@ parameterstep="1d"))
     Replace(
         name="percmax",
         parameter="percmax",
+        value=5.0,
         lower=1.0,
         upper=10.0,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -2928,10 +3078,11 @@ parameterstep="1d"))
     Replace(
         name="PERCMAX",
         parameter="percmax",
+        value=5.0,
         lower=1.0,
         upper=10.0,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("complete",),
     )
@@ -2943,6 +3094,7 @@ parameterstep="1d"))
     ...            names=["fc", "percmax"],
     ...            parameters=["fc", "percmax"],
     ...            values=[100.0, 5.0],
+    ...            keywords=["forest", None],
     ...            lowers=[50.0, 1.0],
     ...            parametersteps="1d",
     ...            model="hland_v1")
@@ -2950,7 +3102,7 @@ parameterstep="1d"))
     ...
     TypeError: When creating rules via function `make_rules`, you must pass a \
 `CalibSpecs` object or provide complete information for the following arguments: \
-names, parameters, values, lowers, and uppers.
+names, parameters, values, keywords, lowers, and uppers.
 
     You can run function |make_rules| in "product mode", meaning that its execution
     results in distinct |Rule| objects for all combinations of the given calibration
@@ -2964,37 +3116,41 @@ names, parameters, values, lowers, and uppers.
     [Replace(
         name="fc_headwaters",
         parameter="fc",
+        value=100.0,
         lower=50.0,
         upper=200.0,
+        keyword="forest",
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("headwaters",),
     ), Replace(
         name="percmax_headwaters",
         parameter="percmax",
+        value=5.0,
         lower=1.0,
         upper=10.0,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("headwaters",),
     ), Replace(
         name="fc_nonheadwaters",
         parameter="fc",
+        value=100.0,
         lower=50.0,
         upper=200.0,
+        keyword="forest",
         parameterstep=None,
-        value=100.0,
         model="hland_v1",
         selections=("nonheadwaters",),
     ), Replace(
         name="percmax_nonheadwaters",
         parameter="percmax",
+        value=5.0,
         lower=1.0,
         upper=10.0,
+        keyword=None,
         parameterstep="1d",
-        value=5.0,
         model="hland_v1",
         selections=("nonheadwaters",),
     )]
@@ -3015,16 +3171,18 @@ via argument `selections`.
     """
     if calibspecs is None:
         if (
-            (names is None)
+            (names is None)  # pylint: disable=too-many-boolean-expressions
             or (parameters is None)
             or (values is None)
+            or (keywords is None)
             or (lowers is None)
             or (uppers is None)
         ):
             raise TypeError(
                 "When creating rules via function `make_rules`, you must pass a "
                 "`CalibSpecs` object or provide complete information for the "
-                "following arguments: names, parameters, values, lowers, and uppers."
+                "following arguments: names, parameters, values, keywords, lowers, "
+                "and uppers."
             )
     else:
         if names is None:
@@ -3033,6 +3191,8 @@ via argument `selections`.
             parameters = calibspecs.names
         if values is None:
             values = calibspecs.defaults
+        if keywords is None:
+            keywords = calibspecs.keywords
         if lowers is None:
             lowers = calibspecs.lowers
         if uppers is None:
@@ -3040,10 +3200,7 @@ via argument `selections`.
         if parametersteps is None:
             parametersteps = calibspecs.parametersteps
     parameters_ = tuple(
-        objecttools.extract(
-            values=parameters,
-            types_=(parametertools.Parameter, str),
-        )
+        objecttools.extract(values=parameters, types_=(parametertools.Parameter, str))
     )
     if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):
         parametersteps = len(names) * (parametersteps,)
@@ -3053,6 +3210,7 @@ via argument `selections`.
         == len(lowers)
         == len(uppers)
         == len(values)
+        == len(keywords)
         == len(parametersteps)
     ):
         raise ValueError(
@@ -3077,6 +3235,7 @@ via argument `selections`.
         lowers = nmb_selections * tuple(lowers)
         uppers = nmb_selections * tuple(uppers)
         values = nmb_selections * tuple(values)
+        keywords = nmb_selections * tuple(keywords)
         parametersteps = nmb_selections * tuple(parametersteps)
         selections2 = itertools.chain.from_iterable(
             itertools.repeat((sel,), nmb_parameters) for sel in selections
@@ -3084,14 +3243,31 @@ via argument `selections`.
     else:
         selections2 = itertools.repeat(selections, nmb_parameters)
     rules = []
-    for name, parameter, lower, upper, value, parameterstep, selections_ in zip(
-        names, parameters_, lowers, uppers, values, parametersteps, selections2
+    for (
+        name,
+        parameter,
+        lower,
+        upper,
+        value,
+        keyword,
+        parameterstep,
+        selections_,
+    ) in zip(
+        names,
+        parameters_,
+        lowers,
+        uppers,
+        values,
+        keywords,
+        parametersteps,
+        selections2,
     ):
         rules.append(
             rule(
                 name=name,
                 parameter=parameter,
                 value=value,
+                keyword=keyword,
                 lower=lower,
                 upper=upper,
                 parameterstep=parameterstep,

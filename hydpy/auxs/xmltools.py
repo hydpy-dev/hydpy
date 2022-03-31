@@ -113,6 +113,7 @@ from hydpy.core import importtools
 from hydpy.core import itemtools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.exe import commandtools
 from hydpy.core.typingtools import *
@@ -405,8 +406,8 @@ class XMLBase:
         Traceback (most recent call last):
         ...
         AttributeError: The actual XML element `config` does not define a XML \
-subelement named `wrong`.  Please make sure your XML file follows the relevant \
-XML schema.
+subelement named `wrong`.  Please make sure your XML file follows the relevant XML \
+schema.
         """
         return find(self.root, name, optional)
 
@@ -548,9 +549,9 @@ correctly refer to one of the available XML schema files \
                     break
             else:
                 raise RuntimeError(
-                    f"Configuration file `{os.path.split(self.filepath)[-1]}` "
-                    f"does not correctly refer to one of the available XML "
-                    f"schema files ({objecttools.enumeration(filenames)})."
+                    f"Configuration file `{os.path.split(self.filepath)[-1]}` does "
+                    f"not correctly refer to one of the available XML schema files "
+                    f"({objecttools.enumeration(filenames)})."
                 )
             confpath: str = conf.__path__[0]
             schemapath = os.path.join(confpath, schemafile)
@@ -1385,7 +1386,7 @@ class XMLSubseries(XMLSelector):
         hland_v1 factors ['tc']
         hland_v1 fluxes ['tf']
         hland_v1 states ['sm']
-        hstream_v1 states ['qjoints']
+        musk_classic states ['q']
         """
         model2subs2seqs: DefaultDict[str, DefaultDict[str, List[str]]]
         model2subs2seqs = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -1980,7 +1981,7 @@ class XMLVar(XMLSelector):
 
         One of the defined |SetItem| objects modifies the values of all
         |hland_control.Alpha| objects of application model |hland_v1|.  We demonstrate
-        this for the control parameter object handled by element `land_dill`:
+        this for the control parameter object handled by the `land_dill` element:
 
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
@@ -1993,17 +1994,18 @@ class XMLVar(XMLSelector):
         alpha(2.0)
 
         The second example is comparable but focuses on a |SetItem| modifying control
-        parameter |hstream_control.Lag| of application model |hstream_v1|:
+        parameter |musk_control.NmbSegments| of application model |musk_classic| via
+        its keyword argument `lag`:
 
         >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
         >>> item = var.item
         >>> item.value
         array(5.)
-        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
-        lag(0.0)
+        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.nmbsegments
+        nmbsegments(lag=0.0)
         >>> item.update_variables()
-        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
-        lag(5.0)
+        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.nmbsegments
+        nmbsegments(lag=5.0)
 
         The third discussed |SetItem| assigns the same value to all entries of state
         sequence |hland_states.SM|, resulting in the same soil moisture for all
@@ -2183,8 +2185,6 @@ class XMLVar(XMLSelector):
         itemtype = _ITEMGROUP2ITEMCLASS[itemgroup]
         if itemgroup == "getitems":
             return self._get_getitem(target, master, itemtype)
-        if itemgroup == "setitems":
-            return self._get_changeitem(target, master, itemtype)
         return self._get_changeitem(target, master, itemtype)
 
     def _get_getitem(
@@ -2217,10 +2217,12 @@ class XMLVar(XMLSelector):
                 level=cast(itemtools.LevelType, level),
             )
         elif not issubclass(itemtype, (itemtools.AddItem, itemtools.MultiplyItem)):
+            keyword = self.find("keyword", optional=True)
             item = itemtype(
                 name=name,
                 master=master,
                 target=target,
+                keyword=None if keyword is None else keyword.text,
                 level=cast(itemtools.LevelType, level),
             )
         self._collect_variables(item)
@@ -2263,7 +2265,7 @@ class XSDWriter:
         example, during calibration.
 
         The following example shows that after writing a new schema file, method
-        |XMLInterface.validate_xml| does not raise an error when either applied on the
+        |XMLInterface.validate_xml| does not raise an error when either applied to the
         XML configuration files `single_run.xml` or `multiple_runs.xml` of the `LahnH`
         example project:
 
@@ -2633,7 +2635,10 @@ class XSDWriter:
         ...
         """
         indent = 1
-        subs = [cls.get_mathitemsinsertion(indent)]
+        subs = [
+            cls.get_mathitemsinsertion(indent),
+            cls.get_keyworditemsinsertion(indent),
+        ]
         for groupname in ("setitems", "additems", "multiplyitems", "getitems"):
             subs.append(cls.get_itemsinsertion(groupname, indent))
             subs.append(cls.get_itemtypesinsertion(groupname, indent))
@@ -2687,6 +2692,72 @@ class XSDWriter:
                     "",
                 ]
             )
+        return "\n".join(subs)
+
+    @classmethod
+    def get_keyworditemsinsertion(cls, indent: int) -> str:
+        """Return a string defining additional types that support modifying parameter
+        values by specific keyword arguments.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_keyworditemsinsertion(1))  # doctest: +ELLIPSIS
+            <simpleType name="musk_control_nmbsegments_keywordType">
+                <restriction base="string">
+                    <enumeration value="lag"/>
+                </restriction>
+            </simpleType>
+        <BLANKLINE>
+            <complexType name="musk_control_nmbsegments_setitemType">
+                <complexContent>
+                    <extension base="hpcb:setitemType">
+                        <sequence>
+                            <element name="keyword"
+                                     type="hpcb:musk_control_nmbsegments_keywordType"
+                                     minOccurs = "0"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+        ...
+        """
+        blanks = " " * (indent * 4)
+        subs = []
+        for modelname in cls.get_modelnames():
+            model = importtools.prepare_model(modelname)
+            for subvars in cls._get_subvars(model, conditions=False):
+                for var in subvars:
+                    if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
+                        prefix = f"{modelname.split('_')[0]}_{subvars.name}_{var.name}_"
+                        subs.extend(
+                            [
+                                f'{blanks}<simpleType name="{prefix}keywordType">',
+                                f'{blanks}    <restriction base="string">',
+                            ]
+                        )
+                        for keyword in var.KEYWORDS:
+                            subs.append(
+                                f'{blanks}        <enumeration value="{keyword}"/>'
+                            )
+                        subs.extend(
+                            [
+                                f"{blanks}    </restriction>",
+                                f"{blanks}</simpleType>",
+                                "",
+                                f'{blanks}<complexType name="{prefix}setitemType">',
+                                f"{blanks}    <complexContent>",
+                                f'{blanks}        <extension base="hpcb:setitemType">',
+                                f"{blanks}            <sequence>",
+                                f'{blanks}                <element name="keyword"',
+                                f"{blanks}                         "
+                                f'type="hpcb:{prefix}keywordType"',
+                                f'{blanks}                         minOccurs = "0"/>',
+                                f"{blanks}            </sequence>",
+                                f"{blanks}        </extension>",
+                                f"{blanks}    </complexContent>",
+                                f"{blanks}</complexType>",
+                                "",
+                            ]
+                        )
         return "\n".join(subs)
 
     @staticmethod
@@ -3010,16 +3081,23 @@ class XSDWriter:
             f'{blanks1}                     minOccurs="0"/>',
         ]
         seriesflags = [False] if subgroup.name == "control" else [False, True]
-        for variable in subgroup:
+        for var in subgroup:
             for series in seriesflags:
-                name = f"{variable.name}.series" if series else variable.name
+                name = f"{var.name}.series" if series else var.name
                 subs.append(f'{blanks1}            <element name="{name}"')
                 if itemgroup == "setitems":
-                    subs.append(f'{blanks2}type="hpcb:setitemType"')
+                    if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
+                        type_ = (
+                            f"{model.name.split('_')[0]}_{subgroup.name}_"
+                            f"{var.name}_setitemType"
+                        )
+                    else:
+                        type_ = "setitemType"
                 elif itemgroup == "getitems":
-                    subs.append(f'{blanks2}type="hpcb:getitemType"')
+                    type_ = "getitemType"
                 else:
-                    subs.append(f'{blanks2}type="hpcb:{model.name}_mathitemType"')
+                    type_ = f"{model.name}_mathitemType"
+                subs.append(f'{blanks2}type="hpcb:{type_}"')
                 subs.append(f'{blanks2}minOccurs="0"')
                 subs.append(f'{blanks2}maxOccurs="unbounded"/>')
         subs.extend(

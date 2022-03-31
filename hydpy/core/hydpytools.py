@@ -929,9 +929,9 @@ at the moment.
         >>> hp.elements.land_dill.model.parameters.control.area
         area(692.3)
         >>> hp.elements.stream_lahn_1_lahn_2.model.name
-        'hstream_v1'
-        >>> hp.elements.stream_lahn_1_lahn_2.model.parameters.control.lag
-        lag(0.583)
+        'musk_classic'
+        >>> hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+        nmbsegments(lag=0.583)
 
         The `LahnH` example project comes with one auxiliary file, named `land.py`.
         This file defines general parameter values, valid for all single parameter
@@ -999,13 +999,12 @@ prepare control files properly.
 
         >>> from hydpy import HydPy
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, "prepare_models") as mocked:
+        >>> from hydpy.core.testtools import warn_later
+        >>> with warn_later(), mock.patch.object(HydPy, "prepare_models") as mocked:
         ...     hp = HydPy("test")
         ...     hp.init_models()
-        Traceback (most recent call last):
-        ...
-        hydpy.core.exceptiontools.HydPyDeprecationWarning: Method `init_models` of \
-class `HydPy` is deprecated.  Use method `prepare_models` instead.
+        HydPyDeprecationWarning: Method `init_models` of class `HydPy` is \
+deprecated.  Use method `prepare_models` instead.
         >>> mocked.call_args_list
         [call()]
         """
@@ -1032,7 +1031,7 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         We use the `LahnH` example project to demonstrate how to write a complete set
         of parameter control files.  For convenience, we let function
         |prepare_full_example_2| prepare a fully functional |HydPy| object, handling
-        seven |Element| objects controlling four |hland_v1| and three |hstream_v1|
+        seven |Element| objects controlling four |hland_v1| and three |musk_classic|
         application models:
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1056,16 +1055,18 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ['default', 'newdir']
 
         We focus our examples on the (shorter) control files of the application model
-        |hstream_v1|.  The values of parameter |hstream_control.Lag| and
-        |hstream_control.Damp| for the river channel connecting the outlets of
-        subcatchment `lahn_1` and `lahn_2` are 0.583 days and 0.0, respectively:
+        |musk_classic|.  These control files define the values of the parameters
+        |musk_control.NmbSegments| and |musk_control.Coefficients| via the keyword
+        arguments `lag` and `damp`.  For the river channel connecting the outlets of
+        subcatchment `lahn_1` and `lahn_2`, the `lag` value is 0.583 days, and the
+        `damp` value is zero:
 
         >>> model = hp.elements.stream_lahn_1_lahn_2.model
         >>> model.parameters.control
-        lag(0.583)
-        damp(0.0)
+        nmbsegments(lag=0.583)
+        coefficients(damp=0.0)
 
-        The corresponding written control file defines the same values:
+        Its control file's name equals the element's name:
 
         >>> dir_ = "LahnH/control/newdir/"
         >>> with TestIO():
@@ -1073,31 +1074,30 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
         <BLANKLINE>
-        lag(0.583)
-        damp(0.0)
+        nmbsegments(lag=0.583)
+        coefficients(damp=0.0)
         <BLANKLINE>
 
-        Its name equals the element name.  The time step information stems from the
-        |Timegrid| object available via |pub|:
+        The time step information stems from the |Timegrid| object available via |pub|:
 
         >>> pub.timegrids.stepsize
         Period("1d")
 
         Use the |Auxfiler| class to avoid redefining the same parameter values in
-        multiple control files.  Here, we prepare an |Auxfiler| object that handles the
+        multiple control files.  We prepare an |Auxfiler| object that handles the
         model's two parameters discussed above:
 
         >>> from hydpy import Auxfiler
-        >>> auxfiler = Auxfiler("hstream_v1")
-        >>> auxfiler.hstream_v1.add_parameter(
-        ...     model.parameters.control.damp, filename="stream")
-        >>> auxfiler.hstream_v1.add_parameter(
-        ...     model.parameters.control.lag, filename="stream")
+        >>> auxfiler = Auxfiler("musk_classic")
+        >>> auxfiler.musk_classic.add_parameter(
+        ...     model.parameters.control.nmbsegments, filename="stream")
+        >>> auxfiler.musk_classic.add_parameter(
+        ...     model.parameters.control.coefficients, filename="stream")
 
         When passing the |Auxfiler| object to the method |HydPy.save_controls|, the
         control file of element `stream_lahn_1_lahn_2` does not define the values of
@@ -1111,13 +1111,13 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
         <BLANKLINE>
-        lag(auxfile="stream")
-        damp(auxfile="stream")
+        nmbsegments(auxfile="stream")
+        coefficients(auxfile="stream")
         <BLANKLINE>
 
         `stream.py` contains the actual value definitions:
@@ -1127,40 +1127,39 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
         <BLANKLINE>
-        lag(0.583)
-        damp(0.0)
+        nmbsegments(lag=0.583)
+        coefficients(damp=0.0)
         <BLANKLINE>
 
-        The |hstream_v1| model of element `stream_lahn_2_lahn_3` defines the same value
-        for parameter |hstream_control.Damp| but a different one for parameter
-        |hstream_control.Lag|.  Hence, only |hstream_control.Damp| can reference
-        control file `stream.py`:
+        The |musk_classic| model of element `stream_lahn_2_lahn_3` defines the same
+        value for parameter |musk_control.Coefficients| but a different one for
+        parameter |musk_control.NmbSegments|.  Hence, only |musk_control.Coefficients|
+        can reference the control file `stream.py`:
 
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_2_lahn_3.py") as controlfile:
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
         <BLANKLINE>
-        lag(0.417)
-        damp(auxfile="stream")
+        nmbsegments(lag=0.417)
+        coefficients(auxfile="stream")
         <BLANKLINE>
 
         Another option is to pass alternative step size information.  The
         `simulationstep` information, which is no integral part of control files but
-        useful for testing them, has no impact on the written data.  However, passing
+        helpful in testing them, has no impact on the written data.  However, passing
         an alternative `parameterstep` information changes the written values of
-        time-dependent parameters both in the primary and the auxiliary control files,
-        as to be expected:
+        time-dependent parameters both in the primary and the auxiliary control files:
 
         >>> with TestIO():
         ...     pub.controlmanager.currentdir = "newdir"
@@ -1170,13 +1169,13 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
         <BLANKLINE>
-        lag(auxfile="stream")
-        damp(auxfile="stream")
+        nmbsegments(auxfile="stream")
+        coefficients(auxfile="stream")
         <BLANKLINE>
 
         >>> with TestIO():
@@ -1184,13 +1183,13 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
         <BLANKLINE>
-        lag(0.2915)
-        damp(0.0)
+        nmbsegments(lag=0.2915)
+        coefficients(damp=0.0)
         <BLANKLINE>
 
         >>> with TestIO():
@@ -1198,13 +1197,13 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hstream_v1 import *
+        from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
         <BLANKLINE>
-        lag(0.2085)
-        damp(auxfile="stream")
+        nmbsegments(lag=0.2085)
+        coefficients(auxfile="stream")
         <BLANKLINE>
         """
         self.elements.save_controls(
@@ -1370,10 +1369,9 @@ class `HydPy` is deprecated.  Use method `prepare_models` instead.
         that violate the maximum capacity (|hland_control.IcMax|), you get a direct
         response based on function |trim|:
 
-        >>> with pub.options.warntrim(True):
+        >>> from hydpy.core.testtools import warn_later
+        >>> with pub.options.warntrim(True), warn_later():
         ...     hp.elements.land_dill.model.sequences.states.ic(1.2)
-        Traceback (most recent call last):
-        ...
         UserWarning: For variable `ic` of element `land_dill` at least one value \
 needed to be trimmed.  The old and the new value(s) are \
 `1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2` and \
@@ -1384,10 +1382,8 @@ needed to be trimmed.  The old and the new value(s) are \
         |HydPy.trim_conditions| explicitly:
 
         >>> hp.elements.land_dill.model.parameters.control.icmax(1.1)
-        >>> with pub.options.warntrim(True):
+        >>> with pub.options.warntrim(True), warn_later():
         ...     hp.trim_conditions()
-        Traceback (most recent call last):
-        ...
         UserWarning: For variable `ic` of element `land_dill` at least one value \
 needed to be trimmed.  The old and the new value(s) are \
 `1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2` and \
@@ -1586,7 +1582,7 @@ needed to be trimmed.  The old and the new value(s) are \
         Number of end nodes: 1
         Number of distinct networks: 1
         Applied node variables: Q (4)
-        Applied model types: hland_v1 (4) and hstream_v1 (3)
+        Applied model types: hland_v1 (4) and musk_classic (3)
         """
         value: Union[
             str,
@@ -1855,7 +1851,7 @@ needed to be trimmed.  The old and the new value(s) are \
         >>> with TestIO():
         ...     hp.prepare_models()
         >>> hp.modeltypes
-        {'hland_v1': 4, 'hstream_v1': 3}
+        {'hland_v1': 4, 'musk_classic': 3}
         """
         modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
         for element in self.elements:
@@ -2139,8 +2135,8 @@ time.
         again), the modified discharge values of node `lahn_2` are unchanged.  The
         simulated values of node `lahn_3` are, compared to the `newsim` runs, decreased
         by 10 m³/s (there is no time delay or dampening of the discharge values between
-        both nodes due to the |hstream_control.Lag| time of application model
-        |hstream_v1| being smaller than the simulation time step):
+        both nodes due to the lag time of application model |musk_classic| being
+        smaller than the simulation time step):
 
         >>> hp.reset_conditions()
         >>> pub.timegrids.sim.firstdate = "1996-01-01"
@@ -2249,14 +2245,13 @@ time.
         """Deprecated! Use method |HydPy.simulate| instead.
 
         >>> from hydpy import HydPy
+        >>> from hydpy.core.testtools import warn_later
         >>> from unittest import mock
-        >>> with mock.patch.object(HydPy, "simulate") as mocked:
+        >>> with warn_later(), mock.patch.object(HydPy, "simulate") as mocked:
         ...     hp = HydPy("test")
         ...     hp.doit()
-        Traceback (most recent call last):
-        ...
-        hydpy.core.exceptiontools.HydPyDeprecationWarning: Method `doit` of class \
-`HydPy` is deprecated.  Use method `simulate` instead.
+        HydPyDeprecationWarning: Method `doit` of class `HydPy` is deprecated.  Use \
+method `simulate` instead.
         >>> mocked.call_args_list
         [call()]
         """

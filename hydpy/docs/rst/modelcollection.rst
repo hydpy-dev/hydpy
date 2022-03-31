@@ -85,5 +85,6 @@ and will have to be discussed later.
    HydPy-H
    HydPy-L
    HydPy-Meteo
+   HydPy-Musk
    HydPy-T
    HydPy-W

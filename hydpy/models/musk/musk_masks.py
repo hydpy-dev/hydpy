@@ -7,10 +7,10 @@ from hydpy.core import masktools
 
 
 class Complete(masktools.DefaultMask):
-    """Mask including a stream segments."""
+    """Mask including all channel segments."""
 
 
 class Masks(masktools.Masks):
-    """Masks of base model |hstream|."""
+    """Masks of base model |musk|."""
 
     CLASSES = (Complete,)

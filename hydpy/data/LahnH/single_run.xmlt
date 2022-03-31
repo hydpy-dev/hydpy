@@ -123,11 +123,11 @@
                             <sm/>
                         </states>
                     </hland_v1>
-                    <hstream_v1>
+                    <musk_classic>
                         <states>
-                            <qjoints/>
+                            <q/>
                         </states>
-                    </hstream_v1>
+                    </musk_classic>
                 </sequences>
                 <aggregation>mean</aggregation>
             </writer>

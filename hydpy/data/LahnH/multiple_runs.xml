@@ -142,20 +142,22 @@
                     </beta>
                 </control>
             </hland_v1>
-            <hstream_v1>
+            <musk_classic>
                 <control>
-                    <lag>
+                    <nmbsegments>
                         <name>lag</name>
                         <level>global</level>
                         <init>5.0</init> <!--parameterstep???-->
-                    </lag>
-                    <damp>
+                        <keyword>lag</keyword>
+                    </nmbsegments>
+                    <coefficients>
                         <name>damp</name>
                         <level>global</level>
                         <init>0.5</init>
-                    </damp>
+                        <keyword>damp</keyword>
+                    </coefficients>
                 </control>
-            </hstream_v1>
+            </musk_classic>
         </setitems>
         <setitems>
             <hland_v1>

@@ -571,7 +571,7 @@ patch(template % "StateSequences") as states:
         the |Sequences.iosubsequences| property only yields those subgroups which are
         non-empty:
 
-        >>> model = prepare_model("hstream_v1", "1d")
+        >>> model = prepare_model("musk_classic", "1d")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         states
@@ -3440,13 +3440,13 @@ could result in segmentation faults when using it, so please be careful).
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        We focus on the |hstream_v1| application model `stream_lahn_1_lahn_2` routing
+        We focus on the |musk_classic| application model `stream_lahn_1_lahn_2` routing
         inflow from node `lahn_1` to node `lahn_2`:
 
         >>> model = hp.elements.stream_lahn_1_lahn_2.model
 
-        The first example shows that the 0-dimensional outlet sequence
-        |hstream_outlets.Q| points to the |Sim| sequence of node `lahn_2`:
+        The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
+        points to the |Sim| sequence of node `lahn_2`:
 
         >>> model.sequences.outlets.q
         q(0.0)
@@ -3457,8 +3457,8 @@ could result in segmentation faults when using it, so please be careful).
         >>> hp.nodes.lahn_2.sequences.sim
         sim(2.0)
 
-        The second example shows that the 1-dimensional inlet sequence
-        |hstream_inlets.Q| points to the |Sim| sequence of node `lahn_1`:
+        The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
+        points to the |Sim| sequence of node `lahn_1`:
 
         >>> model.sequences.inlets.q
         q(0.0)
@@ -3495,7 +3495,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 `float`, the following error occurred: could not broadcast input array from shape \
 (2,) into shape (1,)
 
-        In the example above, the 1-dimensional inlet sequence |hstream_inlets.Q| only
+        In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
         points a single |NodeSequence| value.  We now prepare a |hbranch_v1|
         application model instance to show what happens when connecting a 1-dimensional
         |LinkSequence| object (|hbranch_outlets.Branched|) with three |NodeSequence|
@@ -3574,7 +3574,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         Change the shape of a link sequence for good reasons only.  Please read the
         documentation on property |LinkSequence.value| first and then see the following
         examples, which are, again, based on the `LahnH` example project and
-        application model |hstream_v1|:
+        application model |musk_classic|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3582,7 +3582,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
         link sequences with a proper shape (which, for inlet sequence |
-        hstream_inlets.Q|, depends on the number of connected |Node| objects):
+        musk_inlets.Q|, depends on the number of connected |Node| objects):
 
         >>> model.sequences.outlets.q.shape
         ()

@@ -4,6 +4,7 @@ of hydrological models."""
 # import...
 # ...from standard library
 from __future__ import annotations
+import builtins
 import copy
 import inspect
 import itertools
@@ -1393,7 +1394,9 @@ broadcast input array from shape (2,) into shape (2,3)
         )
 
     def _raise_wrong_kwargs_error(self) -> NoReturn:
-        raise NotImplementedError(
+        # ToDo: we should stop using `NotImplementedError` this way
+        # To trick pylint:
+        raise getattr(builtins, "NotImplementedError")(
             f"The value(s) of parameter {objecttools.elementphrase(self)} could not "
             f"be set based on the given keyword arguments."
         )

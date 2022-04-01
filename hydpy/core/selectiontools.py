@@ -511,6 +511,7 @@ objects, but the type of the given argument is `str`.
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
+        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
                 prefix = f"{prefix}{type(self).__name__}("
@@ -1495,6 +1496,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
+        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):

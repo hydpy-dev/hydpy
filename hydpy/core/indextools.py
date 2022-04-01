@@ -188,7 +188,7 @@ period is `5`.
         timegrids = _get_timegrids(func)
         type_ = type(func(timegrids.init[0]))
         idxs = numpy.empty(len(timegrids.init), dtype=type_)
-        with hydpy.pub.options.timestampleft(True):
+        with hydpy.pub.options.timestampleft(True):  # pylint: disable=not-callable
             for jdx, date in enumerate(hydpy.pub.timegrids.init):
                 idxs[jdx] = func(date)
         return idxs

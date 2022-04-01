@@ -569,7 +569,7 @@ Assuming `current time` according to the type of the relevant sequence (`SM`).
             f"boundary` according to the current value of the global `timestampleft` "
             f"option."
         )
-    with opts.timestampleft(left):
+    with opts.timestampleft(left):  # pylint: disable=not-callable
         timepoints = ncfile[varmapping["timepoints"]]
         refdate = timetools.Date.from_cfunits(timepoints.units)
         return timetools.Timegrid.from_timepoints(
@@ -1566,7 +1566,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             timeunit = init.firstdate.to_cfunits("hours")
             opts = hydpy.pub.options
             if _timereference_currenttime(next(iter(self._descr2sequence.values()))):
-                with opts.timestampleft(False):
+                with opts.timestampleft(False):  # pylint: disable=not-callable
                     timepoints = init.to_timepoints("hours")
                 ncfile.timereference = "current time"
             else:

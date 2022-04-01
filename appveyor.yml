@@ -19,6 +19,10 @@ environment:
       make_exe: true
       python_mode: false
       cython_mode: false
+    - PYTHON: "C:\\Python310-x64"
+      make_exe: false
+      python_mode: false
+      cython_mode: true
 
 install:
 #  - cinst nsis

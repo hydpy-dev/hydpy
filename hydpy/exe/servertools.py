@@ -387,7 +387,7 @@ class ServerState:
         write("Interpret the defined period")
         self.interface.update_timegrids()
         write("Read all network files")
-        hp.prepare_network()
+        self.interface.network_io.prepare_network()
         write("Create the custom selections (if defined)")
         self.interface.update_selections()
         write("Activate the selected network")

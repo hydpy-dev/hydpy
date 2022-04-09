@@ -114,6 +114,9 @@
     <element name="keywords"
              type="hpcb:nonEmptyListOfStrings"/>
 
+    <element name="network_io"
+             type="hpcb:nonEmptyListOfStrings"/>
+
     <element name="control_io"
              type="hpcb:nonEmptyListOfStrings"/>
 

@@ -47,6 +47,8 @@
         from_selections
     </selections>
 
+    <network_io>default</network_io>
+
     <control_io>default</control_io>
 
     <conditions_io>

@@ -321,7 +321,7 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Interpret the defined period")
     interface.update_timegrids()
     write("Read all network files")
-    hp.prepare_network()
+    interface.network_io.prepare_network()
     write("Create the custom selections (if defined)")
     interface.update_selections()
     write("Activate the selected network")
@@ -861,6 +861,24 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return fullselection
 
     @property
+    def network_io(self) -> Union[XMLNetworkDefault, XMLNetworkUserDefined]:
+        """The `network_io` element defined in the actual XML file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface("single_run.xml", make_filepath("LahnH"))
+        >>> interface.network_io.text
+        'default'
+        >>> interface = XMLInterface("multiple_runs.xml", make_filepath("LahnH"))
+        >>> interface.network_io.text
+        'default'
+        """
+        network_io = self.find("network_io", optional=True)
+        if network_io is None:
+            return XMLNetworkDefault(self, text="default")
+        return XMLNetworkUserDefined(self, network_io, text=network_io.text)
+
+    @property
     def control_io(self) -> Union[XMLControlDefault, XMLControlUserDefined]:
         """The `control_io` element defined in the actual XML file.
 
@@ -914,6 +932,62 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         'exchange'
         """
         return XMLExchange(self, self.find("exchange", optional=False))
+
+
+class XMLNetworkBase:
+    """Base class for |XMLNetworkDefault| and |XMLNetworkUserDefined|."""
+
+    master: XMLInterface
+    text: Optional[str]
+
+    def prepare_network(self) -> None:
+        """Prepare the |Selections| object available in the global |pub| module:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import attrready, HydPy, pub, TestIO, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
+        >>> with TestIO():
+        ...     interface = XMLInterface("single_run.xml")
+        ...     interface.find("network_io").text = "wrong"
+        ...     interface.network_io.prepare_network()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The directory `...wrong` does not contain any network files.
+
+        >>> with TestIO():
+        ...     interface = XMLInterface("single_run.xml")
+        ...     interface.find("network_io").text = "default"
+        ...     interface.network_io.prepare_network()  # doctest: +ELLIPSIS
+        >>> pub.selections
+        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        """
+        if self.text:
+            hydpy.pub.networkmanager.currentdir = str(self.text)
+        hydpy.pub.selections = hydpy.pub.networkmanager.load_files()
+
+
+class XMLNetworkDefault(XMLNetworkBase):
+    """Helper class for |XMLInterface| responsible for loading devices from network
+    files when the XML file does not specify a network directory."""
+
+    def __init__(self, master: XMLInterface, text: Optional[str]) -> None:
+        self.master: XMLInterface = master
+        self.text: Optional[str] = text
+
+
+class XMLNetworkUserDefined(XMLBase, XMLNetworkBase):
+    """Helper class for |XMLInterface| responsible for loading devices from network
+    files when the XML file specifies a network directory."""
+
+    def __init__(
+        self, master: XMLInterface, root: ElementTree.Element, text: Optional[str]
+    ) -> None:
+        self.master: XMLInterface = master
+        self.root: ElementTree.Element = root
+        self.text: Optional[str] = text
 
 
 class XMLControlBase:
@@ -1519,7 +1593,7 @@ class XMLSubseries(XMLSelector):
         triggers writing the complete time-series "just in time" during the simulation
         run.  In contrast, the writer "averaged" initiates writing averaged time-series
         after the simulation run.  The configuration of sequence |hland_states.SM|
-        reflects this with both "ram flag" and "disk flag writing" being "True":
+        reflects this, with both "ram flag" and "disk flag writing" being "True":
 
         >>> print_io_options("states", "sm")
         ramflag=True

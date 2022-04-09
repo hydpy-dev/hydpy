@@ -647,29 +647,27 @@ class IntegrationTest(Test):
     def _perform_simulation(self, get_conditions):
         if get_conditions:
             date = timetools.Date(get_conditions)
+            if date > hydpy.pub.timegrids.init.firstdate:
+                hydpy.pub.timegrids.sim = timetools.Timegrid(
+                    firstdate=hydpy.pub.timegrids.init.firstdate,
+                    lastdate=date,
+                    stepsize=hydpy.pub.timegrids.stepsize,
+                )
+                self.hydpy.simulate()
+            conditions = self.element.model.sequences.conditions
+            if date < hydpy.pub.timegrids.init.lastdate:
+                hydpy.pub.timegrids.sim = timetools.Timegrid(
+                    firstdate=date,
+                    lastdate=hydpy.pub.timegrids.init.lastdate,
+                    stepsize=hydpy.pub.timegrids.stepsize,
+                )
+                self.hydpy.simulate()
             hydpy.pub.timegrids.sim = timetools.Timegrid(
                 firstdate=hydpy.pub.timegrids.init.firstdate,
-                lastdate=date,
-                stepsize=hydpy.pub.timegrids.stepsize,
-            )
-            self.hydpy.simulate()
-            seq2value = {"states": {}, "logs": {}}
-            for seq in self.element.model.sequences.states:
-                seq2value["states"][seq.name] = copy.deepcopy(seq.value)
-            for seq in self.element.model.sequences.logs:
-                seq2value["logs"][seq.name] = copy.deepcopy(seq.value)
-            hydpy.pub.timegrids.sim = timetools.Timegrid(
-                firstdate=date,
                 lastdate=hydpy.pub.timegrids.init.lastdate,
                 stepsize=hydpy.pub.timegrids.stepsize,
             )
-            self.hydpy.simulate()
-            hydpy.pub.timegrids.sim = timetools.Timegrid(
-                firstdate=hydpy.pub.timegrids.init.firstdate,
-                lastdate=hydpy.pub.timegrids.init.lastdate,
-                stepsize=hydpy.pub.timegrids.stepsize,
-            )
-            return seq2value
+            return conditions
         self.hydpy.simulate()
         return None
 

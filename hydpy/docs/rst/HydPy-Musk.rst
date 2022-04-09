@@ -24,3 +24,4 @@ Application models:
    :maxdepth: 1
 
    musk_classic
+   musk_mct

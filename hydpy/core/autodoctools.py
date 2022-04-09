@@ -390,6 +390,7 @@ def _gain_and_insert_additional_information_into_docstrings(
             ("CONTROLPARAMETERS", "Required"),
             ("DERIVEDPARAMETERS", "Required"),
             ("FIXEDPARAMETERS", "Required"),
+            ("SOLVERPARAMETERS", "Required"),
             ("RESULTSEQUENCES", "Calculated"),
             ("UPDATEDSEQUENCES", "Updated"),
             ("REQUIREDSEQUENCES", "Required"),

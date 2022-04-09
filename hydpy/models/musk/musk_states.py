@@ -2,67 +2,70 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-import warnings
-
 # ...from site-packages
 import numpy
 
 # ...from HydPy
-from hydpy.core import objecttools
-from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.musk import musk_sequences
 
 
-class Q(sequencetools.StateSequence):
-    """Current runoff at the segment endpoints [m³/s].
+class CourantNumber(musk_sequences.StateSequence1D):
+    """Courant number [-]."""
 
-    When a wrong number of input values is given, |musk_states.Q| uses their
-    average and emits the following warning:
+    SPAN = (None, None)
 
-    >>> from hydpy.models.musk import *
-    >>> parameterstep()
-    >>> nmbsegments(2)
-    >>> from hydpy.core.testtools import warn_later
-    >>> with warn_later():
-    ...     states.q(1.0, 2.0)
-    UserWarning: Due to the following problem, state sequence `q` of element `?` \
-handling model `musk` could be  initialised with an averaged value only: While trying \
-to set the value(s) of variable `q`, the following error occurred: While trying to \
-convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(3,)` and type \
-`float`, the following error occurred: could not broadcast input array from shape \
-(2,) into shape (3,)
 
-    >>> states.q
-    q(1.5, 1.5, 1.5)
+class ReynoldsNumber(musk_sequences.StateSequence1D):
+    """Cell Reynolds number [-]."""
 
-    >>> states.q(1.0, 2.0, 3.0)
-    >>> states.q
-    q(1.0, 2.0, 3.0)
-    """
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
-    def __call__(self, *args) -> None:
-        try:
-            super().__call__(*args)
-        except BaseException as exc:
-            super().__call__(numpy.mean(args))
-            warnings.warn(
-                f"Due to the following problem, state sequence "
-                f"{objecttools.elementphrase(self)} handling model "
-                f"`{self.subseqs.seqs.model}` could be  initialised with an averaged "
-                f"value only: {exc}"
-            )
+class Discharge(musk_sequences.StateSequence1D):
+    """Current discharge at the segment endpoints [m³/s]."""
+
+    SPAN = (0.0, None)
 
     @property
     def refweights(self) -> NDArrayFloat:
-        """A |numpy| |numpy.ndarray| with equal weights for all segment junctions.
+        """Modified relative length of all channel segments.
+
+        Opposed to other 1-dimensional |musk| sequences, |Discharge| handles values
+        that apply to the start and endpoint of each channel segment.
+        |Discharge.refweights| adjusts the returned relative lengths of all segments so
+        that functions like |Variable.average_values| calculate the weighted average of
+        the mean values of all segments, each one gained by averaging the discharge
+        value at the start and the endpoint:
 
         >>> from hydpy.models.musk import *
-        >>> parameterstep("1d")
-        >>> states.q.shape = 5
-        >>> states.q.refweights
-        array([0.2, 0.2, 0.2, 0.2, 0.2])
+        >>> parameterstep()
+        >>> nmbsegments(3)
+        >>> length(4.0, 1.0, 3.0)
+        >>> states.discharge.refweights
+        array([0.25  , 0.3125, 0.25  , 0.1875])
+
+        >>> states.discharge = 1.0, 2.0, 3.0, 4.0
+        >>> states.discharge.average_values()
+        2.375
+
+        For a (non-existing) channel with zero segments, |Discharge.refweights| a
+        single weight with the value one:
+
+        >>> nmbsegments(0)
+        >>> states.discharge.refweights
+        array([1.])
         """
-        return numpy.full(self.shape, 1.0 / self.shape[0], dtype=float)
+        control = self.subseqs.seqs.model.parameters.control
+        nmbsegments = control.nmbsegments.value
+        if nmbsegments == 0:
+            return numpy.array([1.0], dtype=float)
+        if hasattr(control, "length"):
+            length = control.length.values
+        else:
+            length = numpy.ones((self.shape[0] - 1,), dtype=float)
+        weights = numpy.zeros(self.shape, dtype=float)
+        weights[:-1] = length
+        weights[1:] += length
+
+        return weights / numpy.sum(weights)

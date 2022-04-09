@@ -7,6 +7,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
+from hydpy.models.musk import musk_parameters
 
 
 class NmbSegments(parametertools.Parameter):
@@ -21,9 +22,18 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments
     nmbsegments(2)
 
-    |NmbSegments| prepares the shape of sequence |musk_states.Q| automatically:
+    |NmbSegments| prepares the shape of most 1-dimensional parameters and sequences
+    automatically:
 
-    >>> states.q.shape
+    >>> length.shape
+    (2,)
+    >>> derived.perimeterincrease.shape
+    (2,)
+    >>> factors.referencewaterlevel.shape
+    (2,)
+    >>> fluxes.referencedischarge.shape
+    (2,)
+    >>> states.discharge.shape
     (3,)
 
     If you prefer to configure |musk| in the style of HBV96
@@ -34,7 +44,7 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments(lag=2.5)
     >>> nmbsegments
     nmbsegments(lag=2.5)
-    >>> states.q.shape
+    >>> states.discharge.shape
     (6,)
 
     Negative `lag` values are trimmed to zero:
@@ -46,7 +56,7 @@ class NmbSegments(parametertools.Parameter):
 `lag` with value `-1.0` needed to be trimmed to `0.0`.
     >>> nmbsegments
     nmbsegments(lag=0.0)
-    >>> states.q.shape
+    >>> states.discharge.shape
     (1,)
 
     Calculating an integer number of segments from a time lag defined as a
@@ -55,21 +65,20 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments(lag=0.9)
     >>> nmbsegments
     nmbsegments(lag=0.9)
-    >>> states.q.shape
+    >>> states.discharge.shape
     (3,)
 
-    |NmbSegments| preserves existing |musk_states.Q| values if the number of segments
-    does not change:
+    |NmbSegments| preserves existing values if the number of segments does not change:
 
-    >>> states.q = 1.0, 2.0, 3.0
+    >>> states.discharge = 1.0, 2.0, 3.0
     >>> nmbsegments(2)
     >>> nmbsegments
     nmbsegments(2)
-    >>> states.q
-    q(1.0, 2.0, 3.0)
+    >>> states.discharge
+    discharge(1.0, 2.0, 3.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
 
     def __call__(self, *args, **kwargs) -> None:
@@ -82,10 +91,28 @@ class NmbSegments(parametertools.Parameter):
             lag /= self.get_timefactor()
             self.value = int(round(lag))
             self._keywordarguments = parametertools.KeywordArguments(lag=lag)
-        shape = (self.value + 1,)
-        q = self.subpars.pars.model.sequences.states.q
-        if exceptiontools.getattr_(q, "shape", None) != shape:
-            q.shape = shape
+
+        shape = self.value
+        model = self.subpars.pars.model
+        model.nmb_segments = shape
+        pars, seqs = model.parameters, model.sequences
+        for subvars in (
+            pars.control,
+            pars.derived,
+            seqs.factors,
+            seqs.fluxes,
+            seqs.states,
+        ):
+            for variable in (var for var in subvars if var.NDIM == 1):
+                if variable.name == "coefficients":
+                    continue
+                oldshape = exceptiontools.getattr_(variable, "shape", None)
+                if variable.name == "discharge":
+                    if oldshape != (shape + 1,):
+                        variable.shape = (shape + 1,)
+                else:
+                    if oldshape != (shape,):
+                        variable.shape = (shape,)
 
     def __repr__(self) -> str:
         if self._keywordarguments.valid:
@@ -99,7 +126,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
 
     There are three options for defining the (fixed) coefficients of the Muskingum
     working formula.  First, you can define them manually (see the documentation on
-    method |Calc_Q_V1| on how these coefficients are applied):
+    method |Calc_Discharge_V1| on how these coefficients are applied):
 
     >>> from hydpy.models.musk import *
     >>> simulationstep("12h")
@@ -284,3 +311,45 @@ with value `1.0` needed to be trimmed to `0.0`.
                 strings.append(f"{name}={objecttools.repr_(value)}")
             return f"{self.name}({', '.join(strings)})"
         return super().__repr__()
+
+
+class Length(parametertools.Parameter):
+    """Segment length [km]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class BottomSlope(musk_parameters.Parameter1D):
+    r"""Bottom slope [-].
+
+    :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
+    """
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class BottomWidth(musk_parameters.Parameter1D):
+    """Bottom width [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class SideSlope(musk_parameters.Parameter1D):
+    """Side slope [-].
+
+    A value of zero corresponds to a rectangular channel shape.  A value of two
+    corresponds to an increase of a half meter elevation for each additional meter
+    distance from the channel.
+    """
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class StricklerCoefficient(musk_parameters.Parameter1D):
+    """Gauckler-Manning-Strickler coefficient [m^(1/3)/s].
+
+    The higher the coefficient's value, the higher the calculated discharge.  Typical
+    values range from 20 to 80.
+    """
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)

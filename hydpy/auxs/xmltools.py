@@ -1386,7 +1386,7 @@ class XMLSubseries(XMLSelector):
         hland_v1 factors ['tc']
         hland_v1 fluxes ['tf']
         hland_v1 states ['sm']
-        musk_classic states ['q']
+        musk_classic states ['discharge']
         """
         model2subs2seqs: DefaultDict[str, DefaultDict[str, List[str]]]
         model2subs2seqs = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -2295,11 +2295,27 @@ class XSDWriter:
             file_.write(template)
 
     @staticmethod
-    def get_modelnames() -> List[str]:
+    def get_basemodelnames() -> List[str]:
+        """Return a sorted |list| containing all base model names.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_basemodelnames())  # doctest: +ELLIPSIS
+        ['arma', 'conv', ..., 'wland']
+        """
+        modelspath: str = models.__path__[0]
+
+        def _is_basemodel(dirname: str) -> bool:
+            pathname = os.path.join(modelspath, dirname)
+            return os.path.isdir(pathname) and ("__init__.py" in os.listdir(pathname))
+
+        return sorted(dn for dn in os.listdir(modelspath) if _is_basemodel(dn))
+
+    @staticmethod
+    def get_applicationmodelnames() -> List[str]:
         """Return a sorted |list| containing all application model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_modelnames())  # doctest: +ELLIPSIS
+        >>> print(XSDWriter.get_applicationmodelnames())  # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
         modelspath: str = models.__path__[0]
@@ -2388,7 +2404,7 @@ class XSDWriter:
         subs = []
         types_: Tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
         for type_ in types_:
-            for name in cls.get_modelnames():
+            for name in cls.get_applicationmodelnames():
                 model = importtools.prepare_model(name)
                 modelinsertion = cls.get_modelinsertion(
                     model=model, type_=type_, indent=indent + 2
@@ -2602,7 +2618,7 @@ class XSDWriter:
             f'{blanks}                 type="hpcb:node_{type_}Type"',
             f'{blanks}                 minOccurs="0"/>',
         ]
-        for name in cls.get_modelnames():
+        for name in cls.get_applicationmodelnames():
             if (type_ == "writer") or importtools.prepare_model(name).sequences.inputs:
                 subs.extend(
                     [
@@ -2667,7 +2683,7 @@ class XSDWriter:
         """
         blanks = " " * (indent * 4)
         subs = []
-        for modelname in cls.get_modelnames():
+        for modelname in cls.get_applicationmodelnames():
             model = importtools.prepare_model(modelname)
             subs.extend(
                 [
@@ -2722,7 +2738,7 @@ class XSDWriter:
         """
         blanks = " " * (indent * 4)
         subs = []
-        for modelname in cls.get_modelnames():
+        for modelname in cls.get_basemodelnames():
             model = importtools.prepare_model(modelname)
             for subvars in cls._get_subvars(model, conditions=False):
                 for var in subvars:
@@ -2802,7 +2818,7 @@ class XSDWriter:
                 f'{blanks}                     minOccurs="0"/>',
             ]
         )
-        for modelname in cls.get_modelnames():
+        for modelname in cls.get_applicationmodelnames():
             type_ = cls._get_itemstype(modelname, itemgroup)
             subs.append(f'{blanks}            <element name="{modelname}"')
             subs.append(f'{blanks}                     type="hpcb:{type_}"')
@@ -2843,7 +2859,7 @@ class XSDWriter:
         ...
         """
         subs = []
-        for modelname in cls.get_modelnames():
+        for modelname in cls.get_applicationmodelnames():
             subs.append(cls.get_itemtypeinsertion(itemgroup, modelname, indent))
         subs.append(cls.get_nodesitemtypeinsertion(itemgroup, indent))
         return "\n".join(subs)

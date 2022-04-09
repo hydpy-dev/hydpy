@@ -4,4 +4,4 @@ from hydpy.models.musk_classic import *
 
 controlcheck(projectdir=r"LahnH", controldir="default")
 
-q(35.0)
+discharge(35.0)

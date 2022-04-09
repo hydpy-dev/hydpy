@@ -2,6 +2,7 @@
 """This module implements tools for testing *HydPy* and its models."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import builtins
 import contextlib
@@ -781,10 +782,7 @@ datetime of the Python standard library for for further information.
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
-                for seq in self.element.model.sequences.states:
-                    seq(use_conditions["states"][seq.name])
-                for seq in self.element.model.sequences.logs:
-                    seq(use_conditions["logs"][seq.name])
+                self.element.model.sequences.conditions = use_conditions
         self.reset_inits()
 
     def reset_outputs(self):
@@ -1626,10 +1624,7 @@ def _enumerate(variables: Iterable[Type[typingtools.VariableProtocol]]) -> str:
     )
 
 
-def check_methodorder(
-    model: "modeltools.Model",
-    indent: int = 0,
-) -> str:
+def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     """Check that *HydPy* calls the methods of the given application model
     in the correct order for each simulation step.
 
@@ -1730,23 +1725,19 @@ which are not among the result sequences of any of its predecessors: TKor
     return "\n".join(results)
 
 
-def check_selectedvariables(
-    method: "modeltools.Method",
-    indent: int = 0,
-) -> str:
+def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
-    The purpose of this function is to help model developers ensure
-    that the class tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`,
-    `FIXEDPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and
-    `RESULTSEQUENCES` contain the correct parameter and sequence
-    subclasses.  *HydPy's* test routines apply |check_selectedvariables|
-    automatically on each method of each available application model.
-    Alternatively, you can also execute it at the end of the docstring
-    of an individual |Method| subclass "manually", which suppresses
-    the automatic execution and allows to check and discuss exceptional
-    cases where |check_selectedvariables| generates false alarms.
+    The purpose of this function is to help model developers ensure that the class
+    tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`, `FIXEDPARAMETERS`,
+    `SOLVERPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES`
+    contain the correct parameter and sequence subclasses.  *HydPy's* test routines
+    apply |check_selectedvariables| automatically on each method of each available
+    application model.  Alternatively, you can also execute it at the end of the
+    docstring of an individual |Method| subclass "manually", which suppresses the
+    automatic execution and allows to check and discuss exceptional cases where
+    |check_selectedvariables| generates false alarms.
 
     Do not expect |check_selectedvariables| to catch all possible
     errors.  Also, false positives might occur.  However, in our experience,
@@ -1849,6 +1840,7 @@ def check_selectedvariables(
         "con",
         "der",
         "fix",
+        "sol",
         "inp",
         "fac",
         "flu",
@@ -1866,14 +1858,15 @@ def check_selectedvariables(
         "CONTROLPARAMETERS",
         "DERIVEDPARAMETERS",
         "FIXEDPARAMETERS",
+        "SOLVERPARAMETERS",
         "REQUIREDSEQUENCES",
         "UPDATEDSEQUENCES",
         "RESULTSEQUENCES",
     )
     blanks = " " * indent
     results: List[str] = []
-    # search for variables that are used in the source code but not
-    # among the selected variables:
+    # search for variables that are used in the source code but not among the selected
+    # variables:
     source = inspect.getsource(method.__call__)
     varnames_source: Set[str] = set()
     unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
@@ -1891,8 +1884,8 @@ def check_selectedvariables(
             f"{blanks}Definitely missing: {objecttools.enumeration(varnames_diff)}"
         )
 
-    # search for variables selected by at least one submethod
-    # but not by the method calling these submethods:
+    # search for variables selected by at least one submethod but not by the method
+    # calling these submethods:
     vars_method: Set[Type[typingtools.VariableProtocol]]
     vars_submethods: Set[Type[typingtools.VariableProtocol]]
     for group in groups:
@@ -1913,8 +1906,8 @@ def check_selectedvariables(
                     results.append(f"{blanks}Possibly missing ({group}):")
                 results.append(f"{blanks}    {submethod.__name__}: {_enumerate(diff)}")
 
-    # search for selected variables that are neither used within the
-    # source code nor selected by any submethod:
+    # search for selected variables that are neither used within the source code nor
+    # selected by any submethod:
     group2vars_method: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
         g: set(getattr(method, g)) for g in groups
     }
@@ -1956,8 +1949,7 @@ def check_selectedvariables(
 
 
 def perform_consistencychecks(
-    applicationmodel=Union[types.ModuleType, str],
-    indent: int = 0,
+    applicationmodel=Union[types.ModuleType, str], indent: int = 0
 ) -> str:
     """Perform all available consistency checks for the given application model.
 

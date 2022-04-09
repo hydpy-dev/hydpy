@@ -574,6 +574,7 @@ patch(template % "StateSequences") as states:
         >>> model = prepare_model("musk_classic", "1d")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
+        fluxes
         states
         """
         if self.inputs:

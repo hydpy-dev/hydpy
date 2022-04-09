@@ -4,7 +4,6 @@
 .. _`Williams (1969)`: \
 https://elibrary.asabe.org/abstract.asp?aid=38772&confalias=
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
-.. _`Todini (2007)`: https://www.hydrol-earth-syst-sci.net/11/1645/2007
 
 Version 1 of *HydPy-L-Stream* is a kinematic wave routing approach.
 Initially, we designed it to agree with the variable storage-coefficient
@@ -83,7 +82,7 @@ main channel flow
 _________________
 
 For our first test, we take up one of the examples given by
-`Todini (2007)`_, focussing on the routing of a unimodal flood wave
+:cite:t:`ref-Todini2007`, focussing on the routing of a unimodal flood wave
 through a 100 km long channel exhibiting the trapezoidal cross-section
 shown in figure 5.
 
@@ -117,7 +116,7 @@ to 3.71783276 m, which results in an initial outflow of 100 m³/s:
 >>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
 
 Now we define the geometry and roughness values for the main channel
-given by `Todini (2007)`_:
+given by :cite:t:`ref-Todini2007`:
 
 >>> laen(100.0)
 >>> gef(0.00025)
@@ -148,8 +147,8 @@ leaves the main channel:
 
 >>> hr(0.1)
 
-`Todini (2007)`_ divides the channel into different numbers of subsections
-in his experiments.  Here, we define eight subsections, which is in
+:cite:t:`ref-Todini2007` divides the channel into different numbers of
+subsections in his experiments.  Here, we define eight subsections, which is in
 agreement with the characteristic length of the Kalinin-Milyukov method:
 
 >>> gts(8)
@@ -181,7 +180,7 @@ as well as all relevant variables calculated internally.  |QG| shows
 the typical storage cascade pattern with translation and retention
 increasing from subsection to subsection. |lstream_v001| keeps the water
 balance with high accuracy.  The height and timing of the calculated peak flow
-agree very well with the results of `Todini (2007)`_ (see figure 13):
+agree very well with the results of :cite:t:`ref-Todini2007` (see figure 13):
 
 .. integration-test::
 

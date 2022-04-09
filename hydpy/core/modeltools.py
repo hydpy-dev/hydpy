@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for applying and implementing hydrological models.
-
-.. _`thorough description`: http://www.hydrology.ruhr-uni-bochum.de/\
-hydrolgy/mam/download/schriftenreihe_29.pdf
-
-.. _`Clark and Kavetski`: \
-https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894
-"""
+"""This module provides features for applying and implementing hydrological models."""
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -42,6 +35,7 @@ class Method:
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -77,10 +71,10 @@ class IndexProperty:
 class Idx_Sim(IndexProperty):
     """The simulation step index.
 
-    Some model methods require to know the index of the current simulation step (with
+    Some model methods require knowing the index of the current simulation step (with
     respect to the initialisation period), which one usually updates by passing it to
-    |Model.simulate|.  However, you are allowed to change it manually via the
-    |modeltools.Idx_Sim| descriptor, which is often beneficial during testing:
+    |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
+    descriptor, which is often beneficial during testing:
 
     >>> from hydpy.models.hland_v1 import *
     >>> parameterstep("1d")
@@ -104,24 +98,46 @@ class Idx_Sim(IndexProperty):
 class Idx_HRU(IndexProperty):
     """The hydrological response unit index.
 
-    See class |Idx_Sim| for an explanation on the purpose and handling of objects of
-    |IndexProperty| subclasses.
+    The documentation on class |Idx_Sim| explains the general purpose and handling of
+    |IndexProperty| instances.
     """
 
     def __init__(self) -> None:
         self.__doc__ = "The hydrological response unit index."
 
 
+class Idx_Segment(IndexProperty):
+    """The segment index.
+
+    The documentation on class |Idx_Sim| explains the general purpose and handling of
+    |IndexProperty| instances.
+    """
+
+    def __init__(self) -> None:
+        self.__doc__ = "The segment index."
+
+
+class Idx_Run(IndexProperty):
+    """The run index.
+
+    The documentation on class |Idx_Sim| explains the general purpose and handling of
+    |IndexProperty| instances.
+    """
+
+    def __init__(self) -> None:
+        self.__doc__ = "The run index."
+
+
 class Model:
     """Base class for all hydrological models.
 
     Class |Model| provides everything to create a usable application model, except
-    method |Model.simulate|.  See class |AdHocModel| and |ELSModel|, which implement
+    method |Model.simulate|.  See classes |AdHocModel| and |ELSModel|, which implement
     this method.
 
     Each final |Model| object has two attributes named `parameters` and `sequences`,
-    providing access to all parameter and sequence values, respectively.  For example,
-    the application model |hland_v1| so provides access to the control parameter
+    providing access to all parameter and sequence values.  For example, the
+    application model |hland_v1| so provides access to the control parameter
     |hland_control.NmbZones| and the input sequence |hland_inputs.P|:
 
     >>> from hydpy.models.hland_v1 import *
@@ -133,8 +149,8 @@ class Model:
 
     Both attributes are dynamic.  You need to add them manually whenever you want to
     prepare a workable |Model| object on your own (see the factory functions
-    |prepare_model| and |parameterstep|, which do this regularly).  In case you forget
-    to do so, you get the following error message:
+    |prepare_model| and |parameterstep|, which do this regularly).  If you forget to do
+    so, you get the following error message:
 
     >>> from hydpy.models.hland_v1 import Model
     >>> Model().parameters
@@ -149,7 +165,7 @@ is not available at the moment.
     AttributeError: The dynamic attribute `sequences` of `hland_v1` of element `?` is \
 not available at the moment.
 
-    Other wrong attribute names result in the familiar error message:
+    Other wrong attribute names result in a familiar error message:
 
     >>> Model().wrong
     Traceback (most recent call last):
@@ -157,8 +173,8 @@ not available at the moment.
     AttributeError: 'Model' object has no attribute 'wrong'
 
     Similar to `parameters` and `sequences`, there is also the dynamic `masks`
-    attribute, making all predefined masks of the actual model type available within in
-    a |Masks| objects:
+    attribute, making all predefined masks of the actual model type available within a
+    |Masks| object:
 
     >>> model.masks
     complete of module hydpy.models.hland.hland_masks
@@ -175,8 +191,9 @@ not available at the moment.
 
     You can use these masks, for example, to average the zone-specific precipitation
     values handled by sequence |hland_fluxes.PC|.  When passing no argument, method
-    |Variable.average_values| applies the `complete` mask.  Pass mask `land` to average
-    the values of all zones except those of type |hland_constants.ILAKE|:
+    |Variable.average_values| applies the `complete` mask.  For example, pass mask
+    `land` to average the values of all zones except those of type
+    |hland_constants.ILAKE|:
 
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
@@ -369,7 +386,7 @@ The following nodes have not been connected to any sequences: in2.
         well), whereas |hland_inputs.P| gets its data from node `inp1`.  Flux sequence
         |hland_fluxes.Q0| and state sequence |hland_states.UZ| pass their data to two
         separate output nodes, whereas all other fluxes and states do not.  This
-        functionality requires to tell each node which sequence it should connect to,
+        functionality requires telling each node which sequence it should connect to,
         which we do by passing the sequence types (or the globally available aliases
         `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword of different
         node objects:
@@ -629,7 +646,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> hland.name
         'hland'
 
-        For application models, |Model.name| corresponds the module name:
+        For application models, |Model.name| to corresponds the module name:
 
         >>> hland_v1 = prepare_model("hland_v1")
         >>> hland_v1.name
@@ -921,14 +938,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         )
 
 
-class AdHocModel(Model):
-    """Base class for models solving the underlying differential equations in an "ad
-    hoc manner".
-
-    "Ad hoc" stands for the classical approaches in hydrology, to calculate individual
-    fluxes separately (often sequentially) and without error control (see `Clark and
-    Kavetski`_).
-    """
+class RunModel(Model):
+    """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
+    methods", which need to be executed in the order of their positions in the
+    |RunModel.RUN_METHODS| tuple."""
 
     RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
@@ -996,8 +1009,18 @@ class AdHocModel(Model):
         self.update_outlets()
         self.update_outputs()
 
+
+class AdHocModel(RunModel):
+    """Base class for models solving the underlying differential equations in an "ad
+    hoc manner".
+
+    "Ad hoc" stands for the classical approaches in hydrology to calculate individual
+    fluxes separately (often sequentially) and without error control
+    :cite:p:`ref-Clark2010`.
+    """
+
     def run(self) -> None:
-        """Call all methods defined as "RUN_METHODS" in the defined order.
+        """Call all methods defined as "run methods" in the defined order.
 
         >>> from hydpy.core.modeltools import AdHocModel, Method
         >>> class print_1(Method):
@@ -1021,8 +1044,54 @@ class AdHocModel(Model):
             method.__call__(self)
 
 
+class SegmentModel(RunModel):
+    """Base class for (routing) models that solve the underlying differential equations
+    "segment-wise".
+
+    "segment-wise" means that |SegmentModel| first runs the "run methods" for the
+    first segment (by setting |SegmentModel.idx_segment| to zero), then for the
+    second segment (by setting |SegmentModel.idx_segment| to one), and so on.
+    Therefore, it requires the concrete model subclass to provide a control
+    parameter named "NmbSegments".  Additionally, it requires the concrete
+    model to implement a solver parameter named "NmbRuns" that defines how many
+    times the "run methods" need to be (repeatedly) executed for each segment.
+    See |musk_classic| and |musk_mct| as examples.
+    """
+
+    idx_segment = Idx_Segment()
+    idx_run = Idx_Run()
+
+    def run(self) -> None:
+        """Call all methods defined as "run methods" "segment-wise".
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+
+        for idx_segment in range(self.parameters.control.nmbsegments.value):
+            self.idx_segment = idx_segment
+            for idx_run in range(self.parameters.solver.nmbruns.value):
+                self.idx_run = idx_run
+                for method in self.RUN_METHODS:
+                    method.__call__(self)
+
+    def run_segments(self, method: Method) -> Optional[Tuple[float, ...]]:
+        """Run the given methods for all segments.
+
+        Method |SegmentModel.run_segments| is mainly thought for testing purposes.
+        See the documentation on method |musk_model.Calc_Discharge_V1| on how to apply
+        it.
+        """
+        try:
+            for idx in range(self.nmb_segments):
+                self.idx_segment = idx
+                method.__call__()
+        finally:
+            self.idx_segment = 0
+
+
 class SolverModel(Model):
-    """Base class for hydrological models which solve ordinary differential equations
+    """Base class for hydrological models, which solve ordinary differential equations
     with numerical integration algorithms."""
 
     PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -1141,13 +1210,13 @@ class ELSModel(SolverModel):
     and to compare both results.  If they are close enough, the latter results are
     accepted.  If not, the next higher-order method is applied (or, if no higher-order
     method is available, the step size is decreased, and the algorithm restarts with
-    the method of the lowest order).  So far, the `thorough description`_ of the
-    algorithm is available in German only.
+    the method of the lowest order).  So far, a thorough description of the algorithm
+    is available in German only :cite:p:`ref-Tyralla2016`.
 
     Note the strengths and weaknesses of class |ELSModel| discussed in the
     documentation on method |ELSModel.solve|.  Model developers should not derive from
     class |ELSModel| when trying to implement models with a high potential for stiff
-    parameterisations.  Discontinuities should be regularised, for example by the
+    parameterisations.  Discontinuities should be regularised, for example, by the
     "smoothing functions" provided by module |smoothtools|.  Model users should be
     careful not to define two small smoothing factors, to avoid needlessly long
     simulation times.
@@ -1193,11 +1262,11 @@ class ELSModel(SolverModel):
         Implementing numerical integration algorithms that (hopefully) always work well
         in practice is a tricky task.  The following exhaustive examples show how well
         our "Explicit Lobatto Sequence" algorithm performs for the numerical test
-        models |test_v1| and |test_v2|.  We hope to cover all possible corner-cases.
+        models |test_v1| and |test_v2|.  We hope to cover all possible corner cases.
         Please tell us if you find one we missed.
 
         First, we set the value of parameter |test_control.K| to zero, resulting in no
-        changes at all, and thus defining the simplest test case possible:
+        changes at all and thus defining the simplest test case possible:
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
@@ -1299,7 +1368,7 @@ class ELSModel(SolverModel):
         7
 
         |ELSModel| achieves even a very extreme numerical precision (just for testing,
-        way beyond hydrological requirements), in one single step, but now requires a
+        way beyond hydrological requirements) in one single step but now requires a
         total of 29 method calls:
 
         >>> solver.abserrormax(1e-12)
@@ -1375,8 +1444,8 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         44
 
-        If we prevent |ELSModel| from compensating its problems by disallowing it to
-        reduce its integration step size, it does not achieve satisfying results:
+        If we prevent |ELSModel| from compensatingf or its problems by disallowing it
+        to reduce its integration step size, it does not achieve satisfying results:
 
         >>> solver.reldtmin(1.0)
         >>> states.s(1.0)
@@ -1410,7 +1479,7 @@ class ELSModel(SolverModel):
         33
 
         Alternatively, you can restrict the available number of Lobatto methods.  Using
-        two methods only is an inefficient choice for the given initial value problem,
+        two methods only is an inefficient choice for the given initial value problem
         but at least solves it with the required accuracy:
 
         >>> solver.reldtmax(1.0)
@@ -1493,7 +1562,7 @@ class ELSModel(SolverModel):
         >>> from hydpy.models.test_v2 import *
         >>> parameterstep()
 
-        Everything works fine, as long as the discontinuity does not affect the
+        Everything works fine as long as the discontinuity does not affect the
         considered simulation step:
 
         >>> k(0.5)
@@ -2068,7 +2137,7 @@ class ELSModel(SolverModel):
         """Estimate the numerical error expected when applying all methods available
         based on the results of the current and the last method.
 
-        Note that you cannot apply this extrapolation strategy on the first method.  If
+        Note that you cannot apply this extrapolation strategy to the first method.  If
         the current method is the first one, method |ELSModel.extrapolate_error|
         returns `-999.9`:
 

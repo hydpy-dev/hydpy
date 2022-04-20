@@ -21,7 +21,7 @@ class AbsErrorMax(parametertools.SolverParameter):
 
     CONTROLPARAMETERS = (dam_control.CatchmentArea,)
 
-    def modify_init(self):
+    def modify_init(self) -> None:
         r"""Adjust and return the value of class constant `INIT`.
 
         Note that the default initial value 0.01 refers to mm/T.  Hence the actual
@@ -30,8 +30,8 @@ class AbsErrorMax(parametertools.SolverParameter):
         :math:`AbsErrorMax = 0.01 \cdot CatchmentArea \cdot 1000 / Seconds`
 
         >>> from hydpy.models.dam import *
-        >>> parameterstep("1d")
         >>> simulationstep("1h")
+        >>> parameterstep("1d")
         >>> solver.abserrormax.INIT
         0.01
         >>> catchmentarea(2.0)

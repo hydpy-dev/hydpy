@@ -10,6 +10,12 @@ from hydpy.core import variabletools
 from hydpy.models.musk import musk_parameters
 
 
+class CatchmentArea(parametertools.Parameter):
+    """Size of the catchment draining into the channel [km²]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class NmbSegments(parametertools.Parameter):
     """Number of channel segments [-].
 

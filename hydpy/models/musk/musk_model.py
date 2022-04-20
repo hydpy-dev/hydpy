@@ -582,6 +582,7 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
 
         >>> from hydpy.models.musk import *
         >>> parameterstep()
+        >>> catchmentarea(100.0)
         >>> nmbsegments(5)
         >>> bottomslope(0.01)
         >>> stricklercoefficient(20.0)
@@ -610,17 +611,14 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         tolerance is zero; hence, the discharge-related tolerance must stop the
         iteration:
 
-        >>> from hydpy import pub
-        >>> with pub.options.reprdigits(12):
-        ...     solver.tolerancewaterlevel
-        ...     solver.tolerancedischarge
+        >>> solver.tolerancewaterlevel
         tolerancewaterlevel(0.0)
-        tolerancedischarge(0.0000000001)
+        >>> solver.tolerancedischarge
+        tolerancedischarge(0.0001)
 
-        However, even the discharge-related tolerance is minimal.  Increase at least
-        one parameter value to avoid wasting computation time:
+        Increase at least one parameter to reduce computation time:
 
-        >>> solver.tolerancewaterlevel = 0.1
+        >>> solver.tolerancewaterlevel(0.1)
         >>> factors.referencewaterlevel = nan
         >>> model.run_segments(model.calc_referencewaterlevel_v1)
         >>> factors.referencewaterlevel

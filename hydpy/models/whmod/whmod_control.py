@@ -65,22 +65,24 @@ class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     NDIM, TYPE, TIME = 1, bool, None
 
 
-TEMP = {
-    key: value
-    for key, value in whmod_constants.CONSTANTS.items()
-    if value
-    in (
-        GRAS,
-        LAUBWALD,
-        MAIS,
-        NADELWALD,
-        SOMMERWEIZEN,
-        WINTERWEIZEN,
-        ZUCKERRUEBEN,
-        VERSIEGELT,
-        WASSER,
-    )
-}
+TEMP = parametertools.Constants(
+    **{
+        key: value
+        for key, value in whmod_constants.CONSTANTS.items()
+        if value
+        in (
+            GRAS,
+            LAUBWALD,
+            MAIS,
+            NADELWALD,
+            SOMMERWEIZEN,
+            WINTERWEIZEN,
+            ZUCKERRUEBEN,
+            VERSIEGELT,
+            WASSER,
+        )
+    }
+)
 
 
 class Nutz_Nr(parametertools.NameParameter):
@@ -112,11 +114,13 @@ class NutzNrComplete(parametertools.ZipParameter):
 
 del TEMP
 
-TEMP = {
-    key: value
-    for key, value in whmod_constants.CONSTANTS.items()
-    if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
-}
+TEMP = parametertools.Constants(
+    **{
+        key: value
+        for key, value in whmod_constants.CONSTANTS.items()
+        if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
+    }
+)
 
 
 class BodenTyp(parametertools.NameParameter):

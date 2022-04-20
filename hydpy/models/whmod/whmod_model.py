@@ -938,16 +938,17 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> model.corr_bodenverdunstung_v1()
     >>> fluxes.bodenverdunstung
     bodenverdunstung(1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0)
-    >>> fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5]
-    array([ 1.  ,  1.25,  1.5 ,  1.75,  2.  ])
+    >>> from hydpy import print_values
+    >>> print_values(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
+    1.0, 1.25, 1.5, 1.75, 2.0
 
     >>> fluxes.interzeptionsverdunstung = 1.0
     >>> fluxes.bodenverdunstung = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
     >>> model.corr_bodenverdunstung_v1()
     >>> fluxes.bodenverdunstung
     bodenverdunstung(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5]
-    array([ 1.  ,  1.25,  1.5 ,  1.75,  2.  ])
+    >>> print_values(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
+    1.0, 1.25, 1.5, 1.75, 2.0
     """
 
     CONTROLPARAMETERS = (

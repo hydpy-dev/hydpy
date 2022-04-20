@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
-
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
@@ -9,7 +8,7 @@ from hydpy.core import sequencetools
 
 class WET0(sequencetools.LogSequence):
     """Zeitlich gewichtete Grasreferenzverdunstung (temporally weighted
-    reference evapotranspiration) [mm]."""
+    reference evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 2, False
 
@@ -49,8 +48,14 @@ class LoggedSunshineDuration(sequencetools.LogSequence):
     NDIM, NUMERIC = 1, False
 
 
+class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
+    """Logged astronomically possible sunshine duration [h]."""
+
+    NDIM, NUMERIC = 1, False
+
+
 class LoggedGlobalRadiation(sequencetools.LogSequence):
-    """Logged global radiation [h]."""
+    """Logged global radiation [W/m²]."""
 
     NDIM, NUMERIC = 1, False
 

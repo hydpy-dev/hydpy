@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from hydpy.models.hstream_v1 import *
+from hydpy.models.musk_classic import *
 
 controlcheck(projectdir=r"LahnH", controldir="default")
 
-qjoints(10.0, 10.0)
+discharge(10.0, 10.0)

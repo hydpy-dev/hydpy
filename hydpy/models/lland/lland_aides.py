@@ -14,7 +14,7 @@ class SNRatio(sequencetools.AideSequence):
 
 class RLAtm(sequencetools.AideSequence):
     """Atmosphärische Gegenstrahlung (longwave radiation emitted from the
-    atmosphere) [MJ/m²/d]."""
+    atmosphere) [W/m²]."""
 
     NDIM, NUMERIC = 1, False
 

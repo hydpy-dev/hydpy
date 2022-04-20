@@ -8,8 +8,12 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 
-class Seconds(parametertools.SecondsParameter):
-    """The length of the actual simulation step size in seconds [s]."""
+class Hours(parametertools.HoursParameter):
+    """The length of the actual simulation step size in hours [h]."""
+
+
+class Days(parametertools.DaysParameter):
+    """The length of the actual simulation step size in days [d]."""
 
 
 class NmbLogEntries(parametertools.Parameter):

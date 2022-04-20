@@ -85,7 +85,7 @@ class SInz(lland_sequences.State1DSequence):
 
 
 class ESnowInz(lland_sequences.State1DSequence):
-    """Kälteinhalt der Schneedecke des Interzeptionsspeichers [MJ/m²]."""
+    """Kälteinhalt der Schneedecke des Interzeptionsspeichers [WT/m²]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Forest()
@@ -158,7 +158,7 @@ class WAeS(lland_sequences.State1DSequence):
 
 class ESnow(lland_sequences.State1DSequence):
     """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
-    energy content of the snow layer with respect to 0°C) [MJ/m²]."""
+    energy content of the snow layer with respect to 0°C) [WT/m²]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Land()
@@ -177,7 +177,7 @@ class TauS(lland_sequences.State1DSequence):
 
 class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
-    [MJ/m²]."""
+    [WT/m²]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Land()
@@ -207,69 +207,69 @@ class BoWa(lland_sequences.State1DSequence):
 
 class QDGZ1(sequencetools.StateSequence):
     """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
-    the less responsive storage compartment for direct runoff) [mm]."""
+    the less responsive storage compartment for direct runoff) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGZ2(sequencetools.StateSequence):
     """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow into
-    the more responsive storage compartment for direct runoff) [mm]."""
+    the more responsive storage compartment for direct runoff) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGZ1(sequencetools.StateSequence):
     """ "Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow into the
-    first storage compartment for interflow) [mm]."""
+    first storage compartment for interflow) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
 class QIGZ2(sequencetools.StateSequence):
     """Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow into the
-    second storage compartment for interflow) [mm]."""
+    second storage compartment for interflow) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
 class QBGZ(sequencetools.StateSequence):
     """Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
-    storage compartment for base flow) [mm]."""
+    storage compartment for base flow) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA1(sequencetools.StateSequence):
     """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from
-    the less responsive storage compartment for direct runoff) [mm]."""
+    the less responsive storage compartment for direct runoff) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA2(sequencetools.StateSequence):
     """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow
-    from the more responsive storage compartment for direct runoff) [mm]."""
+    from the more responsive storage compartment for direct runoff) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGA1(sequencetools.StateSequence):
     """Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher (outflow from
-    the storage compartment for the first interflow component) [mm]."""
+    the storage compartment for the first interflow component) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
 class QIGA2(sequencetools.StateSequence):
     """Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher (outflow from
-    the storage compartment for the second interflow component) [mm]."""
+    the storage compartment for the second interflow component) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
 class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
-    storage compartment for base flow) [mm]."""
+    storage compartment for base flow) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)

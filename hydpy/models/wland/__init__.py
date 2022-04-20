@@ -3,7 +3,7 @@
 .. _`WALRUS`: https://www.wur.nl/en/Research-Results/Chair-groups/Environmental-Sciences/Hydrology-and-Quantitative-Water-Management-Group/Research/WALRUS-1.htm  # pylint: disable=line-too-long
 
 Base model |wland| is the core of the *HydPy* implementation of all `WALRUS`_ type
-models :cite:`ref-Brauer2014`, focussing on the interaction between surface water
+models :cite:p:`ref-Brauer2014`, focussing on the interaction between surface water
 and near-surface groundwater.
 """
 

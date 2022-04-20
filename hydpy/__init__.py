@@ -310,7 +310,7 @@ __all__ = [
     "start_server",
 ]
 
-sequence2alias: Dict[sequencetools.TypesInOutSequence, str] = {}
+sequence2alias: Dict[sequencetools.InOutSequenceTypes, str] = {}
 
 if config.USEAUTODOC:
     with warnings.catch_warnings():

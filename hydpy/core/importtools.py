@@ -51,7 +51,8 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
             namespace["cythonmodule"] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
             namespace["cymodel"] = model.cymodel
-            model.cymodel.parameters = cythonizer.cymodule.Parameters()
+            if hasattr(cythonizer.cymodule, "Parameters"):
+                model.cymodel.parameters = cythonizer.cymodule.Parameters()
             model.cymodel.sequences = cythonizer.cymodule.Sequences()
             for numpars_name in ("NumConsts", "NumVars"):
                 if hasattr(cythonizer.cymodule, numpars_name):
@@ -241,7 +242,8 @@ def prepare_model(
     if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
-        cymodel.parameters = cymodule.Parameters()
+        if hasattr(cymodule, "Parameters"):
+            cymodel.parameters = cymodule.Parameters()
         cymodel.sequences = cymodule.Sequences()
         model.cymodel = cymodel
         for numpars_name in ("NumConsts", "NumVars"):

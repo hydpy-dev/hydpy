@@ -730,12 +730,16 @@ error occurred: name 'y' is not defined
         """Read all network files of the current working directory, structure their
         contents in a |selectiontools.Selections| object, and return it.
 
-        See the main documentation on class |NetworkManager| for further
-        information.
+        See the main documentation on class |NetworkManager| for further information.
         """
         devicetools.Node.clear_all()
         devicetools.Element.clear_all()
         selections = selectiontools.Selections()
+        if not self.filenames:
+            raise RuntimeError(
+                f"The directory `{self.currentpath}` does not contain any network "
+                f"files."
+            )
         for (filename, path) in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
             devicetools.Node.extract_new()
@@ -757,7 +761,6 @@ error occurred: name 'y' is not defined
                     f"The class {exc.args[0]} cannot be loaded from the network file "
                     f"`{path}`."
                 ) from None
-
         selections += selectiontools.Selection(
             "complete", info["Node"].query_all(), info["Element"].query_all()
         )

@@ -3,8 +3,8 @@
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
-Version 3 of H-Land combines `HBV96's` :cite:`ref-Lindstrom1997HBV96` and `PREVAH's`
-:cite:`ref-Viviroli2009PREVAH` process equations.  We implemented it on behalf of the
+Version 3 of H-Land combines `HBV96's` :cite:t:`ref-Lindstrom1997HBV96` and `PREVAH's`
+:cite:t:`ref-Viviroli2009PREVAH` process equations.  We implemented it on behalf of the
 `German Federal Institute of Hydrology (BfG)`_ as an alternative to |hland_v1| for
 modelling large river basins in central Europe.  All processes "above the soil" (input
 data correction, interception, snowmelt) and "inside the soil" (evaporation, generation

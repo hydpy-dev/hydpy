@@ -16,7 +16,7 @@ sequences with larger dimensionality than anticipated.  The following example sh
 Cython code lines for the |ELSModel.get_point_states| method of class |ELSModel|, used
 for deriving the |test| model.  By now, we did only implement 0-dimensional and
 1-dimensional sequences requiring this method.  After hackishly changing the
-dimensionality of sequences |test_states.S|, we still seem to get  plausible results,
+dimensionality of sequences |test_states.S|, we still seem to get plausible results,
 but these are untested in model applications:
 
 >>> from hydpy.models.test import cythonizer
@@ -1313,7 +1313,7 @@ class PyxWriter:
         lines.extend(self.simulate)
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
-        if isinstance(self.model, modeltools.AdHocModel):
+        if isinstance(self.model, modeltools.RunModel):
             lines.extend(self.run(self.model))
         lines.extend(self.update_inlets)
         lines.extend(self.update_outlets)
@@ -1480,6 +1480,25 @@ class PyxWriter:
                 lines.add(2, "pass")
         return lines
 
+    def _call_runmethods_segmentwise(
+        self,
+        methods: Tuple[Type[modeltools.Method], ...],
+    ) -> Lines:
+        lines = Lines()
+        if hasattr(self.model, "run"):
+            lines.add(1, get_methodheader("run", nogil=True, idxarg=False))
+            lines.add(2, f"cdef {TYPE2STR[int]} idx_segment, idx_run")
+            lines.add(
+                2,
+                "for idx_segment in range(self.parameters.control.nmbsegments):",
+            )
+            lines.add(3, "self.idx_segment = idx_segment")
+            lines.add(3, "for idx_run in range(self.parameters.solver.nmbruns):")
+            lines.add(4, "self.idx_run = idx_run")
+            for method in methods:
+                lines.add(4, f"self.{method.__name__.lower()}()")
+        return lines
+
     @property
     def update_receivers(self) -> List[str]:
         """Lines of the model method with the same name."""
@@ -1490,8 +1509,10 @@ class PyxWriter:
         """Lines of the model method with the same name."""
         return self._call_methods("update_inlets", self.model.INLET_METHODS)
 
-    def run(self, model: modeltools.AdHocModel) -> List[str]:
+    def run(self, model: modeltools.RunModel) -> List[str]:
         """Return the lines of the model method with the same name."""
+        if isinstance(model, modeltools.SegmentModel):
+            return self._call_runmethods_segmentwise(model.RUN_METHODS)
         return self._call_methods("run", model.RUN_METHODS)
 
     @property

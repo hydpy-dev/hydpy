@@ -166,6 +166,8 @@ import collections
 import contextlib
 import itertools
 import os
+import time
+import warnings
 from typing import *
 
 # ...from site-packages
@@ -376,28 +378,205 @@ def query_variable(ncfile: netcdf4.Dataset, name: str) -> netcdf4.Variable:
         ) from None
 
 
-def query_timegrid(ncfile: netcdf4.Dataset) -> timetools.Timegrid:
+def query_timegrid(
+    ncfile: netcdf4.Dataset, sequence: sequencetools.IOSequence
+) -> timetools.Timegrid:
     """Return the |Timegrid| defined by the given NetCDF file.
 
-    >>> from hydpy.examples import prepare_full_example_1
-    >>> prepare_full_example_1()
-    >>> from hydpy import TestIO
-    >>> from hydpy.core.netcdftools import netcdf4
+    |query_timegrid| relies on the `timereference` attribute of the given NetCDF file,
+    if available, and falls back to the global |Options.timestampleft| option when
+    necessary.  The NetCDF files of the `LahnH` example project (and all other NetCDF
+    files written by *HydPy*) include such information:
+
+    >>> from hydpy.examples import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> from netCDF4 import Dataset
+    >>> filepath = "LahnH/series/default/hland_v1_input_p.nc"
+    >>> with TestIO(), Dataset(filepath) as ncfile:
+    ...     ncfile.timereference
+    'left interval boundary'
+
+    We start our examples considering the input sequence |hland_inputs.P|, which
+    handles precipitation sums.  |query_timegrid| requires an instance of
+    |hland_inputs.P| to determine that each value of the time series of the NetCDF file
+    references a time interval and not a time point:
+
+    >>> p = hp.elements.land_dill.model.sequences.inputs.p
+
+    If the file-specific setting does not collide with the current value of
+    |Options.timestampleft|, |query_timegrid| works silently:
+
     >>> from hydpy.core.netcdftools import query_timegrid
-    >>> filepath = "LahnH/series/default/hland_v1_input_t.nc"
-    >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile)
+    >>> with TestIO(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, p)
     Timegrid("1996-01-01 00:00:00",
              "2007-01-01 00:00:00",
              "1d")
+
+    If a file-specific setting is missing, |query_timegrid| applies the current
+    |Options.timestampleft| value:
+
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     del ncfile.timereference
+    >>> from hydpy.core.testtools import warn_later
+    >>> with TestIO(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, p)
+    Timegrid("1996-01-01 00:00:00",
+             "2007-01-01 00:00:00",
+             "1d")
+
+    >>> with TestIO(), Dataset(filepath) as ncfile, pub.options.timestampleft(False):
+    ...     query_timegrid(ncfile, p)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+
+    If the file-specific setting and |Options.timestampleft| conflict, |query_timegrid|
+    favours the file attribute and warns about this assumption:
+
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     ncfile.timereference = "right interval boundary"
+    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, p)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+    UserWarning: The `timereference` attribute (`right interval boundary`) of the \
+NetCDF file `/` conflicts with the current value of the global `timestampleft` option \
+(`True`).  The file-specific information is prioritised.
+
+    State sequences like |hland_states.SM| handle data for specific time points instead
+    of time intervals.  Their |IOSequence.series| vector contains the calculated values
+    for the end of each simulation step.  Hence, without file-specific information,
+    |query_timegrid| ignores the |Options.timestampleft| option and follows the `right
+    interval boundary` convention:
+
+    >>> sm = hp.elements.land_dill.model.sequences.states.sm
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     del ncfile.timereference
+    >>> with TestIO(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, sm)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+
+    To explicitly include this information into a NetCDF file, add a `timereference`
+    attribute with the value `current time`:
+
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     ncfile.timereference = "current time"
+    >>> with TestIO(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, sm)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+
+    |query_timegrid| raises special warnings when a NetCDF file's `timereference`
+    attribute conflicts with its judgement whether the contained data addresses time
+    intervals or time points:
+
+    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, p)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+    UserWarning: The `timereference` attribute (`current time`) of the NetCDF file \
+`/` conflicts with the type of the relevant sequence (`P`).  The file-specific \
+information is prioritised.
+
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     ncfile.timereference = "left interval boundary"
+    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, sm)
+    Timegrid("1996-01-01 00:00:00",
+             "2007-01-01 00:00:00",
+             "1d")
+    UserWarning: The `timereference` attribute (`left interval boundary`) of the \
+NetCDF file `/` conflicts with the type of the relevant sequence (`SM`).  The \
+file-specific information is prioritised.
+
+    |query_timegrid| also raises specific warnings for misstated `timereference`
+    attributes describing the different fallbacks for data related to time intervals
+    and time points:
+
+    >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
+    ...     ncfile.timereference = "wrong"
+    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, p)
+    Timegrid("1996-01-01 00:00:00",
+             "2007-01-01 00:00:00",
+             "1d")
+    UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
+file `/` is not among the accepted values (`left...`, `right...`, `current...`).  \
+Assuming `left interval boundary` according to the current value of the global \
+`timestampleft` option.
+
+    >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
+    ...     query_timegrid(ncfile, sm)
+    Timegrid("1995-12-31 00:00:00",
+             "2006-12-31 00:00:00",
+             "1d")
+    UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
+file `/` is not among the accepted values (`left...`, `right...`, `current...`).  \
+Assuming `current time` according to the type of the relevant sequence (`SM`).
     """
-    timepoints = ncfile[varmapping["timepoints"]]
-    refdate = timetools.Date.from_cfunits(timepoints.units)
-    return timetools.Timegrid.from_timepoints(
-        timepoints=timepoints[:],
-        refdate=refdate,
-        unit=timepoints.units.strip().split()[0],
-    )
+    currenttime = _timereference_currenttime(sequence)
+    opts = hydpy.pub.options
+    ref: Optional[str] = getattr(ncfile, "timereference", None)
+    if ref is None:
+        left = bool(opts.timestampleft and not currenttime)
+    elif ref.startswith("left") or ref.startswith("right"):
+        left = ref.startswith("left")
+        if currenttime:
+            warnings.warn(
+                f"The `timereference` attribute (`{ncfile.timereference}`) of the "
+                f"NetCDF file `{ncfile.name}` conflicts with the type of the relevant "
+                f"sequence (`{type(sequence).__name__}`).  The file-specific "
+                f"information is prioritised."
+            )
+        elif left != opts.timestampleft:
+            warnings.warn(
+                f"The `timereference` attribute (`{ncfile.timereference}`) of the "
+                f"NetCDF file `{ncfile.name}` conflicts with the current value of the "
+                f"global `timestampleft` option (`{bool(opts.timestampleft)}`).  "
+                f"The file-specific information is prioritised."
+            )
+    elif ref.startswith("current"):
+        left = False
+        if not currenttime:
+            warnings.warn(
+                f"The `timereference` attribute (`{ncfile.timereference}`) of the "
+                f"NetCDF file `{ncfile.name}` conflicts with the type of the relevant "
+                f"sequence (`{type(sequence).__name__}`).  The file-specific "
+                f"information is prioritised."
+            )
+    elif currenttime:
+        left = False
+        warnings.warn(
+            f"The value of the `timereference` attribute (`{ncfile.timereference}`) "
+            f"of the NetCDF file `{ncfile.name}` is not among the accepted values "
+            f"(`left...`, `right...`, `current...`).  Assuming `current time` "
+            f"according to the type of the relevant sequence "
+            f"(`{type(sequence).__name__}`)."
+        )
+    else:
+        left = opts.timestampleft
+        text = "left" if left else "right"
+        warnings.warn(
+            f"The value of the `timereference` attribute (`{ncfile.timereference}`) "
+            f"of the NetCDF file `{ncfile.name}` is not among the accepted values "
+            f"(`left...`, `right...`, `current...`).  Assuming `{text} interval "
+            f"boundary` according to the current value of the global `timestampleft` "
+            f"option."
+        )
+    with opts.timestampleft(left):  # pylint: disable=not-callable
+        timepoints = ncfile[varmapping["timepoints"]]
+        refdate = timetools.Date.from_cfunits(timepoints.units)
+        return timetools.Timegrid.from_timepoints(
+            timepoints=timepoints[:],
+            refdate=refdate,
+            unit=timepoints.units.strip().split()[0],
+        )
 
 
 def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
@@ -445,6 +624,10 @@ def get_filepath(ncfile: netcdf4.Dataset) -> str:
     """
     filepath = ncfile.filepath() if hasattr(ncfile, "filepath") else ncfile.filename
     return cast(str, filepath)
+
+
+def _timereference_currenttime(sequence: sequencetools.IOSequence) -> bool:
+    return isinstance(sequence, sequencetools.StateSequence)
 
 
 class JITAccessInfo(NamedTuple):
@@ -706,11 +889,8 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     def write(self) -> None:
         """Call method |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
-        init = hydpy.pub.timegrids.init
-        timeunit = init.firstdate.to_cfunits("hours")
-        timepoints = init.to_timepoints("hours")
         for variable in self:
-            variable.write(timeunit, timepoints)
+            variable.write()
 
     @staticmethod
     def _yield_disksequences(
@@ -787,9 +967,9 @@ The data of the NetCDF `...hland_v1_input_p.nc` \
 cover the current simulation period \
 (Timegrid("1995-01-01 00:00:00", "1996-01-05 00:00:00", "1d")).
 
-        However, be aware that each NetCDF file selected for writing must also cover
-        the complete initialisation period.  If there is no adequately named NetCDF
-        file, |NetCDFInterface.provide_jitaccess| creates a new one for the current
+        However, each NetCDF file selected for writing must also cover the complete
+        initialisation period.  If there is no adequately named NetCDF file,
+        |NetCDFInterface.provide_jitaccess| creates a new one for the current
         initialisation period.  If an adequately named file exists,
         |NetCDFInterface.provide_jitaccess| uses it without any attempt to extend it
         temporally or spatially.  The following example shows the insertion of the
@@ -1008,16 +1188,15 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                 variable2timedelta: Dict[NetCDFVariable, int] = {}
                 tg_init = hydpy.pub.timegrids.init
                 tg_sim = hydpy.pub.timegrids.sim
-                timeunit = tg_init.firstdate.to_cfunits("hours")
-                timepoints = tg_init.to_timepoints("hours")
                 for variable, readmode in variable2readmode.items():
                     if not os.path.exists(variable.filepath) and (
                         not readmode or not hydpy.pub.options.checkseries
                     ):
-                        variable.write(timeunit, timepoints)
+                        variable.write()
                     ncfile = netcdf4.Dataset(variable.filepath, "r+")
                     variable2ncfile[variable] = ncfile
-                    tg_variable = query_timegrid(ncfile)
+                    sequence = variable2sequences[variable][0]
+                    tg_variable = query_timegrid(ncfile, sequence)
                     if tg_sim not in tg_variable:
                         raise RuntimeError(
                             f"The data of the NetCDF `{variable.filepath}` "
@@ -1374,13 +1553,27 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         support reading data.
         """
 
-    def write(self, timeunit: str, timepoints: NDArrayFloat) -> None:
+    def write(self) -> None:
         """Write the data to a new NetCDF file.
 
         See the general documentation on class |NetCDFVariableFlat| for some examples.
         """
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
+            now = time.ctime(time.time())
+            ncfile.history = f"Created {now} by HydPy {hydpy.__version__}"
             ncfile.Conventions = "CF-1.6"
+            init = hydpy.pub.timegrids.init
+            timeunit = init.firstdate.to_cfunits("hours")
+            opts = hydpy.pub.options
+            if _timereference_currenttime(next(iter(self._descr2sequence.values()))):
+                with opts.timestampleft(False):  # pylint: disable=not-callable
+                    timepoints = init.to_timepoints("hours")
+                ncfile.timereference = "current time"
+            else:
+                timepoints = init.to_timepoints("hours")
+                ncfile.timereference = (
+                    f"{'left' if opts.timestampleft else 'right'} interval boundary"
+                )
             self._insert_timepoints(ncfile, timepoints, timeunit)
             self.insert_subdevices(ncfile)
             dimensions = dimmapping["nmb_timepoints"], dimmapping["nmb_subdevices"]
@@ -1442,12 +1635,10 @@ class NetCDFVariableAgg(NetCDFVariableBase):
     >>> sp = element4.model.sequences.states.sp
     >>> var_sp.log(sp, sp.average_series())
     >>> from hydpy import pub, TestIO
-    >>> timeunit = pub.timegrids.init.firstdate.to_cfunits("hours")
-    >>> timepoints = pub.timegrids.init.to_timepoints("hours")
     >>> with TestIO():
-    ...     var_nied.write(timeunit, timepoints)
-    ...     var_nkor.write(timeunit, timepoints)
-    ...     var_sp.write(timeunit, timepoints)
+    ...     var_nied.write()
+    ...     var_nkor.write()
+    ...     var_sp.write()
 
     As |NetCDFVariableAgg| provides no reading functionality, we show that the
     aggregated values are readily available using the external NetCDF4 library:
@@ -1595,23 +1786,15 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     >>> sp = element4.model.sequences.states.sp
     >>> var_sp.log(sp, sp.series)
 
-    (3) NetCDF files following the CF convention contain time-related information.  We
-    determine this information via the |Timegrids.init| |Timegrid| available in the
-    |pub| module:
-
-    >>> from hydpy import pub
-    >>> timeunit = pub.timegrids.init.firstdate.to_cfunits("hours")
-    >>> timepoints = pub.timegrids.init.to_timepoints("hours")
-
-    (4) We write the data of all logged sequences to separate NetCDF files:
+    (3) We write the data of all logged sequences to separate NetCDF files:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     var_nied.write(timeunit, timepoints)
-    ...     var_nkor.write(timeunit, timepoints)
-    ...     var_sp.write(timeunit, timepoints)
+    ...     var_nied.write()
+    ...     var_nkor.write()
+    ...     var_sp.write()
 
-    (5) We set all values of the selected sequences to -777 and check that they are
+    (4) We set all values of the selected sequences to -777 and check that they are
     different from the original values available via `testarray` attribute:
 
     >>> seq1 = element1.model.sequences.inputs.nied
@@ -1625,7 +1808,7 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     False
     False
 
-    (6) Again, we prepare three |NetCDFVariableFlat| instances and log the same
+    (5) Again, we prepare three |NetCDFVariableFlat| instances and log the same
     sequences as above, open the existing NetCDF file for reading, read its data, and
     confirm that it has been correctly passed to the test sequences:
 
@@ -1848,6 +2031,8 @@ NetCDF file `nied.nc` available.
         """
         try:
             with netcdf4.Dataset(self.filepath, "r") as ncfile:
+                sequence = next(iter(self._descr2sequence.values()))
+                timegrid = query_timegrid(ncfile, sequence)
                 array = query_array(ncfile, self.name)
                 idxs: Tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
@@ -1863,7 +2048,7 @@ NetCDF file `nied.nc` available.
                             ]
                     else:
                         subarray = array[:, subdev2index.get_index(devicename)]
-                    seq.series = seq.adjust_series(query_timegrid(ncfile), subarray)
+                    seq.series = seq.adjust_series(timegrid, subarray)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to read data from NetCDF file `{self.filepath}`"

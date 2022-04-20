@@ -9,6 +9,7 @@
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
+        <timestampleft>true</timestampleft>
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>
         <warntrim>true</warntrim>
@@ -45,6 +46,8 @@
     <selections>
         from_selections
     </selections>
+
+    <network_io>default</network_io>
 
     <control_io>default</control_io>
 
@@ -129,11 +132,11 @@
                             <sm/>
                         </states>
                     </hland_v1>
-                    <hstream_v1>
+                    <musk_classic>
                         <states>
-                            <qjoints/>
+                            <discharge/>
                         </states>
-                    </hstream_v1>
+                    </musk_classic>
                 </sequences>
                 <aggregation>mean</aggregation>
                 <mode>ram</mode>

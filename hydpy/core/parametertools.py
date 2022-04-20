@@ -3,11 +3,15 @@
 of hydrological models."""
 # import...
 # ...from standard library
+from __future__ import annotations
+import builtins
 import copy
 import inspect
 import itertools
 import textwrap
+import warnings
 from typing import *
+from typing import NoReturn
 
 # ...from site-packages
 import numpy
@@ -26,6 +30,82 @@ if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import devicetools
     from hydpy.core import modeltools
+
+
+def trim_kwarg(
+    parameter: Parameter,
+    name: str,
+    value: float,
+    lower: float = -numpy.inf,
+    upper: float = numpy.inf,
+) -> float:
+    """Helper function for model developers for trimming scalar keyword arguments of
+    type |float|.
+
+    Function |trim_kwarg| works similar to function |trim| but targets defining
+    parameter values via parameter-specific keyword arguments.  Due to the individual
+    nature of calculating parameter values from keyword arguments, using |trim_kwarg|
+    is less standardisable than using |trim|.  Hence, model developers must include it
+    manually into the `__call__` methods of their |Parameter| subclasses when trimming
+    keyword arguments is required.
+
+    The following tests show that |trim_kwarg| returns the eventually trimmed value,
+    and, like |trim|, emits warnings only in case of boundary violations beyond the
+    size of pure precision-related artefacts:
+
+    >>> from hydpy.core.parametertools import Parameter, trim_kwarg
+    >>> parameter = Parameter(None)
+
+    >>> trim_kwarg(parameter, "x", 1.0) == 1.0
+    True
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", 0.0, lower=1.0) == 1.0
+    True
+    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
+with value `0.0` needed to be trimmed to `1.0`.
+
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", 2.0, upper=1.0) == 1.0
+    True
+    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
+with value `2.0` needed to be trimmed to `1.0`.
+
+    >>> x = 1.0 - 1e-15
+    >>> x == 1.0
+    False
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", x, lower=1.0) == 1.0
+    True
+
+    >>> x = 1.0 + 1e-15
+    >>> x == 1.0
+    False
+    >>> with warn_later():
+    ...     trim_kwarg(parameter, "x", x, upper=1.0) == 1.0
+    True
+    """
+    gt = variabletools.get_tolerance
+    if value < lower:
+        if (value + gt(value)) < (lower - gt(lower)):
+            _warn_trim_kwarg(parameter, name, value, lower)
+        return lower
+    if value > upper:
+        if (value - gt(value)) > (upper + gt(upper)):
+            _warn_trim_kwarg(parameter, name, value, upper)
+        return upper
+    return value
+
+
+def _warn_trim_kwarg(
+    parameter: Parameter, name: str, oldvalue: float, newvalue: float
+) -> None:
+    warnings.warn(
+        f"For parameter {objecttools.elementphrase(parameter)} the keyword argument "
+        f"`{name}` with value `{objecttools.repr_(oldvalue)}` needed to be trimmed to "
+        f"`{objecttools.repr_(newvalue)}`."
+    )
 
 
 def get_controlfileheader(
@@ -138,26 +218,27 @@ class Constants(dict):
 class Parameters:
     """Base class for handling all parameters of a specific model.
 
-    |Parameters| objects handle three parameter subgroups as attributes:
-    the `control` subparameters, the `derived` subparameters, and the
+    |Parameters| objects handle four subgroups as attributes: the `control`
+    subparameters, the `derived` subparameters, the `fixed` subparameters and the
     `solver` subparameters:
 
-    >>> from hydpy.models.hstream_v1 import *
+    >>> from hydpy.models.meteo_v001 import *
     >>> parameterstep("1d")
     >>> bool(model.parameters.control)
     True
     >>> bool(model.parameters.solver)
     False
 
-    Iterations makes only the non-empty subgroups available, which
-    are actually handling |Sequence_| objects:
+    Iterations makes only the non-empty subgroups available, which are actually
+    handling |Parameter| objects:
 
     >>> for subpars in model.parameters:
     ...     print(subpars.name)
     control
     derived
+    fixed
     >>> len(model.parameters)
-    2
+    3
 
     Keyword access provides a type-safe way to query a subgroup via a string:
 
@@ -174,11 +255,11 @@ class Parameters:
 `SubParameters`.
     """
 
-    model: "modeltools.Model"
-    control: "SubParameters"
-    derived: "SubParameters"
-    fixed: "SubParameters"
-    solver: "SubParameters"
+    model: modeltools.Model
+    control: SubParameters
+    derived: SubParameters
+    fixed: SubParameters
+    solver: SubParameters
 
     def __init__(self, kwargs):
         self.model = kwargs.get("model")
@@ -199,40 +280,60 @@ class Parameters:
     def update(self) -> None:
         """Call method |Parameter.update| of all "secondary" parameters.
 
-        Directly after initialisation, neither the primary (`control`)
-        parameters nor the secondary (`derived`)  parameters of
-        application model |hstream_v1| are ready for usage:
+        Directly after initialisation, neither the primary (`control`) parameters nor
+        the secondary (`derived`)  parameters of application model |meteo_v001| are
+        ready for usage:
 
-        >>> from hydpy.models.hstream_v1 import *
+        >>> from hydpy.models.meteo_v001 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> derived
-        nmbsegments(?)
-        c1(?)
-        c3(?)
-        c2(?)
+        doy(?)
+        moy(?)
+        hours(?)
+        days(?)
+        sct(?)
+        utclongitude(?)
+        latituderad(?)
 
-        Trying to update the values of the secondary parameters while the
-        primary ones are still not defined, raises errors like the following:
+        Trying to update the values of the secondary parameters while the primary ones
+        are still not defined raises errors like the following:
 
         >>> model.parameters.update()
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: While trying to update \
-parameter `nmbsegments` of element `?`, the following error occurred: For \
-variable `lag`, no value has been defined so far.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to update parameter \
+`doy` of element `?`, the following error occurred: An Indexer object has been asked \
+for an `dayofyear` array.  Such an array has neither been determined yet nor can it \
+be determined automatically at the moment.   Either define an `dayofyear` array \
+manually and pass it to the Indexer object, or make a proper Timegrids object \
+available within the pub module.
 
-        With proper values both for parameter |hstream_control.Lag| and
-        |hstream_control.Damp|, updating the derived parameters succeeds:
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-04", "1d"
+        >>> model.parameters.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to update parameter \
+`latituderad` of element `?`, the following error occurred: While trying to multiply \
+variable `latitude` and `float` instance `0.017453`, the following error occurred: \
+For variable `latitude`, no value has been defined so far.
 
-        >>> lag(0.0)
-        >>> damp(0.0)
+        With a defined |Timegrids| object and proper values both for parameters
+        |meteo_control.Latitude| and |meteo_control.Longitude|, updating the derived
+        parameters succeeds:
+
+        >>> latitude(50.0)
+        >>> longitude(10.0)
         >>> model.parameters.update()
         >>> derived
-        nmbsegments(0)
-        c1(0.0)
-        c3(0.0)
-        c2(1.0)
+        doy(29, 30, 31, 32, 33)
+        moy(0, 0, 1, 1, 1)
+        hours(24.0)
+        days(1.0)
+        sct(12.0)
+        utclongitude(15)
+        latituderad(0.872665)
         """
         for subpars in self.secondary_subpars:
             for par in subpars:
@@ -261,9 +362,9 @@ variable `lag`, no value has been defined so far.
         The main functionality of method |Parameters.save_controls| is demonstrated in
         the documentation on method |HydPy.save_controls| of class |HydPy|, which one
         would apply to write the parameter information of complete *HydPy* projects.
-        However, to call |Parameters.save_controls| on individual |Parameters| objects
-        offers the advantage to choose an arbitrary file path, as shown in the following
-        example:
+        However, calling |Parameters.save_controls| on individual |Parameters| objects
+        offers the advantage of choosing an arbitrary file path, as shown in the
+        following example:
 
         >>> from hydpy.models.test_v3 import *
         >>> parameterstep("1d")
@@ -312,17 +413,16 @@ variable `lag`, no value has been defined so far.
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        Without a given file path and a proper project configuration,
-        method |Parameters.save_controls| raises the following error:
+        Without a given file path and a proper project configuration, method
+        |Parameters.save_controls| raises the following error:
 
         >>> model.parameters.save_controls()
         Traceback (most recent call last):
         ...
-        RuntimeError: To save the control parameters of a model to a file, \
-its filename must be known.  This can be done, by passing a filename to \
-function `save_controls` directly.  But in complete HydPy applications, \
-it is usally assumed to be consistent with the name of the element \
-handling the model.
+        RuntimeError: To save the control parameters of a model to a file, its \
+filename must be known.  This can be done, by passing a filename to function \
+`save_controls` directly.  But in complete HydPy applications, it is usally assumed \
+to be consistent with the name of the element handling the model.
         """
         if auxfiler is None:
             parameter2auxfile = None
@@ -353,55 +453,57 @@ handling the model.
             filename = objecttools.devicename(self)
             if filename == "?":
                 raise RuntimeError(
-                    "To save the control parameters of a model to a file, "
-                    "its filename must be known.  This can be done, by "
-                    "passing a filename to function `save_controls` "
-                    "directly.  But in complete HydPy applications, it is "
-                    "usally assumed to be consistent with the name of the "
-                    "element handling the model."
+                    "To save the control parameters of a model to a file, its "
+                    "filename must be known.  This can be done, by passing a filename "
+                    "to function `save_controls` directly.  But in complete HydPy "
+                    "applications, it is usally assumed to be consistent with the "
+                    "name of the element handling the model."
                 )
             hydpy.pub.controlmanager.save_file(filename, text)
 
     def verify(self) -> None:
-        """Call method |Variable.verify| of all |Parameter| objects
-        handled by the actual model.
+        """Call method |Variable.verify| of all |Parameter| objects handled by the
+        actual model.
 
-        When calling method |Parameters.verify| directly after initialising
-        model |hstream_v1| (without using default values), it raises a
-        |RuntimeError| due to the undefined value of control parameter
-        |hstream_control.Lag|:
+        When calling method |Parameters.verify| directly after initialising model
+        |meteo_v001| (without using default values), it raises a |RuntimeError| due to
+        the undefined value of control parameter |meteo_control.Latitude|:
 
-        >>> from hydpy.models.hstream_v1 import *
+        >>> from hydpy.models.meteo_v001 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `lag`, 1 required value has not been \
-set yet: lag(?).
+        RuntimeError: For variable `latitude`, 1 required value has not been set yet: \
+latitude(?).
 
-        Assigning a value to |hstream_control.Lag| is not sufficient:
+        Assigning a value to |meteo_control.Latitude| is not sufficient:
 
-        >>> model.parameters.control.lag(0.0)
+        >>> model.parameters.control.latitude(50.0)
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `damp`, 1 required value has not been \
-set yet: damp(?).
+        RuntimeError: For variable `longitude`, 1 required value has not been set \
+yet: longitude(?).
 
-        After also defining a suitable value for parameter
-        |hstream_control.Damp|, the derived parameters are still not ready:
+        After also defining suitable values for all remaining control parameters, the
+        derived parameters are still not ready:
 
-        >>> model.parameters.control.damp(0.0)
+        >>> model.parameters.control.longitude(10.0)
+        >>> model.parameters.control.angstromconstant(0.25)
+        >>> model.parameters.control.angstromfactor(0.5)
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `c1`, 1 required value has not been \
-set yet: c1(?).
+        hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable \
+`doy` can only be retrieved after it has been defined.
 
-        After updating the derived parameters, method |Parameters.verify|
-        has no reason to complain anymore:
+        After updating the derived parameters (which requires preparing a |Timegrids|
+        object first), method |Parameters.verify| has no reason to complain anymore:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-04", "1d"
         >>> model.parameters.update()
         >>> model.parameters.verify()
         """
@@ -410,13 +512,13 @@ set yet: c1(?).
                 par.verify()
 
     @property
-    def secondary_subpars(self) -> Iterator["SubParameters"]:
+    def secondary_subpars(self) -> Iterator[SubParameters]:
         """Iterate through all subgroups of "secondary" parameters.
 
-        These secondary parameter subgroups are the `derived` parameters
-        and the `solver` parameters at the moment:
+        These secondary parameter subgroups are the `derived` parameters and the
+        `solver` parameters at the moment:
 
-        >>> from hydpy.models.hstream_v1 import *
+        >>> from hydpy.models.meteo_v001 import *
         >>> parameterstep("1d")
         >>> for subpars in model.parameters.secondary_subpars:
         ...     print(subpars.name)
@@ -434,11 +536,11 @@ set yet: c1(?).
         if isinstance(subpars, SubParameters):
             return subpars
         raise TypeError(
-            f"Attribute `{item}` is of type `{type(subpars).__name__}`, "
-            f"which is not a subtype of class `SubParameters`."
+            f"Attribute `{item}` is of type `{type(subpars).__name__}`, which is not "
+            f"a subtype of class `SubParameters`."
         )
 
-    def __iter__(self) -> Iterator["SubParameters"]:
+    def __iter__(self) -> Iterator[SubParameters]:
         for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
                 yield subpars
@@ -453,11 +555,7 @@ class FastAccessParameter(variabletools.FastAccess):
 
 
 class SubParameters(
-    variabletools.SubVariables[
-        Parameters,
-        "Parameter",
-        FastAccessParameter,
-    ],
+    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter],
 ):
     '''Base class for handling subgroups of model parameters.
 
@@ -547,6 +645,25 @@ class SubParameters(
         'control'
         """
         return type(self).__name__[:-10].lower()
+
+
+class Keyword(NamedTuple):
+    """Helper class to describe parameter-specific keyword arguments for defining
+    values by "calling" a parameter object."""
+
+    name: str
+    """The keyword argument's name."""
+    type_: Type = float
+    """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
+    class |Variable|)."""
+    time: Optional[bool] = None
+    """Type of the keyword argument's time dependency (equivalent to the 
+    |Parameter.TIME| attribute of class |Parameter|).
+    """
+    span: Tuple[Optional[float], Optional[float]] = (None, None)
+    """The keyword argument's lower and upper boundary (equivalent to the 
+    |Variable.SPAN| attribute of class |Variable|).
+    """
 
 
 class KeywordArgumentsError(RuntimeError):
@@ -692,11 +809,7 @@ under the keyword `laubw`.'
     """Flag indicating whether the actual |KeywordArguments| object is valid or not."""
     _name2value: Dict[str, T]
 
-    def __init__(
-        self,
-        __valid: bool = True,
-        **keywordarguments: T,
-    ) -> None:
+    def __init__(self, __valid: bool = True, **keywordarguments: T) -> None:
         self.valid = __valid
         self._name2value = copy.deepcopy(keywordarguments)
 
@@ -742,10 +855,7 @@ the unequal argument `1` under the keyword `one`.
         else:
             self._name2value[name] = value
 
-    def subset_of(
-        self,
-        other: "KeywordArguments[T]",
-    ) -> bool:
+    def subset_of(self, other: KeywordArguments[T]) -> bool:
         """Check if the actual |KeywordArguments| object is a subset of the given one.
 
         First, we define the following (valid) |KeywordArguments| objects:
@@ -790,8 +900,8 @@ the unequal argument `1` under the keyword `one`.
 
     def extend(
         self,
-        parametertype: Type["Parameter"],
-        elements: Iterable["devicetools.Element"],
+        parametertype: Type[Parameter],
+        elements: Iterable[devicetools.Element],
         raise_exception: bool = True,
     ) -> None:
         """Extend the currently available keyword arguments based on the parameters
@@ -951,8 +1061,8 @@ raise_exception=False)
             return self._name2value[key]
         except KeyError:
             raise KeyError(
-                f"The current `{type(self).__name__}` object does "
-                f"not handle an argument under the keyword `{key}`."
+                f"The current `{type(self).__name__}` object does not handle an "
+                f"argument under the keyword `{key}`."
             ) from None
 
     def __setitem__(self, key: str, value: T) -> None:
@@ -963,8 +1073,8 @@ raise_exception=False)
             del self._name2value[key]
         except KeyError:
             raise KeyError(
-                f"The current `{type(self).__name__}` object does "
-                f"not handle an argument under the keyword `{key}`."
+                f"The current `{type(self).__name__}` object does not handle an "
+                f"argument under the keyword `{key}`."
             ) from None
 
     def __contains__(self, item: Tuple[str, T]) -> bool:
@@ -1007,12 +1117,7 @@ raise_exception=False)
         return objecttools.apply_black(type(self).__name__, **self._name2value)
 
 
-class Parameter(
-    variabletools.Variable[
-        SubParameters,
-        FastAccessParameter,
-    ]
-):
+class Parameter(variabletools.Variable[SubParameters, FastAccessParameter]):
     """Base class for model parameters.
 
     In *HydPy*, each kind of model parameter is represented by a unique
@@ -1072,10 +1177,9 @@ class Parameter(
     using the "call" syntax, the wrong value is corrected immediately:
 
     >>> from hydpy import pub
-    >>> with pub.options.warntrim(True):
+    >>> from hydpy.core.testtools import warn_later
+    >>> with pub.options.warntrim(True), warn_later():
     ...     par(7.0)
-    Traceback (most recent call last):
-    ...
     UserWarning: For variable `par` at least one value needed to be trimmed.  \
 The old and the new value(s) are `7.0` and `5.0`, respectively.
     >>> par
@@ -1196,10 +1300,8 @@ keyword arguments are given, which is ambiguous.
     Using the `call` syntax to set parameter values triggers method
     |trim| automatically:
 
-    >>> with pub.options.warntrim(True):
+    >>> with pub.options.warntrim(True), warn_later():
     ...     par(-1.0, 3.0)
-    Traceback (most recent call last):
-    ...
     UserWarning: For variable `par` at least one value needed to be trimmed.  \
 The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
@@ -1262,39 +1364,59 @@ broadcast input array from shape (2,) into shape (2,3)
     """
 
     TIME: Optional[bool]
+    KEYWORDS: Mapping[str, Keyword] = {}
 
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
+    _keywordarguments: KeywordArguments
+
+    def __init__(self, subvars: SubParameters) -> None:
+        super().__init__(subvars)
+        self._keywordarguments = KeywordArguments(False)
+
+    def _raise_args_and_kwargs_error(self) -> NoReturn:
+        raise ValueError(
+            f"For parameter {objecttools.elementphrase(self)} both positional and "
+            f"keyword arguments are given, which is ambiguous."
+        )
+
+    def _raise_no_args_and_no_kwargs_error(self) -> NoReturn:
+        raise ValueError(
+            f"For parameter {objecttools.elementphrase(self)} neither a positional "
+            f"nor a keyword argument is given."
+        )
+
+    def _raise_kwargs_and_auxfile_error(self, kwargs: Mapping[str, object]) -> NoReturn:
+        raise ValueError(
+            f"It is not allowed to combine keyword `auxfile` with other keywords, but "
+            f"for parameter {objecttools.elementphrase(self)} also the following "
+            f"keywords are used: {objecttools.enumeration(kwargs.keys())}."
+        )
+
+    def _raise_wrong_kwargs_error(self) -> NoReturn:
+        # ToDo: we should stop using `NotImplementedError` this way
+        # To trick pylint:
+        raise getattr(builtins, "NotImplementedError")(
+            f"The value(s) of parameter {objecttools.elementphrase(self)} could not "
+            f"be set based on the given keyword arguments."
+        )
+
     def __call__(self, *args, **kwargs):
         if args and kwargs:
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} both positional "
-                f"and keyword arguments are given, which is ambiguous."
-            )
+            self._raise_args_and_kwargs_error()
         if not args and not kwargs:
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)} neither "
-                f"a positional nor a keyword argument is given."
-            )
+            self._raise_no_args_and_no_kwargs_error()
         auxfile = kwargs.pop("auxfile", None)
         if auxfile:
             if kwargs:
-                raise ValueError(
-                    f"It is not allowed to combine keyword `auxfile` with other "
-                    f"keywords, but for parameter {objecttools.elementphrase(self)} "
-                    f"also the following keywords are used: "
-                    f"{objecttools.enumeration(kwargs.keys())}."
-                )
+                self._raise_kwargs_and_auxfile_error(kwargs)
             self.values = self._get_values_from_auxiliaryfile(auxfile)
         elif args:
             if len(args) == 1:
                 args = args[0]
             self.values = self.apply_timefactor(numpy.array(args))
         else:
-            raise NotImplementedError(
-                f"The value(s) of parameter {objecttools.elementphrase(self)} "
-                f"could not be set based on the given keyword arguments."
-            )
+            self._raise_wrong_kwargs_error()
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, auxfile: str):
@@ -1309,10 +1431,7 @@ broadcast input array from shape (2,) into shape (2,3)
             while frame:
                 namespace = frame.f_locals
                 try:
-                    subnamespace = {
-                        "model": namespace["model"],
-                        "focus": self,
-                    }
+                    subnamespace = {"model": namespace["model"], "focus": self}
                     break
                 except KeyError:
                     frame = frame.f_back
@@ -1335,6 +1454,21 @@ broadcast input array from shape (2,) into shape (2,3)
                 f"While trying to extract information for parameter "
                 f"`{self.name}` from file `{auxfile}`"
             )
+
+    def _find_kwargscombination(
+        self,
+        given_args: List[Any],
+        given_kwargs: Dict[str, Any],
+        allowed_combinations: Tuple[Set[str], ...],
+    ) -> Optional[int]:
+        if given_kwargs and ("auxfile" not in given_kwargs):
+            if given_args:
+                self._raise_args_and_kwargs_error()
+            try:
+                return allowed_combinations.index(set(given_kwargs))
+            except ValueError:
+                return None
+        return None
 
     @property
     def subpars(self) -> SubParameters:
@@ -1606,22 +1740,61 @@ implement method `update`.
 
     @property
     def keywordarguments(self) -> KeywordArguments:
-        """An invalid |KeywordArguments| object.
+        """A |KeywordArguments| object.
 
-        By default, instances of |Parameter| subclasses return empty,
-        invalid |KeywordArguments| objects:
+        By default, instances of |Parameter| subclasses return empty, invalid
+        |KeywordArguments| objects:
 
-        >>> from hydpy.core.parametertools import Parameter
-        >>> kwa = Parameter(None).keywordarguments
+        >>> from hydpy.core.parametertools import Keyword, KeywordArguments, Parameter
+        >>> par = Parameter(None)
+        >>> kwa = par.keywordarguments
         >>> kwa
         KeywordArguments()
         >>> kwa.valid
         False
 
-        See the documentation on class |ZipParameter| for the implementation
-        of a |Parameter| subclass overriding this behaviour.
+        See class |ZipParameter| for an implementation example of a |Parameter|
+        subclass overriding this behaviour.  Another example is class
+        |musk_control.NmbSegments|, which relies on the following mechanism.
+
+        Model developers can use the private `_keywordarguments` attribute.  Property
+        |Parameter.keywordarguments| returns a deep copy of the |KeywordArguments|
+        object stored here:
+
+        >>> par._keywordarguments = KeywordArguments(x=1.0, y=2.0, z=3.0)
+        >>> par.keywordarguments
+        KeywordArguments(x=1.0, y=2.0, z=3.0)
+        >>> par.keywordarguments is par._keywordarguments
+        False
+
+        We assume that the values of time-dependent keyword arguments stored under the
+        private attribute refer to the simulation step size.  However, the values of
+        the |KeywordArguments| object returned by |Parameter.keywordarguments| must
+        refer to the current parameter step size.  If the relevant |Parameter| class
+        provides |Keyword| instances that describe the individual keyword arguments,
+        |Parameter.keywordarguments| can perform the necessary adjustments
+        automatically:
+
+        >>> par.KEYWORDS = {"x": Keyword(name="x", time=None),
+        ...                 "y": Keyword(name="y", time=True),
+        ...                 "z": Keyword(name="z", time=False)}
+        >>> from hydpy import pub
+        >>> with pub.options.simulationstep("1d"), pub.options.parameterstep("2d"):
+        ...     par.keywordarguments
+        KeywordArguments(x=1.0, y=4.0, z=1.5)
         """
-        return KeywordArguments(False)
+        keywordarguments = copy.deepcopy(self._keywordarguments)
+        for name, keyword in self.KEYWORDS.items():
+            if keyword.time is not None:
+                try:
+                    value = keywordarguments[keyword.name]
+                except KeyError:
+                    continue
+                if keyword.time is True:
+                    keywordarguments[name] = value / self.get_timefactor()
+                else:
+                    keywordarguments[name] = value * self.get_timefactor()
+        return keywordarguments
 
     def compress_repr(self) -> Optional[str]:
         """Try to find a compressed parameter value representation and return it.
@@ -3446,26 +3619,26 @@ class FixedParameter(Parameter):
         Method |FixedParameter.restore| is relevant for testing mainly.
         Note that it might be necessary to call it after changing the
         simulation step size, as shown in the following example using
-        the parameter |lland_fixed.LambdaG| of base model |lland|:
+        the parameter |lland_fixed.LW| of base model |lland|:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> from hydpy import round_
-        >>> fixed.lambdag
-        lambdag(0.05184)
-        >>> round_(fixed.lambdag.value)
-        0.05184
+        >>> fixed.lw
+        lw(28.5)
+        >>> round_(fixed.lw.value)
+        28.5
         >>> simulationstep("12h")
-        >>> fixed.lambdag
-        lambdag(0.10368)
-        >>> round_(fixed.lambdag.value)
-        0.05184
-        >>> fixed.lambdag.restore()
-        >>> fixed.lambdag
-        lambdag(0.05184)
-        >>> round_(fixed.lambdag.value)
-        0.02592
+        >>> fixed.lw
+        lw(14.25)
+        >>> round_(fixed.lw.value)
+        28.5
+        >>> fixed.lw.restore()
+        >>> fixed.lw
+        lw(28.5)
+        >>> round_(fixed.lw.value)
+        57.0
         """
         with hydpy.pub.options.parameterstep("1d"):
             self(self.INIT)

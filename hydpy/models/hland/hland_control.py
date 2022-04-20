@@ -433,7 +433,8 @@ class SFDist(parametertools.Parameter):
 
     The first available keyword is `lognormal`.  Here, |SFDist| calculates factors
     resulting in a lognormal distribution of snowfall, similarly as implemented in
-    the COSERO model :cite:`ref-Frey2015CoseroSnow`.   Again, the lowest possible value,
+    the COSERO model :cite:p:`ref-Frey2015CoseroSnow`.   Again, the lowest possible
+    value,
     0.0, results in uniform snow distributions:
 
     >>> test(lognormal=0.0)
@@ -495,15 +496,16 @@ arguments are given, which is ambiguous.
     INIT = 1.0
 
     def __call__(self, *args, **kwargs) -> None:
-        if (args and kwargs) or (len(kwargs) > 1):
-            super().__call__(*args, **kwargs)
         sclass = self.shape[0]
-        if kwargs:
-            if "linear" in kwargs:
-                args = self._linear(kwargs.pop("linear"), sclass)
-            elif "lognormal" in kwargs:
-                args = self._lognormal(sclass, kwargs.pop("lognormal"))
-        super().__call__(*args, **kwargs)
+        idx = self._find_kwargscombination(
+            args, kwargs, (set(("linear",)), set(("lognormal",)))
+        )
+        if idx is None:
+            super().__call__(*args, **kwargs)
+        elif idx == 0:
+            super().__call__(self._linear(kwargs["linear"], sclass))
+        else:
+            super().__call__(self._lognormal(sclass, kwargs["lognormal"]))
         self.value /= sum(self.value) / sclass
 
     @staticmethod

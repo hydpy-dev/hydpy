@@ -1,6 +1,6 @@
 
 .. _Python Package Index: https://pypi.org/project/HydPy/
-.. _Python 3.7, 3.8, or 3.9: https://www.python.org/downloads/
+.. _Python 3.7, 3.8, 3.9, or 3.10: https://www.python.org/downloads/
 .. _numpy: http://www.numpy.org/
 .. _Kalypso: https://kalypso.bjoernsen.de/index.php?id=382&L=1
 .. _Delft-FEWS: https://oss.deltares.nl/web/delft-fews
@@ -22,7 +22,7 @@ Installation Instructions
 =========================
 
 Starting with version, 3.0 *HydPy* is available on the `Python Package Index`_.
-With `Python 3.7, 3.8, or 3.9`_ on your computer and having access to the
+With `Python 3.7, 3.8, 3.9, or 3.10`_ on your computer and having access to the
 internet, you only have to type::
 
   pip install hydpy
@@ -37,8 +37,8 @@ systems, you have to install "from source" at the moment, as explained below.
 
 Starting with version 4.0, *HydPy* also comes as an installer for Windows,
 including Python itself and all required and optional dependencies.  You may
-find it useful if new to Python and want to check out *HydPy* before installing
-a complete Python distribution, or if you are afraid to mess up your current
+find it useful if you are new to Python and want to check out *HydPy* before installing
+a complete Python distribution or if you are afraid to mess up your current
 Python installation (but then you should probably prefer to work in a virtual
 environment).  Additionally, the closedness of the installer might be
 preferable when coupling *HydPy* to other software systems such as `Kalypso`_
@@ -49,11 +49,11 @@ installer.
 Selecting a Python distribution
 --------------------------------
 
-Using *HydPy* requires installing `Python 3.7, 3.8, or 3.9`_ first.  You should
-favour the latest Python version unless you plan to use other libraries still
-only available for earlier versions.  Alternatively, consider installing a more
-comprehensive Python distribution like `Anaconda`_, already containing many
-scientific and mathematical tools.
+Using *HydPy* requires installing `Python 3.7, 3.8, 3.9, or 3.10`_ first.  You
+should favour the latest Python version unless you plan to use other libraries
+still only available for earlier versions.  Alternatively, consider installing
+a more comprehensive Python distribution like `Anaconda`_, already containing
+many scientific and mathematical tools.
 
 Note that these Python distributions do not include the most powerful
 integrated development environments.  For simple tasks, the lightweight IDE
@@ -73,15 +73,15 @@ models, please see the :ref:`development` section.  If you want to apply
 `releases`_.
 
 You are probably interested in using the latest version of *HydPy*, which has
-the highest version number.  HydPy's version numbers consist of
-three separate digits.  In "X.Y.Z.", "X" is the major number.  There can be
-substantial differences between *HydPy* versions with different major numbers,
-possibly resulting in incompatibility issues with interfacing systems.  "Y" is
-the minor revision number, indicating some improvements, but no potentially
-problematic changes, e. g. the implementation of additional models.  "Z" is the
-revision number, indicating some necessary corrections of the framework or its
-implemented models.  In any case, you should make sure to select the highest
-revision number available, meaning you should prefer using "X.Y.1" over "X.Y.0".
+the highest version number.  HydPy's version numbers consist of three separate
+digits.  In "X.Y.Z.", "X" is the major number.  There can be substantial
+differences between *HydPy* versions with different major numbers, possibly
+resulting in incompatibility issues with interfacing systems.  "Y" is the minor
+revision number, indicating some improvements, but no potentially problematic
+changes, e. g. the implementation of additional models.  "Z" is the revision
+number, indicating some necessary corrections to the framework or its
+implemented models.  You should make sure to select the highest revision number
+available, meaning you should prefer using "X.Y.1" over "X.Y.0".
 
 Each release is available in different compressed archives, corresponding to
 different environments.  Currently, we distribute pre-compiled binaries for
@@ -115,9 +115,8 @@ Compiler Collection`_ is ready for use on standard Linux distributions.
 Unfortunately, Windows does not include compilers by default.  Search the
 `Windows Compilers page`_ on selecting and installing the correct compiler.
 
-After installing the required compiler successfully on Windows, you might
-eventually have to deal with the **unable to find vcvarsall.bat** problem.
-`vcvarsall` is a batch file Python needs to control the installed Visual Studio
-compiler.  Find this file on your system and set a new system variable pointing
-to its path.  A quick search on the internet should provide you with the
-required information.
+After installing the required compiler on Windows, you might eventually have to
+deal with the **unable to find vcvarsall.bat** problem.  `vcvarsall` is a batch
+file Python needs to control the installed Visual Studio compiler.  Find this
+file on your system and set a new system variable pointing to its path.  A
+quick search on the internet should provide you with the required information.

@@ -30,13 +30,49 @@ class SolarTimeAngle(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
+class TimeOfSunrise(sequencetools.FactorSequence):
+    """Time of sunrise [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class TimeOfSunset(sequencetools.FactorSequence):
+    """Time of sunset [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class PossibleSunshineDuration(sequencetools.FactorSequence):
-    """Possible astronomical sunshine duration [h]."""
+    """Astronomically possible sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class DailyPossibleSunshineDuration(sequencetools.FactorSequence):
+    """Astronomically possible daily sunshine duration [h/d]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class UnadjustedSunshineDuration(sequencetools.FactorSequence):
+    """Unadjusted sunshine duration [h]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class SunshineDuration(sequencetools.FactorSequence):
-    """Sunshine duration [h]."""
+    """Actual sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class DailySunshineDuration(sequencetools.FactorSequence):
+    """Actual daily sunshine duration [h/d]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class PortionDailyRadiation(sequencetools.FactorSequence):
+    """Portion of the daily radiation sum [%]."""
 
     NDIM, NUMERIC = 0, False

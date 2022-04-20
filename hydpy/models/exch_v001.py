@@ -8,7 +8,7 @@ Version 1 of `HydPy-Exch` implements the general weir formula.  We implemented i
 behalf of the `German Federal Institute of Hydrology (BfG)`_ to connect different
 |dam_v006| instances (lake models), enabling them to exchange water based on water
 level differences.  This specific combination serves to model some huge, connected
-(sub)lakes of the Rhine basin similar to HBV96 :cite:`ref-Lindstrom1997HBV96`.
+(sub)lakes of the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.
 Combinations with other models providing (something like) water level information and
 allowing for an additional inflow that can be positive and negative are possible.
 

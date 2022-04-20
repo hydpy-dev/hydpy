@@ -25,18 +25,18 @@ class WindSpeed(sequencetools.InputSequence):
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
-    """Atmospheric pressure [kPA]."""
+    """Atmospheric pressure [hPa]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class GlobalRadiation(sequencetools.InputSequence):
-    """Global radiation [MJ/m²/T]."""
+    """Global radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class ClearSkySolarRadiation(sequencetools.InputSequence):
-    """Clear sky solar radiation [MJ/m²/T]."""
+    """Clear sky solar radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False

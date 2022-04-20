@@ -28,9 +28,8 @@ TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBas
 
 
 class OptionPropertyBase(propertytools.BaseDescriptor, Generic[TypeOption]):
-    """Base class for defining descriptors that both work like regular |property|
-    instances and support the `with` statement to change the property's value
-    temporarily."""
+    """Base class for defining descriptors that work like regular |property| instances
+    and support the `with` statement to change the property's value temporarily."""
 
     _CONVERTER: Tuple[Callable[[TypeOption], TypeOption]]
     _default: TypeOption
@@ -655,7 +654,7 @@ class Options:
     )
     ellipsis = _OptionPropertyEllipsis(
         -999,
-        """Ellipsis points are used to shorten the string representations of iterable 
+        """Ellipsis points serve to shorten the string representations of iterable 
         HydPy objects containing many entries.  Set a value to define the maximum 
         number of entries before and behind ellipsis points.  Set it to zero to avoid 
         any ellipsis points.  Set it to -999 to rely on the default values of the 
@@ -745,8 +744,20 @@ class Options:
     )
     utcoffset = OptionPropertyInt(
         60,
-        """Offset of your local time from UTC in minutes (see option 
-        |Options.utclongitude|.  Defaults to 60, which corresponds to  UTC+01:00.""",
+        """Local time offset from UTC in minutes (see option |Options.utclongitude|.  
+        Defaults to 60, which corresponds to  UTC+01:00.""",
+    )
+    timestampleft = OptionPropertyBool(
+        True,
+        """A True/False flag telling if assigning interval data (like hourly 
+        precipitation) to single time points relies on the start (True, default) or the 
+        end (False) of the respective interval.  
+        
+        *HydPy*-internally, we usually prevent such potentially problematic assignments 
+        by using |Timegrid| objects that define grids of intervals instead of time 
+        points.  However, some exceptions cannot be avoided, for example, when reading 
+        or writing NetCDF files.
+        """,
     )
     warnmissingcontrolfile = OptionPropertyBool(
         False,

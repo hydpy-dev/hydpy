@@ -155,7 +155,7 @@ def sphinx(session: nox.Session) -> None:
         "sphinx",
         "sphinxcontrib-fulltoc",
         "sphinxprettysearchresults",
-        "sphinxcontrib.bibtex<2",
+        "sphinxcontrib.bibtex",
     )
     session.chdir(_get_sitepackagepath(session))
     with _clean_environment(session):

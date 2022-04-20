@@ -33,30 +33,30 @@ if TYPE_CHECKING:
 
 
 InOutSequence = Union["InputSequence", "OutputSequence"]
-TypesInOutSequence = Union[Type["InputSequence"], Type["OutputSequence"]]
+InOutSequenceTypes = Union[Type["InputSequence"], Type["OutputSequence"]]
 
-SequencesType = TypeVar("SequencesType", "Sequences", "devicetools.Node")
+TypeSequences = TypeVar("TypeSequences", "Sequences", "devicetools.Node")
 
-SubSequencesType = TypeVar("SubSequencesType", bound="SubSequences")
-SequenceType = TypeVar("SequenceType", bound="Sequence_")
+TypeSubSequences = TypeVar("TypeSubSequences", bound="SubSequences")
+TypeSequence = TypeVar("TypeSequence", bound="Sequence_")
 
-IOSequencesType = TypeVar("IOSequencesType", bound="IOSequences")
-IOSequenceType = TypeVar("IOSequenceType", bound="IOSequence")
-FastAccessIOSequenceType = TypeVar(
-    "FastAccessIOSequenceType", bound="FastAccessIOSequence"
+TypeIOSequences = TypeVar("TypeIOSequences", bound="IOSequences")
+TypeIOSequence = TypeVar("TypeIOSequence", bound="IOSequence")
+TypeFastAccessIOSequence = TypeVar(
+    "TypeFastAccessIOSequence", bound="FastAccessIOSequence"
 )
 
-ModelSequencesType = TypeVar("ModelSequencesType", bound="ModelSequences")
-ModelSequenceType = TypeVar("ModelSequenceType", bound="ModelSequence")
+TypeModelSequences = TypeVar("TypeModelSequences", bound="ModelSequences")
+TypeModelSequence = TypeVar("TypeModelSequence", bound="ModelSequence")
 
-ModelIOSequencesType = TypeVar("ModelIOSequencesType", bound="ModelIOSequences")
-ModelIOSequenceType = TypeVar("ModelIOSequenceType", bound="ModelIOSequence")
+TypeModelIOSequences = TypeVar("TypeModelIOSequences", bound="ModelIOSequences")
+TypeModelIOSequence = TypeVar("TypeModelIOSequence", bound="ModelIOSequence")
 
-OutputSequencesType = TypeVar("OutputSequencesType", bound="OutputSequences")
-OutputSequenceType = TypeVar("OutputSequenceType", bound="OutputSequence")
+TypeOutputSequences = TypeVar("TypeOutputSequences", bound="OutputSequences")
+TypeOutputSequence = TypeVar("TypeOutputSequence", bound="OutputSequence")
 
-LinkSequencesType = TypeVar("LinkSequencesType", bound="LinkSequences")
-LinkSequenceType = TypeVar("LinkSequenceType", bound="LinkSequence")
+TypeLinkSequences = TypeVar("TypeLinkSequences", bound="LinkSequences")
+TypeLinkSequence = TypeVar("TypeLinkSequence", bound="LinkSequence")
 
 
 class FastAccessIOSequence(variabletools.FastAccess):
@@ -539,11 +539,11 @@ patch(template % "StateSequences") as states:
 
     def __prepare_subseqs(
         self,
-        default: Type[ModelSequencesType],
-        class_: Optional[Type[ModelSequencesType]],
+        default: Type[TypeModelSequences],
+        class_: Optional[Type[TypeModelSequences]],
         cymodel,
         cythonmodule,
-    ) -> ModelSequencesType:
+    ) -> TypeModelSequences:
         name = default.__name__
         if class_ is None:
             class_ = copy.copy(default)
@@ -571,9 +571,10 @@ patch(template % "StateSequences") as states:
         the |Sequences.iosubsequences| property only yields those subgroups which are
         non-empty:
 
-        >>> model = prepare_model("hstream_v1", "1d")
+        >>> model = prepare_model("musk_classic", "1d")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
+        fluxes
         states
         """
         if self.inputs:
@@ -877,7 +878,7 @@ element.
 
 class SubSequences(
     variabletools.SubVariables[
-        SequencesType, SequenceType, variabletools.FastAccessType
+        TypeSequences, TypeSequence, variabletools.TypeFastAccess
     ],
 ):
     """Base class for handling subgroups of sequences.
@@ -938,7 +939,7 @@ class SubSequences(
 
 
 class ModelSequences(
-    SubSequences[Sequences, ModelSequenceType, variabletools.FastAccessType],
+    SubSequences[Sequences, TypeModelSequence, variabletools.TypeFastAccess],
 ):
     """Base class for handling model-related subgroups of sequences."""
 
@@ -948,7 +949,7 @@ class ModelSequences(
     def __init__(
         self,
         master: Sequences,
-        cls_fastaccess: Optional[Type[variabletools.FastAccessType]] = None,
+        cls_fastaccess: Optional[Type[variabletools.TypeFastAccess]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.seqs = master
@@ -965,7 +966,7 @@ class ModelSequences(
 
 
 class IOSequences(
-    SubSequences[SequencesType, IOSequenceType, FastAccessIOSequenceType],
+    SubSequences[TypeSequences, TypeIOSequence, TypeFastAccessIOSequence],
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
@@ -995,8 +996,8 @@ class IOSequences(
 
 
 class ModelIOSequences(
-    IOSequences[Sequences, ModelIOSequenceType, FastAccessIOSequenceType],
-    ModelSequences[ModelIOSequenceType, FastAccessIOSequenceType],
+    IOSequences[Sequences, TypeModelIOSequence, TypeFastAccessIOSequence],
+    ModelSequences[TypeModelIOSequence, TypeFastAccessIOSequence],
 ):
     """Base class for handling model-related subgroups of |IOSequence| objects."""
 
@@ -1021,7 +1022,7 @@ class InputSequences(
 
 class OutputSequences(
     ModelIOSequences[
-        OutputSequenceType,
+        TypeOutputSequence,
         FastAccessOutputSequence,
     ],
 ):
@@ -1120,7 +1121,7 @@ class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelSequences[LinkSequenceType, FastAccessLinkSequence]):
+class LinkSequences(ModelSequences[TypeLinkSequence, FastAccessLinkSequence]):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
@@ -1142,7 +1143,7 @@ class SenderSequences(LinkSequences["SenderSequence"]):
     """Base class for handling "sender" |LinkSequence| objects."""
 
 
-class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAccessType]):
+class Sequence_(variabletools.Variable[TypeSubSequences, variabletools.TypeFastAccess]):
     """Base class for defining different kinds of sequences.
 
     Note that model developers should not derive their model-specific sequence classes
@@ -1197,7 +1198,7 @@ class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAcces
     strict_valuehandling: bool = False
 
     @property
-    def subseqs(self) -> SubSequencesType:
+    def subseqs(self) -> TypeSubSequences:
         """Alias for attribute |Variable.subvars|."""
         return self.subvars
 
@@ -1280,7 +1281,7 @@ class Sequence_(variabletools.Variable[SubSequencesType, variabletools.FastAcces
         return variabletools.to_repr(self, self.value, brackets)
 
 
-class IOSequence(Sequence_[IOSequencesType, FastAccessIOSequenceType]):
+class IOSequence(Sequence_[TypeIOSequences, TypeFastAccessIOSequence]):
     """Base class for sequences with input/output functionalities.
 
     The documentation on modules |filetools| and |netcdftools| in some detail explains
@@ -1789,27 +1790,81 @@ correctly.
         self._set_fastaccessattribute("ncarray", ncarray)
 
     def prepare_series(
-        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+        self,
+        allocate_ram: Optional[bool] = True,
+        read_jit: Optional[bool] = False,
+        write_jit: Optional[bool] = False,
     ) -> None:
         """Define how to handle the time-series data of the current |IOSequence| object.
 
-        See the main documentation on class |IOSequence| for further information.
+        See the main documentation on class |IOSequence| for general information on
+        method |IOSequence.prepare_series|.  Here, we only discuss the special case of
+        passing |None| to it to preserve predefined settings.
+
+        When leaving out certain arguments, |IOSequence.prepare_series| takes their
+        boolean defaults.  That means subsequent calls overwrite previous ones:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t.prepare_series(allocate_ram=False, read_jit=True)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+        >>> t.prepare_series(write_jit=True)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (True, False, True)
+
+        If you want to change one setting without modifying the others, pass |None| to
+        the latter:
+
+        >>> t.prepare_series(allocate_ram=False, read_jit=None, write_jit=None)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, False, True)
+        >>> t.prepare_series(allocate_ram=None, read_jit=True, write_jit=False)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+        >>> t.prepare_series(allocate_ram=None, read_jit=None, write_jit=None)
+        >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
+        (False, True, False)
+
+        The check for configurations attempting to both read and write "just in time"
+        takes predefined flags into account:
+
+        >>> t.prepare_series(read_jit=None, write_jit=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `t` of element \
+`land_lahn_1`.
+
+        >>> t.prepare_series(read_jit=False, write_jit=True)
+        >>> t.prepare_series(read_jit=True, write_jit=None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Reading from and writing into the same NetCDF file "just in time" \
+during a simulation run is not supported but tried for sequence `t` of element \
+`land_lahn_1`.
         """
-        if read_jit and write_jit:
+        readflag = read_jit or ((read_jit is None) and self.diskflag_reading)
+        writeflag = write_jit or ((write_jit is None) and self.diskflag_writing)
+        if readflag and writeflag:
             raise ValueError(
-                f'Reading from and writing into the same NetCDF file "just in '
-                f'time" during a simulation run is not supported but tried for '
-                f"sequence {objecttools.devicephrase(self)}."
+                f'Reading from and writing into the same NetCDF file "just in time" '
+                f"during a simulation run is not supported but tried for sequence "
+                f"{objecttools.devicephrase(self)}."
             )
-        ramflag = self.ramflag
-        if allocate_ram and not ramflag:
-            self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
-        if ramflag and not allocate_ram:
-            del self.series
-        self._set_fastaccessattribute("ramflag", allocate_ram)
-        inputflag = self._get_fastaccessattribute("inputflag", False)
-        self._set_fastaccessattribute("diskflag_reading", read_jit and not inputflag)
-        self._set_fastaccessattribute("diskflag_writing", write_jit)
+        if allocate_ram is not None:
+            ramflag = self.ramflag
+            if allocate_ram and not ramflag:
+                self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
+            if ramflag and not allocate_ram:
+                del self.series
+            self._set_fastaccessattribute("ramflag", allocate_ram)
+        if read_jit is not None:
+            inflag = self._get_fastaccessattribute("inputflag", False)
+            self._set_fastaccessattribute("diskflag_reading", read_jit and not inflag)
+        if write_jit is not None:
+            self._set_fastaccessattribute("diskflag_writing", write_jit)
         self.update_fastaccess()
 
     @property
@@ -2575,7 +2630,7 @@ element `element3`.
 
 
 class ModelSequence(
-    Sequence_[ModelSequencesType, variabletools.FastAccessType],
+    Sequence_[TypeModelSequences, variabletools.TypeFastAccess],
 ):
     """Base class for sequences to be handled by |Model| objects."""
 
@@ -2628,8 +2683,8 @@ class ModelSequence(
 
 
 class ModelIOSequence(
-    ModelSequence[ModelIOSequencesType, FastAccessIOSequenceType],
-    IOSequence[ModelIOSequencesType, FastAccessIOSequenceType],
+    ModelSequence[TypeModelIOSequences, TypeFastAccessIOSequence],
+    IOSequence[TypeModelIOSequences, TypeFastAccessIOSequence],
 ):
     """Base class for sequences with time-series functionalities to be handled by
     |Model| objects."""
@@ -2745,7 +2800,7 @@ class InputSequence(ModelIOSequence[InputSequences, FastAccessInputSequence]):
         return self._get_fastaccessattribute("inputflag")
 
 
-class OutputSequence(ModelIOSequence[OutputSequencesType, FastAccessOutputSequence]):
+class OutputSequence(ModelIOSequence[TypeOutputSequences, FastAccessOutputSequence]):
     """Base class for |FactorSequence|, |FluxSequence| and |StateSequence|.
 
     |OutputSequence| subclasses implement an optional output mechanism.  Generally, as
@@ -2879,7 +2934,7 @@ class OutputSequence(ModelIOSequence[OutputSequencesType, FastAccessOutputSequen
         return self._get_fastaccessattribute("outputflag")
 
 
-class DependentSequence(OutputSequence[OutputSequencesType]):
+class DependentSequence(OutputSequence[TypeOutputSequences]):
     """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
@@ -2947,7 +3002,7 @@ class FluxSequence(DependentSequence[FluxSequences]):
 
 
 class ConditionSequence(
-    ModelSequence[ModelSequencesType, variabletools.FastAccessType]
+    ModelSequence[TypeModelSequences, variabletools.TypeFastAccess]
 ):
     """Base class for |StateSequence| and |LogSequence|.
 
@@ -3321,7 +3376,7 @@ class AideSequence(ModelSequence[AideSequences, variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(ModelSequence[LinkSequencesType, FastAccessLinkSequence]):
+class LinkSequence(ModelSequence[TypeLinkSequences, FastAccessLinkSequence]):
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects do not handle values themselves.  Instead, they point to the
@@ -3386,13 +3441,13 @@ could result in segmentation faults when using it, so please be careful).
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        We focus on the |hstream_v1| application model `stream_lahn_1_lahn_2` routing
+        We focus on the |musk_classic| application model `stream_lahn_1_lahn_2` routing
         inflow from node `lahn_1` to node `lahn_2`:
 
         >>> model = hp.elements.stream_lahn_1_lahn_2.model
 
-        The first example shows that the 0-dimensional outlet sequence
-        |hstream_outlets.Q| points to the |Sim| sequence of node `lahn_2`:
+        The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
+        points to the |Sim| sequence of node `lahn_2`:
 
         >>> model.sequences.outlets.q
         q(0.0)
@@ -3403,8 +3458,8 @@ could result in segmentation faults when using it, so please be careful).
         >>> hp.nodes.lahn_2.sequences.sim
         sim(2.0)
 
-        The second example shows that the 1-dimensional inlet sequence
-        |hstream_inlets.Q| points to the |Sim| sequence of node `lahn_1`:
+        The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
+        points to the |Sim| sequence of node `lahn_1`:
 
         >>> model.sequences.inlets.q
         q(0.0)
@@ -3441,7 +3496,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 `float`, the following error occurred: could not broadcast input array from shape \
 (2,) into shape (1,)
 
-        In the example above, the 1-dimensional inlet sequence |hstream_inlets.Q| only
+        In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
         points a single |NodeSequence| value.  We now prepare a |hbranch_v1|
         application model instance to show what happens when connecting a 1-dimensional
         |LinkSequence| object (|hbranch_outlets.Branched|) with three |NodeSequence|
@@ -3520,7 +3575,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         Change the shape of a link sequence for good reasons only.  Please read the
         documentation on property |LinkSequence.value| first and then see the following
         examples, which are, again, based on the `LahnH` example project and
-        application model |hstream_v1|:
+        application model |musk_classic|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3528,7 +3583,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
         link sequences with a proper shape (which, for inlet sequence |
-        hstream_inlets.Q|, depends on the number of connected |Node| objects):
+        musk_inlets.Q|, depends on the number of connected |Node| objects):
 
         >>> model.sequences.outlets.q.shape
         ()

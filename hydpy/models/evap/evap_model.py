@@ -14,11 +14,15 @@ from hydpy.models.evap import evap_logs
 
 
 class Calc_AdjustedWindSpeed_V1(modeltools.Method):
-    r"""Adjust the measured wind speed to a height of two meters above the ground.
+    r"""Adjust the measured wind speed to a height of two meters above the ground
+    according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998` equation 47, modified for higher precision):
-      :math:`AdjustedWindSpeed = WindSpeed \cdot
-      \frac{ln((2-d)/z_0)}{ln((MeasuringHeightWindSpeed-d)/z_0)}`
+    Basic equation (:cite:t:`ref-Allen1998`, equation 47, modified for higher
+    precision):
+
+      .. math::
+        AdjustedWindSpeed = WindSpeed \cdot
+        \frac{ln((2-d)/z_0)}{ln((MeasuringHeightWindSpeed-d)/z_0)}`
 
       :math:`d = 2 / 3 \cdot 0.12`
 
@@ -53,10 +57,10 @@ class Calc_AdjustedWindSpeed_V1(modeltools.Method):
 
 
 class Calc_SaturationVapourPressure_V1(modeltools.Method):
-    r"""Calculate the saturation vapour pressure.
+    r"""Calculate the saturation vapour pressure according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 11):
-      :math:`SaturationVapourPressure = 0.6108 \cdot
+    Basic equation (:cite:t:`ref-Allen1998`, equation 11):
+      :math:`SaturationVapourPressure = 6.108 \cdot
       \exp \left( \frac{17.27 \cdot AirTemperature}{AirTemperature + 237.3} \right)`
 
     Example:
@@ -66,7 +70,7 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
         >>> inputs.airtemperature = 10.0
         >>> model.calc_saturationvapourpressure_v1()
         >>> factors.saturationvapourpressure
-        saturationvapourpressure(1.227963)
+        saturationvapourpressure(12.279626)
     """
 
     REQUIREDSEQUENCES = (evap_inputs.AirTemperature,)
@@ -76,15 +80,16 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
-        fac.saturationvapourpressure = 0.6108 * modelutils.exp(
+        fac.saturationvapourpressure = 6.108 * modelutils.exp(
             17.27 * inp.airtemperature / (inp.airtemperature + 237.3)
         )
 
 
 class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
-    r"""Calculate the slope of the saturation vapour pressure curve.
+    r"""Calculate the slope of the saturation vapour pressure curve according to
+    :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 13):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 13):
       :math:`SaturationVapourPressureSlope = 4098 \cdot
       \frac{SaturationVapourPressure}{(AirTemperature + 237.3)^2}`
 
@@ -93,10 +98,10 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> inputs.airtemperature = 10.0
-        >>> factors.saturationvapourpressure = 1.227963
+        >>> factors.saturationvapourpressure = 12.279626
         >>> model.calc_saturationvapourpressureslope_v1()
         >>> factors.saturationvapourpressureslope
-        saturationvapourpressureslope(0.082283)
+        saturationvapourpressureslope(0.822828)
     """
 
     REQUIREDSEQUENCES = (
@@ -115,9 +120,9 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
 
 
 class Calc_ActualVapourPressure_V1(modeltools.Method):
-    r"""Calculate the actual vapour pressure.
+    r"""Calculate the actual vapour pressure according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 19, modified):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 19, modified):
       :math:`ActualVapourPressure = SaturationVapourPressure \cdot
       RelativeHumidity / 100`
 
@@ -126,10 +131,10 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> inputs.relativehumidity = 60.0
-        >>> factors.saturationvapourpressure = 3.0
+        >>> factors.saturationvapourpressure = 30.0
         >>> model.calc_actualvapourpressure_v1()
         >>> factors.actualvapourpressure
-        actualvapourpressure(1.8)
+        actualvapourpressure(18.0)
     """
 
     REQUIREDSEQUENCES = (
@@ -246,19 +251,20 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_NetShortwaveRadiation_V1(modeltools.Method):
-    r"""Calculate the net shortwave radiation for the hypothetical grass reference crop.
+    r"""Calculate the net shortwave radiation for the hypothetical grass reference
+    crop according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 38):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 38):
       :math:`NetShortwaveRadiation = (1.0 - 0.23) \cdot GlobalRadiation`
 
     Example:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> inputs.globalradiation = 20.0
+        >>> inputs.globalradiation = 200.0
         >>> model.calc_netshortwaveradiation_v1()
         >>> fluxes.netshortwaveradiation
-        netshortwaveradiation(15.4)
+        netshortwaveradiation(154.0)
     """
 
     REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation,)
@@ -272,12 +278,12 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
 
 
 class Calc_NetLongwaveRadiation_V1(modeltools.Method):
-    r"""Calculate the net longwave radiation.
+    r"""Calculate the net longwave radiation according to :cite:t:`ref-Allen1998`.
 
-    Basic equations (:cite:`ref-Allen1998`, equation 39, modified):
+    Basic equations (:cite:t:`ref-Allen1998`, equation 39, modified):
       :math:`NetLongwaveRadiation =
-      \sigma \cdot Seconds \cdot (AirTemperature+273.16)^4
-      \cdot (0.34 - 0.14 \sqrt{ActualVapourPressure}) \cdot
+      \sigma \cdot (AirTemperature + 273.16)^4
+      \cdot \left( 0.34 - 0.14 \sqrt{ActualVapourPressure / 10} \right) \cdot
       (1.35 \cdot GR / CSSR - 0.35)`
 
       .. math::
@@ -296,43 +302,39 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         \sum{LoggedClearSkySolarRadiation} &|\ ClearSkySolarRadiation = 0
         \end{cases}
 
-      :math:`\sigma = 5.6747685185185184 \cdot 10^{-14}`
+      :math:`\sigma = 5.6747685185185184 \cdot 10^{-8}`
 
     Note that when clear sky radiation is zero during night periods, we use the global
     radiation and clear sky radiation sums of the last 24 hours.  The averaging over
-    three hours before sunset suggested by  :cite:`ref-Allen1998` could be more precise
-    but is a more complicated and error-prone approach.
+    three hours before sunset suggested by  :cite:t:`ref-Allen1998` could be more
+    precise but is a more complicated and error-prone approach.
 
     Example:
 
-        The following calculation agrees with example 11 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 11 of :cite:t:`ref-Allen1998`:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> derived.seconds(60*60*24)
         >>> derived.nmblogentries(1)
         >>> inputs.airtemperature = 22.1
-        >>> inputs.globalradiation = 14.5
-        >>> inputs.clearskysolarradiation = 18.8
-        >>> factors.actualvapourpressure = 2.1
+        >>> inputs.globalradiation = 167.824074
+        >>> inputs.clearskysolarradiation = 217.592593
+        >>> factors.actualvapourpressure = 21.0
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(3.531847)
+        netlongwaveradiation(40.87786)
 
         >>> inputs.clearskysolarradiation = 0.0
         >>> logs.loggedclearskysolarradiation.shape = 1
-        >>> logs.loggedclearskysolarradiation = 12.0
+        >>> logs.loggedclearskysolarradiation = 138.888889
         >>> logs.loggedglobalradiation.shape = 1
-        >>> logs.loggedglobalradiation = 10.0
+        >>> logs.loggedglobalradiation = 115.740741
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
-        netlongwaveradiation(3.959909)
+        netlongwaveradiation(45.832275)
     """
 
-    DERIVEDPARAMETERS = (
-        evap_derived.NmbLogEntries,
-        evap_derived.Seconds,
-    )
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_inputs.ClearSkySolarRadiation,
@@ -360,30 +362,30 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
                 d_clearskysolarradiation += log.loggedclearskysolarradiation[idx]
                 d_globalradiation += log.loggedglobalradiation[idx]
         flu.netlongwaveradiation = (
-            (4.903e-9 / 24.0 / 60.0 / 60.0 * der.seconds)
+            5.674768518518519e-08
             * (inp.airtemperature + 273.16) ** 4
-            * (0.34 - 0.14 * fac.actualvapourpressure**0.5)
+            * (0.34 - 0.14 * (fac.actualvapourpressure / 10.0) ** 0.5)
             * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
         )
 
 
 class Calc_NetRadiation_V1(modeltools.Method):
-    """Calculate the total net radiation.
+    """Calculate the total net radiation according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 40):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 40):
       :math:`NetRadiation = NetShortwaveRadiation - NetLongwaveRadiation`
 
     Example:
 
-        The following calculation agrees with example 12 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 12 of :cite:t:`ref-Allen1998`:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> fluxes.netshortwaveradiation  = 11.1
-        >>> fluxes.netlongwaveradiation  = 3.5
+        >>> fluxes.netshortwaveradiation  = 111.0
+        >>> fluxes.netlongwaveradiation  = 35.0
         >>> model.calc_netradiation_v1()
         >>> fluxes.netradiation
-        netradiation(7.6)
+        netradiation(76.0)
     """
 
     REQUIREDSEQUENCES = (
@@ -399,12 +401,12 @@ class Calc_NetRadiation_V1(modeltools.Method):
 
 
 class Calc_SoilHeatFlux_V1(modeltools.Method):
-    r"""Calculate the soil heat flux.
+    r"""Calculate the soil heat flux according to :cite:t:`ref-Allen1998`.
 
-    Basic equation for daily timesteps (:cite:`ref-Allen1998`, equation 42):
+    Basic equation for daily timesteps (:cite:t:`ref-Allen1998`, equation 42):
       :math:`SoilHeatFlux = 0` \n
 
-    Basic equation for (sub)hourly timesteps (:cite:`ref-Allen1998`, eq. 45 and 46 ):
+    Basic equation for (sub)hourly timesteps (:cite:t:`ref-Allen1998`, eq. 45 and 46 ):
       :math:`SoilHeatFlux = \Bigl \lbrace
       {
       {0.1 \cdot SoilHeatFlux \ | \ NetRadiation \geq 0}
@@ -422,26 +424,26 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> derived.seconds(60 * 60)
-        >>> fluxes.netradiation = 10.0
+        >>> derived.days(1/24)
+        >>> fluxes.netradiation = 100.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
-        soilheatflux(1.0)
-        >>> fluxes.netradiation = -2.0
+        soilheatflux(10.0)
+        >>> fluxes.netradiation = -20.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
-        soilheatflux(-1.0)
+        soilheatflux(-10.0)
 
         For any simulation step size of at least one day, method |Calc_SoilHeatFlux_V1|
-        sets the |SoilHeatFlux| to zero, which :cite:`ref-Allen1998` suggests for daily
-        simulation steps only:
+        sets the |SoilHeatFlux| to zero, which :cite:t:`ref-Allen1998` suggests for
+        daily simulation steps only:
 
-        >>> derived.seconds(60 * 60 * 24)
-        >>> fluxes.netradiation = 10.0
+        >>> derived.days(1)
+        >>> fluxes.netradiation = 100.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
-        >>> fluxes.netradiation = -2.0
+        >>> fluxes.netradiation = -20.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
@@ -450,7 +452,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         results for intermediate (e.g. 12 hours) or larger step sizes (e.g. one month).
     """
 
-    DERIVEDPARAMETERS = (evap_derived.Seconds,)
+    DERIVEDPARAMETERS = (evap_derived.Days,)
     REQUIREDSEQUENCES = (evap_fluxes.NetRadiation,)
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
@@ -458,7 +460,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if der.seconds < 60.0 * 60.0 * 24.0:
+        if der.days < 1.0:
             if flu.netradiation >= 0.0:
                 flu.soilheatflux = 0.1 * flu.netradiation
             else:
@@ -468,21 +470,21 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
 
 class Calc_PsychrometricConstant_V1(modeltools.Method):
-    r"""Calculate the psychrometric constant.
+    r"""Calculate the psychrometric constant according to :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 8):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 8):
       :math:`PsychrometricConstant = 6.65 \cdot 10^{-4} \cdot AtmosphericPressure`
 
     Example:
 
-        The following calculation agrees with example 2 of :cite:`ref-Allen1998`:
+        The following calculation agrees with example 2 of :cite:t:`ref-Allen1998`:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> inputs.atmosphericpressure = 81.8
+        >>> inputs.atmosphericpressure = 818.0
         >>> model.calc_psychrometricconstant_v1()
         >>> factors.psychrometricconstant
-        psychrometricconstant(0.054397)
+        psychrometricconstant(0.54397)
     """
 
     REQUIREDSEQUENCES = (evap_inputs.AtmosphericPressure,)
@@ -496,14 +498,15 @@ class Calc_PsychrometricConstant_V1(modeltools.Method):
 
 
 class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
-    r"""Calculate the reference evapotranspiration constant.
+    r"""Calculate the reference evapotranspiration constant according to
+    :cite:t:`ref-Allen1998`.
 
-    Basic equation (:cite:`ref-Allen1998`, equation 6):
+    Basic equation (:cite:t:`ref-Allen1998`, equation 6):
       :math:`ReferenceEvapotranspiration =
       \frac{
       0.408 \cdot SaturationVapourPressureSlope \cdot (NetRadiation - SoilHeatFlux) +
       PsychrometricConstant \cdot
-      \frac{37.5 \cdot Seconds}{60 \cdot 60 \cdot (AirTemperature + 273)}
+      \frac{37.5 \cdot Hours}{AirTemperature + 273}
       \cdot AdjustedWindSpeed \cdot (SaturationVapourPressure - ActualVapourPressure)
       }
       {
@@ -511,50 +514,55 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
       PsychrometricConstant \cdot (1 + 0.34 \cdot AdjustedWindSpeed)
       }`
 
-    Note that :cite:`ref-Allen1998` recommends the coefficient 37 for hourly
+    Note that :cite:t:`ref-Allen1998` recommends the coefficient 37 for hourly
     simulations and 900 for daily simulations.  |Calc_ReferenceEvapotranspiration_V1|
     generally uses 37.5, which gives 900 when multiplied by 24.
 
     Example:
 
-        The following calculation agrees with example 18 of :cite:`ref-Allen1998`,
+        The following calculation agrees with example 18 of :cite:t:`ref-Allen1998`,
         dealing with a daily simulation step:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> derived.seconds(24*60*60)
+        >>> derived.days(1)
+        >>> derived.hours(24)
         >>> inputs.airtemperature = 16.9
-        >>> factors.psychrometricconstant = 0.0666
+        >>> factors.psychrometricconstant = 0.666
         >>> factors.adjustedwindspeed = 2.078
-        >>> factors.actualvapourpressure = 1.409
-        >>> factors.saturationvapourpressure = 1.997
-        >>> factors.saturationvapourpressureslope = 0.122
-        >>> fluxes.netradiation = 13.28
+        >>> factors.actualvapourpressure = 14.09
+        >>> factors.saturationvapourpressure = 19.97
+        >>> factors.saturationvapourpressureslope = 1.22
+        >>> fluxes.netradiation = 153.7037
         >>> fluxes.soilheatflux = 0.0
         >>> model.calc_referenceevapotranspiration_v1()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(3.877117)
 
-        The following calculation agrees with example 19 of :cite:`ref-Allen1998`,
+        The following calculation agrees with example 19 of :cite:t:`ref-Allen1998`,
         dealing with an hourly simulation step (note that there is a  difference due to
         using 37.5 instead of 37 that is smaller than the precision of the results
-        tabulated by :cite:`ref-Allen1998`:
+        tabulated by :cite:t:`ref-Allen1998`:
 
-        >>> derived.seconds(60*60)
+        >>> derived.days(1/24)
+        >>> derived.hours(1)
         >>> inputs.airtemperature = 38.0
-        >>> factors.psychrometricconstant = 0.0673
+        >>> factors.psychrometricconstant = 0.673
         >>> factors.adjustedwindspeed = 3.3
-        >>> factors.actualvapourpressure = 3.445
-        >>> factors.saturationvapourpressure = 6.625
-        >>> factors.saturationvapourpressureslope = 0.358
-        >>> fluxes.netradiation = 1.749
-        >>> fluxes.soilheatflux = 0.175
+        >>> factors.actualvapourpressure = 34.45
+        >>> factors.saturationvapourpressure = 66.25
+        >>> factors.saturationvapourpressureslope = 3.58
+        >>> fluxes.netradiation = 485.8333
+        >>> fluxes.soilheatflux = 48.6111
         >>> model.calc_referenceevapotranspiration_v1()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(0.629106)
     """
 
-    DERIVEDPARAMETERS = (evap_derived.Seconds,)
+    DERIVEDPARAMETERS = (
+        evap_derived.Days,
+        evap_derived.Hours,
+    )
     REQUIREDSEQUENCES = (
         evap_inputs.AirTemperature,
         evap_factors.SaturationVapourPressureSlope,
@@ -574,11 +582,11 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.referenceevapotranspiration = (
-            0.408
+            0.0352512
+            * der.days
             * fac.saturationvapourpressureslope
             * (flu.netradiation - flu.soilheatflux)
-            + fac.psychrometricconstant
-            * (37.5 / 60.0 / 60.0 * der.seconds)
+            + (fac.psychrometricconstant * 3.75 * der.hours)
             / (inp.airtemperature + 273.0)
             * fac.adjustedwindspeed
             * (fac.saturationvapourpressure - fac.actualvapourpressure)

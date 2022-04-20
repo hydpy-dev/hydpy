@@ -23,10 +23,6 @@ class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
 
 
-class DOY(parametertools.DOYParameter):
-    """References the "global" day of the year index array [-]."""
-
-
 class Seconds(parametertools.SecondsParameter):
     """The length of the actual simulation step size in seconds [s]."""
 
@@ -39,31 +35,21 @@ class Days(parametertools.DaysParameter):
     """The length of the actual simulation step size in days [d]."""
 
 
-class SCT(parametertools.SCTParameter):
-    """References the "global" standard clock time array [-]."""
-
-
-class UTCLongitude(parametertools.UTCLongitudeParameter):
-    """Longitude of the centre of the local time zone [°]."""
-
-
 class NmbLogEntries(parametertools.Parameter):
-    """The number of log entries required for a memory duration of 24 hours
-    [-]."""
+    """The number of log entries required for a memory duration of 24 hours [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def update(self):
-        """Calculate the number of entries and adjust the shape of all
-        relevant log sequences.
+        """Calculate the number of entries and adjust the shape of all relevant log
+        sequences.
 
-        The aimed memory duration is one day.  Hence, the number of the
-        required log entries depends on the simulation step size:
+        The aimed memory duration is one day.  Hence, the number of the required log
+        entries depends on the simulation step size:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> from hydpy import pub
-        >>> nhru(2)
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
@@ -79,6 +65,9 @@ class NmbLogEntries(parametertools.Parameter):
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
+        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan)
         loggedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                               nan, nan, nan, nan)
@@ -86,8 +75,8 @@ class NmbLogEntries(parametertools.Parameter):
                           nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                           nan, nan)
 
-        To prevent from loosing information, updating parameter |NmbLogEntries|
-        resets the shape of the relevant log sequences only when necessary:
+        To prevent from loosing information, updating parameter |NmbLogEntries| resets
+        the shape of the relevant log sequences only when necessary:
 
         >>> logs.wet0 = 1.0
         >>> logs.loggedteml = 2.0
@@ -110,9 +99,9 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries.update()
         Traceback (most recent call last):
         ...
-        ValueError: The value of parameter `nmblogentries` of element `?` \
-cannot be determined for a the current simulation step size.  The fraction of \
-the memory period (1d) and the simulation step size (5h) leaves a remainder.
+        ValueError: The value of parameter `nmblogentries` of element `?` cannot be \
+determined for a the current simulation step size.  The fraction of the memory period \
+(1d) and the simulation step size (5h) leaves a remainder.
 
         .. testsetup::
 
@@ -121,11 +110,10 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
         nmb = "1d" / hydpy.pub.options.simulationstep
         if nmb % 1:
             raise ValueError(
-                f"The value of parameter {objecttools.elementphrase(self)} "
-                f"cannot be determined for a the current simulation step "
-                f"size.  The fraction of the memory period (1d) and the "
-                f"simulation step size ({hydpy.pub.timegrids.stepsize}) "
-                f"leaves a remainder."
+                f"The value of parameter {objecttools.elementphrase(self)} cannot be "
+                f"determined for a the current simulation step size.  The fraction of "
+                f"the memory period (1d) and the simulation step size "
+                f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )
         self(nmb)
         nmb = int(nmb)
@@ -134,33 +122,6 @@ the memory period (1d) and the simulation step size (5h) leaves a remainder.
             shape = exceptiontools.getattr_(seq, "shape", (None,))
             if nmb != shape[-1]:
                 seq.shape = nmb
-
-
-class LatitudeRad(parametertools.Parameter):
-    """The latitude [rad]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.5708, 1.5708)
-
-    CONTROLPARAMETERS = (lland_control.Latitude,)
-
-    def update(self):
-        """Update |LatitudeRad| based on parameter |Latitude|.
-
-        >>> from hydpy import round_
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> for value in (-90.0, -45.0, 0.0, 45.0, 90.0):
-        ...     latitude(value)
-        ...     derived.latituderad.update()
-        ...     round_(latitude.value, end=": ")
-        ...     round_(derived.latituderad.value)
-        -90.0: -1.570796
-        -45.0: -0.785398
-        0.0: 0.0
-        45.0: 0.785398
-        90.0: 1.570796
-        """
-        self.value = 3.141592653589793 / 180.0 * self.subpars.pars.control.latitude
 
 
 class AbsFHRU(lland_parameters.ParameterComplete):
@@ -202,8 +163,8 @@ class KInz(lland_parameters.LanduseMonthParameter):
     )
 
     def update(self):
-        """Update |KInz| based on |HInz| and |LAI| :cite:`ref-LARSIM`
-        (based on :cite:`ref-Dickinson1984`).
+        """Update |KInz| based on |HInz| and |LAI| according to :cite:t:`ref-LARSIM`
+        (based on :cite:t:`ref-Dickinson1984`).
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
@@ -223,9 +184,9 @@ class KInz(lland_parameters.LanduseMonthParameter):
 
 
 class HeatOfFusion(lland_parameters.ParameterLand):
-    """Heat which is necessary to melt the frozen soil water content."""
+    """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
     FIXEDPARAMETERS = (
         lland_fixed.BoWa2Z,
@@ -240,21 +201,25 @@ class HeatOfFusion(lland_parameters.ParameterLand):
            :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
 
         >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
         >>> derived.heatoffusion.update()
         >>> derived.heatoffusion
-        heatoffusion(26.72)
+        heatoffusion(309.259259)
+        >>> from hydpy import round_
+        >>> round_(derived.heatoffusion.values)
+        618.518519, 618.518519
         """
         fixed = self.subpars.pars.fixed
         self.value = fixed.rschmelz * fixed.bowa2z
 
 
 class Fr(lland_parameters.LanduseMonthParameter):
-    """Reduktionsfaktor für Strahlung :cite:`ref-LARSIM`
-    (basierend auf :cite:`ref-LUBWLUWG2015`) (reduction factor for short- and
-    long wave radiation) :cite:`ref-LARSIM` (based on :cite:`ref-LUBWLUWG2015`)
+    """Reduktionsfaktor für Strahlung according to :cite:t:`ref-LARSIM`
+    (basierend auf :cite:t:`ref-LUBWLUWG2015`) (reduction factor for short- and
+    long wave radiation) :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBWLUWG2015`)
     [-]."""
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
@@ -508,7 +473,7 @@ class QBGAMax(parametertools.Parameter):
 
 
 class QFactor(parametertools.Parameter):
-    """Factor for converting mm/stepsize to m³/s."""
+    """Factor for converting mm/T to m³/s."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 

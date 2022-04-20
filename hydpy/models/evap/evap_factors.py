@@ -13,24 +13,24 @@ class AdjustedWindSpeed(sequencetools.FactorSequence):
 
 
 class SaturationVapourPressure(sequencetools.FactorSequence):
-    """Saturation vapour pressure [kPa]."""
+    """Saturation vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class SaturationVapourPressureSlope(sequencetools.FactorSequence):
-    """The slope of the saturation vapour pressure curve [kPa/°C]."""
+    """The slope of the saturation vapour pressure curve [hPa/K]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class ActualVapourPressure(sequencetools.FactorSequence):
-    """Actual vapour pressure [kPa]."""
+    """Actual vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PsychrometricConstant(sequencetools.FactorSequence):
-    """Psychrometric constant [kPa/°C]."""
+    """Psychrometric constant [hPa/K]."""
 
     NDIM, NUMERIC = 0, False

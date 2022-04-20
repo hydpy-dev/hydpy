@@ -2,6 +2,7 @@
 """This module implements tools for testing *HydPy* and its models."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import abc
 import builtins
 import contextlib
@@ -36,6 +37,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
@@ -313,6 +315,8 @@ hydpy.models.hland.hland_control.ZoneType
                 15
             ), opt.utcoffset(
                 60
+            ), opt.timestampleft(
+                True
             ), opt.warnsimulationstep(
                 False
             ), opt.warntrim(
@@ -401,9 +405,8 @@ class Test:
     def raw_first_col_strings(self) -> List[str]:
         """To be implemented by the subclasses of |Test|."""
 
-    @staticmethod
     @abc.abstractmethod
-    def get_output_array(parseqs):
+    def get_output_array(self, parseqs):
         """To be implemented by the subclasses of |Test|."""
 
     @property
@@ -574,7 +577,7 @@ class IntegrationTest(Test):
         seqs=None,
         inits=None,
     ) -> None:
-        """Prepare the element and its nodes and put them into a HydPy object
+        """Prepare the element and its nodes, put them into a HydPy object,
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
@@ -613,7 +616,7 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg = None,
-        use_conditions: Optional[timetools.DateConstrArg] = None,
+        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]] = None,
     ) -> Dict[sequencetools.IOSequence, Union[float, numpy.array]]:
         """do return conditions"""
 
@@ -645,27 +648,27 @@ class IntegrationTest(Test):
     def _perform_simulation(self, get_conditions):
         if get_conditions:
             date = timetools.Date(get_conditions)
+            if date > hydpy.pub.timegrids.init.firstdate:
+                hydpy.pub.timegrids.sim = timetools.Timegrid(
+                    firstdate=hydpy.pub.timegrids.init.firstdate,
+                    lastdate=date,
+                    stepsize=hydpy.pub.timegrids.stepsize,
+                )
+                self.hydpy.simulate()
+            conditions = self.element.model.sequences.conditions
+            if date < hydpy.pub.timegrids.init.lastdate:
+                hydpy.pub.timegrids.sim = timetools.Timegrid(
+                    firstdate=date,
+                    lastdate=hydpy.pub.timegrids.init.lastdate,
+                    stepsize=hydpy.pub.timegrids.stepsize,
+                )
+                self.hydpy.simulate()
             hydpy.pub.timegrids.sim = timetools.Timegrid(
                 firstdate=hydpy.pub.timegrids.init.firstdate,
-                lastdate=date,
-                stepsize=hydpy.pub.timegrids.stepsize,
-            )
-            self.hydpy.simulate()
-            seq2value = {}
-            for seq in self.element.model.sequences.conditionsequences:
-                seq2value[seq] = copy.deepcopy(seq.value)
-            hydpy.pub.timegrids.sim = timetools.Timegrid(
-                firstdate=date,
                 lastdate=hydpy.pub.timegrids.init.lastdate,
                 stepsize=hydpy.pub.timegrids.stepsize,
             )
-            self.hydpy.simulate()
-            hydpy.pub.timegrids.sim = timetools.Timegrid(
-                firstdate=hydpy.pub.timegrids.init.firstdate,
-                lastdate=hydpy.pub.timegrids.init.lastdate,
-                stepsize=hydpy.pub.timegrids.stepsize,
-            )
-            return seq2value
+            return conditions
         self.hydpy.simulate()
         return None
 
@@ -727,14 +730,12 @@ datetime of the Python standard library for for further information.
             ) from exc
         vars(self)["dateformat"] = dateformat
 
-    @staticmethod
-    def get_output_array(parseqs):
-        """Return the array containing the output results of the given
-        sequence."""
+    def get_output_array(self, parseqs):
+        """Return the array containing the output results of the given sequence."""
         return parseqs.series
 
     def prepare_node_sequences(self):
-        """Prepare the simulations sequences of all nodes in.
+        """Prepare the simulations series of all nodes.
 
         This preparation might not be suitable for all types of integration
         tests.  Prepare those node sequences manually, for which this method
@@ -768,7 +769,7 @@ datetime of the Python standard library for for further information.
     def prepare_model(
         self,
         update_parameters: bool,
-        use_conditions: Optional[timetools.DateConstrArg],
+        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]],
     ) -> None:
         """Derive the secondary parameter values, prepare all required time
         series and set the initial conditions."""
@@ -781,13 +782,11 @@ datetime of the Python standard library for for further information.
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
-                for seq in self.element.model.sequences.conditionsequences:
-                    seq(use_conditions[seq])
+                self.element.model.sequences.conditions = use_conditions
         self.reset_inits()
 
     def reset_outputs(self):
-        """Set the values of the simulation sequences of all outlet nodes to
-        zero."""
+        """Set the values of the simulation sequences of all outlet nodes to zero."""
         for node in self.nodes:
             if (node in self.element.outlets) or (node in self.element.senders):
                 node.sequences.sim[:] = 0.0
@@ -1238,7 +1237,7 @@ class TestIO:
     >>> os.path.exists("testfile.txt")
     False
 
-    Nevertheless, `testfile.txt` still exists in folder `iotesting`:
+    Nevertheless, `testfile.txt` still exists in the folder `iotesting`:
 
     >>> with TestIO():
     ...     print(os.path.exists("testfile.txt"))
@@ -1352,8 +1351,8 @@ methods array, read, subdevicenames
     >>> from hydpy import make_abc_testable, classname
     >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, 1)
 
-    To avoid confusion, |make_abc_testable| appends an underscore the original
-    class-name:
+    To avoid confusion, |make_abc_testable| appends an underscore to the original class
+    name:
 
     >>> classname(ncvar)
     'NetCDFVariableBase_'
@@ -1432,8 +1431,8 @@ class NumericalDifferentiator:
     Therefore, it must know the relationship between |lstream_aides.RHM| and
     |lstream_states.H|, being defined by method |lstream_model.Calc_RHM_V1|.
 
-    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|
-    which how to apply class |NumericalDifferentiator| on multiple target
+    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|,
+    which explains how to apply class |NumericalDifferentiator| on multiple target
     sequences (`ysequences`).  Note that, in order to calculate the correct
     derivatives of sequences |lstream_aides.AM| and |lstream_aides.UM|, we
     need not only to pass |lstream_model.Calc_AM_UM_V1|, but also methods
@@ -1443,7 +1442,7 @@ class NumericalDifferentiator:
     |lstream_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves the second order of accuracy, due to
+    |NumericalDifferentiator| achieves the second order of accuracy due to
     using the coefficients given `here`_.  If results are too inaccurate,
     you might improve them by changing the finite difference method
     (`backward` or `central` instead of `forward`) or by changing the
@@ -1531,7 +1530,7 @@ def update_integrationtests(
     modify the value of a fixed parameter, the results of possibly dozens
     of integration tests of your application model might become wrong.
     In such situations, function |update_integrationtests| helps you in
-    replacing all integration tests results at ones.  Therefore, it
+    replacing all integration tests results at once.  Therefore, it
     calculates the new results, updates the old module docstring and
     writes it.  You only need to copy-paste the printed result into the
     affected module.  But be aware that function |update_integrationtests|
@@ -1539,7 +1538,7 @@ def update_integrationtests(
     if the new results are really correct under all possible conditions,
     you should inspect and replace each integration test result manually.
 
-    The following example, we disable method |conv_model.Pass_Outputs_V1|
+    In the following example, we disable method |conv_model.Pass_Outputs_V1|
     temporarily.  Accordingly, application model |conv_v001| does not pass
     any output to its outlet nodes, which is why the last four columns of
     both integration test tables now contain zero value only (we can perform
@@ -1625,27 +1624,24 @@ def _enumerate(variables: Iterable[Type[typingtools.VariableProtocol]]) -> str:
     )
 
 
-def check_methodorder(
-    model: "modeltools.Model",
-    indent: int = 0,
-) -> str:
+def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     """Check that *HydPy* calls the methods of the given application model
     in the correct order for each simulation step.
 
-    The purpose of this function is to help model developers to ensure
+    The purpose of this function is to help model developers ensure
     that each method uses only the values of those sequences that have
     been calculated by other methods beforehand.  *HydPy's* test routines
     apply |check_methodorder| automatically on each available application
     model. Alternatively, you can also execute it at the end of the
     docstring of an individual application model "manually", which
     suppresses the automatic execution and allows to check and discuss
-    exceptional cases were |check_methodorder| generates false alarms.
+    exceptional cases where |check_methodorder| generates false alarms.
 
     Function |check_methodorder| relies on the class constants
     `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES` of
     all relevant |Method| subclasses.  Hence, the correctness of its
     results depends on the correctness of these tuples.  However, even
-    of those tuples are well-defined, one cannot expect |check_methodorder|
+    if those tuples are well-defined, one cannot expect |check_methodorder|
     to catch all kinds of order-related errors.  For example, consider the
     case where one method calculates only some values of a multi-dimensional
     sequence and another method the  remaining ones.  |check_methodorder|
@@ -1729,27 +1725,23 @@ which are not among the result sequences of any of its predecessors: TKor
     return "\n".join(results)
 
 
-def check_selectedvariables(
-    method: "modeltools.Method",
-    indent: int = 0,
-) -> str:
+def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
-    The purpose of this function is to help model developers to ensure
-    that the class tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`,
-    `FIXEDPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and
-    `RESULTSEQUENCES` contain the correct parameter and sequence
-    subclasses.  *HydPy's* test routines apply |check_selectedvariables|
-    automatically on each method of each available application model.
-    Alternatively, you can also execute it at the end of the docstring
-    of an individual |Method| subclass "manually", which suppresses
-    the automatic execution and allows to check and discuss exceptional
-    cases were |check_selectedvariables| generates false alarms.
+    The purpose of this function is to help model developers ensure that the class
+    tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`, `FIXEDPARAMETERS`,
+    `SOLVERPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES`
+    contain the correct parameter and sequence subclasses.  *HydPy's* test routines
+    apply |check_selectedvariables| automatically on each method of each available
+    application model.  Alternatively, you can also execute it at the end of the
+    docstring of an individual |Method| subclass "manually", which suppresses the
+    automatic execution and allows to check and discuss exceptional cases where
+    |check_selectedvariables| generates false alarms.
 
     Do not expect |check_selectedvariables| to catch all possible
-    errors.  Also, false positives might occur.  However, in our experience
-    functions |check_selectedvariables| is of great help to prevent most
+    errors.  Also, false positives might occur.  However, in our experience,
+    function |check_selectedvariables| is of great help to prevent the most
     common mistakes when defining the parameter and sequence classes
     relevant for a specific method.
 
@@ -1826,7 +1818,7 @@ def check_selectedvariables(
     >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
     <BLANKLINE>
 
-    Some methods as |arma_model.Pick_Q_V1| of base model |arma| rely on
+    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on
     the `len` attribute of 1-dimensional sequences.  Function
     |check_selectedvariables| does not report false alarms in such cases:
 
@@ -1834,7 +1826,7 @@ def check_selectedvariables(
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
 
-    Some methods as |lland_model.Update_ESnow_V1| of base model |lland| update a
+    Some methods such as |lland_model.Update_ESnow_V1| of base model |lland| update a
     sequence (meaning, they require its old value and calculate a new one), but
     their submethods (in this case |lland_model.Return_BackwardEulerError_V1|)
     just require them as input.  Function |check_selectedvariables| does not
@@ -1848,6 +1840,7 @@ def check_selectedvariables(
         "con",
         "der",
         "fix",
+        "sol",
         "inp",
         "fac",
         "flu",
@@ -1865,14 +1858,15 @@ def check_selectedvariables(
         "CONTROLPARAMETERS",
         "DERIVEDPARAMETERS",
         "FIXEDPARAMETERS",
+        "SOLVERPARAMETERS",
         "REQUIREDSEQUENCES",
         "UPDATEDSEQUENCES",
         "RESULTSEQUENCES",
     )
     blanks = " " * indent
     results: List[str] = []
-    # search for variables that are used in the source code but not
-    # among the selected variables:
+    # search for variables that are used in the source code but not among the selected
+    # variables:
     source = inspect.getsource(method.__call__)
     varnames_source: Set[str] = set()
     unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
@@ -1890,8 +1884,8 @@ def check_selectedvariables(
             f"{blanks}Definitely missing: {objecttools.enumeration(varnames_diff)}"
         )
 
-    # search for variables selected by at least one submethod
-    # but not by the method calling these submethods:
+    # search for variables selected by at least one submethod but not by the method
+    # calling these submethods:
     vars_method: Set[Type[typingtools.VariableProtocol]]
     vars_submethods: Set[Type[typingtools.VariableProtocol]]
     for group in groups:
@@ -1912,8 +1906,8 @@ def check_selectedvariables(
                     results.append(f"{blanks}Possibly missing ({group}):")
                 results.append(f"{blanks}    {submethod.__name__}: {_enumerate(diff)}")
 
-    # search for selected variables that are neither used within the
-    # source code nor selected by any submethod:
+    # search for selected variables that are neither used within the source code nor
+    # selected by any submethod:
     group2vars_method: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
         g: set(getattr(method, g)) for g in groups
     }
@@ -1955,13 +1949,12 @@ def check_selectedvariables(
 
 
 def perform_consistencychecks(
-    applicationmodel=Union[types.ModuleType, str],
-    indent: int = 0,
+    applicationmodel=Union[types.ModuleType, str], indent: int = 0
 ) -> str:
     """Perform all available consistency checks for the given application model.
 
     At the moment, function |perform_consistencychecks| calls function
-    |check_selectedvariables| for each relevant model methods and function
+    |check_selectedvariables| for each relevant model method and function
     |check_methodorder| for the application model itself.  Note that
     |perform_consistencychecks| executes only those checks not already
     executed in the doctest of the respective method or model.  This
@@ -2041,3 +2034,33 @@ def save_autofig(
     else:
         pyplot.savefig(filepath)
         pyplot.close()
+
+
+@contextlib.contextmanager
+def warn_later() -> Iterator[None]:
+    """Suppress warnings and print them upon exit.
+
+    The context manager |warn_later| helps demonstrate functionalities in doctests that
+    emit warnings:
+
+    >>> import warnings
+    >>> def get_number():
+    ...     warnings.warn("This is a warning.")
+    ...     return 1
+
+    >>> get_number()
+    Traceback (most recent call last):
+    ...
+    UserWarning: This is a warning.
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     get_number()
+    1
+    UserWarning: This is a warning.
+    """
+    with warnings.catch_warnings(record=True) as records:
+        warnings.resetwarnings()
+        yield
+    for record in records:
+        print(record.category.__name__, record.message, sep=": ")

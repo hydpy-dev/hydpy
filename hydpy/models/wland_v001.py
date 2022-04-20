@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 r"""Version 1 of *HydPy-W-Land* is a slightly modified and extended version of the
 `WALRUS`_ model, specifically designed to simulate surface water fluxes in lowland
-catchments influenced by near-surface groundwater :cite:`ref-Brauer2014`.  We
+catchments influenced by near-surface groundwater :cite:p:`ref-Brauer2014`.  We
 implemented |wland_v001| on behalf of the `German Federal Institute of Hydrology
 (BfG)`_ in the context of optimising the control of the Kiel Canal (Nord-Ostsee-Kanal).
 
@@ -40,7 +40,7 @@ process equations:
 .. image:: HydPy-W-Land_Version-1.png
 
 The `WALRUS`_ model defines some discontinuous differential equations, which
-complicate numerical integration :cite:`ref-Brauer2014`.  We applied the
+complicate numerical integration :cite:p:`ref-Brauer2014`.  We applied the
 regularisation techniques provided by the modules |smoothutils| and |smoothtools|
 to remove these discontinuities.  As shown for each equation (for example, in the
 documentation on method |Calc_RH_V1|), this smoothing is optional.  Set the related

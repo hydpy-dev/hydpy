@@ -1229,7 +1229,7 @@ class Return_DVH_V1(modeltools.Method):
         \end{cases}
 
     This power law is the differential of the equation underlying method
-    |Calc_DVEq_V1| with respect to height.  :cite:`ref-Brauer2014` also cites it
+    |Calc_DVEq_V1| with respect to height.  :cite:t:`ref-Brauer2014` also cites it
     (equation 6) but does not use it directly.
 
     Examples:
@@ -1402,7 +1402,7 @@ class Calc_DVEq_V3(modeltools.Method):
 
     Method |Calc_DVEq_V3| extends the original `WALRUS`_ relationship between the
     groundwater depth and the equilibrium water deficit of the vadose zone defined
-    by equation 5 of :cite:`ref-Brauer2014` and implemented into application model
+    by equation 5 of :cite:t:`ref-Brauer2014` and implemented into application model
     |wland| by method |Calc_DVEq_V1|.  Parameter |ThetaR| introduces a (small)
     amount of water to fill the tension-saturated area directly above the groundwater
     table.  This "residual saturation" allows the direct injection of water into
@@ -1837,7 +1837,7 @@ class Calc_GF_V1(modeltools.Method):
     indicated by the effective pore size alone (depending on |ThetaS|).
 
     The above discussion only applies as long as the groundwater table is below the
-    soil surface.  For large-scale ponding (see :cite:`ref-Brauer2014`, section 5.11),
+    soil surface.  For large-scale ponding (see :cite:t:`ref-Brauer2014`, section 5.11),
     we set |GF| to zero.  See the documentation on the methods |Calc_CDG_V1| and
     |Calc_FGS_V1| for related discussions.
 
@@ -1936,7 +1936,8 @@ class Calc_CDG_V1(modeltools.Method):
     Basic equation (discontinuous):
       :math:`CDG = \frac{DV-min(DVEq, DG)}{CV}`
 
-    Note that this equation slightly differs from equation 6 of :cite:`ref-Brauer2014`.
+    Note that this equation slightly differs from equation 6 of
+    :cite:t:`ref-Brauer2014`.
     In case of large-scale ponding, |DVEq| always stays at zero and we let |DG|
     take control of the speed of the water table movement.  See the documentation
     on method |Calc_FGS_V1| for additional information on the differences between
@@ -2030,7 +2031,7 @@ class Calc_CDG_V2(modeltools.Method):
       :math:`CDG = \frac{DV-min(DVEq, DG)}{CV} + GF \cdot \big( FGS - PV - FXG \big)`
 
     Method |Calc_CDG_V2| extends |Calc_CDG_V1|, which implements the (nearly) original
-    `WALRUS`_ relationship defined by equation 6 of :cite:`ref-Brauer2014`).  See the
+    `WALRUS`_ relationship defined by equation 6 of :cite:t:`ref-Brauer2014`).  See the
     documentation on method |Calc_GF_V1| for a comprehensive explanation of the reason
     for this extension.
 
@@ -2128,7 +2129,7 @@ class Calc_FGS_V1(modeltools.Method):
 
     For large-scale ponding, |wland| and `WALRUS`_ calculate |FGS| differently
     (even for discontinuous parameterisations).  The `WALRUS`_  model redistributes
-    water instantaneously in such cases (see :cite:`ref-Brauer2014`, section 5.11),
+    water instantaneously in such cases (see :cite:t:`ref-Brauer2014`, section 5.11),
     which relates to infinitely high flow velocities and cannot be handled by the
     numerical integration algorithm underlying |wland|.  Hence, we instead introduce
     the parameter |CGF|.  Setting it to a value larger zero increases the flow

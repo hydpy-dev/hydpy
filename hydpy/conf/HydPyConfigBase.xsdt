@@ -50,6 +50,9 @@
                 <element name="utcoffset"
                          type="integer"
                          minOccurs="0"/>
+                <element name="timestampleft"
+                         type="boolean"
+                         minOccurs="0"/>
                 <element name="warnmissingobsfile"
                          type="boolean"
                          minOccurs="0"/>
@@ -65,21 +68,17 @@
 
     <element name="timegrid">
         <complexType>
-            <choice>
-                <sequence>
-                    <element name="firstdate" type="dateTime"/>
-                    <element name="lastdate" type="dateTime"/>
-                    <element name="stepsize">
-                        <simpleType>
-                            <restriction base="string">
-                                <pattern value="[0-9]+[smhd]"/>
-                            </restriction>
-                        </simpleType>
-                    </element>
-                </sequence>
-                <element name="seriesfile"
-                         type="anyURI"/>
-            </choice>
+            <sequence>
+                <element name="firstdate" type="dateTime"/>
+                <element name="lastdate" type="dateTime"/>
+                <element name="stepsize">
+                    <simpleType>
+                        <restriction base="string">
+                            <pattern value="[0-9]+[smhd]"/>
+                        </restriction>
+                    </simpleType>
+                </element>
+            </sequence>
         </complexType>
     </element>
 
@@ -113,6 +112,9 @@
              type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="keywords"
+             type="hpcb:nonEmptyListOfStrings"/>
+
+    <element name="network_io"
              type="hpcb:nonEmptyListOfStrings"/>
 
     <element name="control_io"

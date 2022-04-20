@@ -7,7 +7,7 @@ from hydpy.core import sequencetools
 
 
 class Nied(sequencetools.InputSequence):
-    """Niederschlag (precipitation) [mm]."""
+    """Niederschlag (precipitation) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -24,7 +24,14 @@ class SunshineDuration(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Glob(sequencetools.InputSequence):
+class PossibleSunshineDuration(sequencetools.InputSequence):
+    """Astronomisch mögliche Sonnenscheindauer (astronomically possible sunshine
+    duration) [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class GlobalRadiation(sequencetools.InputSequence):
     """Globalstrahlung (global radiation) [W/m²]."""
 
     NDIM, NUMERIC = 0, False
@@ -43,12 +50,12 @@ class WindSpeed(sequencetools.InputSequence):
 
 
 class PET(sequencetools.InputSequence):
-    """Potenzielle Verdunstung (potential evapotranspiration) [mm]."""
+    """Potenzielle Verdunstung (potential evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
-    """Luftdruck (atmospheric pressure) [kPa]."""
+    """Luftdruck (atmospheric pressure) [hPa]."""
 
     NDIM, NUMERIC = 0, False

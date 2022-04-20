@@ -142,20 +142,22 @@
                     </beta>
                 </control>
             </hland_v1>
-            <hstream_v1>
+            <musk_classic>
                 <control>
-                    <lag>
+                    <nmbsegments>
                         <name>lag</name>
                         <level>global</level>
                         <init>5.0</init> <!--parameterstep???-->
-                    </lag>
-                    <damp>
+                        <keyword>lag</keyword>
+                    </nmbsegments>
+                    <coefficients>
                         <name>damp</name>
                         <level>global</level>
                         <init>0.5</init>
-                    </damp>
+                        <keyword>damp</keyword>
+                    </coefficients>
                 </control>
-            </hstream_v1>
+            </musk_classic>
         </setitems>
         <setitems>
             <hland_v1>
@@ -194,6 +196,17 @@
                         <init>10.0</init>
                     </quh>
                 </logs>
+            </hland_v1>
+        </setitems>
+        <setitems>
+            <hland_v1>
+                <inputs>
+                    <t.series>
+                        <selections>headwaters</selections>
+                        <name>t_headwaters</name>
+                        <level>device</level>
+                    </t.series>
+                </inputs>
             </hland_v1>
         </setitems>
         <additems>
@@ -268,7 +281,6 @@
                 <sim.series/>
             </nodes>
         </getitems>
-
     </exchange>
 
 </hpcmr:config>

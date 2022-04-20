@@ -74,7 +74,7 @@ class Wurzeltiefe(parametertools.Parameter):
         wurzeltiefe(0.5, 1.0, 1.0)
         """
         control = self.subpars.pars.control
-        self(numpy.clip(control.maxwurzeltiefe, None, control.flurab))
+        self(numpy.clip(control.maxwurzeltiefe, None, control.flurab.values))
 
 
 class nFKwe(parametertools.Parameter):

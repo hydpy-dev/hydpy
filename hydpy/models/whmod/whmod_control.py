@@ -274,7 +274,7 @@ class NFK100_Mittel(NutzNrComplete):
 class Flurab(NutzNrComplete):
     """[m]"""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
 class MaxWurzeltiefe(NutzNrComplete):

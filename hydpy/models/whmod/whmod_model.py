@@ -1412,7 +1412,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     ...         [k,
     ...          fluxes.verzgrundwasserneubildung.value,
     ...          states.zwischenspeicher.value])
-    0.0, 2.0, 0.0
+    0.0, 3.0, 0.0
     0.5, 2.593994, 0.406006
     1.0, 1.896362, 1.103638
     1.5, 1.459749, 1.540251
@@ -1444,7 +1444,9 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
             )
             sta.zwischenspeicher = d_sp
         else:
-            flu.verzgrundwasserneubildung = sta.zwischenspeicher
+            flu.verzgrundwasserneubildung = (
+                sta.zwischenspeicher + flu.aktgrundwasserneubildung
+            )
             sta.zwischenspeicher = 0.0
 
 

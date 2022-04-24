@@ -2186,7 +2186,7 @@ class Model(modeltools.AdHocModel):
             numpy.sum(fluxes.nkor.series * control.fhru)
             + numpy.sum(fluxes.qzh.series)
             - numpy.sum(fluxes.evi.series * control.fhru)
-            - numpy.sum((fluxes.evs.series * control.fhru)[:, idxs_soil])
+            - numpy.sum((fluxes.evs.series * control.fhru)[:, idxs_land])
             - numpy.sum((fluxes.evb.series * control.fhru)[:, idxs_soil])
             - numpy.sum(fluxes.qah.series)
             - numpy.sum(((last.inzp - first["inzp"]) * control.fhru)[idxs_land])

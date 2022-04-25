@@ -1592,7 +1592,7 @@ class Calc_In_WC_V1(modeltools.Method):
     Examples:
 
         We initialise seven zones of different types with different frozen water
-        contents of the snow layer and set the relative water holding capacity to 20%:
+        contents of the snow layer and set the relative water holding capacity to 20 %:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -1681,9 +1681,9 @@ class Calc_In_WC_V1(modeltools.Method):
             flu.in_[k] = 0.0
             if con.zonetype[k] != ILAKE:
                 for c in range(con.sclass):
-                    d_in = max(sta.wc[c, k] - con.whc[k] * sta.sp[c, k], 0.0)
-                    flu.in_[k] += d_in / con.sclass
-                    sta.wc[c, k] -= d_in
+                    d_wc_old = sta.wc[c, k]
+                    sta.wc[c, k] = min(d_wc_old, con.whc[k] * sta.sp[c, k])
+                    flu.in_[k] += (d_wc_old - sta.wc[c, k]) / con.sclass
             else:
                 flu.in_[k] = flu.tf[k]
                 for c in range(con.sclass):

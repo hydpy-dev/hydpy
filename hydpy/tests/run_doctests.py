@@ -134,7 +134,7 @@ def main(  # pylint: disable=too-many-branches
                 if time.perf_counter() > pingtime + 5 * 60:
                     print_("`run_doctests` still running...")
                     pingtime = time.perf_counter()
-                if name.split(".")[-1] in ("apidoc", "prepare", "modify_html"):
+                if name.split(".")[-1] in ("apidoc", "prepare"):
                     continue
                 if not name[-4:] in (".rst", ".pyx"):
                     module = importlib.import_module(name)

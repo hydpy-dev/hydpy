@@ -976,8 +976,8 @@ class Substituter:
         .. |OptionContextBase._old_value| replace:: \
 :attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
         ...
-        .. |optiontools.TypeOptionContextBase| replace:: \
-:const:`~hydpy.core.optiontools.TypeOptionContextBase`
+        .. |optiontools.TypeOptionPropertyBase| replace:: \
+:const:`~hydpy.core.optiontools.TypeOptionPropertyBase`
         .. |optiontools.TypeOption| replace:: \
 :const:`~hydpy.core.optiontools.TypeOption`
 

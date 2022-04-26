@@ -24,6 +24,9 @@ TypeOption = TypeVar(
     SeriesFileType,
     SeriesAggregationType,
 )
+TypeOptionPropertyBase = TypeVar(
+    "TypeOptionPropertyBase", bound="OptionPropertyBase[Any]"
+)
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 
 
@@ -63,6 +66,11 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
     >>> from hydpy.core.optiontools import OptionPropertyBool
     >>> class T:
     ...     v = OptionPropertyBool(True, "x")
+
+    The given string serves for documentation:
+
+    >>> T.v.__doc__
+    'x'
 
     Users can change the current value "normally" by assignments:
 
@@ -109,7 +117,21 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
 
     _CONVERTER = (bool,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextBool:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextBool]:
+        if obj is None:
+            return self
         return OptionContextBool(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
@@ -123,6 +145,11 @@ class OptionPropertyInt(OptionPropertyBase[int]):
     >>> from hydpy.core.optiontools import OptionPropertyInt
     >>> class T:
     ...     v = OptionPropertyInt(1, "x")
+
+    The given string serves for documentation:
+
+    >>> T.v.__doc__
+    'x'
 
     Users can change the current value "normally" by assignments:
 
@@ -169,16 +196,94 @@ class OptionPropertyInt(OptionPropertyBase[int]):
 
     _CONVERTER = (int,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextInt:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextInt]:
+        if obj is None:
+            return self
         return OptionContextInt(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
 
 
 class _OptionPropertyEllipsis(OptionPropertyBase[int]):
+    """
+    >>> from hydpy.core.optiontools import _OptionPropertyEllipsis
+    >>> class T:
+    ...     v = _OptionPropertyEllipsis(1, "x")
+
+    >>> T.v.__doc__
+    'x'
+
+    >>> t = T()
+    >>> assert t.v == 1
+    >>> t.v = 2
+    >>> assert t.v == 2
+
+    >>> del t.v
+    >>> assert t.v == 1
+
+    >>> with t.v(2):
+    ...     assert t.v == 2
+    ...     with t.v(3):
+    ...         assert t.v == 3
+    ...         with t.v():
+    ...             assert t.v == 3
+    ...             with t.v(None):
+    ...                 assert t.v == 3
+    ...                 with t.v(1):
+    ...                     assert t.v == 1
+    ...                 with t.v():
+    ...                     t.v = 4
+    ...                     assert t.v == 4
+    ...                 assert t.v == 3
+    ...             assert t.v == 3
+    ...         assert t.v == 3
+    ...     assert t.v == 2
+    >>> assert t.v == 1
+
+    >>> with t.v(2):
+    ...     assert t.v == 2
+    ...     raise RuntimeError
+    Traceback (most recent call last):
+    ...
+    RuntimeError
+    >>> assert t.v == 1
+
+    >>> with t.v(2, optional=True):
+    ...     assert t.v == 1
+    >>> t.v = -999
+    >>> with t.v(2, optional=True):
+    ...     assert t.v == 2
+    """
+
     _CONVERTER = (int,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(self, obj: Hashable, typ: Type[Hashable]) -> _OptionContextEllipsis:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, _OptionContextEllipsis]:
+        if obj is None:
+            return self
         return _OptionContextEllipsis(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
@@ -192,6 +297,11 @@ class OptionPropertyStr(OptionPropertyBase[str]):
     >>> from hydpy.core.optiontools import OptionPropertyStr
     >>> class T:
     ...     v = OptionPropertyStr("1", "x")
+
+    The given string serves for documentation:
+
+    >>> T.v.__doc__
+    'x'
 
     Users can change the current value "normally" by assignments:
 
@@ -238,7 +348,21 @@ class OptionPropertyStr(OptionPropertyBase[str]):
 
     _CONVERTER = (str,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextStr:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextStr]:
+        if obj is None:
+            return self
         return OptionContextStr(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
@@ -249,9 +373,14 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
 
     Framework or model developers should implement options of type |Period| as follows:
 
-    >>> from hydpy.core.optiontools import OptionPropertyStr
+    >>> from hydpy.core.optiontools import OptionPropertyPeriod
     >>> class T:
-    ...     v = OptionPropertyStr("1d", "x")
+    ...     v = OptionPropertyPeriod("1d", "x")
+
+    The given string serves for documentation:
+
+    >>> T.v.__doc__
+    'x'
 
     Users can change the current value "normally" by assignments (note the automatic
     type conversion):
@@ -300,7 +429,21 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
 
     _CONVERTER = (timetools.Period,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextPeriod:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextPeriod]:
+        if obj is None:
+            return self
         return OptionContextPeriod(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
@@ -347,6 +490,8 @@ class OptionPropertySeriesFileType(OptionPropertyBase[SeriesFileType]):
     >>> from hydpy.core.optiontools import OptionPropertySeriesFileType
     >>> class T:
     ...     v = OptionPropertySeriesFileType("asc", "x")
+    >>> T.v.__doc__
+    'x'
 
     >>> t = T()
     >>> assert t.v == "asc"
@@ -384,9 +529,23 @@ one of the following file types: npy, asc, and nc.
 
     _CONVERTER = (_str2seriesfiletype,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(
         self, obj: Hashable, typ: Type[Hashable]
     ) -> OptionContextSeriesFileType:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextSeriesFileType]:
+        if obj is None:
+            return self
         return OptionContextSeriesFileType(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )
@@ -414,6 +573,8 @@ class OptionPropertySeriesAggregation(OptionPropertyBase[SeriesAggregationType])
     >>> from hydpy.core.optiontools import OptionPropertySeriesAggregation
     >>> class T:
     ...     v = OptionPropertySeriesAggregation("none", "x")
+    >>> T.v.__doc__
+    'x'
 
     >>> t = T()
     >>> assert t.v == "none"
@@ -447,9 +608,23 @@ one of the following modes: none and mean.
 
     _CONVERTER = (_str2seriesaggregationtype,)
 
+    @overload
+    def __get__(
+        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
+    ) -> TypeOptionPropertyBase:
+        ...
+
+    @overload
     def __get__(
         self, obj: Hashable, typ: Type[Hashable]
     ) -> OptionContextSeriesAggregation:
+        ...
+
+    def __get__(
+        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
+    ) -> Union[TypeOptionPropertyBase, OptionContextSeriesAggregation]:
+        if obj is None:
+            return self
         return OptionContextSeriesAggregation(
             self._get_value(obj), lambda value: self._set_value(obj, value)
         )

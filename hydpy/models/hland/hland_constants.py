@@ -3,8 +3,8 @@
 # pylint: disable=invalid-all-format
 """Base model |hland| allows dividing subbasins into zones (hydrological response
 units).  It applies the equations related to some processes (for example, interception)
-separately for each zone.  Consequently, parameters as the interception capacity
-|IcMax| and sequences as the actual interception storage |Ic| are 1-dimensional.
+separately for each zone.  Consequently, parameters such as the interception capacity
+|IcMax| and sequences such as the actual interception storage |Ic| are 1-dimensional.
 Each entry represents the value of a different zone.
 
 In contrast to the original HBV96 model, |hland| allows defining individual parameter

@@ -46,6 +46,12 @@ class CFAct(hland_sequences.Factor1DSequence):
     mask = hland_masks.Land()
 
 
+class SWE(hland_sequences.Factor2DSequence):
+    """Snow water equivalent [mm]."""
+
+    mask = hland_masks.Land()
+
+
 class GAct(hland_sequences.Factor1DSequence):
     """Actual degree day factor for glacier ice [mm/°C/T]."""
 

@@ -22,7 +22,11 @@ class HydPyDeprecationWarning(DeprecationWarning):
 
 
 class AttributeNotReady(RuntimeError):
-    """The attribute is principally defined but  so far unprepared."""
+    """The attribute is principally defined but so far unprepared."""
+
+
+class AttributeNotReadyWarning(Warning):
+    """The attribute is principally defined but so far unprepared."""
 
 
 def attrready(obj: Any, name: str) -> bool:
@@ -58,12 +62,9 @@ def attrready(obj: Any, name: str) -> bool:
     return True
 
 
-def hasattr_(
-    obj: Any,
-    name: str,
-) -> bool:
+def hasattr_(obj: Any, name: str) -> bool:
     """Return |True| or |False| whether the object has an attribute with the
-    given name or not.
+    given name.
 
     In *HydPy*, some properties raise an |AttributeNotReady| error when one
     tries to access them before they are correctly set, which also happens
@@ -97,58 +98,32 @@ class _Enum(enum.Enum):
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-) -> Any:
+def getattr_(obj: Any, name: str) -> Any:
     ...
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-    default: None,
-) -> Optional[Any]:
+def getattr_(obj: Any, name: str, default: None) -> Optional[Any]:
     ...
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-    default: T,
-) -> T:
+def getattr_(obj: Any, name: str, default: T) -> T:
     ...
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-    *,
-    type_: Type[T],
-) -> T:
+def getattr_(obj: Any, name: str, *, type_: Type[T]) -> T:
     ...
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-    default: None,
-    type_: Type[T],
-) -> Optional[T]:
+def getattr_(obj: Any, name: str, default: None, type_: Type[T]) -> Optional[T]:
     ...
 
 
 @overload
-def getattr_(
-    obj: Any,
-    name: str,
-    default: T1,
-    type_: Type[T2],
-) -> Union[T1, T2]:
+def getattr_(obj: Any, name: str, default: T1, type_: Type[T2]) -> Union[T1, T2]:
     ...
 
 
@@ -279,10 +254,7 @@ specific functionalities.
     """
 
     def __init__(
-        self,
-        name: str,
-        modules: List[str],
-        namespace: Dict[str, Any],
+        self, name: str, modules: List[str], namespace: Dict[str, Any]
     ) -> None:
         self._name = name
         self._modules = modules

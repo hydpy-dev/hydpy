@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import itertools
+import warnings
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
 
@@ -1150,6 +1151,87 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         cfmax(field=4.55853, forest=2.735118)
         >>> print_values(cfmax.value)
         2.735118, 3.0, 2.1, 2.1
+
+        Method |SetItem.extract_values| cannot extract its complete data if the time
+        series of any relevant variable is missing.  We disable the |IOSequence.series|
+        attribute of the considered sequences to show how things work then:
+
+        >>> dill.sequences.states.uz.prepare_series(False)
+        >>> dill.sequences.states.ic.prepare_series(False)
+        >>> dill.sequences.states.wc.prepare_series(False)
+
+        Method |SetItem.extract_values| emits a warning when encountering the first
+        unprepared |IOSequence.series| attribute and, if existing, deletes already
+        available data:
+
+        >>> from hydpy.core.testtools import warn_later
+        >>> with warn_later():
+        ...     test("device")
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`uz`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `uz` of element `land_dill`, the following error \
+occurred: Sequence `uz` of element `land_dill` is not requested to make any \
+time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`ic`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `ic` of element `land_dill`, the following error \
+occurred: Sequence `ic` of element `land_dill` is not requested to make any \
+time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`wc`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `wc` of element `land_dill`, the following error \
+occurred: Sequence `wc` of element `land_dill` is not requested to make any \
+time-series data available.
+
+        >>> for series in uz.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
+has/have not been prepared so far.
+        >>> for series in ic.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
+has/have not been prepared so far.
+        >>> for series in wc.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
+has/have not been prepared so far.
+
+        >>> with warn_later():
+        ...     test("subunit")
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
+requested to make any time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
+requested to make any time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
+requested to make any time-series data available.
+
+        >>> for series in uz.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
+has/have not been prepared so far.
+        >>> for series in ic.value:  # doctest: +ELLIPSIS
+        ...     print_values(series)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
+has/have not been prepared so far.
+        >>> for series in wc.value:  # doctest: +ELLIPSIS
+        ...     print_values(series)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
+has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
@@ -1159,7 +1241,16 @@ elements so far.  So, it is not possible to aggregate to the selection level.
             for idx, variable in enumerate(self.device2target.values()):
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
-                    targetvalues = variable.average_series()[jdx0:jdx1]
+                    try:
+                        targetvalues = variable.average_series()[jdx0:jdx1]
+                    except exceptiontools.AttributeNotReady as exc:
+                        self._value = None
+                        warnings.warn(
+                            f"While trying to query the values of exchange item "
+                            f"`{self.name}`, the following error occured: {exc}",
+                            exceptiontools.AttributeNotReadyWarning,
+                        )
+                        return
                 elif self.targetspecs.keyword is None:
                     targetvalues = variable.average_values()
                 else:
@@ -1172,9 +1263,20 @@ elements so far.  So, it is not possible to aggregate to the selection level.
                 idx1 = idx0 + len(variable)
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
-                    targetvalues = variable.simseries.T
-                    if variable.NDIM > 0:
-                        targetvalues = targetvalues.reshape(-1, targetvalues.shape[-1])
+                    try:
+                        targetvalues = variable.simseries.T
+                        if variable.NDIM > 0:
+                            targetvalues = targetvalues.reshape(
+                                -1, targetvalues.shape[-1]
+                            )
+                    except exceptiontools.AttributeNotReady as exc:
+                        self._value = None
+                        warnings.warn(
+                            f"While trying to query the values of exchange item "
+                            f"`{self.name}`, the following error occured: {exc}",
+                            exceptiontools.AttributeNotReadyWarning,
+                        )
+                        return
                 else:
                     targetvalues = variable.values
                     if variable.NDIM > 1:
@@ -1190,6 +1292,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         else:
             objecttools.assert_never(self.level)
         self.value = itemvalues
+        return
 
     def __repr__(self) -> str:
         ts = self.targetspecs

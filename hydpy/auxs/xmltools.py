@@ -97,6 +97,7 @@ import contextlib
 import copy
 import itertools
 import os
+import warnings
 from typing import *
 from xml.etree import ElementTree
 from typing_extensions import Literal  # type: ignore[misc]
@@ -1940,18 +1941,22 @@ class XMLExchange(XMLBase):
         """Prepare all required |IOSequence.series| arrays via the
         |IOSequence.prepare_series| method.
         """
-        for item in itertools.chain(
-            self.inputitems, self.conditionitems, self.getitems
-        ):
-            for target in item.device2target.values():
-                if item.targetspecs.series:
-                    assert isinstance(target, sequencetools.IOSequence)
-                    target.prepare_series(
-                        allocate_ram=True, read_jit=None, write_jit=None
-                    )
-                # for base in getattr(item, "device2base", {}).values():
-                #     if item.basespecs.series and not base.ramflag:
-                #         base.prepare_series()   ToDo
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", category=exceptiontools.AttributeNotReadyWarning
+            )
+            for item in itertools.chain(
+                self.inputitems, self.conditionitems, self.getitems
+            ):
+                for target in item.device2target.values():
+                    if item.targetspecs.series:
+                        assert isinstance(target, sequencetools.IOSequence)
+                        target.prepare_series(
+                            allocate_ram=True, read_jit=None, write_jit=None
+                        )
+                    # for base in getattr(item, "device2base", {}).values():
+                    #     if item.basespecs.series and not base.ramflag:
+                    #         base.prepare_series()   ToDo
 
     @property
     def itemgroups(self) -> List[XMLItemgroup]:

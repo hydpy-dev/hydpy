@@ -6,6 +6,7 @@ from model users and for allowing writing readable doctests.
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import os
 import importlib
 import inspect
@@ -17,6 +18,7 @@ from typing import *
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
+from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -75,6 +77,8 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
         if "Masks" in namespace:
             model.masks = namespace["Masks"]()
             namespace["masks"] = model.masks
+        else:
+            model.masks = masktools.Masks()
         for submodelclass in namespace["Model"].SUBMODELS:
             submodel = submodelclass(model)
             setattr(model, submodel.name, submodel)
@@ -216,7 +220,7 @@ def reverse_model_wildcard_import() -> None:
 def prepare_model(
     module: Union[types.ModuleType, str],
     timestep: Optional[timetools.PeriodConstrArg] = None,
-) -> "modeltools.Model":
+) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file prepares an individual
@@ -265,6 +269,8 @@ def prepare_model(
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, "Masks"):
         model.masks = module.Masks()
+    else:
+        model.masks = masktools.Masks()
     for submodelclass in module.Model.SUBMODELS:
         submodel = submodelclass(model)
         setattr(model, submodel.name, submodel)

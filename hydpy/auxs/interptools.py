@@ -726,7 +726,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
     nmb_algorithms: int
 
-    _toy2algorithm: Dict[timetools.TOY, InterpAlgorithm]
+    _toy2algorithm: List[Tuple[timetools.TOY, InterpAlgorithm]]
     _do_refresh: bool
     __seasonalinterpolator: Optional[interputils.SeasonalInterpolator]
 
@@ -734,7 +734,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self.subvars = subvars
         self.subpars = subvars
         self.fastaccess = parametertools.FastAccessParameter()
-        self._toy2algorithm = {}
+        self._toy2algorithm = []
         self.__seasonalinterpolator = None
         self._do_refresh = True
 
@@ -751,7 +751,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         *algorithm: InterpAlgorithm,
         **algorithms: InterpAlgorithm,
     ) -> None:
-        self._toy2algorithm.clear()
+        self._toy2algorithm = []
         self._do_refresh = False
         try:
             if (len(algorithm) > 1) or (algorithm and algorithms):
@@ -771,7 +771,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                         f"`InterpAlgorithm`."
                     )
                 try:
-                    setattr(self, str(timetools.TOY(toystr)), value)
+                    self._add_toyalgorithpair(toystr, value)
                 except BaseException:
                     objecttools.augment_excmessage(
                         f"While trying to add a season specific interpolator to "
@@ -784,6 +784,23 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         finally:
             self._do_refresh = True
             self.refresh()
+
+    def _add_toyalgorithpair(self, name: str, value: InterpAlgorithm) -> None:
+        toy_new = timetools.TOY(name)
+        if len(self._toy2algorithm) == 0:
+            self._toy2algorithm.append((toy_new, value))
+        secs_new = toy_new.seconds_passed
+        if secs_new > self._toy2algorithm[-1][0].seconds_passed:
+            self._toy2algorithm.append((toy_new, value))
+        else:
+            for idx, (toy_old, _) in enumerate(self._toy2algorithm[:]):
+                secs_old = toy_old.seconds_passed
+                if secs_new == secs_old:
+                    self._toy2algorithm[idx] = toy_new, value
+                    break
+                if secs_new < secs_old:
+                    self._toy2algorithm.insert(idx, (toy_new, value))
+                    break
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """Connect the actual |SeasonalInterpolator| object with the given
@@ -885,7 +902,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
 `?` none is defined so far.
         """
         if not self.algorithms:
-            self._toy2algorithm.clear()
+            self._toy2algorithm = []
             raise RuntimeError(
                 f"Seasonal interpolators need to handle at least one interpolation "
                 f"algorithm object, but for parameter "
@@ -896,7 +913,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
             if (self.nmb_inputs != seasonalinterpolator.nmb_inputs) or (
                 self.nmb_outputs != seasonalinterpolator.nmb_outputs
             ):
-                self._toy2algorithm.clear()
+                self._toy2algorithm = []
                 raise RuntimeError(
                     f"The number of input and output values of all interpolators "
                     f"handled by parameter {objecttools.elementphrase(self)} must be "
@@ -1019,13 +1036,14 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __getattr__(self, name: str) -> InterpAlgorithm:
         if name.startswith("toy_"):
             try:
-                try:
-                    return self._toy2algorithm[timetools.TOY(name)]
-                except KeyError:
-                    raise AttributeError(
-                        f"No interpolator is registered under a TOY object named "
-                        f"`{timetools.TOY(name)}`."
-                    ) from None
+                selected = timetools.TOY(name)
+                for available, algorithm in self._toy2algorithm:
+                    if selected == available:
+                        return algorithm
+                raise AttributeError(
+                    f"No interpolator is registered under a TOY object named "
+                    f"`{timetools.TOY(name)}`."
+                )
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to look up for an interpolator handled by "
@@ -1045,7 +1063,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                         f"{objecttools.value_of_type(value).capitalize()} has been "
                         f"given, but an object of type `InterpAlgorithm` is required."
                     )
-                self._toy2algorithm[timetools.TOY(name)] = value
+                self._add_toyalgorithpair(name, value)
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
@@ -1058,13 +1076,16 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __delattr__(self, name: str) -> None:
         if name.startswith("toy_"):
             try:
-                try:
-                    del self._toy2algorithm[timetools.TOY(name)]
-                except KeyError:
+                selected = timetools.TOY(name)
+                for idx, (available, _) in enumerate(self._toy2algorithm):
+                    if selected == available:
+                        break
+                else:
                     raise AttributeError(
                         f"No interpolator is registered under a TOY object named "
                         f"`{timetools.TOY(name)}`."
                     ) from None
+                del self._toy2algorithm[idx]  # pylint: disable=undefined-loop-variable
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
@@ -1075,10 +1096,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
             object.__delattr__(self, name)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, InterpAlgorithm]]:
-        return (
-            (toy, seasonalinterpolator)
-            for (toy, seasonalinterpolator) in sorted(self._toy2algorithm.items())
-        )
+        return iter(self._toy2algorithm)
 
     def __repr__(self) -> str:
         if not self:

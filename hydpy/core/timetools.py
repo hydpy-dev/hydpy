@@ -3542,9 +3542,6 @@ must not be the given value `4`, as the day has already been set to `31`.
     def __ge__(self, other: TOY) -> bool:
         return self.seconds_passed >= other.seconds_passed
 
-    def __hash__(self) -> int:
-        return id(str)
-
     def __str__(self) -> str:
         string = "_".join(str(getattr(self, prop)) for prop in self._PROPERTIES.keys())
         return f"toy_{string}"

@@ -1901,9 +1901,32 @@ class XMLExchange(XMLBase):
         )
 
     @property
+    def outputitems(self) -> List[itemtools.SetItem]:
+        """Return all items for querying the current values or the complete time
+        series of sequences in the "setitem" style.
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
+        >>> hp = HydPy("LahnH")
+        >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface("multiple_runs.xml")
+        >>> interface.update_selections()
+        >>> for item in interface.exchange.outputitems:
+        ...     print(item.name)
+        swe_headwaters
+        """
+        return self._get_items_of_certain_item_types(
+            itemgroups=("factors", "fluxes"), itemtype=itemtools.SetItem
+        )
+
+    @property
     def getitems(self) -> List[itemtools.GetItem]:
         """Return all items for querying the current values or the complete time
-        series of sequences.
+        series of sequences in the "getitem style".
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1946,7 +1969,7 @@ class XMLExchange(XMLBase):
                 "ignore", category=exceptiontools.AttributeNotReadyWarning
             )
             for item in itertools.chain(
-                self.inputitems, self.conditionitems, self.getitems
+                self.inputitems, self.conditionitems, self.outputitems, self.getitems
             ):
                 for target in item.device2target.values():
                     if item.targetspecs.series:

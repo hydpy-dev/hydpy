@@ -1059,6 +1059,21 @@ calculated so far.
     ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
     ic_dill = ic(0.5, 1.5, 0.692897,...
 
+    Keeping the internal conditions for multiple time points can use plenty of RAM.
+    Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
+    conditions data available under the given `id` to avoid that:
+
+    >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
+    conditions = {'land_dill': {'states': {'ic': array([0.6917...
+    >>> test("deregister_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("query_internalconditions", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_internalconditions`, the following error occurred: No internal \
+conditions registered under the id `0` for `1996-01-02 00:00:00`.
+
     Some algorithms provide new information about initial conditions and require
     information on how they evolve during a simulation.  For such purposes, you can
     use method |HydPyServer.GET_update_conditionitemvalues| to store the current
@@ -1958,10 +1973,21 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         conditions = eval(self._inputs["conditions"], {"array": numpy.array})
         self.state.conditions[self._id][self.state.idx1] = conditions
 
+    def GET_deregister_internalconditions(self) -> None:
+        """Remove all internal condition directories registered under the given `id`."""
+        self.state.conditions[self._id] = {}
+
     def GET_query_internalconditions(self) -> None:
         """Get the internal conditions registered under the given `id`."""
-        cond = self._get_registered_content(self.state.conditions)[self.state.idx2]
-        self._outputs["conditions"] = str(cond).replace("\n", " ")
+        all_conditions = self._get_registered_content(self.state.conditions)
+        try:
+            relevant_conditons = all_conditions[self.state.idx2]
+        except KeyError:
+            raise RuntimeError(
+                f"No internal conditions registered under the id `{self._id}` for "
+                f"`{self.state.timegrids[self._id].lastdate}`."
+            ) from None
+        self._outputs["conditions"] = str(relevant_conditons).replace("\n", " ")
 
     def POST_register_inputconditiondir(self) -> None:
         """Register the send input condition directory under the given `id`."""

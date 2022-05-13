@@ -285,10 +285,7 @@ class FactorAdaptor(Adaptor):
         self._reference = str(getattr(reference, "name", reference))
         self._mask = mask if ((mask is None) or isinstance(mask, str)) else mask.name
 
-    def __call__(
-        self,
-        target: parametertools.Parameter,
-    ) -> None:
+    def __call__(self, target: parametertools.Parameter) -> None:
         ref = target.subpars[self._reference]
         if self._mask:
             mask = ref.get_submask(self._mask)
@@ -787,10 +784,7 @@ value `200.0` instead.
 
     def __iter__(self) -> Iterator[TypeParameter]:
         for element in self.elements:
-            yield getattr(
-                element.model.parameters.control,
-                self.parametername,
-            )
+            yield element.model.parameters.control[self.parametername]
 
 
 class Replace(Rule[parametertools.Parameter]):
@@ -2963,7 +2957,7 @@ def make_rules(
 def make_rules(
     *,
     rule: Type[TypeRule],
-    calibspecs: "CalibSpecs",
+    calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,
@@ -2980,7 +2974,7 @@ def make_rules(
 def make_rules(
     *,
     rule: Type[TypeRule],
-    calibspecs: "CalibSpecs",
+    calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,
@@ -2997,7 +2991,7 @@ def make_rules(
 def make_rules(
     *,
     rule: Type[TypeRule],
-    calibspecs: Optional["CalibSpecs"] = None,
+    calibspecs: Optional[CalibSpecs] = None,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
     values: Optional[Sequence[float]] = None,

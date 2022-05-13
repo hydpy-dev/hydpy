@@ -11,6 +11,7 @@ the script and exchange the resulting png files manually each time something cha
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 from typing import *
 
 from matplotlib import pyplot
@@ -1128,7 +1129,7 @@ class BW(UZ_SG1_BW):
         )
         self.draw_text(
             frame=frame,
-            text=f"TVs{self.number}",
+            text=f"QVs{self.number}",
             point=Point(0.5 + TDX, -0.5),
             properties=TextProperties(horizontal="left", vertical="center"),
         )
@@ -1292,7 +1293,7 @@ class Frame:
         if filename is None:
             pyplot.show()
         else:
-            pyplot.savefig(filename)
+            pyplot.savefig(os.path.join("figs", filename))
         pyplot.clf()
 
 

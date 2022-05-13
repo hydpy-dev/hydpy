@@ -585,7 +585,7 @@ class K4(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
     def update(self):
-        """Update |hland_derived.K4| based on :math:`K4 = K3/9`.
+        r"""Update |hland_derived.K4| based on :math:`K4 = 9 \cdot K3`.
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("1h")

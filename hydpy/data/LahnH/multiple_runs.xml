@@ -208,6 +208,15 @@
                     </t.series>
                 </inputs>
             </hland_v1>
+            <hland_v1>
+                <factors>
+                    <swe.series>
+                        <selections>headwaters</selections>
+                        <name>swe_headwaters</name>
+                        <level>device</level>
+                    </swe.series>
+                </factors>
+            </hland_v1>
         </setitems>
         <additems>
             <hland_v1>

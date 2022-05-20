@@ -5,6 +5,8 @@ storing data to netCDF4 files, consistent with the `NetCDF Climate and Forecast 
 Metadata Conventions <http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/
 cf-conventions.html>`_.
 
+.. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
+
 Usually, we apply the features implemented in this module only indirectly in three
 steps:
 
@@ -95,7 +97,7 @@ hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does curr
 handle no NetCDF writer object.
 
 (8) We set the time series values of two test sequences to zero, which serves the
-purpose to demonstrate that reading the data back in actually works:
+purpose of demonstrating that reading the data back in actually works:
 
 >>> nodes.node2.sequences.sim.series = 0.0
 >>> elements.element2.model.sequences.fluxes.nkor.series = 0.0
@@ -148,9 +150,9 @@ array([16.5, 18.5, 20.5, 22.5])
 
 Besides the testing related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
-documentation of the other features implemented in module |netcdftools|, but also in
-the documentation on class |SequenceManager| of module |filetools| and class
-|IOSequence| of module |sequencetools|.
+documentation of the other features implemented in module |netcdftools| but also in the
+documentation on class |SequenceManager| of module |filetools| and class |IOSequence|
+of module |sequencetools|.
 
 Using the NetCDF format allows reading or writing data "just in time" during simulation
 runs.  The documentation of class "HydPy" explains how to select and set the relevant
@@ -437,13 +439,13 @@ def query_timegrid(
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     ncfile.timereference = "right interval boundary"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile, p)
+    ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
     Timegrid("1995-12-31 00:00:00",
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`right interval boundary`) of the \
-NetCDF file `/` conflicts with the current value of the global `timestampleft` option \
-(`True`).  The file-specific information is prioritised.
+NetCDF file `...hland_v1_input_p.nc` conflicts with the current value of the global \
+`timestampleft` option (`True`).  The file-specific information is prioritised.
 
     State sequences like |hland_states.SM| handle data for specific time points instead
     of time intervals.  Their |IOSequence.series| vector contains the calculated values
@@ -460,8 +462,8 @@ NetCDF file `/` conflicts with the current value of the global `timestampleft` o
              "2006-12-31 00:00:00",
              "1d")
 
-    To explicitly include this information into a NetCDF file, add a `timereference`
-    attribute with the value `current time`:
+    Add a `timereference` attribute with the value `current time` to explicitly include
+    this information in a NetCDF file:
 
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     ncfile.timereference = "current time"
@@ -476,24 +478,24 @@ NetCDF file `/` conflicts with the current value of the global `timestampleft` o
     intervals or time points:
 
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile, p)
+    ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
     Timegrid("1995-12-31 00:00:00",
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`current time`) of the NetCDF file \
-`/` conflicts with the type of the relevant sequence (`P`).  The file-specific \
-information is prioritised.
+`...hland_v1_input_p.nc` conflicts with the type of the relevant sequence (`P`).  The \
+file-specific information is prioritised.
 
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     ncfile.timereference = "left interval boundary"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile, sm)
+    ...     query_timegrid(ncfile, sm)  # doctest: +ELLIPSIS
     Timegrid("1996-01-01 00:00:00",
              "2007-01-01 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`left interval boundary`) of the \
-NetCDF file `/` conflicts with the type of the relevant sequence (`SM`).  The \
-file-specific information is prioritised.
+NetCDF file `...hland_v1_input_p.nc` conflicts with the type of the relevant sequence \
+(`SM`).  The file-specific information is prioritised.
 
     |query_timegrid| also raises specific warnings for misstated `timereference`
     attributes describing the different fallbacks for data related to time intervals
@@ -502,23 +504,24 @@ file-specific information is prioritised.
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     ncfile.timereference = "wrong"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile, p)
+    ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
     Timegrid("1996-01-01 00:00:00",
              "2007-01-01 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `/` is not among the accepted values (`left...`, `right...`, `current...`).  \
-Assuming `left interval boundary` according to the current value of the global \
-`timestampleft` option.
+file `...hland_v1_input_p.nc` is not among the accepted values (`left...`, \
+`right...`, `current...`).  Assuming `left interval boundary` according to the \
+current value of the global `timestampleft` option.
 
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
-    ...     query_timegrid(ncfile, sm)
+    ...     query_timegrid(ncfile, sm)  # doctest: +ELLIPSIS
     Timegrid("1995-12-31 00:00:00",
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `/` is not among the accepted values (`left...`, `right...`, `current...`).  \
-Assuming `current time` according to the type of the relevant sequence (`SM`).
+file `...hland_v1_input_p.nc` is not among the accepted values (`left...`, \
+`right...`, `current...`).  Assuming `current time` according to the type of the \
+relevant sequence (`SM`).
     """
     currenttime = _timereference_currenttime(sequence)
     opts = hydpy.pub.options
@@ -530,32 +533,32 @@ Assuming `current time` according to the type of the relevant sequence (`SM`).
         if currenttime:
             warnings.warn(
                 f"The `timereference` attribute (`{ncfile.timereference}`) of the "
-                f"NetCDF file `{ncfile.name}` conflicts with the type of the relevant "
-                f"sequence (`{type(sequence).__name__}`).  The file-specific "
+                f"NetCDF file `{ncfile.filepath()}` conflicts with the type of the "
+                f"relevant sequence (`{type(sequence).__name__}`).  The file-specific "
                 f"information is prioritised."
             )
         elif left != opts.timestampleft:
             warnings.warn(
                 f"The `timereference` attribute (`{ncfile.timereference}`) of the "
-                f"NetCDF file `{ncfile.name}` conflicts with the current value of the "
-                f"global `timestampleft` option (`{bool(opts.timestampleft)}`).  "
-                f"The file-specific information is prioritised."
+                f"NetCDF file `{ncfile.filepath()}` conflicts with the current value "
+                f"of the global `timestampleft` option (`{bool(opts.timestampleft)}`). "
+                f" The file-specific information is prioritised."
             )
     elif ref.startswith("current"):
         left = False
         if not currenttime:
             warnings.warn(
                 f"The `timereference` attribute (`{ncfile.timereference}`) of the "
-                f"NetCDF file `{ncfile.name}` conflicts with the type of the relevant "
-                f"sequence (`{type(sequence).__name__}`).  The file-specific "
+                f"NetCDF file `{ncfile.filepath()}` conflicts with the type of the "
+                f"relevant sequence (`{type(sequence).__name__}`).  The file-specific "
                 f"information is prioritised."
             )
     elif currenttime:
         left = False
         warnings.warn(
             f"The value of the `timereference` attribute (`{ncfile.timereference}`) "
-            f"of the NetCDF file `{ncfile.name}` is not among the accepted values "
-            f"(`left...`, `right...`, `current...`).  Assuming `current time` "
+            f"of the NetCDF file `{ncfile.filepath()}` is not among the accepted "
+            f"values (`left...`, `right...`, `current...`).  Assuming `current time` "
             f"according to the type of the relevant sequence "
             f"(`{type(sequence).__name__}`)."
         )
@@ -564,10 +567,10 @@ Assuming `current time` according to the type of the relevant sequence (`SM`).
         text = "left" if left else "right"
         warnings.warn(
             f"The value of the `timereference` attribute (`{ncfile.timereference}`) "
-            f"of the NetCDF file `{ncfile.name}` is not among the accepted values "
-            f"(`left...`, `right...`, `current...`).  Assuming `{text} interval "
-            f"boundary` according to the current value of the global `timestampleft` "
-            f"option."
+            f"of the NetCDF file `{ncfile.filepath()}` is not among the accepted "
+            f"values (`left...`, `right...`, `current...`).  Assuming `{text} "
+            f"interval boundary` according to the current value of the global "
+            f"`timestampleft` option."
         )
     with opts.timestampleft(left):  # pylint: disable=not-callable
         timepoints = ncfile[varmapping["timepoints"]]
@@ -582,33 +585,135 @@ Assuming `current time` according to the type of the relevant sequence (`SM`).
 def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
     """Return the data of the variable with the given name from the given NetCDF file.
 
-    The following example shows that |query_array| returns |numpy.nan| entries to
-    represent missing values even when the respective NetCDF variable defines a
+    The following example shows that |query_array| returns |numpy.nan| entries for
+    representing missing values even when the respective NetCDF variable defines a
     different fill value:
 
     >>> from hydpy import TestIO
-    >>> from hydpy.core.netcdftools import netcdf4
     >>> from hydpy.core import netcdftools
-    >>> netcdftools.fillvalue = -999.0
+    >>> from hydpy.core.netcdftools import netcdf4, create_dimension, create_variable
+    >>> import numpy
     >>> with TestIO():
     ...     with netcdf4.Dataset("test.nc", "w") as ncfile:
-    ...         netcdftools.create_dimension(ncfile, "dim1", 5)
-    ...         netcdftools.create_variable(ncfile, "var1", "f8", ("dim1",))
+    ...         create_dimension(ncfile, "time", 2)
+    ...         create_dimension(ncfile, "stations", 3)
+    ...         netcdftools.fillvalue = -999.0
+    ...         create_variable(ncfile, "var", "f8", ("time", "stations"))
+    ...         netcdftools.fillvalue = numpy.nan
     ...     ncfile = netcdf4.Dataset("test.nc", "r")
-    >>> netcdftools.query_variable(ncfile, "var1")[:].data
-    array([-999., -999., -999., -999., -999.])
-    >>> netcdftools.query_array(ncfile, "var1")
-    array([nan, nan, nan, nan, nan])
-    >>> import numpy
-    >>> netcdftools.fillvalue = numpy.nan
+    >>> from hydpy.core.netcdftools import query_variable, query_array
+    >>> query_variable(ncfile, "var")[:].data
+    array([[-999., -999., -999.],
+           [-999., -999., -999.]])
+    >>> query_array(ncfile, "var")
+    array([[nan, nan, nan],
+           [nan, nan, nan]])
     >>> ncfile.close()
+
+    Usually, *HydPy* expects all data variables in NetCDF files to be 2-dimensional,
+    with time on the first and location on the second axis.  However, |query_array|
+    allows for an exception for compatibility with `Delft-FEWS`_.  When working with
+    ensembles, `Delft-FEWS`_ defines a third dimension called `realization` and puts it
+    between the first dimension (`time`) and the last dimension (`stations`).  In our
+    experience, this additional dimension is always of length one, meaning we can
+    safely ignore it:
+
+    >>> with TestIO():
+    ...     with netcdf4.Dataset("test.nc", "w") as ncfile:
+    ...         create_dimension(ncfile, "time", 2)
+    ...         create_dimension(ncfile, "realization", 1)
+    ...         create_dimension(ncfile, "stations", 3)
+    ...         var = create_variable(ncfile, "var", "f8",
+    ...                               ("time", "realization", "stations"))
+    ...         ncfile["var"][:] = [[[1.1, 1.2, 1.3]], [[2.1, 2.2, 2.3]]]
+    ...     ncfile = netcdf4.Dataset("test.nc", "r")
+    >>> var = query_variable(ncfile, "var")[:]
+    >>> var.shape
+    (2, 1, 3)
+    >>> query_array(ncfile, "var").shape
+    (2, 3)
+    >>> query_array(ncfile, "var")
+    array([[1.1, 1.2, 1.3],
+           [2.1, 2.2, 2.3]])
+    >>> ncfile.close()
+
+    |query_array| raises errors if dimensionality is smaller than two or larger than
+    three or if there are three dimensions and the length of the second dimension is
+    not one:
+
+    >>> with TestIO():
+    ...     with netcdf4.Dataset("test.nc", "w") as ncfile:
+    ...         create_dimension(ncfile, "time", 2)
+    ...         var = create_variable(ncfile, "var", "f8", ("time",))
+    ...     with netcdf4.Dataset("test.nc", "r") as ncfile:
+    ...         query_array(ncfile, "var")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Variable `var` of NetCDF file `test.nc` must be 2-dimensional (or \
+3-dimensional with a length of one on the second axis) but has the shape `(2,)`.
+
+    >>> with TestIO():
+    ...     with netcdf4.Dataset("test.nc", "w") as ncfile:
+    ...         create_dimension(ncfile, "time", 2)
+    ...         create_dimension(ncfile, "realization", 2)
+    ...         create_dimension(ncfile, "stations", 3)
+    ...         var = create_variable(ncfile, "var", "f8",
+    ...                               ("time", "realization", "stations"))
+    ...     with netcdf4.Dataset("test.nc", "r") as ncfile:
+    ...         query_array(ncfile, "var")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Variable `var` of NetCDF file `test.nc` must be 2-dimensional (or \
+3-dimensional with a length of one on the second axis) but has the shape `(2, 2, 3)`.
+
+    The skipping of the `realization` axis is very specific to `Delft-FEWS`_.  To
+    prevent hiding problems when reading erroneous data from other sources,
+    |query_array| emits the following warning if the name of the second dimension is
+    not `realization`:
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with TestIO():
+    ...     with netcdf4.Dataset("test.nc", "w") as ncfile:
+    ...         create_dimension(ncfile, "time", 2)
+    ...         create_dimension(ncfile, "realisation", 1)
+    ...         create_dimension(ncfile, "stations", 3)
+    ...         var = create_variable(ncfile, "var", "f8",
+    ...                               ("time", "realisation", "stations"))
+    ...     with netcdf4.Dataset("test.nc", "r") as ncfile, warn_later():
+    ...         query_array(ncfile, "var")
+    array([[nan, nan, nan],
+           [nan, nan, nan]])
+    UserWarning: Variable `var` of NetCDF file `test.nc` is 3-dimensional and the \
+length of the second dimension is one, but its name is `realisation` instead of \
+`realization`.
     """
     variable = query_variable(ncfile, name)
-    maskedarray = variable[:]
+    if _is_realisation(variable, ncfile):
+        maskedarray = variable[:, 0, :]
+    else:
+        maskedarray = variable[:]
     fillvalue_ = getattr(variable, "_FillValue", numpy.nan)
     if not numpy.isnan(fillvalue_):
         maskedarray[maskedarray.mask] = numpy.nan
     return cast(NDArrayFloat, maskedarray.data)
+
+
+def _is_realisation(variable: netcdf4.Variable, ncfile: netcdf4.Dataset) -> bool:
+    if variable.ndim == 2:
+        return False
+    if (variable.ndim == 3) and (variable.shape[1] == 1):
+        if variable.dimensions[1] != "realization":
+            warnings.warn(
+                f"Variable `{variable.name}` of NetCDF file `{ncfile.filepath()}` is "
+                f"3-dimensional and the length of the second dimension is one, but "
+                f"its name is `{variable.dimensions[1]}` instead of `realization`."
+            )
+        return True
+    raise RuntimeError(
+        f"Variable `{variable.name}` of NetCDF file `{ncfile.filepath()}` must be "
+        f"2-dimensional (or 3-dimensional with a length of one on the second axis) "
+        f"but has the shape `{variable.shape}`."
+    )
 
 
 def get_filepath(ncfile: netcdf4.Dataset) -> str:
@@ -636,6 +741,10 @@ class JITAccessInfo(NamedTuple):
 
     ncvariable: netcdf4.Variable
     """Variable for the direct access to the relevant section of the NetCDF file."""
+    realisation: bool
+    """Flag that indicates if the relevant |JITAccessInfo.ncvariable| comes with an
+    additional `realization` dimension (explained in the documentation on function
+    |query_array|)"""
     timedelta: int
     """Difference between the relevant row of the NetCDF file and the current 
     simulation index (as defined by |Idx_Sim|)."""
@@ -663,13 +772,21 @@ class JITAccessHandler(NamedTuple):
         """Read the time slice relevant for the current simulation step from each
         NetCDF file selected for reading."""
         for reader in self.readers:
-            reader.data[:] = reader.ncvariable[idx + reader.timedelta, reader.columns]
+            jdx = idx + reader.timedelta
+            if reader.realisation:
+                reader.data[:] = reader.ncvariable[jdx, 0, reader.columns]
+            else:
+                reader.data[:] = reader.ncvariable[jdx, reader.columns]
 
     def write_slices(self, idx: int) -> None:
         """Write the time slice relevant for the current simulation step from each
         NetCDF file selected for writing."""
         for writer in self.writers:
-            writer.ncvariable[idx + writer.timedelta, writer.columns] = writer.data
+            jdx = idx + writer.timedelta
+            if writer.realisation:
+                writer.ncvariable[jdx, 0, writer.columns] = writer.data
+            else:
+                writer.ncvariable[jdx, writer.columns] = writer.data
 
 
 class NetCDFInterface:
@@ -915,7 +1032,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
         We consider it unlikely users need ever to call the method
         |NetCDFInterface.provide_jitaccess| directly.  See the documentation on class
         |HydPy| on applying it indirectly.  However, the following explanations might
-        give some additional insights on options and limitations of the the related
+        give some additional insights into the options and limitations of the related
         functionalities.
 
         You can only either read from or write to each NetCDF file.  We think this
@@ -992,7 +1109,32 @@ cover the current simulation period \
         ...     print_values(ncfile["factor_tmean"][:, 0])
         -0.572053, -1.084746, -2.767055, -6.242055
 
-        If we try to write the output of a third simulation run beyond the original
+        Under particular circumstances, the data variable of a NetCDF file can be
+        3-dimensional.  The documentation on function |query_array| explains this in
+        detail.  The following example demonstrates that reading and writing such
+        3-dimensional variables "just in time" works correctly.  Therefore, we add a
+        `realization` dimension to the input file `hland_v1_input_t.nc` (part of the
+        example project data) and the output file `hland_v1_factor_tmean.nc` (written
+        in the previous example) and use them for redefining their data variables with
+        this additional dimension.  As expected, the results are the same as in the
+        previous example:
+
+        >>> with TestIO():
+        ...     for name in ("input_t", "factor_tmean"):
+        ...         filepath = f"LahnH/series/default/hland_v1_{name}.nc"
+        ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
+        ...             ncfile.renameVariable(name, "old")
+        ...             _ = ncfile.createDimension("realization", 1)
+        ...             var = ncfile.createVariable(
+        ...                 name, "f8", dimensions=("time", "realization", "stations"))
+        ...             var[:] = ncfile["old"][:] if name == "input_t" else -999.0
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp.simulate()
+        >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
+        ...     print_values(ncfile["factor_tmean"][:, 0, 0])
+        -0.572053, -1.084746, -2.767055, -6.242055
+
+        If we try to write the output of a simulation run beyond the original
         initial initialisation period into the same files,
         |NetCDFInterface.provide_jitaccess| raises an equal error as above:
 
@@ -1216,6 +1358,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                     variable2infos[variable].append(
                         JITAccessInfo(
                             ncvariable=ncfile[variable.name],
+                            realisation=_is_realisation(ncfile[variable.name], ncfile),
                             timedelta=variable2timedelta[variable],
                             columns=tuple(get(n) for n in variable.subdevicenames),
                             data=data,
@@ -1416,8 +1559,8 @@ named `element2`.
         >>> Var.subdevicenames = "element1", "element_2"
 
         The first dimension of the added variable corresponds to the number of
-        (sub)devices, the second dimension to the number of characters of the longest
-        (sub)device name:
+        (sub)devices, and the second dimension to the number of characters of the
+        longest (sub)device name:
 
         >>> var = Var("var", "filename.nc")
         >>> with TestIO():
@@ -1613,7 +1756,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
 
 class NetCDFVariableAgg(NetCDFVariableBase):
     """Relates objects of a specific |IOSequence| subclass with a single NetCDF
-    variable for writing aggregated time-series data.
+    variable for writing aggregated time series data.
 
     Essentially, class |NetCDFVariableAgg| is very similar to class |NetCDFVariableFlat|
     but a little bit simpler, as it cannot read data from NetCDF files and always
@@ -1684,8 +1827,8 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         >>> ncvar.shape
         (4, 3)
 
-        There is no difference for 2-dimensional sequences as aggregating their
-        time-series also results in 1-dimensional data:
+        There is no difference for 2-dimensional sequences as aggregating their time
+        series also results in 1-dimensional data:
 
         >>> ncvar = NetCDFVariableAgg("state_sp", "filename.nc")
         >>> ncvar.log(elements.element4.model.sequences.states.sp, None)
@@ -1717,8 +1860,8 @@ class NetCDFVariableAgg(NetCDFVariableBase):
                [14. , 20.5, 31. ],
                [15. , 22.5, 34. ]])
 
-        There is no difference for 2-dimensional sequences as aggregating their
-        time-series also results in 1-dimensional data:
+        There is no difference for 2-dimensional sequences as aggregating their time
+        series also results in 1-dimensional data:
 
         >>> ncvar = NetCDFVariableAgg("state_sp", "filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp

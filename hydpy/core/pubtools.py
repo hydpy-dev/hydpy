@@ -39,6 +39,7 @@ class TimegridsProperty(
     _PubProperty[
         Union[
             timetools.Timegrids,
+            timetools.Timegrid,
             Tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,

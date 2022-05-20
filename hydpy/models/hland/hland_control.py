@@ -678,7 +678,7 @@ least one cycle: (3, 5) and (5, 3).
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
 
-    For two target zones (and identical zone areas), the weights to the next two lower
+    For two target zones (and identical zone areas), the weights of the next two lower
     zones are 0.5:
 
     >>> sred(n_zones=2)

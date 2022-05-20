@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import itertools
+import warnings
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
 
@@ -308,16 +309,16 @@ def _make_subunit_name(
     >>> make(device, type("V", (), {"NDIM": 0, "shape": 0})())
     'dev'
     >>> print(*make(device, type("V", (), {"NDIM": 1, "shape": (2,)})()))
-    dev_1 dev_2
+    dev_0 dev_1
     >>> print(*make(device, type("V", (), {"NDIM": 3, "shape": (1, 2, 3)})()))
-    dev_1-1-1 dev_1-1-2 dev_1-1-3 dev_1-2-1 dev_1-2-2 dev_1-2-3
+    dev_0_0_0 dev_0_0_1 dev_0_0_2 dev_0_1_0 dev_0_1_1 dev_0_1_2
     """
     name = device.name
     if target.NDIM == 0:
         return name
     ranges = (range(length) for length in target.shape)
     return (
-        f"{name}_{'-'.join(str(idx+1) for idx in idxs)}"
+        f"{name}_{'_'.join(str(idx) for idx in idxs)}"
         for idxs in itertools.product(*ranges)
     )
 
@@ -542,15 +543,15 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         variables. When using the 1-dimensional parameter |hland_states.IC| of the base
         model |hland| as an example, property |ChangeItem.shape| agrees with the total
         number of hydrological response units.  Property |ChangeItem.subnames| combines
-        the device names with the index numbers of the vector entries of the respective
-        target variables:
+        the device names with the zero-based index numbers of the vector entries of the
+        respective target variables:
 
         >>> item = SetItem("ic", "hland", "states.ic", None, "subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (49,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_1', 'land_dill_2', ..., 'land_lahn_3_13', 'land_lahn_3_14')
+        ('land_dill_0', 'land_dill_1', ..., 'land_lahn_3_12', 'land_lahn_3_13')
 
         For 2-dimensional sequences, |ChangeItem.shape| returns the total number
         of matrix entries and each sub name indicates the row and the column of a
@@ -563,8 +564,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.shape
         (61,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_1-1', 'land_dill_1-2', ..., \
-'land_dill_2-11', 'land_dill_2-12', ..., 'land_lahn_3_1-13', 'land_lahn_3_1-14')
+        ('land_dill_0_0', 'land_dill_0_1', ..., \
+'land_dill_1_10', 'land_dill_1_11', ..., 'land_lahn_3_0_12', 'land_lahn_3_0_13')
 
         Everything works as explained above when specifying a keyword argument for
         defining values, except there is no support for the `subunit` level.  We show
@@ -1150,6 +1151,87 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         cfmax(field=4.55853, forest=2.735118)
         >>> print_values(cfmax.value)
         2.735118, 3.0, 2.1, 2.1
+
+        Method |SetItem.extract_values| cannot extract its complete data if the time
+        series of any relevant variable is missing.  We disable the |IOSequence.series|
+        attribute of the considered sequences to show how things work then:
+
+        >>> dill.sequences.states.uz.prepare_series(False)
+        >>> dill.sequences.states.ic.prepare_series(False)
+        >>> dill.sequences.states.wc.prepare_series(False)
+
+        Method |SetItem.extract_values| emits a warning when encountering the first
+        unprepared |IOSequence.series| attribute and, if existing, deletes already
+        available data:
+
+        >>> from hydpy.core.testtools import warn_later
+        >>> with warn_later():
+        ...     test("device")
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`uz`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `uz` of element `land_dill`, the following error \
+occurred: Sequence `uz` of element `land_dill` is not requested to make any \
+time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`ic`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `ic` of element `land_dill`, the following error \
+occurred: Sequence `ic` of element `land_dill` is not requested to make any \
+time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`wc`, the following error occured: While trying to calculate the mean value of the \
+internal time-series of sequence `wc` of element `land_dill`, the following error \
+occurred: Sequence `wc` of element `land_dill` is not requested to make any \
+time-series data available.
+
+        >>> for series in uz.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
+has/have not been prepared so far.
+        >>> for series in ic.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
+has/have not been prepared so far.
+        >>> for series in wc.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
+has/have not been prepared so far.
+
+        >>> with warn_later():
+        ...     test("subunit")
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
+requested to make any time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
+requested to make any time-series data available.
+        AttributeNotReadyWarning: While trying to query the values of exchange item \
+`wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
+requested to make any time-series data available.
+
+        >>> for series in uz.value:
+        ...     print_values(series)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
+has/have not been prepared so far.
+        >>> for series in ic.value:  # doctest: +ELLIPSIS
+        ...     print_values(series)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
+has/have not been prepared so far.
+        >>> for series in wc.value:  # doctest: +ELLIPSIS
+        ...     print_values(series)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
+has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
@@ -1159,7 +1241,16 @@ elements so far.  So, it is not possible to aggregate to the selection level.
             for idx, variable in enumerate(self.device2target.values()):
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
-                    targetvalues = variable.average_series()[jdx0:jdx1]
+                    try:
+                        targetvalues = variable.average_series()[jdx0:jdx1]
+                    except exceptiontools.AttributeNotReady as exc:
+                        self._value = None
+                        warnings.warn(
+                            f"While trying to query the values of exchange item "
+                            f"`{self.name}`, the following error occured: {exc}",
+                            exceptiontools.AttributeNotReadyWarning,
+                        )
+                        return
                 elif self.targetspecs.keyword is None:
                     targetvalues = variable.average_values()
                 else:
@@ -1172,9 +1263,20 @@ elements so far.  So, it is not possible to aggregate to the selection level.
                 idx1 = idx0 + len(variable)
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
-                    targetvalues = variable.simseries.T
-                    if variable.NDIM > 0:
-                        targetvalues = targetvalues.reshape(-1, targetvalues.shape[-1])
+                    try:
+                        targetvalues = variable.simseries.T
+                        if variable.NDIM > 0:
+                            targetvalues = targetvalues.reshape(
+                                -1, targetvalues.shape[-1]
+                            )
+                    except exceptiontools.AttributeNotReady as exc:
+                        self._value = None
+                        warnings.warn(
+                            f"While trying to query the values of exchange item "
+                            f"`{self.name}`, the following error occured: {exc}",
+                            exceptiontools.AttributeNotReadyWarning,
+                        )
+                        return
                 else:
                     targetvalues = variable.values
                     if variable.NDIM > 1:
@@ -1190,6 +1292,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         else:
             objecttools.assert_never(self.level)
         self.value = itemvalues
+        return
 
     def __repr__(self) -> str:
         ts = self.targetspecs
@@ -1493,12 +1596,7 @@ class GetItem(ExchangeItem):
     _device2name: Dict[Union[devicetools.Node, devicetools.Element], Name]
     _ndim: Optional[int] = None
 
-    def __init__(
-        self,
-        name: Name,
-        master: str,
-        target: str,
-    ) -> None:
+    def __init__(self, name: Name, master: str, target: str) -> None:
         self.name = name
         self.target = target.replace(".", "_")
         self.targetspecs = ExchangeSpecification(master, target, None)
@@ -1529,10 +1627,7 @@ class GetItem(ExchangeItem):
             )
         return self._ndim
 
-    def collect_variables(
-        self,
-        selections: selectiontools.Selections,
-    ) -> None:
+    def collect_variables(self, selections: selectiontools.Selections) -> None:
         """Apply method |ExchangeItem.collect_variables| of the base class
         |ExchangeItem| and determine the |GetItem.ndim| attribute of the current
         |GetItem| object afterwards.
@@ -1609,19 +1704,19 @@ class GetItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sm ('land_dill_1', ..., 'land_dill_12')
-        land_lahn_1_states_sm ('land_lahn_1_1', ..., 'land_lahn_1_13')
-        land_lahn_2_states_sm ('land_lahn_2_1', ..., 'land_lahn_2_10')
-        land_lahn_3_states_sm ('land_lahn_3_1', ..., 'land_lahn_3_14')
+        land_dill_states_sm ('land_dill_0', ..., 'land_dill_11')
+        land_lahn_1_states_sm ('land_lahn_1_0', ..., 'land_lahn_1_12')
+        land_lahn_2_states_sm ('land_lahn_2_0', ..., 'land_lahn_2_9')
+        land_lahn_3_states_sm ('land_lahn_3_0', ..., 'land_lahn_3_13')
 
         >>> item = GetItem("sp", "hland_v1", "states.sp")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sp ('land_dill_1-1', ..., 'land_dill_1-12')
-        land_lahn_1_states_sp ('land_lahn_1_1-1', ..., 'land_lahn_1_1-13')
-        land_lahn_2_states_sp ('land_lahn_2_1-1', ..., 'land_lahn_2_1-10')
-        land_lahn_3_states_sp ('land_lahn_3_1-1', ..., 'land_lahn_3_1-14')
+        land_dill_states_sp ('land_dill_0_0', ..., 'land_dill_0_11')
+        land_lahn_1_states_sp ('land_lahn_1_0_0', ..., 'land_lahn_1_0_12')
+        land_lahn_2_states_sp ('land_lahn_2_0_0', ..., 'land_lahn_2_0_9')
+        land_lahn_3_states_sp ('land_lahn_3_0_0', ..., 'land_lahn_3_0_13')
         """
         for device, name in self._device2name.items():
             subnames = _make_subunit_name(device, self.device2target[device])
@@ -1631,9 +1726,7 @@ class GetItem(ExchangeItem):
                 yield name, tuple(subnames)
 
     def yield_name2value(
-        self,
-        idx1: Optional[int] = None,
-        idx2: Optional[int] = None,
+        self, idx1: Optional[int] = None, idx2: Optional[int] = None
     ) -> Iterator[Tuple[Name, str]]:
         """Sequentially return name-value pairs describing the current state of the
         target variables.

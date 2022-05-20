@@ -2383,24 +2383,21 @@ error occurred: could not convert string to float: 'test'
 class SeasonalParameter(Parameter):
     """Base class for parameters handling values showing a seasonal variation.
 
-    Quite a lot of model parameter values change on an annual basis.
-    One example is the leaf area index.  For deciduous forests within
-    temperate climatic regions, it shows a clear peak during the summer
-    season.
+    Quite a lot of model parameter values change on an annual basis.  One example is
+    the leaf area index.  For deciduous forests within temperate climatic regions, it
+    shows a clear peak during the summer season.
 
-    If you want to vary the parameter values on a fixed (for example,
-    a monthly) basis, |KeywordParameter2D| might be the best starting
-    point.  See the |lland_parameters.LanduseMonthParameter| class of
-    the |lland| base model as an example, which is used to define
-    parameter |lland_control.LAI|, handling monthly leaf area index
-    values for different land-use classes.
+    If you want to vary the parameter values on a fixed (for example, a monthly) basis,
+    |KeywordParameter2D| might be the best starting point.  See the
+    |lland_parameters.LanduseMonthParameter| class of the |lland| base model as an
+    example, which is used to define parameter |lland_control.LAI|, handling monthly
+    leaf area index values for different land-use classes.
 
-    However, class |SeasonalParameter| offers more flexibility in
-    defining seasonal patterns, which is often helpful for modelling
-    technical control systems.  One example is the parameter pair
-    |llake_control.W| and |llake_control.Q| of base model |llake|,
-    defining the desired water stage to discharge relationship
-    throughout the year.
+    However, class |SeasonalParameter| offers more flexibility in defining seasonal
+    patterns, which is often helpful for modelling technical control systems.  One
+    example is the parameter pair |llake_control.W| and |llake_control.Q| of base model
+    |llake|, defining the desired water stage to discharge relationship throughout the
+    year.
 
     .. testsetup::
 
@@ -2423,31 +2420,29 @@ class SeasonalParameter(Parameter):
     >>> par
     par()
 
-    The shape is determined automatically, as described in the
-    documentation on property |SeasonalParameter.shape| in more detail:
+    The shape is determined automatically, as described in the documentation on
+    property |SeasonalParameter.shape| in more detail:
 
     >>> par.shape = (None,)
     >>> par.shape
     (366,)
 
-    Pairs of |TOY| objects and |float| values define the seasonal pattern.
-    One can assign them all at once via keyword arguments:
+    Pairs of |TOY| objects and |float| values define the seasonal pattern.  One can
+    assign them all at once via keyword arguments:
 
     >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
 
-    Note that all keywords in the call above are proper |TOY|
-    initialisation arguments. Misspelt keywords result in error
-    messages like the following:
+    Note that all keywords in the call above are proper |TOY| initialisation arguments.
+    Misspelt keywords result in error messages like the following:
 
     >>> Par(None)(_a=1.)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define the seasonal parameter value `par` \
-of element `?` for time of year `_a`, the following error occurred: \
-While trying to initialise a TOY object based on argument value `_a` \
-of type `str`, the following error occurred: While trying to retrieve \
-the month, the following error occurred: For TOY (time of year) objects, \
-all properties must be of type `int`, but the value `a` of type `str` \
+    ValueError: While trying to define the seasonal parameter value `par` of element \
+`?` for time of year `_a`, the following error occurred: While trying to initialise a \
+TOY object based on argument value `_a` of type `str`, the following error occurred: \
+While trying to retrieve the month, the following error occurred: For TOY (time of \
+year) objects, all properties must be of type `int`, but the value `a` of type `str` \
 given for property `month` cannot be converted to `int`.
 
     As the following string representation shows are the pairs of each
@@ -2458,8 +2453,8 @@ given for property `month` cannot be converted to `int`.
         toy_3_1_0_0_0=5.0,
         toy_7_1_0_0_0=4.0)
 
-    By default, `toy` is used as a prefix string.  Using this prefix string,
-    one can change the toy-value pairs via attribute access:
+    By default, `toy` is used as a prefix string.  Using this prefix string, one can
+    change the toy-value pairs via attribute access:
 
     >>> par.toy_1_1_0_0_0
     2.0
@@ -2475,8 +2470,7 @@ given for property `month` cannot be converted to `int`.
     >>> par.toy_2_1
     2.0
 
-    When using functions |getattr| and |delattr|, one can also omit the
-    "toy" prefix:
+    When using functions |getattr| and |delattr|, one can also omit the "toy" prefix:
 
     >>> getattr(par, "2_1")
     2.0
@@ -2484,16 +2478,16 @@ given for property `month` cannot be converted to `int`.
     >>> getattr(par, "2_1")
     Traceback (most recent call last):
     ...
-    AttributeError: Seasonal parameter `par` of element `?` has neither \
-a normal attribute nor does it handle a "time of year" named `2_1`.
+    AttributeError: Seasonal parameter `par` of element `?` has neither a normal \
+attribute nor does it handle a "time of year" named `2_1`.
     >>> delattr(par, "2_1")
     Traceback (most recent call last):
     ...
-    AttributeError: Seasonal parameter `par` of element `?` has neither \
-a normal attribute nor does it handle a "time of year" named `2_1`.
+    AttributeError: Seasonal parameter `par` of element `?` has neither a normal \
+attribute nor does it handle a "time of year" named `2_1`.
 
-    Applying the |len| operator on |SeasonalParameter| objects returns
-    the number of toy-value pairs.
+    Applying the |len| operator on |SeasonalParameter| objects returns the number of
+    toy-value pairs.
 
     >>> len(par)
     2
@@ -2503,29 +2497,28 @@ a normal attribute nor does it handle a "time of year" named `2_1`.
     >>> par.toy_1_1_0_0_0 = [1., 2.]   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a new or change an existing toy-value \
-pair for the seasonal parameter `par` of element `?`, the \
-following error occurred: float() argument must be a string or a... number...
+    TypeError: While trying to add a new or change an existing toy-value pair for the \
+seasonal parameter `par` of element `?`, the following error occurred: float() \
+argument must be a string or a... number...
     >>> par = Par(None)
     >>> par.NDIM = 2
     >>> par.shape = (None, 3)
     >>> par.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    ValueError: While trying to add a new or change an existing toy-value \
-pair for the seasonal parameter `par` of element `?`, the \
-following error occurred: could not broadcast input array from shape (2,) \
-into shape (3,)
+    ValueError: While trying to add a new or change an existing toy-value pair for \
+the seasonal parameter `par` of element `?`, the following error occurred: could not \
+broadcast input array from shape (2,) into shape (3,)
 
-    If you do not require seasonally varying parameter values in a specific
-    situation, you can pass a single positional argument:
+    If you do not require seasonally varying parameter values in a specific situation,
+    you can pass a single positional argument:
 
     >>> par(5.0)
     >>> par
     par([5.0, 5.0, 5.0])
 
-    Note that class |SeasonalParameter| associates the given value(s) to the
-    "first" time of the year, internally:
+    Note that class |SeasonalParameter| associates the given value(s) to the "first"
+    time of the year, internally:
 
     >>> par.toys
     (TOY("1_1_0_0_0"),)
@@ -2549,42 +2542,64 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    def __init__(self, subvars):
+    _toy2values: List[Tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+
+    def __init__(self, subvars) -> None:
         super().__init__(subvars)
-        self._toy2values = {}
+        self._toy2values = []
 
     def __call__(self, *args, **kwargs) -> None:
-        self._toy2values.clear()
         if self.NDIM == 1:
             self.shape = (None,)
         try:
             super().__call__(*args, **kwargs)
-            self._toy2values[timetools.TOY()] = self[0]
+            self._toy2values = [(timetools.TOY(), self.values[0])]
         except BaseException as exc:
+            self._toy2values = []
             if args:
                 raise exc
             for (toystr, values) in kwargs.items():
                 try:
-                    setattr(self, str(timetools.TOY(toystr)), values)
+                    self._add_toyvaluepair(toystr, values)
                 except BaseException:
                     objecttools.augment_excmessage(
-                        f"While trying to define the seasonal parameter "
-                        f"value {objecttools.elementphrase(self)} for "
-                        f"time of year `{toystr}`"
+                        f"While trying to define the seasonal parameter value "
+                        f"{objecttools.elementphrase(self)} for time of year `{toystr}`"
                     )
             self.refresh()
+
+    def _add_toyvaluepair(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+        if self.NDIM == 1:
+            value = float(value)
+        else:
+            value = numpy.full(self.shape[1:], value)
+        toy_new = timetools.TOY(name)
+        if len(self._toy2values) == 0:
+            self._toy2values.append((toy_new, value))
+        secs_new = toy_new.seconds_passed
+        if secs_new > self._toy2values[-1][0].seconds_passed:
+            self._toy2values.append((toy_new, value))
+        else:
+            for idx, (toy_old, _) in enumerate(self._toy2values[:]):
+                secs_old = toy_old.seconds_passed
+                if secs_new == secs_old:
+                    self._toy2values[idx] = toy_new, value
+                    break
+                if secs_new < secs_old:
+                    self._toy2values.insert(idx, (toy_new, value))
+                    break
 
     def refresh(self) -> None:
         """Update the actual simulation values based on the toy-value pairs.
 
-        Usually, one does not need to call refresh explicitly.  The
-        "magic" methods `__call__`, `__setattr__`, and `__delattr__`
-        invoke it automatically, when required.
+        Usually, one does not need to call refresh explicitly.  The "magic" methods
+        `__call__`, `__setattr__`, and `__delattr__` invoke it automatically, when
+        required.
 
-        Method |SeasonalParameter.refresh| calculates only those time
-        variable parameter values required for the defined
-        initialisation period.  We start with an initialisation period
-        covering a full year, making a complete calculation necessary:
+        Method |SeasonalParameter.refresh| calculates only those time variable
+        parameter values required for the defined initialisation period.  We start with
+        an initialisation period covering a full year, making a complete calculation
+        necessary:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
@@ -2599,26 +2614,24 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par = Par(None)
         >>> par.shape = (None,)
 
-        When a |SeasonalParameter| object does not contain any toy-value
-        pairs yet, the method |SeasonalParameter.refresh| sets all actual
-        simulation values to zero:
+        When a |SeasonalParameter| object does not contain any toy-value pairs yet, the
+        method |SeasonalParameter.refresh| sets all actual simulation values to zero:
 
         >>> par.values = 1.
         >>> par.refresh()
         >>> par.values[0]
         0.0
 
-        When there is only one toy-value pair, its values are relevant
-        for all actual simulation values:
+        When there is only one toy-value pair, its values are relevant for all actual
+        simulation values:
 
         >>> par.toy_1 = 2. # calls refresh automatically
         >>> par.values[0]
         2.0
 
-        Method |SeasonalParameter.refresh| performs a linear interpolation
-        for the central time points of each simulation time step.  Hence,
-        in the following example, the original values of the toy-value
-        pairs do not show up:
+        Method |SeasonalParameter.refresh| performs a linear interpolation for the
+        central time points of each simulation time step.  Hence, in the following
+        example, the original values of the toy-value pairs do not show up:
 
         >>> par.toy_12_31 = 4.
         >>> from hydpy import round_
@@ -2629,9 +2642,8 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.values[-1]
         3.0
 
-        If one wants to preserve the original values in this example, one
-        would have to set the corresponding toy instances in the middle of
-        some simulation step intervals:
+        If one wants to preserve the original values in this example, one must set the
+        corresponding toy instances in the middle of some simulation step intervals:
 
         >>> del par.toy_1
         >>> del par.toy_12_31
@@ -2646,8 +2658,8 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.values[-1]
         4.0
 
-        For short initialisation periods, method |SeasonalParameter.refresh|
-        performs only the required interpolations for efficiency reasons:
+        For short initialisation periods, method |SeasonalParameter.refresh| performs
+        only the required interpolations for efficiency:
 
         >>> pub.timegrids = "2000-01-02", "2000-01-05", "1d"
         >>> Par.NDIM = 2
@@ -2667,14 +2679,10 @@ broadcast input array from shape (2,) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        self._toy2values = {
-            toy: self._toy2values[toy] for toy in sorted(self._toy2values.keys())
-        }
         if not self:
             self.values[:] = 0.0
         elif len(self) == 1:
-            values = list(self._toy2values.values())[0]
-            self.values[:] = self.apply_timefactor(values)
+            self.values[:] = self.apply_timefactor(self._toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
             values = self.values
@@ -2684,8 +2692,8 @@ broadcast input array from shape (2,) into shape (366,3)
             self.__hydpy__set_value__(values)
 
     def interp(self, date: timetools.Date) -> float:
-        """Perform a linear value interpolation for the given `date` and
-        return the result.
+        """Perform a linear value interpolation for the given `date` and return the
+        result.
 
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
@@ -2703,8 +2711,8 @@ broadcast input array from shape (2,) into shape (366,3)
 
         >>> par(_1=2.0, _2=5.0, _12_31=4.0)
 
-        Passing a |Date| object matching a |TOY| object exactly returns
-        the corresponding |float| value:
+        Passing a |Date| object matching a |TOY| object exactly returns the
+        corresponding |float| value:
 
         >>> from hydpy import Date
         >>> par.interp(Date("2000.01.01"))
@@ -2714,8 +2722,8 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.interp(Date("2000.12.31"))
         4.0
 
-        For all intermediate points, |SeasonalParameter.interp| performs
-        a linear interpolation:
+        For all intermediate points, |SeasonalParameter.interp| performs a linear
+        interpolation:
 
         >>> from hydpy import round_
         >>> round_(par.interp(Date("2000.01.02")))
@@ -2727,8 +2735,8 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> round_(par.interp(Date("2000.12.30")))
         4.002994
 
-        Linear interpolation is also allowed between the first and the
-        last pair when they do not capture the endpoints of the year:
+        Linear interpolation is also allowed between the first and the last pair when
+        they do not capture the endpoints of the year:
 
         >>> par(_1_2=2.0, _12_30=4.0)
         >>> round_(par.interp(Date("2000.12.29")))
@@ -2744,8 +2752,8 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> round_(par.interp(Date("2000.01.03")))
         2.00551
 
-        The following example briefly shows interpolation performed for
-        a 2-dimensional parameter:
+        The following example briefly shows interpolation performed for a 2-dimensional
+        parameter:
 
         >>> Par.NDIM = 2
         >>> par = Par(None)
@@ -2775,7 +2783,7 @@ broadcast input array from shape (2,) into shape (366,3)
     @property
     def toys(self) -> Tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
-        return tuple(sorted(self._toy2values.keys()))
+        return tuple(toy for toy, _ in self._toy2values)
 
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -2785,11 +2793,10 @@ broadcast input array from shape (2,) into shape (366,3)
             >>> from hydpy import pub
             >>> del pub.options.simulationstep
 
-        Setting the shape of |SeasonalParameter| objects differs from
-        setting the shape of other |Variable| subclasses, due to handling
-        time on the first axis.  The simulation step size determines the
-        length of this axis.  Hence, trying to set the shape before the
-        simulation step size is known does not work:
+        Setting the shape of |SeasonalParameter| objects differs from setting the shape
+        of other |Variable| subclasses, due to handling time on the first axis.  The
+        simulation step size determines the length of this axis.  Hence, trying to set
+        the shape before the simulation step size is known does not work:
 
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
@@ -2800,16 +2807,15 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.shape = (None,)
         Traceback (most recent call last):
         ...
-        RuntimeError: It is not possible the set the shape of the seasonal \
-parameter `par` of element `?` at the moment.  You need to define the \
-simulation step size first.  However, in complete HydPy projects this \
-stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
+        RuntimeError: It is not possible the set the shape of the seasonal parameter \
+`par` of element `?` at the moment.  You need to define the simulation step size \
+first.  However, in complete HydPy projects this stepsize is indirectly defined via \
+`pub.timegrids.stepsize` automatically.
 
-        After preparing the simulation step size, you can pass a tuple
-        with a single entry of any value to define the shape of the
-        defined 1-dimensional test class.  Property |SeasonalParameter.shape|
-        replaces this arbitrary value by the number of simulation
-        steps fitting into a leap year:
+        After preparing the simulation step size, you can pass a tuple with a single
+        entry of any value to define the shape of the defined 1-dimensional test class.
+        Property |SeasonalParameter.shape| replaces this arbitrary value by the number
+        of simulation steps fitting into a leap year:
 
         >>> from hydpy import pub
         >>> pub.options.simulationstep = "1d"
@@ -2823,16 +2829,16 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         >>> par.shape
         (366,)
 
-        For higher-dimensional parameters, property |SeasonalParameter.shape|
-        replaces the first entry of the assigned iterable, accordingly:
+        For higher-dimensional parameters, property |SeasonalParameter.shape| replaces
+        the first entry of the assigned iterable, accordingly:
 
         >>> Par.NDIM = 2
         >>> par.shape = (None, 3)
         >>> par.shape
         (366, 3)
 
-        For simulation steps not cleanly fitting into a leap year,
-        the ceil-operation determines the number of entries:
+        For simulation steps not cleanly fitting into a leap year, the ceil-operation
+        determines the number of entries:
 
         >>> pub.options.simulationstep = "100d"
         >>> par.shape = (None, 3)
@@ -2841,7 +2847,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         """
         return super().__hydpy__get_shape__()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
         if isinstance(shape, Iterable):
             shape_ = list(shape)
         else:
@@ -2849,12 +2855,11 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         simulationstep = hydpy.pub.options.simulationstep
         if not simulationstep:
             raise RuntimeError(
-                f"It is not possible the set the shape of the seasonal "
-                f"parameter {objecttools.elementphrase(self)} at the "
-                f"moment.  You need to define the simulation step size "
-                f"first.  However, in complete HydPy projects this step"
-                f"size is indirectly defined via `pub.timegrids.stepsize` "
-                f"automatically."
+                f"It is not possible the set the shape of the seasonal parameter "
+                f"{objecttools.elementphrase(self)} at the moment.  You need to "
+                f"define the simulation step size first.  However, in complete HydPy "
+                f"projects this stepsize is indirectly defined via "
+                f"`pub.timegrids.stepsize` automatically."
             )
         shape_[0] = int(numpy.ceil(timetools.Period("366d") / simulationstep))
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
@@ -2863,51 +2868,49 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
-        return iter(self._toy2values.items())
+        return iter(self._toy2values)
 
-    def __getattr__(self, name):
-        try:
-            return self._toy2values[timetools.TOY(name)]
-        except KeyError:
-            raise AttributeError(
-                f"Seasonal parameter {objecttools.elementphrase(self)} "
-                f"has neither a normal attribute nor does it handle a "
-                f'"time of year" named `{name}`.'
-            ) from None
+    def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
+        selected = timetools.TOY(name)
+        for available, value in self._toy2values:
+            if selected == available:
+                return value
+        raise AttributeError(
+            f"Seasonal parameter {objecttools.elementphrase(self)} has neither a "
+            f'normal attribute nor does it handle a "time of year" named `{name}`.'
+        )
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Union[float, NDArrayFloat]) -> None:
         if name.startswith("toy_"):
             try:
-                if self.NDIM == 1:
-                    value = float(value)
-                else:
-                    value = numpy.full(self.shape[1:], value)
-                self._toy2values[timetools.TOY(name)] = value
+                self._add_toyvaluepair(name, value)
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to add a new or change an existing "
-                    f"toy-value pair for the seasonal parameter "
-                    f"{objecttools.elementphrase(self)}"
+                    f"While trying to add a new or change an existing toy-value pair "
+                    f"for the seasonal parameter {objecttools.elementphrase(self)}"
                 )
         else:
             super().__setattr__(name, value)
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         try:
             super().__delattr__(name)
         except AttributeError:
-            try:
-                del self._toy2values[timetools.TOY(name)]
-                self.refresh()
-            except KeyError:
+            selected = timetools.TOY(name)
+            for idx, (available, _) in enumerate(self._toy2values):
+                if selected == available:
+                    break
+            else:
                 raise AttributeError(
-                    f"Seasonal parameter {objecttools.elementphrase(self)} "
-                    f"has neither a normal attribute nor does it handle a "
-                    f'"time of year" named `{name}`.'
+                    f"Seasonal parameter {objecttools.elementphrase(self)} has "
+                    f'neither a normal attribute nor does it handle a "time of year" '
+                    f"named `{name}`."
                 ) from None
+            del self._toy2values[idx]  # pylint: disable=undefined-loop-variable
+            self.refresh()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         def _assignrepr(value_, prefix_):
             if self.NDIM == 1:
                 return objecttools.assignrepr_value(value_, prefix_)
@@ -2916,8 +2919,8 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         if not self:
             return f"{self.name}()"
         toy0 = timetools.TOY0
-        if (len(self) == 1) and (toy0 in self._toy2values):
-            return f'{_assignrepr(self._toy2values[toy0], f"{self.name}(")})'
+        if (len(self) == 1) and (toy0 == self._toy2values[0][0]):
+            return f'{_assignrepr(self._toy2values[0][1], f"{self.name}(")})'
         lines = []
         blanks = " " * (len(self.name) + 1)
         for idx, (toy, value) in enumerate(self):
@@ -2928,10 +2931,10 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         lines[-1] += ")"
         return ",\n".join(lines)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._toy2values)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
 
         >>> from hydpy import pub

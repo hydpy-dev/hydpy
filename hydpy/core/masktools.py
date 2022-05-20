@@ -333,7 +333,7 @@ error occurred: The key does not define an available mask.
 occurred: The given key is neither a `string` a `mask` type.
     """
 
-    CLASSES: Tuple[Type[BaseMask], ...]
+    CLASSES: Tuple[Type[BaseMask], ...] = ()
 
     def __init__(self):
         for cls in self.CLASSES:
@@ -344,10 +344,8 @@ occurred: The given key is neither a `string` a `mask` type.
         """`masks`
 
         >>> from hydpy.core.masktools import Masks
-        >>> Masks.CLASSES = ()
         >>> Masks().name
         'masks'
-        >>> del Masks.CLASSES
         """
         return "masks"
 

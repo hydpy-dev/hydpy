@@ -739,8 +739,8 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
 
         We prepare eight zones.  We use the first five to show the identical behaviour
         of the land-use types |GLACIER|, |FIELD|, |FOREST|, and |SEALED| and the unique
-        behaviour of type |ILAKE|.  Zones six to eight serve for demonstrating the
-        effects of different initial states:
+        behaviour of type |ILAKE|.  Zones six to eight serve to demonstrate the effects
+        of different initial states:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -1582,7 +1582,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
 
 class Calc_In_WC_V1(modeltools.Method):
     r"""Calculate the actual water release from the snow layer due to the exceedance of
-    the snow layers capacity for (liquid) water.
+    the snow layers' capacity for (liquid) water.
 
     Basic equations:
       :math:`\frac{dWC}{dt} = -In`
@@ -1592,7 +1592,7 @@ class Calc_In_WC_V1(modeltools.Method):
     Examples:
 
         We initialise seven zones of different types with different frozen water
-        contents of the snow layer and set the relative water holding capacity to 20%:
+        contents of the snow layer and set the relative water holding capacity to 20 %:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -1681,13 +1681,63 @@ class Calc_In_WC_V1(modeltools.Method):
             flu.in_[k] = 0.0
             if con.zonetype[k] != ILAKE:
                 for c in range(con.sclass):
-                    d_in = max(sta.wc[c, k] - con.whc[k] * sta.sp[c, k], 0.0)
-                    flu.in_[k] += d_in / con.sclass
-                    sta.wc[c, k] -= d_in
+                    d_wc_old = sta.wc[c, k]
+                    sta.wc[c, k] = min(d_wc_old, con.whc[k] * sta.sp[c, k])
+                    flu.in_[k] += (d_wc_old - sta.wc[c, k]) / con.sclass
             else:
                 flu.in_[k] = flu.tf[k]
                 for c in range(con.sclass):
                     sta.wc[c, k] = 0.0
+
+
+class Calc_SWE_V1(modeltools.Method):
+    r"""Calculate the total snow water equivalent.
+
+    Basic equation:
+      :math:`SWE = SP + WC`
+
+    Example:
+
+        We initialise five zones of different types, each one with two snow classes.
+        For internal lakes, |Calc_SWE_V1| generally sets the snow water equivalent to
+        zero.  For all others, the given basic equation applies:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> sclass(2)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
+        >>> states.wc = [[0.1, 0.2, 0.3, 0.4, 0.5], [0.6, 0.7, 0.8, 0.9, 1.0]]
+        >>> states.sp = [[1.0, 2.0, 3.0, 4.0, 5.0], [6.0, 7.0, 8.0, 9.0, 10.0]]
+        >>> model.calc_swe_v1()
+        >>> factors.swe
+        swe([[0.0, 2.2, 3.3, 4.4, 5.5],
+             [0.0, 7.7, 8.8, 9.9, 11.0]])
+    """
+
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.SClass,
+        hland_control.ZoneType,
+    )
+    REQUIREDSEQUENCES = (
+        hland_states.SP,
+        hland_states.WC,
+    )
+    RESULTSEQUENCES = (hland_factors.SWE,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.zonetype[k] != ILAKE:
+                for c in range(con.sclass):
+                    fac.swe[c, k] = sta.sp[c, k] + sta.wc[c, k]
+            else:
+                for c in range(con.sclass):
+                    fac.swe[c, k] = 0.0
 
 
 class Calc_SR_V1(modeltools.Method):
@@ -4622,6 +4672,7 @@ class Model(modeltools.AdHocModel):
         Calc_Melt_SP_WC_V1,
         Calc_Refr_SP_WC_V1,
         Calc_In_WC_V1,
+        Calc_SWE_V1,
         Calc_SR_V1,
         Calc_GAct_V1,
         Calc_GlMelt_In_V1,

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
-    SUBMETHODS: Tuple[Type["Method"], ...] = ()
+    SUBMETHODS: Tuple[Type[Method], ...] = ()
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -135,47 +135,17 @@ class Model:
     method |Model.simulate|.  See classes |AdHocModel| and |ELSModel|, which implement
     this method.
 
-    Each final |Model| object has two attributes named `parameters` and `sequences`,
-    providing access to all parameter and sequence values.  For example, the
-    application model |hland_v1| so provides access to the control parameter
-    |hland_control.NmbZones| and the input sequence |hland_inputs.P|:
-
-    >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep("1d")
-    >>> model.parameters.control.nmbzones
-    nmbzones(?)
-    >>> model.sequences.inputs.p
-    p(nan)
-
-    Both attributes are dynamic.  You need to add them manually whenever you want to
-    prepare a workable |Model| object on your own (see the factory functions
-    |prepare_model| and |parameterstep|, which do this regularly).  If you forget to do
-    so, you get the following error message:
-
-    >>> from hydpy.models.hland_v1 import Model
-    >>> Model().parameters
-    Traceback (most recent call last):
-    ...
-    AttributeError: The dynamic attribute `parameters` of `hland_v1` of element `?` \
-is not available at the moment.
-
-    >>> Model().sequences
-    Traceback (most recent call last):
-    ...
-    AttributeError: The dynamic attribute `sequences` of `hland_v1` of element `?` is \
-not available at the moment.
-
-    Other wrong attribute names result in a familiar error message:
-
-    >>> Model().wrong
-    Traceback (most recent call last):
-    ...
-    AttributeError: 'Model' object has no attribute 'wrong'
+    Class |Model| does not prepare the strongly required attributes `parameters` and
+    `sequences` during initialisation.  You need to add them manually whenever you want
+    to prepare a workable |Model| object on your own (see the factory functions
+    |prepare_model| and |parameterstep|, which do this regularly).
 
     Similar to `parameters` and `sequences`, there is also the dynamic `masks`
     attribute, making all predefined masks of the actual model type available within a
     |Masks| object:
 
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep("1d")
     >>> model.masks
     complete of module hydpy.models.hland.hland_masks
     land of module hydpy.models.hland.hland_masks
@@ -203,16 +173,6 @@ not available at the moment.
     4.0
     >>> fluxes.pc.average_values(model.masks.land)
     3.0
-
-    Attribute `masks` is, in contrast to attributes `parameters` and `sequences`,
-    optional, which we indicate by a different error message:
-
-    >>> from hydpy import prepare_model
-    >>> prepare_model("test_v1").masks
-    Traceback (most recent call last):
-    ...
-    AttributeError: Model ``test_v1` of element `?`` does not handle a group of masks \
-(at the moment).
     """
 
     element: Optional[devicetools.Element]
@@ -467,7 +427,7 @@ sequences of the model handled by element `element11`, the following error occur
 None of the output sequences of model `hland_v1` is among the sequences of the fused \
 variable `Wrong` of node `outp4`.
 
-        Selecting wrong sequences results in the following errors messages:
+        Selecting wrong sequences results in the following error messages:
 
         >>> outp5 = Node("outp5", variable=hland_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
@@ -922,21 +882,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 },
             )
 
-    def __getattr__(self, item: str) -> NoReturn:
-        if item in ("parameters", "sequences"):
-            raise AttributeError(
-                f"The dynamic attribute `{item}` of {objecttools.elementphrase(self)} "
-                f"is not available at the moment."
-            )
-        if item == "masks":
-            raise AttributeError(
-                f"Model `{objecttools.elementphrase(self)}` does not handle a group "
-                f"of masks (at the moment)."
-            )
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{item}'"
-        )
-
 
 class RunModel(Model):
     """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
@@ -1350,9 +1295,9 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         4
 
-        After decreasing |test_solver.AbsErrorMax| by a factor of ten again, |ELSModel|
-        needs one further higher-order method, which requires three additional calls,
-        making a sum of seven:
+        After decreasing |test_solver.AbsErrorMax| by ten again, |ELSModel| needs one
+        further higher-order method, which requires three additional calls, making a
+        sum of seven:
 
         >>> solver.abserrormax(0.0001)
         >>> states.s(1.0)
@@ -1368,8 +1313,8 @@ class ELSModel(SolverModel):
         7
 
         |ELSModel| achieves even a very extreme numerical precision (just for testing,
-        way beyond hydrological requirements) in one single step but now requires a
-        total of 29 method calls:
+        way beyond hydrological requirements) in one single step but now requires 29
+        method calls:
 
         >>> solver.abserrormax(1e-12)
         >>> states.s(1.0)

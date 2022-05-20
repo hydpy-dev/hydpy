@@ -66,6 +66,13 @@ class SP(hland_sequences.State2DSequence):
         >>> states.sp
         sp([[0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0],
             [0.0, 0.0, 10.0, 6.0, 6.0, 6.0, 10.0]])
+        >>> whc(0.0)
+        >>> states.wc.values = 0.0
+        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
+        >>> states.sp
+        sp([[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
+            [0.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
         """
         whc = self.subseqs.seqs.model.parameters.control.whc
         wc = self.subseqs.wc
@@ -74,6 +81,7 @@ class SP(hland_sequences.State2DSequence):
             wc_values[numpy.isnan(wc_values)] = 0.0
             with numpy.errstate(divide="ignore", invalid="ignore"):
                 lower = numpy.clip(wc_values / whc.values, 0.0, numpy.inf)
+                lower[:, whc.values == 0.0] = 0.0
         super().trim(lower, upper)
 
 

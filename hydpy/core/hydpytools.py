@@ -2009,13 +2009,9 @@ time.
             self.nodes = selection.nodes
             self.elements = selection.elements
         devices = networkx.topological_sort(create_directedgraph(self))
-        nodenames = self.nodes.names
-        elementnames = self.elements.names
-        self.deviceorder = [
-            device
-            for device in devices
-            if (device.name in nodenames) or (device.name in elementnames)
-        ]
+        names = set(self.nodes.names)
+        names.update(self.elements.names)
+        self.deviceorder = [device for device in devices if device.name in names]
 
     @property
     def methodorder(self) -> List[Callable[[int], None]]:

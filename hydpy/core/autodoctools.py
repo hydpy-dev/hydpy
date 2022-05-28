@@ -239,6 +239,8 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     autodoc_tuple2doc(module)
     namespace = module.__dict__
     moduledoc = namespace.get("__doc__")
+    if moduledoc is None:
+        moduledoc = ""
     basemodulename = namespace["__name__"].split(".")[-1]
     modules = {
         key: value
@@ -1193,4 +1195,7 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                             f" {objecttools.description(cls)}"
                         )
                     doc = getattr(member, "__doc__")
-                    member.__doc__ = doc + "\n".join(l for l in lst)
+                    if doc is None:
+                        member.__doc__ = "\n".join(l for l in lst)
+                    else:
+                        member.__doc__ = doc + "\n".join(l for l in lst)

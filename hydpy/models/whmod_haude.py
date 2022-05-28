@@ -23,10 +23,13 @@ from hydpy.models.whmod.whmod_constants import *
 
 class Model(modeltools.AdHocModel):
     """Haude-Dommermuth-Trumpf version of WHMod."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         whmod_model.Calc_NiederschlagRichter_V1,
+        whmod_model.Calc_Saettigungsdampfdruckdefizit_V1,
+        whmod_model.Calc_MaxVerdunstung_V1,
         whmod_model.Calc_NiedNachInterz_V1,
         whmod_model.Calc_InterzeptionsVerdunstung_V1,
         whmod_model.Calc_Seeniederschlag_V1,
@@ -34,8 +37,6 @@ class Model(modeltools.AdHocModel):
         whmod_model.Calc_ZuflussBoden_V1,
         whmod_model.Calc_RelBodenfeuchte_V1,
         whmod_model.Calc_Sickerwasser_V1,
-        whmod_model.Calc_Saettigungsdampfdruckdefizit_V1,
-        whmod_model.Calc_MaxVerdunstung_V1,
         whmod_model.Calc_Bodenverdunstung_V1,
         whmod_model.Calc_Seeverdunstung_V1,
         whmod_model.Calc_AktVerdunstung_V1,

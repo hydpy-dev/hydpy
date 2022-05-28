@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-"""Entspricht weitgehend dem "Original-WHMod".
+"""Haude-Dommermuth-Trumpf version of WHMod.
 
-Unterschiede:
+Unterschiede zum Original-WHMod:
 
   * vollständigere Ausgaben
   * Korrektur Bodenwasserbilanz
   * Korrektur Beta-Berechnung
+  * BFI-Berücksichtigung?
+  * Linearspeicher bilanztreuer?
 """
 
 # import...

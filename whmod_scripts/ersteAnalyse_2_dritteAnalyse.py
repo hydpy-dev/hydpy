@@ -7,7 +7,7 @@ import numpy
 import pandas
 from matplotlib import pyplot
 import hydpy
-from hydpy.models import whmod_v3
+from hydpy.models import whmod_pet
 from hydpy.models.whmod import whmod_inputs
 
 os.chdir('P:/whm1500340/realisierung/07_Analyse/dritte_Analyse')
@@ -131,7 +131,7 @@ for idx in range(len(table_knoteneigenschaften)):
         node.rechts = rechts
         node.hoch = hoch
 
-    whmod = hydpy.prepare_model(whmod_v3, '1d')
+    whmod = hydpy.prepare_model(whmod_pet, '1d')
     raster.model = whmod
     con = whmod.parameters.control
     hrus = collect_hrus(table_knoteneigenschaften, idx)
@@ -139,7 +139,7 @@ for idx in range(len(table_knoteneigenschaften)):
     con.nmb_cells(len(hrus))
     con.mitfunktion_kapillareraufstieg(True)
     con.nutz_nr(
-        [whmod_v3.CONSTANTS[key.split('_')[0].split(':')[1].upper()]
+        [whmod_pet.CONSTANTS[key.split('_')[0].split(':')[1].upper()]
          for key in hrus.keys()])
     con.maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
                         1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
@@ -159,7 +159,7 @@ for idx in range(len(table_knoteneigenschaften)):
                               2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
                   wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    con.bodentyp(whmod_v3.SAND_BINDIG)
+    con.bodentyp(whmod_pet.SAND_BINDIG)
     ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
                  # DWA-M 504: Ackerland
                  1.185, 1.151, 0.974, 0.853, 0.775, 0.733]

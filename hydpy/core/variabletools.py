@@ -1195,10 +1195,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
 
     def _prepare_setvalue(self, value):
         if self.NDIM:
-            type_ = int if self.TYPE is bool else self.TYPE
             value = getattr(value, "value", value)
             try:
-                value = numpy.full(self.shape, value, dtype=type_)
+                value = numpy.full(self.shape, value, dtype=self.TYPE)
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to convert the value(s) `{value}` to a numpy "

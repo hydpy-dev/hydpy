@@ -7,10 +7,17 @@ This is the new "official" WHMOD version.
 """
 
 # import...
+# ...from standard library
+from typing import *
+
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 # ...from arma
 from hydpy.models.whmod import whmod_model
@@ -47,6 +54,42 @@ class Model(modeltools.AdHocModel):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELS = ()
+
+    def check_waterbalance(
+        self,
+        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
+    ) -> float:
+        r"""Determine the water balance error of the previous simulation run in mm.
+
+        Method |Model.check_waterbalance| calculates the balance error as follows:
+
+        ToDo
+
+        The returned error should always be in scale with numerical precision so
+        that it does not affect the simulation results in any relevant manner.
+
+        Pick the required initial conditions before starting the simulation run
+        via property |Sequences.conditions|.  See the integration tests of the
+        application model |whmod_pet| for some examples.
+        """
+        control = self.parameters.control
+        derived = self.parameters.derived
+        inputs = self.sequences.inputs
+        fluxes = self.sequences.fluxes
+        last = self.sequences.states
+        first = initial_conditions["states"]
+        ra = derived.relarea
+        return (
+            sum(fluxes.niederschlagrichter.series)
+            - numpy.sum(ra * fluxes.aktverdunstung.series)
+            - numpy.sum(ra * fluxes.oberflaechenabfluss.series)
+            - numpy.sum(ra * fluxes.basisabfluss.series)
+            - sum(fluxes.verzgrundwasserneubildung.series)
+            - sum((last.interzeptionsspeicher - first["interzeptionsspeicher"]) * ra)
+            - sum((last.schneespeicher - first["schneespeicher"]) * ra)
+            - sum((last.aktbodenwassergehalt - first["aktbodenwassergehalt"]) * ra)
+            - (last.zwischenspeicher - first["zwischenspeicher"])
+        )
 
 
 class Masks(masktools.Masks):

@@ -75,7 +75,7 @@ class Nutz_Nr(parametertools.NameParameter):
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
 
 
-whmod_parameters.NutzNrComplete.CONTROLPARAMETERS = (
+whmod_parameters.NutzCompleteParameter.CONTROLPARAMETERS = (
     Nutz_Nr,
     Nmb_Cells,
 )
@@ -89,140 +89,84 @@ class BodenTyp(parametertools.NameParameter):
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
 
 
-#
-whmod_parameters.BodenTypComplete.CONTROLPARAMETERS = (
+whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (
     BodenTyp,
     Nmb_Cells,
 )
 
 
-class F_AREA(whmod_parameters.NutzNrComplete):
+class F_AREA(whmod_parameters.NutzCompleteParameter):
     """[m²]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
 class MaxInterz(whmod_parameters.LanduseMonthParameter):
     """[mm]"""
 
 
-class Faktor(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "mai",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    ROWNAMES = (
-        "gras",
-        "laubwald",
-        "mais",
-        "nadelwald",
-        "sommerweizen",
-        "winterweizen",
-        "zuckerrueben",
-        "versiegelt",
-        "wasser",
-    )
+class Faktor(whmod_parameters.LanduseMonthParameter):
+    ...
 
 
-class FactorC(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "mai",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    ROWNAMES = ("laubwald", "nadelwald")
+class FactorC(whmod_parameters.ForestMonthParameter):
+    ...
 
 
-class FaktorWald(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "mai",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    ROWNAMES = ("laubwald", "nadelwald")
+class FaktorWald(whmod_parameters.ForestMonthParameter):
+    ...
 
 
 class FLN(whmod_parameters.LanduseMonthParameter):
     """[-]"""
 
 
-class Gradfaktor(whmod_parameters.NutzNrComplete):
+class Gradfaktor(whmod_parameters.NutzBodenParameter):
     """[mm/T/K]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class NFK100_Mittel(whmod_parameters.NutzNrComplete):
+class NFK100_Mittel(whmod_parameters.NutzBodenParameter):
     """[mm/m]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class Flurab(whmod_parameters.NutzNrComplete):
+class Flurab(whmod_parameters.NutzBodenParameter):
     """[m]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    SPAN = (None, None)
 
 
-class MaxWurzeltiefe(whmod_parameters.NutzNrComplete):
+class MaxWurzeltiefe(whmod_parameters.NutzBodenParameter):
     """[m]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class MinhasR(whmod_parameters.NutzNrComplete):
+class MinhasR(whmod_parameters.NutzBodenParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.1, None)
+    SPAN = (0.1, None)
 
 
-class KapilSchwellwert(whmod_parameters.BodenTypComplete):
+class KapilSchwellwert(whmod_parameters.BodenCompleteParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class KapilGrenzwert(whmod_parameters.BodenTypComplete):
+class KapilGrenzwert(whmod_parameters.BodenCompleteParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class BFI(whmod_parameters.BodenTypComplete):
+class BFI(whmod_parameters.NutzLandParameter):
     """Base Flow Index [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    SPAN = (0.0, None)
 
 
 class Schwerpunktlaufzeit(parametertools.Parameter):

@@ -8,14 +8,9 @@ from hydpy.core import parametertools
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_masks
 
-# ToDo: NutzNrLand, NutzNrSoil, NutzNrSealed, NutzNrWater
-# ToDo: the same for sequences
 
-
-class NutzNrComplete(parametertools.ZipParameter):
-
-    MODEL_CONSTANTS = whmod_constants.LANDUSE_CONSTANTS
-    mask = whmod_masks.NutzNrMask()
+class NutzBaseParameter(parametertools.ZipParameter):
+    NDIM, TYPE, TIME = 1, float, None
 
     @property
     def shapeparameter(self):
@@ -26,10 +21,47 @@ class NutzNrComplete(parametertools.ZipParameter):
         return self.subpars.pars.control.f_area
 
 
-class BodenTypComplete(parametertools.ZipParameter):
+class NutzCompleteParameter(NutzBaseParameter):
+
+    MODEL_CONSTANTS = parametertools.Constants(
+        **{
+            key: value
+            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
+            if value in whmod_masks.NutzComplete.RELEVANT_VALUES
+        }
+    )
+    mask = whmod_masks.NutzComplete()
+
+
+class NutzLandParameter(NutzBaseParameter):
+
+    MODEL_CONSTANTS = parametertools.Constants(
+        **{
+            key: value
+            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
+            if value in whmod_masks.NutzLand.RELEVANT_VALUES
+        }
+    )
+    mask = whmod_masks.NutzLand()
+
+
+class NutzBodenParameter(NutzBaseParameter):
+
+    MODEL_CONSTANTS = parametertools.Constants(
+        **{
+            key: value
+            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
+            if value in whmod_masks.NutzBoden.RELEVANT_VALUES
+        }
+    )
+    mask = whmod_masks.NutzBoden()
+
+
+class BodenCompleteParameter(parametertools.ZipParameter):
+    NDIM, TYPE, TIME = 1, float, None
 
     MODEL_CONSTANTS = whmod_constants.SOIL_CONSTANTS
-    mask = whmod_masks.BodenTypMask()
+    mask = whmod_masks.BodenComplete()
 
     @property
     def shapeparameter(self):
@@ -38,6 +70,25 @@ class BodenTypComplete(parametertools.ZipParameter):
     @property
     def refweights(self):
         return self.subpars.pars.control.f_area
+
+
+class ForestMonthParameter(parametertools.KeywordParameter2D):
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    COLNAMES = (
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "mai",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    )
+    ROWNAMES = ("laubwald", "nadelwald")
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):

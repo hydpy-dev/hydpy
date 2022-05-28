@@ -1377,9 +1377,12 @@ class Calc_Basisabfluss_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            flu.basisabfluss[k] = max(
-                (1.0 - con.bfi[k]) * flu.potgrundwasserneubildung[k], 0.0
-            )
+            if con.nutz_nr[k] == VERSIEGELT:
+                flu.basisabfluss[k] = 0.0
+            else:
+                flu.basisabfluss[k] = max(
+                    (1.0 - con.bfi[k]) * flu.potgrundwasserneubildung[k], 0.0
+                )
 
 
 class Calc_AktGrundwasserneubildung_V1(modeltools.Method):

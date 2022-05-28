@@ -11,7 +11,7 @@ from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
 
 
-class NutzNrMask(masktools.IndexMask):
+class NutzComplete(masktools.IndexMask):
     RELEVANT_VALUES = (
         GRAS,
         LAUBWALD,
@@ -29,7 +29,7 @@ class NutzNrMask(masktools.IndexMask):
         return variable.subvars.vars.model.parameters.control.nutz_nr
 
 
-class NutzLand(NutzNrMask):
+class NutzLand(NutzComplete):
     RELEVANT_VALUES = (
         GRAS,
         LAUBWALD,
@@ -42,7 +42,7 @@ class NutzLand(NutzNrMask):
     )
 
 
-class NutzBoden(NutzNrMask):
+class NutzBoden(NutzComplete):
     RELEVANT_VALUES = (
         GRAS,
         LAUBWALD,
@@ -54,43 +54,43 @@ class NutzBoden(NutzNrMask):
     )
 
 
-class NutzGras(NutzNrMask):
+class NutzGras(NutzComplete):
     RELEVANT_VALUES = (GRAS,)
 
 
-class NutzLaubwald(NutzNrMask):
+class NutzLaubwald(NutzComplete):
     RELEVANT_VALUES = (LAUBWALD,)
 
 
-class NutzMais(NutzNrMask):
+class NutzMais(NutzComplete):
     RELEVANT_VALUES = (MAIS,)
 
 
-class NutzNadelwald(NutzNrMask):
+class NutzNadelwald(NutzComplete):
     RELEVANT_VALUES = (NADELWALD,)
 
 
-class NutzSommerweizen(NutzNrMask):
+class NutzSommerweizen(NutzComplete):
     RELEVANT_VALUES = (SOMMERWEIZEN,)
 
 
-class NutzWinterweizen(NutzNrMask):
+class NutzWinterweizen(NutzComplete):
     RELEVANT_VALUES = (WINTERWEIZEN,)
 
 
-class NutzZuckerrueben(NutzNrMask):
+class NutzZuckerrueben(NutzComplete):
     RELEVANT_VALUES = (ZUCKERRUEBEN,)
 
 
-class NutzVersiegelt(NutzNrMask):
+class NutzVersiegelt(NutzComplete):
     RELEVANT_VALUES = (VERSIEGELT,)
 
 
-class NutzWasser(NutzNrMask):
+class NutzWasser(NutzComplete):
     RELEVANT_VALUES = (WASSER,)
 
 
-class BodenTypMask(masktools.IndexMask):
+class BodenComplete(masktools.IndexMask):
     RELEVANT_VALUES = (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
 
     @staticmethod
@@ -100,7 +100,7 @@ class BodenTypMask(masktools.IndexMask):
 
 class Masks(masktools.Masks):
     CLASSES = (
-        NutzNrMask,
+        NutzComplete,
         NutzLand,
         NutzBoden,
         NutzGras,
@@ -112,5 +112,5 @@ class Masks(masktools.Masks):
         NutzZuckerrueben,
         NutzVersiegelt,
         NutzWasser,
-        BodenTypMask,
+        BodenComplete,
     )

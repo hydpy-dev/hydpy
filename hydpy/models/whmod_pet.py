@@ -42,9 +42,9 @@ _______
 >>> nfk100_mittel(200.0)
 >>> flurab(1.0)
 >>> maxwurzeltiefe(gras=0.5, laubwald=1.5, mais=0.5, nadelwald=1.9, sommerweizen=0.6,
-...                versiegelt=0.0, winterweizen=0.6)
+...                winterweizen=0.6)
 >>> minhasr(gras=4.0, laubwald=6.0, mais=3.0, nadelwald=6.0, sommerweizen=6.0,
-...         versiegelt=1.0, winterweizen=6.0)
+...         winterweizen=6.0)
 >>> kapilschwellwert(sand=0.8)
 >>> kapilgrenzwert(sand=0.4)
 >>> bfi(0.8)

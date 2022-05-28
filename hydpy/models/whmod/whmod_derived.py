@@ -12,6 +12,7 @@ from hydpy.core import parametertools
 
 # ...from whmod
 from hydpy.models.whmod.whmod_constants import *
+from hydpy.models.whmod import whmod_parameters
 from hydpy.models.whmod import whmod_control
 
 
@@ -19,7 +20,7 @@ class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
 
 
-class RelArea(parametertools.Parameter):
+class RelArea(whmod_parameters.NutzCompleteParameter):
     """[-]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
@@ -39,17 +40,18 @@ class RelArea(parametertools.Parameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(3)
+        >>> nutz_nr(GRAS, WASSER, VERSIEGELT)
         >>> area(100.0)
         >>> f_area(20.0, 30.0, 50.0)
         >>> derived.relarea.update()
         >>> derived.relarea
-        relarea(0.2, 0.3, 0.5)
+        relarea(gras=0.2, versiegelt=0.5, wasser=0.3)
         """
         control = self.subpars.pars.control
         self(control.f_area / control.area)
 
 
-class Wurzeltiefe(parametertools.Parameter):
+class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
     """[m]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
@@ -64,18 +66,19 @@ class Wurzeltiefe(parametertools.Parameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(3)
+        >>> nmb_cells(5)
+        >>> nutz_nr(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
         >>> flurab(1.0)
-        >>> maxwurzeltiefe(0.5, 1.0, 1.5)
+        >>> maxwurzeltiefe(0.5, 1.0, 1.5, 2.0, 2.0)
         >>> derived.wurzeltiefe.update()
         >>> derived.wurzeltiefe
-        wurzeltiefe(0.5, 1.0, 1.0)
+        wurzeltiefe(gras=0.5, laubwald=1.0, nadelwald=1.0)
         """
         control = self.subpars.pars.control
         self(numpy.clip(control.maxwurzeltiefe, None, control.flurab.values))
 
 
-class nFKwe(parametertools.Parameter):
+class nFKwe(whmod_parameters.NutzBodenParameter):
     """[mm]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
@@ -88,19 +91,21 @@ class nFKwe(parametertools.Parameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(5)
+        >>> nmb_cells(7)
+        >>> nutz_nr(GRAS, MAIS, LAUBWALD, NADELWALD, SOMMERWEIZEN, WASSER, VERSIEGELT)
         >>> nfk100_mittel(200.0)
-        >>> derived.wurzeltiefe(0.0, 0.2, 0.3, 0.4, 1.0)
+        >>> derived.wurzeltiefe(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.nfkwe.update()
         >>> derived.nfkwe
-        nfkwe(60.0, 60.0, 60.0, 80.0, 200.0)
+        nfkwe(gras=60.0, laubwald=60.0, mais=60.0, nadelwald=80.0,
+              sommerweizen=200.0)
         """
         nfk100_mittel = self.subpars.pars.control.nfk100_mittel
         wurzeltiefe = self.subpars.wurzeltiefe
         self(nfk100_mittel * numpy.clip(wurzeltiefe, 0.3, None))
 
 
-class Beta(parametertools.Parameter):
+class Beta(whmod_parameters.NutzBodenParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.Nutz_Nr,)
@@ -150,7 +155,7 @@ class Beta(parametertools.Parameter):
         >>> derived.nfkwe(100.0)
         >>> derived.beta.update()
         >>> derived.beta
-        beta(0.0)
+        beta(nan)
         """
         nutz_nr = self.subpars.pars.control.nutz_nr
         nfkwe = self.subpars.nfkwe
@@ -206,7 +211,7 @@ class Beta(parametertools.Parameter):
         >>> derived.nfkwe(100.0)
         >>> derived.beta.update_old()
         >>> derived.beta
-        beta(0.0)
+        beta(nan)
         """
         nutz_nr = self.subpars.pars.control.nutz_nr
         nfkwe = self.subpars.nfkwe

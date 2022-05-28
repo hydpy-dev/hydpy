@@ -64,7 +64,7 @@ class InterzeptionNach_Dommermuth_Trampf(parametertools.Parameter):
 class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     """[-]"""
 
-    NDIM, TYPE, TIME = 1, bool, None
+    NDIM, TYPE, TIME = 0, bool, None
 
 
 class Nutz_Nr(parametertools.NameParameter):

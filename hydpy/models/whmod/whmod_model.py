@@ -1173,11 +1173,9 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            if (con.nutz_nr[k] in (VERSIEGELT, WASSER)) or (
-                not con.mitfunktion_kapillareraufstieg[k]
+            if con.mitfunktion_kapillareraufstieg and (
+                con.nutz_nr[k] not in (VERSIEGELT, WASSER)
             ):
-                flu.potkapilaufstieg[k] = 0.0
-            else:
                 d_schwell = con.kapilschwellwert[k]
                 d_grenz = con.kapilgrenzwert[k]
                 if con.flurab[k] > (der.wurzeltiefe[k] + d_schwell):
@@ -1190,6 +1188,8 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
                         * (der.wurzeltiefe[k] + d_schwell - con.flurab[k])
                         / (d_schwell - d_grenz)
                     )
+            else:
+                flu.potkapilaufstieg[k] = 0.0
 
 
 class Calc_KapilAufstieg_V1(modeltools.Method):
@@ -1228,14 +1228,14 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
-            if (con.nutz_nr[k] in (VERSIEGELT, WASSER)) or (
-                not con.mitfunktion_kapillareraufstieg[k]
+            if con.mitfunktion_kapillareraufstieg and (
+                con.nutz_nr[k] not in (VERSIEGELT, WASSER)
             ):
-                flu.kapilaufstieg[k] = 0.0
-            else:
                 flu.kapilaufstieg[k] = (
                     flu.potkapilaufstieg[k] * (1.0 - flu.relbodenfeuchte[k]) ** 3
                 )
+            else:
+                flu.kapilaufstieg[k] = 0.0
 
 
 class Calc_AktBodenwassergehalt_V1(modeltools.Method):

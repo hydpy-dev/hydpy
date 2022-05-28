@@ -83,6 +83,10 @@ class PotGrundwasserneubildung(Sequence1D):
     """[mm]"""
 
 
+class Basisabfluss(Sequence1D):
+    """[mm]"""
+
+
 class AktGrundwasserneubildung(sequencetools.FluxSequence):
     """[mm]"""
 

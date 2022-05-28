@@ -1310,7 +1310,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
 class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     """
 
-    >>> from hydpy.models.whmod_v3 import *
+    >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmb_cells(3)
     >>> nutz_nr(GRAS, VERSIEGELT, WASSER)
@@ -1352,6 +1352,36 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
                 )
 
 
+class Calc_Basisabfluss_V1(modeltools.Method):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(4)
+    >>> bfi(1.0, 0.8, 1.0, 0.8)
+    >>> fluxes.potgrundwasserneubildung(1.0, 1.0, -1.0, -1.0)
+    >>> model.calc_basisabfluss_v1()
+    >>> fluxes.basisabfluss
+    basisabfluss(0.0, 0.2, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.Nmb_Cells,
+        whmod_control.BFI,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
+    RESULTSEQUENCES = (whmod_fluxes.Basisabfluss,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmb_cells):
+            flu.basisabfluss[k] = max(
+                (1.0 - con.bfi[k]) * flu.potgrundwasserneubildung[k], 0.0
+            )
+
+
 class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     """
 
@@ -1360,37 +1390,32 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     >>> nmb_cells(4)
     >>> area(14.0)
     >>> f_area(2.0, 3.0, 5.0, 4.0)
-    >>> bfi(1.0, 0.5, 1.0, 0.5)
-    >>> fluxes.potgrundwasserneubildung(2.0, 10.0, -2.0, -0.5)
+    >>> derived.relarea.update()
+    >>> fluxes.potgrundwasserneubildung = 2.0, 10.0, -2.0, -0.5
+    >>> fluxes.basisabfluss = 0.0, 5.0, 0.0, 0.0
     >>> model.calc_aktgrundwasserneubildung_v1()
     >>> fluxes.aktgrundwasserneubildung
     aktgrundwasserneubildung(0.5)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Area,
-        whmod_control.F_AREA,
-        whmod_control.BFI,
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells,)
+    DERIVEDPARAMETERS = (whmod_derived.RelArea,)
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.PotGrundwasserneubildung,
+        whmod_fluxes.Basisabfluss,
     )
-    REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
     RESULTSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.aktgrundwasserneubildung = 0.0
         for k in range(con.nmb_cells):
-            if flu.potgrundwasserneubildung[k] > 0.0:
-                flu.aktgrundwasserneubildung += (
-                    con.f_area[k] * con.bfi[k] * flu.potgrundwasserneubildung[k]
-                )
-            else:
-                flu.aktgrundwasserneubildung += (
-                    con.f_area[k] * flu.potgrundwasserneubildung[k]
-                )
-        flu.aktgrundwasserneubildung /= con.area
+            flu.aktgrundwasserneubildung += der.relarea[k] * (
+                flu.potgrundwasserneubildung[k] - flu.basisabfluss[k]
+            )
 
 
 class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
@@ -1451,10 +1476,15 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
+    """The *WHMod* base model."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_NiederschlagRichter_V1,
+        Calc_Saettigungsdampfdruckdefizit_V1,
+        Calc_MaxVerdunstung_V1,
+        Calc_MaxVerdunstung_V2,
         Calc_NiedNachInterz_V1,
         Calc_NiedNachInterz_V2,
         Calc_InterzeptionsVerdunstung_V1,
@@ -1465,9 +1495,6 @@ class Model(modeltools.AdHocModel):
         Calc_ZuflussBoden_V1,
         Calc_RelBodenfeuchte_V1,
         Calc_Sickerwasser_V1,
-        Calc_Saettigungsdampfdruckdefizit_V1,
-        Calc_MaxVerdunstung_V1,
-        Calc_MaxVerdunstung_V2,
         Calc_Bodenverdunstung_V1,
         Corr_Bodenverdunstung_V1,
         Calc_Seeverdunstung_V1,
@@ -1476,6 +1503,7 @@ class Model(modeltools.AdHocModel):
         Calc_KapilAufstieg_V1,
         Calc_AktBodenwassergehalt_V1,
         Calc_PotGrundwasserneubildung_V1,
+        Calc_Basisabfluss_V1,
         Calc_AktGrundwasserneubildung_V1,
         Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1,
     )

@@ -30,6 +30,12 @@ TORF = parametertools.IntConstant(15)
 
 
 CONSTANTS = parametertools.Constants()
+LANDUSE_CONSTANTS = parametertools.Constants(
+    **{key: value for key, value in CONSTANTS.items() if value <= WASSER}
+)
+SOIL_CONSTANTS = parametertools.Constants(
+    **{key: value for key, value in CONSTANTS.items() if value >= SAND}
+)
 
 # Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys()) + ["CONSTANTS"]
+__all__ = list(CONSTANTS.keys())

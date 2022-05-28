@@ -4,9 +4,10 @@
 
 
 # import...
+# ...from standard library
 import itertools
 
-# from site-packages
+# ...from site-packages
 import numpy
 
 # ...from HydPy
@@ -15,6 +16,7 @@ from hydpy.core import parametertools
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_masks
+from hydpy.models.whmod import whmod_parameters
 
 
 class Area(parametertools.Parameter):
@@ -65,61 +67,17 @@ class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     NDIM, TYPE, TIME = 1, bool, None
 
 
-TEMP = parametertools.Constants(
-    **{
-        key: value
-        for key, value in whmod_constants.CONSTANTS.items()
-        if value
-        in (
-            GRAS,
-            LAUBWALD,
-            MAIS,
-            NADELWALD,
-            SOMMERWEIZEN,
-            WINTERWEIZEN,
-            ZUCKERRUEBEN,
-            VERSIEGELT,
-            WASSER,
-        )
-    }
-)
-
-
 class Nutz_Nr(parametertools.NameParameter):
     """[-]"""
 
     NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = TEMP
+    CONSTANTS = whmod_constants.LANDUSE_CONSTANTS
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
 
 
-class NutzNrComplete(parametertools.ZipParameter):
-
-    CONTROLPARAMETERS = (
-        Nutz_Nr,
-        Nmb_Cells,
-    )
-
-    MODEL_CONSTANTS = TEMP
-    mask = whmod_masks.NutzNrMask()
-
-    @property
-    def shapeparameter(self):
-        return self.subpars.pars.control.nmb_cells
-
-    @property
-    def refweights(self):
-        return self.subpars.pars.control.f_area
-
-
-del TEMP
-
-TEMP = parametertools.Constants(
-    **{
-        key: value
-        for key, value in whmod_constants.CONSTANTS.items()
-        if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
-    }
+whmod_parameters.NutzNrComplete.CONTROLPARAMETERS = (
+    Nutz_Nr,
+    Nmb_Cells,
 )
 
 
@@ -127,68 +85,24 @@ class BodenTyp(parametertools.NameParameter):
     """[-]"""
 
     NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = TEMP
+    CONSTANTS = whmod_constants.SOIL_CONSTANTS
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
 
 
-class BodenTypComplete(parametertools.ZipParameter):
-
-    CONTROLPARAMETERS = (
-        BodenTyp,
-        Nmb_Cells,
-    )
-
-    MODEL_CONSTANTS = TEMP
-    mask = whmod_masks.BodenTypMask()
-
-    @property
-    def shapeparameter(self):
-        return self.subpars.pars.control.nmb_cells
-
-    @property
-    def refweights(self):
-        return self.subpars.pars.control.f_area
+#
+whmod_parameters.BodenTypComplete.CONTROLPARAMETERS = (
+    BodenTyp,
+    Nmb_Cells,
+)
 
 
-del TEMP
-
-
-class F_AREA(NutzNrComplete):
+class F_AREA(whmod_parameters.NutzNrComplete):
     """[m²]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "mai",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    ROWNAMES = (
-        "gras",
-        "laubwald",
-        "mais",
-        "nadelwald",
-        "sommerweizen",
-        "winterweizen",
-        "zuckerrueben",
-        "versiegelt",
-        "wasser",
-    )
-
-
-class MaxInterz(LanduseMonthParameter):
+class MaxInterz(whmod_parameters.LanduseMonthParameter):
     """[mm]"""
 
 
@@ -259,53 +173,53 @@ class FaktorWald(parametertools.KeywordParameter2D):
     ROWNAMES = ("laubwald", "nadelwald")
 
 
-class FLN(LanduseMonthParameter):
+class FLN(whmod_parameters.LanduseMonthParameter):
     """[-]"""
 
 
-class Gradfaktor(NutzNrComplete):
+class Gradfaktor(whmod_parameters.NutzNrComplete):
     """[mm/T/K]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
 
 
-class NFK100_Mittel(NutzNrComplete):
+class NFK100_Mittel(whmod_parameters.NutzNrComplete):
     """[mm/m]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class Flurab(NutzNrComplete):
+class Flurab(whmod_parameters.NutzNrComplete):
     """[m]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class MaxWurzeltiefe(NutzNrComplete):
+class MaxWurzeltiefe(whmod_parameters.NutzNrComplete):
     """[m]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class MinhasR(NutzNrComplete):
+class MinhasR(whmod_parameters.NutzNrComplete):
     """[-]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.1, None)
 
 
-class KapilSchwellwert(BodenTypComplete):
+class KapilSchwellwert(whmod_parameters.BodenTypComplete):
     """[-]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class KapilGrenzwert(BodenTypComplete):
+class KapilGrenzwert(whmod_parameters.BodenTypComplete):
     """[-]"""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class BFI(BodenTypComplete):
+class BFI(whmod_parameters.BodenTypComplete):
     """Base Flow Index [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)

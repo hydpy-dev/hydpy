@@ -542,23 +542,5 @@ class Model(modeltools.AdHocModel):
         )
 
 
-class Masks(masktools.Masks):
-    CLASSES = (
-        whmod_masks.NutzNrMask,
-        whmod_masks.NutzLand,
-        whmod_masks.NutzBoden,
-        whmod_masks.NutzGras,
-        whmod_masks.NutzLaubwald,
-        whmod_masks.NutzMais,
-        whmod_masks.NutzNadelwald,
-        whmod_masks.NutzSommerweizen,
-        whmod_masks.NutzWinterweizen,
-        whmod_masks.NutzZuckerrueben,
-        whmod_masks.NutzVersiegelt,
-        whmod_masks.NutzWasser,
-        whmod_masks.BodenTypMask,
-    )
-
-
 tester = Tester()
 cythonizer = Cythonizer()

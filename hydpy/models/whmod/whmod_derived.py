@@ -32,7 +32,6 @@ class RelArea(parametertools.Parameter):
     def update(self):
         """
 
-        not used at the moment
 
         >>> from hydpy import pub
         >>> pub.options.usecython = False
@@ -40,11 +39,10 @@ class RelArea(parametertools.Parameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(3)
-        >>> # area(100.0)
-        >>> # f_area(20.0, 30.0, 50.0)
-        >>> # derived.relarea.update()
-        >>> # derived.relarea
-
+        >>> area(100.0)
+        >>> f_area(20.0, 30.0, 50.0)
+        >>> derived.relarea.update()
+        >>> derived.relarea
         relarea(0.2, 0.3, 0.5)
         """
         control = self.subpars.pars.control

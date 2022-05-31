@@ -1765,10 +1765,8 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         Implemented as a workaround to support `OpenDA`_.  Better use method
         |HydPyServer.GET_query_initialparameteritemvalues|.
         """
-        item2value = {}
-        for name, value in self.state.initialparameteritemvalues.items():
-            item2value[name] = value
-        self.state.parameteritemvalues[self._id] = item2value
+        state = self.state
+        state.parameteritemvalues[self._id] = state.initialparameteritemvalues.copy()
 
     def GET_query_initialinputitemvalues(self) -> None:
         """Get the initial values of all current exchange items supposed to change the
@@ -1783,10 +1781,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         Implemented as a workaround to support `OpenDA`_.  Better use method
         |HydPyServer.GET_query_initialinputitemvalues|.
         """
-        item2value = {}
-        for name, value in self.state.initialinputitemvalues.items():
-            item2value[name] = value
-        self.state.inputitemvalues[self._id] = item2value
+        self.state.inputitemvalues[self._id] = self.state.initialinputitemvalues.copy()
 
     def GET_query_initialconditionitemvalues(self) -> None:
         """Get the initial values of all current exchange items supposed to change the
@@ -1801,10 +1796,8 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         Implemented as a workaround to support `OpenDA`_.  Better use method
         |HydPyServer.GET_query_initialconditionitemvalues|.
         """
-        item2value = {}
-        for name, value in self.state.initialconditionitemvalues.items():
-            item2value[name] = value
-        self.state.conditionitemvalues[self._id] = item2value
+        state = self.state
+        state.conditionitemvalues[self._id] = state.initialconditionitemvalues.copy()
 
     def GET_query_initialoutputitemvalues(self) -> None:
         """Get the initial values of all current exchange items supposed to return the
@@ -1821,10 +1814,8 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         Implemented as a workaround to support `OpenDA`_.  Better use method
         |HydPyServer.GET_query_initialoutputitemvalues|.
         """
-        item2value = {}
-        for name, value in self.state.initialoutputitemvalues.items():
-            item2value[name] = value
-        self.state.outputitemvalues[self._id] = item2value
+        state = self.state
+        state.outputitemvalues[self._id] = state.initialoutputitemvalues.copy()
 
     def GET_query_initialgetitemvalues(self) -> None:
         """Get the initial values of all current exchange items supposed to return the
@@ -1841,10 +1832,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         Implemented as a workaround to support `OpenDA`_.  Better use method
         |HydPyServer.GET_query_initialgetitemvalues|.
         """
-        item2value = {}
-        for name, value in self.state.initialgetitemvalues.items():
-            item2value[name] = value
-        self.state.getitemvalues[self._id] = item2value
+        self.state.getitemvalues[self._id] = self.state.initialgetitemvalues.copy()
 
     def GET_query_initialisationtimegrid(self) -> None:
         """Return the general |Timegrids.init| time grid."""

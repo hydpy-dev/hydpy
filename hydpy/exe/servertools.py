@@ -441,6 +441,8 @@ class ServerState:
         self.inputconditiondirs = {}
         self.outputconditiondirs = {}
         self.outputcontroldirs = {}
+        self.idx1 = 0
+        self.idx2 = 0
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -1992,10 +1994,11 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
     def GET_update_conditionitemvalues(self) -> None:
         """Convert the current |StateSequence| and |LogSequence| values to condition
         item values (when necessary) and register them under the given `id`."""
-        item2value = self._get_registered_content(self.state.conditionitemvalues)
+        item2value = {}
         for item in self.state.conditionitems:
             item.extract_values()
             item2value[item.name] = item.value
+        self.state.conditionitemvalues[self._id] = item2value
 
     def GET_query_conditionitemvalues(self) -> None:
         """Return the condition item values registered under the given `id`."""

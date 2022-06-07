@@ -1806,7 +1806,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def _check_key(key):
         if key not in (0, slice(None, None, None)):
             raise IndexError(
-                "The only allowed keys for 0-dimensional variables " "are `0` and `:`."
+                "The only allowed keys for 0-dimensional variables are `0` and `:`."
             )
 
     def __len__(self):

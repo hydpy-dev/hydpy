@@ -1097,7 +1097,6 @@ conflict with using their names as identifiers.
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
-        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
                 prefix += f"{type(self).__name__}("
@@ -2782,7 +2781,6 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         See method |HydPy.prepare_models| of class |HydPy| and property |model| of
         class |Element| fur further information.
         """
-        # pylint: disable=not-callable
         try:
             try:
                 hydpy.pub.timegrids

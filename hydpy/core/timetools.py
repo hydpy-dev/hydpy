@@ -1429,7 +1429,7 @@ moment.
         timedelta = cast(Optional[datetime_.timedelta], vars(self).get("timedelta"))
         if timedelta is None:
             raise AttributeError(
-                "The Period object does not handle a " "timedelta object at the moment."
+                "The Period object does not handle a timedelta object at the moment."
             )
         return timedelta
 
@@ -2324,7 +2324,7 @@ timegrid and the given array must be equal, but the length of the timegrid objec
             array = numpy.array(array, dtype=float)
         except BaseException:
             objecttools.augment_excmessage(
-                "While trying to prefix timegrid information to the " "given array"
+                "While trying to prefix timegrid information to the given array"
             )
         if len(array) != len(self):
             raise ValueError(

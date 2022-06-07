@@ -1082,11 +1082,9 @@ class PyxWriter:
         lines = Lines()
         lines.add(
             1,
-            "cpdef inline set_pointer0d" "(self, str name, pointerutils.Double value):",
+            "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):",
         )
-        lines.add(
-            2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
-        )
+        lines.add(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"self.{seq.name} = pointer.p_value")
@@ -1176,9 +1174,7 @@ class PyxWriter:
             "cpdef inline set_pointer1d"
             "(self, str name, pointerutils.Double value, int idx):",
         )
-        lines.add(
-            2, "cdef pointerutils.PDouble pointer = " "pointerutils.PDouble(value)"
-        )
+        lines.add(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f"self.{seq.name}[idx] = pointer.p_value")
@@ -1574,7 +1570,7 @@ class PyxWriter:
         lines = self._call_methods("calculate_single_terms", model.PART_ODE_METHODS)
         if lines:
             lines.insert(
-                1, ("        self.numvars.nmb_calls =" "self.numvars.nmb_calls+1")
+                1, ("        self.numvars.nmb_calls = self.numvars.nmb_calls + 1")
             )
         return lines
 

@@ -1718,7 +1718,7 @@ correctly.
         return f"{self.descr_device}_{self.descr_sequence}.{self.filetype}"
 
     @propertytools.DefaultPropertyStr
-    def dirpath(self) -> str:  # pylint: disable=no-self-use
+    def dirpath(self) -> str:
         """The absolute path to the time series directory.
 
         As long as not overwritten, |IOSequence.dirpath| is identical with the

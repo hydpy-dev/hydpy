@@ -199,10 +199,10 @@ class IUH(metaclass=MetaIUH):
 
     @property
     def primary_parameters_complete(self) -> bool:
-        """True/False flag that indicates wheter the values of all primary parameters
+        """True/False flag that indicates whether the values of all primary parameters
         are defined or not."""
         for primpar in self._PRIMARY_PARAMETERS.values():
-            if primpar.__get__(self) is None:
+            if getattr(self, primpar.name) is None:
                 return False
         return True
 
@@ -223,7 +223,7 @@ class IUH(metaclass=MetaIUH):
             self.calc_secondary_parameters()
         else:
             for secpar in self._SECONDARY_PARAMETERS.values():
-                secpar.__delete__(self)
+                delattr(self, secpar.name)
 
     @property
     def delay_response_series(self) -> Tuple[Vector[float], Vector[float]]:

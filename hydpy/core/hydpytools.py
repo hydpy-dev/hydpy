@@ -737,7 +737,7 @@ moment.
         nodes = self._nodes
         if nodes is None:
             raise AttributeError(
-                "The actual HydPy instance does not handle any " "nodes at the moment."
+                "The actual HydPy instance does not handle any nodes at the moment."
             )
         return nodes
 

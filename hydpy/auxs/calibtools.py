@@ -143,10 +143,7 @@ class SumAdaptor(Adaptor):
 
     _rules: Tuple[Rule[parametertools.Parameter], ...]
 
-    # due to https://github.com/PyCQA/pylint/issues/4790:
-    def __init__(  # pylint: disable=super-init-not-called
-        self, *rules: Rule[parametertools.Parameter]
-    ):
+    def __init__(self, *rules: Rule[parametertools.Parameter]):
         self._rules = tuple(rules)
 
     def __call__(self, target: parametertools.Parameter) -> None:
@@ -274,8 +271,7 @@ class FactorAdaptor(Adaptor):
     _reference: str
     _mask: Optional[str]
 
-    # due to https://github.com/PyCQA/pylint/issues/4790:
-    def __init__(  # pylint: disable=super-init-not-called
+    def __init__(
         self,
         rule: Rule[parametertools.Parameter],
         reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
@@ -1735,11 +1731,11 @@ object named `fc`.
         """
         with open(logfilepath, encoding=config.ENCODING) as logfile:
             # pylint: disable=not-an-iterable
-            # because pylint is wrong!?
+            # because pylint is sometimes wrong about this
             lines = tuple(
                 line for line in logfile if line.strip() and (not line.startswith("#"))
             )
-            # pylint: disable=not-an-iterable
+            # pylint: enable=not-an-iterable
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(

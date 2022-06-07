@@ -664,7 +664,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Python version with a model-specific Cython version.
         """
         for method in self.INLET_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_outlets(self) -> None:
         """Call all methods defined as "OUTLET_METHODS" in the defined order.
@@ -688,7 +688,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_receivers(self, idx: int) -> None:
         """Call all methods defined as "RECEIVER_METHODS" in the defined order.
@@ -714,7 +714,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_senders(self, idx: int) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order.
@@ -740,7 +740,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.
@@ -986,7 +986,7 @@ class AdHocModel(RunModel):
         Python version with a model-specific Cython version.
         """
         for method in self.RUN_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
 
 class SegmentModel(RunModel):
@@ -1018,7 +1018,7 @@ class SegmentModel(RunModel):
             for idx_run in range(self.parameters.solver.nmbruns.value):
                 self.idx_run = idx_run
                 for method in self.RUN_METHODS:
-                    method.__call__(self)
+                    method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def run_segments(self, method: Method) -> Optional[Tuple[float, ...]]:
         """Run the given methods for all segments.
@@ -1030,7 +1030,7 @@ class SegmentModel(RunModel):
         try:
             for idx in range(self.nmb_segments):
                 self.idx_segment = idx
-                method.__call__()
+                method()
         finally:
             self.idx_segment = 0
 
@@ -1644,7 +1644,7 @@ class ELSModel(SolverModel):
         """
         self.numvars.nmb_calls = self.numvars.nmb_calls + 1
         for method in self.PART_ODE_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def calculate_full_terms(self) -> None:
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
@@ -1661,7 +1661,7 @@ class ELSModel(SolverModel):
         0.75
         """
         for method in self.FULL_ODE_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def get_point_states(self) -> None:
         """Load the states corresponding to the actual stage.

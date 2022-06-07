@@ -2907,7 +2907,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
                     f'neither a normal attribute nor does it handle a "time of year" '
                     f"named `{name}`."
                 ) from None
-            del self._toy2values[idx]  # pylint: disable=undefined-loop-variable
+            del self._toy2values[idx]
             self.refresh()
 
     def __repr__(self) -> str:

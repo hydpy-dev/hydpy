@@ -137,7 +137,7 @@ _TypeSetOrAddOrMultiplyItem = TypeVar(
     itemtools.MultiplyItem,
 )
 _TypeGetOrChangeItem = TypeVar(
-    "_TypeSetOrAddOrMultiplyItem",
+    "_TypeGetOrChangeItem",
     itemtools.GetItem,
     itemtools.ChangeItem,
     itemtools.SetItem,

@@ -1085,7 +1085,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                         f"No interpolator is registered under a TOY object named "
                         f"`{timetools.TOY(name)}`."
                     ) from None
-                del self._toy2algorithm[idx]  # pylint: disable=undefined-loop-variable
+                del self._toy2algorithm[idx]
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(

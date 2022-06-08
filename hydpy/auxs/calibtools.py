@@ -802,8 +802,8 @@ class Replace(Rule[parametertools.Parameter]):
 
         See the documentation on class |Rule| for further information.
         """
-        # pylint: disable=not-callable
-        with hydpy.pub.options.parameterstep(self.parameterstep):
+        opt = hydpy.pub.options
+        with opt.parameterstep(self.parameterstep):  # pylint: disable=not-callable
             for parameter in self:
                 if self.adaptor:
                     self.adaptor(parameter)

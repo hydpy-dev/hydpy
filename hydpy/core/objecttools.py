@@ -1612,7 +1612,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
-    with hydpy.pub.options.reprdigits(decimals):
+    with hydpy.pub.options.reprdigits(decimals):  # pylint: disable=not-callable
         if isinstance(values, numpy.ndarray) and (values.ndim == 0):
             string = repr_(values.item())
         elif isinstance(values, str):

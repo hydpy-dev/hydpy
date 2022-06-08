@@ -1098,7 +1098,8 @@ conflict with using their names as identifiers.
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
-            with hydpy.pub.options.ellipsis(2, optional=True):
+            options = hydpy.pub.options
+            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
                 prefix += f"{type(self).__name__}("
                 repr_ = objecttools.assignrepr_values(self.names, prefix, width=70)
                 return repr_ + ")"
@@ -2781,6 +2782,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         See method |HydPy.prepare_models| of class |HydPy| and property |model| of
         class |Element| fur further information.
         """
+        options = hydpy.pub.options
         try:
             try:
                 hydpy.pub.timegrids
@@ -2790,14 +2792,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                     "`timegrids` of module `pub` yet but might be required to prepare "
                     "the model properly."
                 ) from None
-            with hydpy.pub.options.warnsimulationstep(False):
+            with options.warnsimulationstep(False):  # pylint: disable=not-callable
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry
                 )
                 self.model = info["model"]
                 self.model.parameters.update()
         except OSError:
-            if hydpy.pub.options.warnmissingcontrolfile:
+            if options.warnmissingcontrolfile:
                 warnings.warn(
                     f"Due to a missing or no accessible control file, no model could "
                     f"be initialised for element `{self.name}`"

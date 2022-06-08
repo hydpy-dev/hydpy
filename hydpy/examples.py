@@ -168,10 +168,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     control.zonetype(hland.FIELD)
     control.zonearea.values = 10.0
 
-    # pylint: disable=not-callable
-    # pylint usually understands that all options are callable
-    # but, for unknown reasons, not in the following line:
-    with hydpy.pub.options.printprogress(False):
+    with hydpy.pub.options.printprogress(False):  # pylint: disable=not-callable
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
         nodes.prepare_simseries(allocate_ram=True)
         elements.prepare_inputseries(allocate_ram=False)
@@ -182,7 +179,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         elements.prepare_fluxseries(allocate_ram=True)
         elements.prepare_stateseries(allocate_ram=False)
         elements.prepare_stateseries(allocate_ram=True)
-    # pylint: enable=not-callable
 
     def init_values(seq: TestIOSequence, value1_: float) -> float:
         value2_ = value1_ + len(seq.series.flatten())

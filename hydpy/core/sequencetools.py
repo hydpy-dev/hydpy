@@ -12,6 +12,7 @@ import sys
 import types
 import warnings
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -57,6 +58,8 @@ TypeOutputSequence = TypeVar("TypeOutputSequence", bound="OutputSequence")
 
 TypeLinkSequences = TypeVar("TypeLinkSequences", bound="LinkSequences")
 TypeLinkSequence = TypeVar("TypeLinkSequence", bound="LinkSequence")
+
+Aggregation = Optional[Literal["unmodified", "mean"]]
 
 
 class FastAccessIOSequence(variabletools.FastAccess):
@@ -316,29 +319,34 @@ class FastAccessNodeSequence(FastAccessIOSequence):
 
 
 class InfoArray(numpy.ndarray):
-    """|numpy| |numpy.ndarray| subclass that stores and tries to keep an additional
-    `info` attribute.
+    """|numpy| |numpy.ndarray| subclass with an additional attribute describing the
+    (potential) aggregation of the handled data.
 
     >>> from hydpy.core.sequencetools import InfoArray
-    >>> array = InfoArray([1.0, 2.0], info="this array is short")
+    >>> array = InfoArray([1.0, 2.0], aggregation="mean")
     >>> array
     InfoArray([1., 2.])
-    >>> array.info
-    'this array is short'
+    >>> array.aggregation
+    'mean'
     >>> subarray = array[:1]
     >>> subarray
     InfoArray([1.])
-    >>> subarray.info
-    'this array is short'
+    >>> subarray.aggregation
+    'mean'
     """
 
-    def __new__(cls, array, info=None):
+    aggregation: Aggregation
+
+    def __new__(cls, array: NDArrayFloat, aggregation: Aggregation = None) -> InfoArray:
         obj = numpy.asarray(array).view(cls)
-        obj.info = info
+        obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: "InfoArray") -> None:
-        self.info = getattr(obj, "info", None)
+    def __array_finalize__(self, obj: NDArrayFloat) -> None:
+        if isinstance(obj, InfoArray):
+            self.aggregation = obj.aggregation
+        else:
+            self.aggregation = None
 
 
 class Sequences:
@@ -2020,7 +2028,7 @@ the following error occurred: 'Model' object has no attribute 'numconsts'
         module |pub|)."""
         if self.ramflag:
             array = numpy.asarray(self._get_fastaccessattribute("array"))
-            return InfoArray(array, info={"type": "unmodified"})
+            return InfoArray(array, aggregation="unmodified")
         raise exceptiontools.AttributeNotReady(
             f"Sequence {objecttools.devicephrase(self)} is not requested to make any "
             f"time-series data available."
@@ -2418,10 +2426,7 @@ sequencemanager of module `pub` is not defined at the moment.
 
         The main documentation on class |SequenceManager| provides some examples.
         """
-        array = InfoArray(
-            self.average_series(*args, **kwargs),
-            info={"type": "mean", "args": args, "kwargs": kwargs},
-        )
+        array = InfoArray(self.average_series(*args, **kwargs), aggregation="mean")
         hydpy.pub.sequencemanager.save_file(self, array=array)
 
     @property
@@ -2553,7 +2558,7 @@ but corresponding boolean dimension is 2
                     array = numpy.sum(weights * series, axis=1)
                 else:
                     array = numpy.full(len(self.series), numpy.nan, dtype=float)
-            return InfoArray(array, info={"type": "mean"})
+            return InfoArray(array, aggregation="mean")
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to calculate the mean value of the internal "

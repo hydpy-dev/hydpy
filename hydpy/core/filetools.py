@@ -27,6 +27,7 @@ from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 
 class Folder2Path:
@@ -1087,7 +1088,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     DEFAULTDIR = None
 
     @property
-    def inputpath(self) -> str:
+    def inputpath(self) -> str:  # type: ignore[return]
         """The directory path for loading initial conditions.
 
         See the main documentation on class |ConditionManager| for further information.
@@ -1095,9 +1096,8 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = "init_" + hydpy.pub.timegrids.sim.firstdate.to_string(
-                    "os"
-                )
+                to_string = hydpy.pub.timegrids.sim.firstdate.to_string
+                self.currentdir = f"init_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1108,7 +1108,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
             self._currentdir = currentdir
 
     @property
-    def outputpath(self) -> str:
+    def outputpath(self) -> str:  # type: ignore[return]
         """The directory path actual for saving (final) conditions.
 
         See the main documentation on class |ConditionManager| for further information.
@@ -1116,9 +1116,8 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = "init_" + hydpy.pub.timegrids.sim.lastdate.to_string(
-                    "os"
-                )
+                to_string = hydpy.pub.timegrids.sim.lastdate.to_string
+                self.currentdir = f"init_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1384,13 +1383,11 @@ not allowed to overwrite the existing file `...`.
         """,
     )
 
-    _jitaccesshandler: Optional[netcdftools.JITAccessHandler]
+    _netcdfreader: Optional[netcdftools.NetCDFInterface] = None
+    _netcdfwriter: Optional[netcdftools.NetCDFInterface] = None
+    _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._jitaccesshandler = None
-
-    def load_file(self, sequence: sequencetools.IOSequence) -> None:
+    def load_file(self, sequence: sequencetools.IOSequence[Any, Any]) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
         try:
             if sequence.filetype == "npy":
@@ -1407,32 +1404,34 @@ not allowed to overwrite the existing file `...`.
 
     @staticmethod
     def _load_npy(
-        sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, numpy.array]:
+        sequence: sequencetools.IOSequence[Any, Any],
+    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
 
     @staticmethod
     def _load_asc(
-        sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, numpy.array]:
+        sequence: sequencetools.IOSequence[Any, Any],
+    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         filepath = sequence.filepath
         with open(filepath, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
-        values = numpy.loadtxt(filepath, skiprows=3, ndmin=min(sequence.NDIM + 1, 2))
+        values = numpy.loadtxt(  # type: ignore[call-overload]
+            filepath, skiprows=3, ndmin=min(sequence.NDIM + 1, 2)
+        )
         if sequence.NDIM == 2:
             values = values.reshape(*sequence.seriesshape)
         return timegrid_data, values
 
-    def _load_nc(self, sequence: sequencetools.IOSequence) -> None:
+    def _load_nc(self, sequence: sequencetools.IOSequence[Any, Any]) -> None:
         self.netcdfreader.log(sequence, None)
 
     def save_file(
         self,
-        sequence: sequencetools.IOSequence,
-        array: Optional[numpy.ndarray] = None,
+        sequence: sequencetools.IOSequence[Any, Any],
+        array: Optional[sequencetools.InfoArray] = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
         |IOSequence| into a data file."""
@@ -1443,8 +1442,8 @@ not allowed to overwrite the existing file `...`.
                 self._save_nc(sequence, array)
             else:
                 filepath = sequence.filepath
-                if (array is not None) and (array.info["type"] != "unmodified"):
-                    filepath = f"{filepath[:-4]}_{array.info['type']}{filepath[-4:]}"
+                if (array is not None) and (array.aggregation != "unmodified"):
+                    filepath = f"{filepath[:-4]}_{array.aggregation}{filepath[-4:]}"
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
                         f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
@@ -1461,11 +1460,11 @@ not allowed to overwrite the existing file `...`.
             )
 
     @staticmethod
-    def _save_npy(array: numpy.ndarray, filepath: str) -> None:
+    def _save_npy(array: NDArrayFloat, filepath: str) -> None:
         numpy.save(filepath, hydpy.pub.timegrids.init.array2series(array))
 
     @staticmethod
-    def _save_asc(array: numpy.ndarray, filepath: str) -> None:
+    def _save_asc(array: NDArrayFloat, filepath: str) -> None:
         with open(filepath, "w", encoding=config.ENCODING) as file_:
             file_.write(
                 hydpy.pub.timegrids.init.assignrepr(
@@ -1479,7 +1478,9 @@ not allowed to overwrite the existing file `...`.
             numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(
-        self, sequence: sequencetools.IOSequence, array: numpy.ndarray
+        self,
+        sequence: sequencetools.IOSequence[Any, Any],
+        array: sequencetools.InfoArray,
     ) -> None:
         self.netcdfwriter.log(sequence, array)
 
@@ -1509,23 +1510,22 @@ reader object.
         RuntimeError: The sequence file manager does currently handle no NetCDF \
 reader object.
         """
-        netcdfreader = vars(self).get("netcdfreader")
-        if netcdfreader is None:
+        if self._netcdfreader is None:
             raise RuntimeError(
                 "The sequence file manager does currently handle no NetCDF reader "
                 "object."
             )
-        return netcdfreader
+        return self._netcdfreader
 
     def open_netcdfreader(self) -> None:
         """Prepare a new |NetCDFInterface| object for reading data."""
-        vars(self)["netcdfreader"] = netcdftools.NetCDFInterface()
+        self._netcdfreader = netcdftools.NetCDFInterface()
 
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterface| object and delete it
         afterwards."""
         self.netcdfreader.read()
-        del vars(self)["netcdfreader"]
+        self._netcdfreader = None
 
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterface:
@@ -1553,23 +1553,22 @@ currently handle no NetCDF writer object.
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
 currently handle no NetCDF writer object.
         """
-        netcdfwriter = vars(self).get("netcdfwriter")
-        if netcdfwriter is None:
+        if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
                 "The sequence file manager does currently handle no NetCDF writer "
                 "object."
             )
-        return netcdfwriter
+        return self._netcdfwriter
 
     def open_netcdfwriter(self) -> None:
         """Prepare a new |NetCDFInterface| object for writing data."""
-        vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface()
+        self._netcdfwriter = netcdftools.NetCDFInterface()
 
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterface| object and delete it
         afterwards."""
         self.netcdfwriter.write()
-        del vars(self)["netcdfwriter"]
+        self._netcdfwriter = None
 
     @contextlib.contextmanager
     def provide_netcdfjitaccess(

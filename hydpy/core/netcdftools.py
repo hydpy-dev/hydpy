@@ -991,10 +991,8 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     def _query_aggregation(
         infoarray: Optional[sequencetools.InfoArray],
     ) -> Optional[str]:
-        if infoarray is not None:
-            aggregation = infoarray.info["type"]
-            if aggregation != "unmodified":
-                return aggregation
+        if (infoarray is not None) and (infoarray.aggregation != "unmodified"):
+            return infoarray.aggregation
         return None
 
     def read(self) -> None:

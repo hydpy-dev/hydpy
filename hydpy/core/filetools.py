@@ -1527,6 +1527,15 @@ reader object.
         self.netcdfreader.read()
         self._netcdfreader = None
 
+    @contextlib.contextmanager
+    def netcdfreading(self) -> Iterator[None]:
+        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
+        of a with-block and read the data and delete the object at the end of the same
+        with-block."""
+        self.open_netcdfreader()
+        yield
+        self.close_netcdfreader()
+
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterface:
         """A |NetCDFInterface| object prepared by method
@@ -1569,6 +1578,15 @@ currently handle no NetCDF writer object.
         afterwards."""
         self.netcdfwriter.write()
         self._netcdfwriter = None
+
+    @contextlib.contextmanager
+    def netcdfwriting(self) -> Iterator[None]:
+        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
+        of a with-block and write the data and delete the object at the end of the same
+        with-block."""
+        self.open_netcdfwriter()
+        yield
+        self.close_netcdfwriter()
 
     @contextlib.contextmanager
     def provide_netcdfjitaccess(

@@ -588,11 +588,9 @@ is not requested to make any time-series data available.
     Now we can load the previously written results into RAM (see the documentation on
     module |netcdftools| for further information) and inspect the results:
 
-    >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader()
+    >>> with TestIO(), pub.sequencemanager.netcdfreading():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
-    ...     pub.sequencemanager.close_netcdfreader()
 
     >>> round_(model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849
@@ -668,11 +666,9 @@ is not requested to make any time-series data available.
 
     >>> hp.prepare_allseries(allocate_ram=False)
     >>> hp.prepare_allseries(allocate_ram=True)
-    >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader()
+    >>> with TestIO(), pub.sequencemanager.netcdfreading():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
-    ...     pub.sequencemanager.close_netcdfreader()
 
     >>> round_(model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849

@@ -7,8 +7,10 @@ cf-conventions.html>`_.
 
 .. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
 
-Usually, we apply the features implemented in this module only indirectly in three
-steps:
+Usually, we apply the features implemented in this module only indirectly by using
+the context managers |SequenceManager.netcdfreading| and
+|SequenceManager.netcdfwriting|.  However, here we try to be a little more explicit by
+using their underlying methods.  Therefore, we need to follow three steps:
 
   1. Call either method |SequenceManager.open_netcdfreader| or method
      |SequenceManager.open_netcdfwriter| of the |SequenceManager| object available in
@@ -74,10 +76,9 @@ the relevant hydrological response units):
 >>> writer.lland_v1_flux_nkor.subdevicenames
 ('element1_0', 'element2_0', 'element2_1')
 
-(6) In the example discussed here, all sequences are stored within the same folder
-(`default`).  Storing sequences in separate folders goes hand in hand with storing them
-in separate NetCDF files, of course.  In such cases, you have to include the folder
-into the attribute name:
+(6) In the example discussed here, all sequences belong to the same folder (`default`).
+Storing sequences in separate folders goes hand in hand with storing them in separate
+NetCDF files.  In such cases, you must include the folder in the attribute name:
 
 >>> writer.foldernames
 ('default',)
@@ -96,8 +97,8 @@ Traceback (most recent call last):
 hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does currently \
 handle no NetCDF writer object.
 
-(8) We set the time series values of two test sequences to zero, which serves the
-purpose of demonstrating that reading the data back in actually works:
+(8) We set the time series values of two test sequences to zero to demonstrate that
+reading the data back in actually works:
 
 >>> nodes.node2.sequences.sim.series = 0.0
 >>> elements.element2.model.sequences.fluxes.nkor.series = 0.0
@@ -148,9 +149,9 @@ array([[60.],
 ...         array(ncfile["flux_nkor"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
-Besides the testing related specialities, the described workflow is more or less
+Besides the testing-related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
-documentation of the other features implemented in module |netcdftools| but also in the
+documentation of the other features implemented in module |netcdftools| but also the
 documentation on class |SequenceManager| of module |filetools| and class |IOSequence|
 of module |sequencetools|.
 
@@ -194,7 +195,7 @@ dimmapping = {
     "nmb_subdevices": "stations",
     "nmb_characters": "char_leng_name",
 }
-"""Dimension related terms within NetCDF files.
+"""Dimension-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
 the value of the keyword "nmb_subdevices" if you prefer to call this dimension 
@@ -205,7 +206,7 @@ the value of the keyword "nmb_subdevices" if you prefer to call this dimension
 """
 
 varmapping = {"timepoints": "time", "subdevices": "station_id"}
-"""Variable related terms within NetCDF files.
+"""Variable-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
 the value of the keyword "timepoints" if you prefer to call this variable "period" 
@@ -1173,14 +1174,13 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
 `...hland_v1_flux_pc.nc` available.
 
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
-        with an ordinary NetCDF writer object via |SequenceManager.open_netcdfwriter|:
+        with an ordinary NetCDF writer object via |SequenceManager.netcdfwriting|:
 
         >>> with TestIO(), pub.sequencemanager.filetype("nc"):
         ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
         ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
-        ...     pub.sequencemanager.open_netcdfwriter()
-        ...     hp.save_fluxseries()
-        ...     pub.sequencemanager.close_netcdfwriter()
+        ...     with pub.sequencemanager.netcdfwriting():
+        ...         hp.save_fluxseries()
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
         ...     hp.simulate()
@@ -2115,9 +2115,9 @@ NetCDF file `nied.nc` available.
         ('element1', 'element2', 'element3')
 
         For 1-dimensional sequences like |lland_fluxes.NKor|, a suffix defines the
-        index of the respective subdevice.  The third column of
-        |NetCDFVariableAgg.array|, for example, contains the series of the first
-        hydrological response unit of the second element:
+        index of the respective subdevice.  For example, the third column of
+        |NetCDFVariableAgg.array| contains the series of the first hydrological
+        response unit of the second element:
 
         >>> ncvar = NetCDFVariableFlat("flux_nkor", "filename.nc")
         >>> for element in elements:

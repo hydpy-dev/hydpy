@@ -113,7 +113,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
         filename = filename.partition(".")[0]
         if (is_module and (subpackage is models)) or is_package:
             module = importlib.import_module(f"{models.__name__}.{filename}")
-            substituter = module.substituter  # type: ignore[attr-defined]
+            substituter = module.substituter
         if is_module or is_package:
             _exc_mem = list(autodoctools.EXCLUDE_MEMBERS)
             if subpackage is models:

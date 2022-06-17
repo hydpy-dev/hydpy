@@ -93,7 +93,6 @@ from hydpy.core import sequencetools
 from hydpy.core import seriestools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-from hydpy.cythons.autogen import pointerutils
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -101,9 +100,11 @@ if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import hydpytools
     from hydpy.core import modeltools
+    from hydpy.cythons import pointerutils
 else:
     pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    from hydpy.cythons.autogen import pointerutils
 
 _default_variable = "Q"
 
@@ -450,7 +451,7 @@ unique identifier for fused variable instances.
         self._variables = variables
         _registry_fusedvariable[name] = self
         self._alias2variable = dict(zip(self._aliases, self._variables))
-        return self  # type: ignore[no-any-return]
+        return self
 
     @classmethod
     def get_registry(cls) -> Tuple["FusedVariable", ...]:
@@ -2939,7 +2940,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         index = _get_pandasindex()[idx0:idx1]
-        selseqs: Iterable[sequencetools.IOSequence[Any, Any]]
+        selseqs: Iterable[sequencetools.IOSequence]
         if names:
             selseqs = (getattr(subseqs, name.lower()) for name in names)
         else:

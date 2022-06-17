@@ -948,7 +948,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     def log(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray] = None,
     ) -> NetCDFVariable:
         """Prepare a |NetCDFVariableBase| object suitable for the given |IOSequence|
@@ -975,7 +975,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     def _query_filename(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray],
     ) -> str:
         if isinstance(sequence, sequencetools.ModelSequence):
@@ -1011,7 +1011,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     @staticmethod
     def _yield_disksequences(
         deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
-    ) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    ) -> Iterator[sequencetools.IOSequence]:
         for device in deviceorder:
             if isinstance(device, devicetools.Node):
                 for sequence in device.sequences:
@@ -1302,7 +1302,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         variable2ncfile: Dict[NetCDFVariableFlat, netcdf4.Dataset] = {}
         variable2infos: Dict[NetCDFVariableFlat, List[JITAccessInfo]] = {}
         variable2sequences: DefaultDict[
-            NetCDFVariableFlat, List[sequencetools.IOSequence[Any, Any]]
+            NetCDFVariableFlat, List[sequencetools.IOSequence]
         ] = collections.defaultdict(lambda: [])
 
         try:
@@ -1484,7 +1484,7 @@ class NetCDFVariableBase(abc.ABC):
     """Name of the NetCDF variable within the NetCDF file."""
     filepath: str
     """Path to the relevant NetCDF file."""
-    _descr2sequence: Dict[str, sequencetools.IOSequence[Any, Any]]
+    _descr2sequence: Dict[str, sequencetools.IOSequence]
     _descr2array: Dict[str, Optional[sequencetools.InfoArray]]
 
     def __init__(self, name: str, filepath: str) -> None:
@@ -1495,7 +1495,7 @@ class NetCDFVariableBase(abc.ABC):
 
     def log(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray],
     ) -> None:
         """Log the given |IOSequence| object either for reading or writing data.

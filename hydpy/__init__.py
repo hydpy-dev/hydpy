@@ -8,6 +8,7 @@ An interactive framework for the developement and a application of hydrological 
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import importlib
 import os
 import warnings
@@ -36,9 +37,15 @@ from hydpy.core import (
     optiontools,
     sequencetools,
 )
-from hydpy.cythons.autogen import (
-    configutils,
-)
+
+if TYPE_CHECKING:
+    from hydpy.cythons import (
+        configutils,
+    )
+else:
+    from hydpy.cythons.autogen import (
+        configutils,
+    )
 from hydpy.core.auxfiletools import (
     Auxfiler,
 )
@@ -195,7 +202,7 @@ __version__ = "5.0.0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
-pub.config = configutils.Config()
+pub.config = configutils.Config()  # pylint: disable=used-before-assignment
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands

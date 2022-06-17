@@ -6,16 +6,23 @@ Module |quadtools| provides Python interfaces only.  See the Cython extension mo
 """
 
 # import...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
-from hydpy.cythons.autogen import quadutils
+
+if TYPE_CHECKING:
+    from hydpy.cythons import quadutils
+else:
+    from hydpy.cythons.autogen import quadutils
 
 
 class Quad(modeltools.Submodel):
     """Numerical solver for quadrature problems based on the Gauss-Lobatto
     quadrature."""
 
-    CYTHONBASECLASS = quadutils.QuadBase
+    CYTHONBASECLASS = quadutils.QuadBase  # pylint: disable=used-before-assignment
     PYTHONCLASS = quadutils.QuadPython
     _cysubmodel: quadutils.QuadBase
 

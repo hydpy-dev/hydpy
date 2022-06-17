@@ -109,7 +109,7 @@ def _warn_trim_kwarg(
 
 
 def get_controlfileheader(
-    model: Union[str, "modeltools.Model"],
+    model: Union[str, modeltools.Model],
     parameterstep: Optional[timetools.PeriodConstrArg] = None,
     simulationstep: Optional[timetools.PeriodConstrArg] = None,
 ) -> str:
@@ -181,7 +181,7 @@ class IntConstant(int):
         return const
 
 
-class Constants(dict):
+class Constants(Dict[str, int]):
     """Base class for defining integer constants for a specific model."""
 
     value2name: Dict[int, str]
@@ -653,7 +653,7 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: Type = float
+    type_: Type[Union[float, int]] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
     time: Optional[bool] = None
@@ -1117,7 +1117,7 @@ raise_exception=False)
         return objecttools.apply_black(type(self).__name__, **self._name2value)
 
 
-class Parameter(variabletools.Variable[SubParameters, FastAccessParameter]):
+class Parameter(variabletools.Variable):
     """Base class for model parameters.
 
     In *HydPy*, each kind of model parameter is represented by a unique
@@ -1205,8 +1205,7 @@ from file `test`, the following error occurred: Cannot determine the \
 corresponding model.  Use the `auxfile` keyword in usual parameter \
 control files only.
 
-    Also note, that you cannot combine the `auxfile` keyword with any
-    other keyword:
+    Also, note that you cannot combine the `auxfile` keyword with any other keyword:
 
     >>> par(auxfile="test", x1=1, x2=2, x3=3)
     Traceback (most recent call last):
@@ -1366,12 +1365,18 @@ broadcast input array from shape (2,) into shape (2,3)
     TIME: Optional[bool]
     KEYWORDS: Mapping[str, Keyword] = {}
 
+    subvars: SubParameters
+    """The subgroup to which the parameter belongs."""
+    subpars: SubParameters
+    """Alias for |Parameter.subvars|."""
+
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     _keywordarguments: KeywordArguments
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
+        self.subpars = subvars
         self._keywordarguments = KeywordArguments(False)
 
     def _raise_args_and_kwargs_error(self) -> NoReturn:
@@ -1469,11 +1474,6 @@ broadcast input array from shape (2,) into shape (2,3)
             except ValueError:
                 return None
         return None
-
-    @property
-    def subpars(self) -> SubParameters:
-        """Alias for attribute `subvars`."""
-        return self.subvars
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()

@@ -806,7 +806,7 @@ class Replace(Rule[parametertools.Parameter]):
         with opt.parameterstep(self.parameterstep):  # pylint: disable=not-callable
             for parameter in self:
                 if self.adaptor:
-                    self.adaptor(parameter)
+                    self.adaptor(parameter)  # pylint: disable=not-callable
                 else:
                     self._update_parameter(parameter, self.value)
 

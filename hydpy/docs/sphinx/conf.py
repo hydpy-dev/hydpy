@@ -99,7 +99,7 @@ HYDPYBIBLIOGRAPHYSTYLE = "hydpybibliographystyle"
 HYDPYREFERENCESTYLE = "hydpyreferencestyle"
 
 
-class HydPyNameStyle(PlainNameStyle):  # type: ignore[misc]
+class HydPyNameStyle(PlainNameStyle):
     """Change compared to the base class: write last names in bold letters."""
 
     def format(self, person: Person, abbr: bool = False) -> Text:
@@ -117,7 +117,7 @@ class HydPyNameStyle(PlainNameStyle):  # type: ignore[misc]
 pybtex.plugin.register_plugin("pybtex.style.names", HYDPYNAMESTYLE, HydPyNameStyle)
 
 
-class HydPyBibliographyStyle(PlainFormattingStyle):  # type: ignore[misc]
+class HydPyBibliographyStyle(PlainFormattingStyle):
     """Change compared to the base class: use `HydPyNameStyle`."""
 
     default_name_style = HYDPYNAMESTYLE
@@ -157,7 +157,7 @@ class HydPyReferenceStyle(AuthorYearReferenceStyle):
     bracket_year: BracketStyle = _make_bracketstylefield()
 
     def __post_init__(self) -> None:
-        super().__post_init__()  # type: ignore[no-untyped-call]
+        super().__post_init__()
         for style in self.styles:
             if isinstance(style, BasicAuthorYearTextualReferenceStyle):
                 style.__class__ = HydPyTextualReferenceStyle

@@ -7,9 +7,16 @@ of the mathematical algorithms.
 """
 
 # import...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
-from hydpy.cythons.autogen import rootutils
+
+if TYPE_CHECKING:
+    from hydpy.cythons import rootutils
+else:
+    from hydpy.cythons.autogen import rootutils
 
 
 class Pegasus(modeltools.Submodel):
@@ -29,7 +36,7 @@ class Pegasus(modeltools.Submodel):
     monotone functions only.
     """
 
-    CYTHONBASECLASS = rootutils.PegasusBase
+    CYTHONBASECLASS = rootutils.PegasusBase  # pylint: disable=used-before-assignment
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 

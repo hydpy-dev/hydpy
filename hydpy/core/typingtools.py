@@ -16,7 +16,7 @@ import numpy.typing
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
-    from hydpy.cythons.autogen import pointerutils
+    from hydpy.cythons import pointerutils
 
 T = TypeVar("T")
 T1 = TypeVar("T1")

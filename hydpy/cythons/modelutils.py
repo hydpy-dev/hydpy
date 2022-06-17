@@ -499,8 +499,7 @@ class Cythonizer:
         >>> os.path.exists(cythonizer.cydirpath)
         True
         """
-        path = cythons.autogen.__path__[0]
-        return cast(str, path)
+        return cythons.autogen.__path__[0]
 
     @property
     def cymodule(self) -> types.ModuleType:
@@ -912,7 +911,7 @@ class PyxWriter:
                             1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals"
                         )
                         lines.add(1, f"cdef public {ctype} _{seq.name}_sum")
-                if isinstance(subseqs, sequencetools.IOSequences):
+                if isinstance(seq, sequencetools.IOSequence):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.IOSequences):
                 lines.extend(self.load_data(subseqs))
@@ -934,7 +933,7 @@ class PyxWriter:
         return lines
 
     @staticmethod
-    def iosequence(seq: sequencetools.IOSequence[Any, Any]) -> List[str]:
+    def iosequence(seq: sequencetools.IOSequence) -> List[str]:
         """Declaration lines for the given |IOSequence| object."""
         ctype = f"double{NDIM2STR[seq.NDIM+1]}"
         lines = Lines()
@@ -1126,7 +1125,7 @@ class PyxWriter:
         return lines
 
     @staticmethod
-    def _check_pointer(lines: Lines, seq: sequencetools.LinkSequence[Any]) -> None:
+    def _check_pointer(lines: Lines, seq: sequencetools.LinkSequence) -> None:
         lines.add(4, f"pointerutils.check0(self._{seq.name}_length_0)")
         lines.add(4, f"if self._{seq.name}_ready[idx] == 0:")
         lines.add(5, f"pointerutils.check1(self._{seq.name}_length_0, idx)")
@@ -1219,7 +1218,7 @@ class PyxWriter:
     @staticmethod
     def _filter_outputsequences(
         subseqs: sequencetools.OutputSequences[Any],
-    ) -> List[sequencetools.OutputSequence[Any]]:
+    ) -> List[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     @property
@@ -1611,7 +1610,7 @@ class PyxWriter:
     @classmethod
     def _assign_seqvalues(
         cls,
-        subseqs: Iterable[sequencetools.IOSequence[Any, Any]],
+        subseqs: Iterable[sequencetools.IOSequence],
         subseqs_name: str,
         target: str,
         index: Optional[str],
@@ -1652,9 +1651,7 @@ class PyxWriter:
                 )
 
     @staticmethod
-    def _declare_idxs(
-        subseqs: Iterable[sequencetools.IOSequence[Any, Any]]
-    ) -> Iterator[str]:
+    def _declare_idxs(subseqs: Iterable[sequencetools.IOSequence]) -> Iterator[str]:
         maxdim = 0
         for seq in subseqs:
             maxdim = max(maxdim, seq.NDIM)
@@ -2001,10 +1998,10 @@ class PyxWriter:
             for subseqs in self.model.sequences:
                 classname = f"FastAccess{type(subseqs).__name__}"
                 stubfile.write(f"\n\nclass {classname}(FastAccess):\n")
-                for partype in subseqs.CLASSES:
+                for seqtype in subseqs.CLASSES:
                     stubfile.write(
-                        f"    {partype.__name__.lower()}: "
-                        f"{partype.__module__}.{partype.__name__}\n"
+                        f"    {seqtype.__name__.lower()}: "
+                        f"{seqtype.__module__}.{seqtype.__name__}\n"
                     )
             for subseqs in self.model.sequences:
                 classname = type(subseqs).__name__
@@ -2013,10 +2010,10 @@ class PyxWriter:
                 if classname == "StateSequences":
                     stubfile.write(f"    fastaccess_old: FastAccess{classname}\n")
                     stubfile.write(f"    fastaccess_new: FastAccess{classname}\n")
-                for partype in subseqs.CLASSES:
+                for seqtype in subseqs.CLASSES:
                     stubfile.write(
-                        f"    {partype.__name__.lower()}: "
-                        f"{partype.__module__}.{partype.__name__}\n"
+                        f"    {seqtype.__name__.lower()}: "
+                        f"{seqtype.__module__}.{seqtype.__name__}\n"
                     )
             stubfile.write("\n\nclass Sequences(Sequences):\n")
             for group in self.model.sequences:
@@ -2365,7 +2362,7 @@ def exp(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.exp(double)  # type: ignore[no-any-return]
+    return numpy.exp(double)
 
 
 def log(double: float) -> float:
@@ -2379,7 +2376,7 @@ def log(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.log(double)  # type: ignore[no-any-return]
+    return numpy.log(double)
 
 
 def fabs(double: float) -> float:
@@ -2407,7 +2404,7 @@ def sin(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.sin(double)  # type: ignore[no-any-return]
+    return numpy.sin(double)
 
 
 def cos(double: float) -> float:
@@ -2421,7 +2418,7 @@ def cos(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.cos(double)  # type: ignore[no-any-return]
+    return numpy.cos(double)
 
 
 def tan(double: float) -> float:
@@ -2435,7 +2432,7 @@ def tan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.tan(double)  # type: ignore[no-any-return]
+    return numpy.tan(double)
 
 
 def asin(double: float) -> float:
@@ -2449,7 +2446,7 @@ def asin(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arcsin(double)  # type: ignore[no-any-return]
+    return numpy.arcsin(double)
 
 
 def acos(double: float) -> float:
@@ -2463,7 +2460,7 @@ def acos(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arccos(double)  # type: ignore[no-any-return]
+    return numpy.arccos(double)
 
 
 def atan(double: float) -> float:
@@ -2477,7 +2474,7 @@ def atan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arctan(double)  # type: ignore[no-any-return]
+    return numpy.arctan(double)
 
 
 def isnan(double: float) -> float:
@@ -2491,7 +2488,7 @@ def isnan(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.isnan(double)  # type: ignore[no-any-return]
+    return numpy.isnan(double)
 
 
 def isinf(double: float) -> float:
@@ -2505,4 +2502,4 @@ def isinf(double: float) -> float:
     >>> func.call_args
     call(123.4)
     """
-    return numpy.isinf(double)  # type: ignore[no-any-return]
+    return numpy.isinf(double)

@@ -1815,7 +1815,7 @@ needed to be trimmed.  The old and the new value(s) are \
             Union[
                 str,
                 Type[sequencetools.InputSequence],
-                Type[sequencetools.OutputSequence[Any]],
+                Type[sequencetools.OutputSequence],
                 devicetools.FusedVariable,
             ],
             int,

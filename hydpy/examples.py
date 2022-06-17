@@ -24,16 +24,17 @@ from hydpy.core import testtools
 from hydpy.tests import iotesting
 from hydpy.models import hland
 from hydpy.models import lland
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import pubtools
     from hydpy.core import sequencetools
     from hydpy.core import timetools
 
-    class TestIOSequence(sequencetools.IOSequence[Any, Any]):
+    class TestIOSequence(sequencetools.IOSequence):
         """|IOSequence| subclass for testing purposes."""
 
-        testarray: numpy.ndarray
+        testarray: NDArrayFloat
         descr_device = "just_for_testing"
         descr_sequence = "just_for_testing"
 

@@ -39,12 +39,13 @@ import numpy
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import exceptiontools
-from hydpy.cythons.autogen import smoothutils
 
 if TYPE_CHECKING:
     from scipy import optimize
+    from hydpy.cythons import smoothutils
 else:
     optimize = exceptiontools.OptionalImport("optimize", ["scipy.optimize"], locals())
+    from hydpy.cythons.autogen import smoothutils
 
 
 def calc_smoothpar_logistic1(metapar):
@@ -81,7 +82,8 @@ def calc_smoothpar_logistic1(metapar):
 
 
 def _error_smoothpar_logistic2(par, metapar):
-    return smoothutils.smooth_logistic2(-metapar, par) - 0.01
+    sl2 = smoothutils.smooth_logistic2  # pylint: disable=used-before-assignment
+    return sl2(-metapar, par) - 0.01
 
 
 def _smooth_logistic2_derivative1(par, metapar):

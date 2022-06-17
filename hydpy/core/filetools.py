@@ -1387,7 +1387,7 @@ not allowed to overwrite the existing file `...`.
     _netcdfwriter: Optional[netcdftools.NetCDFInterface] = None
     _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
 
-    def load_file(self, sequence: sequencetools.IOSequence[Any, Any]) -> None:
+    def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
         try:
             if sequence.filetype == "npy":
@@ -1404,7 +1404,7 @@ not allowed to overwrite the existing file `...`.
 
     @staticmethod
     def _load_npy(
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
     ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
@@ -1412,7 +1412,7 @@ not allowed to overwrite the existing file `...`.
 
     @staticmethod
     def _load_asc(
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
     ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         filepath = sequence.filepath
         with open(filepath, encoding=config.ENCODING) as file_:
@@ -1425,12 +1425,12 @@ not allowed to overwrite the existing file `...`.
             values = values.reshape(*sequence.seriesshape)
         return timegrid_data, values
 
-    def _load_nc(self, sequence: sequencetools.IOSequence[Any, Any]) -> None:
+    def _load_nc(self, sequence: sequencetools.IOSequence) -> None:
         self.netcdfreader.log(sequence, None)
 
     def save_file(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         array: Optional[sequencetools.InfoArray] = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
@@ -1478,9 +1478,7 @@ not allowed to overwrite the existing file `...`.
             numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(
-        self,
-        sequence: sequencetools.IOSequence[Any, Any],
-        array: sequencetools.InfoArray,
+        self, sequence: sequencetools.IOSequence, array: sequencetools.InfoArray
     ) -> None:
         self.netcdfwriter.log(sequence, array)
 

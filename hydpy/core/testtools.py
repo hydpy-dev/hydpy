@@ -1476,15 +1476,15 @@ class NumericalDifferentiator:
         self._method = method
 
     @property
-    def _ycoeffs(self) -> numpy.ndarray:
+    def _ycoeffs(self) -> NDArrayFloat:
         return self.__YCOEFFS[self._method] / self._span
 
     @property
-    def _xshifts(self) -> numpy.ndarray:
+    def _xshifts(self) -> NDArrayFloat:
         return self.__XSHIFTS[self._method] * self._span
 
     @property
-    def _yvalues(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
+    def _yvalues(self) -> Dict[sequencetools.ModelSequence, NDArrayFloat]:
         xvalues = copy.deepcopy(self._xsequence.values)
         if not self._xsequence.NDIM:
             nmb = 1
@@ -1506,7 +1506,7 @@ class NumericalDifferentiator:
             self._xsequence.values = xvalues
 
     @property
-    def _derivatives(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
+    def _derivatives(self) -> Dict[sequencetools.ModelSequence, NDArrayFloat]:
         return {
             ysequence: numpy.dot(self._ycoeffs, yvalues.T)
             for ysequence, yvalues in self._yvalues.items()

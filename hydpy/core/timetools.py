@@ -23,6 +23,7 @@ import numpy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import propertytools
+from hydpy.core.typingtools import *
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
@@ -435,7 +436,7 @@ base 10: '0X'
         return new_date
 
     @classmethod
-    def from_array(cls: Type[TypeDate], array: numpy.ndarray) -> TypeDate:
+    def from_array(cls: Type[TypeDate], array: NDArrayFloat) -> TypeDate:
         """Return a |Date| instance based on date information (year, month, day, hour,
         minute, second) stored as the first entries of the successive rows of a
         |numpy.ndarray|.
@@ -2040,7 +2041,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     )
 
     @classmethod
-    def from_array(cls: Type[TypeTimegrid], array: numpy.ndarray) -> TypeTimegrid:
+    def from_array(cls: Type[TypeTimegrid], array: NDArrayFloat) -> TypeTimegrid:
         """Create a |Timegrid| instance based on information stored in the first 13
         rows of a |numpy.ndarray| object and return it.
 
@@ -2093,7 +2094,7 @@ required, but the given array consist of 12 entries/rows only.
                 f"only."
             ) from None
 
-    def to_array(self) -> numpy.ndarray:
+    def to_array(self) -> NDArrayFloat:
         """Return a 1-dimensional |numpy| |numpy.ndarray| storing the information of
         the actual |Timegrid| object.
 
@@ -2241,7 +2242,7 @@ required, but the given array consist of 12 entries/rows only.
         variable = numpy.linspace(offset, offset + step * (nmb - 1), nmb)
         return variable
 
-    def array2series(self, array: numpy.ndarray) -> numpy.ndarray:
+    def array2series(self, array: NDArrayFloat) -> NDArrayFloat:
         """Prefix the information of the actual |Timegrid| object to the given array
         and return it.
 
@@ -3437,7 +3438,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         )
 
     @classmethod
-    def centred_timegrid(cls) -> Tuple[Timegrid, numpy.ndarray]:
+    def centred_timegrid(cls) -> Tuple[Timegrid, NDArrayFloat]:
         """Return a |Timegrid| object defining the central time points of the year
         2000 and a boolean array describing its intersection with the current
         initialisation period, not taking the year information into account.

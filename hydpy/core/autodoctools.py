@@ -46,13 +46,23 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
-from hydpy.cythons.autogen import annutils
-from hydpy.cythons.autogen import interputils
-from hydpy.cythons.autogen import ppolyutils
-from hydpy.cythons.autogen import pointerutils
-from hydpy.cythons.autogen import quadutils
-from hydpy.cythons.autogen import rootutils
-from hydpy.cythons.autogen import smoothutils
+
+if TYPE_CHECKING:
+    from hydpy.cythons import annutils
+    from hydpy.cythons import interputils
+    from hydpy.cythons import ppolyutils
+    from hydpy.cythons import pointerutils
+    from hydpy.cythons import quadutils
+    from hydpy.cythons import rootutils
+    from hydpy.cythons import smoothutils
+else:
+    from hydpy.cythons.autogen import annutils
+    from hydpy.cythons.autogen import interputils
+    from hydpy.cythons.autogen import ppolyutils
+    from hydpy.cythons.autogen import pointerutils
+    from hydpy.cythons.autogen import quadutils
+    from hydpy.cythons.autogen import rootutils
+    from hydpy.cythons.autogen import smoothutils
 
 
 class Priority(enum.Enum):
@@ -141,6 +151,9 @@ EXCLUDE_MEMBERS = (
     "fastaccess_old",
     "pars",
     "seqs",
+    "subvars",
+    "subpars",
+    "subseqs",
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
@@ -227,6 +240,8 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
         lines += [f"    :exclude-members: Model, {exc_mem}"]
     elif exists_collectionclass:
         lines += [f"    :exclude-members:  {name_collectionclass}, {exc_mem}"]
+    else:
+        lines += [f"    :exclude-members: {exc_mem}"]
     return lines
 
 
@@ -239,6 +254,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     autodoc_tuple2doc(module)
     namespace = module.__dict__
     moduledoc = namespace.get("__doc__")
+    assert isinstance(moduledoc, str)
     basemodulename = namespace["__name__"].split(".")[-1]
     modules = {
         key: value
@@ -256,7 +272,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         lines += _add_title("Method Features", "-")
         lines += _add_lines(specification, module)
         substituter.add_module(module)
-        model = module.Model  # type: ignore[attr-defined]
+        model = module.Model
         assert issubclass(model, modeltools.Model)
         methods = list(model.get_methods())
     _extend_methoddocstrings(module)
@@ -269,7 +285,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         found_module = False
         new_lines = _add_title(title, "-")
         for (specification, caption) in spec2capt.items():
-            modulename = basemodulename + "_" + specification
+            modulename = f"{basemodulename}_{specification}"
             if modulename in modules:
                 module = modules[modulename]
                 found_module = True
@@ -289,7 +305,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
 
 def _insert_links_into_docstring(target: object, insertion: str) -> None:
     try:
-        target.__doc__ += ""
+        target.__doc__ += ""  # type: ignore[operator]
     except BaseException:
         return
     doc = getattr(target, "__doc__", None)
@@ -310,7 +326,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
 
 
 def _extend_methoddocstrings(module: types.ModuleType) -> None:
-    model = module.Model  # type: ignore[attr-defined]
+    model = module.Model
     assert issubclass(model, modeltools.Model)
     for method in model.get_methods():
         _insert_links_into_docstring(
@@ -380,8 +396,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> List[str]:
 
 
 def _gain_and_insert_additional_information_into_docstrings(
-    module: types.ModuleType,
-    allmethods: Iterable[modeltools.Method],
+    module: types.ModuleType, allmethods: Iterable[modeltools.Method]
 ) -> None:
     for value in vars(module).values():
         insertions = []
@@ -425,7 +440,7 @@ def autodoc_applicationmodel(module: types.ModuleType) -> None:
     name_applicationmodel = module.__name__
     name_basemodel = name_applicationmodel.split("_")[0]
     module_basemodel = importlib.import_module(name_basemodel)
-    substituter = Substituter(module_basemodel.substituter)  # type: ignore[attr-defined] # pylint: disable=line-too-long
+    substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module)
     substituter.update_masters()
     module.substituter = substituter  # type: ignore[attr-defined]
@@ -459,7 +474,7 @@ class Substituter:
         member: Any,
         module: types.ModuleType,
         class_: Optional[Type[object]] = None,
-        ignore: Optional[Dict[str, any]] = None,
+        ignore: Optional[Dict[str, object]] = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -1056,13 +1071,13 @@ def prepare_mainsubstituter() -> Substituter:
     substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
-        annutils,
-        interputils,
-        ppolyutils,
-        pointerutils,
-        quadutils,
-        rootutils,
-        smoothutils,
+        annutils,  # pylint: disable=used-before-assignment
+        interputils,  # pylint: disable=used-before-assignment
+        ppolyutils,  # pylint: disable=used-before-assignment
+        pointerutils,  # pylint: disable=used-before-assignment
+        quadutils,  # pylint: disable=used-before-assignment
+        rootutils,  # pylint: disable=used-before-assignment
+        smoothutils,  # pylint: disable=used-before-assignment
     ):
         substituter.add_module(cymodule, cython=True)
     substituter.short2long["|pub|"] = ":mod:`~hydpy.pub`"

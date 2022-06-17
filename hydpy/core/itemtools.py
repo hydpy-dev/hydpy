@@ -23,10 +23,9 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
 Device2Target = Dict[
-    Union[devicetools.Node, devicetools.Element],
-    variabletools.Variable[Any, Any],
+    Union[devicetools.Node, devicetools.Element], variabletools.Variable
 ]
-Selection2Targets = Dict[str, Tuple[variabletools.Variable[Any, Any], ...]]
+Selection2Targets = Dict[str, Tuple[variabletools.Variable, ...]]
 LevelType = Literal["global", "selection", "device", "subunit"]
 
 
@@ -161,7 +160,7 @@ class ExchangeItem:
     @staticmethod
     def _query_elementvariable(
         element: devicetools.Element, properties: ExchangeSpecification
-    ) -> variabletools.Variable[Any, Any]:
+    ) -> variabletools.Variable:
         model = element.model
         for group in (model.parameters, model.sequences):
             if properties.subgroup is not None:
@@ -278,8 +277,8 @@ handle a parameter nor a sequence subgroup named `wrong_group.
         >>> item.device2target[dill] is dill.sequences.sim
         True
         """
-        variable: variabletools.Variable[Any, Any]
-        variables: List[variabletools.Variable[Any, Any]]
+        variable: variabletools.Variable
+        variables: List[variabletools.Variable]
         if self.targetspecs.master in ("node", "nodes"):
             for selection in selections:
                 variables = []
@@ -301,7 +300,7 @@ handle a parameter nor a sequence subgroup named `wrong_group.
 
 
 def _make_subunit_name(
-    device: devicetools.Device[Any], target: variabletools.Variable[Any, Any]
+    device: devicetools.Device[Any], target: variabletools.Variable
 ) -> Mayberable1[str]:
     """
     >>> from hydpy.core.itemtools import _make_subunit_name as make
@@ -330,7 +329,7 @@ class ChangeItem(ExchangeItem):
     level: LevelType
     """The level at which the values of the change item are valid."""
     _shape: Optional[Union[Tuple[()], Tuple[int]]]
-    _value: Optional[numpy.ndarray]
+    _value: Optional[NDArrayFloat]
 
     @property
     def ndim(self) -> int:
@@ -409,7 +408,7 @@ class ChangeItem(ExchangeItem):
         objecttools.assert_never(self.level)
 
     @property
-    def value(self) -> numpy.ndarray:
+    def value(self) -> NDArrayFloat:
         """The item value(s) changing the values of target variables through applying
         method |ChangeItem.update_variables| of class |ChangeItem|.
 
@@ -464,7 +463,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         return self._value
 
     @value.setter
-    def value(self, value: numpy.ndarray) -> None:
+    def value(self, value: NDArrayFloat) -> None:
         try:
             shape = self.seriesshape if self.targetspecs.series else self.shape
             self._value = numpy.full(shape, value, dtype=float)
@@ -618,7 +617,7 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
             objecttools.assert_never(self.level)
 
     def update_variable(
-        self, variable: variabletools.Variable[Any, Any], value: numpy.ndarray
+        self, variable: variabletools.Variable, value: NDArrayFloat
     ) -> None:
         """Assign the given value(s) to the given target or base variable.
 
@@ -1235,7 +1234,7 @@ has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
-        itemvalues: numpy.ndarray = numpy.empty(shape, dtype=float)
+        itemvalues: NDArrayFloat = numpy.empty(shape, dtype=float)
         jdx0, jdx1 = hydpy.pub.timegrids.simindices
         if self.level == "device":
             for idx, variable in enumerate(self.device2target.values()):
@@ -1326,10 +1325,7 @@ class MathItem(ChangeItem):
 
     basespecs: ExchangeSpecification
     """The exchange specification for the chosen base variable."""
-    target2base: Dict[
-        variabletools.Variable[Any, Any],
-        variabletools.Variable[Any, Any],
-    ]
+    target2base: Dict[variabletools.Variable, variabletools.Variable]
     """All target variable objects and their related base variable objects."""
 
     def __init__(
@@ -1477,9 +1473,7 @@ class AddItem(MathItem):
     """
 
     def update_variable(
-        self,
-        variable: variabletools.Variable[Any, Any],
-        value: numpy.ndarray,
+        self, variable: variabletools.Variable, value: NDArrayFloat
     ) -> None:
         """Assign the sum of the given value(s) and the value(s) of the base variable
         to the given target variable.
@@ -1552,9 +1546,7 @@ class MultiplyItem(MathItem):
     """
 
     def update_variable(
-        self,
-        variable: variabletools.Variable[Any, Any],
-        value: numpy.ndarray,
+        self, variable: variabletools.Variable, value: NDArrayFloat
     ) -> None:
         """Assign the product of the given value(s) and the value(s) of the base
         variable to the given target variable.

@@ -13,6 +13,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 
 def _get_timegrids(func):
@@ -133,7 +134,7 @@ period is `5`.
         self.values = None
         self.timegrids = None
 
-    def call_fget(self, obj) -> numpy.ndarray:
+    def call_fget(self, obj) -> NDArrayFloat:
         timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))

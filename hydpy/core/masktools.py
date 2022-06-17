@@ -28,7 +28,7 @@ class _MaskDescriptor:
         return self.cls_mask(obj)
 
 
-class BaseMask(numpy.ndarray):
+class BaseMask(NDArrayFloat):
     """Base class for defining |CustomMask| and |DefaultMask| classes."""
 
     name: str

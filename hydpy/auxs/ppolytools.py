@@ -20,12 +20,13 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
-from hydpy.cythons.autogen import ppolyutils
 
 if TYPE_CHECKING:
     from scipy import interpolate
+    from hydpy.cythons import ppolyutils
 else:
     special = exceptiontools.OptionalImport("special", ["scipy.interpolate"], locals())
+    from hydpy.cythons.autogen import ppolyutils
 
 
 class Poly(NamedTuple):
@@ -415,16 +416,16 @@ vectors `x` (2) and `y` (3) must be identical.
                 nmb_ps = len(xs) - 1
                 nmb_cs = numpy.full((nmb_ps,), 2, dtype=int)
                 x0s = numpy.array(xs, dtype=float)[:-1]
-                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=float)  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=float)
                 cs[:, 0] = numpy.array(ys, dtype=float)[:-1]
-                cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+                cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
                 interpolator = method(x=xs, y=ys)
                 x0s = numpy.array(xs, dtype=float)[:-1]
                 cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.array(
-                    [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+                    [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
                     dtype=int,
                 )
             ppoly.nmb_ps, ppoly.nmb_cs, ppoly.x0s, ppoly.cs = nmb_ps, nmb_cs, x0s, cs
@@ -528,9 +529,7 @@ vectors `x` (2) and `y` (3) must be identical.
         pass
 
     nmb_ps = propertytools.ProtectedProperty[int, int](
-        fget=_get_nmb_ps,
-        fset=_set_nmb_ps,
-        fdel=_del_nmb_ps,
+        fget=_get_nmb_ps, fset=_set_nmb_ps, fdel=_del_nmb_ps
     )
 
     def _get_nmb_cs(self) -> Vector[int]:
@@ -561,9 +560,7 @@ vectors `x` (2) and `y` (3) must be identical.
         pass
 
     nmb_cs = propertytools.ProtectedProperty[VectorInput[int], Vector[int]](
-        fget=_get_nmb_cs,
-        fset=_set_nmb_cs,
-        fdel=_del_nmb_cs,
+        fget=_get_nmb_cs, fset=_set_nmb_cs, fdel=_del_nmb_cs
     )
 
     def _get_x0s(self) -> Vector[float]:
@@ -594,9 +591,7 @@ vectors `x` (2) and `y` (3) must be identical.
         pass
 
     x0s = propertytools.ProtectedProperty[VectorInput[float], Vector[float]](
-        fget=_get_x0s,
-        fset=_set_x0s,
-        fdel=_del_x0s,
+        fget=_get_x0s, fset=_set_x0s, fdel=_del_x0s
     )
 
     def _get_cs(self) -> Matrix[float]:
@@ -628,9 +623,7 @@ has not been prepared so far.
         pass
 
     cs = propertytools.ProtectedProperty[MatrixInput[float], Matrix[float]](
-        fget=_get_cs,
-        fset=_set_cs,
-        fdel=_del_cs,
+        fget=_get_cs, fset=_set_cs, fdel=_del_cs
     )
 
     def calculate_values(self) -> None:
@@ -764,14 +757,14 @@ agree with the actual number of constants held by vector `x0s` (1).
                     f"does not agree with the actual number of coefficient arrays held "
                     f"by matrix `cs` ({len(self.cs)})."
                 )
-            if numpy.max(self.nmb_cs) > self.cs.shape[1]:  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+            if numpy.max(self.nmb_cs) > self.cs.shape[1]:
                 raise RuntimeError(
-                    f"The highest number of coefficients indicated by `nmb_cs` "  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+                    f"The highest number of coefficients indicated by `nmb_cs` "
                     f"({numpy.max(self.nmb_cs)}) is larger than the possible number of "
                     f"coefficients storable in the coefficient matrix `cs` "
                     f"({self.cs.shape[1]})."
                 )
-            if (self.nmb_ps > 1) and (numpy.min(numpy.diff(self.x0s)) <= 0.0):  # type: ignore[no-untyped-call] # pylint: disable=line-too-long
+            if (self.nmb_ps > 1) and (numpy.min(numpy.diff(self.x0s)) <= 0.0):
                 raise RuntimeError(
                     "The constants held in vector `x0s` are not strictly increasing, "
                     "which is necessary as they also serve as breakpoints for "

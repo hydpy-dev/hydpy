@@ -1497,12 +1497,12 @@ class XMLSubseries(XMLSelector):
                 subs2seqs["node"].append(strip(seq.tag))
         return subs2seqs
 
-    def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
         return itertools.chain(
             self._iterate_model_sequences(), self._iterate_node_sequences()
         )
 
-    def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence]:
         m2s2s = self.model2subs2seqs
         for element in self.elements:
             model = element.model
@@ -1511,7 +1511,7 @@ class XMLSubseries(XMLSelector):
                 for seq_name in seq_names:
                     yield getattr(subseqs, seq_name)
 
-    def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
         s2s = self.subs2seqs
         for node in self.nodes:
             for seq_names in s2s.values():

@@ -2,6 +2,7 @@
 """This module provides features for handling public (global) project data."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import types
 from typing import *
 from typing import NoReturn
@@ -17,14 +18,11 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
-    from hydpy.cythons.autogen import configutils
+    from hydpy.cythons import configutils
 
 
 class _PubProperty(
-    propertytools.DefaultProperty[
-        propertytools.TypeInput,
-        propertytools.TypeOutput,
-    ]
+    propertytools.DefaultProperty[propertytools.TypeInput, propertytools.TypeOutput]
 ):
     def __init__(self) -> None:
         super().__init__(self._fget)

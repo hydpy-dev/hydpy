@@ -19,17 +19,19 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
-from hydpy.cythons.autogen import annutils
+
+if TYPE_CHECKING:
+    from hydpy.cythons import annutils
+else:
+    from hydpy.cythons.autogen import annutils
 
 
 class _ANNArrayProperty(
-    propertytools.DependentProperty[
-        propertytools.TypeInput,
-        propertytools.TypeOutput,
-    ],
+    propertytools.DependentProperty[propertytools.TypeInput, propertytools.TypeOutput]
 ):
 
-    _obj2cann: Dict[Any, annutils.ANN] = weakref.WeakKeyDictionary()
+    _obj2cann: Dict[Any, annutils.ANN]  # pylint: disable=used-before-assignment
+    _obj2cann = weakref.WeakKeyDictionary()
 
     def __init__(
         self,
@@ -37,10 +39,7 @@ class _ANNArrayProperty(
         doc: str,
     ) -> None:
         super().__init__(
-            protected=protected,
-            fget=self._fget,
-            fset=self._fset,
-            fdel=self._fdel,
+            protected=protected, fget=self._fget, fset=self._fset, fdel=self._fdel
         )
         self.set_doc(doc)
 
@@ -72,8 +71,8 @@ class _ANNArrayProperty(
             except BaseException:
                 descr = " ".join(reversed(self.name.split("_")))
                 objecttools.augment_excmessage(
-                    f"While trying to set the {descr} of the artificial "
-                    f"neural network {objecttools.elementphrase(obj)}"
+                    f"While trying to set the {descr} of the artificial neural "
+                    f"network {objecttools.elementphrase(obj)}"
                 )
 
     def _fdel(self, obj: "ANN") -> None:

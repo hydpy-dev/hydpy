@@ -335,12 +335,12 @@ occurred: The given key is neither a `string` a `mask` type.
 
     CLASSES: Tuple[Type[BaseMask], ...] = ()
 
-    def __init__(self):
+    def __init__(self) -> None:
         for cls in self.CLASSES:
             setattr(self, cls.__name__.lower(), cls)
 
     @property
-    def name(self):
+    def name(self) -> Literal["masks"]:
         """`masks`
 
         >>> from hydpy.core.masktools import Masks
@@ -364,8 +364,8 @@ occurred: The given key is neither a `string` a `mask` type.
         except TypeError:
             pass
         raise TypeError(
-            f"The given {objecttools.value_of_type(mask)} is "
-            f"neither a Mask class nor a Mask instance."
+            f"The given {objecttools.value_of_type(mask)} is neither a Mask class nor "
+            f"a Mask instance."
         )
 
     def __getitem__(self, key):
@@ -391,7 +391,7 @@ occurred: The given key is neither a `string` a `mask` type.
                 f"While trying to retrieve a mask based on key `{repr(_key)}`"
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         lines = []
         for mask in self:
             lines.append(f"{mask.__name__.lower()} of module {mask.__module__}")

@@ -300,7 +300,7 @@ handle a parameter nor a sequence subgroup named `wrong_group.
 
 
 def _make_subunit_name(
-    device: devicetools.Device[Any], target: variabletools.Variable
+    device: devicetools.Device, target: variabletools.Variable
 ) -> Mayberable1[str]:
     """
     >>> from hydpy.core.itemtools import _make_subunit_name as make

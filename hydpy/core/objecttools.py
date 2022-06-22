@@ -3,6 +3,7 @@
 different objects defined by the HydPy framework."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import builtins
 import collections
 import contextlib
@@ -86,7 +87,7 @@ def modulename(self: object) -> str:
 
 def _search_device(
     self: object,
-) -> Optional[Union["devicetools.Node", "devicetools.Element"]]:
+) -> Optional[Union[devicetools.Node, devicetools.Element]]:
     from hydpy.core import devicetools  # pylint: disable=import-outside-toplevel
 
     while True:
@@ -95,7 +96,7 @@ def _search_device(
         device = vars(self).get("node", vars(self).get("element"))
         if isinstance(device, (devicetools.Node, devicetools.Element)):
             return device
-        for test in ("model", "seqs", "pars", "subvars"):
+        for test in ("_model", "model", "seqs", "pars", "subvars"):
             master = vars(self).get(test)
             if master is not None:
                 self = master
@@ -105,8 +106,8 @@ def _search_device(
 
 
 def devicename(self: object) -> str:
-    """Try to return the name of the (indirect) master |Node| or
-    |Element| instance, if not possible return `?`.
+    """Try to return the name of the (indirect) master |Node| or |Element| instance, if
+    not possible return `?`.
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model("hland_v1")

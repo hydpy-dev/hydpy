@@ -46,6 +46,10 @@ Float2 = TypeVar("Float2", bound=float)
 
 NDArrayFloat = numpy.typing.NDArray[numpy.float_]
 
+DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
+LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
+StepSize = Literal["daily", "d", "monthly", "m"]
+
 
 class VectorInput(Protocol[Float_co]):
     """Protocol class for providing input to "mathematical", 1-dimensional arrays."""
@@ -482,6 +486,8 @@ __all__ = [
     "Collection1",
     "Collection2",
     "Collection3",
+    "DeployMode",
+    "LineStyle",
     "MatrixInput",
     "Matrix",
     "Mayberable1",
@@ -498,6 +504,7 @@ __all__ = [
     "Sequence1",
     "Sequence2",
     "Sequence3",
+    "StepSize",
     "T",
     "T1",
     "T2",

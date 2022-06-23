@@ -19,7 +19,7 @@ from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER, SEALED
 
-_ZERO_DIVISION_MESSAGE = "divide by zero encountered in true_divide"
+_ZERO_DIVISION_MESSAGE = "divide by zero encountered in"
 
 
 class DOY(parametertools.DOYParameter):

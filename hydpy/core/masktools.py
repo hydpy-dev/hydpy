@@ -13,6 +13,7 @@ import numpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 if TYPE_CHECKING:
     from hydpy.core import parametertools

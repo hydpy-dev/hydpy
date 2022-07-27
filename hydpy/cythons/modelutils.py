@@ -2204,11 +2204,13 @@ class FuncConverter:
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
           * replace "model." with "self."
+          * remove the ": float" annotation
         """
         code = inspect.getsource(self.func)
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
         code = code.replace("model.", "self.")
+        code = code.replace(": float", "")
         for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)
@@ -2345,8 +2347,12 @@ nogil:
             type_ = TYPE2STR[annotations_[name]]
             lines[0] = lines[0].replace(f", {name},", f", {type_} {name},")
             lines[0] = lines[0].replace(f", {name})", f", {type_} {name})")
+        code = inspect.getsource(self.func)
         for name in self.untypedinternalvarnames:
-            type_ = "double" if name.startswith("d_") else "int"
+            if (f" {name}: float" in code) or name.startswith("d_"):
+                type_ = "double"
+            else:
+                type_ = "int"
             lines.insert(1, f"        cdef {type_} {name}")
         return Lines(*lines)
 

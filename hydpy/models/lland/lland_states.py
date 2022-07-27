@@ -110,8 +110,8 @@ class WATS(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`,
-        or at least in accordance with if :math:`WATS \\geq 0`.
+        r"""Trim values in accordance with :math:`WAeS \leq PWMax \cdot WATS`,
+        or at least in accordance with if :math:`WATS \geq 0`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
@@ -138,7 +138,7 @@ class WAeS(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
+        r"""Trim in accordance with :math:`WAeS \leq PWMax \cdot WATS`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
@@ -165,8 +165,7 @@ class ESnow(lland_sequences.State1DSequence):
 
 
 class TauS(lland_sequences.State1DSequence):
-    """Dimensionsloses Alter der Schneedecke (dimensionless age of the snow
-    layer) [-].
+    """Dimensionsloses Alter der Schneedecke (dimensionless age of the snow layer) [-].
 
     If there is no snow-layer, the value of |TauS| is |numpy.nan|.
     """
@@ -190,13 +189,13 @@ class BoWa(lland_sequences.State1DSequence):
     mask = lland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`BoWa \\leq WMax`.
+        r"""Trim in accordance with :math:`0 \leq BoWa \leq WMax`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(5)
-        >>> wmax(200.)
-        >>> states.bowa(-100.,0., 100., 200., 300.)
+        >>> wmax(200.0)
+        >>> states.bowa(-100.0, 0.0, 100.0, 200.0, 300.0)
         >>> states.bowa
         bowa(0.0, 0.0, 100.0, 200.0, 200.0)
         """
@@ -205,71 +204,53 @@ class BoWa(lland_sequences.State1DSequence):
         super().trim(lower, upper)
 
 
-class QDGZ1(sequencetools.StateSequence):
-    """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
-    the less responsive storage compartment for direct runoff) [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class QDGZ2(sequencetools.StateSequence):
-    """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow into
-    the more responsive storage compartment for direct runoff) [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class QIGZ1(sequencetools.StateSequence):
-    """ "Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow into the
-    first storage compartment for interflow) [mm/T]."""
+class SDG1(sequencetools.StateSequence):
+    """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
-class QIGZ2(sequencetools.StateSequence):
-    """Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow into the
-    second storage compartment for interflow) [mm/T]."""
+class SDG2(sequencetools.StateSequence):
+    """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
-class QBGZ(sequencetools.StateSequence):
-    """Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
-    storage compartment for base flow) [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class QDGA1(sequencetools.StateSequence):
-    """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from
-    the less responsive storage compartment for direct runoff) [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class QDGA2(sequencetools.StateSequence):
-    """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow
-    from the more responsive storage compartment for direct runoff) [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class QIGA1(sequencetools.StateSequence):
-    """Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher (outflow from
-    the storage compartment for the first interflow component) [mm/T]."""
+class SIG1(sequencetools.StateSequence):
+    """Erster Zwischenabfluss-Gebietsspeicher (first interflow storage) [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
-class QIGA2(sequencetools.StateSequence):
-    """Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher (outflow from
-    the storage compartment for the second interflow component) [mm/T]."""
+class SIG2(sequencetools.StateSequence):
+    """Zweiter Zwischenabfluss-Gebietsspeicher (second interflow storage) [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
 
-class QBGA(sequencetools.StateSequence):
-    """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
-    storage compartment for base flow) [mm/T]."""
+class SBG(sequencetools.StateSequence):
+    """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim in accordance with :math:`0 \leq SBG \leq GSBMax \cdot VolBMax`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> volbmax(10.0)
+        >>> gsbmax(2.0)
+        >>> states.sbg(-1.0)
+        >>> states.sbg
+        sbg(0.0)
+        >>> states.sbg(10.0)
+        >>> states.sbg
+        sbg(10.0)
+        >>> states.sbg(21.0)
+        >>> states.sbg
+        sbg(20.0)
+        """
+        if upper is None:
+            control = self.subseqs.seqs.model.parameters.control
+            upper = control.gsbmax.value * control.volbmax.value
+        super().trim(lower, upper)

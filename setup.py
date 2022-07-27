@@ -46,11 +46,13 @@ setuptools.setup(
     ],
     keywords="hydrology modelling water balance rainfall runoff",
     cmdclass={"build_ext": Cython.Distutils.build_ext},
-    packages=["hydpy"],
+    packages=(
+        ["hydpy"] + [f"hydpy.{p}" for p in setuptools.find_namespace_packages("hydpy")]
+    ),
+    include_package_data=True,
     ext_modules=extension_modules,
     include_dirs=[numpy.get_include()],
     scripts=[os.path.join("hydpy", "exe", "hyd.py")],
-    include_package_data=True,
     python_requires=">=3.7",
     install_requires=[
         "black",

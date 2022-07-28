@@ -1305,7 +1305,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
             NetCDFVariableFlat, List[sequencetools.IOSequence]
         ] = collections.defaultdict(lambda: [])
 
-        try:
+        try:  # pylint: disable=too-many-nested-blocks
             # collect the relevant sequences:
             log = self.log
             for sequence in self._yield_disksequences(deviceorder):
@@ -1329,9 +1329,11 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                 tg_init = hydpy.pub.timegrids.init
                 tg_sim = hydpy.pub.timegrids.sim
                 for variable, readmode in variable2readmode.items():
-                    if not os.path.exists(variable.filepath) and (
-                        not readmode or not hydpy.pub.options.checkseries
-                    ):
+                    if not os.path.exists(variable.filepath):
+                        if readmode and hydpy.pub.options.checkseries:
+                            raise FileNotFoundError(
+                                f"No file `{variable.filepath}` available for reading."
+                            )
                         variable.write()
                     ncfile = netcdf4.Dataset(variable.filepath, "r+")
                     variable2ncfile[variable] = ncfile

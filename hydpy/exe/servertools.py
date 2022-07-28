@@ -1328,7 +1328,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
     epn_dill = epn(0.2854...)
 
-    Changing the series reader directory works as explained for the series reader
+    Changing the series reader directory works as explained for the series writer
     directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
     and |HydPyServer.GET_simulate| cannot find suitable files and report this problem:
 
@@ -1351,8 +1351,8 @@ occurred: [Errno 2] No such file or directory: ...land_dill_input_t.asc'
     urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
 execute method `GET_simulate`, the following error occurred: While trying to prepare \
 NetCDF files for reading or writing data "just in time" during the current simulation \
-run, the following error occurred: [Errno 2] No such file or directory: \
-...hland_v1_input_p.nc'
+run, the following error occurred: No file `...hland_v1_input_p.nc` available for \
+reading.
 
     After deregistering the "no_data" directory, both methods work again:
 

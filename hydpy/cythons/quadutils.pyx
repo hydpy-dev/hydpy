@@ -3,8 +3,6 @@
 Python module |quadtools|."""
 
 # import...
-# ...from standard library
-from typing import *
 # ...from site-packages
 from numpy import array, nan
 cimport cython
@@ -917,7 +915,7 @@ cdef class QuadBase:
         double tol,
     ) nogil:
         cdef int i, j
-        cdef double x, dx, yold, ynew
+        cdef double x, dx, y, ynew, y00, y05, y10
         if x0 == x1:
             return 0.0
         if x0 > x1:
@@ -927,10 +925,10 @@ cdef class QuadBase:
         y05 = self.apply_method0((x0 + x1) / 2.0)
         y10 = self.apply_method0(x1)
         ynew = inf
-        for i in range(nmin-1, nmax):
+        for i in range(nmin - 1, nmax):
             yold = ynew
             ynew = 0.0
-            for j in range(i+1):
+            for j in range(i + 1):
                 x = xs[i, j]
                 if x == 0.0:
                     y = y00

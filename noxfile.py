@@ -20,8 +20,22 @@ import nox
 
 
 def _install_hydpy(session: nox.Session) -> None:
-    session.install("-r", "HydPy.egg-info/requires.txt")
-    session.install("hydpy", "--no-index", "--find-links", "dist")
+    wheels = [
+        os.path.join("dist", fn) for fn in os.listdir("dist") if fn.endswith(".whl")
+    ]
+    if wheels:
+        print("available wheels:")
+        for wheel in wheels:
+            print(f"\t{wheel}")
+    else:
+        raise FileNotFoundError("no wheel available")
+    if len(wheels) == 1:
+        wheel = wheels[0]
+        print(f"installing wheel {wheel}")
+        session.install(wheel)
+    else:
+        print("let pip determine the appropriate wheel")
+        session.install("hydpy", "--find-links", "dist")
 
 
 def _get_sitepackagepath(session: nox.Session) -> str:
@@ -98,7 +112,7 @@ def black(session: nox.Session) -> None:
 @nox.session
 def pylint(session: nox.Session) -> None:
     """Use `pylint` to evaluate the code style."""
-    session.install("-r", "HydPy.egg-info/requires.txt")
+    _install_hydpy(session)
     session.install("pylint", "coverage", "ghp_import", "sphinx")
     session.run("pylint", "hydpy")
 

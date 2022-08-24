@@ -82,6 +82,7 @@ and will have to be discussed later.
    HydPy-Evap
    HydPy-D
    HydPy-Dummy
+   HydPy-GA
    HydPy-H
    HydPy-L
    HydPy-Meteo

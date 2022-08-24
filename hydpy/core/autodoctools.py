@@ -826,8 +826,8 @@ class Substituter:
 
         >>> from hydpy.core import typingtools
         >>> substituter.add_module(typingtools)
-        >>> substituter.find("|NDArrayFloat|")
-        |NDArrayFloat| :class:`~hydpy.core.typingtools.NDArrayFloat`
+        >>> substituter.find("|NDArrayFloat|")  # doctest: +ELLIPSIS
+        |NDArrayFloat| :...:`~hydpy.core.typingtools.NDArrayFloat`
 
         When adding Cython modules, the `cython` flag should be set |True|:
 

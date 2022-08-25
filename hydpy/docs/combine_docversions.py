@@ -117,7 +117,7 @@ for version1, htmls1 in version2htmls.items():
         links: List[str] = []
         for version2, htmls2 in version2htmls.items():
             if html1 in htmls2:
-                links.append(f'<li><a href="../{version2}/{html1}">{version2}</a></li')
+                links.append(f'<li><a href="../{version2}/{html1}">{version2}</a></li>')
         if not links:
             continue
         print_(f"\t\tUpdate file {html1}")

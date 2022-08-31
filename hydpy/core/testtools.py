@@ -1728,14 +1728,13 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     automatic execution and allows to check and discuss exceptional cases where
     |check_selectedvariables| generates false alarms.
 
-    Do not expect |check_selectedvariables| to catch all possible
-    errors.  Also, false positives might occur.  However, in our experience,
-    function |check_selectedvariables| is of great help to prevent the most
-    common mistakes when defining the parameter and sequence classes
-    relevant for a specific method.
+    Do not expect |check_selectedvariables| to catch all possible errors.  Also, false
+    positives might occur.  However, in our experience, function
+    |check_selectedvariables| is of great help to prevent the most common mistakes when
+    defining the parameter and sequence classes relevant for a specific method.
 
-    As an example, we select method |lland_model.Calc_WindSpeed2m_V1| of base
-    model |lland|.  |check_selectedvariables| does not reportany problems:
+    As an example, we select method |lland_model.Calc_WindSpeed2m_V1| of base model
+    |lland|.  |check_selectedvariables| does not reportany problems:
 
     >>> from hydpy.core.testtools import check_selectedvariables
     >>> from hydpy.models.lland.lland_model import (
@@ -1744,20 +1743,19 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     <BLANKLINE>
 
     To show how |check_selectedvariables| reports errors, we clear the
-    `RESULTSEQUENCES` tuple of method |lland_model.Calc_WindSpeed2m_V1|.
-    Now |check_selectedvariables| realises the usage of the flux sequence
-    object `windspeed2m` within the source code of method
-    |lland_model.Calc_WindSpeed2m_V1|, which is neither available within
-    the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`, nor the`RESULTSEQUENCES`
-    tuple:
+    `RESULTSEQUENCES` tuple of method |lland_model.Calc_WindSpeed2m_V1|.  Now
+    |check_selectedvariables| realises the usage of the flux sequence object
+    `windspeed2m` within the source code of method |lland_model.Calc_WindSpeed2m_V1|,
+    which is neither available within the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`,
+    nor the`RESULTSEQUENCES` tuple:
 
     >>> resultseqs = Calc_WindSpeed2m_V1.RESULTSEQUENCES
     >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = ()
     >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
     Definitely missing: windspeed2m
 
-    After putting the wrong flux sequence class |lland_fluxes.WindSpeed10m|
-    into the tuple, we get an additional warning pointing to our mistake:
+    After putting the wrong flux sequence class |lland_fluxes.WindSpeed10m| into the
+    tuple, we get an additional warning pointing to our mistake:
 
     >>> from hydpy.models.lland.lland_fluxes import WindSpeed10m
     >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = WindSpeed10m,
@@ -1767,9 +1765,9 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
 
     Method |lland_model.Calc_WindSpeed2m_V1| uses
     |lland_model.Return_AdjustedWindSpeed_V1| as a submethod.  Hence,
-    |lland_model.Calc_WindSpeed2m_V1| most likely needs to select
-    each variable selected by |lland_model.Return_AdjustedWindSpeed_V1|.
-    After adding additional variables to the `DERIVEDPARAMETERS` tuple of
+    |lland_model.Calc_WindSpeed2m_V1| most likely needs to select each variable
+    selected by |lland_model.Return_AdjustedWindSpeed_V1|.  After adding additional
+    variables to the `DERIVEDPARAMETERS` tuple of
     |lland_model.Return_AdjustedWindSpeed_V1|, we get another warning message:
 
     >>> from hydpy.models.lland.lland_derived import (
@@ -1782,8 +1780,8 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
         Return_AdjustedWindSpeed_V1: Seconds, Hours, and Days
     Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
 
-    Finally, |check_selectedvariables| checks for duplicates both within
-    and between the different tuples:
+    Finally, |check_selectedvariables| checks for duplicates both within and between
+    the different tuples:
 
     >>> from hydpy.models.lland.lland_inputs import WindSpeed, TemL
     >>> requiredseqs = Calc_WindSpeed2m_V1.REQUIREDSEQUENCES
@@ -1807,24 +1805,33 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
     <BLANKLINE>
 
-    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on
-    the `len` attribute of 1-dimensional sequences.  Function
-    |check_selectedvariables| does not report false alarms in such cases:
+    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on the `len`
+    attribute of 1-dimensional sequences.  Function |check_selectedvariables| does not
+    report false alarms in such cases:
 
     >>> from hydpy.models.arma.arma_model import Pick_Q_V1
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
 
     Some methods such as |lland_model.Update_ESnow_V1| of base model |lland| update a
-    sequence (meaning, they require its old value and calculate a new one), but
-    their submethods (in this case |lland_model.Return_BackwardEulerError_V1|)
-    just require them as input.  Function |check_selectedvariables| does not
-    report false alarms in such cases:
+    sequence (meaning, they require its old value and calculate a new one), but their
+    submethods (in this case |lland_model.Return_BackwardEulerError_V1|) just require
+    them as input.  Function |check_selectedvariables| does not report false alarms in
+    such cases:
 
     >>> from hydpy.models.lland.lland_model import Update_ESnow_V1
     >>> print(check_selectedvariables(Update_ESnow_V1))
     <BLANKLINE>
+
+    Similarly, methods such as |ga_model.Perform_GARTO_V1| calculate sequence values
+    from scratch but require submethods for updating them:
+
+    >>> from hydpy.models.ga.ga_model import Perform_GARTO_V1
+    >>> print(check_selectedvariables(Perform_GARTO_V1))
+    <BLANKLINE>
     """
+    # pylint: disable=too-many-branches
+    # ToDo: needs refactoring
     prefixes = (
         "con",
         "der",
@@ -1889,6 +1896,8 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
                     )
                 )
             diff = vars_submethods - vars_method
+            if diff and (group == "UPDATEDSEQUENCES"):
+                diff.difference_update(set(method.RESULTSEQUENCES))
             if diff:
                 if not found_problem:
                     found_problem = True
@@ -1986,10 +1995,7 @@ not among the result sequences of any of its predecessors: DryAirPressure
     method2errors: Dict[str, str] = {}
     for method in model.get_methods():
         if "check_selectedvariables(" not in method.__doc__:
-            subresult = check_selectedvariables(
-                method=method,
-                indent=indent + 8,
-            )
+            subresult = check_selectedvariables(method=method, indent=indent + 8)
             if subresult:
                 method2errors[method.__name__] = subresult
     if method2errors:

@@ -872,9 +872,9 @@ datetime of the Python standard library for for further information.
         cmap = pyplot.get_cmap("tab20", 2 * len(sel_names))
         dates = list(
             pandas.date_range(
-                start=hydpy.pub.timegrids.init.firstdate.datetime,
-                end=hydpy.pub.timegrids.init.lastdate.datetime,
-                freq=hydpy.pub.timegrids.init.stepsize.timedelta,
+                start=hydpy.pub.timegrids.eval_.firstdate.datetime,
+                end=hydpy.pub.timegrids.eval_.lastdate.datetime,
+                freq=hydpy.pub.timegrids.eval_.stepsize.timedelta,
             )
         )
         for idx, (name, series, unit) in enumerate(

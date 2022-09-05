@@ -27,6 +27,7 @@ import wrapt
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -34,14 +35,8 @@ if TYPE_CHECKING:
 
 _builtinnames = set(dir(builtins))
 
-T = TypeVar("T")
-T1 = TypeVar("T1")
-T2 = TypeVar("T2")
-T3 = TypeVar("T3")
 ReprArg = Union[
-    numbers.Number,
-    Iterable[numbers.Number],
-    Iterable[Iterable[numbers.Number]],
+    numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
 ]
 
 

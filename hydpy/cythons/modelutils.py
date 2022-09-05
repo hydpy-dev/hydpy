@@ -323,8 +323,8 @@ _dllextension = get_dllextension()
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
 TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicate-key
-    bool: "bint",
-    "bool": "bint",
+    bool: "numpy.npy_bool",
+    "bool": "numpy.npy_bool",
     int: _int,
     "int": _int,
     parametertools.IntConstant: _int,

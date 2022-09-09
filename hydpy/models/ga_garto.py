@@ -954,8 +954,9 @@ from hydpy.core.typingtools import *
 from hydpy.models.ga import ga_model
 
 
-class Model(modeltools.AdHocModel):
-    """The GARTO model (assuming a hydrostatic groundwater table)."""
+class Model(modeltools.AdHocModel, ga_model.MixinGARTO):
+    """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
+    a stand-alone model."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -990,133 +991,6 @@ class Model(modeltools.AdHocModel):
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
-
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
-        r"""Determine the water balance error of the previous simulation run in mm.
-
-        Method |Model.check_waterbalance| calculates the balance error as follows:
-
-        :math:`\sum_{t=t0}^{t1} \big(
-        Rainfall_t - TotalPercolation_t  + TotalSoilWaterAddition_t - TotalWithdrawal_t
-        - Percolation_t \big) +b\big( WaterVolume_{t0} - WaterVolume_{t1} \big)`
-
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
-
-        Pick the required initial conditions before starting the simulation run via
-        property |Sequences.conditions|.  See the integration tests of the application
-        model |ga_garto| for some examples.
-        """
-        inputs = self.sequences.inputs
-        fluxes = self.sequences.fluxes
-        old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],
-            moisture=initial_conditions["states"]["moisture"],
-        )
-        return float(
-            numpy.sum(inputs.rainfall.evalseries)
-            + numpy.sum(fluxes.totalsoilwateraddition.evalseries)
-            - numpy.sum(fluxes.totalpercolation.evalseries)
-            - numpy.sum(fluxes.totalwithdrawal.evalseries)
-            - numpy.sum(fluxes.totalsurfacerunoff.evalseries)
-            + (old_watercontent - self.watercontent)
-        )
-
-    @property
-    def watercontents(self) -> NDArrayFloat:
-        """The unique water content of each soil compartment in mm.
-
-        Property |Model.watercontents| generally returns zero values for sealed soil
-        compartments:
-
-        >>> from hydpy.models.ga_garto import *
-        >>> parameterstep()
-        >>> nmbsoils(3)
-        >>> nmbbins(4)
-        >>> sealed(False, False, True)
-        >>> soilarea(1.0, 2.0, 3.0)
-        >>> soildepth(100.0, 200, nan)
-        >>> residualmoisture(0.1, 0.2, nan)
-        >>> saturationmoisture(0.5, 0.8, nan)
-        >>> derived.soilareafraction.update()
-        >>> states.moisture = [[0.3, 0.2, nan],
-        ...                    [0.3, 0.3, nan],
-        ...                    [0.3, 0.5, nan],
-        ...                    [0.3, 0.8, nan]]
-        >>> states.frontdepth = [[100.0, 200.0, nan],
-        ...                      [0.0, 150.0, nan],
-        ...                      [0.0, 100.0, nan],
-        ...                      [0.0, 50.0, nan]]
-        >>> from hydpy import print_values
-        >>> print_values(model.watercontents)
-        30.0, 90.0, 0.0
-        """
-        states = self.sequences.states
-        return self._calc_watercontents(
-            frontdepth=states.frontdepth.values, moisture=states.moisture.values
-        )
-
-    @property
-    def watercontent(self) -> float:
-        """The average water content of all soil compartments in mm.
-
-        Property |Model.watercontent| includes sealed soil compartments in the average,
-        which is why the presence of sealing reduces the returned value:
-
-        >>> from hydpy.models.ga_garto import *
-        >>> parameterstep()
-        >>> nmbsoils(3)
-        >>> nmbbins(4)
-        >>> sealed(False, False, True)
-        >>> soilarea(1.0, 2.0, 3.0)
-        >>> soildepth(100.0, 200, nan)
-        >>> residualmoisture(0.1, 0.2, nan)
-        >>> saturationmoisture(0.5, 0.8, nan)
-        >>> derived.soilareafraction.update()
-        >>> states.moisture = [[0.3, 0.2, nan],
-        ...                    [0.3, 0.3, nan],
-        ...                    [0.3, 0.5, nan],
-        ...                    [0.3, 0.8, nan]]
-        >>> states.frontdepth = [[100.0, 200.0, nan],
-        ...                      [0.0, 150.0, nan],
-        ...                      [0.0, 100.0, nan],
-        ...                      [0.0, 50.0, nan]]
-        >>> from hydpy import round_
-        >>> round_(model.watercontent)
-        35.0
-
-        >>> soilarea(1.0, 2.0, 0.0)
-        >>> derived.soilareafraction.update()
-        >>> round_(model.watercontent)
-        70.0
-        """
-        states = self.sequences.states
-        return self._calc_watercontent(
-            frontdepth=states.frontdepth.values, moisture=states.moisture.values
-        )
-
-    def _calc_watercontents(
-        self, frontdepth: NDArrayFloat, moisture: NDArrayFloat
-    ) -> NDArrayFloat:
-        frontdepth = frontdepth.copy()
-        frontdepth[0, :] = self.parameters.control.soildepth.values
-        deltamoisture = numpy.diff(moisture, axis=0, prepend=0.0)
-        deltamoisture = numpy.clip(deltamoisture, 0.0, numpy.inf)
-        watercontents = numpy.sum(frontdepth * deltamoisture, axis=0)
-        watercontents[self.parameters.control.sealed.values] = 0.0
-        return watercontents
-
-    def _calc_watercontent(
-        self, frontdepth: NDArrayFloat, moisture: NDArrayFloat
-    ) -> Union[float, NDArrayFloat]:
-        weights = self.parameters.derived.soilareafraction.values
-        watercontents = self._calc_watercontents(
-            frontdepth=frontdepth, moisture=moisture
-        )
-        return numpy.nansum(weights * watercontents)
 
 
 tester = Tester()

@@ -3,9 +3,11 @@
 
 import copy
 import importlib
+import inspect
 import os
 import sys
 from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
 
 import click
 import Cython.Build
@@ -25,63 +27,125 @@ def _clear_autogendir() -> None:
             os.remove(filepath)
 
 
+def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]:
+    cythonoptions = [
+        "# -*- coding: utf-8 -*-",
+        "# !python",
+        "# cython: language_level=3",
+    ]
+    if fast_cython:
+        cythonoptions.extend(
+            [
+                "# cython: boundscheck=False",
+                "# cython: wraparound=False",
+                "# cython: initializedcheck=False",
+                "# cython: cdivision=True",
+            ]
+        )
+    else:
+        cythonoptions.extend(
+            [
+                "# cython: boundscheck=True",
+                "# cython: wraparound=True",
+                "# cython: initializedcheck=True",
+                "# cython: cdivision=False",
+            ]
+        )
+    if profile_cython:
+        cythonoptions.extend(
+            [
+                "# cython: linetrace=True",
+                "# distutils: define_macros=CYTHON_TRACE=1",
+                "# distutils: define_macros=CYTHON_TRACE_NOGIL=1",
+            ]
+        )
+    return cythonoptions
+
+
 def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
     names = []
     for name in sorted(os.listdir(os.path.join("hydpy", "cythons"))):
         if name.split(".")[-1] == "pyx":
             names.append(name.split(".")[0])
+    opt = _prepare_cythonoptions(fast_cython=fast_cython, profile_cython=profile_cython)
     for name in names:
         for suffix in ("pyx", "pxd"):
             filename = f"{name}.{suffix}"
             path_in = os.path.join("hydpy", "cythons", filename)
             path_out = os.path.join("hydpy", "cythons", "autogen", filename)
-            cythonoptions = [
-                "# -*- coding: utf-8 -*-",
-                "# !python",
-                "# cython: language_level=3",
-            ]
-            if fast_cython:
-                cythonoptions.extend(
-                    [
-                        "# cython: boundscheck=False",
-                        "# cython: wraparound=False",
-                        "# cython: initializedcheck=False",
-                        "# cython: cdivision=True",
-                    ]
-                )
-            else:
-                cythonoptions.extend(
-                    [
-                        "# cython: boundscheck=True",
-                        "# cython: wraparound=True",
-                        "# cython: initializedcheck=True",
-                        "# cython: cdivision=False",
-                    ]
-                )
-            if profile_cython:
-                cythonoptions.extend(
-                    [
-                        "# cython: linetrace=True",
-                        "# distutils: define_macros=CYTHON_TRACE=1",
-                        "# distutils: define_macros=CYTHON_TRACE_NOGIL=1",
-                    ]
-                )
             with open(path_in, encoding="utf-8") as file_in:
                 text = file_in.read()
                 text = text.replace(" int ", " " + INT + " ")
                 text = text.replace(" int[", " " + INT + "[")
             with open(path_out, "w", encoding="utf-8") as file_out:
-                file_out.write("\n".join(cythonoptions) + "\n\n")
+                file_out.write("\n".join(opt) + "\n\n")
                 file_out.write(text)
 
 
-def _compile_baseextensions() -> None:
+def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
+    from hydpy.cythons.modelutils import TYPE2STR
+
+    def _write_twice(text: str) -> None:
+        pxdfile.write(text)
+        pyxfile.write(text)
+
+    opt = _prepare_cythonoptions(fast_cython=fast_cython, profile_cython=profile_cython)
+    pydirpath = os.path.join("hydpy", "interfaces")
+    cydirpath = os.path.join("hydpy", "cythons", "autogen")
+    pyfilenames = (n for n in os.listdir(pydirpath) if n.endswith(".py"))
+    modulenames = (n[:-3] for n in pyfilenames if n != "__init__.py")
+    for modulename in modulenames:
+        pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
+        pxdmodulepath = os.path.join(cydirpath, f"{modulename}.pxd")
+        pyxmodulepath = os.path.join(cydirpath, f"{modulename}.pyx")
+        with open(pxdmodulepath, "w", encoding="utf-8") as pxdfile, open(
+            pyxmodulepath, "w", encoding="utf-8"
+        ) as pyxfile:
+            _write_twice("\n".join(opt) + "\n")
+            _write_twice("\ncimport numpy\n")
+            _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
+            name2class = {
+                name: member
+                for name, member in inspect.getmembers(pymodule)
+                if (inspect.isclass(member) and (inspect.getmodule(member) is pymodule))
+            }
+            for classname, class_ in name2class.items():
+                _write_twice(
+                    f"\n\ncdef class {classname}(interfaceutils.BaseInterface):\n"
+                )
+                name2func = {
+                    n: m for n, m in inspect.getmembers(class_) if inspect.isfunction(m)
+                }
+                for funcname, func in name2func.items():
+                    typehints = get_type_hints(func)
+                    name2type = {n: TYPE2STR[t] for n, t in typehints.items()}
+                    args = ", ".join(
+                        f"{t} {n}" for n, t in name2type.items() if n != "return"
+                    )
+                    returntype = name2type["return"]
+                    line = f"\n    cdef {returntype} {funcname}(self, {args}) nogil"
+                    pxdfile.write(f"{line}\n")
+                    pyxfile.write(f"{line}:\n")
+                    if typehints["return"] is type(None):
+                        pyxfile.write("        pass\n")
+                    elif typehints["return"] is float:
+                        pyxfile.write("        return 0.0\n")
+                    elif typehints["return"] is int:
+                        pyxfile.write("        return 0\n")
+                    else:
+                        assert False
+                typeid = int(classname.rpartition("_V")[-1])
+                pyxfile.write("\n    def __init__(self):\n")
+                pyxfile.write(f"        self.typeid = {typeid}\n")
+
+
+def _compile_extensions(filetype: Literal["utils", "interfaces"]) -> None:
     argv = copy.deepcopy(sys.argv)
     try:
         sys.argv = [sys.argv[0], "build_ext", "--build-lib=.", "--build-temp=."]
         extension = setuptools.Extension(
             "*",
-            ["hydpy/cythons/autogen/*utils.pyx"],
+            [f"hydpy/cythons/autogen/*{filetype}.pyx"],
             include_dirs=[numpy.get_include()],
         )
         setuptools.setup(
@@ -103,7 +167,7 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
     config.FASTCYTHON = fast_cython
     config.PROFILECYTHON = profile_cython
     with pub.options.usecython(False):
-        path_: str = models.__path__[0]  # type: ignore[attr-defined, name-defined]
+        path_: str = models.__path__[0]
         for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
             if not name.startswith("_"):
                 module = importlib.import_module(f"hydpy.models.{name}")
@@ -131,11 +195,34 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
     default=False,
     help="See the documentation on option `PROFILECYTHON` option of module `config`.",
 )
-def main(fast_cython: bool, profile_cython: bool) -> None:
+@click.option(
+    "-e",
+    "--compile-baseextensions",
+    type=bool,
+    default=True,
+    help="Translate the modified Cython extension files into C files and compile them.",
+)
+@click.option(
+    "-i",
+    "--compile-interfaceextensions",
+    type=bool,
+    default=False,
+    help="Translate the generate Cython interface files into C files and compile them.",
+)
+def main(
+    fast_cython: bool,
+    profile_cython: bool,
+    compile_baseextensions: bool,
+    compile_interfaceextensions: bool,
+) -> None:
     """Perform the following tasks:
 
     Copy the Cython source code of the extension modules from package `cythons` to
-    subpackage `autogen` and modify the source code where necessary.
+    subpackage `autogen` and modify the source code where necessary.  Then, optionally,
+    compile the modified extensions.
+
+    Create the Cython source code of all interface-specific extension modules defined
+    in the `interfaces` subpackage.  Then, optionally, compile the created extensions.
 
     Create the Cython source code of all model-specific extension modules.
 
@@ -143,7 +230,11 @@ def main(fast_cython: bool, profile_cython: bool) -> None:
     """
     _clear_autogendir()
     _prepare_baseextensions(fast_cython=fast_cython, profile_cython=profile_cython)
-    _compile_baseextensions()
+    if compile_baseextensions:
+        _compile_extensions(filetype="utils")
+    _convert_interfaces(fast_cython=fast_cython, profile_cython=profile_cython)
+    if compile_interfaceextensions:
+        _compile_extensions(filetype="interfaces")
     _prepare_modelspecifics(fast_cython=fast_cython, profile_cython=profile_cython)
 
 

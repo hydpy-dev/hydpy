@@ -808,6 +808,7 @@ class Model(modeltools.ELSModel):
         wland_model.Pass_R_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def check_waterbalance(

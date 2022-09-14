@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
+    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMETHODS: Tuple[Type[Method], ...] = ()
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -44,6 +45,44 @@ class Method:
 
     def __init_subclass__(cls) -> None:
         cls.__call__.CYTHONIZE = True
+
+
+class SubmodelInterface:
+    """Base class for defining interfaces for submodels.
+
+    Main models reference their submodels by their interface's class name in lower
+    case letters without the version qualifier, as available via the (automatically
+    created) attribute |SubmodelInterface.name|:
+
+    >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
+    >>> SoilModel_V1.name
+    'soilmodel'
+    >>> SoilModel_V1().name
+    'soilmodel'
+    """
+
+    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+
+    name: str
+    """The main model's attribute name for submodels following the respective
+    interface."""
+
+    @property
+    @abc.abstractmethod
+    def typeid(self) -> int:
+        """Type identifier that we use for differentiating submodels that target the
+        same process group (e.g. infiltration) but follow different interfaces.
+
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2 and so
+        on.
+
+        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
+        checks in model equations as it allows releasing Python's Globel Interpreter
+        Lock in Cython.
+        """
+
+    def __init_subclass__(cls) -> None:
+        cls.name = cls.__name__.lower().rpartition("_")[0]
 
 
 class IndexProperty:
@@ -189,6 +228,7 @@ class Model:
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -197,27 +237,32 @@ class Model:
         self.cymodel = None
         self.element = None
         self._init_methods()
+        for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
+            setattr(self, interfacename, None)
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        for name_group in self.METHOD_GROUPS:
-            functions = getattr(self, name_group, ())
-            shortname2method: Dict[str, types.MethodType] = {}
-            shortnames: Set[str] = set()
-            for func in functions:
-                method = types.MethodType(func.__call__, self)
-                name_func = func.__name__.lower()
-                setattr(self, name_func, method)
-                shortname = "_".join(name_func.split("_")[:-1])
-                if shortname not in shortnames:
-                    shortname2method[shortname] = method
-                    shortnames.add(shortname)
-                else:
-                    shortname2method.pop(shortname, None)
-            for (shortname, method) in shortname2method.items():
-                if method is not None:
-                    setattr(self, shortname, method)
+        blacklist_longnames: Set[str] = set()
+        blacklist_shortnames: Set[str] = set()
+        shortname2method: Dict[str, types.MethodType] = {}
+        for cls_ in self.get_methods():
+            longname = cls_.__name__.lower()  # type: ignore[attr-defined]
+            if longname in blacklist_longnames:
+                continue
+            blacklist_longnames.add(longname)
+            method = types.MethodType(cls_.__call__, self)
+            setattr(self, longname, method)
+            shortname = longname.rpartition("_")[0]
+            if shortname in blacklist_shortnames:
+                continue
+            if shortname in shortname2method:
+                del shortname2method[shortname]
+                blacklist_shortnames.add(shortname)
+            else:
+                shortname2method[shortname] = method
+        for shortname, method in shortname2method.items():
+            setattr(self, shortname, method)
 
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and
@@ -764,7 +809,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_v1
+        >>> from hydpy.models import hland_v1, ga_garto_submodel1
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
@@ -773,13 +818,26 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Calc_QT_V1
         Pass_Q_v1
 
+        >>> for method in ga_garto_submodel1.Model.get_methods():
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Set_InitialSurfaceWater_V1
+        ...
+        Get_SoilWaterContent_V1
+        Return_RelativeMoisture_V1
+        ...
+        Withdraw_AllBins_V1
+
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
         calculations.
         """
-        for name_group in getattr(cls, "METHOD_GROUPS", ()):
-            for method in getattr(cls, name_group, ()):
-                yield method
+        if hasattr(cls, "METHOD_GROUPS"):
+            for groupname in cls.METHOD_GROUPS:
+                if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
+                    for method in cls.INTERFACE_METHODS:
+                        yield method
+                for method in getattr(cls, groupname, ()):
+                    yield method
 
     def __str__(self) -> str:
         return self.name

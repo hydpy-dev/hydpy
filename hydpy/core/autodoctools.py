@@ -129,6 +129,7 @@ ELSE = Priority.ELSE
 EXCLUDE_MEMBERS = (
     "CLASSES",
     "RUN_METHODS",
+    "INTERFACE_METHODS",
     "ADD_METHODS",
     "INLET_METHODS",
     "OUTLET_METHODS",
@@ -145,6 +146,7 @@ EXCLUDE_MEMBERS = (
     "SOLVERPARAMETERS",
     "SOLVERSEQUENCES",
     "SUBMETHODS",
+    "SUBMODELINTERFACES",
     "SUBMODELS",
     "fastaccess",
     "fastaccess_new",
@@ -1142,43 +1144,49 @@ def autodoc_module(module: types.ModuleType) -> None:
 _name2descr = {
     "CLASSES": "The following classes are selected",
     "RECEIVER_METHODS": (
-        'The following "receiver update methods" are called in '
-        "the given sequence before performing a simulation step"
+        'The following "receiver update methods" are called in the given sequence '
+        "before performing a simulation step"
     ),
     "INLET_METHODS": (
-        'The following "inlet update methods" are called in the '
-        "given sequence at the beginning of each simulation step"
+        'The following "inlet update methods" are called in the given sequence at the '
+        "beginning of each simulation step"
     ),
     "RUN_METHODS": (
-        'The following "run methods" are called in the given '
-        "sequence during each simulation step"
+        'The following "run methods" are called in the given sequence during each '
+        "simulation step"
     ),
     "PART_ODE_METHODS": (
-        "The following methods define the relevant components "
-        "of a system of ODE equations (e.g. direct runoff)"
+        "The following methods define the relevant components of a system of ODE "
+        "equations (e.g. direct runoff)"
     ),
     "FULL_ODE_METHODS": (
-        "The following methods define the complete equations of "
-        "an ODE system (e.g. change in storage of `fast water` "
-        "due to effective precipitation and direct runoff)"
+        "The following methods define the complete equations of an ODE system (e.g. "
+        "change in storage of `fast water` due to effective precipitation and direct "
+        "runoff)"
     ),
     "OUTLET_METHODS": (
-        'The following "outlet update methods" are called in the '
-        "given sequence at the end of each simulation step"
+        'The following "outlet update methods" are called in the given sequence at '
+        "the end of each simulation step"
     ),
     "SENDER_METHODS": (
-        'The following "sender update methods" are called in '
-        "the given sequence after performing a simulation step"
+        'The following "sender update methods" are called in the given sequence after '
+        "performing a simulation step"
+    ),
+    "INTERFACE_METHODS": (
+        "The following interface methods are available to main models using the "
+        "defined model as a submodel"
     ),
     "ADD_METHODS": (
-        'The following "additional methods" might be called '
-        "by one or more of the other methods or are meant to "
-        "be directly called by the user"
+        'The following "additional methods" might be called by one or more of the '
+        "other methods or are meant to be directly called by the user"
+    ),
+    "SUBMODELINTERFACES": (
+        "Users can hook submodels into the defined main model if they satisfy one of "
+        "the following interfaces"
     ),
     "SUBMODELS": (
-        'The following "submodels" might be called by one or more '
-        "of the implemented methods or are meant to be directly "
-        "called by the user"
+        'The following "submodels" might be called by one or more of the implemented '
+        "methods or are meant to be directly called by the user"
     ),
 }
 
@@ -1186,8 +1194,8 @@ _loggedtuples: Set[str] = set()
 
 
 def autodoc_tuple2doc(module: types.ModuleType) -> None:
-    """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS`
-    of `Models` into the respective docstring."""
+    """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS` of `Models`
+    into the respective docstring."""
     modulename = module.__name__
     for membername, member in inspect.getmembers(module):
         for tuplename, descr in _name2descr.items():

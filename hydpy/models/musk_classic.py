@@ -214,6 +214,7 @@ class Model(modeltools.SegmentModel):
         musk_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

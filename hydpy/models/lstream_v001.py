@@ -1115,6 +1115,7 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
     FULL_ODE_METHODS = (lstream_model.Update_H_V1,)
     OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (lstream_model.PegasusH,)
 
     def calculate_characteristiclength(

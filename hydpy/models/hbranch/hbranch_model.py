@@ -216,6 +216,7 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     nodenames: List[str]

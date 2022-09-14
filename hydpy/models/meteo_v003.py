@@ -412,6 +412,7 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = (meteo_model.Return_DailyGlobalRadiation_V1,)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

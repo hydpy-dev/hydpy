@@ -642,6 +642,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_ActualRemoteRelief_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

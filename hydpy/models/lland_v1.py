@@ -1872,6 +1872,7 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def check_waterbalance(

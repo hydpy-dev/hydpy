@@ -175,6 +175,7 @@ class Model(conv_model.Model):
     )
     OUTLET_METHODS = (conv_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

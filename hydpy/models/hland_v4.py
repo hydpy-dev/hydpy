@@ -957,6 +957,7 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = (hland_model.Calc_QAb_QVs_BW_V1,)
     OUTLET_METHODS = (hland_model.Pass_Q_v1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def check_waterbalance(

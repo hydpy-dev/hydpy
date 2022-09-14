@@ -1085,6 +1085,7 @@ class Model(modeltools.SegmentModel):
         musk_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (musk_model.PegasusReferenceWaterLevel,)
 
     def prepare_states(self, discharge: float, tolerance: float = 1e-6) -> None:

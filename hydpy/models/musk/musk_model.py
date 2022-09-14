@@ -1248,4 +1248,5 @@ class Model(modeltools.SegmentModel):
         Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusReferenceWaterLevel,)

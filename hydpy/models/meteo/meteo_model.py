@@ -2338,4 +2338,5 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()

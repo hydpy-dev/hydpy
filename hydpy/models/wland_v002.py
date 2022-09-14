@@ -640,6 +640,7 @@ class Model(modeltools.ELSModel):
         wland_model.Pass_R_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (wland_model.PegasusDGEq,)
 
     def check_waterbalance(

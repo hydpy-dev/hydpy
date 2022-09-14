@@ -110,6 +110,7 @@ class Model(conv_model.Model):
     ADD_METHODS = (conv_model.Interpolate_InverseDistance_V1,)
     OUTLET_METHODS = (conv_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

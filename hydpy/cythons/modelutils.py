@@ -2025,11 +2025,10 @@ class PyxWriter:
                 "    parameters: Parameters\n"
                 "    sequences: Sequences\n"
             )
-            for methodgroup in self.model.METHOD_GROUPS:
-                for method in getattr(self.model, methodgroup):
-                    stubfile.write(
-                        f"    {method.__name__.lower()}: hydpy.core.modeltools.Method\n"
-                    )
+            for method in self.model.get_methods():
+                stubfile.write(
+                    f"    {method.__name__.lower()}: hydpy.core.modeltools.Method\n"
+                )
 
             stubfile.write("\n\nmodel: Model\n")
             stubfile.write("parameters: Parameters\n")

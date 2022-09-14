@@ -9622,6 +9622,7 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (
         PegasusESnowInz,
         PegasusESnow,

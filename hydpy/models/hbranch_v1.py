@@ -99,6 +99,7 @@ class Model(hbranch_model.Model):
     ADD_METHODS = ()
     OUTLET_METHODS = (hbranch_model.Pass_Outputs_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

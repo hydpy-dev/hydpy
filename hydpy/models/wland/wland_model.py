@@ -2748,6 +2748,7 @@ class Model(modeltools.ELSModel):
         Pass_R_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (
         PegasusDGEq,
         QuadDVEq_V1,

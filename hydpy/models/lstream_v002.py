@@ -751,6 +751,7 @@ class Model(lstream_model.Model):
     FULL_ODE_METHODS = (lstream_model.Update_VG_V1,)
     OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

@@ -430,6 +430,7 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = (meteo_model.Return_SunshineDuration_V1,)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

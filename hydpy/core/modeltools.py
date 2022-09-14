@@ -85,6 +85,149 @@ class SubmodelInterface:
         cls.name = cls.__name__.lower().rpartition("_")[0]
 
 
+class SubmodelProperty:
+    """Descriptor for submodel attributes.
+
+    |SubmodelProperty| instances link main models and their submodels.  They follow the
+    attribute convention described in the documentation on class |SubmodelInterface|.
+    Behind the scenes, they build the required connections both on the Python and the
+    Cython level and perform some type-related tests (to avoid errors due to selecting
+    submodels following the wrong interfaces).
+
+    We prepare the main model and its submodel in the Cython and pure Python mode to
+    test that |SubmodelProperty| works for all possible combinations:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(False):
+    ...     mainmodel_python = prepare_model("lland")
+    ...     submodel_python = prepare_model("ga_garto_submodel1")
+    >>> with pub.options.usecython(True):
+    ...     mainmodel_cython = prepare_model("lland")
+    ...     submodel_cython = prepare_model("ga_garto_submodel1")
+
+    By default, the main model handles no submodel:
+
+    >>> mainmodel_python.soilmodel
+    >>> mainmodel_cython.soilmodel
+
+    For pure Python main models, it makes no difference how the submodel is
+    initialised:
+
+    >>> mainmodel_python.soilmodel = submodel_python
+    >>> type(mainmodel_python.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> mainmodel_python.cymodel
+
+    >>> mainmodel_python.soilmodel = submodel_cython
+    >>> type(mainmodel_python.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> mainmodel_python.cymodel
+
+    If both models are initialised in Cython mode, |SubmodelProperty| connects the
+    instances of the Cython extension classes on the fly:
+
+    >>> mainmodel_cython.soilmodel = submodel_cython
+    >>> type(mainmodel_cython.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> type(mainmodel_cython.cymodel.get_soilmodel())
+    <class 'hydpy.cythons.autogen.c_ga_garto_submodel1.Model'>
+
+    Combining a Cython main model with a pure Python submodel causes a |RuntimeError|,
+    as using such a mix could result in hard-to-find errors:
+
+    >>> mainmodel_cython.soilmodel = submodel_python
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to assign value `ga_garto_submodel1` of type `Model` \
+to property `soilmodel`, the following error occurred: The main model `lland` is \
+initialised in Cython mode, but the submodel `ga_garto_submodel1` in pure Python \
+mode, so that the main model's cythonized methods cannot apply the submodel's methods.
+
+    Disconnecting a submodel from its main model works by assigning |None| as well as
+    using the `del` statement:
+
+    >>> mainmodel_python.soilmodel = None
+    >>> mainmodel_python.soilmodel
+
+    >>> del mainmodel_cython.soilmodel
+    >>> mainmodel_cython.soilmodel
+    >>> mainmodel_cython.cymodel.get_soilmodel()
+
+    >>> mainmodel_python.soilmodel = mainmodel_python
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign value `lland` of type `Model` to property \
+`soilmodel`, the following error occurred: The given value is neither `None` nor an \
+instance of any of the following types: `SoilModel_V1`.
+
+    The automatically generated docstrings list the supported interfaces:
+
+    >>> print(type(mainmodel_python).soilmodel.__doc__)
+    Optional submodel following one of the following interface(s): SoilModel_V1.
+    """
+
+    _interfaces: Tuple[Type[SubmodelInterface], ...]
+    _name: str
+
+    def __init__(self, interfaces: Iterable[Type[SubmodelInterface]]) -> None:
+        self._interfaces = tuple(interfaces)
+        self._name = self._interfaces[0].name
+        interfacenames = (i.__name__ for i in self._interfaces)
+        self.__doc__ = (
+            f"Optional submodel following one of the following interface(s): "
+            f"{objecttools.enumeration(interfacenames, conjunction='or')}."
+        )
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> Optional[Model]:
+        ...
+
+    def __get__(
+        self,
+        obj: Optional[Model],
+        objtype: Optional[Type[Model]] = None,
+    ) -> Union[SubmodelProperty, Optional[Model]]:
+        if obj is None:
+            return self
+        return vars(obj).get(self._name, None)
+
+    def __set__(self, obj: Model, value: Optional[Model]) -> None:
+        try:
+            if value is None:
+                self.__delete__(obj)
+            elif isinstance(value, self._interfaces):
+                vars(obj)[self._name] = value
+                if obj.cymodel is not None:
+                    if value.cymodel is None:
+                        raise RuntimeError(
+                            f"The main model `{obj.name}` is initialised in Cython "
+                            f"mode, but the submodel `{value.name}` in pure Python "
+                            f"mode, so that the main model's cythonized methods "
+                            f"cannot apply the submodel's methods."
+                        )
+                    getattr(obj.cymodel, f"set_{self._name}")(value.cymodel)
+            else:
+                interfacenames = (i.__name__ for i in self._interfaces)
+                raise ValueError(
+                    f"The given value is neither `None` nor an instance of any of the "
+                    f"following types: `{objecttools.enumeration(interfacenames)}`."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to assign {objecttools.value_of_type(value)} to "
+                f"property `{self._name}`"
+            )
+
+    def __delete__(self, obj: Model) -> None:
+        vars(obj)[self._name] = None
+        if obj.cymodel is not None:
+            getattr(obj.cymodel, f"set_{self._name}")(None)
+
+
 class IndexProperty:
     """Base class for index descriptors like |Idx_Sim|."""
 
@@ -237,8 +380,9 @@ class Model:
         self.cymodel = None
         self.element = None
         self._init_methods()
-        for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
-            setattr(self, interfacename, None)
+        if hasattr(self, "SUBMODELINTERFACES"):
+            for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
+                setattr(self, interfacename, None)
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
@@ -842,7 +986,19 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def __str__(self) -> str:
         return self.name
 
+    @classmethod
+    def _init_submodelproperties(cls) -> None:
+        def _key(interface: Type[SubmodelInterface]) -> str:
+            return interface.name
+
+        if hasattr(cls, "SUBMODELINTERFACES"):
+            interfaces = sorted(cls.SUBMODELINTERFACES, key=_key)
+            for name, subinterfaces in itertools.groupby(interfaces, key=_key):
+                setattr(cls, name, SubmodelProperty(subinterfaces))
+
     def __init_subclass__(cls) -> None:
+
+        cls._init_submodelproperties()
 
         modulename = cls.__module__
         if modulename.count(".") > 2:

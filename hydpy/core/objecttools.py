@@ -1730,6 +1730,7 @@ def enumeration(
     values: Iterable[T],
     converter: Callable[[T], str] = str,
     default: str = "",
+    conjunction: str = "and",
 ) -> str:
     """Return an enumeration string based on the given values.
 
@@ -1746,24 +1747,35 @@ def enumeration(
     ''
 
     All given objects are converted to strings by function |str|, as shown by the first
-    two examples.  This behaviour can be changed by another function expecting a single
-    argument and returning a string:
+    two examples.  A callback function expecting a single argument and returning a
+    string can change this behaviour.
 
     >>> from hydpy import classname
     >>> enumeration(("text", 3, []), converter=classname)
     'str, int, and list'
 
-    You can define a default string that is returned in case an empty iterable is given:
+    You can define a default value that |enumeration| will return if it receives an
+    empty iterable:
 
     >>> enumeration((), default="nothing")
     'nothing'
 
-    Functin |enumeration| respects option |Options.ellipsis|:
+    Function |enumeration| respects option |Options.ellipsis|:
 
     >>> from hydpy import pub
     >>> with pub.options.ellipsis(3):
     ...     enumeration(range(10))
     '0, 1, 2, ..., 7, 8, and 9'
+
+    You can replace the conjunction "and" with any other word:
+
+    >>> enumeration(range(1), conjunction="or")
+    '0'
+    >>> enumeration(range(2), conjunction="or")
+    '0 or 1'
+    >>> with pub.options.ellipsis(3):
+    ...     enumeration(range(10), conjunction="or")
+    '0, 1, 2, ..., 7, 8, or 9'
     """
     values_ = list(converter(value) for value in values)
     if not values_:
@@ -1771,11 +1783,11 @@ def enumeration(
     if len(values_) == 1:
         return values_[0]
     if len(values_) == 2:
-        return " and ".join(values_)
+        return f" {conjunction} ".join(values_)
     ellipsis_ = int(hydpy.pub.options.ellipsis)
     if (ellipsis_ > 0) and (len(values_) > 2 * ellipsis_):
         values_ = values_[:ellipsis_] + ["..."] + values_[-ellipsis_:]
-    return ", and ".join((", ".join(values_[:-1]), values_[-1]))
+    return f", {conjunction} ".join((", ".join(values_[:-1]), values_[-1]))
 
 
 def description(self: object) -> str:
@@ -1813,7 +1825,7 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     ...     print("printtarget = stdout", file=printtarget)
     printtarget = stdout
 
-    If passes already opened file objects, flushing but not closing them:
+    It passes already opened file objects, flushing but not closing them:
 
     >>> from hydpy import TestIO
     >>> with TestIO():

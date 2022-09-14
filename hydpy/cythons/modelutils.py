@@ -814,7 +814,8 @@ class PyxWriter:
     @property
     def cimports(self) -> List[str]:
         """Import command lines."""
-        return Lines(
+        lines = Lines(
+            "from typing import Optional",
             "import numpy",
             "cimport numpy",
             "from libc.math cimport exp, fabs, log, "
@@ -826,6 +827,7 @@ class PyxWriter:
             "from cpython.mem cimport PyMem_Realloc",
             "from cpython.mem cimport PyMem_Free",
             "from hydpy.cythons.autogen cimport configutils",
+            "from hydpy.cythons.autogen cimport interfaceutils",
             "from hydpy.cythons.autogen cimport interputils",
             "from hydpy.cythons.autogen import pointerutils",
             "from hydpy.cythons.autogen cimport pointerutils",
@@ -833,6 +835,15 @@ class PyxWriter:
             "from hydpy.cythons.autogen cimport rootutils",
             "from hydpy.cythons.autogen cimport smoothutils",
         )
+        interfaces = self.model.SUBMODELINTERFACES + tuple(
+            interface
+            for interface in type(self.model).__bases__
+            if interface.__module__.startswith("hydpy.interfaces")
+        )
+        for interface in set(interfaces):
+            modulename = interface.__module__.split(".")[-1]
+            lines.append(f"from hydpy.cythons.autogen cimport {modulename}")
+        return lines
 
     @property
     def constants(self) -> List[str]:
@@ -1281,7 +1292,12 @@ class PyxWriter:
         submodels = getattr(self.model, "SUBMODELS", ())
         lines = Lines()
         lines.add(0, "@cython.final")
-        lines.add(0, "cdef class Model:")
+        interfacebases = ", ".join(
+            f"{base.__module__.split('.')[-1]}.{base.__name__}"
+            for base in type(self.model).__bases__
+            if issubclass(base, modeltools.SubmodelInterface)
+        )
+        lines.add(0, f"cdef class Model({interfacebases}):")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
@@ -1289,6 +1305,8 @@ class PyxWriter:
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
+        for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+            lines.add(1, f"cdef public interfaceutils.BaseInterface {name}")
         for submodel in submodels:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
@@ -1297,8 +1315,16 @@ class PyxWriter:
             lines.add(1, "cdef public NumVars numvars")
         if submodels:
             lines.add(1, "def __init__(self):")
+            for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+                lines.add(2, f"self.{name} = None")
             for submodel in submodels:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
+        baseinterface = "Optional[interfaceutils.BaseInterface]"
+        for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+            lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
+            lines.add(2, f"return self.{name}")
+            lines.add(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
+            lines.add(2, f"self.{name} = {name}")
         return lines
 
     @property
@@ -2202,13 +2228,15 @@ class FuncConverter:
           * remove the phrase `modelutils`
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
-          * replace "model." with "self."
+          * replace " model." with " self."
           * remove the ": float" annotation
         """
         code = inspect.getsource(self.func)
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
-        code = code.replace("model.", "self.")
+        code = code.replace(" model.", " self.")
+        code = code.replace("[model.", "[self.")
+        code = code.replace("(model.", "(self.")
         code = code.replace(": float", "")
         for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
@@ -2283,8 +2311,11 @@ class FuncConverter:
           * The function shall be a method.
           * The method shall be inlined.
           * Annotations specify all argument and return types.
+          * Non-default argument and return types are translate to
+            "modulename.classname" strings.
           * Local variables are generally of type `int` but of type `double` when their
             name starts with `d_`.
+          * Identical type names in Python and Cython when casting.
 
         We import some classes and prepare a pure-Python instance of application model
         |hland_v1|:
@@ -2297,7 +2328,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
 
-        First, we show an example on a standard method without additional arguments and
+        First, we show an example of a standard method without additional arguments and
         returning nothing but requiring two local variables:
 
         >>> class Calc_Test_V1(Method):
@@ -2319,13 +2350,12 @@ class FuncConverter:
                     self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
-        The second example shows that `float` and `Vector` annotations
-        translate into `double` and `double[:]` types, respectively:
+        The second example shows that `float` and `Vector` annotations translate into
+        `double` and `double[:]` types, respectively:
 
         >>> class Calc_Test_V2(Method):
         ...     @staticmethod
-        ...     def __call__(
-        ...             model: Model, value: float, values: Vector) -> float:
+        ...     def __call__(model: Model, value: float, values: Vector) -> float:
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
@@ -2334,25 +2364,49 @@ class FuncConverter:
 nogil:
                 return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
+
+        Third, Python's standard cast function translates into Cython's cast syntax:
+
+        >>> from hydpy.interfaces import soilinterfaces
+        >>> class Calc_Test_V3(Method):
+        ...     @staticmethod
+        ...     def __call__(model: Model) -> soilinterfaces.SoilModel_V1:
+        ...         return cast(soilinterfaces.SoilModel_V1, model.soilmodel)
+        >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
+        >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
+            cpdef inline soilinterfaces.SoilModel_V1 calc_test_v3(self)  nogil:
+                return <soilinterfaces.SoilModel_V1>self.soilmodel
+        <BLANKLINE>
         """
+
+        def _get_cytype(name_: str) -> str:
+            pytype = annotations_[name_]
+            if pytype in TYPE2STR:
+                return TYPE2STR[pytype]
+            return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
+
         annotations_ = get_type_hints(self.func)
         lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        lines[0] = lines[0].replace(
-            "def ", f"cpdef inline {TYPE2STR[annotations_['return']]} "
-        )
+        lines[0] = lines[0].replace("def ", f"cpdef inline {_get_cytype('return')} ")
         lines[0] = lines[0].replace("):", f") {_nogil}:")
         for name in self.untypedarguments:
-            type_ = TYPE2STR[annotations_[name]]
-            lines[0] = lines[0].replace(f", {name},", f", {type_} {name},")
-            lines[0] = lines[0].replace(f", {name})", f", {type_} {name})")
+            cytype = _get_cytype(name)
+            lines[0] = lines[0].replace(f", {name},", f", {cytype} {name},")
+            lines[0] = lines[0].replace(f", {name})", f", {cytype} {name})")
         code = inspect.getsource(self.func)
         for name in self.untypedinternalvarnames:
             if (f" {name}: float" in code) or name.startswith("d_"):
-                type_ = "double"
+                cytype = "double"
             else:
-                type_ = "int"
-            lines.insert(1, f"        cdef {type_} {name}")
+                cytype = "int"
+            lines.insert(1, f"        cdef {cytype} {name}")
+        for idx, line in enumerate(lines):
+            if "cast(" in line:
+                part1, part2 = line.split("cast(")
+                part2 = part2.replace(", ", ">", 1).replace(")", "", 1)
+                line = "<".join([part1, part2])
+                lines[idx] = line
         return Lines(*lines)
 
 

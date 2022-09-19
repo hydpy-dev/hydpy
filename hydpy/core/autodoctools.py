@@ -40,6 +40,7 @@ from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import exe
+from hydpy import interfaces
 from hydpy import models
 from hydpy import examples
 from hydpy.core import modeltools
@@ -1066,7 +1067,7 @@ def prepare_mainsubstituter() -> Substituter:
         warnings,
     ):
         substituter.add_module(module)
-    for subpackage in (auxs, core, cythons, exe):
+    for subpackage in (auxs, core, cythons, interfaces, exe):
         for _, name, _ in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))

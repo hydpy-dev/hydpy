@@ -329,10 +329,11 @@ if config.USEAUTODOC:
         from hydpy import core
         from hydpy import cythons
         from hydpy import exe
+        from hydpy import interfaces
         from hydpy.core import autodoctools
 
         substituter = autodoctools.prepare_mainsubstituter()
-        for subpackage in (auxs, core, cythons, exe):
+        for subpackage in (auxs, core, cythons, interfaces, exe):
             subpackagepath = subpackage.__path__[0]
             for filename in sorted(os.listdir(subpackagepath)):
                 if filename.endswith(".py") and not filename.startswith("_"):

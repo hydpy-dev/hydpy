@@ -27,6 +27,7 @@ from hydpy import core
 from hydpy import cythons
 from hydpy import docs
 from hydpy import exe
+from hydpy import interfaces
 from hydpy import models
 from hydpy.core import autodoctools
 from hydpy.core import masktools
@@ -63,7 +64,7 @@ hydpy.substituter.update_slaves()
 # the substitution replacement commands relevant for the respective module
 # or package.
 path2source = {}
-for subpackage in (auxs, core, cythons, exe, models, hydpy):
+for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
     subpackagepath: str = subpackage.__path__[0]
     if subpackage is hydpy:
         filenames = ["examples.py"]

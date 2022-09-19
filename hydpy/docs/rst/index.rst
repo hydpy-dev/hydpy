@@ -119,6 +119,7 @@ Sections :ref:`core` covers the basic functionalities of the
    how_to
    framework
    modelcollection
+   interfaces
    development
    Example Projects <examples>
    Bibliography <zbibliography>

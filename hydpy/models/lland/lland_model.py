@@ -2,10 +2,14 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
+from hydpy.interfaces import soilinterfaces
 
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -8139,34 +8143,34 @@ class Update_QDB_V1(modeltools.Method):
             flu.qdb[k] += flu.fvg[k] * (flu.wada[k] - flu.qdb[k])
 
 
-class Calc_BoWa_V1(modeltools.Method):
-    """Update the soil moisture and, if necessary, correct the ingoing and
-    outgoing fluxes.
+class Calc_BoWa_Default_V1(modeltools.Method):
+    r"""Update the soil moisture and (if necessary) correct the fluxes to be added or
+    subtracted.
 
     Basic equations:
-       :math:`\\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
+       :math:`\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
 
-       :math:`0 \\leq BoWa \\leq WMax`
+       :math:`0 \leq BoWa \leq WMax`
 
     Examples:
 
-        For water areas and sealed surfaces, we simply set soil moisture |BoWa|
-        to zero and do not need to perform any flux corrections:
+        For water areas and sealed surfaces, we can set soil moisture (|BoWa|) to zero
+        and do not need to perform any flux corrections:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(4)
         >>> lnk(FLUSS, SEE, WASSER, VERS)
         >>> states.bowa = 100.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(0.0, 0.0, 0.0, 0.0)
 
-        We make no principal distinction between the remaining land use
-        classes and select arable land (|ACKER|) for the following examples.
+        We make no principal distinction between the remaining land use classes and
+        select arable land (|ACKER|) for the following examples.
 
-        To prevent soil water contents increasing |WMax|, we might need to
-        decrease |WaDa| and |QKap|:
+        To prevent soil water contents from exceeding |WMax|, we might need to decrease
+        |WaDa| and |QKap|:
 
         >>> lnk(ACKER)
         >>> wmax(100.0)
@@ -8178,7 +8182,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 0.0
         >>> fluxes.qib2 = 0.0
         >>> fluxes.qdb = 0.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(95.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada
@@ -8188,15 +8192,14 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.evb
         evb(5.0, 5.0, 5.0, 5.0)
 
-        Additionally, to prevent storage overlflows we might need to
-        decrease |EvB| in case it is negative (meaning, condensation
-        increases the soil water storage):
+        Additionally, to prevent storage overflows, we might need to decrease |EvB| if
+        it is negative (when condensation increases the soil water storage):
 
         >>> states.bowa = 90.0
         >>> fluxes.wada = 0.0, 5.0, 10.0, 15.0
         >>> fluxes.qkap = 2.5
         >>> fluxes.evb = -2.5
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(95.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada
@@ -8206,8 +8209,8 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.evb
         evb(-2.5, -2.5, -0.833333, -1.25)
 
-        To prevent negative |BoWa| value, we might need to decrease |QBB|,
-        |QIB1|, |QIB1|, |QBB|, and |EvB|:
+        To prevent negative |BoWa| values, we might need to decrease |QBB|, |QIB2|,
+        |QIB1|, |QBB|, and |EvB|:
 
         >>> states.bowa = 10.0
         >>> fluxes.wada = 0.0
@@ -8217,7 +8220,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 1.25
         >>> fluxes.qib2 = 1.25
         >>> fluxes.qdb = 1.25
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(5.0, 0.0, 0.0, 0.0)
         >>> fluxes.evb
@@ -8231,8 +8234,8 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qdb
         qdb(1.25, 1.25, 0.833333, 0.625)
 
-        We do not to modify negative |EvB| values (condensation) to prevent
-        negative |BoWa| values:
+        We do not modify negative |EvB| values (condensation) when preventing negative
+        |BoWa| values:
 
         >>> states.bowa = 10.0
         >>> fluxes.evb = -15.0, -10.0, -5.0, 0.0
@@ -8240,7 +8243,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 5.0
         >>> fluxes.qib2 = 5.0
         >>> fluxes.qdb = 5.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(5.0, 0.0, 0.0, 0.0)
         >>> fluxes.evb
@@ -8276,6 +8279,7 @@ class Calc_BoWa_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.0
@@ -8304,6 +8308,312 @@ class Calc_BoWa_V1(modeltools.Method):
                         flu.wada[k] *= d_factor
                         flu.qkap[k] *= d_factor
                         sta.bowa[k] = con.wmax[k]
+
+
+class Calc_BoWa_SoilModel_V1(modeltools.Method):
+    r"""Apply a submodel following the |SoilModel_V1| interface to include additional
+    direct runoff and groundwater recharge components into the soil moisture update.
+
+    Examples:
+
+        We prepare a |lland| model instance consisting of four hydrological response
+        units, which will serve as the main model:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1h")
+        >>> nhru(4)
+
+        As an example, we select |ga_garto_submodel1| as the submodel.  We define its
+        parameter values like in the initial examples of the documentation on
+        |ga_garto_submodel1| and its stand-alone counterpart |ga_garto| (soil type
+        loam) but prepare - analogue to the main model's setting - four soil
+        compartments.  The two first compartments have a soil depth of 1.0 m ("deep
+        soils") and the two last of 0.1 m ("flat soils"):
+
+        >>> from hydpy import prepare_model, pub
+        >>> garto = prepare_model("ga_garto_submodel1")
+        >>> garto.parameters.control.nmbsoils(4)
+        >>> garto.parameters.control.nmbbins(3)
+        >>> with pub.options.parameterstep("1s"):
+        ...     garto.parameters.control.dt(1.0)
+        >>> garto.parameters.control.sealed(False)
+        >>> garto.parameters.control.soildepth(1000.0, 1000.0, 100.0, 100.0)
+        >>> garto.parameters.control.residualmoisture(0.027)
+        >>> garto.parameters.control.saturationmoisture(0.434)
+        >>> garto.parameters.control.saturatedconductivity(13.2)
+        >>> garto.parameters.control.poresizedistribution(0.252)
+        >>> garto.parameters.control.airentrypotential(111.5)
+        >>> garto.parameters.update()
+        >>> model.soilmodel = garto
+
+        For water areas and sealed surfaces, |lland| does not apply its submodel and
+        just sets |BoWa| to zero:
+
+        >>> lnk(FLUSS, SEE, WASSER, VERS)
+        >>> states.bowa = 100.0
+        >>> model.calc_bowa_v1()
+        >>> states.bowa
+        bowa(0.0, 0.0, 0.0, 0.0)
+
+        |Calc_BoWa_SoilModel_V1| works the same for all other land use types.  We
+        randomly select |ACKER| (arable land):
+
+        >>> lnk(ACKER)
+
+        The water reaching the soil routine (|WaDa|) is 40 mm/h for each response unit
+        in all examples:
+
+        >>> fluxes.wada = 40.0
+
+        We define a function that will help us to execute the following test runs.  It
+        sets the values of the main model's flux sequences for direct runoff (|QDB|),
+        both interflow components (|QIB2| and |QIB1|), base flow (|QBB|),
+        evapotranspiration (|EvB|), and capillary rise (|QKap|).  Direct runoff is
+        predefined to 40 mm/h for the first (deep) and third (flat) response unit and
+        0 mm/h for the second (deep) and fourth (flat) response unit.  The other flux
+        sequences' values are customisable (default value 0 mm/h).  The initial
+        relative soil moisture (|ga_states.Moisture|) is 10 %, which makes an absolute
+        soil water content (|BoWa|) of 100 mm for the first two and 10 mm for the last
+        two response units.  After applying method |Calc_BoWa_SoilModel_V1|, our test
+        function checks for possible water balance violations and (if it does not find
+        any) prints the updated soil moisture content and the eventually adjusted flux
+        sequences's values:
+
+        >>> from numpy import array, round_
+        >>> from hydpy.core.objecttools import repr_values
+        >>> def check(qib2=0, qib1=0, qbb=0, evb=0, qkap=0):
+        ...     fluxes.qdb = 40.0, 0.0, 40, 0.0
+        ...     fluxes.qib2 = qib2
+        ...     fluxes.qib1 = qib1
+        ...     fluxes.qbb = qbb
+        ...     fluxes.evb = evb
+        ...     fluxes.qkap = qkap
+        ...     garto.sequences.states.moisture = 0.1
+        ...     garto.sequences.states.frontdepth = 0.0
+        ...     garto.sequences.states.moisturechange = 0.0
+        ...     old_bowa = array([garto.get_soilwatercontent(k) for k in range(4)])
+        ...     model.calc_bowa_v1()
+        ...     new_bowa = states.bowa.values.copy()
+        ...     delta = (fluxes.wada + fluxes.qkap - fluxes.qdb - fluxes.qib2
+        ...              - fluxes.qib1 - fluxes.qbb - fluxes.evb)
+        ...     assert all(round_(new_bowa, 11) == round_(old_bowa + delta, 11))
+        ...     print("bowa:", repr_values(states.bowa))
+        ...     print("qdb:", repr_values(fluxes.qdb))
+        ...     print("qib2:", repr_values(fluxes.qib2))
+        ...     print("qib1:", repr_values(fluxes.qib1))
+        ...     print("qbb:", repr_values(fluxes.qbb))
+        ...     print("evb:", repr_values(fluxes.evb))
+        ...     print("qkap:", repr_values(fluxes.qkap))
+
+        If |WaDa| (the potential direct runoff amount) and |QDB| (the already
+        calculated direct runoff amount) are equal, like for the hydrological response
+        units one and three, there is no water left that could infiltrate into the
+        soil.  For zero previously calculated direct runoff, |WaDa| could infiltrate
+        completely.  Here, about 38.9 mm enter the deep soil, and the remainder
+        (1.1 mm) becomes direct runoff (compare with example
+        :ref:`ga_garto_5h_1000mm`).  The flat soil becomes completely saturated so that
+        there is a larger amount of direct runoff (4.5 mm) and also a considerable
+        amount of groundwater recharge (2.1 mm) (see example :ref:`ga_garto_5h_100mm`):
+
+        >>> check()
+        bowa: 100.0, 138.896943, 10.0, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        |Calc_BoWa_SoilModel_V1| adds externally defined capillary rise after
+        performing the infiltration and percolation routine.  Hence, passing a
+        capillary rise value of 1.0 mm does not result in direct runoff or groundwater
+        recharge differences compared to the previous example  Note that the fourths
+        soil compartment cannot receive capillary rise due to its saturation.  Hence,
+        |Calc_BoWa_SoilModel_V1| corrects |QKap| to zero:
+
+        >>> check(qkap=1.0)
+        bowa: 101.0, 139.896943, 11.0, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 1.0, 1.0, 1.0, 0.0
+
+        Passing an (extremely unrealistic) capillary rise of 40.0 mm requires also a
+        reduction for the third soil compartment:
+
+        >>> check(qkap=40.0)
+        bowa: 140.0, 178.896943, 43.4, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 40.0, 40.0, 33.4, 0.0
+
+        |Calc_BoWa_SoilModel_V1| allows for negative evapotranspiration values and
+        handles them like capillary rise.  If their sum exceeds the available soil
+        water storage, |Calc_BoWa_SoilModel_V1| reduces both by the same factor:
+
+        >>> check(qkap=30.0, evb=-10.0)
+        bowa: 140.0, 178.896943, 43.4, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: -10.0, -10.0, -8.35, 0.0
+        qkap: 30.0, 30.0, 25.05, 0.0
+
+        The last process triggered by |Calc_BoWa_SoilModel_V1| is removing of a
+        defined water demand.  This demand is the sum of both interflow components,
+        base flow, and evapotranspiration:
+
+        >>> check(qib2=6.0, qib1=3.0, qbb=2.0, evb=1.0)
+        bowa: 88.0, 126.896943, 2.7, 31.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 6.0, 6.0, 3.65, 6.0
+        qib1: 3.0, 3.0, 1.825, 3.0
+        qbb: 2.0, 2.0, 1.216667, 4.097333
+        evb: 1.0, 1.0, 0.608333, 1.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        For soils that do not contain enough water to satisfy the whole demand,
+        |Calc_BoWa_SoilModel_V1| reduces all mentioned components by the same factor:
+
+        >>> check(qib2=12.0, qib1=6.0, qbb=4.0, evb=2.0)
+        bowa: 76.0, 114.896943, 2.7, 19.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 12.0, 12.0, 3.65, 12.0
+        qib1: 6.0, 6.0, 1.825, 6.0
+        qbb: 4.0, 4.0, 1.216667, 6.097333
+        evb: 2.0, 2.0, 0.608333, 2.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        Negative evapotranspiration values cannot contribute to soil overdrying.
+        Hence, |Calc_BoWa_SoilModel_V1| does not modify negative evapotranspiration
+        values when reducing the "real" loss terms:
+
+        >>> check(qib2=6.0, qib1=3.0, qbb=2.0, evb=-1.0, qkap=1.0)
+        bowa: 91.0, 129.896943, 2.7, 32.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 6.0, 6.0, 5.072727, 6.0
+        qib1: 3.0, 3.0, 2.536364, 3.0
+        qbb: 2.0, 2.0, 1.690909, 4.097333
+        evb: -1.0, -1.0, -1.0, 0.0
+        qkap: 1.0, 1.0, 1.0, 0.0
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
+    UPDATEDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvB,
+        lland_fluxes.QBB,
+        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
+        lland_fluxes.QDB,
+        lland_fluxes.QKap,
+    )
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: soilinterfaces.SoilModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nhru):
+            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
+                sta.bowa[k] = 0.0
+            else:
+                # infiltration and percolation
+                submodel.set_initialsurfacewater(k, flu.wada[k])
+                submodel.set_actualsurfacewater(k, flu.wada[k] - flu.qdb[k])
+                submodel.set_soilwatersupply(k, 0.0)
+                submodel.set_soilwaterdemand(k, 0.0)
+                submodel.execute_infiltration(k)
+                infiltration: float = submodel.get_infiltration(k)
+                flu.qdb[k] += (flu.wada[k] - flu.qdb[k]) - infiltration
+                qbb_soilmodel: float = submodel.get_percolation(k)
+                # capillary rise and negative evapotranspiration
+                supply: float = flu.qkap[k]
+                if flu.evb[k] < 0.0:
+                    supply -= flu.evb[k]
+                submodel.set_soilwatersupply(k, supply)
+                submodel.add_soilwater(k)
+                addition: float = submodel.get_soilwateraddition(k)
+                if addition < supply:
+                    factor: float = addition / supply
+                    flu.qkap[k] *= factor
+                    if flu.evb[k] < 0.0:
+                        flu.evb[k] *= factor
+                # LARSIM-type baseflow, interflow, and positive evaporation
+                demand: float = flu.qbb[k] + flu.qib1[k] + flu.qib2[k]
+                if flu.evb[k] > 0.0:
+                    demand += flu.evb[k]
+                submodel.set_soilwaterdemand(k, demand)
+                submodel.remove_soilwater(k)
+                removal: float = submodel.get_soilwaterremoval(k)
+                if removal < demand:
+                    factor = removal / demand
+                    flu.qbb[k] *= factor
+                    flu.qib1[k] *= factor
+                    flu.qib2[k] *= factor
+                    if flu.evb[k] > 0.0:
+                        flu.evb[k] *= factor
+                # sync soil moisture
+                sta.bowa[k] = submodel.get_soilwatercontent(k)
+                flu.qbb[k] += qbb_soilmodel
+
+
+class Calc_BoWa_V1(modeltools.Method):
+    """Update the soil moisture.
+
+    |Calc_BoWa_V1| serves as a switch method.  Its behaviour depends on whether the
+    user activates a soil submodel following the |SoilModel_V1| interface or not.  If
+    not, |Calc_BoWa_V1| applies |Calc_BoWa_Default_V1| to perform a "simple" soil
+    moisture update.  If so, |Calc_BoWa_V1| uses |Calc_BoWa_SoilModel_V1| to include
+    additional direct runoff and groundwater recharge components into the soil moisture
+    update.  See the documentation of the mentioned submethods for more information.
+    """
+
+    SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
+    SUBMETHODS = (
+        Calc_BoWa_Default_V1,
+        Calc_BoWa_SoilModel_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.WMax,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
+    UPDATEDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvB,
+        lland_fluxes.QBB,
+        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
+        lland_fluxes.QDB,
+        lland_fluxes.QKap,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.soilmodel is None:
+            model.calc_bowa_default_v1()
+        elif model.soilmodel.typeid == 1:
+            model.calc_bowa_soilmodel_v1(
+                cast(soilinterfaces.SoilModel_V1, model.soilmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.soilmodel)
 
 
 class Calc_QBGZ_V1(modeltools.Method):
@@ -8907,8 +9217,8 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
             >>> check(sm=4.0, g1=1.0, g2=2.0)
             sbg(4.0), qbga(1.4), qbgz(0.4), qdgz(2.6)
 
-            Now, both |GSBGrad1| and |GSBGrad2| are smaller the groundwater rise at the
-            interval's start and end time:
+            Now, both |GSBGrad1| and |GSBGrad2| are smaller than the groundwater rise
+            at the interval's start and end time:
 
             >>> check(sm=10.0, g1=0.5, g2=1.0)
             sbg(5.693046), qbga(0.534768), qbgz(1.227814), qdgz(1.772186)
@@ -9503,6 +9813,8 @@ class Model(modeltools.AdHocModel):
         Return_ESnow_V1,
         Return_TempSSurface_V1,
         Return_SG_V1,
+        Calc_BoWa_Default_V1,
+        Calc_BoWa_SoilModel_V1,
     )
     RUN_METHODS = (
         Calc_QZH_V1,
@@ -9622,7 +9934,7 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
     SUBMODELS = (
         PegasusESnowInz,
         PegasusESnow,

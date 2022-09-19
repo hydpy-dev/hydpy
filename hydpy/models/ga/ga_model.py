@@ -2377,6 +2377,396 @@ class Calc_TotalSurfaceRunoff_V1(modeltools.Method):
             flu.totalsurfacerunoff += der.soilareafraction[s] * flu.surfacerunoff[s]
 
 
+class Set_InitialSurfaceWater_V1(modeltools.Method):
+    """Set the given initial surface water depth for the selected soil compartment.
+
+    Example:
+
+        Note that |Set_InitialSurfaceWater_V1| multiplies the given value with |DT| to
+        adjust it to the numerical substep width:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> dt.value = 0.5
+        >>> model.set_initialsurfacewater_v1(0, 2.0)
+        >>> model.set_initialsurfacewater_v1(1, 4.0)
+        >>> aides.initialsurfacewater
+        initialsurfacewater(1.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (ga_control.DT,)
+    RESULTSEQUENCES = (ga_aides.InitialSurfaceWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+        con = model.parameters.control.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        aid.initialsurfacewater[s] = con.dt * v
+
+
+class Set_ActualSurfaceWater_V1(modeltools.Method):
+    """Set the given actual surface water depth for the selected soil compartment.
+
+    Example:
+
+        Note that |Set_ActualSurfaceWater_V1| multiplies the given value with |DT| to
+        adjust it to the numerical substep width:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> dt.value = 0.5
+        >>> model.set_actualsurfacewater_v1(0, 2.0)
+        >>> model.set_actualsurfacewater_v1(1, 4.0)
+        >>> aides.actualsurfacewater
+        actualsurfacewater(1.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (ga_control.DT,)
+    RESULTSEQUENCES = (ga_aides.ActualSurfaceWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+        con = model.parameters.control.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        aid.actualsurfacewater[s] = con.dt * v
+
+
+class Set_SoilWaterSupply_V1(modeltools.Method):
+    """Set the (potential) water supply to the soil's body.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> model.set_soilwatersupply_v1(0, 2.0)
+        >>> model.set_soilwatersupply_v1(1, 4.0)
+        >>> fluxes.soilwatersupply
+        soilwatersupply(2.0, 4.0)
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.SoilWaterSupply,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.soilwatersupply[s] = v
+
+
+class Set_SoilWaterDemand_V1(modeltools.Method):
+    """Set the (potential) water withdrawal from the soil's surface and body.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> model.set_soilwaterdemand_v1(0, 2.0)
+        >>> model.set_soilwaterdemand_v1(1, 4.0)
+        >>> fluxes.demand
+        demand(2.0, 4.0)
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.Demand,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.demand[s] = v
+
+
+class Execute_Infiltration_V1(modeltools.Method):
+    """Calculate infiltration (and percolation).
+
+    The interface method |Execute_Infiltration_V1| subsequently executes the GARTO
+    methods |Percolate_FilledBin_V1|, |Infiltrate_WettingFrontBins_V1|,
+    |Merge_FrontDepthOvershootings_V1|, and |Merge_SoilDepthOvershootings_V1| for all
+    numerical substeps.
+    """
+
+    SUBMETHODS = (
+        Return_LastActiveBin_V1,
+        Return_Conductivity_V1,
+        Return_DryDepth_V1,
+        Return_CapillaryDrive_V1,
+        Percolate_FilledBin_V1,
+        Infiltrate_WettingFrontBins_V1,
+        Merge_FrontDepthOvershootings_V1,
+        Merge_SoilDepthOvershootings_V1,
+    )
+    CONTROLPARAMETERS = (
+        ga_control.NmbBins,
+        ga_control.DT,
+        ga_control.SoilDepth,
+        ga_control.ResidualMoisture,
+        ga_control.SaturationMoisture,
+        ga_control.SaturatedConductivity,
+        ga_control.AirEntryPotential,
+        ga_control.PoreSizeDistribution,
+    )
+    DERIVEDPARAMETERS = (
+        ga_derived.NmbSubsteps,
+        ga_derived.EffectiveCapillarySuction,
+    )
+    REQUIREDSEQUENCES = (ga_aides.InitialSurfaceWater,)
+    UPDATEDSEQUENCES = (
+        ga_aides.ActualSurfaceWater,
+        ga_states.Moisture,
+        ga_states.FrontDepth,
+        ga_logs.MoistureChange,
+    )
+    RESULTSEQUENCES = (
+        ga_fluxes.Infiltration,
+        ga_fluxes.Percolation,
+        ga_fluxes.SurfaceRunoff,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        initialactualsurfacewater: float = aid.actualsurfacewater[s]
+        flu.infiltration[s] = 0.0
+        flu.percolation[s] = 0.0
+        flu.surfacerunoff[s] = 0.0
+        for _ in range(der.nmbsubsteps):
+            aid.actualsurfacewater[s] = initialactualsurfacewater
+            model.percolate_filledbin_v1(s)
+            model.infiltrate_wettingfrontbins_v1(s)
+            flu.infiltration[s] += initialactualsurfacewater - aid.actualsurfacewater[s]
+            model.merge_frontdepthovershootings_v1(s)
+            model.merge_soildepthovershootings_v1(s)
+            flu.surfacerunoff[s] += aid.actualsurfacewater[s]
+        aid.actualsurfacewater[s] = 0.0
+
+
+class Add_SoilWater_V1(modeltools.Method):
+    """Add the (direct) soil water supply to the soil's body.
+
+    The interface method |Add_SoilWater_V1| only calls |Withdraw_AllBins_V1|.
+    """
+
+    SUBMETHODS = (Water_AllBins_V1,)
+    CONTROLPARAMETERS = (
+        ga_control.NmbBins,
+        ga_control.SoilDepth,
+        ga_control.SaturationMoisture,
+    )
+    REQUIREDSEQUENCES = (ga_fluxes.SoilWaterSupply,)
+    UPDATEDSEQUENCES = (
+        ga_states.FrontDepth,
+        ga_states.Moisture,
+        ga_logs.MoistureChange,
+    )
+    RESULTSEQUENCES = (ga_fluxes.SoilWaterAddition,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.soilwateraddition[s] = 0.0
+        model.water_allbins_v1(s, flu.soilwatersupply[s])
+
+
+class Remove_SoilWater_V1(modeltools.Method):
+    """Remove the water demand from the soil's body and eventually from the soil's
+    surface.
+
+    The interface method |Remove_SoilWater_V1| only calls |Withdraw_AllBins_V1|.
+    Hence, whether |Remove_SoilWater_V1| can remove surface water depends on the order
+    the different interface methods are applied and is thus a decision of the calling
+    model.
+    """
+
+    SUBMETHODS = (Withdraw_AllBins_V1,)
+    CONTROLPARAMETERS = (
+        ga_control.NmbBins,
+        ga_control.SoilDepth,
+        ga_control.ResidualMoisture,
+    )
+    REQUIREDSEQUENCES = (ga_fluxes.Demand,)
+    UPDATEDSEQUENCES = (
+        ga_aides.ActualSurfaceWater,
+        ga_states.FrontDepth,
+        ga_states.Moisture,
+    )
+    RESULTSEQUENCES = (ga_fluxes.Withdrawal,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        aid.actualsurfacewater[s] = 0.0
+        flu.withdrawal[s] = 0.0
+        model.withdraw_allbins_v1(s, flu.demand[s])
+
+
+class Get_Infiltration_V1(modeltools.Method):
+    """Get the current infiltration to the selected soil compartment.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> fluxes.infiltration = 2.0, 4.0
+        >>> model.get_infiltration_v1(0)
+        2.0
+        >>> model.get_infiltration_v1(1)
+        4.0
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.Infiltration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.infiltration[s]
+
+
+class Get_Percolation_V1(modeltools.Method):
+    """Get the current percolation from the selected soil compartment.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> fluxes.percolation = 2.0, 4.0
+        >>> model.get_percolation_v1(0)
+        2.0
+        >>> model.get_percolation_v1(1)
+        4.0
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.Percolation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.percolation[s]
+
+
+class Get_SoilWaterAddition_V1(modeltools.Method):
+    """Get the current soil water addition to the selected soil compartment.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> fluxes.soilwateraddition = 2.0, 4.0
+        >>> model.get_soilwateraddition_v1(0)
+        2.0
+        >>> model.get_soilwateraddition_v1(1)
+        4.0
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.SoilWaterAddition,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.soilwateraddition[s]
+
+
+class Get_SoilWaterRemoval_V1(modeltools.Method):
+    """Get the current soil (and surface water) withdrawal from the selected soil
+    compartment.
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(2)
+        >>> fluxes.withdrawal = 2.0, 4.0
+        >>> model.get_soilwaterremoval_v1(0)
+        2.0
+        >>> model.get_soilwaterremoval_v1(1)
+        4.0
+    """
+
+    RESULTSEQUENCES = (ga_fluxes.Withdrawal,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.withdrawal[s]
+
+
+class Get_SoilWaterContent_V1(modeltools.Method):
+    r"""Get the current soil water content of the selected soil compartment.
+
+    Basic equation:
+      :math:`SoilWaterContent = Moisture_1 \cdot SoilDepth +
+      \sum_{i=2}^{NmbBins} (Moisture_i - Moisture_{i-1}) \cdot FrontDepth_i`
+
+    Example:
+
+        >>> from hydpy.models.ga import *
+        >>> parameterstep()
+        >>> nmbsoils(3)
+        >>> nmbbins(4)
+        >>> sealed(False, False, True)
+        >>> soilarea(1.0, 2.0, 3.0)
+        >>> soildepth(100.0, 200, nan)
+        >>> residualmoisture(0.1, 0.2, nan)
+        >>> saturationmoisture(0.5, 0.8, nan)
+        >>> states.moisture = [[0.3, 0.2, nan],
+        ...                    [0.3, 0.3, nan],
+        ...                    [0.3, 0.5, nan],
+        ...                    [0.3, 0.8, nan]]
+        >>> states.frontdepth = [[100.0, 200.0, nan],
+        ...                      [0.0, 150.0, nan],
+        ...                      [0.0, 100.0, nan],
+        ...                      [0.0, 50.0, nan]]
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwatercontent_v1(0))
+        30.0
+        >>> round_(model.get_soilwatercontent_v1(1))
+        90.0
+        >>> round_(model.get_soilwatercontent_v1(2))
+        0.0
+    """
+
+    CONTROLPARAMETERS = (
+        ga_control.NmbBins,
+        ga_control.Sealed,
+        ga_control.SoilDepth,
+    )
+    REQUIREDSEQUENCES = (
+        ga_states.Moisture,
+        ga_states.FrontDepth,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        con = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if con.sealed[s]:
+            return 0.0
+        wc: float = con.soildepth[s] * sta.moisture[0, s]
+        for b in range(1, con.nmbbins):
+            if sta.moisture[b, s] == sta.moisture[0, s]:
+                break
+            wc += sta.frontdepth[b, s] * (sta.moisture[b, s] - sta.moisture[b - 1, s])
+        return wc
+
+
 class Model(modeltools.AdHocModel):
     r"""The Green-Ampt base model."""
 
@@ -2392,6 +2782,20 @@ class Model(modeltools.AdHocModel):
         Calc_TotalSoilWaterAddition_V1,
         Calc_TotalWithdrawal_V1,
         Calc_TotalSurfaceRunoff_V1,
+    )
+    INTERFACE_METHODS = (
+        Set_InitialSurfaceWater_V1,
+        Set_ActualSurfaceWater_V1,
+        Set_SoilWaterSupply_V1,
+        Set_SoilWaterDemand_V1,
+        Execute_Infiltration_V1,
+        Add_SoilWater_V1,
+        Remove_SoilWater_V1,
+        Get_Infiltration_V1,
+        Get_Percolation_V1,
+        Get_SoilWaterAddition_V1,
+        Get_SoilWaterRemoval_V1,
+        Get_SoilWaterContent_V1,
     )
     ADD_METHODS = (
         Return_RelativeMoisture_V1,

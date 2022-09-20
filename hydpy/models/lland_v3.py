@@ -2082,6 +2082,9 @@ There is no indication of an error in the water balance:
 # from standard-library
 from typing import *
 
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
@@ -2217,8 +2220,7 @@ class Model(modeltools.AdHocModel):
     idx_hru = modeltools.Idx_HRU()
 
     def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
+        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
     ) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
@@ -2262,12 +2264,12 @@ class Model(modeltools.AdHocModel):
         idxs_land = numpy.invert(idxs_water)
         idxs_soil = numpy.invert(numpy.isin(control.lnk, [VERS, WASSER, FLUSS, SEE]))
         return (
-            numpy.sum(fluxes.nkor.series * control.fhru)
-            + numpy.sum(fluxes.qzh.series)
-            - numpy.sum(fluxes.evi.series * control.fhru)
-            - numpy.sum((fluxes.evs.series * control.fhru)[:, idxs_land])
-            - numpy.sum((fluxes.evb.series * control.fhru)[:, idxs_soil])
-            - numpy.sum(fluxes.qah.series)
+            numpy.sum(fluxes.nkor.evalseries * control.fhru)
+            + numpy.sum(fluxes.qzh.evalseries)
+            - numpy.sum(fluxes.evi.evalseries * control.fhru)
+            - numpy.sum((fluxes.evs.evalseries * control.fhru)[:, idxs_land])
+            - numpy.sum((fluxes.evb.evalseries * control.fhru)[:, idxs_soil])
+            - numpy.sum(fluxes.qah.evalseries)
             - numpy.sum(((last.inzp - first["inzp"]) * control.fhru)[idxs_land])
             - numpy.sum(((last.waes - first["waes"]) * control.fhru)[idxs_land])
             - numpy.sum(((last.bowa - first["bowa"]) * control.fhru)[idxs_soil])

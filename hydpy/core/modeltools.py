@@ -1042,9 +1042,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 typesequence = type(classname, (typesequences,), members)
                 setattr(module, classname, typesequence)
 
-        fixedparameters = set()
-        controlparameters = set()
-        derivedparameters = set()
+        fixedparameters = set(getattr(module, "ADDITIONAL_FIXEDPARAMETERS", ()))
+        controlparameters = set(getattr(module, "ADDITIONAL_CONTROLPARAMETERS", ()))
+        derivedparameters = set(getattr(module, "ADDITIONAL_DERIVEDPARAMETERS", ()))
         for host in itertools.chain(cls.get_methods(), allsequences):
             fixedparameters.update(getattr(host, "FIXEDPARAMETERS", ()))
             controlparameters.update(getattr(host, "CONTROLPARAMETERS", ()))

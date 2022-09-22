@@ -389,7 +389,9 @@ class Lines(List[str]):
         return "\n".join(self) + "\n"
 
 
-def get_methodheader(methodname: str, nogil: bool = False, idxarg: bool = False) -> str:
+def get_methodheader(
+    methodname: str, nogil: bool = False, idxarg: bool = False, inline: bool = True
+) -> str:
     """Returns the Cython method header for methods without arguments except`self`.
 
     Note the influence of the configuration flag `FASTCYTHON`:
@@ -397,18 +399,18 @@ def get_methodheader(methodname: str, nogil: bool = False, idxarg: bool = False)
     >>> from hydpy.cythons.modelutils import get_methodheader
     >>> from hydpy import config
     >>> config.FASTCYTHON = False
-    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=False))
+    >>> print(get_methodheader("test", nogil=True, idxarg=False, inline=True))
     cpdef inline void test(self):
     >>> config.FASTCYTHON = True
-    >>> print(get_methodheader(methodname="test", nogil=True, idxarg=True))
-    cpdef inline void test(self, int idx) nogil:
+    >>> print(get_methodheader("test", nogil=True, idxarg=True, inline=False))
+    cpdef void test(self, int idx) nogil:
     """
     if not config.FASTCYTHON:
         nogil = False
-    header = f"cpdef inline void {methodname}(self"
-    header += ", int idx)" if idxarg else ")"
-    header += " nogil:" if nogil else ":"
-    return header
+    nogil_ = " nogil" if nogil else ""
+    idxarg_ = ", int idx" if idxarg else ""
+    inline_ = " inline" if inline else ""
+    return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
 
 
 def decorate_method(wrapped: Callable[[PyxWriter], Iterator[str]]) -> property:
@@ -1615,10 +1617,18 @@ class PyxWriter:
     @property
     def modeluserfunctions(self) -> List[str]:
         """Model-specific functions."""
+        if hasattr(self.model, "INTERFACE_METHODS"):
+            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
+            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
+        else:
+            interfaces = set()
         lines = Lines()
-        for (name, func) in self.listofmodeluserfunctions:
+        for name, func in self.listofmodeluserfunctions:
             print(f"            . {name}")
-            funcconverter = FuncConverter(self.model, name, func)
+            inline = name not in interfaces
+            funcconverter = FuncConverter(
+                model=self.model, funcname=name, func=func, inline=inline
+            )
             lines.extend(funcconverter.pyxlines)
         return lines
 
@@ -2080,13 +2090,19 @@ class FuncConverter:
     model: modeltools.Model
     funcname: str
     func: Callable[..., Any]
+    inline: bool
 
     def __init__(
-        self, model: modeltools.Model, funcname: str, func: Callable[..., Any]
+        self,
+        model: modeltools.Model,
+        funcname: str,
+        func: Callable[..., Any],
+        inline: bool = True,
     ) -> None:
         self.model = model
         self.funcname = funcname
         self.func = func  # type: ignore[assignment]
+        self.inline = inline
 
     @property
     def argnames(self) -> List[str]:
@@ -2309,7 +2325,6 @@ class FuncConverter:
 
         Assumptions:
           * The function shall be a method.
-          * The method shall be inlined.
           * Annotations specify all argument and return types.
           * Non-default argument and return types are translate to
             "modulename.classname" strings.
@@ -2342,7 +2357,7 @@ class FuncConverter:
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
         >>> FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
-            cpdef inline void calc_test_v1(self)  nogil:
+            cpdef inline void calc_test_v1(self) nogil:
                 cdef double d_pc
                 cdef int k
                 for k in range(self.parameters.control.nmbzones):
@@ -2360,7 +2375,7 @@ class FuncConverter:
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
         >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-            cpdef inline double calc_test_v2(self, double value, double[:] values)  \
+            cpdef inline double calc_test_v2(self, double value, double[:] values) \
 nogil:
                 return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
@@ -2374,7 +2389,7 @@ nogil:
         ...         return cast(soilinterfaces.SoilModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-            cpdef inline soilinterfaces.SoilModel_V1 calc_test_v3(self)  nogil:
+            cpdef inline soilinterfaces.SoilModel_V1 calc_test_v3(self) nogil:
                 return <soilinterfaces.SoilModel_V1>self.soilmodel
         <BLANKLINE>
         """
@@ -2388,8 +2403,9 @@ nogil:
         annotations_ = get_type_hints(self.func)
         lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        lines[0] = lines[0].replace("def ", f"cpdef inline {_get_cytype('return')} ")
-        lines[0] = lines[0].replace("):", f") {_nogil}:")
+        inline = " inline" if self.inline else ""
+        lines[0] = lines[0].replace("def ", f"cpdef{inline} {_get_cytype('return')} ")
+        lines[0] = lines[0].replace("):", f"){_nogil}:")
         for name in self.untypedarguments:
             cytype = _get_cytype(name)
             lines[0] = lines[0].replace(f", {name},", f", {cytype} {name},")

@@ -16,7 +16,7 @@ numpy
 packaging
 pandas
 plotly
-pylint
+pylint != 2.15.*
 pynsist
 setuptools
 typing_extensions

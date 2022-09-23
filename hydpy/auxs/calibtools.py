@@ -1475,7 +1475,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     _rules: Dict[str, TypeRule1]
     _elements: devicetools.Elements
 
-    def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction):
+    def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction) -> None:
         self._hp = hp
         self._targetfunction = targetfunction
         self.conditions = hp.conditions
@@ -2938,7 +2938,7 @@ def make_rules(
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
-    keywords: Sequence[Optional[str]],
+    keywords: Optional[Sequence[Optional[str]]] = None,
     lowers: Sequence[float],
     uppers: Sequence[float],
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
@@ -3212,9 +3212,9 @@ via argument `selections`.
     if product:
         if selections is None:
             raise TypeError(
-                'When creating rules via function `make_rules` in "product mode" (with '
-                "the argument `product` being `True`), you must supply all target "
-                "selection objects via argument `selections`."
+                'When creating rules via function `make_rules` in "product mode" '
+                "(with the argument `product` being `True`), you must supply all "
+                "target selection objects via argument `selections`."
             )
         selections = tuple(selections)
         names = tuple(

@@ -11,6 +11,7 @@ code of class |TranslationDiffusionEquation|.
 from __future__ import annotations
 import abc
 import itertools
+import math
 from typing import *
 
 # ...from site-packages
@@ -329,6 +330,8 @@ class TranslationDiffusionEquation(IUH):
 
     >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
+    >>> round_(tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
     The first delay weighted central moment of the translation diffusion equation
     corresponds to the time lag (`x`/`u`), the second one to wave diffusion:
@@ -425,7 +428,9 @@ keywords were given: d and u.
     d = PrimaryParameterIUH("d", doc="Diffusion coefficient [L²/T].")
     x = PrimaryParameterIUH("x", doc="Routing distance [L].")
     a = SecondaryParameterIUH("a", doc="Distance related coefficient.")
+    _a: float  # used for speeding up numerical integration
     b = SecondaryParameterIUH("b", doc="Velocity related coefficient.")
+    _b: float  # used for speeding up numerical integration
 
     def calc_secondary_parameters(self) -> None:
         """Determine the values of the secondary parameters
@@ -443,12 +448,16 @@ keywords were given: d and u.
         ...
 
     def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
-        t = numpy.array(t)
-        t = numpy.clip(t, 1e-10, numpy.inf)
+        # float-handling optimised for fast numerical integration
+        if isinstance(t, float):
+            if t < 1e-10:  # pylint: disable=consider-using-max-builtin
+                t = 1e-10
+        else:
+            t = numpy.clip(t, 1e-10, numpy.inf)
         return (
-            self.a
+            self._a
             / (t * (numpy.pi * t) ** 0.5)
-            * numpy.exp(-t * (self.a / t - self.b) ** 2)
+            * numpy.e ** (-t * (self._a / t - self._b) ** 2)
         )
 
     @property
@@ -479,6 +488,8 @@ class LinearStorageCascade(IUH):
     0.376126
     >>> round_(lsc([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
+    >>> round_(lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    0.0, 0.122042, 0.028335, 0.004273, 0.00054
 
     Note that we do not use the above equation directly.  Instead, we apply a
     logarithmic transformation, which allows defining extremely high values for
@@ -496,12 +507,16 @@ class LinearStorageCascade(IUH):
     """
 
     n = PrimaryParameterIUH("n", doc="Number of linear storages [-].")
+    _n: float  # used for speeding up numerical integration
     k = PrimaryParameterIUH(
         "k", doc="Time of concentration of each individual storage [T]."
     )
+    _k: float  # used for speeding up numerical integration
     c = SecondaryParameterIUH("c", doc="Proportionality factor.")
     log_c = SecondaryParameterIUH("log_c", doc="Logarithmic value of `c`.")
-    log_k = SecondaryParameterIUH("log_k", doc="Logarithmic value of `k`.")
+    _log_c: float  # used for speeding up numerical integration
+    log_k = SecondaryParameterIUH("log_k", doc="Logarithmic value of `k`.")  #
+    _log_k: float  # used for speeding up numerical integration
 
     def calc_secondary_parameters(self) -> None:
         """Determine the values of the secondary parameters |LinearStorageCascade.c|,
@@ -519,12 +534,23 @@ class LinearStorageCascade(IUH):
         ...
 
     def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
-        with numpy.errstate(divide="ignore"):
-            return numpy.exp(
-                self.log_c
-                + (self.n - 1.0) * (numpy.log(t) - self.log_k)
-                - numpy.asarray(t) / self.k
+        # float-handling optimised for fast numerical integration
+        if isinstance(t, float):
+            if t == 0.0:
+                return 0.0
+            return numpy.e ** (
+                self._log_c
+                + (self._n - 1.0) * (math.log(t) - self._log_k)
+                - t / self._k
             )
+        t = numpy.asarray(t)
+        values = numpy.zeros(t.shape, dtype=float)
+        idxs = t > 0.0
+        t = t[idxs]
+        values[idxs] = numpy.exp(
+            self._log_c + (self._n - 1.0) * (numpy.log(t) - self._log_k) - t / self.k
+        )
+        return values
 
     @property
     def moment1(self) -> float:

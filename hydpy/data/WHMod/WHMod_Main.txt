@@ -1,0 +1,17 @@
+# WHMod Hydpy-Version
+PERSON_IN_CHARGE	Max Mustermann
+HYDPY_VERSION	5.0a0
+OUTPUTDIR	Results
+OUTPUTMODE	rch, txt, sum_txt # Mehrfachangabe möglich getrennt durch Komma; Alternativ aber noch nicht implementiert: netcdf, ganglinien
+FILENAME_NODE_DATA	Node_Data.csv
+FILENAME_TIMESERIES	Timeseries
+FILENAME_STATION_DATA	Station_Data.txt
+SIMULATION_START	1990-01-01
+SIMULATION_END	1992-01-01
+FREQUENCE	1d
+WITH_CAPPILARY_RISE	True
+DEGREE_DAY_FACTOR	4.5
+PRECIP_RICHTER_CORRECTION	False # noch nicht implementiert
+EVAPORATION_MODE	FAO # noch nicht implementiert
+CELLSIZE	100
+NODATA_VALUE	-9999.0

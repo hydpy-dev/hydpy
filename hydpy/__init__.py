@@ -189,7 +189,9 @@ from hydpy.exe.servertools import (
     await_server,
     start_server,
 )
-
+from hydpy.models.whmod.whmod_script import (
+    run_whmod,
+)
 
 __version__ = "5.0a0"
 
@@ -205,6 +207,7 @@ pub.scriptfunctions["run_simulation"] = run_simulation
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
 pub.scriptfunctions["xml_replace"] = xml_replace
+pub.scriptfunctions["run_whmod"] = run_whmod
 
 __all__ = [
     "config",

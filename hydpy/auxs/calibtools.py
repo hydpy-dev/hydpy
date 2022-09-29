@@ -347,8 +347,8 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> fc
     fc(200.0)
 
-    Sometimes, one needs to differentiate between the original value to be calibrated
-    and the actually applied value.  Therefore, (only) the |Replace| class allows
+    Sometimes, one must differentiate between the original value to be calibrated and
+    the actually applied value.  Therefore, (only) the |Replace| class allows for
     defining custom "adaptors". Prepare an |Adaptor| function and assign it to the
     relevant |Replace| object (see the documentation on class |SumAdaptor| or
     |FactorAdaptor| for more realistic examples):
@@ -407,13 +407,15 @@ class Rule(abc.ABC, Generic[TypeParameter]):
 
     For time-dependent parameters, the rule queries the current global
     |Options.parameterstep| value if you do not specify one explicitly (note that we
-    pass the parameter type |hland_control.PercMax| this time):
+    pass the parameter type |hland_control.PercMax| and the module |hland_v1| this
+    time):
 
+    >>> from hydpy.models import hland_v1
     >>> from hydpy.models.hland.hland_control import PercMax
     >>> rule = Replace(name="percmax",
     ...                parameter=PercMax,
     ...                value=5.0,
-    ...                model="hland_v1")
+    ...                model=hland_v1)
 
     The |Rule| object internally handles, to avoid confusion, a copy of
     |Options.parameterstep|.
@@ -565,8 +567,10 @@ handle any `musk_classic` model instances.
             self.value = value
             if model is None:
                 self._model = model
+            elif isinstance(model, str):
+                self._model = model
             else:
-                self._model = str(model)
+                self._model = model.__name__.rpartition(".")[-1]
             if selections is None:
                 selections = hydpy.pub.selections
                 if "complete" in selections:
@@ -1461,7 +1465,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     """
 
     result: Optional[float]
-    """The last result, calculated by the target function."""
+    """The last result, as calculated by the target function."""
     conditions: hydpytools.ConditionsType
     """The |HydPy.conditions| of the given |HydPy| object.
 

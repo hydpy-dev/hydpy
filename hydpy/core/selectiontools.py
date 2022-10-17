@@ -725,7 +725,7 @@ the "outlet device", but the given `device` value is of type `int`.
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine an upstream network of selection \
-`headwaters`, the following error occurred: 'No device named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
 
         Method |Selection.select_upstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
@@ -871,7 +871,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine a downstream network of selection \
-`headwaters`, the following error occurred: 'No device named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
 
         Method |Selection.select_downstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:

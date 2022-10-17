@@ -731,11 +731,11 @@ devices has this name.
                 for name_device in _get_texts(add_selection, "devices"):
                     try:
                         element = elements[name_device]
-                        new_selection.elements[element.name] = element
+                        new_selection.elements.add_device(element)
                     except KeyError:
                         try:
                             node = nodes[name_device]
-                            new_selection.nodes[node.name] = node
+                            new_selection.nodes.add_device(node)
                         except KeyError:
                             raise RuntimeError(
                                 f"The XML configuration file tried to add a device "

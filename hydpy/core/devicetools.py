@@ -4,8 +4,8 @@
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
 documentation, "node" stands for an object of class |Node|, "element" for an object of
 class |Element|, and "device" for either of them (you cannot initialise objects of
-class |Device| directly).  On the other hand, "nodes", for example, does not
-necessarily mean an object of class |Nodes|, but any other group of |Node| objects as
+class |Device| directly).  On the other hand, the term "nodes", for example, does not
+necessarily mean an object of class |Nodes| but any other group of |Node| objects as
 well.
 
 Each element handles a single |Model| object and represents, for example, a subbasin or
@@ -52,9 +52,10 @@ For a complete list of all available nodes, use the method |Device.query_all|:
 >>> Node.query_all()
 Nodes("test1", "test2", "test3")
 
-When working interactively in the Python interpreter, it might be useful to clear the
-registry completely, sometimes.  Do this with care because defining nodes with already
-assigned names might result in surprises due to using their names for identification:
+When working interactively in the Python interpreter, it might sometimes be helpful to
+clear the registry entirely.  However, Do this with care because defining nodes with
+already assigned names might result in surprises due to using their names for
+identification:
 
 >>> nodes = Node.query_all()
 >>> Node.clear_all()
@@ -210,8 +211,7 @@ variable identifier.  ...
         super().update(_names)
 
     def add(self, name: Any) -> None:
-        """Before adding a new name, it is checked to be valid variable
-        identifiers.
+        """Before adding a new name, it is checked to be a valid variable identifier.
 
         >>> from hydpy.core.devicetools import Keywords
         >>> keywords = Keywords("first_keyword", "second_keyword",
@@ -329,7 +329,7 @@ class FusedVariable:
 
     >>> t1.sequences.sim = -273.15
 
-    Model |conv_v001| now can perform a simulation step and pass its output to node
+    Model |conv_v001| can now perform a simulation step and pass its output to node
     `t2`:
 
     >>> conv.model.simulate(0)
@@ -364,10 +364,10 @@ class FusedVariable:
     pet(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
-    behind the scenes, similar to classes |Node| and |Element| do.  Again, the name
-    works as the identifier, and we force the same fused variable to exist only once,
-    even when defined in different selection files repeatedly.  Hence, when we repeat
-    the definition from above, we get the same object:
+    behind the scenes, similar to what classes |Node| and |Element| do.  Again, the
+    name works as the identifier, and we force the same fused variable to exist only
+    once, even when defined in different selection files repeatedly.  Hence, when we
+    repeat the definition from above, we get the same object:
 
     >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
     >>> T is Test
@@ -483,7 +483,7 @@ class Devices(Generic[TypeDevice]):
     The following features are common to class |Nodes| and class |Elements|.  We
     arbitrarily select class |Nodes| for all examples.
 
-    To initialise a |Nodes| collection class, pass a variable number of |str| or |Node|
+    To initialise a |Nodes| collection, pass a variable number of |str| or |Node|
     objects.  Strings are used to create new or query already existing nodes
     automatically:
 
@@ -494,19 +494,47 @@ class Devices(Generic[TypeDevice]):
     ...               Node("nd", keywords=("group_a", "group_2")),
     ...               Node("ne", keywords=("group_b", "group_1")))
 
-    |Nodes| and |Elements| objects are containers supporting attribute access. You can
-    access each node or element directly by its name:
+    |Nodes| instances are containers supporting attribute and item access. You can
+    access each node directly by its name:
 
     >>> nodes.na
     Node("na", variable="Q")
+    >>> nodes["na"]
+    Node("na", variable="Q")
 
-    Wrong node names result in the following error message:
+    In many situations, a |Nodes| instance contains a single node only.  One can query
+    such a single node using zero as the index for convenience:
+
+    >>> Nodes("na")[0]
+    Node("na", variable="Q")
+
+    Other number-based indexed are not allowed:
+
+    >>> Nodes("na", "nb")[1]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Indexing with other numbers than `0` is not supported but `1` is given.'
+
+    An automatic check prevents unexpected results when applying zero-based indexing on
+    |Nodes| instances containing multiple nodes:
+
+    >>> Nodes("na", "nb")[0]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Indexing with `0` is only safe for Node handlers containing a single \
+Node.'
+
+    Wrong node names result in the following error messages:
 
     >>> nodes.wrong
     Traceback (most recent call last):
     ...
     AttributeError: The selected Nodes object has neither a `wrong` attribute nor \
 does it handle a Node object with name or keyword `wrong`, which could be returned.
+    >>> nodes["wrong"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'No node named `wrong` available.'
 
     As explained in more detail in the documentation on property |Device.keywords|, you
     can also use the keywords of the individual nodes to query the relevant ones:
@@ -524,7 +552,7 @@ does it handle a Node object with name or keyword `wrong`, which could be return
     Nodes("na")
     >>> Nodes.forceiterable = False
 
-    Attribute deleting is supported:
+    You can remove nodes both via the attribute and item syntax:
 
     >>> "na" in nodes
     True
@@ -537,9 +565,16 @@ does it handle a Node object with name or keyword `wrong`, which could be return
     AttributeError: The actual Nodes object does not handle a Node object named `na` \
 which could be removed, and deleting other attributes is not supported.
 
-    However, shown  by the next example, setting devices via attribute access could
-    result in inconsistencies and is not allowed (see method |Devices.add_device|
-    instead):
+    >>> nodes.add_device("na")
+    >>> del nodes["na"]
+    >>> del nodes["na"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'No node named `na` available.'
+
+    However, as shown by the following example, setting devices via attribute
+    assignment or item assignment could result in inconsistencies and is thus not
+    allowed (see method |Devices.add_device| instead):
 
     >>> nodes.NF = Node("nf")
     Traceback (most recent call last):
@@ -547,8 +582,12 @@ which could be removed, and deleting other attributes is not supported.
     AttributeError: Setting attributes of Nodes objects could result in confusion \
 whether a new attribute should be handled as a Node object or as a "normal" attribute \
 and is thus not support, hence `NF` is rejected.
+    >>> nodes["NF"] = Node("nf")
+    Traceback (most recent call last):
+    ...
+    TypeError: 'Nodes' object does not support item assignment
 
-    |Nodes| and |Elements| instances support iteration:
+    |Nodes| instances support iteration:
 
     >>> len(nodes)
     4
@@ -556,7 +595,7 @@ and is thus not support, hence `NF` is rejected.
     ...     print(node.name, end=",")
     nb,nc,nd,ne,
 
-    The binary operators `+`, `+=`, `-` and `-=` support adding and removing single
+    The binary operators `+`, `+=`, `-`, and `-=` support adding and removing single
     devices or groups of devices:
 
     >>> nodes
@@ -981,17 +1020,38 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: str) -> TypeDevice:
+    def __getitem__(self, name: Union[Literal[0], str]) -> TypeDevice:
+        if name == 0:
+            devices = tuple(self._name2device.values())
+            if len(devices) == 1:
+                return tuple(devices)[0]
+            device = self.get_contentclass().__name__
+            raise KeyError(
+                f"Indexing with `0` is only safe for {device} handlers containing "
+                f"a single {device}."
+            ) from None
         try:
             return self._name2device[name]
         except KeyError:
-            raise KeyError(f"No device named `{name}` available.") from None
+            if isinstance(name, int):  # type: ignore[unreachable]
+                raise KeyError(
+                    f"Indexing with other numbers than `0` is not supported but "
+                    f"`{name}` is given."
+                ) from None
+            device = self.get_contentclass().__name__.lower()
+            raise KeyError(f"No {device} named `{name}` available.") from None
 
-    def __setitem__(self, name: str, value: TypeDevice) -> None:
-        self._name2device[name] = value
+    def __setitem__(self, name: str, value: TypeDevice) -> NoReturn:
+        raise TypeError(
+            f"'{type(self).__name__}' object does not support item assignment"
+        )
 
     def __delitem__(self, name: str) -> None:
-        del self._name2device[name]
+        try:
+            del self._name2device[name]
+        except KeyError:
+            device = self.get_contentclass().__name__.lower()
+            raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
         for (_, device) in sorted(self._name2device.items()):
@@ -1607,7 +1667,7 @@ a valid variable identifier.  ...
         self._name = name
         _registry[type(self)][self.name] = self
         for devices in _id2devices[self].values():
-            devices[self.name] = self
+            devices.add_device(self)
 
     @classmethod
     def __check_name(cls, name: str) -> None:

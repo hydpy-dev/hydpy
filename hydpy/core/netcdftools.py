@@ -229,50 +229,63 @@ You can set another |float| value before writing a NetCDF file:
 NetCDFVariable = Union["NetCDFVariableFlat", "NetCDFVariableAgg"]
 
 
-def str2chars(strings: Sequence[str]) -> NDArrayFloat:
+def str2chars(strings: Sequence[str]) -> NDMatrixBytes:
     """Return a |numpy.ndarray| object containing the byte characters (second axis) of
     all given strings (first axis).
 
     >>> from hydpy.core.netcdftools import str2chars
-    >>> str2chars(["zeros", "ones"])
-    array([[b'z', b'e', b'r', b'o', b's'],
-           [b'o', b'n', b'e', b's', b'']], dtype='|S1')
+    >>> str2chars(['street', 'St.', 'Straße', 'Str.'])
+    array([[b's', b't', b'r', b'e', b'e', b't', b''],
+           [b'S', b't', b'.', b'', b'', b'', b''],
+           [b'S', b't', b'r', b'a', b'\xc3', b'\x9f', b'e'],
+           [b'S', b't', b'r', b'.', b'', b'', b'']], dtype='|S1')
 
     >>> str2chars([])
     array([], shape=(0, 0), dtype='|S1')
     """
-    maxlen = 0
-    for name in strings:
-        maxlen = max(maxlen, len(name))
-    chars = numpy.full((len(strings), maxlen), b"", dtype="|S1")
-    for idx, name in enumerate(strings):
-        for jdx, char in enumerate(name):
-            chars[idx, jdx] = char.encode("utf-8")
+    if len(strings) == 0:
+        return numpy.full((0, 0), b"", dtype="|S1")
+    bytess = tuple(string.encode("utf-8") for string in strings)
+    max_length = max(len(bytes_) for bytes_ in bytess)
+    chars = numpy.full((len(strings), max_length), b"", dtype="|S1")
+    for idx, bytes_ in enumerate(bytess):
+        for jdx, int_ in enumerate(bytes_):
+            chars[idx, jdx] = bytes([int_])
     return chars
 
 
-def chars2str(chars: Sequence[Sequence[bytes]]) -> List[str]:
-    """Inversion function of |str2chars|.
+def chars2str(chars: NDMatrixBytes) -> List[str]:
+    r"""Inversion function of |str2chars|.
 
     >>> from hydpy.core.netcdftools import chars2str
 
-    >>> chars2str([[b"z", b"e", b"r", b"o", b"s"],
-    ...            [b"o", b"n", b"e", b"s", b""]])
-    ['zeros', 'ones']
+    >>> chars2str([[b"s", b"t", b"r", b"e", b"e", b"t", b""],
+    ...            [b"S", b"t", b".", b"", b"", b"", b""],
+    ...            [b"S", b"t", b"r", b"a", b"\xc3", b"\x9f", b"e"],
+    ...            [b"S", b"t", b"r", b".", b"", b"", b""]])
+    ['street', 'St.', 'Straße', 'Str.']
 
     >>> chars2str([])
     []
+
+    >>> chars2str([[b"s", b"t", b"r", b"e", b"e", b"t"],
+    ...            [b"S", b"t", b".", b"", b"", b""],
+    ...            [b"S", b"t", b"r", b"a", b"\xc3", b"e"],
+    ...            [b"S", b"t", b"r", b".", b"", b""]])
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot decode `b'Stra\xc3e'` (not UTF-8 compliant).
     """
-    strings: Deque[str] = collections.deque()
+    strings = []
     for subchars in chars:
-        substrings: Deque[str] = collections.deque()
-        for char in subchars:
-            if char:
-                substrings.append(char.decode("utf-8"))
-            else:
-                substrings.append("")
-        strings.append("".join(substrings))
-    return list(strings)
+        try:
+            bytes_ = b"".join(subchars)
+            strings.append(bytes_.decode("utf-8"))
+        except UnicodeDecodeError:
+            raise ValueError(
+                f"Cannot decode `{bytes_!r}` (not UTF-8 compliant)."
+            ) from None
+    return strings
 
 
 def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
@@ -1556,7 +1569,7 @@ named `element2`.
         >>> from hydpy import make_abc_testable, TestIO
         >>> from hydpy.core.netcdftools import netcdf4
         >>> Var = make_abc_testable(NetCDFVariableBase)
-        >>> Var.subdevicenames = "element1", "element_2"
+        >>> Var.subdevicenames = "element1", "element_2", "element_ß"
 
         The first dimension of the added variable corresponds to the number of
         (sub)devices, and the second dimension to the number of characters of the
@@ -1569,9 +1582,9 @@ named `element2`.
         >>> ncfile["station_id"].dimensions
         ('stations', 'char_leng_name')
         >>> ncfile["station_id"].shape
-        (2, 9)
-        >>> chars2str(ncfile["station_id"][:])
-        ['element1', 'element_2']
+        (3, 10)
+        >>> chars2str(ncfile["station_id"][:].data)
+        ['element1', 'element_2', 'element_ß']
         >>> ncfile.close()
         """
         nmb_subdevices = dimmapping["nmb_subdevices"]
@@ -1627,7 +1640,7 @@ variable `flux_prec`.
                 f"variable named `{tests[0]}` nor `{tests[1]}` for defining the "
                 f"coordinate locations of variable `{self.name}`."
             )
-        return chars2str(chars)
+        return chars2str(chars.data)
 
     def query_subdevice2index(self, ncfile: netcdf4.Dataset) -> Subdevice2Index:
         """Return a |Subdevice2Index| object that maps the (sub)device names to their

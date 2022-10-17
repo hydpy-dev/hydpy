@@ -45,6 +45,7 @@ Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
 NDArrayFloat = numpy.typing.NDArray[numpy.float_]
+NDMatrixBytes = numpy.typing.NDArray[bytes]  # type: ignore[type-var]
 
 DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
@@ -498,6 +499,7 @@ __all__ = [
     "MayNonerable3",
     "Name",
     "NDArrayFloat",
+    "NDMatrixBytes",
     "ScriptFunction",
     "SeriesAggregationType",
     "SeriesFileType",

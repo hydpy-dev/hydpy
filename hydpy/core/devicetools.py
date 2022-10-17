@@ -657,8 +657,7 @@ occurred: The given (sub)value `Element("ea")` is not an instance of the followi
 classes: Node and str.
     """
 
-    mutable: bool
-
+    _mutable: bool
     _name2device: Dict[str, TypeDevice]
     _shadowed_keywords: Set[str]
 
@@ -670,7 +669,7 @@ classes: Node and str.
             return values[0]
         self = super().__new__(cls)
         setattr_ = super().__setattr__
-        setattr_(self, "mutable", mutable)
+        setattr_(self, "_mutable", mutable)
         setattr_(self, "_name2device", {})
         setattr_(self, "_shadowed_keywords", set())
         contentclass = self.get_contentclass()
@@ -678,7 +677,7 @@ classes: Node and str.
             for value in objecttools.extract(
                 values, types_=(contentclass, str), skip=True
             ):
-                self.add_device(value)
+                self.add_device(value, force=True)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to initialise a `{type(self).__name__}` object"
@@ -690,7 +689,7 @@ classes: Node and str.
     def get_contentclass() -> Type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[TypeDevice, str]) -> None:
+    def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -706,17 +705,23 @@ classes: Node and str.
         Nodes("new_node", "old_node")
 
         Method |Devices.add_device| is disabled for immutable |Nodes| and |Elements|
-        objects:
+        objects by default:
 
-        >>> nodes.mutable = False
+        >>> nodes._mutable = False
         >>> nodes.add_device("newest_node")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to add the device `newest_node` to a Nodes object, \
 the following error occurred: Adding devices to immutable Nodes objects is not allowed.
+
+        Use parameter `force` to override this safety mechanism if necessary:
+
+        >>> nodes.add_device("newest_node", force=True)
+        >>> nodes
+        Nodes("new_node", "newest_node", "old_node")
         """
         try:
-            if self.mutable:
+            if force or self._mutable:
                 _device = self.get_contentclass()(device)
                 self._name2device[_device.name] = _device
                 _id2devices[_device][id(self)] = cast(Devices[Device], self)  # ToDo
@@ -731,7 +736,9 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(self, device: Union[TypeDevice, str]) -> None:
+    def remove_device(
+        self, device: Union[TypeDevice, str], force: bool = False
+    ) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -753,31 +760,40 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
 the following error occurred: The actual Nodes object does not handle such a device.
 
         Method |Devices.remove_device| is disabled for immutable |Nodes| and |Elements|
-        objects:
+        objects by default:
 
-        >>> nodes.mutable = False
-        >>> nodes.remove_device("node_z")
+        >>> nodes.add_device(node_x)
+        >>> nodes._mutable = False
+        >>> nodes.remove_device("node_x")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to remove the device `node_z` from a Nodes object, \
+        RuntimeError: While trying to remove the device `node_x` from a Nodes object, \
 the following error occurred: Removing devices from immutable Nodes objects is not \
 allowed.
+        >>> nodes
+        Nodes("node_x")
+
+        Use parameter `force` to override this safety mechanism if necessary:
+
+        >>> nodes.remove_device("node_x", force=True)
+        >>> nodes
+        Nodes()
         """
         try:
-            if self.mutable:
+            if force or self._mutable:
                 _device = self.get_contentclass()(device)
                 try:
                     del self._name2device[_device.name]
                 except KeyError:
                     raise ValueError(
-                        f"The actual {type(self).__name__} "
-                        f"object does not handle such a device."
+                        f"The actual {type(self).__name__} object does not handle "
+                        f"such a device."
                     ) from None
                 del _id2devices[_device][id(self)]
             else:
                 raise RuntimeError(
-                    f"Removing devices from immutable "
-                    f"{type(self).__name__} objects is not allowed."
+                    f"Removing devices from immutable {type(self).__name__} objects "
+                    f"is not allowed."
                 )
         except BaseException:
             objecttools.augment_excmessage(
@@ -1057,7 +1073,7 @@ conflict with using their names as identifiers.
 
     def __add__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         new = copy.copy(self)
-        new.mutable = True
+        new._mutable = True
         for device in type(self)(other):
             new.add_device(device)
         return new
@@ -1069,7 +1085,7 @@ conflict with using their names as identifiers.
 
     def __sub__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         new = copy.copy(self)
-        new.mutable = True
+        new._mutable = True
         for device in type(self)(other):
             try:
                 new.remove_device(device)
@@ -1647,14 +1663,14 @@ a valid variable identifier.  ...
     @name.setter
     def name(self, name: str) -> None:
         self.__check_name(name)
-        for devices in _id2devices[self].values():
+        for devices in tuple(_id2devices[self].values()):
             if hasattr(devices, self.name):
-                del devices[self.name]
+                del devices._name2device[self.name]  # pylint: disable=protected-access
         del _registry[type(self)][self.name]
         self._name = name
         _registry[type(self)][self.name] = self
-        for devices in _id2devices[self].values():
-            devices.add_device(self)
+        for devices in tuple(_id2devices[self].values()):
+            devices._name2device[self.name] = self  # pylint: disable=protected-access
 
     @classmethod
     def __check_name(cls, name: str) -> None:
@@ -2510,10 +2526,9 @@ as a(n) receiver node, which is not allowed.
     RuntimeError: While trying to add the device `inl3` to a Nodes object, the \
 following error occurred: Adding devices to immutable Nodes objects is not allowed.
 
-    Setting their `mutable` flag to |True| changes this behaviour:
+    Use the parameter `force` to change this behaviour:
 
-    >>> test.inlets.mutable = True
-    >>> test.inlets.add_device("inl3")
+    >>> test.inlets.add_device("inl3", force=True)
 
     However, it is up to you to make sure that the added node also handles the relevant
     element in the suitable group.  In the discussed example, only node `inl2` has been
@@ -2587,27 +2602,17 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         incompatiblenodes: Tuple[str, ...],
     ) -> None:
         elementgroup: Nodes = getattr(self, targetnodes)
-        elementtargetmutable = elementgroup.mutable
-        try:
-            elementgroup.mutable = True
-            for node in Nodes(values):
-                for incomp in incompatiblenodes:
-                    if node in getattr(self, incomp):
-                        raise ValueError(
-                            f"For element `{self}`, the given {targetnodes[1:-1]} node "
-                            f"`{node}` is already defined as a(n) {incomp[1:-1]} node, "
-                            f"which is not allowed."
-                        )
-                elementgroup.add_device(node)
-                nodegroup: Elements = getattr(node, targetelements)
-                nodegroupmutable = nodegroup.mutable
-                try:
-                    nodegroup.mutable = True
-                    nodegroup.add_device(self)
-                finally:
-                    nodegroup.mutable = nodegroupmutable
-        finally:
-            elementgroup.mutable = elementtargetmutable
+        for node in Nodes(values):
+            for incomp in incompatiblenodes:
+                if node in getattr(self, incomp):
+                    raise ValueError(
+                        f"For element `{self}`, the given {targetnodes[1:-1]} "
+                        f"node `{node}` is already defined as a(n) {incomp[1:-1]} "
+                        f"node, which is not allowed."
+                    )
+            elementgroup.add_device(node, force=True)
+            nodegroup: Elements = getattr(node, targetelements)
+            nodegroup.add_device(self, force=True)
 
     @property
     def inlets(self) -> Nodes:

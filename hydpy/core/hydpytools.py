@@ -1610,10 +1610,8 @@ needed to be trimmed.  The old and the new value(s) are \
         After breaking the connection between node `lahn_1` and its downstream river
         channel element `stream_lahn_1_lahn2`, `lahn_1` also becomes an end node:
 
-        >>> hp.nodes.lahn_1.exits.mutable = True
-        >>> hp.elements.stream_lahn_1_lahn_2.inlets.mutable = True
-        >>> del hp.nodes.lahn_1.exits.stream_lahn_1_lahn_2
-        >>> del hp.elements.stream_lahn_1_lahn_2.inlets.lahn_1
+        >>> hp.nodes.lahn_1.exits.remove_device("stream_lahn_1_lahn_2", force=True)
+        >>> hp.elements.stream_lahn_1_lahn_2.inlets.remove_device("lahn_1", force=True)
         >>> hp.endnodes
         Nodes("lahn_1", "lahn_3")
 
@@ -1630,10 +1628,8 @@ needed to be trimmed.  The old and the new value(s) are \
         Connections with "remote" elements are considered irrelevant:
 
         >>> stream = hp.elements.stream_lahn_2_lahn_3
-        >>> stream.inlets.mutable = True
-        >>> stream.receivers.mutable = True
-        >>> stream.receivers += stream.inlets.lahn_2
-        >>> del stream.inlets.lahn_2
+        >>> stream.receivers.add_device(stream.inlets.lahn_2, force=True)
+        >>> stream.inlets.remove_device("lahn_2", force=True)
         >>> hp.endnodes
         Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
         """
@@ -1676,10 +1672,8 @@ needed to be trimmed.  The old and the new value(s) are \
         |Selection| objects that do not overlap each other (meaning, no |Node| or
         |Element| object occurs more than one time):
 
-        >>> hp.nodes.lahn_1.exits.mutable = True
-        >>> hp.elements.stream_lahn_1_lahn_2.inlets.mutable = True
-        >>> del hp.nodes.lahn_1.exits.stream_lahn_1_lahn_2
-        >>> del hp.elements.stream_lahn_1_lahn_2.inlets.lahn_1
+        >>> hp.nodes.lahn_1.exits.remove_device("stream_lahn_1_lahn_2", force=True)
+        >>> hp.elements.stream_lahn_1_lahn_2.inlets.remove_device("lahn_1", force=True)
         >>> hp.segregatednetworks
         Selections("lahn_1", "lahn_3")
         >>> hp.segregatednetworks.lahn_1
@@ -1714,10 +1708,8 @@ needed to be trimmed.  The old and the new value(s) are \
 
 
         >>> stream = hp.elements.stream_lahn_2_lahn_3
-        >>> stream.inlets.mutable = True
-        >>> stream.receivers.mutable = True
-        >>> stream.receivers += stream.inlets.lahn_2
-        >>> del stream.inlets.lahn_2
+        >>> stream.receivers.add_device(stream.inlets.lahn_2, force=True)
+        >>> stream.inlets.remove_device("lahn_2", force=True)
         >>> hp.segregatednetworks
         Selections("dill", "lahn_1", "lahn_2", "lahn_3")
         >>> hp.segregatednetworks.dill

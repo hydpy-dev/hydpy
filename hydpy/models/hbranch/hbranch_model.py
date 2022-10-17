@@ -266,8 +266,7 @@ class Model(modeltools.AdHocModel):
 
         In case of missing (or misspelled) outlet nodes, the following error is raised:
 
-        >>> branch.outlets.mutable = True
-        >>> del branch.outlets.outflow1
+        >>> branch.outlets.remove_device(branch.outlets.outflow1, force=True)
         >>> parameters.update()
         >>> model.connect()
         Traceback (most recent call last):

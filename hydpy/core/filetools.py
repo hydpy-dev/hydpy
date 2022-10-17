@@ -286,14 +286,14 @@ class FileManager:
         >>> TestIO.clear()
         >>> with TestIO():
         ...     os.makedirs("projectname/basename")
-        ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS
+        ...     repr_(filemanager.basepath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename'
 
         At first, the base directory is empty and asking for the current working
         directory results in the following error:
 
         >>> with TestIO():
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -322,7 +322,7 @@ been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     filemanager.currentdir = None
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -345,7 +345,7 @@ dir2).
         False
 
         |FileManager| subclasses can define a default directory name.  When many
-        directories exist and none is selected manually, the default directory is
+        directories exist, and none is selected manually, the default directory is
         selected automatically.  The following example shows an error message due to
         multiple directories without any having the default name:
 
@@ -353,7 +353,7 @@ dir2).
         ...     os.mkdir("projectname/basename/dir1")
         ...     filemanager.DEFAULTDIR = "dir3"
         ...     del filemanager.currentdir
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -378,14 +378,14 @@ been defined manually and cannot be determined automatically: The default direct
         ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
 
-        Failed attempts in removing directories result in error messages like the
+        Failed attempts to remove directories result in error messages like the
         following one:
 
         >>> import shutil
         >>> from unittest.mock import patch
         >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
         ...     with TestIO():
-        ...         del filemanager.currentdir   # doctest: +ELLIPSIS
+        ...         del filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \
@@ -401,6 +401,17 @@ occurred: ...
         >>> with TestIO():
         ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
+
+        Assign the folder's absolute path if you need to work outside the current
+        project directory (for example, to archive simulated data):
+
+        >>> with TestIO():  # doctest: +ELLIPSIS
+        ...     os.mkdir("differentproject")
+        ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
+        ...     repr_(filemanager.currentpath)
+        ...     os.listdir("differentproject")
+        '...hydpy/tests/iotesting/differentproject/dir1'
+        ['dir1']
         """
         currentdir = self._currentdir
         if currentdir is None:
@@ -465,7 +476,7 @@ occurred: ...
                 )
         self._currentdir = None
 
-    @propertytools.DefaultPropertyStr
+    @property
     def currentpath(self) -> str:
         """The absolute path of the current working directory.
 
@@ -554,8 +565,8 @@ occurred: ...
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
-        The directories existing under the base path are identical with the ones
-        returned by property |FileManager.availabledirs|:
+        The directories existing under the base path are identical to the ones returned
+        by property |FileManager.availabledirs|:
 
         >>> with TestIO():
         ...     sorted(os.listdir(basepath))
@@ -581,7 +592,7 @@ occurred: ...
         ...         sorted(zp.namelist())
         ['file1.txt', 'file2.txt']
 
-        The zip file is unpacked again, as soon as `folder` becomes the current working
+        The zip file is unpacked again as soon as `folder` becomes the current working
         directory:
 
         >>> with TestIO():
@@ -612,9 +623,9 @@ class NetworkManager(FileManager):
 
     The documentation of base class |FileManager| explains most aspects of using
     |NetworkManager| objects.  The following examples deal with the extended features
-    of class |NetworkManager|, which are reading, writing, and removing network files.
-    For this purpose, we prepare the example project `LahnH` in the `iotesting`
-    directory by calling function |prepare_full_example_1|:
+    of class |NetworkManager|: reading, writing, and removing network files.  For this
+    purpose, we prepare the example project `LahnH` in the `iotesting` directory by
+    calling function |prepare_full_example_1|:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -635,7 +646,7 @@ class NetworkManager(FileManager):
 
     Method |NetworkManager.load_files| takes file names as selection names (without
     file endings).  Additionally, it creates a "complete" selection, including the
-    whole set of |Node| and |Element| objects of the file specific selections:
+    whole set of |Node| and |Element| objects of the file-specific selections:
 
     >>> selections
     Selections("complete", "headwaters", "nonheadwaters", "streams")
@@ -821,7 +832,7 @@ class ControlManager(FileManager):
 
     Class |ControlManager| extends the functionalities of class |FileManager| only
     slightly, which is why the documentation on class |FileManager| should serve as a
-    good starting point for understanding class |ControlManager|.  Also see the
+    good starting point for understanding class |ControlManager|.  Also, see the
     documentation on method |HydPy.prepare_models| of class |HydPy|, which relies on
     the functionalities of class |ControlManager|.
     """
@@ -847,7 +858,7 @@ class ControlManager(FileManager):
         change this behaviour by passing `False` to the `clear_registry` argument,
         which might decrease model initialisation times significantly.  However, then
         it is your own responsibility to call the method |ControlManager.clear_registry|
-        when necessary (usually, before reloading a changed control file).
+        when necessary (usually before reloading a changed control file).
 
         One advantage of using method |ControlManager.load_file| directly is that it
         supports reading control files that are yet not correctly integrated into a
@@ -948,15 +959,13 @@ name or the responsible Element object.
 
     @classmethod
     def read2dict(cls, filename: str, info: Dict[str, Any]) -> None:
-        """Read the control parameters from the given path (and its
-        auxiliary paths, where appropriate) and store them in the given
-        |dict| object `info`.
+        """Read the control parameters from the given path (and its auxiliary paths,
+        where appropriate) and store them in the given |dict| object `info`.
 
-        Note that`info` can be used to feed information into the execution
-        of control files.  Use this method only if you are entirely sure
-        on how the control parameter import of *HydPy* works.  Otherwise,
-        you should most probably prefer to use the method
-        |ControlManager.load_file|.
+        Note that`info` can be used to feed information into the execution of control
+        files.  Use this method only if you are entirely sure of how the control
+        parameter import of *HydPy* works.  Otherwise, you should most probably prefer
+        to use the method |ControlManager.load_file|.
         """
         if not filename.endswith(".py"):
             filename += ".py"
@@ -1062,7 +1071,7 @@ class ConditionManager(FileManager):
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
 
-    The date based construction of directory names requires a |Timegrids| object
+    The date-based construction of directory names requires a |Timegrids| object
     available in module |pub|:
 
     >>> del pub.timegrids
@@ -1109,7 +1118,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
 
     @property
     def outputpath(self) -> str:  # type: ignore[return]
-        """The directory path actual for saving (final) conditions.
+        """The directory path for saving (final) conditions.
 
         See the main documentation on class |ConditionManager| for further information.
         """
@@ -1278,8 +1287,8 @@ not allowed to overwrite the existing file `...`.
     Method |IOSequence.save_mean| is strongly related to method
     |IOSequence.average_series|, meaning one can pass the same arguments.  We show this
     by changing the land use classes of `element2` (parameter |lland_control.Lnk|) to
-    field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|), and averaging
-    the values of sequence |lland_fluxes.NKor| for the single area of type field only:
+    field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|) and averaging
+    the values of sequence |lland_fluxes.NKor| for the single field area only:
 
     >>> from hydpy.models.lland_v1 import ACKER, WASSER
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
@@ -1294,9 +1303,8 @@ not allowed to overwrite the existing file `...`.
     20.0
     22.0
 
-    Another option is to store data using |numpy| binary files, which is a good option
-    for saving computation times but possibly a problematic option for sharing data
-    with colleagues:
+    Another option is storing data using |numpy| binary files, which is good for saving
+    computation times but possibly problematic for sharing data with colleagues:
 
     >>> pub.sequencemanager.filetype = "npy"
     >>> with TestIO():

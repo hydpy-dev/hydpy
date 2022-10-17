@@ -542,16 +542,6 @@ does it handle a Node object with name or keyword `wrong`, which could be return
     >>> nodes.group_a
     Nodes("nc", "nd")
 
-    Especially in this context, you might find it useful to also get an iterable object
-    in case no node or only a single node is available:
-
-    >>> Nodes.forceiterable = True
-    >>> nodes.wrong
-    Nodes()
-    >>> nodes.na
-    Nodes("na")
-    >>> Nodes.forceiterable = False
-
     You can remove nodes both via the attribute and item syntax:
 
     >>> "na" in nodes
@@ -668,7 +658,6 @@ classes: Node and str.
     """
 
     mutable: bool
-    forceiterable: bool = False
 
     _name2device: Dict[str, TypeDevice]
     _shadowed_keywords: Set[str]
@@ -984,11 +973,9 @@ conflict with using their names as identifiers.
 
     def __getattr__(self: TypeDevices, name: str) -> Union[TypeDevice, TypeDevices]:
         if name in self._name2device:
-            if self.forceiterable:
-                return type(self)(self._name2device[name])
             return cast(TypeDevice, self._name2device[name])  # ToDo
         _devices = self.__select_devices_by_keyword(name)
-        if self.forceiterable or len(_devices) > 1:
+        if len(_devices) > 1:
             return _devices
         if len(_devices) == 1:
             return cast(TypeDevice, _devices.devices[0])  # ToDo

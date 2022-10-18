@@ -40,19 +40,30 @@ from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import exe
+from hydpy import interfaces
 from hydpy import models
 from hydpy import examples
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
-from hydpy.cythons.autogen import annutils
-from hydpy.cythons.autogen import interputils
-from hydpy.cythons.autogen import ppolyutils
-from hydpy.cythons.autogen import pointerutils
-from hydpy.cythons.autogen import quadutils
-from hydpy.cythons.autogen import rootutils
-from hydpy.cythons.autogen import smoothutils
+
+if TYPE_CHECKING:
+    from hydpy.cythons import annutils
+    from hydpy.cythons import interputils
+    from hydpy.cythons import ppolyutils
+    from hydpy.cythons import pointerutils
+    from hydpy.cythons import quadutils
+    from hydpy.cythons import rootutils
+    from hydpy.cythons import smoothutils
+else:
+    from hydpy.cythons.autogen import annutils
+    from hydpy.cythons.autogen import interputils
+    from hydpy.cythons.autogen import ppolyutils
+    from hydpy.cythons.autogen import pointerutils
+    from hydpy.cythons.autogen import quadutils
+    from hydpy.cythons.autogen import rootutils
+    from hydpy.cythons.autogen import smoothutils
 
 
 class Priority(enum.Enum):
@@ -119,6 +130,7 @@ ELSE = Priority.ELSE
 EXCLUDE_MEMBERS = (
     "CLASSES",
     "RUN_METHODS",
+    "INTERFACE_METHODS",
     "ADD_METHODS",
     "INLET_METHODS",
     "OUTLET_METHODS",
@@ -135,12 +147,16 @@ EXCLUDE_MEMBERS = (
     "SOLVERPARAMETERS",
     "SOLVERSEQUENCES",
     "SUBMETHODS",
+    "SUBMODELINTERFACES",
     "SUBMODELS",
     "fastaccess",
     "fastaccess_new",
     "fastaccess_old",
     "pars",
     "seqs",
+    "subvars",
+    "subpars",
+    "subseqs",
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
@@ -227,6 +243,8 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
         lines += [f"    :exclude-members: Model, {exc_mem}"]
     elif exists_collectionclass:
         lines += [f"    :exclude-members:  {name_collectionclass}, {exc_mem}"]
+    else:
+        lines += [f"    :exclude-members: {exc_mem}"]
     return lines
 
 
@@ -239,8 +257,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     autodoc_tuple2doc(module)
     namespace = module.__dict__
     moduledoc = namespace.get("__doc__")
-    if moduledoc is None:
-        moduledoc = ""
+    assert isinstance(moduledoc, str)
     basemodulename = namespace["__name__"].split(".")[-1]
     modules = {
         key: value
@@ -258,7 +275,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         lines += _add_title("Method Features", "-")
         lines += _add_lines(specification, module)
         substituter.add_module(module)
-        model = module.Model  # type: ignore[attr-defined]
+        model = module.Model
         assert issubclass(model, modeltools.Model)
         methods = list(model.get_methods())
     _extend_methoddocstrings(module)
@@ -271,7 +288,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         found_module = False
         new_lines = _add_title(title, "-")
         for (specification, caption) in spec2capt.items():
-            modulename = basemodulename + "_" + specification
+            modulename = f"{basemodulename}_{specification}"
             if modulename in modules:
                 module = modules[modulename]
                 found_module = True
@@ -291,7 +308,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
 
 def _insert_links_into_docstring(target: object, insertion: str) -> None:
     try:
-        target.__doc__ += ""
+        target.__doc__ += ""  # type: ignore[operator]
     except BaseException:
         return
     doc = getattr(target, "__doc__", None)
@@ -312,7 +329,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
 
 
 def _extend_methoddocstrings(module: types.ModuleType) -> None:
-    model = module.Model  # type: ignore[attr-defined]
+    model = module.Model
     assert issubclass(model, modeltools.Model)
     for method in model.get_methods():
         _insert_links_into_docstring(
@@ -382,8 +399,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> List[str]:
 
 
 def _gain_and_insert_additional_information_into_docstrings(
-    module: types.ModuleType,
-    allmethods: Iterable[modeltools.Method],
+    module: types.ModuleType, allmethods: Iterable[modeltools.Method]
 ) -> None:
     for value in vars(module).values():
         insertions = []
@@ -427,7 +443,7 @@ def autodoc_applicationmodel(module: types.ModuleType) -> None:
     name_applicationmodel = module.__name__
     name_basemodel = name_applicationmodel.split("_")[0]
     module_basemodel = importlib.import_module(name_basemodel)
-    substituter = Substituter(module_basemodel.substituter)  # type: ignore[attr-defined] # pylint: disable=line-too-long
+    substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module)
     substituter.update_masters()
     module.substituter = substituter  # type: ignore[attr-defined]
@@ -461,7 +477,7 @@ class Substituter:
         member: Any,
         module: types.ModuleType,
         class_: Optional[Type[object]] = None,
-        ignore: Optional[Dict[str, any]] = None,
+        ignore: Optional[Dict[str, object]] = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -813,8 +829,8 @@ class Substituter:
 
         >>> from hydpy.core import typingtools
         >>> substituter.add_module(typingtools)
-        >>> substituter.find("|NDArrayFloat|")
-        |NDArrayFloat| :class:`~hydpy.core.typingtools.NDArrayFloat`
+        >>> substituter.find("|NDArrayFloat|")  # doctest: +ELLIPSIS
+        |NDArrayFloat| :...:`~hydpy.core.typingtools.NDArrayFloat`
 
         When adding Cython modules, the `cython` flag should be set |True|:
 
@@ -1051,20 +1067,20 @@ def prepare_mainsubstituter() -> Substituter:
         warnings,
     ):
         substituter.add_module(module)
-    for subpackage in (auxs, core, cythons, exe):
+    for subpackage in (auxs, core, cythons, interfaces, exe):
         for _, name, _ in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))
     substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
-        annutils,
-        interputils,
-        ppolyutils,
-        pointerutils,
-        quadutils,
-        rootutils,
-        smoothutils,
+        annutils,  # pylint: disable=used-before-assignment
+        interputils,  # pylint: disable=used-before-assignment
+        ppolyutils,  # pylint: disable=used-before-assignment
+        pointerutils,  # pylint: disable=used-before-assignment
+        quadutils,  # pylint: disable=used-before-assignment
+        rootutils,  # pylint: disable=used-before-assignment
+        smoothutils,  # pylint: disable=used-before-assignment
     ):
         substituter.add_module(cymodule, cython=True)
     substituter.short2long["|pub|"] = ":mod:`~hydpy.pub`"
@@ -1129,43 +1145,49 @@ def autodoc_module(module: types.ModuleType) -> None:
 _name2descr = {
     "CLASSES": "The following classes are selected",
     "RECEIVER_METHODS": (
-        'The following "receiver update methods" are called in '
-        "the given sequence before performing a simulation step"
+        'The following "receiver update methods" are called in the given sequence '
+        "before performing a simulation step"
     ),
     "INLET_METHODS": (
-        'The following "inlet update methods" are called in the '
-        "given sequence at the beginning of each simulation step"
+        'The following "inlet update methods" are called in the given sequence at the '
+        "beginning of each simulation step"
     ),
     "RUN_METHODS": (
-        'The following "run methods" are called in the given '
-        "sequence during each simulation step"
+        'The following "run methods" are called in the given sequence during each '
+        "simulation step"
     ),
     "PART_ODE_METHODS": (
-        "The following methods define the relevant components "
-        "of a system of ODE equations (e.g. direct runoff)"
+        "The following methods define the relevant components of a system of ODE "
+        "equations (e.g. direct runoff)"
     ),
     "FULL_ODE_METHODS": (
-        "The following methods define the complete equations of "
-        "an ODE system (e.g. change in storage of `fast water` "
-        "due to effective precipitation and direct runoff)"
+        "The following methods define the complete equations of an ODE system (e.g. "
+        "change in storage of `fast water` due to effective precipitation and direct "
+        "runoff)"
     ),
     "OUTLET_METHODS": (
-        'The following "outlet update methods" are called in the '
-        "given sequence at the end of each simulation step"
+        'The following "outlet update methods" are called in the given sequence at '
+        "the end of each simulation step"
     ),
     "SENDER_METHODS": (
-        'The following "sender update methods" are called in '
-        "the given sequence after performing a simulation step"
+        'The following "sender update methods" are called in the given sequence after '
+        "performing a simulation step"
+    ),
+    "INTERFACE_METHODS": (
+        "The following interface methods are available to main models using the "
+        "defined model as a submodel"
     ),
     "ADD_METHODS": (
-        'The following "additional methods" might be called '
-        "by one or more of the other methods or are meant to "
-        "be directly called by the user"
+        'The following "additional methods" might be called by one or more of the '
+        "other methods or are meant to be directly called by the user"
+    ),
+    "SUBMODELINTERFACES": (
+        "Users can hook submodels into the defined main model if they satisfy one of "
+        "the following interfaces"
     ),
     "SUBMODELS": (
-        'The following "submodels" might be called by one or more '
-        "of the implemented methods or are meant to be directly "
-        "called by the user"
+        'The following "submodels" might be called by one or more of the implemented '
+        "methods or are meant to be directly called by the user"
     ),
 }
 
@@ -1173,8 +1195,8 @@ _loggedtuples: Set[str] = set()
 
 
 def autodoc_tuple2doc(module: types.ModuleType) -> None:
-    """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS`
-    of `Models` into the respective docstring."""
+    """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS` of `Models`
+    into the respective docstring."""
     modulename = module.__name__
     for membername, member in inspect.getmembers(module):
         for tuplename, descr in _name2descr.items():

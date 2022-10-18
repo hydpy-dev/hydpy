@@ -2931,6 +2931,7 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusH,)
 
 

@@ -35,9 +35,7 @@ if TYPE_CHECKING:
     from hydpy.core.sequencetools import Sequence
 
 
-ConditionsType = Dict[
-    str, Dict[str, Dict[str, Union[float, Vector[float], Matrix[float]]]]
-]
+ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, NDArrayFloat]]]]
 
 
 class HydPy:
@@ -590,11 +588,9 @@ is not requested to make any time-series data available.
     Now we can load the previously written results into RAM (see the documentation on
     module |netcdftools| for further information) and inspect the results:
 
-    >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader()
+    >>> with TestIO(), pub.sequencemanager.netcdfreading():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
-    ...     pub.sequencemanager.close_netcdfreader()
 
     >>> round_(model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849
@@ -670,11 +666,9 @@ is not requested to make any time-series data available.
 
     >>> hp.prepare_allseries(allocate_ram=False)
     >>> hp.prepare_allseries(allocate_ram=True)
-    >>> with TestIO():
-    ...     pub.sequencemanager.open_netcdfreader()
+    >>> with TestIO(), pub.sequencemanager.netcdfreading():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
-    ...     pub.sequencemanager.close_netcdfreader()
 
     >>> round_(model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849
@@ -741,7 +735,7 @@ moment.
         nodes = self._nodes
         if nodes is None:
             raise AttributeError(
-                "The actual HydPy instance does not handle any " "nodes at the moment."
+                "The actual HydPy instance does not handle any nodes at the moment."
             )
         return nodes
 
@@ -1435,7 +1429,8 @@ needed to be trimmed.  The old and the new value(s) are \
         """
         self.elements.reset_conditions()
 
-    def _get_conditions(self) -> ConditionsType:
+    @property
+    def conditions(self) -> ConditionsType:
         """A nested dictionary that contains the values of all condition sequences of
         all currently handled models.
 
@@ -1535,10 +1530,9 @@ needed to be trimmed.  The old and the new value(s) are \
         """
         return self.elements.conditions
 
-    def _set_conditions(self, conditions: ConditionsType) -> None:
+    @conditions.setter
+    def conditions(self, conditions: ConditionsType) -> None:
         self.elements.conditions = conditions
-
-    conditions = property(_get_conditions, _set_conditions)
 
     @property
     def networkproperties(
@@ -1620,10 +1614,8 @@ needed to be trimmed.  The old and the new value(s) are \
         After breaking the connection between node `lahn_1` and its downstream river
         channel element `stream_lahn_1_lahn2`, `lahn_1` also becomes an end node:
 
-        >>> hp.nodes.lahn_1.exits.mutable = True
-        >>> hp.elements.stream_lahn_1_lahn_2.inlets.mutable = True
-        >>> del hp.nodes.lahn_1.exits.stream_lahn_1_lahn_2
-        >>> del hp.elements.stream_lahn_1_lahn_2.inlets.lahn_1
+        >>> hp.nodes.lahn_1.exits.remove_device("stream_lahn_1_lahn_2", force=True)
+        >>> hp.elements.stream_lahn_1_lahn_2.inlets.remove_device("lahn_1", force=True)
         >>> hp.endnodes
         Nodes("lahn_1", "lahn_3")
 
@@ -1640,10 +1632,8 @@ needed to be trimmed.  The old and the new value(s) are \
         Connections with "remote" elements are considered irrelevant:
 
         >>> stream = hp.elements.stream_lahn_2_lahn_3
-        >>> stream.inlets.mutable = True
-        >>> stream.receivers.mutable = True
-        >>> stream.receivers += stream.inlets.lahn_2
-        >>> del stream.inlets.lahn_2
+        >>> stream.receivers.add_device(stream.inlets.lahn_2, force=True)
+        >>> stream.inlets.remove_device("lahn_2", force=True)
         >>> hp.endnodes
         Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
         """
@@ -1686,10 +1676,8 @@ needed to be trimmed.  The old and the new value(s) are \
         |Selection| objects that do not overlap each other (meaning, no |Node| or
         |Element| object occurs more than one time):
 
-        >>> hp.nodes.lahn_1.exits.mutable = True
-        >>> hp.elements.stream_lahn_1_lahn_2.inlets.mutable = True
-        >>> del hp.nodes.lahn_1.exits.stream_lahn_1_lahn_2
-        >>> del hp.elements.stream_lahn_1_lahn_2.inlets.lahn_1
+        >>> hp.nodes.lahn_1.exits.remove_device("stream_lahn_1_lahn_2", force=True)
+        >>> hp.elements.stream_lahn_1_lahn_2.inlets.remove_device("lahn_1", force=True)
         >>> hp.segregatednetworks
         Selections("lahn_1", "lahn_3")
         >>> hp.segregatednetworks.lahn_1
@@ -1724,10 +1712,8 @@ needed to be trimmed.  The old and the new value(s) are \
 
 
         >>> stream = hp.elements.stream_lahn_2_lahn_3
-        >>> stream.inlets.mutable = True
-        >>> stream.receivers.mutable = True
-        >>> stream.receivers += stream.inlets.lahn_2
-        >>> del stream.inlets.lahn_2
+        >>> stream.receivers.add_device(stream.inlets.lahn_2, force=True)
+        >>> stream.inlets.remove_device("lahn_2", force=True)
         >>> hp.segregatednetworks
         Selections("dill", "lahn_1", "lahn_2", "lahn_3")
         >>> hp.segregatednetworks.dill
@@ -1823,7 +1809,7 @@ needed to be trimmed.  The old and the new value(s) are \
             Union[
                 str,
                 Type[sequencetools.InputSequence],
-                Type[sequencetools.OutputSequence[Any]],
+                Type[sequencetools.OutputSequence],
                 devicetools.FusedVariable,
             ],
             int,

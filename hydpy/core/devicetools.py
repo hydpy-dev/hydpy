@@ -4,8 +4,8 @@
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
 documentation, "node" stands for an object of class |Node|, "element" for an object of
 class |Element|, and "device" for either of them (you cannot initialise objects of
-class |Device| directly).  On the other hand, "nodes", for example, does not
-necessarily mean an object of class |Nodes|, but any other group of |Node| objects as
+class |Device| directly).  On the other hand, the term "nodes", for example, does not
+necessarily mean an object of class |Nodes| but any other group of |Node| objects as
 well.
 
 Each element handles a single |Model| object and represents, for example, a subbasin or
@@ -52,9 +52,10 @@ For a complete list of all available nodes, use the method |Device.query_all|:
 >>> Node.query_all()
 Nodes("test1", "test2", "test3")
 
-When working interactively in the Python interpreter, it might be useful to clear the
-registry completely, sometimes.  Do this with care because defining nodes with already
-assigned names might result in surprises due to using their names for identification:
+When working interactively in the Python interpreter, it might sometimes be helpful to
+clear the registry entirely.  However, Do this with care because defining nodes with
+already assigned names might result in surprises due to using their names for
+identification:
 
 >>> nodes = Node.query_all()
 >>> Node.clear_all()
@@ -93,7 +94,6 @@ from hydpy.core import sequencetools
 from hydpy.core import seriestools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-from hydpy.cythons.autogen import pointerutils
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -101,36 +101,30 @@ if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import hydpytools
     from hydpy.core import modeltools
+    from hydpy.cythons import pointerutils
 else:
     pandas = exceptiontools.OptionalImport("pandas", ["pandas"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
+    from hydpy.cythons.autogen import pointerutils
 
-_default_variable = "Q"
-
-TypeDevice = TypeVar("TypeDevice", "Node", "Element")
-TypeDevicesBound = TypeVar("TypeDevicesBound", bound="Devices")
-TypeDevicesUnbound = TypeVar("TypeDevicesUnbound", "Nodes", "Elements")
+TypeDevice = TypeVar("TypeDevice", bound="Device")
+TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
 
 NodesConstrArg = MayNonerable2["Node", str]
 ElementsConstrArg = MayNonerable2["Element", str]
 NodeConstrArg = Union["Node", str]
 ElementConstrArg = Union["Element", str]
 
-NodeVariableType = Union[
-    str,
-    sequencetools.InOutSequenceTypes,
-    "FusedVariable",
-]
+NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
 
-LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+_default_variable: NodeVariableType = "Q"
 
 
 class Keywords(Set[str]):
     """Set of keyword arguments used to describe and search for |Element| and |Node|
     objects."""
 
-    device: Union[Node, Element, None]
+    device: Optional[Device]
 
     def __init__(self, *names: str):
         self.device = None
@@ -183,7 +177,7 @@ class Keywords(Set[str]):
                     f"{objecttools.devicename(self.device)}"
                 )
 
-    def update(self, *names: Any) -> None:
+    def update(self, *names: str) -> None:  # type: ignore[override]
         """Before updating, the given names are checked to be valid variable
         identifiers.
 
@@ -217,8 +211,7 @@ variable identifier.  ...
         super().update(_names)
 
     def add(self, name: Any) -> None:
-        """Before adding a new name, it is checked to be valid variable
-        identifiers.
+        """Before adding a new name, it is checked to be a valid variable identifier.
 
         >>> from hydpy.core.devicetools import Keywords
         >>> keywords = Keywords("first_keyword", "second_keyword",
@@ -252,7 +245,7 @@ variable identifier.  ...
             )
 
 
-_registry_fusedvariable: Dict[str, "FusedVariable"] = {}
+_registry_fusedvariable: Dict[str, FusedVariable] = {}
 
 
 class FusedVariable:
@@ -336,7 +329,7 @@ class FusedVariable:
 
     >>> t1.sequences.sim = -273.15
 
-    Model |conv_v001| now can perform a simulation step and pass its output to node
+    Model |conv_v001| can now perform a simulation step and pass its output to node
     `t2`:
 
     >>> conv.model.simulate(0)
@@ -371,10 +364,10 @@ class FusedVariable:
     pet(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
-    behind the scenes, similar to classes |Node| and |Element| do.  Again, the name
-    works as the identifier, and we force the same fused variable to exist only once,
-    even when defined in different selection files repeatedly.  Hence, when we repeat
-    the definition from above, we get the same object:
+    behind the scenes, similar to what classes |Node| and |Element| do.  Again, the
+    name works as the identifier, and we force the same fused variable to exist only
+    once, even when defined in different selection files repeatedly.  Hence, when we
+    repeat the definition from above, we get the same object:
 
     >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
     >>> T is Test
@@ -422,7 +415,7 @@ unique identifier for fused variable instances.
     """
 
     _name: str
-    _aliases: Tuple[str]
+    _aliases: Tuple[str, ...]
     _variables: Tuple[sequencetools.InOutSequenceTypes, ...]
     _alias2variable: Dict[str, sequencetools.InOutSequenceTypes]
 
@@ -450,7 +443,7 @@ unique identifier for fused variable instances.
         self._variables = variables
         _registry_fusedvariable[name] = self
         self._alias2variable = dict(zip(self._aliases, self._variables))
-        return self  # type: ignore[no-any-return]
+        return self
 
     @classmethod
     def get_registry(cls) -> Tuple["FusedVariable", ...]:
@@ -490,7 +483,7 @@ class Devices(Generic[TypeDevice]):
     The following features are common to class |Nodes| and class |Elements|.  We
     arbitrarily select class |Nodes| for all examples.
 
-    To initialise a |Nodes| collection class, pass a variable number of |str| or |Node|
+    To initialise a |Nodes| collection, pass a variable number of |str| or |Node|
     objects.  Strings are used to create new or query already existing nodes
     automatically:
 
@@ -501,19 +494,47 @@ class Devices(Generic[TypeDevice]):
     ...               Node("nd", keywords=("group_a", "group_2")),
     ...               Node("ne", keywords=("group_b", "group_1")))
 
-    |Nodes| and |Elements| objects are containers supporting attribute access. You can
-    access each node or element directly by its name:
+    |Nodes| instances are containers supporting attribute and item access. You can
+    access each node directly by its name:
 
     >>> nodes.na
     Node("na", variable="Q")
+    >>> nodes["na"]
+    Node("na", variable="Q")
 
-    Wrong node names result in the following error message:
+    In many situations, a |Nodes| instance contains a single node only.  One can query
+    such a single node using zero as the index for convenience:
+
+    >>> Nodes("na")[0]
+    Node("na", variable="Q")
+
+    Other number-based indexed are not allowed:
+
+    >>> Nodes("na", "nb")[1]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Indexing with other numbers than `0` is not supported but `1` is given.'
+
+    An automatic check prevents unexpected results when applying zero-based indexing on
+    |Nodes| instances containing multiple nodes:
+
+    >>> Nodes("na", "nb")[0]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Indexing with `0` is only safe for Node handlers containing a single \
+Node.'
+
+    Wrong node names result in the following error messages:
 
     >>> nodes.wrong
     Traceback (most recent call last):
     ...
     AttributeError: The selected Nodes object has neither a `wrong` attribute nor \
 does it handle a Node object with name or keyword `wrong`, which could be returned.
+    >>> nodes["wrong"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'No node named `wrong` available.'
 
     As explained in more detail in the documentation on property |Device.keywords|, you
     can also use the keywords of the individual nodes to query the relevant ones:
@@ -521,17 +542,7 @@ does it handle a Node object with name or keyword `wrong`, which could be return
     >>> nodes.group_a
     Nodes("nc", "nd")
 
-    Especially in this context, you might find it useful to also get an iterable object
-    in case no node or only a single node is available:
-
-    >>> Nodes.forceiterable = True
-    >>> nodes.wrong
-    Nodes()
-    >>> nodes.na
-    Nodes("na")
-    >>> Nodes.forceiterable = False
-
-    Attribute deleting is supported:
+    You can remove nodes both via the attribute and item syntax:
 
     >>> "na" in nodes
     True
@@ -544,9 +555,16 @@ does it handle a Node object with name or keyword `wrong`, which could be return
     AttributeError: The actual Nodes object does not handle a Node object named `na` \
 which could be removed, and deleting other attributes is not supported.
 
-    However, shown  by the next example, setting devices via attribute access could
-    result in inconsistencies and is not allowed (see method |Devices.add_device|
-    instead):
+    >>> nodes.add_device("na")
+    >>> del nodes["na"]
+    >>> del nodes["na"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'No node named `na` available.'
+
+    However, as shown by the following example, setting devices via attribute
+    assignment or item assignment could result in inconsistencies and is thus not
+    allowed (see method |Devices.add_device| instead):
 
     >>> nodes.NF = Node("nf")
     Traceback (most recent call last):
@@ -554,8 +572,12 @@ which could be removed, and deleting other attributes is not supported.
     AttributeError: Setting attributes of Nodes objects could result in confusion \
 whether a new attribute should be handled as a Node object or as a "normal" attribute \
 and is thus not support, hence `NF` is rejected.
+    >>> nodes["NF"] = Node("nf")
+    Traceback (most recent call last):
+    ...
+    TypeError: 'Nodes' object does not support item assignment
 
-    |Nodes| and |Elements| instances support iteration:
+    |Nodes| instances support iteration:
 
     >>> len(nodes)
     4
@@ -563,7 +585,7 @@ and is thus not support, hence `NF` is rejected.
     ...     print(node.name, end=",")
     nb,nc,nd,ne,
 
-    The binary operators `+`, `+=`, `-` and `-=` support adding and removing single
+    The binary operators `+`, `+=`, `-`, and `-=` support adding and removing single
     devices or groups of devices:
 
     >>> nodes
@@ -635,30 +657,27 @@ occurred: The given (sub)value `Element("ea")` is not an instance of the followi
 classes: Node and str.
     """
 
+    _mutable: bool
     _name2device: Dict[str, TypeDevice]
-    mutable: bool
     _shadowed_keywords: Set[str]
-    forceiterable: bool = False
 
     # We do not want to implement the signature of Generic.__new__ here:
     def __new__(  # pylint: disable=arguments-differ
-        cls,
-        *values: MayNonerable2[TypeDevice, str],
-        mutable: bool = True,
-    ):
+        cls, *values: MayNonerable2[TypeDevice, str], mutable: bool = True
+    ) -> Devices[Any]:
         if len(values) == 1 and isinstance(values[0], Devices):
             return values[0]
         self = super().__new__(cls)
-        dict_ = vars(self)
-        dict_["mutable"] = mutable
-        dict_["_name2device"] = {}
-        dict_["_shadowed_keywords"] = set()
+        setattr_ = super().__setattr__
+        setattr_(self, "_mutable", mutable)
+        setattr_(self, "_name2device", {})
+        setattr_(self, "_shadowed_keywords", set())
         contentclass = self.get_contentclass()
         try:
             for value in objecttools.extract(
                 values, types_=(contentclass, str), skip=True
             ):
-                self.add_device(value)
+                self.add_device(value, force=True)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to initialise a `{type(self).__name__}` object"
@@ -670,7 +689,7 @@ classes: Node and str.
     def get_contentclass() -> Type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[TypeDevice, str]) -> None:
+    def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -686,20 +705,26 @@ classes: Node and str.
         Nodes("new_node", "old_node")
 
         Method |Devices.add_device| is disabled for immutable |Nodes| and |Elements|
-        objects:
+        objects by default:
 
-        >>> nodes.mutable = False
+        >>> nodes._mutable = False
         >>> nodes.add_device("newest_node")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to add the device `newest_node` to a Nodes object, \
 the following error occurred: Adding devices to immutable Nodes objects is not allowed.
+
+        Use parameter `force` to override this safety mechanism if necessary:
+
+        >>> nodes.add_device("newest_node", force=True)
+        >>> nodes
+        Nodes("new_node", "newest_node", "old_node")
         """
         try:
-            if self.mutable:
+            if force or self._mutable:
                 _device = self.get_contentclass()(device)
                 self._name2device[_device.name] = _device
-                _id2devices[_device][id(self)] = self
+                _id2devices[_device][id(self)] = cast(Devices[Device], self)  # ToDo
             else:
                 raise RuntimeError(
                     f"Adding devices to immutable {type(self).__name__} objects is "
@@ -711,7 +736,9 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(self, device: Union[TypeDevice, str]) -> None:
+    def remove_device(
+        self, device: Union[TypeDevice, str], force: bool = False
+    ) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -733,31 +760,40 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
 the following error occurred: The actual Nodes object does not handle such a device.
 
         Method |Devices.remove_device| is disabled for immutable |Nodes| and |Elements|
-        objects:
+        objects by default:
 
-        >>> nodes.mutable = False
-        >>> nodes.remove_device("node_z")
+        >>> nodes.add_device(node_x)
+        >>> nodes._mutable = False
+        >>> nodes.remove_device("node_x")
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to remove the device `node_z` from a Nodes object, \
+        RuntimeError: While trying to remove the device `node_x` from a Nodes object, \
 the following error occurred: Removing devices from immutable Nodes objects is not \
 allowed.
+        >>> nodes
+        Nodes("node_x")
+
+        Use parameter `force` to override this safety mechanism if necessary:
+
+        >>> nodes.remove_device("node_x", force=True)
+        >>> nodes
+        Nodes()
         """
         try:
-            if self.mutable:
+            if force or self._mutable:
                 _device = self.get_contentclass()(device)
                 try:
                     del self._name2device[_device.name]
                 except KeyError:
                     raise ValueError(
-                        f"The actual {type(self).__name__} "
-                        f"object does not handle such a device."
+                        f"The actual {type(self).__name__} object does not handle "
+                        f"such a device."
                     ) from None
                 del _id2devices[_device][id(self)]
             else:
                 raise RuntimeError(
-                    f"Removing devices from immutable "
-                    f"{type(self).__name__} objects is not allowed."
+                    f"Removing devices from immutable {type(self).__name__} objects "
+                    f"is not allowed."
                 )
         except BaseException:
             objecttools.augment_excmessage(
@@ -847,10 +883,7 @@ allowed.
             if keyword not in self._shadowed_keywords
         )
 
-    def search_keywords(
-        self: TypeDevicesBound,
-        *keywords: str,
-    ) -> TypeDevicesBound:
+    def search_keywords(self: TypeDevices, *keywords: str) -> TypeDevices:
         """Search for all devices handling at least one of the given keywords and
         return them.
 
@@ -876,7 +909,7 @@ allowed.
             *(device for device in self if keywords_.intersection(device.keywords))
         )
 
-    def copy(self: TypeDevicesBound) -> TypeDevicesBound:
+    def copy(self: TypeDevices) -> TypeDevices:
         """Return a shallow copy of the actual |Nodes| or |Elements| object.
 
         Method |Devices.copy| returns a semi-flat copy of |Nodes| or |Elements| objects
@@ -913,18 +946,16 @@ allowed.
 would require to make deep copies of the Node objects themselves, which is in \
 conflict with using their names as identifiers.
         """
+        # pylint: disable=protected-access
         new = type(self)()
         vars(new).update(vars(self))
-        vars(new)["_name2device"] = copy.copy(self._name2device)
-        vars(new)["_shadowed_keywords"].clear()
+        new._name2device = copy.copy(self._name2device)
+        new._shadowed_keywords.clear()
         for device in self:
             _id2devices[device][id(new)] = new
         return new
 
-    def intersection(
-        self: TypeDevicesBound,
-        *other: TypeDevice,
-    ) -> TypeDevicesBound:
+    def intersection(self: TypeDevices, *other: TypeDevices) -> TypeDevices:
         """Return the intersection with the given |Devices| object.
 
         >>> from hydpy import Node, Nodes
@@ -941,7 +972,7 @@ conflict with using their names as identifiers.
 
     __copy__ = copy
 
-    def __deepcopy__(self, dict_):
+    def __deepcopy__(self, dict_: NoReturn) -> NoReturn:
         classname = type(self).__name__
         raise NotImplementedError(
             f"Deep copying of {classname} objects is not supported, as it would "
@@ -949,29 +980,21 @@ conflict with using their names as identifiers.
             f"which is in conflict with using their names as identifiers."
         )
 
-    def __select_devices_by_keyword(self, name: str) -> TypeDevicesBound:
+    def __select_devices_by_keyword(self: TypeDevices, name: str) -> TypeDevices:
+        # pylint: disable=protected-access
         devices = type(self)(*(device for device in self if name in device.keywords))
-        vars(devices)["_shadowed_keywords"] = self._shadowed_keywords.copy()
-        vars(devices)["_shadowed_keywords"].add(name)
+        devices._shadowed_keywords = self._shadowed_keywords.copy()
+        devices._shadowed_keywords.add(name)
         return devices
 
-    def __getattr__(
-        self: TypeDevicesBound,
-        name: str,
-    ) -> Union[TypeDevice, TypeDevicesBound]:
-        try:
-            name2device = self._name2device
-            device = name2device[name]
-            if self.forceiterable:
-                return type(self)(device)
-            return device
-        except KeyError:
-            pass
+    def __getattr__(self: TypeDevices, name: str) -> Union[TypeDevice, TypeDevices]:
+        if name in self._name2device:
+            return cast(TypeDevice, self._name2device[name])  # ToDo
         _devices = self.__select_devices_by_keyword(name)
-        if self.forceiterable or len(_devices) > 1:
+        if len(_devices) > 1:
             return _devices
         if len(_devices) == 1:
-            return _devices.devices[0]
+            return cast(TypeDevice, _devices.devices[0])  # ToDo
         raise AttributeError(
             f"The selected {type(self).__name__} object has neither a `{name}` "
             f"attribute nor does it handle a {self.get_contentclass().__name__} "
@@ -1000,17 +1023,38 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: str) -> TypeDevice:
+    def __getitem__(self, name: Union[Literal[0], str]) -> TypeDevice:
+        if name == 0:
+            devices = tuple(self._name2device.values())
+            if len(devices) == 1:
+                return tuple(devices)[0]
+            device = self.get_contentclass().__name__
+            raise KeyError(
+                f"Indexing with `0` is only safe for {device} handlers containing "
+                f"a single {device}."
+            ) from None
         try:
             return self._name2device[name]
         except KeyError:
-            raise KeyError(f"No device named `{name}` available.") from None
+            if isinstance(name, int):  # type: ignore[unreachable]
+                raise KeyError(
+                    f"Indexing with other numbers than `0` is not supported but "
+                    f"`{name}` is given."
+                ) from None
+            device = self.get_contentclass().__name__.lower()
+            raise KeyError(f"No {device} named `{name}` available.") from None
 
-    def __setitem__(self, name: str, value: TypeDevice) -> None:
-        self._name2device[name] = value
+    def __setitem__(self, name: str, value: TypeDevice) -> NoReturn:
+        raise TypeError(
+            f"'{type(self).__name__}' object does not support item assignment"
+        )
 
     def __delitem__(self, name: str) -> None:
-        del self._name2device[name]
+        try:
+            del self._name2device[name]
+        except KeyError:
+            device = self.get_contentclass().__name__.lower()
+            raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
         for (_, device) in sorted(self._name2device.items()):
@@ -1027,30 +1071,21 @@ conflict with using their names as identifiers.
     def __len__(self) -> int:
         return len(self._name2device)
 
-    def __add__(
-        self: TypeDevicesBound,
-        other: Mayberable2[TypeDevice, str],
-    ) -> TypeDevicesBound:
+    def __add__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         new = copy.copy(self)
-        new.mutable = True
+        new._mutable = True
         for device in type(self)(other):
             new.add_device(device)
         return new
 
-    def __iadd__(
-        self: TypeDevicesBound,
-        other: Mayberable2[TypeDevice, str],
-    ) -> TypeDevicesBound:
+    def __iadd__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         for device in type(self)(other):
             self.add_device(device)
         return self
 
-    def __sub__(
-        self: TypeDevicesBound,
-        other: Mayberable2[TypeDevice, str],
-    ) -> TypeDevicesBound:
+    def __sub__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         new = copy.copy(self)
-        new.mutable = True
+        new._mutable = True
         for device in type(self)(other):
             try:
                 new.remove_device(device)
@@ -1058,10 +1093,7 @@ conflict with using their names as identifiers.
                 pass
         return new
 
-    def __isub__(
-        self: TypeDevicesBound,
-        other: Mayberable2[TypeDevice, str],
-    ) -> TypeDevicesBound:
+    def __isub__(self: TypeDevices, other: Mayberable2[TypeDevice, str]) -> TypeDevices:
         for device in type(self)(other):
             try:
                 self.remove_device(device)
@@ -1074,22 +1106,22 @@ conflict with using their names as identifiers.
             return func(set(self), set(other))
         return NotImplemented
 
-    def __lt__(self, other: TypeDevicesBound) -> bool:
+    def __lt__(self: TypeDevices, other: TypeDevices) -> bool:
         return self.__compare(other, operator.lt)
 
-    def __le__(self, other: TypeDevicesBound) -> bool:
+    def __le__(self: TypeDevices, other: TypeDevices) -> bool:
         return self.__compare(other, operator.le)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return self.__compare(other, operator.eq)
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         return self.__compare(other, operator.ne)
 
-    def __ge__(self, other: TypeDevicesBound) -> bool:
+    def __ge__(self: TypeDevices, other: TypeDevices) -> bool:
         return self.__compare(other, operator.ge)
 
-    def __gt__(self, other: TypeDevicesBound) -> bool:
+    def __gt__(self: TypeDevices, other: TypeDevices) -> bool:
         return self.__compare(other, operator.gt)
 
     def __repr__(self) -> str:
@@ -1097,9 +1129,9 @@ conflict with using their names as identifiers.
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
-        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
-            with hydpy.pub.options.ellipsis(2, optional=True):
+            options = hydpy.pub.options
+            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
                 prefix += f"{type(self).__name__}("
                 repr_ = objecttools.assignrepr_values(self.names, prefix, width=70)
                 return repr_ + ")"
@@ -1143,15 +1175,15 @@ class Nodes(Devices["Node"]):
 
     def __new__(
         cls,
-        *values: MayNonerable2[TypeDevice, str],
+        *values: MayNonerable2[Node, str],
         mutable: bool = True,
         defaultvariable: NodeVariableType = "Q",
-    ):
+    ) -> Nodes:
         global _default_variable
         _default_variable_copy = _default_variable
         try:
             _default_variable = defaultvariable
-            return super().__new__(cls, *values, mutable=mutable)
+            return super().__new__(cls, *values, mutable=mutable)  # type: ignore[return-value, arg-type]  # pylint: disable=line-too-long
         finally:
             _default_variable = _default_variable_copy
 
@@ -1350,17 +1382,14 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
     @printtools.print_progress
     def save_controls(
         self,
-        parameterstep: Optional["timetools.PeriodConstrArg"] = None,
-        simulationstep: Optional["timetools.PeriodConstrArg"] = None,
-        auxfiler: "Optional[auxfiletools.Auxfiler]" = None,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
     ) -> None:
         """Save the control parameters of the |Model| object handled by each |Element|
         object and eventually the ones handled by the given |Auxfiler| object."""
         if auxfiler:
-            auxfiler.write(
-                parameterstep=parameterstep,
-                simulationstep=simulationstep,
-            )
+            auxfiler.write(parameterstep=parameterstep, simulationstep=simulationstep)
         for element in printtools.progressbar(self):
             element.model.parameters.save_controls(
                 parameterstep=parameterstep,
@@ -1485,7 +1514,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         activated |IOSequence.memoryflag|."""
         self.__load_modelseries("states")
 
-    def __load_modelseries(self, name_subseqs) -> None:
+    def __load_modelseries(self, name_subseqs: str) -> None:
         for element in printtools.progressbar(self):
             element.model.sequences[name_subseqs].load_series()
 
@@ -1527,10 +1556,15 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.sequences[name_subseqs].save_series()
 
 
-class Device(Generic[TypeDevicesUnbound]):
+class Device:
     """Base class for class |Element| and class |Node|."""
 
-    def __new__(cls, value, *args, **kwargs):
+    _name: str
+    _keywords: Keywords
+
+    def __new__(
+        cls, value: Union[Device, str], *args: object, **kwargs: object
+    ) -> Device:
         # pylint: disable=unused-argument
         # required for consistincy with __init__
         name = str(value)
@@ -1539,10 +1573,10 @@ class Device(Generic[TypeDevicesUnbound]):
             self = _registry[cls][name]
         except KeyError:
             self = object.__new__(cls)
-            vars(self)["name"] = name
-            vars(self)["new_instance"] = True
-            vars(self)["keywords"] = Keywords()
-            vars(self)["keywords"].device = self
+            self._name = name
+            setattr(self, "new_instance", True)
+            self._keywords = Keywords()
+            self._keywords.device = self
             _id2devices[self] = {}
             _registry[cls][name] = self
         _selection[cls][name] = _registry[cls][name]
@@ -1550,11 +1584,11 @@ class Device(Generic[TypeDevicesUnbound]):
 
     @classmethod
     @abc.abstractmethod
-    def get_handlerclass(cls) -> Type:
+    def get_handlerclass(cls) -> Type[Devices[Any]]:
         """To be overridden."""
 
     @classmethod
-    def query_all(cls) -> TypeDevicesUnbound:
+    def query_all(cls) -> Devices[Device]:
         """Get all |Node| or |Element| objects initialised so far.
 
         See the main documentation on module |devicetools| for further information.
@@ -1562,7 +1596,7 @@ class Device(Generic[TypeDevicesUnbound]):
         return cls.get_handlerclass()(*_registry[cls].values())
 
     @classmethod
-    def extract_new(cls) -> TypeDevicesUnbound:
+    def extract_new(cls) -> Devices[Device]:
         """Gather all "new" |Node| or |Element| objects.
 
         See the main documentation on module |devicetools| for further information.
@@ -1624,19 +1658,19 @@ a valid variable identifier.  ...
         >>> Node.query_all()
         Nodes("n1a", "n2")
         """
-        return vars(self)["name"]
+        return self._name
 
     @name.setter
     def name(self, name: str) -> None:
         self.__check_name(name)
-        for devices in _id2devices[self].values():
+        for devices in tuple(_id2devices[self].values()):
             if hasattr(devices, self.name):
-                del devices[self.name]
+                del devices._name2device[self.name]  # pylint: disable=protected-access
         del _registry[type(self)][self.name]
-        vars(self)["name"] = name
+        self._name = name
         _registry[type(self)][self.name] = self
-        for devices in _id2devices[self].values():
-            devices[self.name] = self
+        for devices in tuple(_id2devices[self].values()):
+            devices._name2device[self.name] = self  # pylint: disable=protected-access
 
     @classmethod
     def __check_name(cls, name: str) -> None:
@@ -1680,22 +1714,23 @@ a valid variable identifier.  ...
         >>> node.keywords
         Keywords()
         """
-        return vars(self)["keywords"]
+        return self._keywords
 
     @keywords.setter
     def keywords(self, keywords: Mayberable1[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
-        vars(self)["keywords"].update(*keywords)
+        self._keywords.update(*keywords)
 
     @keywords.deleter
     def keywords(self) -> None:
-        vars(self)["keywords"].clear()
+        self._keywords.clear()
 
     def __str__(self) -> str:
         return self.name
 
 
-class Node(Device[Nodes]):
+class Node(Device):
+
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for simulated values and
@@ -1735,6 +1770,11 @@ following error occurred: Adding devices to immutable Elements objects is not al
     masks = masktools.NodeMasks()
     sequences: sequencetools.NodeSequences
 
+    _entries: Elements
+    _exits: Elements
+    _variable: NodeVariableType
+    _deploymode: DeployMode
+
     def __init__(
         self,
         value: NodeConstrArg,
@@ -1743,17 +1783,17 @@ following error occurred: Adding devices to immutable Elements objects is not al
     ) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
-        if "new_instance" in vars(self):
+        if hasattr(self, "new_instance"):
             if variable is None:
-                vars(self)["variable"] = _default_variable
+                self._variable = _default_variable
             else:
-                vars(self)["variable"] = variable
-            vars(self)["entries"] = Elements(None, mutable=False)
-            vars(self)["exits"] = Elements(None, mutable=False)
+                self._variable = variable
+            self._entries = Elements(None, mutable=False)
+            self._exits = Elements(None, mutable=False)
             self.sequences = sequencetools.NodeSequences(self)
-            vars(self)["deploymode"] = "newsim"
+            self._deploymode = "newsim"
             self.__blackhole = pointerutils.Double(0.0)
-            del vars(self)["new_instance"]
+            delattr(self, "new_instance")
         if (variable is not None) and (variable != self.variable):
             raise ValueError(
                 f"The variable to be represented by a {type(self).__name__} instance "
@@ -1775,13 +1815,13 @@ following error occurred: Adding devices to immutable Elements objects is not al
     def entries(self) -> Elements:
         """Group of |Element| objects which set the the simulated value of the |Node|
         object."""
-        return vars(self)["entries"]
+        return self._entries
 
     @property
     def exits(self) -> Elements:
         """Group of |Element| objects which query the simulated or observed value of
         the actual |Node| object."""
-        return vars(self)["exits"]
+        return self._exits
 
     @property
     def variable(self) -> NodeVariableType:
@@ -1834,12 +1874,10 @@ following error occurred: Adding devices to immutable Elements objects is not al
 changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, that \
 `name` is the unique identifier of node objects.
         """
-        return vars(self)["variable"]
+        return self._variable
 
     @property
-    def deploymode(
-        self,
-    ) -> Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]:
+    def deploymode(self) -> DeployMode:
         """Defines the kind of information a node offers its exit elements.
 
         *HydPy* supports the following modes:
@@ -1898,10 +1936,10 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 `oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
 `obs`, `obs_newsim`, and `obs_oldsim`.
         """
-        return vars(self)["deploymode"]
+        return self._deploymode
 
     @deploymode.setter
-    def deploymode(self, value: str) -> None:
+    def deploymode(self, value: DeployMode) -> None:
         if value in ("oldsim", "obs_oldsim"):
             self.__blackhole = pointerutils.Double(0.0)
         elif value not in ("newsim", "obs", "obs_newsim", "obs_oldsim"):
@@ -1910,9 +1948,10 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
                 f"value `{value}` was given, but only the following values are "
                 f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`."
             )
-        vars(self)["deploymode"] = value
+        self._deploymode = value
         for element in itertools.chain(self.entries, self.exits):
-            model = getattr(element, "model")
+            model: Optional[modeltools.Model]
+            model = exceptiontools.getattr_(element, "model", None)
             if model:
                 model.connect()
 
@@ -2208,17 +2247,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     ps = pandas.Series(sequence.evalseries, index=index[idx0:idx1])
                 else:
                     ps = seriestools.aggregate_series(
-                        series=sequence.series,
-                        stepsize=stepsize,
-                        aggregator=numpy.mean,
+                        series=sequence.series, stepsize=stepsize, aggregator=numpy.mean
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
                     ps = ps.rename(columns=dict(series=label_))
-                kwargs = dict(
-                    label=label_,
-                    ax=pyplot.gca(),
-                )
+                kwargs = dict(label=label_, ax=pyplot.gca())
                 if color is not None:
                     kwargs["color"] = color
                 if linestyle is not None:
@@ -2262,19 +2296,17 @@ Attribute timegrids of module `pub` is not defined at the moment.
             with objecttools.repr_.preserve_strings(True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     line = objecttools.assignrepr_list(
-                        values=sorted(self.keywords),
-                        prefix=subprefix,
-                        width=70,
+                        values=sorted(self.keywords), prefix=subprefix, width=70
                     )
             lines.append(line + ",")
         lines[-1] = lines[-1][:-1] + ")"
         return "\n".join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr()
 
 
-class Element(Device[Elements]):
+class Element(Device):
     """Handles a |Model| object and connects it to other models via
     |Node| objects.
 
@@ -2494,10 +2526,9 @@ as a(n) receiver node, which is not allowed.
     RuntimeError: While trying to add the device `inl3` to a Nodes object, the \
 following error occurred: Adding devices to immutable Nodes objects is not allowed.
 
-    Setting their `mutable` flag to |True| changes this behaviour:
+    Use the parameter `force` to change this behaviour:
 
-    >>> test.inlets.mutable = True
-    >>> test.inlets.add_device("inl3")
+    >>> test.inlets.add_device("inl3", force=True)
 
     However, it is up to you to make sure that the added node also handles the relevant
     element in the suitable group.  In the discussed example, only node `inl2` has been
@@ -2509,6 +2540,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     Elements()
     """
 
+    _inlets: Nodes
+    _outlets: Nodes
+    _receivers: Nodes
+    _senders: Nodes
+    _inputs: Nodes
+    _outputs: Nodes
+    _model: Optional[modeltools.Model]
+
     def __init__(
         self,
         value: ElementConstrArg,
@@ -2519,16 +2558,16 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
         keywords: MayNonerable1[str] = None,
-    ):
+    ) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if hasattr(self, "new_instance"):
-            vars(self)["inlets"] = Nodes(mutable=False)
-            vars(self)["outlets"] = Nodes(mutable=False)
-            vars(self)["receivers"] = Nodes(mutable=False)
-            vars(self)["senders"] = Nodes(mutable=False)
-            vars(self)["inputs"] = Nodes(mutable=False)
-            vars(self)["outputs"] = Nodes(mutable=False)
+            self._inlets = Nodes(mutable=False)
+            self._outlets = Nodes(mutable=False)
+            self._receivers = Nodes(mutable=False)
+            self._senders = Nodes(mutable=False)
+            self._inputs = Nodes(mutable=False)
+            self._outputs = Nodes(mutable=False)
             self.__connections = (
                 self.inlets,
                 self.outlets,
@@ -2537,7 +2576,8 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                 self.inputs,
                 self.outputs,
             )
-            del vars(self)["new_instance"]
+            self._model = None
+            delattr(self, "new_instance")
         self.keywords = keywords  # type: ignore
         if inlets is not None:
             self.inlets = inlets  # type: ignore
@@ -2562,86 +2602,76 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         incompatiblenodes: Tuple[str, ...],
     ) -> None:
         elementgroup: Nodes = getattr(self, targetnodes)
-        elementtargetmutable = elementgroup.mutable
-        try:
-            elementgroup.mutable = True
-            for node in Nodes(values):
-                for incomp in incompatiblenodes:
-                    if node in vars(self)[incomp]:
-                        raise ValueError(
-                            f"For element `{self}`, the given {targetnodes[:-1]} node "
-                            f"`{node}` is already defined as a(n) {incomp[:-1]} node, "
-                            f"which is not allowed."
-                        )
-                elementgroup.add_device(node)
-                nodegroup: Elements = getattr(node, targetelements)
-                nodegroupmutable = nodegroup.mutable
-                try:
-                    nodegroup.mutable = True
-                    nodegroup.add_device(self)
-                finally:
-                    nodegroup.mutable = nodegroupmutable
-        finally:
-            elementgroup.mutable = elementtargetmutable
+        for node in Nodes(values):
+            for incomp in incompatiblenodes:
+                if node in getattr(self, incomp):
+                    raise ValueError(
+                        f"For element `{self}`, the given {targetnodes[1:-1]} "
+                        f"node `{node}` is already defined as a(n) {incomp[1:-1]} "
+                        f"node, which is not allowed."
+                    )
+            elementgroup.add_device(node, force=True)
+            nodegroup: Elements = getattr(node, targetelements)
+            nodegroup.add_device(self, force=True)
 
     @property
     def inlets(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "upstream" input values (e.g. inflow)."""
-        return vars(self)["inlets"]
+        return self._inlets
 
     @inlets.setter
     def inlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="inlets",
-            targetelements="exits",
-            incompatiblenodes=("outlets", "inputs", "outputs"),
+            targetnodes="_inlets",
+            targetelements="_exits",
+            incompatiblenodes=("_outlets", "_inputs", "_outputs"),
         )
 
     @property
     def outlets(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "downstream" output values (e.g. outflow)."""
-        return vars(self)["outlets"]
+        return self._outlets
 
     @outlets.setter
     def outlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="outlets",
-            targetelements="entries",
-            incompatiblenodes=("inlets", "inputs", "outputs"),
+            targetnodes="_outlets",
+            targetelements="_entries",
+            incompatiblenodes=("_inlets", "_inputs", "_outputs"),
         )
 
     @property
     def receivers(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "remote" information values (e.g. discharge at a remote downstream)."""
-        return vars(self)["receivers"]
+        return self._receivers
 
     @receivers.setter
     def receivers(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="receivers",
-            targetelements="exits",
-            incompatiblenodes=("senders", "inputs", "outputs"),
+            targetnodes="_receivers",
+            targetelements="_exits",
+            incompatiblenodes=("_senders", "_inputs", "_outputs"),
         )
 
     @property
     def senders(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "remote" information values (e.g. water level of a |dam| model)."""
-        return vars(self)["senders"]
+        return self._senders
 
     @senders.setter
-    def senders(self, values: NodesConstrArg):
+    def senders(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="senders",
-            targetelements="entries",
-            incompatiblenodes=("receivers", "inputs", "outputs"),
+            targetnodes="_senders",
+            targetelements="_entries",
+            incompatiblenodes=("_receivers", "_inputs", "_outputs"),
         )
 
     @property
@@ -2649,15 +2679,21 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         """Group of |Node| objects from which the handled |Model| object queries its
         "external" input values, instead of reading them from files (e.g. interpolated
         precipitation)."""
-        return vars(self)["inputs"]
+        return self._inputs
 
     @inputs.setter
     def inputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="inputs",
-            targetelements="exits",
-            incompatiblenodes=("inlets", "outlets", "senders", "receivers", "outputs"),
+            targetnodes="_inputs",
+            targetelements="_exits",
+            incompatiblenodes=(
+                "_inlets",
+                "_outlets",
+                "_senders",
+                "_receivers",
+                "_outputs",
+            ),
         )
 
     @property
@@ -2665,15 +2701,21 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         """Group of |Node| objects to which the handled |Model| object passes its
         "internal" output values, available via sequences of type |FluxSequence| or
         |StateSequence| (e.g. potential evaporation)."""
-        return vars(self)["outputs"]
+        return self._outputs
 
     @outputs.setter
     def outputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
-            targetnodes="outputs",
-            targetelements="entries",
-            incompatiblenodes=("inlets", "outlets", "senders", "receivers", "inputs"),
+            targetnodes="_outputs",
+            targetelements="_entries",
+            incompatiblenodes=(
+                "_inlets",
+                "_outlets",
+                "_senders",
+                "_receivers",
+                "_inputs",
+            ),
         )
 
     @classmethod
@@ -2754,7 +2796,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
 
             >>> del pub.timegrids
         """
-        model = vars(self).get("model")
+        model = self._model
         if model:
             return model
         raise exceptiontools.AttributeNotReady(
@@ -2763,14 +2805,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         )
 
     @model.setter
-    def model(self, model: "modeltools.Model") -> None:
-        vars(self)["model"] = model
+    def model(self, model: modeltools.Model) -> None:
+        self._model = model
         model.element = self
         model.connect()
 
     @model.deleter
     def model(self) -> None:
-        vars(self)["model"] = None
+        self._model = None
 
     def prepare_model(self, clear_registry: bool = True) -> None:
         """Load the control file of the actual |Element| object, initialise its |Model|
@@ -2782,7 +2824,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         See method |HydPy.prepare_models| of class |HydPy| and property |model| of
         class |Element| fur further information.
         """
-        # pylint: disable=not-callable
+        options = hydpy.pub.options
         try:
             try:
                 hydpy.pub.timegrids
@@ -2792,14 +2834,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                     "`timegrids` of module `pub` yet but might be required to prepare "
                     "the model properly."
                 ) from None
-            with hydpy.pub.options.warnsimulationstep(False):
+            with options.warnsimulationstep(False):  # pylint: disable=not-callable
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry
                 )
                 self.model = info["model"]
                 self.model.parameters.update()
         except OSError:
-            if hydpy.pub.options.warnmissingcontrolfile:
+            if options.warnmissingcontrolfile:
                 warnings.warn(
                     f"Due to a missing or no accessible control file, no model could "
                     f"be initialised for element `{self.name}`"
@@ -2910,7 +2952,11 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def _plot_series(
         self,
         *,
-        subseqs: sequencetools.SubSequences,
+        subseqs: sequencetools.IOSequences[
+            sequencetools.Sequences,
+            sequencetools.IOSequence,
+            sequencetools.FastAccessIOSequence,
+        ],
         names: Optional[Sequence[str]],
         average: bool,
         labels: Optional[Tuple[str, ...]],
@@ -2926,9 +2972,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 return input_
             return nmb_entries * (input_,)
 
-        def _make_vectors(
-            array: Union[Vector[float], Matrix[float]],
-        ) -> List[Vector[float]]:
+        def _make_vectors(array: NDArrayFloat) -> List[NDArrayFloat]:
             vectors = []
             for idxs in itertools.product(*(range(shp) for shp in array.shape[1:])):
                 vector = array
@@ -2939,7 +2983,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         index = _get_pandasindex()[idx0:idx1]
-        selseqs: Iterable[sequencetools.IOSequence[Any, Any]]
+        selseqs: Iterable[sequencetools.IOSequence]
         if names:
             selseqs = (getattr(subseqs, name.lower()) for name in names)
         else:
@@ -2963,10 +3007,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 label_ = f"{label_}, averaged"
             else:
                 series = sequence.evalseries
-            kwargs = dict(
-                label=label_,
-                ax=pyplot.gca(),
-            )
+            kwargs = dict(label=label_, ax=pyplot.gca())
             if color is not None:
                 kwargs["color"] = color
             if linestyle is not None:
@@ -3179,7 +3220,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                     "inputs",
                     "outputs",
                 ):
-                    group = getattr(self, groupname, Node)
+                    group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="
                         # pylint: disable=not-an-iterable
@@ -3201,9 +3242,9 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         return self.assignrepr("")
 
 
-_id2devices: Dict[Device, Dict[int, Devices]] = {}
-_registry: Mapping = {Node: {}, Element: {}}
-_selection: Mapping = {Node: {}, Element: {}}
+_id2devices: Dict[Device, Dict[int, Devices[Device]]] = {}
+_registry: Mapping[Type[Device], Dict[str, Device]] = {Node: {}, Element: {}}
+_selection: Mapping[Type[Device], Dict[str, Device]] = {Node: {}, Element: {}}
 
 
 @contextlib.contextmanager
@@ -3255,7 +3296,7 @@ def clear_registries_temporarily() -> Generator[None, None, None]:
     {4: 5}
     {5: 6}
     """
-    registries = (
+    registries: Tuple[Dict[Any, Any], ...] = (
         _id2devices,
         _registry[Node],
         _registry[Element],

@@ -13,6 +13,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 
 def _get_timegrids(func):
@@ -133,7 +134,7 @@ period is `5`.
         self.values = None
         self.timegrids = None
 
-    def call_fget(self, obj) -> numpy.ndarray:
+    def call_fget(self, obj) -> NDArrayFloat:
         timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
@@ -224,8 +225,7 @@ class Indexer:
         >>> monthofyear
         array([1, 1, 1, 2, 2])
         """
-        # pylint: disable=no-self-use
-        # pylint does not understand descriptors well enough, so far
+
         def _monthofyear(date):
             return date.month - 1
 
@@ -248,8 +248,7 @@ class Indexer:
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
-        # pylint: disable=no-self-use
-        # pylint does not understand descriptors well enough, so far
+
         def _dayofyear(date):
             return date.dayofyear - 1 + ((date.month > 2) and (not date.leapyear))
 
@@ -294,8 +293,7 @@ class Indexer:
         Note the gap in the returned index array due to 2005 being not a
         leap year.
         """
-        # pylint: disable=no-self-use
-        # pylint does not understand descriptors well enough, so far
+
         def _timeofyear(date):
             date = copy.deepcopy(date)
             date.year = 2000
@@ -338,8 +336,7 @@ class Indexer:
         >>> print_values(pub.indexer.standardclocktime)
         23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694
         """
-        # pylint: disable=no-self-use
-        # pylint does not understand descriptors well enough, so far
+
         def _standardclocktime(date):
             t0 = date.hour + (date.minute + date.second / 60.0) / 60.0
             return t0 + hydpy.pub.timegrids.stepsize.hours / 2.0

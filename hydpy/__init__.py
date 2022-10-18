@@ -8,6 +8,7 @@ An interactive framework for the developement and a application of hydrological 
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import importlib
 import os
 import warnings
@@ -36,9 +37,15 @@ from hydpy.core import (
     optiontools,
     sequencetools,
 )
-from hydpy.cythons.autogen import (
-    configutils,
-)
+
+if TYPE_CHECKING:
+    from hydpy.cythons import (
+        configutils,
+    )
+else:
+    from hydpy.cythons.autogen import (
+        configutils,
+    )
 from hydpy.core.auxfiletools import (
     Auxfiler,
 )
@@ -193,11 +200,11 @@ from hydpy.models.whmod.whmod_script import (
     run_whmod,
 )
 
-__version__ = "5.0a0"
+__version__ = "6.0a0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
-pub.config = configutils.Config()
+pub.config = configutils.Config()  # pylint: disable=used-before-assignment
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands
@@ -325,10 +332,11 @@ if config.USEAUTODOC:
         from hydpy import core
         from hydpy import cythons
         from hydpy import exe
+        from hydpy import interfaces
         from hydpy.core import autodoctools
 
         substituter = autodoctools.prepare_mainsubstituter()
-        for subpackage in (auxs, core, cythons, exe):
+        for subpackage in (auxs, core, cythons, interfaces, exe):
             subpackagepath = subpackage.__path__[0]
             for filename in sorted(os.listdir(subpackagepath)):
                 if filename.endswith(".py") and not filename.startswith("_"):

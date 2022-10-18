@@ -630,7 +630,7 @@ the MA coefficients `1.0, 1.0, 1.0`.
                 if self._rel_rmse < self.max_rel_rmse:
                     break
             else:
-                with hydpy.pub.options.reprdigits(12):
+                with hydpy.pub.options.reprdigits(12):  # pylint: disable=not-callable
                     warnings.warn(
                         f"Method `update_ar_coefs` is not able to determine "
                         f"the AR coefficients of the ARMA model with the desired "
@@ -722,7 +722,7 @@ the MA coefficients `1.0, 1.0, 1.0`.
                 self.norm_coefs()
                 break
         else:
-            with hydpy.pub.options.reprdigits(12):
+            with hydpy.pub.options.reprdigits(12):  # pylint: disable=not-callable
                 warnings.warn(
                     f"Method `update_ma_coefs` is not able to determine the "
                     f"MA coefficients of the ARMA model with the desired "

@@ -206,4 +206,5 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()

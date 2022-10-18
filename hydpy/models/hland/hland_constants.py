@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# due to pylint bug, see http://phoenix2.yizimg.com/PyCQA/pylint/issues/4711
-# pylint: disable=invalid-all-format
 """Base model |hland| allows dividing subbasins into zones (hydrological response
 units).  It applies the equations related to some processes (for example, interception)
 separately for each zone.  Consequently, parameters such as the interception capacity

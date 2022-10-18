@@ -544,7 +544,7 @@ def rmse(
     """Calculate the root-mean-square error.
 
     >>> from hydpy import rmse, round_
-    >>> rmse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(rmse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0]))
     0.0
     >>> round_(rmse(sim=[1.0, 2.0, 3.0], obs=[0.5, 2.0, 4.5]))
     0.912871
@@ -598,22 +598,22 @@ def nse(
     If the simulated values predict the observed values and the average observed value
     (regarding the mean square error), the NSE value is zero:
 
-    >>> from hydpy import nse
-    >>> nse(sim=[2.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0])
+    >>> from hydpy import nse, round_
+    >>> round_(nse(sim=[2.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
     0.0
-    >>> nse(sim=[0.0, 2.0, 4.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(nse(sim=[0.0, 2.0, 4.0], obs=[1.0, 2.0, 3.0]))
     0.0
 
     For worse and better agreement, the NSE is negative or positive, respectively:
 
-    >>> nse(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(nse(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
     -3.0
-    >>> nse(sim=[1.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(nse(sim=[1.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
     0.5
 
     The highest possible value is one:
 
-    >>> nse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(nse(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0]))
     1.0
 
     See the documentation on function |prepare_arrays| for some additional instructions
@@ -671,9 +671,9 @@ def nse_log(
 
     >>> from hydpy import nse_log, round_
     >>> from numpy import exp
-    >>> nse_log(sim=exp([2.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0]))
+    >>> round_(nse_log(sim=exp([2.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
     0.0
-    >>> nse_log(sim=exp([0.0, 2.0, 4.0]), obs=exp([1.0, 2.0, 3.0]))
+    >>> round_(nse_log(sim=exp([0.0, 2.0, 4.0]), obs=exp([1.0, 2.0, 3.0])))
     0.0
 
     >>> round_(nse(sim=exp([3.0, 2.0, 1.0]), obs=exp([1.0, 2.0, 3.0])))
@@ -681,7 +681,7 @@ def nse_log(
     >>> round_(nse(sim=exp([1.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
     0.002139
 
-    >>> nse(sim=exp([1.0, 2.0, 3.0]), obs=exp([1.0, 2.0, 3.0]))
+    >>> round_(nse(sim=exp([1.0, 2.0, 3.0]), obs=exp([1.0, 2.0, 3.0])))
     1.0
 
     See the documentation on function |prepare_arrays| for some additional instructions
@@ -739,14 +739,14 @@ def corr2(
     For perfect positive or negative correlation, |corr2| returns 1:
 
     >>> from hydpy import corr2, round_
-    >>> corr2(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(corr2(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0]))
     1.0
-    >>> corr2(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(corr2(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
     1.0
 
     If there is no correlation at all, |corr2| returns 0:
 
-    >>> corr2(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 1.0])
+    >>> round_(corr2(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 1.0]))
     0.0
 
     An intermediate example:
@@ -757,7 +757,7 @@ def corr2(
     Take care if there is no variation in one of the data series.  Then the correlation
     coefficient is not defined, and |corr2| returns |numpy.nan|:
 
-    >>> corr2(sim=[2.0, 2.0, 2.0], obs=[2.0, 2.0, 3.0])
+    >>> round_(corr2(sim=[2.0, 2.0, 2.0], obs=[2.0, 2.0, 3.0]))
     nan
 
     See the documentation on function |prepare_arrays| for some additional instructions
@@ -811,17 +811,17 @@ def kge(
     For a perfect fit, |kge| returns one:
 
     >>> from hydpy import  kge, round_
-    >>> kge(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0])
+    >>> round_(kge(sim=[1.0, 2.0, 3.0], obs=[1.0, 2.0, 3.0]))
     1.0
 
     In each of the following three examples, only one of the KGE components deviates
     from one:
 
-    >>> kge(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0])  # imperfect correlation
+    >>> round_(kge(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))  # imperfect correlation
     -1.0
-    >>> kge(sim=[3.0, 2.0, 1.0], obs=[6.0, 4.0, 2.0])  # imperfect average
+    >>> round_(kge(sim=[3.0, 2.0, 1.0], obs=[6.0, 4.0, 2.0]))  # imperfect average
     0.5
-    >>> kge(sim=[3.0, 2.0, 1.0], obs=[4.0, 2.0, 0.0])  # imperfect variation coefficient
+    >>> round_(kge(sim=[3.0, 2.0, 1.0], obs=[4.0, 2.0, 0.0]))  # imperfect variation
     0.5
 
     Finally, a mixed example, where all components deviate from one:
@@ -1623,27 +1623,23 @@ def calc_mean_time(
 
     With equal given weights, the result is simply the mean of the given time points:
 
-    >>> from hydpy import calc_mean_time
-    >>> calc_mean_time(timepoints=[3., 7.],
-    ...                weights=[2., 2.])
+    >>> from hydpy import calc_mean_time, round_
+    >>> round_(calc_mean_time(timepoints=[3.0, 7.0], weights=[2.0, 2.0]))
     5.0
 
     With different weights, the resulting time is shifted to the larger ones:
 
-    >>> calc_mean_time(timepoints=[3., 7.],
-    ...                weights=[1., 3.])
+    >>> round_(calc_mean_time(timepoints=[3.0, 7.0], weights=[1.0, 3.0]))
     6.0
 
     Or, in the most extreme case:
 
-    >>> calc_mean_time(timepoints=[3., 7.],
-    ...                weights=[0., 4.])
+    >>> round_(calc_mean_time(timepoints=[3.0, 7.0], weights=[0.0, 4.0]))
     7.0
 
     There are some checks for input plausibility, e.g.:
 
-    >>> calc_mean_time(timepoints=[3., 7.],
-    ...                weights=[-2., 2.])
+    >>> calc_mean_time(timepoints=[3.0, 7.0], weights=[-2.0, 2.0])
     Traceback (most recent call last):
     ...
     ValueError: While trying to calculate the weighted mean time, the following error \
@@ -1672,8 +1668,8 @@ def calc_mean_time_deviation(
     With equal given weights, the is simply the standard deviation of the given time
     points:
 
-    >>> from hydpy import calc_mean_time_deviation
-    >>> calc_mean_time_deviation(timepoints=[3.0, 7.0], weights=[2.0, 2.0])
+    >>> from hydpy import calc_mean_time_deviation, round_
+    >>> round_(calc_mean_time_deviation(timepoints=[3.0, 7.0], weights=[2.0, 2.0]))
     2.0
 
     One can pass a precalculated mean time:
@@ -1683,12 +1679,12 @@ def calc_mean_time_deviation(
     ...     timepoints=[3.0, 7.0], weights=[2.0, 2.0], mean_time=4.0))
     2.236068
 
-    >>> round_(calc_mean_time_deviation(timepoints=[3.0, 7.], weights=[1.0, 3.0]))
+    >>> round_(calc_mean_time_deviation(timepoints=[3.0, 7.0], weights=[1.0, 3.0]))
     1.732051
 
     Or, in the most extreme case:
 
-    >>> calc_mean_time_deviation(timepoints=[3.0, 7.0], weights=[0.0, 4.0])
+    >>> round_(calc_mean_time_deviation(timepoints=[3.0, 7.0], weights=[0.0, 4.0]))
     0.0
 
     There are some checks for input plausibility, e.g.:

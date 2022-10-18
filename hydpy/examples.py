@@ -24,16 +24,17 @@ from hydpy.core import testtools
 from hydpy.tests import iotesting
 from hydpy.models import hland
 from hydpy.models import lland
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import pubtools
     from hydpy.core import sequencetools
     from hydpy.core import timetools
 
-    class TestIOSequence(sequencetools.IOSequence[Any, Any]):
+    class TestIOSequence(sequencetools.IOSequence):
         """|IOSequence| subclass for testing purposes."""
 
-        testarray: numpy.ndarray
+        testarray: NDArrayFloat
         descr_device = "just_for_testing"
         descr_sequence = "just_for_testing"
 
@@ -168,10 +169,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     control.zonetype(hland.FIELD)
     control.zonearea.values = 10.0
 
-    # pylint: disable=not-callable
-    # pylint usually understands that all options are callable
-    # but, for unknown reasons, not in the following line:
-    with hydpy.pub.options.printprogress(False):
+    with hydpy.pub.options.printprogress(False):  # pylint: disable=not-callable
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
         nodes.prepare_simseries(allocate_ram=True)
         elements.prepare_inputseries(allocate_ram=False)
@@ -182,7 +180,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         elements.prepare_fluxseries(allocate_ram=True)
         elements.prepare_stateseries(allocate_ram=False)
         elements.prepare_stateseries(allocate_ram=True)
-    # pylint: enable=not-callable
 
     def init_values(seq: TestIOSequence, value1_: float) -> float:
         value2_ = value1_ + len(seq.series.flatten())

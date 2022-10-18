@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# due to pylint bug, see http://phoenix2.yizimg.com/PyCQA/pylint/issues/4711
-# pylint: disable=invalid-all-format
 """The HydPy-L-Land model (|lland|) allows for the subdivision of subbasins
 into hydrological response units (hru).  Some processes, e.g. interception,
 are calculated separately for each zone.  This is why some parameters (e.g.

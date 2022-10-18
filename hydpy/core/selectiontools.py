@@ -511,9 +511,9 @@ objects, but the type of the given argument is `str`.
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
-        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
-            with hydpy.pub.options.ellipsis(2, optional=True):
+            options = hydpy.pub.options
+            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
                 prefix = f"{prefix}{type(self).__name__}("
                 return (
                     f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
@@ -725,7 +725,7 @@ the "outlet device", but the given `device` value is of type `int`.
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine an upstream network of selection \
-`headwaters`, the following error occurred: 'No device named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
 
         Method |Selection.select_upstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
@@ -871,7 +871,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine a downstream network of selection \
-`headwaters`, the following error occurred: 'No device named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
 
         Method |Selection.select_downstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
@@ -1496,9 +1496,9 @@ following error occurred: 'in <string>' requires string as left operand, not lis
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
-        # pylint: disable=not-callable
         with objecttools.repr_.preserve_strings(True):
-            with hydpy.pub.options.ellipsis(2, optional=True):
+            options = hydpy.pub.options
+            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     classname = type(self).__name__
                     blanks = " " * (len(prefix + classname) + 1)

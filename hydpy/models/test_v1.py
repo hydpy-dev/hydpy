@@ -34,6 +34,7 @@ class Model(modeltools.ELSModel):
     FULL_ODE_METHODS = (test_model.Calc_S_V1,)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

@@ -605,6 +605,7 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def connect(self):

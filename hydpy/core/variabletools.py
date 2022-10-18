@@ -31,19 +31,19 @@ if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
-    from hydpy.cythons.autogen import pointerutils
-    from hydpy.cythons.autogen import sequenceutils
+    from hydpy.cythons import pointerutils
+    from hydpy.cythons import sequenceutils
 
 
-TypeGroup = TypeVar(
-    "TypeGroup",
+TypeGroup_co = TypeVar(
+    "TypeGroup_co",
     "parametertools.Parameters",
     "sequencetools.Sequences",
     "devicetools.Node",
+    covariant=True,
 )
-TypeSubVariables = TypeVar("TypeSubVariables", bound="SubVariables")
-TypeVariable = TypeVar("TypeVariable", bound="Variable")
-TypeFastAccess = TypeVar("TypeFastAccess", bound="FastAccess")
+TypeVariable_co = TypeVar("TypeVariable_co", bound="Variable", covariant=True)
+TypeFastAccess_co = TypeVar("TypeFastAccess_co", bound="FastAccess", covariant=True)
 
 INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating-point values but not for 
@@ -52,7 +52,7 @@ integer values."""
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: "Variable", lower=None, upper=None) -> None:
+def trim(self: Variable, lower=None, upper=None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
     Usually, users do not need to apply the |trim| function directly. Instead, some
@@ -506,7 +506,7 @@ class FastAccess:
                 yield key
 
 
-class Variable(Generic[TypeSubVariables, TypeFastAccess]):
+class Variable:
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -994,21 +994,30 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     )
     INIT: Union[int, float, bool, None] = None
 
-    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ("subvars", "fastaccess")
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess]]
+    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, str, str, str] = (
+        "subvars",
+        "subpars",
+        "subseqs",
+        "fastaccess",
+    )
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccess]]
 
     strict_valuehandling: bool = True
 
     __hydpy__subclasscounter__ = 1
 
     name: str
+    """Name of the variable in lower case letters."""
     unit: str
-    fastaccess: TypeFastAccess
-    subvars: TypeSubVariables
+    """Unit of the variable."""
+    fastaccess: FastAccess
+    """Object for accessing the variable's data with little overhead."""
+    subvars: SubVariables
+    """The subgroup to which the variable belongs."""
 
     mask = masktools.DefaultMask()
 
-    def __init__(self, subvars: TypeSubVariables):
+    def __init__(self, subvars: SubVariables) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self.__valueready = False
@@ -1047,7 +1056,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     @abc.abstractmethod
     def initinfo(
         self,
-    ) -> Tuple[Union[float, int, bool, "pointerutils.Double",], bool,]:
+    ) -> Tuple[Union[float, int, bool, pointerutils.Double,], bool,]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1806,10 +1815,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def _check_key(key):
         if key not in (0, slice(None, None, None)):
             raise IndexError(
-                "The only allowed keys for 0-dimensional variables " "are `0` and `:`."
+                "The only allowed keys for 0-dimensional variables are `0` and `:`."
             )
 
-    def __len__(self):
+    def __len__(self) -> int:
         try:
             return numpy.cumprod(self.shape)[-1]
         except IndexError:
@@ -1971,7 +1980,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: "Variable") -> bool:
+    def __lt__(self, other: Variable) -> bool:
         return numpy.all(
             self._compare(
                 other=other,
@@ -1980,7 +1989,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ),
         )
 
-    def __le__(self, other: "Variable") -> bool:
+    def __le__(self, other: Variable) -> bool:
         return numpy.all(
             self._compare(
                 other=other,
@@ -1989,7 +1998,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ),
         )
 
-    def __eq__(self, other: "Variable") -> bool:
+    def __eq__(self, other: Variable) -> bool:
         if self is other:
             return True
         return numpy.all(
@@ -2000,7 +2009,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ),
         )
 
-    def __ne__(self, other: "Variable") -> bool:
+    def __ne__(self, other: Variable) -> bool:
         return numpy.any(
             self._compare(
                 other=other,
@@ -2009,7 +2018,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ),
         )
 
-    def __ge__(self, other: "Variable") -> bool:
+    def __ge__(self, other: Variable) -> bool:
         return numpy.all(
             self._compare(
                 other=other,
@@ -2018,7 +2027,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ),
         )
 
-    def __gt__(self, other: "Variable") -> bool:
+    def __gt__(self, other: Variable) -> bool:
         return numpy.all(
             self._compare(
                 other=other,
@@ -2050,7 +2059,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
     @property
@@ -2071,7 +2080,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             ]
         return []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return to_repr(self, self.value, brackets)
 
@@ -2128,21 +2137,21 @@ was attempted for element `?`.
 
 @overload
 def sort_variables(
-    values: Iterable[Type[TypeVariable]],
-) -> Tuple[Type[TypeVariable], ...]:
+    values: Iterable[Type[TypeVariable_co]],
+) -> Tuple[Type[TypeVariable_co], ...]:
     ...
 
 
 @overload
 def sort_variables(
-    values: Iterable[Tuple[Type[TypeVariable], T]],
-) -> Tuple[Tuple[Type[TypeVariable], T], ...]:
+    values: Iterable[Tuple[Type[TypeVariable_co], T]],
+) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]:
     ...
 
 
 def sort_variables(
-    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
-) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
+    values: Iterable[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]]]
+) -> Tuple[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2191,7 +2200,7 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     return tuple(value for _, value in sorted(counter_value))
 
 
-class SubVariables(Generic[TypeGroup, TypeVariable, TypeFastAccess]):
+class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     """Base class for |SubParameters| and |SubSequences|.
 
     Each subclass of class |SubVariables| is thought for handling a certain group of
@@ -2293,17 +2302,17 @@ named `wrong`.
     1
     """
 
-    CLASSES: Tuple[Type[TypeVariable], ...]
-    vars: TypeGroup
-    _name2variable: Dict[str, TypeVariable] = {}
-    fastaccess: TypeFastAccess
-    _cls_fastaccess: Optional[Type[TypeFastAccess]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess]]
+    CLASSES: Tuple[Type[TypeVariable_co], ...]
+    vars: TypeGroup_co
+    _name2variable: Dict[str, TypeVariable_co] = {}
+    fastaccess: TypeFastAccess_co
+    _cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]
 
     def __init__(
-        self: TypeSubVariables,
-        master: TypeGroup,
-        cls_fastaccess: Optional[Type[TypeFastAccess]] = None,
+        self,
+        master: TypeGroup_co,
+        cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2328,7 +2337,7 @@ named `wrong`.
         else:
             self.fastaccess = self._cls_fastaccess()
 
-    def __getitem__(self, item) -> TypeVariable:
+    def __getitem__(self, item) -> TypeVariable_co:
         try:
             return self._name2variable[item]
         except KeyError:
@@ -2337,7 +2346,7 @@ named `wrong`.
                 f"does not handle a variable named `{item}`."
             ) from None
 
-    def __getattr__(self, name) -> TypeVariable:
+    def __getattr__(self, name) -> TypeVariable_co:
         try:
             return self._name2variable[name]
         except KeyError:
@@ -2354,7 +2363,7 @@ named `wrong`.
         else:
             variable.__hydpy__set_value__(value)
 
-    def __iter__(self) -> Iterator[TypeVariable]:
+    def __iter__(self) -> Iterator[TypeVariable_co]:
         for variable in self._name2variable.values():
             yield variable
 

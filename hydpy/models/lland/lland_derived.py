@@ -2,10 +2,6 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-
-# ...from site-packages
-import numpy
-
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -296,8 +292,8 @@ class NFk(lland_parameters.ParameterSoil):
 
 
 class KB(parametertools.Parameter):
-    """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
-    [T]."""
+    """Konzentrationszeit des Basisabflusses (concentration time of the baseflow
+    storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -323,8 +319,8 @@ class KB(parametertools.Parameter):
 
 
 class KI1(parametertools.Parameter):
-    """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
-    of the first interflow component) [T]."""
+    """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time of the
+    first interflow storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -350,8 +346,8 @@ class KI1(parametertools.Parameter):
 
 
 class KI2(parametertools.Parameter):
-    """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time
-    of the second interflow component) [T]."""
+    """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time of the
+    second interflow storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -377,8 +373,8 @@ class KI2(parametertools.Parameter):
 
 
 class KD1(parametertools.Parameter):
-    """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
-    of the slower component of direct runoff) [T]."""
+    """Konzentrationszeit des "langsamen" Direktabflusses (concentration time of the
+    slow direct runoff storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -404,8 +400,8 @@ class KD1(parametertools.Parameter):
 
 
 class KD2(parametertools.Parameter):
-    """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
-    of the faster component of direct runoff) [T]."""
+    """Konzentrationszeit des "schnellen" Direktabflusses (concentration time of the
+    fast direct runoff storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -428,48 +424,6 @@ class KD2(parametertools.Parameter):
         """
         con = self.subpars.pars.control
         self.value = con.eqd2 * con.tind
-
-
-class QBGAMax(parametertools.Parameter):
-    """Maximaler Abfluss aus dem Basisabfluss-Gebietsspeicher (maximum outflow
-    from the storage compartment for base flow) [mm/T]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.GSBMax,
-        lland_control.VolBMax,
-    )
-    DERIVEDPARAMETERS = (KB,)
-
-    def update(self):
-        r"""Update based on :math:`QBGAMax = (GSBMax \cdot VolBMax) / KB`.
-
-        >>> from hydpy.models.lland import *
-        >>> simulationstep("1h")
-        >>> parameterstep("1d")
-        >>> volbmax(100.0)
-        >>> gsbmax(2.0)
-        >>> derived.kb(50.0)
-        >>> derived.qbgamax.update()
-        >>> derived.qbgamax
-        qbgamax(4.0)
-
-        For zero runoff concentration time, we generally set |QBGAMax| to zero,
-        even if |VolBMax| is also to zero:
-
-        >>> volbmax(0.0)
-        >>> derived.kb(0.0)
-        >>> derived.qbgamax.update()
-        >>> derived.qbgamax
-        qbgamax(inf)
-        """
-        con = self.subpars.pars.control
-        der = self.subpars
-        if der.kb > 0.0:
-            self.value = (con.gsbmax * con.volbmax) / der.kb
-        else:
-            self.value = numpy.inf
 
 
 class QFactor(parametertools.Parameter):

@@ -2502,7 +2502,7 @@ class Update_DV_V1(modeltools.Method):
 class Update_DG_V1(modeltools.Method):
     r"""Update the groundwater depth.
 
-    Basic equations:
+    Basic equation:
       :math:`\frac{dDG}{dt} = CDG`
 
     Example:
@@ -2534,7 +2534,7 @@ class Update_DG_V1(modeltools.Method):
 class Update_HQ_V1(modeltools.Method):
     r"""Update the level of the quickflow reservoir.
 
-    Basic equations:
+    Basic equation:
       :math:`\frac{dHQ}{dt} = PQ - FQS`
 
     Example:
@@ -2566,7 +2566,7 @@ class Update_HQ_V1(modeltools.Method):
 class Update_HS_V1(modeltools.Method):
     r"""Update the surface water level.
 
-    Basic equations:
+    Basic equation:
       :math:`\frac{dHS}{dt} = PS - ETS + FXS
       + \frac{ALR \cdot \left(AGR \cdot FGS + FQS \right) - RH}{ASR}`
 
@@ -2748,6 +2748,7 @@ class Model(modeltools.ELSModel):
         Pass_R_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = (
         PegasusDGEq,
         QuadDVEq_V1,

@@ -246,4 +246,5 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_ActualExchange_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()

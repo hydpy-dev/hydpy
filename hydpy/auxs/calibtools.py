@@ -143,10 +143,7 @@ class SumAdaptor(Adaptor):
 
     _rules: Tuple[Rule[parametertools.Parameter], ...]
 
-    # due to https://github.com/PyCQA/pylint/issues/4790:
-    def __init__(  # pylint: disable=super-init-not-called
-        self, *rules: Rule[parametertools.Parameter]
-    ):
+    def __init__(self, *rules: Rule[parametertools.Parameter]):
         self._rules = tuple(rules)
 
     def __call__(self, target: parametertools.Parameter) -> None:
@@ -274,8 +271,7 @@ class FactorAdaptor(Adaptor):
     _reference: str
     _mask: Optional[str]
 
-    # due to https://github.com/PyCQA/pylint/issues/4790:
-    def __init__(  # pylint: disable=super-init-not-called
+    def __init__(
         self,
         rule: Rule[parametertools.Parameter],
         reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
@@ -351,8 +347,8 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> fc
     fc(200.0)
 
-    Sometimes, one needs to differentiate between the original value to be calibrated
-    and the actually applied value.  Therefore, (only) the |Replace| class allows
+    Sometimes, one must differentiate between the original value to be calibrated and
+    the actually applied value.  Therefore, (only) the |Replace| class allows for
     defining custom "adaptors". Prepare an |Adaptor| function and assign it to the
     relevant |Replace| object (see the documentation on class |SumAdaptor| or
     |FactorAdaptor| for more realistic examples):
@@ -411,13 +407,15 @@ class Rule(abc.ABC, Generic[TypeParameter]):
 
     For time-dependent parameters, the rule queries the current global
     |Options.parameterstep| value if you do not specify one explicitly (note that we
-    pass the parameter type |hland_control.PercMax| this time):
+    pass the parameter type |hland_control.PercMax| and the module |hland_v1| this
+    time):
 
+    >>> from hydpy.models import hland_v1
     >>> from hydpy.models.hland.hland_control import PercMax
     >>> rule = Replace(name="percmax",
     ...                parameter=PercMax,
     ...                value=5.0,
-    ...                model="hland_v1")
+    ...                model=hland_v1)
 
     The |Rule| object internally handles, to avoid confusion, a copy of
     |Options.parameterstep|.
@@ -569,8 +567,10 @@ handle any `musk_classic` model instances.
             self.value = value
             if model is None:
                 self._model = model
+            elif isinstance(model, str):
+                self._model = model
             else:
-                self._model = str(model)
+                self._model = model.__name__.rpartition(".")[-1]
             if selections is None:
                 selections = hydpy.pub.selections
                 if "complete" in selections:
@@ -806,11 +806,11 @@ class Replace(Rule[parametertools.Parameter]):
 
         See the documentation on class |Rule| for further information.
         """
-        # pylint: disable=not-callable
-        with hydpy.pub.options.parameterstep(self.parameterstep):
+        opt = hydpy.pub.options
+        with opt.parameterstep(self.parameterstep):  # pylint: disable=not-callable
             for parameter in self:
                 if self.adaptor:
-                    self.adaptor(parameter)
+                    self.adaptor(parameter)  # pylint: disable=not-callable
                 else:
                     self._update_parameter(parameter, self.value)
 
@@ -1465,7 +1465,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     """
 
     result: Optional[float]
-    """The last result, calculated by the target function."""
+    """The last result, as calculated by the target function."""
     conditions: hydpytools.ConditionsType
     """The |HydPy.conditions| of the given |HydPy| object.
 
@@ -1479,7 +1479,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     _rules: Dict[str, TypeRule1]
     _elements: devicetools.Elements
 
-    def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction):
+    def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction) -> None:
         self._hp = hp
         self._targetfunction = targetfunction
         self.conditions = hp.conditions
@@ -1735,11 +1735,11 @@ object named `fc`.
         """
         with open(logfilepath, encoding=config.ENCODING) as logfile:
             # pylint: disable=not-an-iterable
-            # because pylint is wrong!?
+            # because pylint is sometimes wrong about this
             lines = tuple(
                 line for line in logfile if line.strip() and (not line.startswith("#"))
             )
-            # pylint: disable=not-an-iterable
+            # pylint: enable=not-an-iterable
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
@@ -2942,7 +2942,7 @@ def make_rules(
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
-    keywords: Sequence[Optional[str]],
+    keywords: Optional[Sequence[Optional[str]]] = None,
     lowers: Sequence[float],
     uppers: Sequence[float],
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
@@ -3216,9 +3216,9 @@ via argument `selections`.
     if product:
         if selections is None:
             raise TypeError(
-                'When creating rules via function `make_rules` in "product mode" (with '
-                "the argument `product` being `True`), you must supply all target "
-                "selection objects via argument `selections`."
+                'When creating rules via function `make_rules` in "product mode" '
+                "(with the argument `product` being `True`), you must supply all "
+                "target selection objects via argument `selections`."
             )
         selections = tuple(selections)
         names = tuple(

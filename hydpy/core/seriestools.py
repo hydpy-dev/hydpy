@@ -25,9 +25,9 @@ else:
 @overload
 def aggregate_series(
     *,
-    series: VectorInput[float],
+    series: NDArrayFloat,
     stepsize: Literal["daily", "d"],
-    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
@@ -37,9 +37,9 @@ def aggregate_series(
 @overload
 def aggregate_series(
     *,
-    series: VectorInput[float],
+    series: NDArrayFloat,
     stepsize: Literal["monthly", "m"],
-    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
     subperiod: bool = True,
 ) -> pandas.DataFrame:
     """sim and obs as arguments, monthly aggregation"""
@@ -47,9 +47,9 @@ def aggregate_series(
 
 @objecttools.excmessage_decorator("aggregate the given series")
 def aggregate_series(
-    series: VectorInput[float],
-    stepsize: Literal["daily", "d", "monthly", "m"] = "monthly",
-    aggregator: Union[str, Callable[[VectorInput[float]], float]] = "mean",
+    series: NDArrayFloat,
+    stepsize: StepSize = "monthly",
+    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:

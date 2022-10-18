@@ -455,6 +455,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_RequiredRemoteSupply_V1,
         dam_model.Pass_RequiredRemoteSupply_V1,
     )
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

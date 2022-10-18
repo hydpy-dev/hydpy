@@ -295,6 +295,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def check_waterbalance(

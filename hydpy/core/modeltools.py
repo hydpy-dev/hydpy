@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
+    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMETHODS: Tuple[Type[Method], ...] = ()
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -44,6 +45,187 @@ class Method:
 
     def __init_subclass__(cls) -> None:
         cls.__call__.CYTHONIZE = True
+
+
+class SubmodelInterface:
+    """Base class for defining interfaces for submodels.
+
+    Main models reference their submodels by their interface's class name in lower
+    case letters without the version qualifier, as available via the (automatically
+    created) attribute |SubmodelInterface.name|:
+
+    >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
+    >>> SoilModel_V1.name
+    'soilmodel'
+    >>> SoilModel_V1().name
+    'soilmodel'
+    """
+
+    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+
+    name: str
+    """The main model's attribute name for submodels following the respective
+    interface."""
+
+    @property
+    @abc.abstractmethod
+    def typeid(self) -> int:
+        """Type identifier that we use for differentiating submodels that target the
+        same process group (e.g. infiltration) but follow different interfaces.
+
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2 and so
+        on.
+
+        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
+        checks in model equations as it allows releasing Python's Globel Interpreter
+        Lock in Cython.
+        """
+
+    def __init_subclass__(cls) -> None:
+        cls.name = cls.__name__.lower().rpartition("_")[0]
+
+
+class SubmodelProperty:
+    """Descriptor for submodel attributes.
+
+    |SubmodelProperty| instances link main models and their submodels.  They follow the
+    attribute convention described in the documentation on class |SubmodelInterface|.
+    Behind the scenes, they build the required connections both on the Python and the
+    Cython level and perform some type-related tests (to avoid errors due to selecting
+    submodels following the wrong interfaces).
+
+    We prepare the main model and its submodel in the Cython and pure Python mode to
+    test that |SubmodelProperty| works for all possible combinations:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(False):
+    ...     mainmodel_python = prepare_model("lland")
+    ...     submodel_python = prepare_model("ga_garto_submodel1")
+    >>> with pub.options.usecython(True):
+    ...     mainmodel_cython = prepare_model("lland")
+    ...     submodel_cython = prepare_model("ga_garto_submodel1")
+
+    By default, the main model handles no submodel:
+
+    >>> mainmodel_python.soilmodel
+    >>> mainmodel_cython.soilmodel
+
+    For pure Python main models, it makes no difference how the submodel is
+    initialised:
+
+    >>> mainmodel_python.soilmodel = submodel_python
+    >>> type(mainmodel_python.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> mainmodel_python.cymodel
+
+    >>> mainmodel_python.soilmodel = submodel_cython
+    >>> type(mainmodel_python.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> mainmodel_python.cymodel
+
+    If both models are initialised in Cython mode, |SubmodelProperty| connects the
+    instances of the Cython extension classes on the fly:
+
+    >>> mainmodel_cython.soilmodel = submodel_cython
+    >>> type(mainmodel_cython.soilmodel)
+    <class 'hydpy.models.ga_garto_submodel1.Model'>
+    >>> type(mainmodel_cython.cymodel.get_soilmodel())
+    <class 'hydpy.cythons.autogen.c_ga_garto_submodel1.Model'>
+
+    Combining a Cython main model with a pure Python submodel causes a |RuntimeError|,
+    as using such a mix could result in hard-to-find errors:
+
+    >>> mainmodel_cython.soilmodel = submodel_python
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to assign value `ga_garto_submodel1` of type `Model` \
+to property `soilmodel`, the following error occurred: The main model `lland` is \
+initialised in Cython mode, but the submodel `ga_garto_submodel1` in pure Python \
+mode, so that the main model's cythonized methods cannot apply the submodel's methods.
+
+    Disconnecting a submodel from its main model works by assigning |None| as well as
+    using the `del` statement:
+
+    >>> mainmodel_python.soilmodel = None
+    >>> mainmodel_python.soilmodel
+
+    >>> del mainmodel_cython.soilmodel
+    >>> mainmodel_cython.soilmodel
+    >>> mainmodel_cython.cymodel.get_soilmodel()
+
+    >>> mainmodel_python.soilmodel = mainmodel_python
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign value `lland` of type `Model` to property \
+`soilmodel`, the following error occurred: The given value is neither `None` nor an \
+instance of any of the following types: `SoilModel_V1`.
+
+    The automatically generated docstrings list the supported interfaces:
+
+    >>> print(type(mainmodel_python).soilmodel.__doc__)
+    Optional submodel following one of the following interface(s): SoilModel_V1.
+    """
+
+    _interfaces: Tuple[Type[SubmodelInterface], ...]
+    _name: str
+
+    def __init__(self, interfaces: Iterable[Type[SubmodelInterface]]) -> None:
+        self._interfaces = tuple(interfaces)
+        self._name = self._interfaces[0].name
+        interfacenames = (i.__name__ for i in self._interfaces)
+        self.__doc__ = (
+            f"Optional submodel following one of the following interface(s): "
+            f"{objecttools.enumeration(interfacenames, conjunction='or')}."
+        )
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> Optional[Model]:
+        ...
+
+    def __get__(
+        self,
+        obj: Optional[Model],
+        objtype: Optional[Type[Model]] = None,
+    ) -> Union[SubmodelProperty, Optional[Model]]:
+        if obj is None:
+            return self
+        return vars(obj).get(self._name, None)
+
+    def __set__(self, obj: Model, value: Optional[Model]) -> None:
+        try:
+            if value is None:
+                self.__delete__(obj)
+            elif isinstance(value, self._interfaces):
+                vars(obj)[self._name] = value
+                if obj.cymodel is not None:
+                    if value.cymodel is None:
+                        raise RuntimeError(
+                            f"The main model `{obj.name}` is initialised in Cython "
+                            f"mode, but the submodel `{value.name}` in pure Python "
+                            f"mode, so that the main model's cythonized methods "
+                            f"cannot apply the submodel's methods."
+                        )
+                    getattr(obj.cymodel, f"set_{self._name}")(value.cymodel)
+            else:
+                interfacenames = (i.__name__ for i in self._interfaces)
+                raise ValueError(
+                    f"The given value is neither `None` nor an instance of any of the "
+                    f"following types: `{objecttools.enumeration(interfacenames)}`."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to assign {objecttools.value_of_type(value)} to "
+                f"property `{self._name}`"
+            )
+
+    def __delete__(self, obj: Model) -> None:
+        vars(obj)[self._name] = None
+        if obj.cymodel is not None:
+            getattr(obj.cymodel, f"set_{self._name}")(None)
 
 
 class IndexProperty:
@@ -189,6 +371,7 @@ class Model:
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -197,27 +380,33 @@ class Model:
         self.cymodel = None
         self.element = None
         self._init_methods()
+        if hasattr(self, "SUBMODELINTERFACES"):
+            for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
+                setattr(self, interfacename, None)
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        for name_group in self.METHOD_GROUPS:
-            functions = getattr(self, name_group, ())
-            shortname2method: Dict[str, types.MethodType] = {}
-            shortnames: Set[str] = set()
-            for func in functions:
-                method = types.MethodType(func.__call__, self)
-                name_func = func.__name__.lower()
-                setattr(self, name_func, method)
-                shortname = "_".join(name_func.split("_")[:-1])
-                if shortname not in shortnames:
-                    shortname2method[shortname] = method
-                    shortnames.add(shortname)
-                else:
-                    shortname2method.pop(shortname, None)
-            for (shortname, method) in shortname2method.items():
-                if method is not None:
-                    setattr(self, shortname, method)
+        blacklist_longnames: Set[str] = set()
+        blacklist_shortnames: Set[str] = set()
+        shortname2method: Dict[str, types.MethodType] = {}
+        for cls_ in self.get_methods():
+            longname = cls_.__name__.lower()  # type: ignore[attr-defined]
+            if longname in blacklist_longnames:
+                continue
+            blacklist_longnames.add(longname)
+            method = types.MethodType(cls_.__call__, self)
+            setattr(self, longname, method)
+            shortname = longname.rpartition("_")[0]
+            if shortname in blacklist_shortnames:
+                continue
+            if shortname in shortname2method:
+                del shortname2method[shortname]
+                blacklist_shortnames.add(shortname)
+            else:
+                shortname2method[shortname] = method
+        for shortname, method in shortname2method.items():
+            setattr(self, shortname, method)
 
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and
@@ -664,7 +853,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Python version with a model-specific Cython version.
         """
         for method in self.INLET_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_outlets(self) -> None:
         """Call all methods defined as "OUTLET_METHODS" in the defined order.
@@ -688,7 +877,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_receivers(self, idx: int) -> None:
         """Call all methods defined as "RECEIVER_METHODS" in the defined order.
@@ -714,7 +903,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_senders(self, idx: int) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order.
@@ -740,7 +929,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.
@@ -764,7 +953,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_v1
+        >>> from hydpy.models import hland_v1, ga_garto_submodel1
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
@@ -773,18 +962,43 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         Calc_QT_V1
         Pass_Q_v1
 
+        >>> for method in ga_garto_submodel1.Model.get_methods():
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Set_InitialSurfaceWater_V1
+        ...
+        Get_SoilWaterContent_V1
+        Return_RelativeMoisture_V1
+        ...
+        Withdraw_AllBins_V1
+
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
         calculations.
         """
-        for name_group in getattr(cls, "METHOD_GROUPS", ()):
-            for method in getattr(cls, name_group, ()):
-                yield method
+        if hasattr(cls, "METHOD_GROUPS"):
+            for groupname in cls.METHOD_GROUPS:
+                if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
+                    for method in cls.INTERFACE_METHODS:
+                        yield method
+                for method in getattr(cls, groupname, ()):
+                    yield method
 
     def __str__(self) -> str:
         return self.name
 
+    @classmethod
+    def _init_submodelproperties(cls) -> None:
+        def _key(interface: Type[SubmodelInterface]) -> str:
+            return interface.name
+
+        if hasattr(cls, "SUBMODELINTERFACES"):
+            interfaces = sorted(cls.SUBMODELINTERFACES, key=_key)
+            for name, subinterfaces in itertools.groupby(interfaces, key=_key):
+                setattr(cls, name, SubmodelProperty(subinterfaces))
+
     def __init_subclass__(cls) -> None:
+
+        cls._init_submodelproperties()
 
         modulename = cls.__module__
         if modulename.count(".") > 2:
@@ -828,9 +1042,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 typesequence = type(classname, (typesequences,), members)
                 setattr(module, classname, typesequence)
 
-        fixedparameters = set()
-        controlparameters = set()
-        derivedparameters = set()
+        fixedparameters = set(getattr(module, "ADDITIONAL_FIXEDPARAMETERS", ()))
+        controlparameters = set(getattr(module, "ADDITIONAL_CONTROLPARAMETERS", ()))
+        derivedparameters = set(getattr(module, "ADDITIONAL_DERIVEDPARAMETERS", ()))
         for host in itertools.chain(cls.get_methods(), allsequences):
             fixedparameters.update(getattr(host, "FIXEDPARAMETERS", ()))
             controlparameters.update(getattr(host, "CONTROLPARAMETERS", ()))
@@ -986,7 +1200,7 @@ class AdHocModel(RunModel):
         Python version with a model-specific Cython version.
         """
         for method in self.RUN_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
 
 class SegmentModel(RunModel):
@@ -1018,7 +1232,7 @@ class SegmentModel(RunModel):
             for idx_run in range(self.parameters.solver.nmbruns.value):
                 self.idx_run = idx_run
                 for method in self.RUN_METHODS:
-                    method.__call__(self)
+                    method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def run_segments(self, method: Method) -> Optional[Tuple[float, ...]]:
         """Run the given methods for all segments.
@@ -1030,7 +1244,7 @@ class SegmentModel(RunModel):
         try:
             for idx in range(self.nmb_segments):
                 self.idx_segment = idx
-                method.__call__()
+                method()
         finally:
             self.idx_segment = 0
 
@@ -1644,7 +1858,7 @@ class ELSModel(SolverModel):
         """
         self.numvars.nmb_calls = self.numvars.nmb_calls + 1
         for method in self.PART_ODE_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def calculate_full_terms(self) -> None:
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
@@ -1661,7 +1875,7 @@ class ELSModel(SolverModel):
         0.75
         """
         for method in self.FULL_ODE_METHODS:
-            method.__call__(self)
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def get_point_states(self) -> None:
         """Load the states corresponding to the actual stage.

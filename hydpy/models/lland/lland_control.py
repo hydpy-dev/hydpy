@@ -3,6 +3,7 @@
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
 # import...
+# ...from standard library
 import warnings
 
 # ...from site-packages
@@ -431,8 +432,8 @@ a positional nor a keyword argument is given.
     INIT = 1.4278333871488538
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to |PWMax| instances
-        within parameter control files.
+        """The prefered way to pass values to |PWMax| instances within parameter
+        control files.
         """
         rhot0 = float(kwargs.pop("rhot0", numpy.nan))
         rhodkrit = float(kwargs.pop("rhodkrit", numpy.nan))
@@ -576,17 +577,9 @@ class WMax(lland_parameters.ParameterSoil):
         wmax(60.0, 60.0, 90.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.fk,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if lower is None:
-                lower = exceptiontools.getattr_(
-                    self.subpars.pwp,
-                    "value",
-                    None,
-                )
+                lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
         super().trim(lower, upper)
 
 
@@ -622,17 +615,9 @@ class FK(lland_parameters.ParameterSoilThreshold):
         fk(20.0, 50.0, 80.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.pwp,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.wmax,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -672,17 +657,9 @@ class PWP(lland_parameters.ParameterSoilThreshold):
         pwp(0.0, 50.0, 80.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.fk,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if upper is None:
-                upper = exceptiontools.getattr_(
-                    self.subpars.wmax,
-                    "value",
-                    None,
-                )
+                upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -713,11 +690,7 @@ class PY(lland_parameters.ParameterSoilThreshold):
         py(0.0, 50.0, 100.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.wmax,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -801,11 +774,8 @@ Keyword `rdmin` is not among the available model constants.
         except TypeError:
             args = kwargs.get("r_dmin")
             if args is not None:
-                self.value = (
-                    0.001008
-                    * hydpy.pub.timegrids.init.stepsize.hours
-                    * numpy.array(args)
-                )
+                hours = hydpy.pub.timegrids.init.stepsize.hours
+                self.value = 0.001008 * hours * numpy.array(args)
                 self.trim()
             else:
                 objecttools.augment_excmessage()
@@ -824,11 +794,7 @@ Keyword `rdmin` is not among the available model constants.
         dmin(0.0, 0.0, 2.0, 4.0, 4.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.dmax,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.dmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -905,11 +871,7 @@ Keyword `rdmax` is not among the available model constants.
         dmax(4.0, 4.0, 6.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.dmin,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.dmin, "value", None)
         super().trim(lower, upper)
 
 
@@ -1101,8 +1063,8 @@ class RBeta(parametertools.Parameter):
 
 
 class VolBMax(parametertools.Parameter):
-    """Maximaler Inhalt des Gebietsspeichers für Basisabfluss (maximum value of
-    the storage compartment for base flow) [mm]."""
+    """Maximaler Inhalt des Gebietsspeichers für Basisabfluss (highest possible base
+    flow storage) [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = numpy.inf
@@ -1117,14 +1079,14 @@ class GSBMax(parametertools.Parameter):
 
 class GSBGrad1(parametertools.Parameter):
     """Höchste Volumenzunahme des Gebietsspeichers für Basisabfluss ohne Begrenzung
-    des Zuflusses (highest possible storage increase of the compartment for base
-    flow without inflow reductions) [mm/T]."""
+    des Zuflusses (highest possible baseflow storage increase without inflow
+    reductions) [mm/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+        r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1h")
@@ -1141,24 +1103,19 @@ class GSBGrad1(parametertools.Parameter):
         gsbgrad1(1.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.gsbgrad2,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.gsbgrad2, "value", None)
         super().trim(lower, upper)
 
 
 class GSBGrad2(parametertools.Parameter):
     """Volumenzunahme des Gebietsspeichers für Basisabfluss, oberhalb der jeglicher
-    Zufluss ausgeschlossen ist (highest possible storage increase of the compartment
-    for base flow) [mm/T]."""
+    Zufluss ausgeschlossen ist (highest possible baseflow storage increase) [mm/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`GSBGrad1 \\leq GSBGrad2`.
+        r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1h")
@@ -1175,11 +1132,7 @@ class GSBGrad2(parametertools.Parameter):
         gsbgrad2(1.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.gsbgrad1,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.gsbgrad1, "value", None)
         super().trim(lower, upper)
 
 
@@ -1353,11 +1306,7 @@ class EQI1(parametertools.Parameter):
         eqi1(2.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.eqi2,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.eqi2, "value", None)
         super().trim(lower, upper)
 
 
@@ -1386,11 +1335,7 @@ class EQI2(parametertools.Parameter):
         eqi2(3.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.eqi1,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.eqi1, "value", None)
         super().trim(lower, upper)
 
 
@@ -1419,11 +1364,7 @@ class EQD1(parametertools.Parameter):
         eqd1(2.0)
         """
         if lower is None:
-            lower = exceptiontools.getattr_(
-                self.subpars.eqd2,
-                "value",
-                None,
-            )
+            lower = exceptiontools.getattr_(self.subpars.eqd2, "value", None)
         super().trim(lower, upper)
 
 
@@ -1452,11 +1393,7 @@ class EQD2(parametertools.Parameter):
         eqd2(3.0)
         """
         if upper is None:
-            upper = exceptiontools.getattr_(
-                self.subpars.eqd1,
-                "value",
-                None,
-            )
+            upper = exceptiontools.getattr_(self.subpars.eqd1, "value", None)
         super().trim(lower, upper)
 
 

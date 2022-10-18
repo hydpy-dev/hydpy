@@ -3,6 +3,7 @@
 eventually dynamical) typing."""
 # import...
 # ...from standard library
+from __future__ import annotations
 from typing import *
 from typing_extensions import Literal  # type: ignore[misc]
 from typing_extensions import Protocol  # type: ignore[misc]
@@ -15,7 +16,7 @@ import numpy.typing
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
-    from hydpy.cythons.autogen import pointerutils
+    from hydpy.cythons import pointerutils
 
 T = TypeVar("T")
 T1 = TypeVar("T1")
@@ -44,6 +45,11 @@ Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
 NDArrayFloat = numpy.typing.NDArray[numpy.float_]
+NDMatrixBytes = numpy.typing.NDArray[bytes]  # type: ignore[type-var]
+
+DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
+LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
+StepSize = Literal["daily", "d", "monthly", "m"]
 
 
 class VectorInput(Protocol[Float_co]):
@@ -69,12 +75,10 @@ class VectorInput(Protocol[Float_co]):
     ) -> Union[Float_co, "VectorInput[Float_co]"]:
         ...
 
-    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
-    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
+    def __len__(self) -> int:
         ...
 
-    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
-    def __iter__(self) -> Iterator[Float_co]:  # pylint: disable=non-iterator-returned
+    def __iter__(self) -> Iterator[Float_co]:
         ...
 
 
@@ -257,7 +261,7 @@ class Matrix(MatrixInput[Float1]):
     def __getitem__(
         self,
         item: Union[slice, Tuple[VectorSlice, VectorSlice]],
-    ) -> "Matrix[Float1]":
+    ) -> Matrix[Float1]:
         ...
 
     def __getitem__(
@@ -270,7 +274,7 @@ class Matrix(MatrixInput[Float1]):
             slice,
             Tuple[VectorSlice, VectorSlice],
         ],
-    ) -> Union[Float1, Vector[Float1], "Matrix[Float1]"]:
+    ) -> Union[Float1, Vector[Float1], Matrix[Float1]]:
         ...
 
     @overload
@@ -307,113 +311,109 @@ class Matrix(MatrixInput[Float1]):
     ) -> None:
         ...
 
-    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
-    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
+    def __len__(self) -> int:
         ...
 
-    # pylint bug, see issue https://github.com/PyCQA/pylint/issues/4670
-    def __iter__(  # pylint: disable=non-iterator-returned
-        self,
-    ) -> Iterator[Vector[Float1]]:
+    def __iter__(self) -> Iterator[Vector[Float1]]:
         ...
 
-    def __invert__(self) -> "Matrix[Float1]":
+    def __invert__(self) -> Matrix[Float1]:
         ...
 
     def __add__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __radd__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __sub__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __rsub__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __mul__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __rmul__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __truediv__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __rtruediv__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __pow__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __rpow__(
-        self: "Matrix[Float1]",
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[Union[Float1, Float2]]":
+        self: Matrix[Float1],
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[Union[Float1, Float2]]:
         ...
 
     def __lt__(
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     def __le__(
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     def __eq__(  # type: ignore[override]
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     def __ne__(  # type: ignore[override]
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     def __ge__(
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     def __gt__(
         self,
-        other: Union[Float2, Vector[Float2], "Matrix[Float2]"],
-    ) -> "Matrix[bool]":
+        other: Union[Float2, Vector[Float2], Matrix[Float2]],
+    ) -> Matrix[bool]:
         ...
 
     @property
@@ -487,6 +487,8 @@ __all__ = [
     "Collection1",
     "Collection2",
     "Collection3",
+    "DeployMode",
+    "LineStyle",
     "MatrixInput",
     "Matrix",
     "Mayberable1",
@@ -497,12 +499,14 @@ __all__ = [
     "MayNonerable3",
     "Name",
     "NDArrayFloat",
+    "NDMatrixBytes",
     "ScriptFunction",
     "SeriesAggregationType",
     "SeriesFileType",
     "Sequence1",
     "Sequence2",
     "Sequence3",
+    "StepSize",
     "T",
     "T1",
     "T2",

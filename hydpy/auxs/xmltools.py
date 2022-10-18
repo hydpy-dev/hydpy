@@ -73,7 +73,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
-...     chars2str(query_variable(ncfile, "station_id"))[:3]
+...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_values(query_variable(ncfile, "state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.926173, 184.603966, 184.386666, 184.098541, 183.873078
@@ -137,7 +137,7 @@ _TypeSetOrAddOrMultiplyItem = TypeVar(
     itemtools.MultiplyItem,
 )
 _TypeGetOrChangeItem = TypeVar(
-    "_TypeSetOrAddOrMultiplyItem",
+    "_TypeGetOrChangeItem",
     itemtools.GetItem,
     itemtools.ChangeItem,
     itemtools.SetItem,
@@ -731,11 +731,11 @@ devices has this name.
                 for name_device in _get_texts(add_selection, "devices"):
                     try:
                         element = elements[name_device]
-                        new_selection.elements[element.name] = element
+                        new_selection.elements.add_device(element)
                     except KeyError:
                         try:
                             node = nodes[name_device]
-                            new_selection.nodes[node.name] = node
+                            new_selection.nodes.add_device(node)
                         except KeyError:
                             raise RuntimeError(
                                 f"The XML configuration file tried to add a device "
@@ -1497,12 +1497,12 @@ class XMLSubseries(XMLSelector):
                 subs2seqs["node"].append(strip(seq.tag))
         return subs2seqs
 
-    def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
         return itertools.chain(
             self._iterate_model_sequences(), self._iterate_node_sequences()
         )
 
-    def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence]:
         m2s2s = self.model2subs2seqs
         for element in self.elements:
             model = element.model
@@ -1511,7 +1511,7 @@ class XMLSubseries(XMLSelector):
                 for seq_name in seq_names:
                     yield getattr(subseqs, seq_name)
 
-    def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
         s2s = self.subs2seqs
         for node in self.nodes:
             for seq_names in s2s.values():

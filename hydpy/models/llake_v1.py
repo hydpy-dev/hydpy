@@ -347,6 +347,7 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (llake_model.Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
 

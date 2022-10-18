@@ -4709,4 +4709,5 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = (Calc_QAb_QVs_BW_V1,)
     OUTLET_METHODS = (Pass_Q_v1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()

@@ -10,11 +10,7 @@ from typing import *
 
 # ...from HydPy
 from hydpy.core import objecttools
-
-
-T = TypeVar("T")
-T1 = TypeVar("T1")
-T2 = TypeVar("T2")
+from hydpy.core.typingtools import *
 
 
 class HydPyDeprecationWarning(DeprecationWarning):

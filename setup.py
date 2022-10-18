@@ -22,7 +22,7 @@ extension_modules = [
 
 setuptools.setup(
     name="HydPy",
-    version="5.0a0",
+    version="6.0a0",
     description="A framework for the development and application of hydrological "
     "models.",
     long_description=long_description,
@@ -46,11 +46,13 @@ setuptools.setup(
     ],
     keywords="hydrology modelling water balance rainfall runoff",
     cmdclass={"build_ext": Cython.Distutils.build_ext},
-    packages=["hydpy"],
+    packages=(
+        ["hydpy"] + [f"hydpy.{p}" for p in setuptools.find_namespace_packages("hydpy")]
+    ),
+    include_package_data=True,
     ext_modules=extension_modules,
     include_dirs=[numpy.get_include()],
     scripts=[os.path.join("hydpy", "exe", "hyd.py")],
-    include_package_data=True,
     python_requires=">=3.7",
     install_requires=[
         "black",
@@ -58,7 +60,8 @@ setuptools.setup(
         "click",
         "Cython",
         "matplotlib",
-        "netCDF4",
+        "netcdf4 < 1.6; python_version == '3.7'",
+        "netcdf4; python_version > '3.7'",
         "networkx",
         "numpy",
         "pandas",

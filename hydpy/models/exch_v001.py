@@ -562,6 +562,7 @@ overflow2, and waterlevel2.
     ADD_METHODS = ()
     OUTLET_METHODS = (exch_model.Pass_ActualExchange_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
     def _connect_receivers(self) -> None:

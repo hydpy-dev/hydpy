@@ -25,4 +25,4 @@ Application model:
 
 .. toctree::
 
-   evap_v001 (grass reference evapotranspiration, :cite:`ref-Allen1998`) <evap_v001>
+   evap_v001 (FAO) <evap_v001>

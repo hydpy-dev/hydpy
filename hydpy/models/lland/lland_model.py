@@ -2,10 +2,14 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
+from hydpy.interfaces import soilinterfaces
 
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -30,10 +34,10 @@ from hydpy.models.lland.lland_constants import (
 
 
 class Pick_QZ_V1(modeltools.Method):
-    """Query the current inflow from all inlet nodes.
+    r"""Query the current inflow from all inlet nodes.
 
     Basic equation:
-      :math:`QZ = \\sum Q_{inlets}`
+      :math:`QZ = \sum Q_{inlets}`
     """
 
     REQUIREDSEQUENCES = (lland_inlets.Q,)
@@ -275,8 +279,7 @@ class Update_LoggedWindSpeed2m_V1(modeltools.Method):
 
 
 class Calc_DailyWindSpeed2m_V1(modeltools.Method):
-    """Calculate the average wind speed 2 meters above ground of the last
-    24 hours.
+    """Calculate the average wind speed 2 meters above ground of the last 24 hours.
 
     Example:
 
@@ -1009,23 +1012,22 @@ class Calc_EvPo_V1(modeltools.Method):
 
 
 class Calc_NBes_Inzp_V1(modeltools.Method):
-    """Calculate stand precipitation and update the interception storage
-    accordingly.
+    r"""Calculate stand precipitation and update the interception storage accordingly.
 
     Additional requirements:
       |Model.idx_sim|
 
     Basic equation:
       .. math::
-        NBes = \\begin{cases}
+        NBes = \begin{cases}
         PKor
-        &|\\
+        &|\
         Inzp = KInz
-        \\\\
+        \\
         0
-        &|\\
+        &|\
         Inzp < KInz
-        \\end{cases}
+        \end{cases}
 
     Examples:
 
@@ -8141,34 +8143,34 @@ class Update_QDB_V1(modeltools.Method):
             flu.qdb[k] += flu.fvg[k] * (flu.wada[k] - flu.qdb[k])
 
 
-class Calc_BoWa_V1(modeltools.Method):
-    """Update the soil moisture and, if necessary, correct the ingoing and
-    outgoing fluxes.
+class Calc_BoWa_Default_V1(modeltools.Method):
+    r"""Update the soil moisture and (if necessary) correct the fluxes to be added or
+    subtracted.
 
     Basic equations:
-       :math:`\\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
+       :math:`\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
 
-       :math:`0 \\leq BoWa \\leq WMax`
+       :math:`0 \leq BoWa \leq WMax`
 
     Examples:
 
-        For water areas and sealed surfaces, we simply set soil moisture |BoWa|
-        to zero and do not need to perform any flux corrections:
+        For water areas and sealed surfaces, we can set soil moisture (|BoWa|) to zero
+        and do not need to perform any flux corrections:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(4)
         >>> lnk(FLUSS, SEE, WASSER, VERS)
         >>> states.bowa = 100.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(0.0, 0.0, 0.0, 0.0)
 
-        We make no principal distinction between the remaining land use
-        classes and select arable land (|ACKER|) for the following examples.
+        We make no principal distinction between the remaining land use classes and
+        select arable land (|ACKER|) for the following examples.
 
-        To prevent soil water contents increasing |WMax|, we might need to
-        decrease |WaDa| and |QKap|:
+        To prevent soil water contents from exceeding |WMax|, we might need to decrease
+        |WaDa| and |QKap|:
 
         >>> lnk(ACKER)
         >>> wmax(100.0)
@@ -8180,7 +8182,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 0.0
         >>> fluxes.qib2 = 0.0
         >>> fluxes.qdb = 0.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(95.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada
@@ -8190,15 +8192,14 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.evb
         evb(5.0, 5.0, 5.0, 5.0)
 
-        Additionally, to prevent storage overlflows we might need to
-        decrease |EvB| in case it is negative (meaning, condensation
-        increases the soil water storage):
+        Additionally, to prevent storage overflows, we might need to decrease |EvB| if
+        it is negative (when condensation increases the soil water storage):
 
         >>> states.bowa = 90.0
         >>> fluxes.wada = 0.0, 5.0, 10.0, 15.0
         >>> fluxes.qkap = 2.5
         >>> fluxes.evb = -2.5
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(95.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada
@@ -8208,8 +8209,8 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.evb
         evb(-2.5, -2.5, -0.833333, -1.25)
 
-        To prevent negative |BoWa| value, we might need to decrease |QBB|,
-        |QIB1|, |QIB1|, |QBB|, and |EvB|:
+        To prevent negative |BoWa| values, we might need to decrease |QBB|, |QIB2|,
+        |QIB1|, |QBB|, and |EvB|:
 
         >>> states.bowa = 10.0
         >>> fluxes.wada = 0.0
@@ -8219,7 +8220,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 1.25
         >>> fluxes.qib2 = 1.25
         >>> fluxes.qdb = 1.25
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(5.0, 0.0, 0.0, 0.0)
         >>> fluxes.evb
@@ -8233,8 +8234,8 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qdb
         qdb(1.25, 1.25, 0.833333, 0.625)
 
-        We do not to modify negative |EvB| values (condensation) to prevent
-        negative |BoWa| values:
+        We do not modify negative |EvB| values (condensation) when preventing negative
+        |BoWa| values:
 
         >>> states.bowa = 10.0
         >>> fluxes.evb = -15.0, -10.0, -5.0, 0.0
@@ -8242,7 +8243,7 @@ class Calc_BoWa_V1(modeltools.Method):
         >>> fluxes.qib1 = 5.0
         >>> fluxes.qib2 = 5.0
         >>> fluxes.qdb = 5.0
-        >>> model.calc_bowa_v1()
+        >>> model.calc_bowa_default_v1()
         >>> states.bowa
         bowa(5.0, 0.0, 0.0, 0.0)
         >>> fluxes.evb
@@ -8278,6 +8279,7 @@ class Calc_BoWa_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.0
@@ -8308,26 +8310,331 @@ class Calc_BoWa_V1(modeltools.Method):
                         sta.bowa[k] = con.wmax[k]
 
 
-class Calc_QBGZ_V1(modeltools.Method):
-    """Aggregate the amount of base flow released by all "soil type" HRUs
-    and the "net precipitation" above water areas of type |SEE|.
-
-    Water areas of type |SEE| are assumed to be directly connected with
-    groundwater, but not with the stream network.  This is modelled by
-    adding their (positive or negative) "net input" (|NKor|-|EvI|) to the
-    "percolation output" of the soil containing HRUs.
-
-    Basic equation:
-       :math:`QBGZ = \\Sigma\\bigl(FHRU \\cdot \\bigl(QBB-Qkap\\bigl)\\bigl) +
-       \\Sigma\\bigl(FHRU \\cdot \\bigl(NKor_{SEE}-EvI_{SEE}\\bigl)\\bigl)`
+class Calc_BoWa_SoilModel_V1(modeltools.Method):
+    r"""Apply a submodel following the |SoilModel_V1| interface to include additional
+    direct runoff and groundwater recharge components into the soil moisture update.
 
     Examples:
 
-        The first example shows that |QBGZ| is the area weighted sum of
-        |QBB| from "soil type" HRUs like arable land (|ACKER|) and of
-        |NKor|-|EvI| from water areas of type |SEE|.  All other water
-        areas (|WASSER| and |FLUSS|) and also sealed surfaces (|VERS|)
-        have no impact on |QBGZ|:
+        We prepare a |lland| model instance consisting of four hydrological response
+        units, which will serve as the main model:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1h")
+        >>> nhru(4)
+
+        As an example, we select |ga_garto_submodel1| as the submodel.  We define its
+        parameter values like in the initial examples of the documentation on
+        |ga_garto_submodel1| and its stand-alone counterpart |ga_garto| (soil type
+        loam) but prepare - analogue to the main model's setting - four soil
+        compartments.  The two first compartments have a soil depth of 1.0 m ("deep
+        soils") and the two last of 0.1 m ("flat soils"):
+
+        >>> from hydpy import prepare_model, pub
+        >>> garto = prepare_model("ga_garto_submodel1")
+        >>> garto.parameters.control.nmbsoils(4)
+        >>> garto.parameters.control.nmbbins(3)
+        >>> with pub.options.parameterstep("1s"):
+        ...     garto.parameters.control.dt(1.0)
+        >>> garto.parameters.control.sealed(False)
+        >>> garto.parameters.control.soildepth(1000.0, 1000.0, 100.0, 100.0)
+        >>> garto.parameters.control.residualmoisture(0.027)
+        >>> garto.parameters.control.saturationmoisture(0.434)
+        >>> garto.parameters.control.saturatedconductivity(13.2)
+        >>> garto.parameters.control.poresizedistribution(0.252)
+        >>> garto.parameters.control.airentrypotential(111.5)
+        >>> garto.parameters.update()
+        >>> model.soilmodel = garto
+
+        For water areas and sealed surfaces, |lland| does not apply its submodel and
+        just sets |BoWa| to zero:
+
+        >>> lnk(FLUSS, SEE, WASSER, VERS)
+        >>> states.bowa = 100.0
+        >>> model.calc_bowa_v1()
+        >>> states.bowa
+        bowa(0.0, 0.0, 0.0, 0.0)
+
+        |Calc_BoWa_SoilModel_V1| works the same for all other land use types.  We
+        randomly select |ACKER| (arable land):
+
+        >>> lnk(ACKER)
+
+        The water reaching the soil routine (|WaDa|) is 40 mm/h for each response unit
+        in all examples:
+
+        >>> fluxes.wada = 40.0
+
+        We define a function that will help us to execute the following test runs.  It
+        sets the values of the main model's flux sequences for direct runoff (|QDB|),
+        both interflow components (|QIB2| and |QIB1|), base flow (|QBB|),
+        evapotranspiration (|EvB|), and capillary rise (|QKap|).  Direct runoff is
+        predefined to 40 mm/h for the first (deep) and third (flat) response unit and
+        0 mm/h for the second (deep) and fourth (flat) response unit.  The other flux
+        sequences' values are customisable (default value 0 mm/h).  The initial
+        relative soil moisture (|ga_states.Moisture|) is 10 %, which makes an absolute
+        soil water content (|BoWa|) of 100 mm for the first two and 10 mm for the last
+        two response units.  After applying method |Calc_BoWa_SoilModel_V1|, our test
+        function checks for possible water balance violations and (if it does not find
+        any) prints the updated soil moisture content and the eventually adjusted flux
+        sequences's values:
+
+        >>> from numpy import array, round_
+        >>> from hydpy.core.objecttools import repr_values
+        >>> def check(qib2=0, qib1=0, qbb=0, evb=0, qkap=0):
+        ...     fluxes.qdb = 40.0, 0.0, 40, 0.0
+        ...     fluxes.qib2 = qib2
+        ...     fluxes.qib1 = qib1
+        ...     fluxes.qbb = qbb
+        ...     fluxes.evb = evb
+        ...     fluxes.qkap = qkap
+        ...     garto.sequences.states.moisture = 0.1
+        ...     garto.sequences.states.frontdepth = 0.0
+        ...     garto.sequences.states.moisturechange = 0.0
+        ...     old_bowa = array([garto.get_soilwatercontent(k) for k in range(4)])
+        ...     model.calc_bowa_v1()
+        ...     new_bowa = states.bowa.values.copy()
+        ...     delta = (fluxes.wada + fluxes.qkap - fluxes.qdb - fluxes.qib2
+        ...              - fluxes.qib1 - fluxes.qbb - fluxes.evb)
+        ...     assert all(round_(new_bowa, 11) == round_(old_bowa + delta, 11))
+        ...     print("bowa:", repr_values(states.bowa))
+        ...     print("qdb:", repr_values(fluxes.qdb))
+        ...     print("qib2:", repr_values(fluxes.qib2))
+        ...     print("qib1:", repr_values(fluxes.qib1))
+        ...     print("qbb:", repr_values(fluxes.qbb))
+        ...     print("evb:", repr_values(fluxes.evb))
+        ...     print("qkap:", repr_values(fluxes.qkap))
+
+        If |WaDa| (the potential direct runoff amount) and |QDB| (the already
+        calculated direct runoff amount) are equal, like for the hydrological response
+        units one and three, there is no water left that could infiltrate into the
+        soil.  For zero previously calculated direct runoff, |WaDa| could infiltrate
+        completely.  Here, about 38.9 mm enter the deep soil, and the remainder
+        (1.1 mm) becomes direct runoff (compare with example
+        :ref:`ga_garto_5h_1000mm`).  The flat soil becomes completely saturated so that
+        there is a larger amount of direct runoff (4.5 mm) and also a considerable
+        amount of groundwater recharge (2.1 mm) (see example :ref:`ga_garto_5h_100mm`):
+
+        >>> check()
+        bowa: 100.0, 138.896943, 10.0, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        |Calc_BoWa_SoilModel_V1| adds externally defined capillary rise after
+        performing the infiltration and percolation routine.  Hence, passing a
+        capillary rise value of 1.0 mm does not result in direct runoff or groundwater
+        recharge differences compared to the previous example  Note that the fourths
+        soil compartment cannot receive capillary rise due to its saturation.  Hence,
+        |Calc_BoWa_SoilModel_V1| corrects |QKap| to zero:
+
+        >>> check(qkap=1.0)
+        bowa: 101.0, 139.896943, 11.0, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 1.0, 1.0, 1.0, 0.0
+
+        Passing an (extremely unrealistic) capillary rise of 40.0 mm requires also a
+        reduction for the third soil compartment:
+
+        >>> check(qkap=40.0)
+        bowa: 140.0, 178.896943, 43.4, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: 0.0, 0.0, 0.0, 0.0
+        qkap: 40.0, 40.0, 33.4, 0.0
+
+        |Calc_BoWa_SoilModel_V1| allows for negative evapotranspiration values and
+        handles them like capillary rise.  If their sum exceeds the available soil
+        water storage, |Calc_BoWa_SoilModel_V1| reduces both by the same factor:
+
+        >>> check(qkap=30.0, evb=-10.0)
+        bowa: 140.0, 178.896943, 43.4, 43.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 0.0, 0.0, 0.0, 0.0
+        qib1: 0.0, 0.0, 0.0, 0.0
+        qbb: 0.0, 0.0, 0.0, 2.097333
+        evb: -10.0, -10.0, -8.35, 0.0
+        qkap: 30.0, 30.0, 25.05, 0.0
+
+        The last process triggered by |Calc_BoWa_SoilModel_V1| is removing of a
+        defined water demand.  This demand is the sum of both interflow components,
+        base flow, and evapotranspiration:
+
+        >>> check(qib2=6.0, qib1=3.0, qbb=2.0, evb=1.0)
+        bowa: 88.0, 126.896943, 2.7, 31.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 6.0, 6.0, 3.65, 6.0
+        qib1: 3.0, 3.0, 1.825, 3.0
+        qbb: 2.0, 2.0, 1.216667, 4.097333
+        evb: 1.0, 1.0, 0.608333, 1.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        For soils that do not contain enough water to satisfy the whole demand,
+        |Calc_BoWa_SoilModel_V1| reduces all mentioned components by the same factor:
+
+        >>> check(qib2=12.0, qib1=6.0, qbb=4.0, evb=2.0)
+        bowa: 76.0, 114.896943, 2.7, 19.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 12.0, 12.0, 3.65, 12.0
+        qib1: 6.0, 6.0, 1.825, 6.0
+        qbb: 4.0, 4.0, 1.216667, 6.097333
+        evb: 2.0, 2.0, 0.608333, 2.0
+        qkap: 0.0, 0.0, 0.0, 0.0
+
+        Negative evapotranspiration values cannot contribute to soil overdrying.
+        Hence, |Calc_BoWa_SoilModel_V1| does not modify negative evapotranspiration
+        values when reducing the "real" loss terms:
+
+        >>> check(qib2=6.0, qib1=3.0, qbb=2.0, evb=-1.0, qkap=1.0)
+        bowa: 91.0, 129.896943, 2.7, 32.4
+        qdb: 40.0, 1.103057, 40.0, 4.502667
+        qib2: 6.0, 6.0, 5.072727, 6.0
+        qib1: 3.0, 3.0, 2.536364, 3.0
+        qbb: 2.0, 2.0, 1.690909, 4.097333
+        evb: -1.0, -1.0, -1.0, 0.0
+        qkap: 1.0, 1.0, 1.0, 0.0
+    """
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
+    UPDATEDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvB,
+        lland_fluxes.QBB,
+        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
+        lland_fluxes.QDB,
+        lland_fluxes.QKap,
+    )
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: soilinterfaces.SoilModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nhru):
+            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
+                sta.bowa[k] = 0.0
+            else:
+                # infiltration and percolation
+                submodel.set_initialsurfacewater(k, flu.wada[k])
+                submodel.set_actualsurfacewater(k, flu.wada[k] - flu.qdb[k])
+                submodel.set_soilwatersupply(k, 0.0)
+                submodel.set_soilwaterdemand(k, 0.0)
+                submodel.execute_infiltration(k)
+                infiltration: float = submodel.get_infiltration(k)
+                flu.qdb[k] += (flu.wada[k] - flu.qdb[k]) - infiltration
+                qbb_soilmodel: float = submodel.get_percolation(k)
+                # capillary rise and negative evapotranspiration
+                supply: float = flu.qkap[k]
+                if flu.evb[k] < 0.0:
+                    supply -= flu.evb[k]
+                submodel.set_soilwatersupply(k, supply)
+                submodel.add_soilwater(k)
+                addition: float = submodel.get_soilwateraddition(k)
+                if addition < supply:
+                    factor: float = addition / supply
+                    flu.qkap[k] *= factor
+                    if flu.evb[k] < 0.0:
+                        flu.evb[k] *= factor
+                # LARSIM-type baseflow, interflow, and positive evaporation
+                demand: float = flu.qbb[k] + flu.qib1[k] + flu.qib2[k]
+                if flu.evb[k] > 0.0:
+                    demand += flu.evb[k]
+                submodel.set_soilwaterdemand(k, demand)
+                submodel.remove_soilwater(k)
+                removal: float = submodel.get_soilwaterremoval(k)
+                if removal < demand:
+                    factor = removal / demand
+                    flu.qbb[k] *= factor
+                    flu.qib1[k] *= factor
+                    flu.qib2[k] *= factor
+                    if flu.evb[k] > 0.0:
+                        flu.evb[k] *= factor
+                # sync soil moisture
+                sta.bowa[k] = submodel.get_soilwatercontent(k)
+                flu.qbb[k] += qbb_soilmodel
+
+
+class Calc_BoWa_V1(modeltools.Method):
+    """Update the soil moisture.
+
+    |Calc_BoWa_V1| serves as a switch method.  Its behaviour depends on whether the
+    user activates a soil submodel following the |SoilModel_V1| interface or not.  If
+    not, |Calc_BoWa_V1| applies |Calc_BoWa_Default_V1| to perform a "simple" soil
+    moisture update.  If so, |Calc_BoWa_V1| uses |Calc_BoWa_SoilModel_V1| to include
+    additional direct runoff and groundwater recharge components into the soil moisture
+    update.  See the documentation of the mentioned submethods for more information.
+    """
+
+    SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
+    SUBMETHODS = (
+        Calc_BoWa_Default_V1,
+        Calc_BoWa_SoilModel_V1,
+    )
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.WMax,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
+    UPDATEDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvB,
+        lland_fluxes.QBB,
+        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
+        lland_fluxes.QDB,
+        lland_fluxes.QKap,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.soilmodel is None:
+            model.calc_bowa_default_v1()
+        elif model.soilmodel.typeid == 1:
+            model.calc_bowa_soilmodel_v1(
+                cast(soilinterfaces.SoilModel_V1, model.soilmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.soilmodel)
+
+
+class Calc_QBGZ_V1(modeltools.Method):
+    r"""Aggregate the amount of base flow released by all "soil type" HRUs and the
+    "net precipitation" above water areas of type |SEE|.
+
+    Water areas of type |SEE| are assumed to be directly connected with groundwater,
+    but not with the stream network.  This is modelled by adding their (positive or
+    negative) "net input" (|NKor|-|EvI|) to the "percolation output" of the soil
+    containing HRUs.
+
+    Basic equation:
+       :math:`QBGZ = \Sigma \bigl( FHRU \cdot \bigl( QBB - Qkap \bigl) \bigl) +
+       \Sigma \bigl (FHRU \cdot \bigl( NKor_{SEE} - EvI_{SEE} \bigl) \bigl)`
+
+    Examples:
+
+        The first example shows that |QBGZ| is the area weighted sum of |QBB| from
+        "soil type" HRUs like arable land (|ACKER|) and of |NKor|-|EvI| from water
+        areas of type |SEE|.  All other water areas (|WASSER| and |FLUSS|) and also
+        sealed surfaces (|VERS|) have no impact on |QBGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -8339,15 +8646,15 @@ class Calc_QBGZ_V1(modeltools.Method):
         >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
         >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
         >>> model.calc_qbgz_v1()
-        >>> states.qbgz
+        >>> fluxes.qbgz
         qbgz(4.5)
 
-        The second example shows that large evaporation values above a
-        HRU of type |SEE| can result in negative values of |QBGZ|:
+        The second example shows that large evaporation values above a HRU of type
+        |SEE| can result in negative values of |QBGZ|:
 
         >>> fluxes.evi[5] = 30
         >>> model.calc_qbgz_v1()
-        >>> states.qbgz
+        >>> fluxes.qbgz
         qbgz(-3.5)
     """
 
@@ -8362,27 +8669,25 @@ class Calc_QBGZ_V1(modeltools.Method):
         lland_fluxes.QBB,
         lland_fluxes.QKap,
     )
-    RESULTSEQUENCES = (lland_states.QBGZ,)
+    RESULTSEQUENCES = (lland_fluxes.QBGZ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        sta.qbgz = 0.0
+        flu.qbgz = 0.0
         for k in range(con.nhru):
             if con.lnk[k] == SEE:
-                sta.qbgz += con.fhru[k] * (flu.nkor[k] - flu.evi[k])
+                flu.qbgz += con.fhru[k] * (flu.nkor[k] - flu.evi[k])
             elif con.lnk[k] not in (WASSER, FLUSS, VERS):
-                sta.qbgz += con.fhru[k] * (flu.qbb[k] - flu.qkap[k])
+                flu.qbgz += con.fhru[k] * (flu.qbb[k] - flu.qkap[k])
 
 
 class Calc_QIGZ1_V1(modeltools.Method):
-    """Aggregate the amount of the first interflow component released
-    by all HRUs.
+    r"""Aggregate the amount of the first interflow component released by all HRUs.
 
     Basic equation:
-       :math:`QIGZ1 = \\Sigma(FHRU \\cdot QIB1)`
+       :math:`QIGZ1 = \Sigma(FHRU \cdot QIB1)`
 
     Example:
 
@@ -8392,7 +8697,7 @@ class Calc_QIGZ1_V1(modeltools.Method):
         >>> fhru(0.75, 0.25)
         >>> fluxes.qib1 = 1.0, 5.0
         >>> model.calc_qigz1_v1()
-        >>> states.qigz1
+        >>> fluxes.qigz1
         qigz1(2.0)
     """
 
@@ -8401,24 +8706,22 @@ class Calc_QIGZ1_V1(modeltools.Method):
         lland_control.FHRU,
     )
     REQUIREDSEQUENCES = (lland_fluxes.QIB1,)
-    RESULTSEQUENCES = (lland_states.QIGZ1,)
+    RESULTSEQUENCES = (lland_fluxes.QIGZ1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        sta.qigz1 = 0.0
+        flu.qigz1 = 0.0
         for k in range(con.nhru):
-            sta.qigz1 += con.fhru[k] * flu.qib1[k]
+            flu.qigz1 += con.fhru[k] * flu.qib1[k]
 
 
 class Calc_QIGZ2_V1(modeltools.Method):
-    """Aggregate the amount of the second interflow component released
-    by all HRUs.
+    r"""Aggregate the amount of the second interflow component released by all HRUs.
 
     Basic equation:
-       :math:`QIGZ2 = \\Sigma(FHRU \\cdot QIB2)`
+       :math:`QIGZ2 = \Sigma(FHRU \cdot QIB2)`
 
     Example:
 
@@ -8428,7 +8731,7 @@ class Calc_QIGZ2_V1(modeltools.Method):
         >>> fhru(0.75, 0.25)
         >>> fluxes.qib2 = 1.0, 5.0
         >>> model.calc_qigz2_v1()
-        >>> states.qigz2
+        >>> fluxes.qigz2
         qigz2(2.0)
     """
 
@@ -8437,32 +8740,30 @@ class Calc_QIGZ2_V1(modeltools.Method):
         lland_control.FHRU,
     )
     REQUIREDSEQUENCES = (lland_fluxes.QIB2,)
-    RESULTSEQUENCES = (lland_states.QIGZ2,)
+    RESULTSEQUENCES = (lland_fluxes.QIGZ2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        sta.qigz2 = 0.0
+        flu.qigz2 = 0.0
         for k in range(con.nhru):
-            sta.qigz2 += con.fhru[k] * flu.qib2[k]
+            flu.qigz2 += con.fhru[k] * flu.qib2[k]
 
 
 class Calc_QDGZ_V1(modeltools.Method):
-    """Aggregate the amount of total direct flow released by all HRUs.
+    r"""Aggregate the amount of total direct flow released by all HRUs.
 
     Basic equation:
-       :math:`QDGZ = \\Sigma\\bigl(FHRU \\cdot QDB\\bigl) +
-       \\Sigma\\bigl(FHRU \\cdot \\bigl(NKor_{FLUSS}-EvI_{FLUSS}\\bigl)\\bigl)`
+       :math:`QDGZ = \Sigma \bigl( FHRU \cdot QDB \bigl) +
+       \Sigma \bigl (FHRU \cdot \bigl( NKor_{FLUSS} - EvI_{FLUSS} \bigl) \bigl)`
 
     Examples:
 
-        The first example shows that |QDGZ| is the area weighted sum of
-        |QDB| from "land type" HRUs like arable land (|ACKER|) and sealed
-        surfaces (|VERS|) as well as of |NKor|-|EvI| from water areas of
-        type |FLUSS|.  Water areas of type |WASSER| and |SEE| have no
-        impact on |QDGZ|:
+        The first example shows that |QDGZ| is the area weighted sum of |QDB| from
+        "land type" HRUs like arable land (|ACKER|) and sealed surfaces (|VERS|) as
+        well as of |NKor|-|EvI| from water areas of type |FLUSS|.  Water areas of type
+        |WASSER| and |SEE| have no impact on |QDGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -8476,8 +8777,8 @@ class Calc_QDGZ_V1(modeltools.Method):
         >>> fluxes.qdgz
         qdgz(5.0)
 
-        The second example shows that large evaporation values above a
-        HRU of type |FLUSS| can result in negative values of |QDGZ|:
+        The second example shows that large evaporation values above a HRU of type
+        |FLUSS| can result in negative values of |QDGZ|:
 
         >>> fluxes.evi[4] = 30
         >>> model.calc_qdgz_v1()
@@ -8510,30 +8811,30 @@ class Calc_QDGZ_V1(modeltools.Method):
 
 
 class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
-    """Separate total direct flow into a slower and a faster component.
+    r"""Separate total direct flow into a slower and a faster component.
 
     Basic equations:
-       :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
+       :math:`QDGZ2 = \frac{(QDGZ - A2)^2}{QDGZ + A1 - A2}`
 
        :math:`QDGZ1 = QDGZ - QDGZ2`
 
     Examples:
 
-        We borrowed the formula for calculating the amount of the faster
-        component of direct flow from the well-known curve number approach.
-        Parameter |A2| would be the initial loss and parameter |A1| the
-        maximum storage, but one should not take this analogy too literally.
+        We borrowed the formula for calculating the amount of the faster component of
+        direct flow from the well-known curve number approach.  Parameter |A2| would be
+        the initial loss and parameter |A1| the maximum storage, but one should not
+        take this analogy too literally.
 
-        With the value of parameter |A1| set to zero, parameter |A2| defines
-        the maximum amount of "slow" direct runoff per time step:
+        With the value of parameter |A1| set to zero, parameter |A2| defines the
+        maximum amount of "slow" direct runoff per time step:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> a1(0.0)
 
-        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning
-        the selected simulation step size:
+        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning the
+        selected simulation step size:
 
         >>> a2(4.0)
         >>> a2
@@ -8541,16 +8842,14 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         >>> a2.value
         2.0
 
-        Define a test function and let it calculate |QDGZ1| and |QDGZ1| for
-        values of |QDGZ| ranging from -10 to 100 mm/12h:
+        Define a test function and let it calculate |QDGZ1| and |QDGZ1| for values of
+        |QDGZ| ranging from -10 to 100 mm/12h:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qdgz1_qdgz2_v1,
         ...                 last_example=6,
-        ...                 parseqs=(fluxes.qdgz,
-        ...                          states.qdgz1,
-        ...                          states.qdgz2))
+        ...                 parseqs=(fluxes.qdgz, fluxes.qdgz1, fluxes.qdgz2))
         >>> test.nexts.qdgz = -10.0, 0.0, 1.0, 2.0, 3.0, 100.0
         >>> test()
         | ex. |  qdgz | qdgz1 | qdgz2 |
@@ -8562,8 +8861,8 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         |   5 |   3.0 |   2.0 |   1.0 |
         |   6 | 100.0 |   2.0 |  98.0 |
 
-        Setting |A2| to zero and |A1| to 4 mm/d (or 2 mm/12h) results in
-        a smoother transition:
+        Setting |A2| to zero and |A1| to 4 mm/d (or 2 mm/12h) results in a smoother
+        transition:
 
         >>> a2(0.0)
         >>> a1(4.0)
@@ -8577,8 +8876,8 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         |   5 |   3.0 |      1.2 |       1.8 |
         |   6 | 100.0 | 1.960784 | 98.039216 |
 
-        Alternatively, one can mix these two configurations by setting
-        the values of both parameters to 2 mm/h:
+        Alternatively, one can mix these two configurations by setting the values of
+        both parameters to 2 mm/h:
 
         >>> a2(2.0)
         >>> a1(2.0)
@@ -8592,10 +8891,10 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         |   5 |   3.0 | 1.666667 | 1.333333 |
         |   6 | 100.0 |     1.99 |    98.01 |
 
-        Note the similarity of the results for very high values of total
-        direct flow |QDGZ| in all three examples, which converge to the sum
-        of the values of parameter |A1| and |A2|, representing the maximum
-        value of `slow` direct flow generation per simulation step
+        Note the similarity of the results for very high values of total direct flow
+        |QDGZ| in all three examples, which converge to the sum of the values of
+        parameter |A1| and |A2|, representing the maximum value of `slow` direct flow
+        generation per simulation step
     """
 
     CONTROLPARAMETERS = (
@@ -8604,184 +8903,93 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (lland_fluxes.QDGZ,)
     RESULTSEQUENCES = (
-        lland_states.QDGZ2,
-        lland_states.QDGZ1,
+        lland_fluxes.QDGZ2,
+        lland_fluxes.QDGZ1,
     )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
         if flu.qdgz > con.a2:
-            sta.qdgz2 = (flu.qdgz - con.a2) ** 2 / (flu.qdgz + con.a1 - con.a2)
-            sta.qdgz1 = flu.qdgz - sta.qdgz2
+            flu.qdgz2 = (flu.qdgz - con.a2) ** 2 / (flu.qdgz + con.a1 - con.a2)
+            flu.qdgz1 = flu.qdgz - flu.qdgz2
         else:
-            sta.qdgz2 = 0.0
-            sta.qdgz1 = flu.qdgz
+            flu.qdgz2 = 0.0
+            flu.qdgz1 = flu.qdgz
 
 
-class Calc_QBGA_V1(modeltools.Method):
-    """Perform the runoff concentration calculation for base flow.
-
-    The working equation is the analytical solution of the linear storage
-    equation under the assumption of constant change in inflow during
-    the simulation time step.
+class Return_SG_V1(modeltools.Method):
+    r"""Return the new storage value after applying the analytical solution for the
+    linear storage differential equation under the assumption of constant inflow.
 
     Basic equation:
-       :math:`QBGA_{neu} = QBGA_{alt} +
-       (QBGZ_{alt}-QBGA_{alt}) \\cdot (1-exp(-KB^{-1})) +
-       (QBGZ_{neu}-QBGZ_{alt}) \\cdot (1-KB\\cdot(1-exp(-KB^{-1})))`
+       :math:`k \cdot qz - (k \cdot qz - s) \cdot exp(-1 / k)`
 
     Examples:
 
-        A normal test case:
+        The first "normal" test relies on the given basic equation:
 
         >>> from hydpy.models.lland import *
-        >>> simulationstep("1d")
-        >>> parameterstep("1d")
-        >>> derived.kb(0.1)
-        >>> states.qbgz.old = 2.0
-        >>> states.qbgz.new = 4.0
-        >>> states.qbga.old = 3.0
-        >>> model.calc_qbga_v1()
-        >>> states.qbga
-        qbga(3.800054)
+        >>> parameterstep()
+        >>> from hydpy import round_
+        >>> round_(model.return_sg_v1(3.0, 1.0, 2.0, 1.0))
+        2.417343
 
-        First extreme test case (zero division is circumvented):
+        Zero concentration time does not result in zero division errors:
 
-        >>> derived.kb(0.0)
-        >>> model.calc_qbga_v1()
-        >>> states.qbga
-        qbga(4.0)
+        >>> round_(model.return_sg_v1(0.0, 1.0, 2.0, 1.0))
+        0.0
 
-        Second extreme test case (numerical overflow is circumvented):
+        Also, it is safe to apply infinite concentration time:
 
-        >>> derived.kb(1e500)
-        >>> model.calc_qbga_v1()
-        >>> states.qbga
-        qbga(5.0)
+        >>> round_(model.return_sg_v1(inf, 1.0, 2.0, 1.0))
+        3.0
     """
-
-    DERIVEDPARAMETERS = (lland_derived.KB,)
-    REQUIREDSEQUENCES = (lland_states.QBGZ,)
-    UPDATEDSEQUENCES = (lland_states.QBGA,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
-        old = model.sequences.states.fastaccess_old
-        new = model.sequences.states.fastaccess_new
-        if der.kb <= 0.0:
-            new.qbga = new.qbgz
-        elif der.kb > 1e200:
-            new.qbga = old.qbga + new.qbgz - old.qbgz
-        else:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.kb)
-            new.qbga = (
-                old.qbga
-                + (old.qbgz - old.qbga) * d_temp
-                + (new.qbgz - old.qbgz) * (1.0 - der.kb * d_temp)
-            )
+    def __call__(
+        model: modeltools.Model, k: float, s: float, qz: float, dt: float
+    ) -> float:
+        if k <= 0.0:
+            return 0.0
+        if modelutils.isinf(k):
+            return s + qz
+        return k * qz - (k * qz - s) * modelutils.exp(-dt / k)
 
 
-class Update_QDGZ_QBGZ_QBGA_V1(modeltools.Method):
-    r"""Redirect the inflow into the storage compartment for base flow into
-    the storage compartments for direct flow upon exceedance of the groundwater
-    aquifer's limited volume according to :cite:t:`ref-LARSIM`.
-
-    We gained the following equation for updating |QBGZ| by converting the
-    equation used by method |Calc_QBGA_V1|.
-
-    Note that applying method |Update_QDGZ_QBGZ_QBGA_V1| can result in some
-    oscillation both of |QBGZ| and |QDGZ|.  Due to the dampening effect
-    of the runoff concentration storages for direct runoff, this oscillation
-    should seldom be traced through to the resulting outflow values (|QDGA1|
-    and |QDGA2|).  However, for long simulation time steps and short runoff
-    concentration times, it is possible.  Fixing this issue would probably
-    require to solve the differential equation of the linear storage with
-    a different approach. See the results of the integration test
-    :ref:`lland_v1_acker_gw_vol` for an example.
+class Calc_QBGA_SBG_V1(modeltools.Method):
+    r"""Update the base flow storage and calculate its outflow.
 
     Basic equations:
-       :math:`QBGA_{neu}^{final} = min \left ( QBGAMax, QBGA_{neu}^{orig} \right )`
+       :math:`SBG = Return\_SG\_V1(KB, SBG, QBGZ)`
 
-       :math:`QBGZ_{neu}^{final} = QBGZ_{alt} +
-       \frac{QBGA_{neu}^{final} - QBGA_{alt} -
-       (QBGZ_{alt}-QBGA_{alt}) \cdot (1-exp(-KB^{-1})}
-       {1-KB \cdot (1-exp(-KB^{-1})}`
+       :math:`QBGA = SBG_{old} - SBG_{new} + QBGZ`
 
-       :math:`QDGZ^{final} = QDGZ^{orig} + QBGZ_{neu}^{orig} - QBGZ_{neu}^{final}`
+    Example:
 
-    Examples:
-
-        We modify the first example of the documentation on method |Calc_QBGA_V1| to
-        show that both equations are consistent.  The following setting is nearly
-        identical, except for a higher recent inflow (6 mm/d instead of 4 mm/d).
-        As a consequence, the recent outflow is also increased (5.6 mm/d instead of
-        3.8 mm/d):
+        Method |Calc_QBGA_SBG_V1| relies on the analytical solution of the linear
+        storage equation implemented by method |Return_SG_V1|, from which we take the
+        following test configuration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> derived.kb(0.1)
-        >>> fluxes.qdgz = 1.0
-        >>> states.qbgz.old = 2.0
-        >>> states.qbgz.new = 6.0
-        >>> states.qbga.old = 3.0
-        >>> states.qbga.new = 5.6000636
-
-        Now we set the highest allowed outflow (which is proportional to the maximum
-        storage capacity, see the documentation on parameter |QBGAMax|) to 3.8 mm/d
-        and apply method |Update_QDGZ_QBGZ_QBGA_V1|:
-
-        >>> derived.qbgamax(3.8000545)
-        >>> model.update_qdgz_qbgz_qbga_v1()
-
-        First, |Update_QDGZ_QBGZ_QBGA_V1| resets the recent outflow to the highest
-        value allowed:
-
-        >>> states.qbga
-        qbga(3.800054)
-
-        Second, it determines the recent inflow that results in the highest allowed
-        outflow:
-
-        >>> states.qbgz
-        qbgz(4.0)
-
-        Third, it adds the excess of groundwater recharge (2 mm/d) to the
-        to the already generated  direct discharge:
-
-        >>> fluxes.qdgz
-        qdgz(3.0)
-
-        The final example deals with the edge case of zero storage capacity.
-        Without any storage capacity, the aquifer can neither receive nor release
-        any water.  Here, method |Update_QDGZ_QBGZ_QBGA_V1| needs to reset the
-        recent inflow to a negative value to accomplish zero outflow, as the old
-        inflow and outflow values are not consistent with our modification of
-        parameter |QBGAMax|:
-
-        >>> derived.qbgamax(0.0)
-        >>> model.update_qdgz_qbgz_qbga_v1()
-        >>> states.qbga
-        qbga(0.0)
-        >>> states.qbgz
-        qbgz(-0.222261)
-        >>> fluxes.qdgz
-        qdgz(7.222261)
+        >>> derived.kb(3.0)
+        >>> states.sbg.old = 1.0
+        >>> fluxes.qbgz = 2.0
+        >>> model.calc_qbga_sbg_v1()
+        >>> states.sbg
+        sbg(2.417343)
+        >>> fluxes.qbga
+        qbga(0.582657)
     """
 
-    DERIVEDPARAMETERS = (
-        lland_derived.KB,
-        lland_derived.QBGAMax,
-    )
-    UPDATEDSEQUENCES = (
-        lland_fluxes.QDGZ,
-        lland_states.QBGA,
-        lland_states.QBGZ,
-    )
+    SUBMETHODS = (Return_SG_V1,)
+    DERIVEDPARAMETERS = (lland_derived.KB,)
+    REQUIREDSEQUENCES = (lland_fluxes.QBGZ,)
+    UPDATEDSEQUENCES = (lland_states.SBG,)
+    RESULTSEQUENCES = (lland_fluxes.QBGA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -8789,404 +8997,568 @@ class Update_QDGZ_QBGZ_QBGA_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        if new.qbga > der.qbgamax:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.kb)
-            d_qbgz_adj = old.qbgz + (
-                (der.qbgamax - old.qbga - (old.qbgz - old.qbga) * d_temp)
-                / (1.0 - der.kb * d_temp)
-            )
-            new.qbga = der.qbgamax
-            flu.qdgz += new.qbgz - d_qbgz_adj
-            new.qbgz = d_qbgz_adj
+        new.sbg = model.return_sg_v1(der.kb, old.sbg, flu.qbgz, 1.0)
+        flu.qbga = old.sbg - new.sbg + flu.qbgz
 
 
-class Update_QDGZ_QBGZ_QBGA_V2(modeltools.Method):
-    r"""Redirect (a portion of) the inflow into the storage compartment for base
-    flow into the storage compartments for direct flow due to the groundwater
-    table's too fast rise according to :cite:t:`ref-LARSIM`.
+class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
+    r"""Update the base flow storage and calculate its outflow, taking possible
+    "groundwater restrictions" into account.
 
-    In contrast to restricting an aquifer's volume (implemented by the method
-    |Update_QDGZ_QBGZ_QBGA_V1|), limiting the water table's increase seems a
-    litter counterintuitive.  However, we provide both kinds of restrictions
-    to fully capture the option "GS BASIS LIMITIERT" of the original LARSIM model.
+    .. _`issue 87`: https://github.com/hydpy-dev/hydpy/issues/87
 
-    The problem of oscillating time series for |QBGZ| and |QDGZ| discussed for method
-    |Update_QDGZ_QBGZ_QBGA_V1| also holds for method |Update_QDGZ_QBGZ_QBGA_V2|.
-    The smaller the "transition area" (the difference between |GSBGrad2| and
-    |GSBGrad1|, the larger the oscillations. See the results of the integration
-    test :ref:`lland_v1_acker_gw_rise` for an example.
+    Without active restrictions, method |Calc_QBGA_SBG_QBGZ_QDGZ_V1| works like
+    |Calc_QBGA_SBG_V1|.  There are two restrictions, one being volume- and the other
+    one rise-related.
 
-    Basic equations:
+    In the "volume-related" case, |Calc_QBGA_SBG_QBGZ_QDGZ_V1| redirects groundwater
+    recharge to the direct flow components as soon as the groundwater amount reaches
+    its limit (the available aquifer volume), defined by the parameters |VolBMax| and
+    |GSBMax|.
 
-       :math:`Grad = KB \cdot (QBGA_{neu}^{orig} - QBGA_{alt})`
+    The "rise-related" restriction redirects water in the same direction but reacts to
+    a too fast rise of the groundwater table instead of a too high groundwater amount.
+    It is a linear interpolation approach, with parameter |GSBGrad1| representing the
+    highest possible rise without any reduction of the groundwater inflow and
+    |GSBGrad2| representing the rise where groundwater recharge would become zero.
 
-       :math:`QBGZ_{neu}^{final} = QBGZ_{neu}^{orig} \cdot min \left( max \left(
-       \frac{Grad-GSBGrad1}{GSBGrad2 - GSBGrad1}, 0 \right), 1 \right)`
+    Conceptually, both restrictions follow :cite:t:`ref-LARSIM` but their
+    implementations differ in a way that may lead to relevant differences in the
+    results.
 
-       :math:`QBGA_{neu}^{final} = QBGA_{alt} +
-       (QBGZ_{alt}-QBGA_{alt}) \cdot (1-exp(-KB^{-1})) +
-       (QBGZ_{neu}^{final}-QBGZ_{alt}) \cdot (1-KB\cdot(1-exp(-KB^{-1})))`
+    The implementation of |Calc_QBGA_SBG_QBGZ_QDGZ_V1| is quite complex due to a huge
+    of edge cases requiring special handling.  See issue `issue 87`_ for a detailed
+    discussion of its development and the underlying math (there, you can also report
+    edge cases we might not handle well so far).  Here, we give only the basic
+    ordinary differential equation solved by |Calc_QBGA_SBG_QBGZ_QDGZ_V1|.
 
-       :math:`QDGZ^{final} = QDGZ^{orig} + QBGZ_{neu}^{orig} - QBGZ_{neu}^{final}`
+    Basic equation:
+      .. math::
+        SBG'(t) = \begin{cases}
+            0
+            &|\
+            SBG(t) = GSBMax \cdot VolBMax \ \land \  SBG'(t) > 0
+        \\[5pt]
+            QBGZ - \frac{SBG(t)}{KB}
+            &|\
+            (SBG(t) < GSBMax \cdot VolBMax \ \lor \ SBG'(t) \leq 0)
+            \ \land \ SBG'(t) \leq GSBGrad1
+        \\[5pt]
+            \frac{GSBGrad2-SBG'(t)}{GSBGrad2-GSBGrad1} \cdot QBGZ - \frac{SBG(t)}{KB}
+            &|\
+            (SBG(t) < GSBMax \cdot VolBMax \ \lor \ SBG'(t) \leq 0)
+            \ \land\  SBG'(t) > GSBGrad1
+        \end{cases}
 
-    Examples:
+        Examples:
 
-        We build our explanations on the first example of the documentation on
-        method |Calc_QBGA_V1|:
+            To give some context, we start our explanations based on method
+            |Calc_QBGA_SBG_V1|:
 
-        >>> from hydpy.models.lland import *
-        >>> simulationstep("1d")
-        >>> parameterstep("1d")
-        >>> derived.kb(0.1)
-        >>> fluxes.qdgz = 1.0
-        >>> states.qbgz.old = 2.0
-        >>> states.qbgz.new = 4.0
-        >>> states.qbga.old = 3.0
-        >>> model.calc_qbga_v1()
-        >>> states.qbga
-        qbga(3.800054)
+            >>> from hydpy.models.lland import *
+            >>> simulationstep("1d")
+            >>> parameterstep("1d")
+            >>> derived.kb(10.0)
+            >>> states.sbg.old = 5.0
+            >>> fluxes.qbgz = 2.0
+            >>> model.calc_qbga_sbg_v1()
+            >>> states.sbg
+            sbg(6.427439)
+            >>> fluxes.qbga
+            qbga(0.572561)
 
-        In this example, the old and the new outflow value of the groundwater
-        storage is 3.0 mm/d and 3.8 mm/d, respectively, which corresponds to a
-        storage increase of 0.08 mm/d:
+            The content of the storage for base flow (groundwater amount) increases
+            from 5 mm to about 6.43 mm.
 
-        >>> from hydpy import round_
-        >>> round_((states.qbga.new - states.qbga.old) * derived.kb)
-        0.080005
+            At the beginning of the interval, the increase of the content of the base
+            flow storage (groundwater rise) is 1.5 mm/d:
 
-        If we assign larger values to the threshold parameters |GSBGrad1| (0.1 mm/d)
-        and |GSBGrad2| (0.2 mm/d), method |Update_QDGZ_QBGZ_QBGA_V2| does not need
-        to change anything:
+            >>> from hydpy import round_
+            >>> round_(fluxes.qbgz - states.sbg.old / derived.kb)
+            1.5
 
-        >>> gsbgrad1(0.1)
-        >>> gsbgrad2(0.2)
-        >>> model.update_qdgz_qbgz_qbga_v2()
-        >>> states.qbga
-        qbga(3.800054)
-        >>> states.qbgz
-        qbgz(4.0)
-        >>> fluxes.qdgz
-        qdgz(1.0)
+            With increasing groundwater amount during the interval, base flow also
+            increases, dampening the groundwater rise.  Hence, it is only about 1.36 at
+            the end of the interval:
 
-        If we assign smaller values to both threshold parameters, method
-        |Update_QDGZ_QBGZ_QBGA_V2| redirects all groundwater inflow to direct
-        runoff and recalculates groundwater outflow accordingly:
+            >>> round_(fluxes.qbgz - states.sbg.new / derived.kb)
+            1.357256
 
-        >>> gsbgrad1(0.01)
-        >>> gsbgrad2(0.05)
-        >>> model.update_qdgz_qbgz_qbga_v2()
-        >>> states.qbga
-        qbga(0.200036)
-        >>> states.qbgz
-        qbgz(0.0)
-        >>> fluxes.qdgz
-        qdgz(5.0)
+            Capturing all branches of |Calc_QBGA_SBG_QBGZ_QDGZ_V1| requires extensive
+            testing.  Therefore, we define function `check`, which compares the given
+            analytical solution with a numerical approximation of the original ODE and
+            performs some balance-related tests (`sm` stands for the maximum
+            groundwater amount and `g1` and `g2` for |GSBGrad1| and |GSBGrad2|):
 
-        For an actual rise (we first reset it to 0.08 mm/d) between both threshold
-        values, method |Update_QDGZ_QBGZ_QBGA_V2| interpolates the fraction of
-        redirected groundwater inflow linearly:
+            >>> from numpy import exp
+            >>> from scipy.integrate import ode
+            >>> def check(sm, g1, g2):
+            ...     # update the parameters:
+            ...     volbmax(sm)
+            ...     gsbgrad1.value = g1
+            ...     gsbgrad2.value = g2
+            ...     # reset the fluxes (eventually changed by previous calls):
+            ...     fluxes.qbgz = 2.0
+            ...     fluxes.qdgz = 1.0
+            ...     # apply a numerical solver:
+            ...     integrator = ode(f_ode)
+            ...     _ = integrator.set_integrator("zvode", method="bdf", rtol=1e-10)
+            ...     _ = integrator.set_initial_value([min(states.sbg.old, sm), 0.0])
+            ...     sbg_est, qbga_est = integrator.integrate(1.0).real
+            ...     qbga_est += max(states.sbg.old - sm, 0.0)
+            ...     # calculate the analytical solution:
+            ...     model.calc_qbga_sbg_qbgz_qdgz_v1()
+            ...     # compare the analytical with the numerical solution:
+            ...     assert round(states.sbg.new, 6) == round(sbg_est, 6)
+            ...     assert round(fluxes.qbga, 6) == round(qbga_est, 6)
+            ...     # check water balances:
+            ...     assert states.sbg.new == states.sbg.old + fluxes.qbgz - fluxes.qbga
+            ...     assert 2.0 + 1.0 == fluxes.qbgz + fluxes.qdgz
+            ...     # print the resulting values of all modified sequences:
+            ...     print(states.sbg, fluxes.qbga, fluxes.qbgz, fluxes.qdgz, sep=", ")
 
-        >>> fluxes.qdgz = 1.0
-        >>> states.qbgz.new = 4.0
-        >>> model.calc_qbga_v1()
-        >>> gsbgrad1(0.01)
-        >>> gsbgrad2(0.1)
-        >>> model.update_qdgz_qbgz_qbga_v2()
-        >>> states.qbga
-        qbga(0.999822)
-        >>> states.qbgz
-        qbgz(0.888647)
-        >>> fluxes.qdgz
-        qdgz(4.111353)
+            Function `check` requires a function that implements the given ODE.  We
+            define function `f_ode` for this purpose, which needs lot of special
+            casing.  It returns the current groundwater change (inflow minus outflow)
+            and the outflow itself. Note that handling :math:`k = \infty` is highly ad
+            hoc and only thought to work for the following tests:
+
+            >>> def f_ode(t, x):
+            ...     k = derived.kb.value
+            ...     z = fluxes.qbgz.value
+            ...     sm = control.gsbmax.value * control.volbmax.value
+            ...     g1 = control.gsbgrad1.value
+            ...     g2 = control.gsbgrad2.value
+            ...     s = x[0]
+            ...     if s <= 0.0:
+            ...         ds = 0.0
+            ...     elif s >= sm:
+            ...         ds = 0.0
+            ...     elif k == 0.0:
+            ...         ds = -5e3
+            ...     elif z - s / k <= g1:
+            ...         ds = z - s / k
+            ...     elif g1 == g2:
+            ...         ds = g1
+            ...     elif numpy.isinf(k):
+            ...         ds = g2 / ((g2 - g1) / z + 1.0)
+            ...     else:
+            ...         ds = (g2 * (s - k * z) - g1 * s) / (k * (g1 - g2 - z))
+            ...     if s <= 0.0:
+            ...         return [[ds, 0.0]]
+            ...     elif k == 0.0:
+            ...         return [[ds, 7e3]]
+            ...     return [[ds, s / k]]
+
+            We start by demonstrating pure volume-related restrictions.  Therefore, we
+            set |GSBMax| to one so that values for `sm` correspond to the highest
+            possible groundwater amount:
+
+            >>> gsbmax(1.0)
+
+            If `sm` is higher than the final groundwater amount, applying
+            |Calc_QBGA_SBG_QBGZ_QDGZ_V1| leads to the same results as
+            |Calc_QBGA_SBG_V1|:
+
+            >>> check(sm=10.0, g1=1.5, g2=2.0)
+            sbg(6.427439), qbga(0.572561), qbgz(2.0), qdgz(1.0)
+
+            An active volume-related restriction decreases the groundwater inflow
+            (which reduces base flow) and increases the amount of direct runoff:
+
+            >>> check(sm=6.0, g1=1.5, g2=2.0)
+            sbg(6.0), qbga(0.5659), qbgz(1.5659), qdgz(1.4341)
+
+            Starting with an already activated volume-related restriction works as
+            expected:
+
+            >>> check(sm=5.0, g1=1.5, g2=2.0)
+            sbg(5.0), qbga(0.5), qbgz(0.5), qdgz(2.5)
+
+            |Calc_QBGA_SBG_QBGZ_QDGZ_V1| handles possible initial violations of
+            volume-related restrictions by adding the excess to base flow:
+
+            >>> check(sm=4.0, g1=1.5, g2=2.0)
+            sbg(4.0), qbga(1.4), qbgz(0.4), qdgz(2.6)
+
+            Setting |KB| to |numpy.inf| works (in case someone will ever need it):
+
+            >>> derived.kb(inf)
+            >>> check(sm=10.0, g1=inf, g2=inf)
+            sbg(7.0), qbga(0.0), qbgz(2.0), qdgz(1.0)
+            >>> check(sm=6.0, g1=inf, g2=inf)
+            sbg(6.0), qbga(0.0), qbgz(1.0), qdgz(2.0)
+            >>> check(sm=5.0, g1=inf, g2=inf)
+            sbg(5.0), qbga(0.0), qbgz(0.0), qdgz(3.0)
+            >>> check(sm=4.0, g1=inf, g2=inf)
+            sbg(4.0), qbga(1.0), qbgz(0.0), qdgz(3.0)
+
+            Next, we demonstrate pure rise-related restrictions.
+
+            If |GSBGrad1| (and subsequently |GSBGrad2|) is not smaller than the initial
+            groundwater rise, |Calc_QBGA_SBG_QBGZ_QDGZ_V1| calculates the same results
+            as |Calc_QBGA_SBG_V1|:
+
+            >>> derived.kb(10.0)
+            >>> check(sm=10.0, g1=1.5, g2=2.0)
+            sbg(6.427439), qbga(0.572561), qbgz(2.0), qdgz(1.0)
+            >>> check(sm=inf, g1=1.5, g2=2.0)
+            sbg(6.427439), qbga(0.572561), qbgz(2.0), qdgz(1.0)
+
+            The following examples deal with a situation where (only) |GSBGrad1| is
+            smaller than the groundwater rise at the interval's start and end time:
+
+            >>> check(sm=10.0, g1=1.0, g2=2.0)
+            sbg(6.147436), qbga(0.557691), qbgz(1.705127), qdgz(1.294873)
+            >>> check(sm=inf, g1=1.0, g2=2.0)
+            sbg(6.147436), qbga(0.557691), qbgz(1.705127), qdgz(1.294873)
+            >>> check(sm=5.0, g1=1.0, g2=2.0)
+            sbg(5.0), qbga(0.5), qbgz(0.5), qdgz(2.5)
+            >>> check(sm=4.0, g1=1.0, g2=2.0)
+            sbg(4.0), qbga(1.4), qbgz(0.4), qdgz(2.6)
+
+            Now, both |GSBGrad1| and |GSBGrad2| are smaller than the groundwater rise
+            at the interval's start and end time:
+
+            >>> check(sm=10.0, g1=0.5, g2=1.0)
+            sbg(5.693046), qbga(0.534768), qbgz(1.227814), qdgz(1.772186)
+            >>> check(sm=inf, g1=0.5, g2=1.0)
+            sbg(5.693046), qbga(0.534768), qbgz(1.227814), qdgz(1.772186)
+            >>> check(sm=5.0, g1=0.5, g2=1.0)
+            sbg(5.0), qbga(0.5), qbgz(0.5), qdgz(2.5)
+            >>> check(sm=4.0, g1=0.5, g2=1.0)
+            sbg(4.0), qbga(1.4), qbgz(0.4), qdgz(2.6)
+
+            It is acceptable to set |GSBGrad1| to zero:
+
+            >>> check(sm=10.0, g1=0.0, g2=1.0)
+            sbg(5.491758), qbga(0.524725), qbgz(1.016483), qdgz(1.983517)
+            >>> derived.kb(0.0)
+            >>> check(sm=10.0, g1=0.0, g2=0.0)
+            sbg(0.0), qbga(7.0), qbgz(2.0), qdgz(1.0)
+
+            The same holds for setting both |GSBGrad1| and |GSBGrad2| to zero:
+
+            >>> derived.kb(10.0)
+            >>> check(sm=10.0, g1=0.0, g2=0.0)
+            sbg(5.0), qbga(0.5), qbgz(0.5), qdgz(2.5)
+
+            Also, it is okay to set |GSBGrad1| and |GSBGrad2| to the same non-zero
+            value:
+
+            >>> check(sm=10.0, g1=1.0, g2=1.0)
+            sbg(6.0), qbga(0.55), qbgz(1.55), qdgz(1.45)
+            >>> check(sm=10.0, g1=1.4, g2=1.4)
+            sbg(6.39434), qbga(0.569946), qbgz(1.964286), qdgz(1.035714)
+
+            As for the volume-related case, one can apply rise-related restrictions
+            when the value of |KB| is |numpy.inf|:
+
+            >>> derived.kb(inf)
+            >>> check(sm=10.0, g1=0.0, g2=0.0)
+            sbg(5.0), qbga(0.0), qbgz(0.0), qdgz(3.0)
+            >>> check(sm=10.0, g1=1.0, g2=1.0)
+            sbg(6.0), qbga(0.0), qbgz(1.0), qdgz(2.0)
+            >>> check(sm=10.0, g1=0.0, g2=2.0)
+            sbg(6.0), qbga(0.0), qbgz(1.0), qdgz(2.0)
+            >>> check(sm=10.0, g1=1.0, g2=2.0)
+            sbg(6.333333), qbga(0.0), qbgz(1.333333), qdgz(1.666667)
+
+            Finally, we demonstrate combinations of volume- and rise-related
+            restrictions.
+
+            In the first combinational example, the rise-related restriction is active
+            right from the start.  After a while, the groundwater amount reaches its
+            highest possible value (5.8 mm).  From then on, the groundwater table is
+            not allowed to rise anymore, which deactivates the rise-related
+            restriction:
+
+            >>> derived.kb(10.0)
+            >>> check(sm=5.8, g1=1.4, g2=1.4)
+            sbg(5.8), qbga(0.557143), qbgz(1.357143), qdgz(1.642857)
+
+            The second combinational example is even more complex.  The groundwater
+            rise slows down until it does not exceed `g1` anymore.  Then, no
+            restriction is active anymore, and the evolution of |SGD| follows the
+            simple linear storage model.  However, this happens only for a short while
+            due to |SGD| reaching `sm` soon afterwards:
+
+            >>> check(sm=6.2, g1=1.4, g2=1.4)
+            sbg(6.2), qbga(0.568565), qbgz(1.768565), qdgz(1.231435)
     """
     CONTROLPARAMETERS = (
+        lland_control.VolBMax,
+        lland_control.GSBMax,
         lland_control.GSBGrad1,
         lland_control.GSBGrad2,
     )
     DERIVEDPARAMETERS = (lland_derived.KB,)
     UPDATEDSEQUENCES = (
+        lland_states.SBG,
         lland_fluxes.QDGZ,
-        lland_states.QBGA,
-        lland_states.QBGZ,
+        lland_fluxes.QBGZ,
     )
-    SUBMETHODS = (Calc_QBGA_V1,)
+    RESULTSEQUENCES = (lland_fluxes.QBGA,)
+    SUBMETHODS = (Calc_QBGA_SBG_V1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        # pylint: disable=too-many-branches
+        # (I know this method is much too complex but I do not see a good way to
+        # refactor it)
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        d_grad = der.kb * (new.qbga - old.qbga)
-        if d_grad > con.gsbgrad1:
-            if d_grad < con.gsbgrad2:
-                d_qbgz_exc = new.qbgz * (
-                    (d_grad - con.gsbgrad1) / (con.gsbgrad2 - con.gsbgrad1)
-                )
+        k: float = der.kb
+        sm: float = con.gsbmax * con.volbmax
+        g1: float = con.gsbgrad1
+        g2: float = con.gsbgrad2
+        s0: float = old.sbg
+        z: float = flu.qbgz
+        if s0 > sm:
+            excess: float = s0 - sm
+            s0 = sm
+        else:
+            excess = 0.0
+        if k == 0.0:
+            new.sbg = 0.0
+            flu.qbga = s0 + flu.qbgz
+        elif z - s0 / k <= g1:
+            if modelutils.isinf(k):
+                new.sbg = min(s0 + z, sm)
+                flu.qbga = 0.0
             else:
-                d_qbgz_exc = new.qbgz
-            flu.qdgz += d_qbgz_exc
-            new.qbgz -= d_qbgz_exc
-            model.calc_qbga_v1()
+                if modelutils.isinf(sm):
+                    t: float = 1.0
+                else:
+                    fraction: float = (k * z - sm) / (k * z - s0)
+                    if fraction > 0.0:
+                        t = -k * modelutils.log(fraction)
+                    else:
+                        t = 1.0
+                if t < 1.0:
+                    new.sbg = sm
+                    flu.qbga = s0 - sm + t * flu.qbgz
+                    flu.qbga += (1.0 - t) * sm / k
+                else:
+                    new.sbg = model.return_sg_v1(k, s0, z, 1.0)
+                    flu.qbga = s0 - new.sbg + flu.qbgz
+        elif g2 == 0.0:
+            flu.qbga = s0 / k
+            new.sbg = s0
+        else:
+            if modelutils.isinf(k) and (g2 > g1):
+                flu.qbga = 0.0
+                new.sbg = s0 + g2 / ((g2 - g1) / z + 1.0)
+            else:
+                st: float = min(k * (z - g1), sm)
+                if g1 == g2:
+                    t = min((st - s0) / g1, 1.0)
+                    flu.qbga = t * (g1 * t + 2.0 * s0) / (2.0 * k)
+                else:
+                    c1: float = (g2 - g1) / (g1 - g2 - z)
+                    c2: float = (g2 * k * z) / (g1 - g2)
+                    t = min(k / c1 * modelutils.log((st + c2) / (s0 + c2)), 1.0)
+                    flu.qbga = (s0 + c2) * (
+                        modelutils.exp(c1 * t / k) - 1.0
+                    ) / c1 - c2 * t / k
+                if t < 1.0:
+                    if st == sm:
+                        new.sbg = sm
+                        flu.qbga += (1.0 - t) * sm / k
+                    else:
+                        fraction = (k * z - sm) / (k * z - st)
+                        if fraction > 0.0:
+                            tt: float = -k * modelutils.log(fraction)
+                        else:
+                            tt = 1.0
+                        if t + tt < 1.0:
+                            new.sbg = sm
+                            flu.qbga += st - sm + tt * flu.qbgz
+                            flu.qbga += (1.0 - t - tt) * sm / k
+                        else:
+                            new.sbg = model.return_sg_v1(k, st, z, 1.0 - t)
+                            flu.qbga += st - new.sbg + (1.0 - t) * flu.qbgz
+                elif g1 == g2:
+                    new.sbg = s0 + g1
+                else:
+                    new.sbg = (s0 + c2) * modelutils.exp(1.0 / k * c1) - c2
+        qbgz: float = flu.qbgz
+        flu.qbgz = new.sbg - s0 + flu.qbga
+        flu.qdgz += qbgz - flu.qbgz
+        flu.qbga += excess
 
 
-class Calc_QIGA1_V1(modeltools.Method):
-    """Perform the runoff concentration calculation for the first
-    interflow component.
+class Calc_QIGA1_SIG1_V1(modeltools.Method):
+    r"""Update the storage of the first interflow component and calculate its outflow.
 
-    The working equation is the analytical solution of the linear storage
-    equation under the assumption of constant change in inflow during
-    the simulation time step.
+    Basic equations:
+       :math:`SIG1 = Return\_SG\_V1(KI1, SIG1, QIGZ1)`
 
-    Basic equation:
-       :math:`QIGA1_{neu} = QIGA1_{alt} +
-       (QIGZ1_{alt}-QIGA1_{alt}) \\cdot (1-exp(-KI1^{-1})) +
-       (QIGZ1_{neu}-QIGZ1_{alt}) \\cdot (1-KI1\\cdot(1-exp(-KI1^{-1})))`
+       :math:`QIGA1 = SIG1_{old} - SIG1_{new} + QIGZ1`
 
-    Examples:
+    Example:
 
-        A normal test case:
+        Method |Calc_QIGA1_SIG1_V1| relies on the analytical solution of the linear
+        storage equation implemented by method |Return_SG_V1|, from which we take the
+        following test configuration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> derived.ki1(0.1)
-        >>> states.qigz1.old = 2.0
-        >>> states.qigz1.new = 4.0
-        >>> states.qiga1.old = 3.0
-        >>> model.calc_qiga1_v1()
-        >>> states.qiga1
-        qiga1(3.800054)
-
-        First extreme test case (zero division is circumvented):
-
-        >>> derived.ki1(0.0)
-        >>> model.calc_qiga1_v1()
-        >>> states.qiga1
-        qiga1(4.0)
-
-        Second extreme test case (numerical overflow is circumvented):
-
-        >>> derived.ki1(1e500)
-        >>> model.calc_qiga1_v1()
-        >>> states.qiga1
-        qiga1(5.0)
+        >>> derived.ki1(3.0)
+        >>> states.sig1.old = 1.0
+        >>> fluxes.qigz1 = 2.0
+        >>> model.calc_qiga1_sig1_v1()
+        >>> states.sig1
+        sig1(2.417343)
+        >>> fluxes.qiga1
+        qiga1(0.582657)
     """
 
     DERIVEDPARAMETERS = (lland_derived.KI1,)
-    REQUIREDSEQUENCES = (lland_states.QIGZ1,)
-    UPDATEDSEQUENCES = (lland_states.QIGA1,)
+    REQUIREDSEQUENCES = (lland_fluxes.QIGZ1,)
+    UPDATEDSEQUENCES = (lland_states.SIG1,)
+    RESULTSEQUENCES = (lland_fluxes.QIGA1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        if der.ki1 <= 0.0:
-            new.qiga1 = new.qigz1
-        elif der.ki1 > 1e200:
-            new.qiga1 = old.qiga1 + new.qigz1 - old.qigz1
-        else:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.ki1)
-            new.qiga1 = (
-                old.qiga1
-                + (old.qigz1 - old.qiga1) * d_temp
-                + (new.qigz1 - old.qigz1) * (1.0 - der.ki1 * d_temp)
-            )
+        new.sig1 = model.return_sg_v1(der.ki1, old.sig1, flu.qigz1, 1.0)
+        flu.qiga1 = old.sig1 - new.sig1 + flu.qigz1
 
 
-class Calc_QIGA2_V1(modeltools.Method):
-    """Perform the runoff concentration calculation for the second
-    interflow component.
+class Calc_QIGA2_SIG2_V1(modeltools.Method):
+    r"""Update the storage of the second interflow component and calculate its outflow.
 
-    The working equation is the analytical solution of the linear storage
-    equation under the assumption of constant change in inflow during
-    the simulation time step.
+    Basic equations:
+       :math:`SIG2 = Return\_SG\_V2(KI2, SIG2, QIGZ2)`
 
-    Basic equation:
-       :math:`QIGA2_{neu} = QIGA2_{alt} +
-       (QIGZ2_{alt}-QIGA2_{alt}) \\cdot (1-exp(-KI2^{-1})) +
-       (QIGZ2_{neu}-QIGZ2_{alt}) \\cdot (1-KI2\\cdot(1-exp(-KI2^{-1})))`
+       :math:`QIGA2 = SIG2_{old} - SIG2_{new} + QIGZ2`
 
-    Examples:
+    Example:
 
-        A normal test case:
+        Method |Calc_QIGA2_SIG2_V1| relies on the analytical solution of the linear
+        storage equation implemented by method |Return_SG_V1|, from which we take the
+        following test configuration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> derived.ki2(0.1)
-        >>> states.qigz2.old = 2.0
-        >>> states.qigz2.new = 4.0
-        >>> states.qiga2.old = 3.0
-        >>> model.calc_qiga2_v1()
-        >>> states.qiga2
-        qiga2(3.800054)
-
-        First extreme test case (zero division is circumvented):
-
-        >>> derived.ki2(0.0)
-        >>> model.calc_qiga2_v1()
-        >>> states.qiga2
-        qiga2(4.0)
-
-        Second extreme test case (numerical overflow is circumvented):
-
-        >>> derived.ki2(1e500)
-        >>> model.calc_qiga2_v1()
-        >>> states.qiga2
-        qiga2(5.0)
+        >>> derived.ki2(3.0)
+        >>> states.sig2.old = 1.0
+        >>> fluxes.qigz2 = 2.0
+        >>> model.calc_qiga2_sig2_v1()
+        >>> states.sig2
+        sig2(2.417343)
+        >>> fluxes.qiga2
+        qiga2(0.582657)
     """
 
     DERIVEDPARAMETERS = (lland_derived.KI2,)
-    REQUIREDSEQUENCES = (lland_states.QIGZ2,)
-    UPDATEDSEQUENCES = (lland_states.QIGA2,)
+    REQUIREDSEQUENCES = (lland_fluxes.QIGZ2,)
+    UPDATEDSEQUENCES = (lland_states.SIG2,)
+    RESULTSEQUENCES = (lland_fluxes.QIGA2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        if der.ki2 <= 0.0:
-            new.qiga2 = new.qigz2
-        elif der.ki2 > 1e200:
-            new.qiga2 = old.qiga2 + new.qigz2 - old.qigz2
-        else:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.ki2)
-            new.qiga2 = (
-                old.qiga2
-                + (old.qigz2 - old.qiga2) * d_temp
-                + (new.qigz2 - old.qigz2) * (1.0 - der.ki2 * d_temp)
-            )
+        new.sig2 = model.return_sg_v1(der.ki2, old.sig2, flu.qigz2, 1.0)
+        flu.qiga2 = old.sig2 - new.sig2 + flu.qigz2
 
 
-class Calc_QDGA1_V1(modeltools.Method):
-    """Perform the runoff concentration calculation for "slow" direct runoff.
+class Calc_QDGA1_SDG1_V1(modeltools.Method):
+    r"""Update the storage of the slow direct runoff component and calculate its
+    outflow.
 
-    The working equation is the analytical solution of the linear storage
-    equation under the assumption of constant change in inflow during
-    the simulation time step.
+    Basic equations:
+       :math:`QBDA1 = Return\_SG\_V1(KD1, SDG1, QDGZ1)`
 
-    Basic equation:
-       :math:`QDGA1_{neu} = QDGA1_{alt} +
-       (QDGZ1_{alt}-QDGA1_{alt}) \\cdot (1-exp(-KD1^{-1})) +
-       (QDGZ1_{neu}-QDGZ1_{alt}) \\cdot (1-KD1\\cdot(1-exp(-KD1^{-1})))`
+       :math:`QDGA1 = SDG1_{old} - SDG1_{new} + QDGZ1`
 
-    Examples:
+    Example:
 
-        A normal test case:
+        Method |Calc_QDGA1_SDG1_V1| relies on the analytical solution of the linear
+        storage equation implemented by method |Return_SG_V1|, from which we take the
+        following test configuration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> derived.kd1(0.1)
-        >>> states.qdgz1.old = 2.0
-        >>> states.qdgz1.new = 4.0
-        >>> states.qdga1.old = 3.0
-        >>> model.calc_qdga1_v1()
-        >>> states.qdga1
-        qdga1(3.800054)
-
-        First extreme test case (zero division is circumvented):
-
-        >>> derived.kd1(0.0)
-        >>> model.calc_qdga1_v1()
-        >>> states.qdga1
-        qdga1(4.0)
-
-        Second extreme test case (numerical overflow is circumvented):
-
-        >>> derived.kd1(1e500)
-        >>> model.calc_qdga1_v1()
-        >>> states.qdga1
-        qdga1(5.0)
+        >>> derived.kd1(3.0)
+        >>> states.sdg1.old = 1.0
+        >>> fluxes.qdgz1 = 2.0
+        >>> model.calc_qdga1_sdg1_v1()
+        >>> states.sdg1
+        sdg1(2.417343)
+        >>> fluxes.qdga1
+        qdga1(0.582657)
     """
 
     DERIVEDPARAMETERS = (lland_derived.KD1,)
-    REQUIREDSEQUENCES = (lland_states.QDGZ1,)
-    UPDATEDSEQUENCES = (lland_states.QDGA1,)
+    REQUIREDSEQUENCES = (lland_fluxes.QDGZ1,)
+    UPDATEDSEQUENCES = (lland_states.SDG1,)
+    RESULTSEQUENCES = (lland_fluxes.QDGA1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        if der.kd1 <= 0.0:
-            new.qdga1 = new.qdgz1
-        elif der.kd1 > 1e200:
-            new.qdga1 = old.qdga1 + new.qdgz1 - old.qdgz1
-        else:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.kd1)
-            new.qdga1 = (
-                old.qdga1
-                + (old.qdgz1 - old.qdga1) * d_temp
-                + (new.qdgz1 - old.qdgz1) * (1.0 - der.kd1 * d_temp)
-            )
+        new.sdg1 = model.return_sg_v1(der.kd1, old.sdg1, flu.qdgz1, 1.0)
+        flu.qdga1 = old.sdg1 - new.sdg1 + flu.qdgz1
 
 
-class Calc_QDGA2_V1(modeltools.Method):
-    """Perform the runoff concentration calculation for "fast" direct runoff.
+class Calc_QDGA2_SDG2_V1(modeltools.Method):
+    r"""Update the storage of the fast direct runoff component and calculate its
+    outflow.
 
-    The working equation is the analytical solution of the linear storage
-    equation under the assumption of constant change in inflow during
-    the simulation time step.
+    Basic equations:
+       :math:`QBDA2 = Return\_SG\_V1(KD2, SDG2, QDGZ2)`
 
-    Basic equation:
-       :math:`QDGA2_{neu} = QDGA2_{alt} +
-       (QDGZ2_{alt}-QDGA2_{alt}) \\cdot (1-exp(-KD2^{-1})) +
-       (QDGZ2_{neu}-QDGZ2_{alt}) \\cdot (1-KD2\\cdot(1-exp(-KD2^{-1})))`
+       :math:`QDGA2 = SDG2_{old} - SDG2_{new} + QDGZ2`
 
-    Examples:
+    Example:
 
-        A normal test case:
+        Method |Calc_QDGA2_SDG2_V1| relies on the analytical solution of the linear
+        storage equation implemented by method |Return_SG_V1|, from which we take the
+        following test configuration:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
-        >>> derived.kd2(0.1)
-        >>> states.qdgz2.old = 2.0
-        >>> states.qdgz2.new = 4.0
-        >>> states.qdga2.old = 3.0
-        >>> model.calc_qdga2_v1()
-        >>> states.qdga2
-        qdga2(3.800054)
-
-        First extreme test case (zero division is circumvented):
-
-        >>> derived.kd2(0.0)
-        >>> model.calc_qdga2_v1()
-        >>> states.qdga2
-        qdga2(4.0)
-
-        Second extreme test case (numerical overflow is circumvented):
-
-        >>> derived.kd2(1e500)
-        >>> model.calc_qdga2_v1()
-        >>> states.qdga2
-        qdga2(5.0)
+        >>> derived.kd2(3.0)
+        >>> states.sdg2.old = 1.0
+        >>> fluxes.qdgz2 = 2.0
+        >>> model.calc_qdga2_sdg2_v1()
+        >>> states.sdg2
+        sdg2(2.417343)
+        >>> fluxes.qdga2
+        qdga2(0.582657)
     """
 
     DERIVEDPARAMETERS = (lland_derived.KD2,)
-    REQUIREDSEQUENCES = (lland_states.QDGZ2,)
-    UPDATEDSEQUENCES = (lland_states.QDGA2,)
+    REQUIREDSEQUENCES = (lland_fluxes.QDGZ2,)
+    UPDATEDSEQUENCES = (lland_states.SDG2,)
+    RESULTSEQUENCES = (lland_fluxes.QDGA2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        if der.kd2 <= 0.0:
-            new.qdga2 = new.qdgz2
-        elif der.kd2 > 1e200:
-            new.qdga2 = old.qdga2 + new.qdgz2 - old.qdgz2
-        else:
-            d_temp = 1.0 - modelutils.exp(-1.0 / der.kd2)
-            new.qdga2 = (
-                old.qdga2
-                + (old.qdgz2 - old.qdga2) * d_temp
-                + (new.qdgz2 - old.qdgz2) * (1.0 - der.kd2 * d_temp)
-            )
+        new.sdg2 = model.return_sg_v1(der.kd2, old.sdg2, flu.qdgz2, 1.0)
+        flu.qdga2 = old.sdg2 - new.sdg2 + flu.qdgz2
 
 
 class Calc_QAH_V1(modeltools.Method):
@@ -9196,18 +9568,16 @@ class Calc_QAH_V1(modeltools.Method):
        :math:`QAH = QZH + QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
 
-    In case there are water areas of type |WASSER|, their |NKor| values are
-    added and their |EvPo| values are subtracted from the "potential" runoff
-    value, if possible.  This can result in problematic modifications of
-    simulated runoff series. It seems advisable to use the water types
-    |FLUSS| and |SEE| instead.
+    In case there are water areas of type |WASSER|, their |NKor| values are added and
+    their |EvPo| values are subtracted from the "potential" runoff value, if possible.
+    This can result in problematic modifications of simulated runoff series. It seems
+    advisable to use the water types |FLUSS| and |SEE| instead.
 
     Examples:
 
-        When there are no water areas in the respective subbasin (we choose
-        arable land |ACKER| arbitrarily), the inflow (|QZH|) and the different
-        runoff components (|QBGA|, |QIGA1|, |QIGA2|, |QDGA1|, and |QDGA2|)
-        are simply summed up:
+        When there are no water areas in the respective subbasin (we choose arable land
+        |ACKER| arbitrarily), the inflow (|QZH|) and the different runoff components
+        (|QBGA|, |QIGA1|, |QIGA2|, |QDGA1|, and |QDGA2|) are simply summed up:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -9215,11 +9585,11 @@ class Calc_QAH_V1(modeltools.Method):
         >>> lnk(ACKER, ACKER, ACKER)
         >>> fhru(0.5, 0.2, 0.3)
         >>> negq(False)
-        >>> states.qbga = 0.1
-        >>> states.qiga1 = 0.2
-        >>> states.qiga2 = 0.3
-        >>> states.qdga1 = 0.4
-        >>> states.qdga2 = 0.5
+        >>> fluxes.qbga = 0.1
+        >>> fluxes.qiga1 = 0.2
+        >>> fluxes.qiga2 = 0.3
+        >>> fluxes.qdga1 = 0.4
+        >>> fluxes.qdga2 = 0.5
         >>> fluxes.qzh = 1.0
         >>> fluxes.nkor = 10.0
         >>> fluxes.evi = 4.0, 5.0, 3.0
@@ -9229,12 +9599,11 @@ class Calc_QAH_V1(modeltools.Method):
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
 
-        The defined values of interception evaporation do not show any
-        impact on the result of the given example, the predefined values
-        for sequence |EvI| remain unchanged.  But when we define the first
-        hydrological as a water area (|WASSER|), |Calc_QAH_V1| adds the
-        adjusted precipitaton (|NKor|) to and subtracts the interception
-        evaporation (|EvI|) from |lland_fluxes.QAH|:
+        The defined values of interception evaporation do not show any impact on the
+        result of the given example, the predefined values for sequence |EvI| remain
+        unchanged.  But when we define the first hydrological as a water area
+        (|WASSER|), |Calc_QAH_V1| adds the adjusted precipitaton (|NKor|) to and
+        subtracts the interception evaporation (|EvI|) from |lland_fluxes.QAH|:
 
         >>> control.lnk(WASSER, VERS, NADELW)
         >>> model.calc_qah_v1()
@@ -9243,15 +9612,14 @@ class Calc_QAH_V1(modeltools.Method):
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
 
-        Note that only 5 mm are added (instead of the |NKor| value 10 mm)
-        and that only 2 mm are substracted (instead of the |EvI| value 4 mm,
-        as the first response unit area only accounts for 50 % of the
-        total subbasin area.
+        Note that only 5 mm are added (instead of the |NKor| value 10 mm) and that only
+        2 mm are substracted (instead of the |EvI| value 4 mm, as the first response
+        unit area only accounts for 50 % of the total subbasin area.
 
-        Setting also the land use class of the second response unit to water
-        type |WASSER| and resetting |NKor| to zero would result in overdrying.
-        To avoid this, both actual water evaporation values stored in
-        sequence |EvI| are reduced by the same factor:
+        Setting also the land use class of the second response unit to water type
+        |WASSER| and resetting |NKor| to zero would result in overdrying.  To avoid
+        this, both actual water evaporation values stored in sequence |EvI| are reduced
+        by the same factor:
 
         >>> control.lnk(WASSER, WASSER, NADELW)
         >>> fluxes.nkor = 0.0
@@ -9261,19 +9629,18 @@ class Calc_QAH_V1(modeltools.Method):
         >>> fluxes.evi
         evi(3.333333, 4.166667, 3.0)
 
-        The handling of water areas of type |FLUSS| and |SEE| differs
-        from those of type |WASSER|, as these do receive their net input
-        before the runoff concentration routines are applied.  This
-        should be more realistic in most cases (especially for type |SEE|,
-        representing lakes not directly connected to the stream network).
-        But it could also, at least for very dry periods, result in negative
-        outflow values. We avoid this by setting |lland_fluxes.QAH|
-        to zero and adding the truncated negative outflow value to the |EvI|
-        value of all response units of type |FLUSS| and |SEE|:
+        The handling of water areas of type |FLUSS| and |SEE| differs from those of
+        type |WASSER|, as these do receive their net input before the runoff
+        concentration routines are applied.  This should be more realistic in most
+        cases (especially for type |SEE|, representing lakes not directly connected to
+        the stream network).  But it could also, at least for very dry periods, result
+        in negative outflow values. We avoid this by setting |lland_fluxes.QAH| to zero
+        and adding the truncated negative outflow value to the |EvI| value of all
+        response units of type |FLUSS| and |SEE|:
 
         >>> control.lnk(FLUSS, SEE, NADELW)
-        >>> states.qbga = -1.0
-        >>> states.qdga2 = -1.9
+        >>> fluxes.qbga = -1.0
+        >>> fluxes.qdga2 = -1.9
         >>> fluxes.evi = 4.0, 5.0, 3.0
         >>> model.calc_qah_v1()
         >>> fluxes.qah
@@ -9281,19 +9648,18 @@ class Calc_QAH_V1(modeltools.Method):
         >>> fluxes.evi
         evi(2.571429, 3.571429, 3.0)
 
-        This adjustment of |EvI| is only correct regarding the total
-        water balance.  Neither spatial nor temporal consistency of the
-        resulting |EvI| values are assured.  In the most extreme case,
-        even negative |EvI| values might occur.  This seems acceptable,
-        as long as the adjustment of |EvI| is rarely triggered.  When in
-        doubt about this, check sequences |EvPo| and |EvI| of all |FLUSS|
-        and |SEE| units for possible discrepancies.  Also note that
-        |lland_fluxes.QAH| might perform unnecessary corrections when you
-        combine water type |WASSER| with water type |SEE| or |FLUSS|.
+        This adjustment of |EvI| is only correct regarding the total water balance.
+        Neither spatial nor temporal consistency of the resulting |EvI| values are
+        assured.  In the most extreme case, even negative |EvI| values might occur.
+        This seems acceptable, as long as the adjustment of |EvI| is rarely triggered.
+        When in doubt about this, check sequences |EvPo| and |EvI| of all |FLUSS|
+        and |SEE| units for possible discrepancies.  Also note that |lland_fluxes.QAH|
+        might perform unnecessary corrections when you combine water type |WASSER| with
+        water type |SEE| or |FLUSS|.
 
-        For some model configurations, negative discharges for dry conditions
-        are acceptable or even preferable, which is possible through
-        setting parameter |NegQ| to |True|:
+        For some model configurations, negative discharges for dry conditions are
+        acceptable or even preferable, which is possible through setting parameter
+        |NegQ| to |True|:
 
         >>> negq(True)
         >>> fluxes.evi = 4.0, 5.0, 3.0
@@ -9311,11 +9677,11 @@ class Calc_QAH_V1(modeltools.Method):
         lland_control.FHRU,
     )
     REQUIREDSEQUENCES = (
-        lland_states.QBGA,
-        lland_states.QIGA1,
-        lland_states.QIGA2,
-        lland_states.QDGA1,
-        lland_states.QDGA2,
+        lland_fluxes.QBGA,
+        lland_fluxes.QIGA1,
+        lland_fluxes.QIGA2,
+        lland_fluxes.QDGA1,
+        lland_fluxes.QDGA2,
         lland_fluxes.NKor,
         lland_fluxes.QZH,
     )
@@ -9326,8 +9692,7 @@ class Calc_QAH_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        flu.qah = flu.qzh + sta.qbga + sta.qiga1 + sta.qiga2 + sta.qdga1 + sta.qdga2
+        flu.qah = flu.qzh + flu.qbga + flu.qiga1 + flu.qiga2 + flu.qdga1 + flu.qdga2
         if (not con.negq) and (flu.qah < 0.0):
             d_area = 0.0
             for k in range(con.nhru):
@@ -9447,6 +9812,9 @@ class Model(modeltools.AdHocModel):
         Return_ESnowInz_V1,
         Return_ESnow_V1,
         Return_TempSSurface_V1,
+        Return_SG_V1,
+        Calc_BoWa_Default_V1,
+        Calc_BoWa_SoilModel_V1,
     )
     RUN_METHODS = (
         Calc_QZH_V1,
@@ -9554,19 +9922,19 @@ class Model(modeltools.AdHocModel):
         Calc_QIGZ1_V1,
         Calc_QIGZ2_V1,
         Calc_QDGZ_V1,
-        Calc_QBGA_V1,
-        Update_QDGZ_QBGZ_QBGA_V1,
-        Update_QDGZ_QBGZ_QBGA_V2,
-        Calc_QIGA1_V1,
-        Calc_QIGA2_V1,
+        Calc_QBGA_SBG_V1,
+        Calc_QBGA_SBG_QBGZ_QDGZ_V1,
+        Calc_QIGA1_SIG1_V1,
+        Calc_QIGA2_SIG2_V1,
         Calc_QDGZ1_QDGZ2_V1,
-        Calc_QDGA1_V1,
-        Calc_QDGA2_V1,
+        Calc_QDGA1_SDG1_V1,
+        Calc_QDGA2_SDG2_V1,
         Calc_QAH_V1,
         Calc_QA_V1,
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
     SUBMODELS = (
         PegasusESnowInz,
         PegasusESnow,

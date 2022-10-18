@@ -709,8 +709,78 @@ class QKap(lland_sequences.Flux1DSequence):
 
 
 class QDGZ(sequencetools.FluxSequence):
-    """Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow
-    into both storage compartments for direct runoff) [mm/T]."""
+    """Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow to both
+    direct runoff storages) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QDGZ1(sequencetools.FluxSequence):
+    """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow to the slow direct
+    runoff storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QDGZ2(sequencetools.FluxSequence):
+    """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow to the fast
+    direct runoff storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QIGZ1(sequencetools.FluxSequence):
+    """ "Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow to the first
+    interflow storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QIGZ2(sequencetools.FluxSequence):
+    """Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow to the second
+    interflow storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QBGZ(sequencetools.FluxSequence):
+    """Zufluss in den Basisabfluss-Gebietsspeicher (inflow to the base flow storage)
+    [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QDGA1(sequencetools.FluxSequence):
+    """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from the slow
+    direct runoff storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QDGA2(sequencetools.FluxSequence):
+    """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow from the
+    fast direct runoff storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QIGA1(sequencetools.FluxSequence):
+    """Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher (outflow from the
+    first interflow storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QIGA2(sequencetools.FluxSequence):
+    """Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher (outflow from the
+    second interflow storage) [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QBGA(sequencetools.FluxSequence):
+    """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the base flow
+    storage) [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 

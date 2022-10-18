@@ -36,6 +36,7 @@ offers other strategies to decrease computation times.
 
    annutils
    configutils
+   interfaceutils
    interputils
    modelutils
    pointerutils

@@ -27,6 +27,7 @@ from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 
 class Folder2Path:
@@ -285,14 +286,14 @@ class FileManager:
         >>> TestIO.clear()
         >>> with TestIO():
         ...     os.makedirs("projectname/basename")
-        ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS
+        ...     repr_(filemanager.basepath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename'
 
         At first, the base directory is empty and asking for the current working
         directory results in the following error:
 
         >>> with TestIO():
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -321,7 +322,7 @@ been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     filemanager.currentdir = None
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -344,7 +345,7 @@ dir2).
         False
 
         |FileManager| subclasses can define a default directory name.  When many
-        directories exist and none is selected manually, the default directory is
+        directories exist, and none is selected manually, the default directory is
         selected automatically.  The following example shows an error message due to
         multiple directories without any having the default name:
 
@@ -352,7 +353,7 @@ dir2).
         ...     os.mkdir("projectname/basename/dir1")
         ...     filemanager.DEFAULTDIR = "dir3"
         ...     del filemanager.currentdir
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The current working directory of the FileManager object has not \
@@ -377,14 +378,14 @@ been defined manually and cannot be determined automatically: The default direct
         ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
 
-        Failed attempts in removing directories result in error messages like the
+        Failed attempts to remove directories result in error messages like the
         following one:
 
         >>> import shutil
         >>> from unittest.mock import patch
         >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
         ...     with TestIO():
-        ...         del filemanager.currentdir   # doctest: +ELLIPSIS
+        ...         del filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \
@@ -400,6 +401,17 @@ occurred: ...
         >>> with TestIO():
         ...     sorted(os.listdir("projectname/basename"))
         ['dir1', 'dir2', 'dir3', 'dir4']
+
+        Assign the folder's absolute path if you need to work outside the current
+        project directory (for example, to archive simulated data):
+
+        >>> with TestIO():  # doctest: +ELLIPSIS
+        ...     os.mkdir("differentproject")
+        ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
+        ...     repr_(filemanager.currentpath)
+        ...     os.listdir("differentproject")
+        '...hydpy/tests/iotesting/differentproject/dir1'
+        ['dir1']
         """
         currentdir = self._currentdir
         if currentdir is None:
@@ -464,7 +476,7 @@ occurred: ...
                 )
         self._currentdir = None
 
-    @propertytools.DefaultPropertyStr
+    @property
     def currentpath(self) -> str:
         """The absolute path of the current working directory.
 
@@ -553,8 +565,8 @@ occurred: ...
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
-        The directories existing under the base path are identical with the ones
-        returned by property |FileManager.availabledirs|:
+        The directories existing under the base path are identical to the ones returned
+        by property |FileManager.availabledirs|:
 
         >>> with TestIO():
         ...     sorted(os.listdir(basepath))
@@ -580,7 +592,7 @@ occurred: ...
         ...         sorted(zp.namelist())
         ['file1.txt', 'file2.txt']
 
-        The zip file is unpacked again, as soon as `folder` becomes the current working
+        The zip file is unpacked again as soon as `folder` becomes the current working
         directory:
 
         >>> with TestIO():
@@ -611,9 +623,9 @@ class NetworkManager(FileManager):
 
     The documentation of base class |FileManager| explains most aspects of using
     |NetworkManager| objects.  The following examples deal with the extended features
-    of class |NetworkManager|, which are reading, writing, and removing network files.
-    For this purpose, we prepare the example project `LahnH` in the `iotesting`
-    directory by calling function |prepare_full_example_1|:
+    of class |NetworkManager|: reading, writing, and removing network files.  For this
+    purpose, we prepare the example project `LahnH` in the `iotesting` directory by
+    calling function |prepare_full_example_1|:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -634,7 +646,7 @@ class NetworkManager(FileManager):
 
     Method |NetworkManager.load_files| takes file names as selection names (without
     file endings).  Additionally, it creates a "complete" selection, including the
-    whole set of |Node| and |Element| objects of the file specific selections:
+    whole set of |Node| and |Element| objects of the file-specific selections:
 
     >>> selections
     Selections("complete", "headwaters", "nonheadwaters", "streams")
@@ -820,7 +832,7 @@ class ControlManager(FileManager):
 
     Class |ControlManager| extends the functionalities of class |FileManager| only
     slightly, which is why the documentation on class |FileManager| should serve as a
-    good starting point for understanding class |ControlManager|.  Also see the
+    good starting point for understanding class |ControlManager|.  Also, see the
     documentation on method |HydPy.prepare_models| of class |HydPy|, which relies on
     the functionalities of class |ControlManager|.
     """
@@ -846,7 +858,7 @@ class ControlManager(FileManager):
         change this behaviour by passing `False` to the `clear_registry` argument,
         which might decrease model initialisation times significantly.  However, then
         it is your own responsibility to call the method |ControlManager.clear_registry|
-        when necessary (usually, before reloading a changed control file).
+        when necessary (usually before reloading a changed control file).
 
         One advantage of using method |ControlManager.load_file| directly is that it
         supports reading control files that are yet not correctly integrated into a
@@ -947,15 +959,13 @@ name or the responsible Element object.
 
     @classmethod
     def read2dict(cls, filename: str, info: Dict[str, Any]) -> None:
-        """Read the control parameters from the given path (and its
-        auxiliary paths, where appropriate) and store them in the given
-        |dict| object `info`.
+        """Read the control parameters from the given path (and its auxiliary paths,
+        where appropriate) and store them in the given |dict| object `info`.
 
-        Note that`info` can be used to feed information into the execution
-        of control files.  Use this method only if you are entirely sure
-        on how the control parameter import of *HydPy* works.  Otherwise,
-        you should most probably prefer to use the method
-        |ControlManager.load_file|.
+        Note that`info` can be used to feed information into the execution of control
+        files.  Use this method only if you are entirely sure of how the control
+        parameter import of *HydPy* works.  Otherwise, you should most probably prefer
+        to use the method |ControlManager.load_file|.
         """
         if not filename.endswith(".py"):
             filename += ".py"
@@ -1061,7 +1071,7 @@ class ConditionManager(FileManager):
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
     '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
 
-    The date based construction of directory names requires a |Timegrids| object
+    The date-based construction of directory names requires a |Timegrids| object
     available in module |pub|:
 
     >>> del pub.timegrids
@@ -1087,7 +1097,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     DEFAULTDIR = None
 
     @property
-    def inputpath(self) -> str:
+    def inputpath(self) -> str:  # type: ignore[return]
         """The directory path for loading initial conditions.
 
         See the main documentation on class |ConditionManager| for further information.
@@ -1095,9 +1105,8 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = "init_" + hydpy.pub.timegrids.sim.firstdate.to_string(
-                    "os"
-                )
+                to_string = hydpy.pub.timegrids.sim.firstdate.to_string
+                self.currentdir = f"init_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1108,17 +1117,16 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
             self._currentdir = currentdir
 
     @property
-    def outputpath(self) -> str:
-        """The directory path actual for saving (final) conditions.
+    def outputpath(self) -> str:  # type: ignore[return]
+        """The directory path for saving (final) conditions.
 
         See the main documentation on class |ConditionManager| for further information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
-                self.currentdir = "init_" + hydpy.pub.timegrids.sim.lastdate.to_string(
-                    "os"
-                )
+                to_string = hydpy.pub.timegrids.sim.lastdate.to_string
+                self.currentdir = f"init_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1279,8 +1287,8 @@ not allowed to overwrite the existing file `...`.
     Method |IOSequence.save_mean| is strongly related to method
     |IOSequence.average_series|, meaning one can pass the same arguments.  We show this
     by changing the land use classes of `element2` (parameter |lland_control.Lnk|) to
-    field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|), and averaging
-    the values of sequence |lland_fluxes.NKor| for the single area of type field only:
+    field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|) and averaging
+    the values of sequence |lland_fluxes.NKor| for the single field area only:
 
     >>> from hydpy.models.lland_v1 import ACKER, WASSER
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
@@ -1295,9 +1303,8 @@ not allowed to overwrite the existing file `...`.
     20.0
     22.0
 
-    Another option is to store data using |numpy| binary files, which is a good option
-    for saving computation times but possibly a problematic option for sharing data
-    with colleagues:
+    Another option is storing data using |numpy| binary files, which is good for saving
+    computation times but possibly problematic for sharing data with colleagues:
 
     >>> pub.sequencemanager.filetype = "npy"
     >>> with TestIO():
@@ -1384,11 +1391,9 @@ not allowed to overwrite the existing file `...`.
         """,
     )
 
-    _jitaccesshandler: Optional[netcdftools.JITAccessHandler]
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._jitaccesshandler = None
+    _netcdfreader: Optional[netcdftools.NetCDFInterface] = None
+    _netcdfwriter: Optional[netcdftools.NetCDFInterface] = None
+    _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
@@ -1408,7 +1413,7 @@ not allowed to overwrite the existing file `...`.
     @staticmethod
     def _load_npy(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, numpy.array]:
+    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
@@ -1416,12 +1421,14 @@ not allowed to overwrite the existing file `...`.
     @staticmethod
     def _load_asc(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, numpy.array]:
+    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
         filepath = sequence.filepath
         with open(filepath, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {"Timegrid": timetools.Timegrid})
-        values = numpy.loadtxt(filepath, skiprows=3, ndmin=min(sequence.NDIM + 1, 2))
+        values = numpy.loadtxt(  # type: ignore[call-overload]
+            filepath, skiprows=3, ndmin=min(sequence.NDIM + 1, 2)
+        )
         if sequence.NDIM == 2:
             values = values.reshape(*sequence.seriesshape)
         return timegrid_data, values
@@ -1432,7 +1439,7 @@ not allowed to overwrite the existing file `...`.
     def save_file(
         self,
         sequence: sequencetools.IOSequence,
-        array: Optional[numpy.ndarray] = None,
+        array: Optional[sequencetools.InfoArray] = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
         |IOSequence| into a data file."""
@@ -1443,8 +1450,8 @@ not allowed to overwrite the existing file `...`.
                 self._save_nc(sequence, array)
             else:
                 filepath = sequence.filepath
-                if (array is not None) and (array.info["type"] != "unmodified"):
-                    filepath = f"{filepath[:-4]}_{array.info['type']}{filepath[-4:]}"
+                if (array is not None) and (array.aggregation != "unmodified"):
+                    filepath = f"{filepath[:-4]}_{array.aggregation}{filepath[-4:]}"
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
                         f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
@@ -1461,11 +1468,11 @@ not allowed to overwrite the existing file `...`.
             )
 
     @staticmethod
-    def _save_npy(array: numpy.ndarray, filepath: str) -> None:
+    def _save_npy(array: NDArrayFloat, filepath: str) -> None:
         numpy.save(filepath, hydpy.pub.timegrids.init.array2series(array))
 
     @staticmethod
-    def _save_asc(array: numpy.ndarray, filepath: str) -> None:
+    def _save_asc(array: NDArrayFloat, filepath: str) -> None:
         with open(filepath, "w", encoding=config.ENCODING) as file_:
             file_.write(
                 hydpy.pub.timegrids.init.assignrepr(
@@ -1479,7 +1486,7 @@ not allowed to overwrite the existing file `...`.
             numpy.savetxt(file_, array, delimiter="\t")
 
     def _save_nc(
-        self, sequence: sequencetools.IOSequence, array: numpy.ndarray
+        self, sequence: sequencetools.IOSequence, array: sequencetools.InfoArray
     ) -> None:
         self.netcdfwriter.log(sequence, array)
 
@@ -1509,23 +1516,31 @@ reader object.
         RuntimeError: The sequence file manager does currently handle no NetCDF \
 reader object.
         """
-        netcdfreader = vars(self).get("netcdfreader")
-        if netcdfreader is None:
+        if self._netcdfreader is None:
             raise RuntimeError(
                 "The sequence file manager does currently handle no NetCDF reader "
                 "object."
             )
-        return netcdfreader
+        return self._netcdfreader
 
     def open_netcdfreader(self) -> None:
         """Prepare a new |NetCDFInterface| object for reading data."""
-        vars(self)["netcdfreader"] = netcdftools.NetCDFInterface()
+        self._netcdfreader = netcdftools.NetCDFInterface()
 
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterface| object and delete it
         afterwards."""
         self.netcdfreader.read()
-        del vars(self)["netcdfreader"]
+        self._netcdfreader = None
+
+    @contextlib.contextmanager
+    def netcdfreading(self) -> Iterator[None]:
+        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
+        of a with-block and read the data and delete the object at the end of the same
+        with-block."""
+        self.open_netcdfreader()
+        yield
+        self.close_netcdfreader()
 
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterface:
@@ -1553,23 +1568,31 @@ currently handle no NetCDF writer object.
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
 currently handle no NetCDF writer object.
         """
-        netcdfwriter = vars(self).get("netcdfwriter")
-        if netcdfwriter is None:
+        if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
                 "The sequence file manager does currently handle no NetCDF writer "
                 "object."
             )
-        return netcdfwriter
+        return self._netcdfwriter
 
     def open_netcdfwriter(self) -> None:
         """Prepare a new |NetCDFInterface| object for writing data."""
-        vars(self)["netcdfwriter"] = netcdftools.NetCDFInterface()
+        self._netcdfwriter = netcdftools.NetCDFInterface()
 
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterface| object and delete it
         afterwards."""
         self.netcdfwriter.write()
-        del vars(self)["netcdfwriter"]
+        self._netcdfwriter = None
+
+    @contextlib.contextmanager
+    def netcdfwriting(self) -> Iterator[None]:
+        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
+        of a with-block and write the data and delete the object at the end of the same
+        with-block."""
+        self.open_netcdfwriter()
+        yield
+        self.close_netcdfwriter()
 
     @contextlib.contextmanager
     def provide_netcdfjitaccess(

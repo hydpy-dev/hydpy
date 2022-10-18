@@ -7,8 +7,10 @@ cf-conventions.html>`_.
 
 .. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
 
-Usually, we apply the features implemented in this module only indirectly in three
-steps:
+Usually, we apply the features implemented in this module only indirectly by using
+the context managers |SequenceManager.netcdfreading| and
+|SequenceManager.netcdfwriting|.  However, here we try to be a little more explicit by
+using their underlying methods.  Therefore, we need to follow three steps:
 
   1. Call either method |SequenceManager.open_netcdfreader| or method
      |SequenceManager.open_netcdfwriter| of the |SequenceManager| object available in
@@ -74,10 +76,9 @@ the relevant hydrological response units):
 >>> writer.lland_v1_flux_nkor.subdevicenames
 ('element1_0', 'element2_0', 'element2_1')
 
-(6) In the example discussed here, all sequences are stored within the same folder
-(`default`).  Storing sequences in separate folders goes hand in hand with storing them
-in separate NetCDF files, of course.  In such cases, you have to include the folder
-into the attribute name:
+(6) In the example discussed here, all sequences belong to the same folder (`default`).
+Storing sequences in separate folders goes hand in hand with storing them in separate
+NetCDF files.  In such cases, you must include the folder in the attribute name:
 
 >>> writer.foldernames
 ('default',)
@@ -96,8 +97,8 @@ Traceback (most recent call last):
 hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does currently \
 handle no NetCDF writer object.
 
-(8) We set the time series values of two test sequences to zero, which serves the
-purpose of demonstrating that reading the data back in actually works:
+(8) We set the time series values of two test sequences to zero to demonstrate that
+reading the data back in actually works:
 
 >>> nodes.node2.sequences.sim.series = 0.0
 >>> elements.element2.model.sequences.fluxes.nkor.series = 0.0
@@ -148,9 +149,9 @@ array([[60.],
 ...         array(ncfile["flux_nkor"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
-Besides the testing related specialities, the described workflow is more or less
+Besides the testing-related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
-documentation of the other features implemented in module |netcdftools| but also in the
+documentation of the other features implemented in module |netcdftools| but also the
 documentation on class |SequenceManager| of module |filetools| and class |IOSequence|
 of module |sequencetools|.
 
@@ -194,7 +195,7 @@ dimmapping = {
     "nmb_subdevices": "stations",
     "nmb_characters": "char_leng_name",
 }
-"""Dimension related terms within NetCDF files.
+"""Dimension-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
 the value of the keyword "nmb_subdevices" if you prefer to call this dimension 
@@ -205,7 +206,7 @@ the value of the keyword "nmb_subdevices" if you prefer to call this dimension
 """
 
 varmapping = {"timepoints": "time", "subdevices": "station_id"}
-"""Variable related terms within NetCDF files.
+"""Variable-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
 the value of the keyword "timepoints" if you prefer to call this variable "period" 
@@ -228,50 +229,63 @@ You can set another |float| value before writing a NetCDF file:
 NetCDFVariable = Union["NetCDFVariableFlat", "NetCDFVariableAgg"]
 
 
-def str2chars(strings: Sequence[str]) -> NDArrayFloat:
+def str2chars(strings: Sequence[str]) -> NDMatrixBytes:
     """Return a |numpy.ndarray| object containing the byte characters (second axis) of
     all given strings (first axis).
 
     >>> from hydpy.core.netcdftools import str2chars
-    >>> str2chars(["zeros", "ones"])
-    array([[b'z', b'e', b'r', b'o', b's'],
-           [b'o', b'n', b'e', b's', b'']], dtype='|S1')
+    >>> str2chars(['street', 'St.', 'Straße', 'Str.'])
+    array([[b's', b't', b'r', b'e', b'e', b't', b''],
+           [b'S', b't', b'.', b'', b'', b'', b''],
+           [b'S', b't', b'r', b'a', b'\xc3', b'\x9f', b'e'],
+           [b'S', b't', b'r', b'.', b'', b'', b'']], dtype='|S1')
 
     >>> str2chars([])
     array([], shape=(0, 0), dtype='|S1')
     """
-    maxlen = 0
-    for name in strings:
-        maxlen = max(maxlen, len(name))
-    chars = numpy.full((len(strings), maxlen), b"", dtype="|S1")
-    for idx, name in enumerate(strings):
-        for jdx, char in enumerate(name):
-            chars[idx, jdx] = char.encode("utf-8")
+    if len(strings) == 0:
+        return numpy.full((0, 0), b"", dtype="|S1")
+    bytess = tuple(string.encode("utf-8") for string in strings)
+    max_length = max(len(bytes_) for bytes_ in bytess)
+    chars = numpy.full((len(strings), max_length), b"", dtype="|S1")
+    for idx, bytes_ in enumerate(bytess):
+        for jdx, int_ in enumerate(bytes_):
+            chars[idx, jdx] = bytes([int_])
     return chars
 
 
-def chars2str(chars: Sequence[Sequence[bytes]]) -> List[str]:
-    """Inversion function of |str2chars|.
+def chars2str(chars: NDMatrixBytes) -> List[str]:
+    r"""Inversion function of |str2chars|.
 
     >>> from hydpy.core.netcdftools import chars2str
 
-    >>> chars2str([[b"z", b"e", b"r", b"o", b"s"],
-    ...            [b"o", b"n", b"e", b"s", b""]])
-    ['zeros', 'ones']
+    >>> chars2str([[b"s", b"t", b"r", b"e", b"e", b"t", b""],
+    ...            [b"S", b"t", b".", b"", b"", b"", b""],
+    ...            [b"S", b"t", b"r", b"a", b"\xc3", b"\x9f", b"e"],
+    ...            [b"S", b"t", b"r", b".", b"", b"", b""]])
+    ['street', 'St.', 'Straße', 'Str.']
 
     >>> chars2str([])
     []
+
+    >>> chars2str([[b"s", b"t", b"r", b"e", b"e", b"t"],
+    ...            [b"S", b"t", b".", b"", b"", b""],
+    ...            [b"S", b"t", b"r", b"a", b"\xc3", b"e"],
+    ...            [b"S", b"t", b"r", b".", b"", b""]])
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot decode `b'Stra\xc3e'` (not UTF-8 compliant).
     """
-    strings: Deque[str] = collections.deque()
+    strings = []
     for subchars in chars:
-        substrings: Deque[str] = collections.deque()
-        for char in subchars:
-            if char:
-                substrings.append(char.decode("utf-8"))
-            else:
-                substrings.append("")
-        strings.append("".join(substrings))
-    return list(strings)
+        try:
+            bytes_ = b"".join(subchars)
+            strings.append(bytes_.decode("utf-8"))
+        except UnicodeDecodeError:
+            raise ValueError(
+                f"Cannot decode `{bytes_!r}` (not UTF-8 compliant)."
+            ) from None
+    return strings
 
 
 def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
@@ -947,7 +961,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     def log(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray] = None,
     ) -> NetCDFVariable:
         """Prepare a |NetCDFVariableBase| object suitable for the given |IOSequence|
@@ -974,7 +988,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     def _query_filename(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray],
     ) -> str:
         if isinstance(sequence, sequencetools.ModelSequence):
@@ -991,10 +1005,8 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     def _query_aggregation(
         infoarray: Optional[sequencetools.InfoArray],
     ) -> Optional[str]:
-        if infoarray is not None:
-            aggregation = infoarray.info["type"]
-            if aggregation != "unmodified":
-                return aggregation
+        if (infoarray is not None) and (infoarray.aggregation != "unmodified"):
+            return infoarray.aggregation
         return None
 
     def read(self) -> None:
@@ -1012,7 +1024,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     @staticmethod
     def _yield_disksequences(
         deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
-    ) -> Iterator[sequencetools.IOSequence[Any, Any]]:
+    ) -> Iterator[sequencetools.IOSequence]:
         for device in deviceorder:
             if isinstance(device, devicetools.Node):
                 for sequence in device.sequences:
@@ -1175,14 +1187,13 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
 `...hland_v1_flux_pc.nc` available.
 
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
-        with an ordinary NetCDF writer object via |SequenceManager.open_netcdfwriter|:
+        with an ordinary NetCDF writer object via |SequenceManager.netcdfwriting|:
 
         >>> with TestIO(), pub.sequencemanager.filetype("nc"):
         ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
         ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
-        ...     pub.sequencemanager.open_netcdfwriter()
-        ...     hp.save_fluxseries()
-        ...     pub.sequencemanager.close_netcdfwriter()
+        ...     with pub.sequencemanager.netcdfwriting():
+        ...         hp.save_fluxseries()
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
         ...     hp.simulate()
@@ -1304,10 +1315,10 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         variable2ncfile: Dict[NetCDFVariableFlat, netcdf4.Dataset] = {}
         variable2infos: Dict[NetCDFVariableFlat, List[JITAccessInfo]] = {}
         variable2sequences: DefaultDict[
-            NetCDFVariableFlat, List[sequencetools.IOSequence[Any, Any]]
+            NetCDFVariableFlat, List[sequencetools.IOSequence]
         ] = collections.defaultdict(lambda: [])
 
-        try:
+        try:  # pylint: disable=too-many-nested-blocks
             # collect the relevant sequences:
             log = self.log
             for sequence in self._yield_disksequences(deviceorder):
@@ -1331,9 +1342,11 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                 tg_init = hydpy.pub.timegrids.init
                 tg_sim = hydpy.pub.timegrids.sim
                 for variable, readmode in variable2readmode.items():
-                    if not os.path.exists(variable.filepath) and (
-                        not readmode or not hydpy.pub.options.checkseries
-                    ):
+                    if not os.path.exists(variable.filepath):
+                        if readmode and hydpy.pub.options.checkseries:
+                            raise FileNotFoundError(
+                                f"No file `{variable.filepath}` available for reading."
+                            )
                         variable.write()
                     ncfile = netcdf4.Dataset(variable.filepath, "r+")
                     variable2ncfile[variable] = ncfile
@@ -1486,7 +1499,7 @@ class NetCDFVariableBase(abc.ABC):
     """Name of the NetCDF variable within the NetCDF file."""
     filepath: str
     """Path to the relevant NetCDF file."""
-    _descr2sequence: Dict[str, sequencetools.IOSequence[Any, Any]]
+    _descr2sequence: Dict[str, sequencetools.IOSequence]
     _descr2array: Dict[str, Optional[sequencetools.InfoArray]]
 
     def __init__(self, name: str, filepath: str) -> None:
@@ -1497,7 +1510,7 @@ class NetCDFVariableBase(abc.ABC):
 
     def log(
         self,
-        sequence: sequencetools.IOSequence[Any, Any],
+        sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray],
     ) -> None:
         """Log the given |IOSequence| object either for reading or writing data.
@@ -1556,7 +1569,7 @@ named `element2`.
         >>> from hydpy import make_abc_testable, TestIO
         >>> from hydpy.core.netcdftools import netcdf4
         >>> Var = make_abc_testable(NetCDFVariableBase)
-        >>> Var.subdevicenames = "element1", "element_2"
+        >>> Var.subdevicenames = "element1", "element_2", "element_ß"
 
         The first dimension of the added variable corresponds to the number of
         (sub)devices, and the second dimension to the number of characters of the
@@ -1569,9 +1582,9 @@ named `element2`.
         >>> ncfile["station_id"].dimensions
         ('stations', 'char_leng_name')
         >>> ncfile["station_id"].shape
-        (2, 9)
-        >>> chars2str(ncfile["station_id"][:])
-        ['element1', 'element_2']
+        (3, 10)
+        >>> chars2str(ncfile["station_id"][:].data)
+        ['element1', 'element_2', 'element_ß']
         >>> ncfile.close()
         """
         nmb_subdevices = dimmapping["nmb_subdevices"]
@@ -1627,7 +1640,7 @@ variable `flux_prec`.
                 f"variable named `{tests[0]}` nor `{tests[1]}` for defining the "
                 f"coordinate locations of variable `{self.name}`."
             )
-        return chars2str(chars)
+        return chars2str(chars.data)
 
     def query_subdevice2index(self, ncfile: netcdf4.Dataset) -> Subdevice2Index:
         """Return a |Subdevice2Index| object that maps the (sub)device names to their
@@ -2117,9 +2130,9 @@ NetCDF file `nied.nc` available.
         ('element1', 'element2', 'element3')
 
         For 1-dimensional sequences like |lland_fluxes.NKor|, a suffix defines the
-        index of the respective subdevice.  The third column of
-        |NetCDFVariableAgg.array|, for example, contains the series of the first
-        hydrological response unit of the second element:
+        index of the respective subdevice.  For example, the third column of
+        |NetCDFVariableAgg.array| contains the series of the first hydrological
+        response unit of the second element:
 
         >>> ncvar = NetCDFVariableFlat("flux_nkor", "filename.nc")
         >>> for element in elements:

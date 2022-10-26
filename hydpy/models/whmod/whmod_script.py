@@ -42,30 +42,20 @@ The last argument defines the output-mode. When True the progess of the simulati
 printed in the terminal.
 """
 
+import datetime
 import os
 import warnings
-import datetime
 from typing import *
-import pandas as pd
-import numpy as np
+
+import numpy
+import pandas
 
 import hydpy
-from hydpy.core.objecttools import value2bool
+from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.exe import commandtools
 from hydpy.models import whmod_pet
-from hydpy import FusedVariable
-from hydpy.inputs import (
-    evap_ClearSkySolarRadiation,
-    evap_GlobalRadiation,
-    whmod_ET0,
-    whmod_Niederschlag,
-    whmod_Temp_TM,
-)
-from hydpy.outputs import (
-    evap_ReferenceEvapotranspiration,
-    meteo_ClearSkySolarRadiation,
-    meteo_GlobalRadiation,
-)
+from hydpy import inputs, outputs
 
 write = commandtools.print_textandtime
 
@@ -80,7 +70,7 @@ class Position(NamedTuple):
     col: int
 
 
-def _collect_hrus(table: pd.DataFrame, idx_: int) -> Dict[str, Dict[str, float]]:
+def _collect_hrus(table: pandas.DataFrame, idx_: int) -> Dict[str, Dict[str, float]]:
     """Collect the hrus of the respective raster-cell. Returns Dictionary."""
     result: Dict[str, Dict] = {}
     hrus = table[table["id"] == idx_]
@@ -143,7 +133,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     Mean GWN [mm/a]: 39.05889624326555
     Mean verz. GWN [mm/a]: 37.17119700488022
     """
-    write_output = value2bool("x", write_output)
+    write_output = objecttools.value2bool("x", write_output)
     if write_output == True:
         write("Start WHMOD calculations")
         hydpy.pub.options.printprogress = True
@@ -171,7 +161,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
         "NODATA_VALUE": float,
     }
 
-    WHMod_Main = pd.read_csv(
+    WHMod_Main = pandas.read_csv(
         os.path.join(BASEDIR, "WHMod_Main.txt"),
         sep="\t",
         comment="#",
@@ -232,7 +222,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
         "init_gwn": float,
     }
 
-    df_knoteneigenschaften = pd.read_csv(
+    df_knoteneigenschaften = pandas.read_csv(
         os.path.join(BASEDIR, FILENAME_NODE_DATA),
         skiprows=[1],
         sep=";",
@@ -240,7 +230,9 @@ def run_whmod(basedir: str, write_output: str) -> None:
     )
     df_knoteneigenschaften = df_knoteneigenschaften.astype(dtype_knoteneigenschaften)
 
-    df_stammdaten = pd.read_csv(os.path.join(BASEDIR, FILENAME_STATION_DATA), sep="\t")
+    df_stammdaten = pandas.read_csv(
+        os.path.join(BASEDIR, FILENAME_STATION_DATA), sep="\t"
+    )
     df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
         lambda a: a.split("_")[1].split(".")[0]
     )
@@ -412,15 +404,15 @@ def _initialize_whmod_models(
         name = f"{str(row).zfill(3)}_{str(col).zfill(3)}"
 
         # Initialize Precipitation Nodes
-        precnode = hydpy.Node(f"P_{name}", variable=whmod_Niederschlag)
+        precnode = hydpy.Node(f"P_{name}", variable=inputs.whmod_Niederschlag)
         precselection_raster.nodes.add_device(precnode)
 
         # Initialize Temperature Nodes
-        tempnode = hydpy.Node(f"T_{name}", variable=whmod_Temp_TM)
+        tempnode = hydpy.Node(f"T_{name}", variable=inputs.whmod_Temp_TM)
         tempselection_raster.nodes.add_device(tempnode)
 
         # Initialize Evap Nodes
-        evapnode = hydpy.Node(f"E_{name}", variable=whmod_ET0)
+        evapnode = hydpy.Node(f"E_{name}", variable=inputs.whmod_ET0)
         evapselection_raster.nodes.add_device(evapnode)
 
         # Initialize WHMod-Elements
@@ -593,10 +585,12 @@ def _initialize_weather_stations(
     """
     # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
     # Fused Variables
-    CSSR = FusedVariable(
-        "CSSR", meteo_ClearSkySolarRadiation, evap_ClearSkySolarRadiation
+    CSSR = devicetools.FusedVariable(
+        "CSSR", outputs.meteo_ClearSkySolarRadiation, inputs.evap_ClearSkySolarRadiation
     )
-    GSR = FusedVariable("GSR", meteo_GlobalRadiation, evap_GlobalRadiation)
+    GSR = devicetools.FusedVariable(
+        "GSR", outputs.meteo_GlobalRadiation, inputs.evap_GlobalRadiation
+    )
     # Iteration over Weather Stations
     for stat in df_stammdaten["StationsNr"].unique():
         # Stationsdaten einladen
@@ -635,7 +629,9 @@ def _initialize_weather_stations(
         CSSRselection_stat.nodes.add_device(CSSR_Node)
         GSRselection_stat.nodes.add_device(GSR_Node)
 
-        evap_node = hydpy.Node(f"E_{stat}", variable=evap_ReferenceEvapotranspiration)
+        evap_node = hydpy.Node(
+            f"E_{stat}", variable=outputs.evap_ReferenceEvapotranspiration
+        )
         evap_node.lat = lat
         evap_node.long = long
         evap_node.rechts = float(rechts)
@@ -843,7 +839,7 @@ def _save_results(
         write(f"Write Output in {OUTPUTDIR}")
 
     if "sum_txt" in OUTPUTMODE:
-        grid_akt = np.full((nrow, ncol), -9999.0, dtype=float)
+        grid_akt = numpy.full((nrow, ncol), -9999.0, dtype=float)
 
         for sequence, value in hp.loggers["logger_akt"].sequence2mean.items():
             _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
@@ -866,7 +862,7 @@ def _save_results(
             for values in grid_akt:
                 gridfile.write(" ".join(conv(value) for value in values) + "\n")
 
-        grid_verz = np.full((nrow, ncol), -9999.0, dtype=float)
+        grid_verz = numpy.full((nrow, ncol), -9999.0, dtype=float)
 
         for sequence, value in hp.loggers["logger_verz"].sequence2mean.items():
             _, row, col = sequence.subseqs.seqs.model.element.name.split("_")

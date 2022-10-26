@@ -119,17 +119,10 @@ def run_whmod(basedir: str, write_output: str) -> None:
     the results, which is implemented in the function _save_results(), which is also
     called by the main function run_whmod().
 
-    >>> import subprocess
-    >>> import sys
-    >>> import os
-    >>> from hydpy import run_subprocess
-    >>> from hydpy.exe import hyd
-    >>> from hydpy import repr_
-    >>> from hydpy import data
-
-    >>> whmod_data_path = os.path.join(os.path.dirname(data.__file__), "WHMod")
-    >>> command = f"{sys.executable} {hyd.__file__} run_whmod {whmod_data_path} False"
-    >>> result = run_subprocess(command)
+    >>> from hydpy import run_subprocess, TestIO
+    >>> TestIO.clear()
+    >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
     Mean GWN [mm/a]: 39.05889624326555
     Mean verz. GWN [mm/a]: 37.17119700488022
     """

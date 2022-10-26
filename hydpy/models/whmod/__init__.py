@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+"""WHMod."""
 # import..
 # ...from HydPy
 from hydpy.exe.modelimports import *

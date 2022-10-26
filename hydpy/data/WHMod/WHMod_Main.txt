@@ -1,6 +1,6 @@
 # WHMod Hydpy-Version
 PERSON_IN_CHARGE	Max Mustermann
-HYDPY_VERSION	5.0a0
+HYDPY_VERSION	6.0a0
 OUTPUTDIR	Results
 OUTPUTMODE	rch, txt, sum_txt # Mehrfachangabe möglich getrennt durch Komma; Alternativ aber noch nicht implementiert: netcdf, ganglinien
 FILENAME_NODE_DATA	Node_Data.csv

@@ -25,6 +25,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 import numpy
 
 # ...from HydPy
+import hydpy
 from hydpy import data
 from hydpy import docs
 from hydpy.docs import autofigs

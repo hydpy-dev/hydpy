@@ -6,6 +6,7 @@ very likely that their interfaces will change significantly in the future.
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 from typing import *
 from typing import TextIO
 
@@ -14,7 +15,7 @@ from hydpy.core import timetools
 import hydpy
 
 if TYPE_CHECKING:
-    from hydpy.core.sequencetools import Sequence
+    from hydpy.core import sequencetools
 
 
 class BaseLogger:
@@ -41,7 +42,7 @@ class Logger(BaseLogger):
     """Logger for sums of a single period."""
 
     counter: int
-    sequence2sum: Dict["Sequence", float]
+    sequence2sum: Dict[sequencetools.Sequence_, float]
 
     def __init__(
         self,
@@ -52,7 +53,7 @@ class Logger(BaseLogger):
         self.counter = 0
         self.sequence2sum = {}
 
-    def add_sequence(self, sequence: "Sequence") -> None:
+    def add_sequence(self, sequence: sequencetools.Sequence_) -> None:
         """Add a |Sequence| object to the current |Logger| object."""
         self.sequence2sum[sequence] = 0.0
 
@@ -64,7 +65,7 @@ class Logger(BaseLogger):
                 self.sequence2sum[sequence] += sequence.value
 
     @property
-    def sequence2mean(self) -> Dict["Sequence", float]:
+    def sequence2mean(self) -> Dict[sequencetools.Sequence_, float]:
         """Dictionary containing the logged mean values instead of the
         original logged sums."""
         return {seq: sum_ / self.counter for seq, sum_ in self.sequence2sum.items()}
@@ -74,7 +75,7 @@ class MonthLogger(BaseLogger):
     """Logger for monthly sums."""
 
     month2counter: Dict[str, int]
-    month2sequence2sum: Dict[str, Dict["Sequence", float]]
+    month2sequence2sum: Dict[str, Dict[sequencetools.Sequence_, float]]
 
     def __init__(
         self,
@@ -100,7 +101,7 @@ class MonthLogger(BaseLogger):
         """Convert a |Date| object to a "year-month" string."""
         return f'{date.year}-{str(date.month).rjust(2, "0")}'
 
-    def add_sequence(self, sequence: "Sequence") -> None:
+    def add_sequence(self, sequence: sequencetools.Sequence_) -> None:
         """Add a |Sequence| object to the current |Logger| object."""
         for sequence2sum in self.month2sequence2sum.values():
             sequence2sum[sequence] = 0.0
@@ -115,7 +116,7 @@ class MonthLogger(BaseLogger):
                 sequence2sum[sequence] += sequence.value
 
     @property
-    def month2sequence2mean(self) -> Dict[str, Dict["Sequence", float]]:
+    def month2sequence2mean(self) -> Dict[str, Dict[sequencetools.Sequence_, float]]:
         """Nested dictionary containing the logged mean values instead of
         the original logged sums."""
         month2sequence2mean = {}
@@ -126,16 +127,16 @@ class MonthLogger(BaseLogger):
 
     @staticmethod
     def _apply_factor(
-        sequence2value: Dict["Sequence", float],
+        sequence2value: Dict[sequencetools.Sequence_, float],
         factor: float,
-    ) -> Dict["Sequence", float]:
+    ) -> Dict[sequencetools.Sequence_, float]:
         return {seq: factor * sum_ for seq, sum_ in sequence2value.items()}
 
     def apply_factor(
         self,
-        month2sequence2value: Dict[str, Dict["Sequence", float]],
+        month2sequence2value: Dict[str, Dict[sequencetools.Sequence_, float]],
         factor: float,
-    ) -> Dict[str, Dict["Sequence", float]]:
+    ) -> Dict[str, Dict[sequencetools.Sequence_, float]]:
         """Remove?"""
         month2sequence2newvalue = {}
         for month, sequence2value in month2sequence2value.items():
@@ -145,7 +146,7 @@ class MonthLogger(BaseLogger):
     @staticmethod
     def write_seriesfile(
         seriesfile: TextIO,
-        month2sequence2value: Dict[str, Dict["Sequence", float]],
+        month2sequence2value: Dict[str, Dict[sequencetools.Sequence_ , float]],
     ) -> None:
         """Write the averaged values of the given nested dictionary to the
         given file.

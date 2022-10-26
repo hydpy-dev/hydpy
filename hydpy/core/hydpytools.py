@@ -31,8 +31,8 @@ from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
-    from hydpy.core.logtools import Logger
-    from hydpy.core.sequencetools import Sequence
+    from hydpy.core import logtools
+    from hydpy.models.whmod import whmod_model
 
 
 ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, NDArrayFloat]]]]
@@ -687,7 +687,15 @@ is not requested to make any time-series data available.
     """
 
     deviceorder: List[Union[devicetools.Node, devicetools.Element]]
-    loggers: Dict[str, Logger]
+    loggers: Dict[
+        str,
+        Union[
+            logtools.Logger,
+            logtools.MonthLogger,
+            whmod_model.WHModLogger,
+            whmod_model.WHModMonthLogger,
+        ],
+    ]
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]

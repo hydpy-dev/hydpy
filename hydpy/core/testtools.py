@@ -25,7 +25,7 @@ from typing_extensions import Literal  # type: ignore[misc]
 import numpy
 
 # ...from HydPy
-import hydpy
+from hydpy import data
 from hydpy import docs
 from hydpy.docs import autofigs
 from hydpy.core import devicetools
@@ -1203,17 +1203,17 @@ for further information.
 class TestIO:
     """Prepare an environment for testing IO functionalities.
 
-    Primarily, |TestIO| changes the current working during the
-    execution of with| blocks.  Inspecting your current working
-    directory, |os| will likely find no file called `testfile.txt`:
+    Primarily, |TestIO| changes the current working during the execution of `with`
+    blocks.  Inspecting your current working directory, |os| will likely find no file
+    called `testfile.txt`:
 
     >>> import os
     >>> os.path.exists("testfile.txt")
     False
 
-    If some tests require writing such a file, this should be done
-    within HydPy's `iotesting` folder in subpackage `tests`, which
-    is achieved by applying the `with` statement on |TestIO|:
+    If some tests require writing such a file, this should be done within HydPy's
+    `iotesting` folder in subpackage `tests`, which is achieved by applying the `with`
+    statement on |TestIO|:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
@@ -1232,9 +1232,9 @@ class TestIO:
     ...     print(os.path.exists("testfile.txt"))
     True
 
-    Optionally, files and folders created within the current `with` block
-    can be removed automatically by setting `clear_own` to |True|
-    (modified files and folders are not affected):
+    Optionally, files and folders created within the current `with` block can be
+    removed automatically by setting `clear_own` to |True| (modified files and folders
+    are not affected):
 
     >>> with TestIO(clear_own=True):
     ...     open("testfile.txt", "w").close()
@@ -1247,8 +1247,8 @@ class TestIO:
     ...           os.path.exists("testfolder"))
     True False
 
-    Alternatively, all files and folders contained in folder `iotesting`
-    can be removed after leaving the `with` block:
+    Alternatively, all files and folders contained in folder `iotesting` can be removed
+    after leaving the `with` block:
 
     >>> with TestIO(clear_all=True):
     ...     os.makedirs("testfolder")
@@ -1260,8 +1260,7 @@ class TestIO:
     ...           os.path.exists("testfolder"))
     False False
 
-    For just clearing the `iofolder`, one can call method |TestIO.clear|
-    alternatively:
+    For just clearing the `iofolder`, one can call method |TestIO.clear| alternatively:
 
     >>> with TestIO():
     ...     open("testfile.txt", "w").close()
@@ -1272,10 +1271,14 @@ class TestIO:
     ...     print(os.path.exists("testfile.txt"))
     False
 
-    Note that class |TestIO| copies all eventually generated `.coverage`
-    files into the `test` subpackage to assure no covered lines are
-    reported as uncovered.
+    Note that class |TestIO| copies all eventually generated `.coverage` files into the
+    `test` subpackage to ensure  no covered lines are reported as uncovered.
     """
+
+    dirpath_data: ClassVar[str] = os.path.abspath(data.__path__[0])
+    """Absolute path to the example data directory."""
+    dirpath_iotesting: ClassVar[str] = os.path.abspath(iotesting.__path__[0])
+    """Absolute path to the temporary IO testing directory."""
 
     def __init__(
         self,
@@ -1287,10 +1290,9 @@ class TestIO:
         self._path = None
         self._olds = None
 
-    def __enter__(self) -> "TestIO":
+    def __enter__(self) -> TestIO:
         self._path = os.getcwd()
-        iotestingpath: str = iotesting.__path__[0]
-        os.chdir(os.path.join(iotestingpath))
+        os.chdir(os.path.join(self.dirpath_iotesting))
         if self._clear_own:
             self._olds = sorted(os.listdir("."))
         return self
@@ -1317,6 +1319,16 @@ class TestIO:
         """Remove all files from the `iotesting` folder."""
         with cls(clear_all=True):
             pass
+
+    @classmethod
+    def copy_dir_from_data_to_iotesting(cls, dirname: str) -> str:
+        """Copy the given directory (defined by its plain name) from the `data` to the
+        `iotesting` subpackage and return its absolute path within the `iotesting`
+        subpackage."""
+        dirpath_source = os.path.join(cls.dirpath_data, dirname)
+        dirpath_target = os.path.join(cls.dirpath_iotesting, dirname)
+        shutil.copytree(dirpath_source, dirpath_target)
+        return dirpath_target
 
 
 def make_abc_testable(abstract: Type) -> Type:

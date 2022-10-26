@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long
 """
-WHMod is a deterministic groundwater recharge model and accounts for all main water fluxes in the water cycle. It is similar to the
-model GWN-BW, which is widely used in Baden-Württemberg.
+WHMod is a deterministic groundwater recharge model and accounts for all main water
+fluxes in the water cycle. It is similar to the model GWN-BW, which is widely used in
+Baden-Württemberg.
 
-This module transforms regular WHMod Input data and implements and runs the HydPy-Version of WHMod (whmod_pet).
-The model is controlled by the the WHMod_Main.txt in which all variables and paths are defined. Furthermore timeseries
-data of the weather stations has to be prepared, as well as the Node_Data.csv and the Station_Data.txt.
-Node_Data.csv contains rasterized information about the location, land-use, field capacity, depth to groundwater,
-baseflow-index and initial conditions of each cell.
-Station_Data.txt links the timeseries data to the respective weather station, including information about the location,
-precipitation correction and the name of the timeseries.
+This module transforms regular WHMod Input data and implements and runs the
+HydPy-Version of WHMod (whmod_pet).  The model is controlled by the WHMod_Main.txt in
+which all variables and paths are defined. Furthermore timeseries data of the weather
+stations has to be prepared, as well as the Node_Data.csv and the Station_Data.txt.
+Node_Data.csv contains rasterized information about the location, land-use, field
+capacity, depth to groundwater, baseflow-index and initial conditions of each cell.
+Station_Data.txt links the timeseries data to the respective weather station, including
+information about the location, precipitation correction and the name of the
+timeseries.
 
 The following example shows the structure of WHMod_Main.txt:
 
@@ -18,7 +20,8 @@ The following example shows the structure of WHMod_Main.txt:
 PERSON_IN_CHARGE	Max Mustermann
 HYDPY_VERSION	5.0a0
 OUTPUTDIR	Results
-OUTPUTMODE	rch, txt, sum_txt # Mehrfachangabe möglich getrennt durch Komma; Alternativ aber noch nicht implementiert: netcdf, ganglinien
+OUTPUTMODE	rch, txt, sum_txt # Mehrfachangabe möglich getrennt durch Komma; ...
+# ...Alternativ aber noch nicht implementiert: netcdf, ganglinien
 FILENAME_NODE_DATA	Node_Data.csv
 FILENAME_TIMESERIES	Timeseries
 FILENAME_STATION_DATA	Station_Data.txt
@@ -32,10 +35,11 @@ EVAPORATION_MODE	FAO # noch nicht implementiert
 CELLSIZE	100
 NODATA_VALUE	-9999.0
 
-Paths are given relative to the base directory, which has to be defined when starting the simulation.
-The model can be run with the following command in the terminal:
+Paths are given relative to the base directory, which has to be defined when starting
+the simulation.  The model can be run with the following command in the terminal:
 {sys.executable} {hyd.__file__} run_whmod {path_to_whmod_base_directory} True
-The last argument defines the output-mode. When True the progess of the simulation is printed in the terminal.
+The last argument defines the output-mode. When True the progess of the simulation is
+printed in the terminal.
 """
 
 import os
@@ -67,8 +71,7 @@ write = commandtools.print_textandtime
 
 
 class Position(NamedTuple):
-    """
-    The row and column of a `WHMod` grid cell.
+    """The row and column of a `WHMod` grid cell.
 
     Counting starts with 1.
     """
@@ -78,9 +81,7 @@ class Position(NamedTuple):
 
 
 def _collect_hrus(table: pd.DataFrame, idx_: int) -> Dict[str, Dict[str, float]]:
-    """
-    Collect the hrus of the respective raster-cell. Returns Dictionary.
-    """
+    """Collect the hrus of the respective raster-cell. Returns Dictionary."""
     result: Dict[str, Dict] = {}
     hrus = table[table["id"] == idx_]
     for i in range(len(hrus)):
@@ -91,9 +92,7 @@ def _collect_hrus(table: pd.DataFrame, idx_: int) -> Dict[str, Dict[str, float]]
 
 
 def _return_con_hru(hrus: Dict, con: str) -> List:
-    """
-    Returns a list of the condition (con) of a hru.
-    """
+    """Returns a list of the condition (con) of a hru."""
     temp_list: List = []
     for hru in hrus:
         temp_list.append(hrus[hru][con])
@@ -103,29 +102,32 @@ def _return_con_hru(hrus: Dict, con: str) -> List:
 def _init_gwn_to_zwischenspeicher(
     init_gwn: float, time_of_concentration: float
 ) -> float:
-    """
-    Calculates an estimate value for zwischenspeicher based on the expected initial groundwater recharge
-    """
+    """Calculate an estimate value for zwischenspeicher based on the expected initial
+    groundwater recharge."""
     init_gwn = init_gwn / 365.25  # mm/a to mm/d
     init_storage = init_gwn * time_of_concentration
     return init_storage
 
 
 def run_whmod(basedir: str, write_output: str) -> None:
-    """
-    Run_whmod takes the WHMod input data and prepares an instance of the model. After the initialization the simulation can be run.
-    Apart from WHMod_Main.txt, Node_Data.csv, Station_Data.txt and a folder with the time series are required.
+    """Run_whmod takes the WHMod input data and prepares an instance of the model.
+    After the initialization the simulation can be run.  Apart from WHMod_Main.txt,
+    Node_Data.csv, Station_Data.txt and a folder with the time series are required.
 
     How it works:
-    In a first step, the rasterized whmod-elements are prepared based on the information provided in Node_Data.csv. After the initialization
-    of the whmod-elements, the station data is provided to the meteorologic and evaporation-elements. All elements are conncected through
-    respective nodes. The data from the weather station is interpolated to the raster cells by the conv-models and ultimately provided to the
-    whmod-elements.
+    In a first step, the rasterized whmod-elements are prepared based on the
+    information provided in Node_Data.csv. After the initialization of the
+    whmod-elements, the station data is provided to the meteorologic and
+    evaporation-elements. All elements are conncected through respective nodes. The
+    data from the weather station is interpolated to the raster cells by the
+    conv-models and ultimately provided to the whmod-elements.
 
-    The initialization of the whmod-elements (_initialize_whmod_models()), the weather station data (_initialize_weather_stations())
-    and the interpolation models (_initialize_conv_models()) are implemented in separate functions, which are called by the main function run_whmod().
-    The final step of the simulation is the saving of the results, which is implemented in the function _save_results(),
-    which is also called by the main function run_whmod().
+    The initialization of the whmod-elements (_initialize_whmod_models()), the weather
+    station data (_initialize_weather_stations()) and the interpolation models
+    (_initialize_conv_models()) are implemented in separate functions, which are called
+    by the main function run_whmod(). The final step of the simulation is the saving of
+    the results, which is implemented in the function _save_results(), which is also
+    called by the main function run_whmod().
 
     >>> import subprocess
     >>> import sys
@@ -184,7 +186,8 @@ def run_whmod(basedir: str, write_output: str) -> None:
     # check Hydpy-Version
     if HYDPY_VERSION != hydpy.__version__:
         warnings.warn(
-            f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the Hydpy-Version ({HYDPY_VERSION}) defined in WHMod_Main.txt"
+            f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the "
+            f"Hydpy-Version ({HYDPY_VERSION}) defined in WHMod_Main.txt"
         )
 
     OUTPUTDIR = os.path.join(BASEDIR, WHMod_Main["OUTPUTDIR"][1].strip())
@@ -316,7 +319,8 @@ def run_whmod(basedir: str, write_output: str) -> None:
     for element in hp.elements:
         element.model.parameters.update()
 
-    # define two loggers, one for the actual groundwater recharge, one for the delayed groundwater recharge (verz)
+    # define two loggers, one for the actual groundwater recharge, one for the delayed
+    # groundwater recharge (verz)
     hp.loggers["logger_akt"] = hydpy.core.logtools.Logger(
         SIMULATION_START, SIMULATION_END
     )
@@ -386,10 +390,11 @@ def _initialize_whmod_models(
     WITH_CAPPILARY_RISE,
     DEGREE_DAY_FACTOR,
 ):
-    """
-    In this function, the whmod-elements are initialized based on the data provided in Node_Data.csv.
-    The arguments of this function are HydPy-selections, which contain the respective nodes and elements.
-    Furthermore information about cappilary rise (WITH_CAPPILARY_RISE) and the degree day factor (DEGREE_DAY_FACTOR) have to be provided.
+    """In this function, the whmod-elements are initialized based on the data provided
+    in Node_Data.csv.  The arguments of this function are HydPy-selections, which
+    contain the respective nodes and elements. Furthermore information about cappilary
+    rise (WITH_CAPPILARY_RISE) and the degree day factor (DEGREE_DAY_FACTOR) have to be
+    provided.
     """
     # Initialize WHMod-Models
     if write_output == True:
@@ -469,57 +474,19 @@ def _initialize_whmod_models(
                 temp_list.append(whmod_pet.WASSER)
 
         con.nutz_nr(temp_list)
-
+        # fmt: off
         con.maxinterz(
             gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
             laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2, 2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
             mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
             nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-            sommerweizen=[
-                0.08,
-                0.08,
-                0.06,
-                0.14,
-                0.6,
-                1.04,
-                0.92,
-                0.62,
-                0.26,
-                0.04,
-                0.0,
-                0.0,
-            ],
-            winterweizen=[
-                0.08,
-                0.08,
-                0.06,
-                0.14,
-                0.6,
-                1.04,
-                0.92,
-                0.62,
-                0.26,
-                0.04,
-                0.0,
-                0.0,
-            ],
-            zuckerrueben=[
-                0.08,
-                0.08,
-                0.06,
-                0.14,
-                0.6,
-                1.04,
-                0.92,
-                0.62,
-                0.26,
-                0.04,
-                0.0,
-                0.0,
-            ],
+            sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
+            winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
+            zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
             versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
             wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         )
+        # fmt: off
 
         # iterate over all hrus and create a list with the soil type
         temp_list = []
@@ -539,58 +506,21 @@ def _initialize_whmod_models(
 
         con.bodentyp(temp_list)
 
-        ackerland = [
-            0.733,
-            0.733,
-            0.774,
-            0.947,
-            1.188,
-            1.181,
-            # DWA-M 504: Ackerland
-            1.185,
-            1.151,
-            0.974,
-            0.853,
-            0.775,
-            0.733,
-        ]
+        # fmt: off
+        # DWA-M 504:
+        ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181, 1.185, 1.151, 0.974, 0.853, 0.775, 0.733]  # pylint: disable=line-too-long
         con.fln(
             gras=1.0,  # DWA-M 504
-            laubwald=[
-                1.003,
-                1.003,
-                1.053,
-                1.179,
-                1.114,
-                1.227,
-                1.241,
-                1.241,
-                1.241,
-                1.139,
-                1.082,
-                1.003,
-            ],  # DWA-M 504
+            laubwald=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227, 1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504  # pylint: disable=line-too-long
             mais=ackerland,
             nadelwald=1.335,  # DWA-M 504
             sommerweizen=ackerland,
             winterweizen=ackerland,
             zuckerrueben=ackerland,
             versiegelt=0.0,
-            wasser=[
-                1.165,
-                1.217,
-                1.256,
-                1.283,
-                1.283,
-                1.296,
-                1.283,
-                1.283,
-                1.270,
-                1.230,
-                1.165,
-                1.139,
-            ],
+            wasser=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296, 1.283, 1.283, 1.270, 1.230, 1.165, 1.139],  # pylint: disable=line-too-long
         )  # DWA-M 504
+        # fmt: on
 
         con.f_area(_return_con_hru(hrus, "f_area"))
         con.gradfaktor(float(DEGREE_DAY_FACTOR))
@@ -654,10 +584,12 @@ def _initialize_weather_stations(
     FILENAME_TIMESERIES,
     BASEDIR,
 ):
-    """
-    In this function, the data from the weather stations is integrated in the temperature- and precipitation-nodes, as well as the meteo- and evap-elements.
-    The arguments of this function are HydPy-selections, which contain the respective nodes and elements, and the Node_Data.csv (as a Pandas DataFrame "df_stammdaten").
-    Furthermore, the locations of the basedircetory (BASEDIR) and the folder with the timeseries (FILENAME_TIMESERIES) are required.
+    """In this function, the data from the weather stations is integrated in the
+    temperature- and precipitation-nodes, as well as the meteo- and evap-elements.  The
+    arguments of this function are HydPy-selections, which contain the respective nodes
+     and elements, and the Node_Data.csv (as a Pandas DataFrame "df_stammdaten").
+    Furthermore, the locations of the basedircetory (BASEDIR) and the folder with the
+    timeseries (FILENAME_TIMESERIES) are required.
     """
     # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
     # Fused Variables
@@ -830,9 +762,10 @@ def _initialize_conv_models(
     precselection_stat,
     precselection_raster,
 ):
-    """
-    The conv models are based on the selections of the input data of the weather stations (evapselection_stat, tempselection_stat, precselection_stat) and their
-    rasterized counterpart (evapselection_raster, tempselection_raster, precselection_raster).
+    """The conv models are based on the selections of the input data of the weather
+    stations (evapselection_stat, tempselection_stat, precselection_stat) and their
+    rasterized counterpart (evapselection_raster, tempselection_raster,
+    precselection_raster).
     """
     # Initialization Conv-Modelle
     def _get_coordinatedict(nodes):
@@ -903,6 +836,8 @@ def _save_results(
     NODATA_VALUE,
     PERSON_IN_CHARGE,
 ):
+    period = f"{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}"
+
     # write = commandtools.print_textandtime
     if write_output == True:
         write(f"Write Output in {OUTPUTDIR}")
@@ -914,14 +849,8 @@ def _save_results(
             _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
             grid_akt[int(row) - 1, int(col) - 1] = value
 
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Sum_Groundwater_Recharge_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.txt",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as gridfile:
+        filepath = os.path.join(OUTPUTDIR, f"Sum_Groundwater_Recharge_{period}.txt")
+        with open(filepath, "w", encoding="utf-8") as gridfile:
             gridfile.write(
                 f"ncols         {ncol}\n"
                 f"nrows         {nrow}\n"
@@ -943,14 +872,10 @@ def _save_results(
             _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
             grid_verz[int(row) - 1, int(col) - 1] = value
 
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Sum_Verz_Groundwater_Recharge_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.txt",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as gridfile:
+        filepath = os.path.join(
+            OUTPUTDIR, f"Sum_Verz_Groundwater_Recharge_{period}.txt"
+        )
+        with open(filepath, "w", encoding="utf-8") as gridfile:
             gridfile.write(
                 f"ncols         {ncol}\n"
                 f"nrows         {nrow}\n"
@@ -967,14 +892,8 @@ def _save_results(
                 gridfile.write(" ".join(conv(value) for value in values) + "\n")
 
     if "txt" in OUTPUTMODE:
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Groundwater_Recharge_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.txt",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as seriesfile:
+        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_{period}.txt")
+        with open(filepath, "w", encoding="utf-8") as seriesfile:
             seriesfile.write(
                 f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in mm\n"
@@ -986,14 +905,8 @@ def _save_results(
                 month2sequence2value=hp.loggers["month_logger_akt"].month2sequence2sum,
             )
 
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Groundwater_Recharge_Verz_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.txt",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as seriesfile:
+        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_Verz_{period}.txt")
+        with open(filepath, "w", encoding="utf-8") as seriesfile:
             seriesfile.write(
                 f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in mm\n"
@@ -1006,14 +919,8 @@ def _save_results(
             )
 
     if "rch" in OUTPUTMODE:
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Groundwater_Recharge_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.rch",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as rchfile:
+        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_{period}.rch")
+        with open(filepath, "w", encoding="utf-8") as rchfile:
             rchfile.write(
                 f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in m/s\n"
@@ -1022,14 +929,8 @@ def _save_results(
             )
             hp.loggers["month_logger_akt"].write_rchfile(rchfile)
 
-        with open(
-            os.path.join(
-                OUTPUTDIR,
-                f"Groundwater_Recharge_Verz_{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}.rch",
-            ),
-            "w",
-            encoding="utf-8",
-        ) as rchfile:
+        period = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_Verz_{period}.rch")
+        with open(period, "w", encoding="utf-8") as rchfile:
             rchfile.write(
                 f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in m/s\n"

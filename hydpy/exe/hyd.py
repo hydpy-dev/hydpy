@@ -80,11 +80,10 @@ The first additional argument must be an available "script function":
 
 >>> result = run_subprocess("hyd.py "
 ...                         "wrong_argument")    # doctest: +ELLIPSIS
-Invoking hyd.py with argument `wrong_argument` resulted in the \
-following error:
-There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \
-the following instead: await_server, exec_commands, exec_script, \
-run_doctests, run_simulation, start_server, start_shell, and xml_replace.
+Invoking hyd.py with argument `wrong_argument` resulted in the following error:
+There is no `wrong_argument` function callable by `hyd.py`.  Choose one of the \
+following instead: await_server, exec_commands, exec_script, run_doctests, \
+run_simulation, run_whmod, start_server, start_shell, and xml_replace.
 ...
 
 Further argument requirements depend on the selected "script function":

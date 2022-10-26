@@ -57,10 +57,12 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.exe import commandtools
 from hydpy.models import whmod_pet
-from hydpy import inputs, outputs
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_model
 from hydpy.core.typingtools import *
+
+# from hydpy import inputs  # actual imports below
+# from hydpy import outputs  # actual imports below
 
 
 class _XY(NamedTuple):
@@ -375,6 +377,8 @@ def _initialize_whmod_models(
     rise (with_capillary_rise) and the degree day factor (day_degree_factor) have to be
     provided.
     """
+    from hydpy import inputs  # pylint: disable=import-outside-toplevel
+
     # Initialize WHMod-Models
     if write_output:
         commandtools.print_textandtime("Initialize WHMOD")
@@ -558,6 +562,8 @@ def _initialize_weather_stations(
     Furthermore, the locations of the basedircetory (basedir) and the folder with the
     timeseries (filename_timeseries) are required.
     """
+    from hydpy import inputs, outputs  # pylint: disable=import-outside-toplevel
+
     # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
     # Fused Variables
     cssr = devicetools.FusedVariable(

@@ -62,20 +62,8 @@ from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_model
 from hydpy.core.typingtools import *
 
-write = commandtools.print_textandtime
 
-
-class Position(NamedTuple):
-    """The row and column of a `WHMod` grid cell.
-
-    Counting starts with 1.
-    """
-
-    row: int
-    col: int
-
-
-class XY(NamedTuple):
+class _XY(NamedTuple):
     rechts: float
     hoch: float
 
@@ -138,12 +126,10 @@ def run_whmod(basedir: str, write_output: str) -> None:
     """
     write_output_ = objecttools.value2bool("x", write_output)
     if write_output_:
-        write("Start WHMOD calculations")
+        commandtools.print_textandtime("Start WHMOD calculations")
         hydpy.pub.options.printprogress = True
     else:
         hydpy.pub.options.printprogress = False
-
-    BASEDIR = basedir
 
     dtype_whmod_main = {
         "PERSON_IN_CHARGE": str,
@@ -164,42 +150,42 @@ def run_whmod(basedir: str, write_output: str) -> None:
         "NODATA_VALUE": float,
     }
 
-    WHMod_Main = pandas.read_csv(
-        os.path.join(BASEDIR, "WHMod_Main.txt"),
+    whmod_main = pandas.read_csv(
+        os.path.join(basedir, "WHMod_Main.txt"),
         sep="\t",
         comment="#",
         header=None,
         index_col=0,
     ).T
-    WHMod_Main = WHMod_Main.astype(dtype_whmod_main)
+    whmod_main = whmod_main.astype(dtype_whmod_main)
 
-    PERSON_IN_CHARGE = WHMod_Main["PERSON_IN_CHARGE"][1].strip()
-    HYDPY_VERSION = WHMod_Main["HYDPY_VERSION"][1].strip()
+    person_in_charge = whmod_main["PERSON_IN_CHARGE"][1].strip()
+    hydpy_version = whmod_main["HYDPY_VERSION"][1].strip()
 
     # check Hydpy-Version
-    if HYDPY_VERSION != hydpy.__version__:
+    if hydpy_version != hydpy.__version__:
         warnings.warn(
             f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the "
-            f"Hydpy-Version ({HYDPY_VERSION}) defined in WHMod_Main.txt"
+            f"Hydpy-Version ({hydpy_version}) defined in WHMod_Main.txt"
         )
 
-    OUTPUTDIR = os.path.join(BASEDIR, WHMod_Main["OUTPUTDIR"][1].strip())
-    OUTPUTMODE = WHMod_Main["OUTPUTMODE"][1].split(",")
-    for i, mode in enumerate(OUTPUTMODE):
-        OUTPUTMODE[i] = OUTPUTMODE[i].strip()
-    FILENAME_NODE_DATA = WHMod_Main["FILENAME_NODE_DATA"][1].strip()
-    FILENAME_TIMESERIES = WHMod_Main["FILENAME_TIMESERIES"][1].strip()
-    FILENAME_STATION_DATA = WHMod_Main["FILENAME_STATION_DATA"][1].strip()
-    WITH_CAPPILARY_RISE = WHMod_Main["WITH_CAPPILARY_RISE"][1]
-    DEGREE_DAY_FACTOR = WHMod_Main["DEGREE_DAY_FACTOR"][1]
-    SIMULATION_START = WHMod_Main["SIMULATION_START"][1]
-    SIMULATION_END = WHMod_Main["SIMULATION_END"][1]
-    FREQUENCE = WHMod_Main["FREQUENCE"][1]
-    CELLSIZE = WHMod_Main["CELLSIZE"][1]
-    NODATA_VALUE = WHMod_Main["NODATA_VALUE"][1]
+    outputdir = os.path.join(basedir, whmod_main["OUTPUTDIR"][1].strip())
+    outputmode = whmod_main["OUTPUTMODE"][1].split(",")
+    for i, mode in enumerate(outputmode):
+        outputmode[i] = mode.strip()
+    filename_node_data = whmod_main["FILENAME_NODE_DATA"][1].strip()
+    filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
+    filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
+    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1]
+    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1]
+    simulation_start = whmod_main["SIMULATION_START"][1]
+    simulation_end = whmod_main["SIMULATION_END"][1]
+    frequence = whmod_main["FREQUENCE"][1]
+    cellsize = whmod_main["CELLSIZE"][1]
+    nodata_value = whmod_main["NODATA_VALUE"][1]
 
-    hydpy.pub.timegrids = SIMULATION_START, SIMULATION_END, FREQUENCE
-    hydpy.pub.options.parameterstep = FREQUENCE
+    hydpy.pub.timegrids = simulation_start, simulation_end, frequence
+    hydpy.pub.options.parameterstep = frequence
     hydpy.pub.options.checkseries = False
     hydpy.pub.options.usecython = True
 
@@ -226,7 +212,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     }
 
     df_knoteneigenschaften = pandas.read_csv(
-        os.path.join(BASEDIR, FILENAME_NODE_DATA),
+        os.path.join(basedir, filename_node_data),
         skiprows=[1],
         sep=";",
         decimal=",",
@@ -234,76 +220,76 @@ def run_whmod(basedir: str, write_output: str) -> None:
     df_knoteneigenschaften = df_knoteneigenschaften.astype(dtype_knoteneigenschaften)
 
     df_stammdaten = pandas.read_csv(
-        os.path.join(BASEDIR, FILENAME_STATION_DATA), sep="\t"
+        os.path.join(basedir, filename_station_data), sep="\t"
     )
     df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
         lambda a: a.split("_")[1].split(".")[0]
     )
 
     # define Selections
-    whmodselection = hydpy.Selection("raster")
-    evapselection_stat = hydpy.Selection("evap_stat")
-    evapselection_raster = hydpy.Selection("evap_raster")
-    meteoselection_stat = hydpy.Selection("meteo_stat")
-    CSSRselection_stat = hydpy.Selection("CSSR_stat")
-    GSRselection_stat = hydpy.Selection("GSR_stat")
-    tempselection_stat = hydpy.Selection("temp_stat")
-    tempselection_raster = hydpy.Selection("temp_raster")
-    precselection_stat = hydpy.Selection("prec_stat")
-    precselection_raster = hydpy.Selection("prec_raster")
+    whmod_selection = hydpy.Selection("raster")
+    evap_selection_stat = hydpy.Selection("evap_stat")
+    evap_selection_raster = hydpy.Selection("evap_raster")
+    meteo_selection_stat = hydpy.Selection("meteo_stat")
+    cssr_selection_stat = hydpy.Selection("CSSR_stat")
+    gsr_selection_stat = hydpy.Selection("GSR_stat")
+    temp_selection_stat = hydpy.Selection("temp_stat")
+    temp_selection_raster = hydpy.Selection("temp_raster")
+    prec_selection_stat = hydpy.Selection("prec_stat")
+    prec_selection_raster = hydpy.Selection("prec_raster")
 
     hp = hydpy.HydPy("run_WHMod")
     hydpy.pub.sequencemanager.filetype = "asc"
 
-    node2xy: Dict[hydpy.Node, XY] = {}
+    node2xy: Dict[hydpy.Node, _XY] = {}
 
     _initialize_whmod_models(
         write_output=write_output_,
         df_knoteneigenschaften=df_knoteneigenschaften,
-        precselection_raster=precselection_raster,
-        tempselection_raster=tempselection_raster,
-        evapselection_raster=evapselection_raster,
-        whmodselection=whmodselection,
-        WITH_CAPPILARY_RISE=WITH_CAPPILARY_RISE,
-        DEGREE_DAY_FACTOR=DEGREE_DAY_FACTOR,
+        prec_selection_raster=prec_selection_raster,
+        temp_selection_raster=temp_selection_raster,
+        evap_selection_raster=evap_selection_raster,
+        whmod_selection=whmod_selection,
+        with_capillary_rise=with_capillary_rise,
+        day_degree_factor=day_degree_factor,
         node2xy=node2xy,
     )
 
     _initialize_weather_stations(
         df_stammdaten=df_stammdaten,
-        CSSRselection_stat=CSSRselection_stat,
-        GSRselection_stat=GSRselection_stat,
-        meteoselection_stat=meteoselection_stat,
-        evapselection_stat=evapselection_stat,
-        tempselection_stat=tempselection_stat,
-        precselection_stat=precselection_stat,
-        FILENAME_TIMESERIES=FILENAME_TIMESERIES,
-        BASEDIR=BASEDIR,
+        cssr_selection_stat=cssr_selection_stat,
+        gsr_selection_stat=gsr_selection_stat,
+        meteo_selection_stat=meteo_selection_stat,
+        evap_selection_stat=evap_selection_stat,
+        temp_selection_stat=temp_selection_stat,
+        prec_selection_stat=prec_selection_stat,
+        filename_timeseries=filename_timeseries,
+        basedir=basedir,
         node2xy=node2xy,
     )
 
     _initialize_conv_models(
-        evapselection_stat=evapselection_stat,
-        evapselection_raster=evapselection_raster,
-        tempselection_stat=tempselection_stat,
-        tempselection_raster=tempselection_raster,
-        precselection_stat=precselection_stat,
-        precselection_raster=precselection_raster,
+        evap_selection_stat=evap_selection_stat,
+        evap_selection_raster=evap_selection_raster,
+        temp_selection_stat=temp_selection_stat,
+        temp_selection_raster=temp_selection_raster,
+        prec_selection_stat=prec_selection_stat,
+        prec_selection_raster=prec_selection_raster,
         node2xy=node2xy,
     )
 
     # Merge Selections
     hydpy.pub.selections = hydpy.Selections(
-        whmodselection,
-        CSSRselection_stat,
-        GSRselection_stat,
-        meteoselection_stat,
-        evapselection_stat,
-        evapselection_raster,
-        tempselection_stat,
-        tempselection_raster,
-        precselection_stat,
-        precselection_raster,
+        whmod_selection,
+        cssr_selection_stat,
+        gsr_selection_stat,
+        meteo_selection_stat,
+        evap_selection_stat,
+        evap_selection_raster,
+        temp_selection_stat,
+        temp_selection_raster,
+        prec_selection_stat,
+        prec_selection_raster,
     )
 
     complete_network = hydpy.Selection("complete_network")
@@ -321,11 +307,11 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     # define two loggers, one for the actual groundwater recharge, one for the delayed
     # groundwater recharge (verz)
-    hp.loggers["logger_akt"] = logtools.Logger(SIMULATION_START, SIMULATION_END)
-    hp.loggers["logger_verz"] = logtools.Logger(SIMULATION_START, SIMULATION_END)
+    hp.loggers["logger_akt"] = logtools.Logger(simulation_start, simulation_end)
+    hp.loggers["logger_verz"] = logtools.Logger(simulation_start, simulation_end)
 
     # same for the month logger
-    if "txt" in OUTPUTMODE or "rch" in OUTPUTMODE:
+    if "txt" in outputmode or "rch" in outputmode:
         hp.loggers["month_logger_akt"] = whmod_model.WHModMonthLogger()
         hp.loggers["month_logger_verz"] = whmod_model.WHModMonthLogger()
 
@@ -348,7 +334,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     hp.simulate()
 
     hydpy.pub.sequencemanager.overwrite = True
-    hydpy.pub.sequencemanager.currentdir = f"{OUTPUTDIR}"
+    hydpy.pub.sequencemanager.currentdir = outputdir
 
     ncol = df_knoteneigenschaften["col"].max()
     nrow = df_knoteneigenschaften["row"].max()
@@ -357,41 +343,41 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     _save_results(
         write_output=write_output_,
-        OUTPUTDIR=OUTPUTDIR,
-        OUTPUTMODE=OUTPUTMODE,
+        outputdir=outputdir,
+        outputmode=outputmode,
         nrow=nrow,
         ncol=ncol,
         hp=hp,
-        CELLSIZE=CELLSIZE,
-        SIMULATION_START=SIMULATION_START,
-        SIMULATION_END=SIMULATION_END,
+        cellsize=cellsize,
+        simulation_start=simulation_start,
+        simulation_end=simulation_end,
         xllcorner=xllcorner,
         yllcorner=yllcorner,
-        NODATA_VALUE=NODATA_VALUE,
-        PERSON_IN_CHARGE=PERSON_IN_CHARGE,
+        nodata_value=nodata_value,
+        person_in_charge=person_in_charge,
     )
 
 
 def _initialize_whmod_models(
     write_output: bool,
     df_knoteneigenschaften: pandas.DataFrame,
-    precselection_raster: hydpy.Selection,
-    tempselection_raster: hydpy.Selection,
-    evapselection_raster: hydpy.Selection,
-    whmodselection: hydpy.Selection,
-    WITH_CAPPILARY_RISE: bool,
-    DEGREE_DAY_FACTOR: float,
-    node2xy: Dict[hydpy.Node, XY],
+    prec_selection_raster: hydpy.Selection,
+    temp_selection_raster: hydpy.Selection,
+    evap_selection_raster: hydpy.Selection,
+    whmod_selection: hydpy.Selection,
+    with_capillary_rise: bool,
+    day_degree_factor: float,
+    node2xy: Dict[hydpy.Node, _XY],
 ) -> None:
     """In this function, the whmod-elements are initialized based on the data provided
     in Node_Data.csv.  The arguments of this function are HydPy-selections, which
     contain the respective nodes and elements. Furthermore information about cappilary
-    rise (WITH_CAPPILARY_RISE) and the degree day factor (DEGREE_DAY_FACTOR) have to be
+    rise (with_capillary_rise) and the degree day factor (day_degree_factor) have to be
     provided.
     """
     # Initialize WHMod-Models
     if write_output:
-        write("Initialize WHMOD")
+        commandtools.print_textandtime("Initialize WHMOD")
 
     for idx in range(len(df_knoteneigenschaften["id"].unique())):
 
@@ -406,21 +392,21 @@ def _initialize_whmod_models(
 
         # Initialize Precipitation Nodes
         precnode = hydpy.Node(f"P_{name}", variable=inputs.whmod_Niederschlag)
-        precselection_raster.nodes.add_device(precnode)
+        prec_selection_raster.nodes.add_device(precnode)
 
         # Initialize Temperature Nodes
         tempnode = hydpy.Node(f"T_{name}", variable=inputs.whmod_Temp_TM)
-        tempselection_raster.nodes.add_device(tempnode)
+        temp_selection_raster.nodes.add_device(tempnode)
 
         # Initialize Evap Nodes
         evapnode = hydpy.Node(f"E_{name}", variable=inputs.whmod_ET0)
-        evapselection_raster.nodes.add_device(evapnode)
+        evap_selection_raster.nodes.add_device(evapnode)
 
         # Initialize WHMod-Elements
         raster = hydpy.Element(f"WHMod_{name}", inputs=(precnode, tempnode, evapnode))
 
         # Hinzufügen zu WHMod-Selection
-        whmodselection.elements.add_device(raster)
+        whmod_selection.elements.add_device(raster)
 
         # find number of hrus in element
         hrus = _collect_hrus(df_knoteneigenschaften, idx)
@@ -430,7 +416,7 @@ def _initialize_whmod_models(
         assert isinstance(rechts, float)
         hoch = _return_con_hru(hrus, "y")[0]
         assert isinstance(hoch, float)
-        xy = XY(rechts=rechts, hoch=hoch)
+        xy = _XY(rechts=rechts, hoch=hoch)
 
         # Coordinate for Nodes
         for node in (precnode, tempnode, evapnode):
@@ -445,7 +431,7 @@ def _initialize_whmod_models(
 
         con.area(sum(_return_con_hru(hrus, "f_area")))
         con.nmb_cells(len(hrus))
-        con.mitfunktion_kapillareraufstieg(WITH_CAPPILARY_RISE)
+        con.mitfunktion_kapillareraufstieg(with_capillary_rise)
 
         # iterate over all hrus and create a list with the land use
         temp_list = []
@@ -494,7 +480,7 @@ def _initialize_whmod_models(
         # fmt: on
 
         con.f_area(_return_con_hru(hrus, "f_area"))
-        con.gradfaktor(float(DEGREE_DAY_FACTOR))
+        con.gradfaktor(float(day_degree_factor))
         nfk100_mittel = _return_con_hru(hrus, "nfk100_mittel")[0]
         assert isinstance(nfk100_mittel, float)
         nfk_faktor = _return_con_hru(hrus, "nfk_faktor")[0]
@@ -555,29 +541,29 @@ def _initialize_whmod_models(
 
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,
-    CSSRselection_stat: hydpy.Selection,
-    GSRselection_stat: hydpy.Selection,
-    meteoselection_stat: hydpy.Selection,
-    evapselection_stat: hydpy.Selection,
-    tempselection_stat: hydpy.Selection,
-    precselection_stat: hydpy.Selection,
-    FILENAME_TIMESERIES: str,
-    BASEDIR: str,
-    node2xy: Dict[hydpy.Node, XY],
+    cssr_selection_stat: hydpy.Selection,
+    gsr_selection_stat: hydpy.Selection,
+    meteo_selection_stat: hydpy.Selection,
+    evap_selection_stat: hydpy.Selection,
+    temp_selection_stat: hydpy.Selection,
+    prec_selection_stat: hydpy.Selection,
+    filename_timeseries: str,
+    basedir: str,
+    node2xy: Dict[hydpy.Node, _XY],
 ) -> None:
     """In this function, the data from the weather stations is integrated in the
     temperature- and precipitation-nodes, as well as the meteo- and evap-elements.  The
     arguments of this function are HydPy-selections, which contain the respective nodes
      and elements, and the Node_Data.csv (as a Pandas DataFrame "df_stammdaten").
-    Furthermore, the locations of the basedircetory (BASEDIR) and the folder with the
-    timeseries (FILENAME_TIMESERIES) are required.
+    Furthermore, the locations of the basedircetory (basedir) and the folder with the
+    timeseries (filename_timeseries) are required.
     """
     # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
     # Fused Variables
-    CSSR = devicetools.FusedVariable(
+    cssr = devicetools.FusedVariable(
         "CSSR", outputs.meteo_ClearSkySolarRadiation, inputs.evap_ClearSkySolarRadiation
     )
-    GSR = devicetools.FusedVariable(
+    gsr = devicetools.FusedVariable(
         "GSR", outputs.meteo_GlobalRadiation, inputs.evap_GlobalRadiation
     )
     # Iteration over Weather Stations
@@ -587,7 +573,7 @@ def _initialize_weather_stations(
 
         index = stations_daten.index[0]
 
-        xy = XY(
+        xy = _XY(
             rechts=float(df_stammdaten.loc[index, "X"]),
             hoch=float(df_stammdaten.loc[index, "Y"]),
         )
@@ -615,10 +601,10 @@ def _initialize_weather_stations(
             # there is only precipitation data
             continue
 
-        CSSR_Node = hydpy.Node(f"CSSR_{stat}", variable=CSSR)
-        GSR_Node = hydpy.Node(f"GSR_{stat}", variable=GSR)
-        CSSRselection_stat.nodes.add_device(CSSR_Node)
-        GSRselection_stat.nodes.add_device(GSR_Node)
+        cssr_node = hydpy.Node(f"CSSR_{stat}", variable=cssr)
+        gsr_node = hydpy.Node(f"GSR_{stat}", variable=gsr)
+        cssr_selection_stat.nodes.add_device(cssr_node)
+        gsr_selection_stat.nodes.add_device(gsr_node)
 
         evap_node = hydpy.Node(
             f"E_{stat}", variable=outputs.evap_ReferenceEvapotranspiration
@@ -626,13 +612,13 @@ def _initialize_weather_stations(
         node2xy[evap_node] = xy
 
         # Meteo-Elemente
-        meteo_element = hydpy.Element(f"Meteo_{stat}", outputs=(CSSR_Node, GSR_Node))
+        meteo_element = hydpy.Element(f"Meteo_{stat}", outputs=(cssr_node, gsr_node))
         meteo = hydpy.prepare_model("meteo_v001", "1d")
         meteo_element.model = meteo
 
         # Evap-Element
         evap_element = hydpy.Element(
-            f"Evap_{stat}", inputs=(CSSR_Node, GSR_Node), outputs=(evap_node)
+            f"Evap_{stat}", inputs=(cssr_node, gsr_node), outputs=(evap_node)
         )
         evap = hydpy.prepare_model("evap_v001", "1d")
         evap_element.model = evap
@@ -661,52 +647,52 @@ def _initialize_weather_stations(
         inp_evap.prepare_series()
 
         inp_meteo.sunshineduration.filepath = os.path.join(
-            BASEDIR,
-            FILENAME_TIMESERIES,
+            basedir,
+            filename_timeseries,
             seq_sunshineduration,
         )
         inp_meteo.sunshineduration.load_series()
         del inp_meteo.sunshineduration.filepath
 
         inp_evap.airtemperature.filepath = os.path.join(
-            BASEDIR, FILENAME_TIMESERIES, seq_airtemperature
+            basedir, filename_timeseries, seq_airtemperature
         )
         inp_evap.airtemperature.load_series()
 
         inp_evap.relativehumidity.filepath = os.path.join(
-            BASEDIR,
-            FILENAME_TIMESERIES,
+            basedir,
+            filename_timeseries,
             seq_relativehumidity,
         )
         inp_evap.relativehumidity.load_series()
         del inp_evap.relativehumidity.filepath
 
         inp_evap.windspeed.filepath = os.path.join(
-            BASEDIR, FILENAME_TIMESERIES, seq_windspeed
+            basedir, filename_timeseries, seq_windspeed
         )
         inp_evap.windspeed.load_series()
         del inp_evap.windspeed.filepath
 
         inp_evap.atmosphericpressure.filepath = os.path.join(
-            BASEDIR,
-            FILENAME_TIMESERIES,
+            basedir,
+            filename_timeseries,
             seq_atmosphericpressure,
         )
         inp_evap.atmosphericpressure.load_series()
         del inp_evap.atmosphericpressure.filepath
 
         # Initialization of Temperature-Nodes
-        T_node = hydpy.Node(f"T_{stat}", variable="T")
-        T_node.deploymode = "obs"
-        T_node.prepare_obsseries()
-        T_node.sequences.obs.series = inp_evap.airtemperature.series
-        node2xy[T_node] = xy
+        t_node = hydpy.Node(f"T_{stat}", variable="T")
+        t_node.deploymode = "obs"
+        t_node.prepare_obsseries()
+        t_node.sequences.obs.series = inp_evap.airtemperature.series
+        node2xy[t_node] = xy
 
         # add meteo-elements, evap-elements, evap-nodes to selections
-        meteoselection_stat.elements.add_device(meteo_element)
-        evapselection_stat.nodes.add_device(evap_node)
-        evapselection_stat.elements.add_device(evap_element)
-        tempselection_stat.nodes.add_device(T_node)
+        meteo_selection_stat.elements.add_device(meteo_element)
+        evap_selection_stat.nodes.add_device(evap_node)
+        evap_selection_stat.elements.add_device(evap_element)
+        temp_selection_stat.nodes.add_device(t_node)
 
     # Initialization Precipitation-Nodes
     for stat in df_stammdaten["StationsNr"].unique():
@@ -719,28 +705,28 @@ def _initialize_weather_stations(
             stations_daten["Messungsart"] == "Niederschlag"
         ].values[0]
 
-        P_node = hydpy.Node(f"P_{stat}", variable="P")
-        P_node.deploymode = "obs"
-        precselection_stat.nodes.add_device(P_node)
-        node2xy[P_node] = XY(
+        p_node = hydpy.Node(f"P_{stat}", variable="P")
+        p_node.deploymode = "obs"
+        prec_selection_stat.nodes.add_device(p_node)
+        node2xy[p_node] = _XY(
             rechts=df_stammdaten.loc[index, "X"], hoch=df_stammdaten.loc[index, "Y"]
         )
-        P_node.prepare_obsseries()
-        P_node.sequences.obs.filepath = os.path.join(
-            BASEDIR, FILENAME_TIMESERIES, seq_precipitation
+        p_node.prepare_obsseries()
+        p_node.sequences.obs.filepath = os.path.join(
+            basedir, filename_timeseries, seq_precipitation
         )
-        P_node.sequences.obs.load_series()
-        del P_node.sequences.obs.filepath
+        p_node.sequences.obs.load_series()
+        del p_node.sequences.obs.filepath
 
 
 def _initialize_conv_models(
-    evapselection_stat: hydpy.Selection,
-    evapselection_raster: hydpy.Selection,
-    tempselection_stat: hydpy.Selection,
-    tempselection_raster: hydpy.Selection,
-    precselection_stat: hydpy.Selection,
-    precselection_raster: hydpy.Selection,
-    node2xy: Dict[hydpy.Node, XY],
+    evap_selection_stat: hydpy.Selection,
+    evap_selection_raster: hydpy.Selection,
+    temp_selection_stat: hydpy.Selection,
+    temp_selection_raster: hydpy.Selection,
+    prec_selection_stat: hydpy.Selection,
+    prec_selection_raster: hydpy.Selection,
+    node2xy: Dict[hydpy.Node, _XY],
 ) -> None:
     """The conv models are based on the selections of the input data of the weather
     stations (evapselection_stat, tempselection_stat, precselection_stat) and their
@@ -748,89 +734,92 @@ def _initialize_conv_models(
     precselection_raster).
     """
     # Initialization Conv-Modelle
-    def _get_coordinatedict(nodes: hydpy.Nodes) -> Dict[str, XY]:
+    def _get_coordinatedict(nodes: hydpy.Nodes) -> Dict[str, _XY]:
         """Returns a Dictionary with x and y values. Used for Conv-models."""
         return {n.name: node2xy[n] for n in nodes}
 
     # Conv-Modell PET
     conv_pet = hydpy.prepare_model("conv_v002")
     conv_pet.parameters.control.inputcoordinates(
-        **_get_coordinatedict(evapselection_stat.nodes)
+        **_get_coordinatedict(evap_selection_stat.nodes)
     )
     conv_pet.parameters.control.outputcoordinates(
-        **_get_coordinatedict(evapselection_raster.nodes)
+        **_get_coordinatedict(evap_selection_raster.nodes)
     )
     conv_pet.parameters.control.maxnmbinputs()
     conv_pet.parameters.control.power(2.0)
     element = hydpy.Element(
-        "ConvPET", inlets=evapselection_stat.nodes, outlets=evapselection_raster.nodes
+        "ConvPET", inlets=evap_selection_stat.nodes, outlets=evap_selection_raster.nodes
     )
     element.model = conv_pet
-    evapselection_stat.elements.add_device(element)
+    evap_selection_stat.elements.add_device(element)
 
     # Conv-Modell Temperature
     conv_temp = hydpy.prepare_model("conv_v002")
     conv_temp.parameters.control.inputcoordinates(
-        **_get_coordinatedict(tempselection_stat.nodes)
+        **_get_coordinatedict(temp_selection_stat.nodes)
     )
     conv_temp.parameters.control.outputcoordinates(
-        **_get_coordinatedict(tempselection_raster.nodes)
+        **_get_coordinatedict(temp_selection_raster.nodes)
     )
     conv_temp.parameters.control.maxnmbinputs()
     conv_temp.parameters.control.power(2.0)
 
     element = hydpy.Element(
-        "ConvTemp", inlets=tempselection_stat.nodes, outlets=tempselection_raster.nodes
+        "ConvTemp",
+        inlets=temp_selection_stat.nodes,
+        outlets=temp_selection_raster.nodes,
     )
     element.model = conv_temp
-    tempselection_stat.elements.add_device(element)
+    temp_selection_stat.elements.add_device(element)
 
     conv_prec = hydpy.prepare_model("conv_v002")
     conv_prec.parameters.control.inputcoordinates(
-        **_get_coordinatedict(precselection_stat.nodes)
+        **_get_coordinatedict(prec_selection_stat.nodes)
     )
     conv_prec.parameters.control.outputcoordinates(
-        **_get_coordinatedict(precselection_raster.nodes)
+        **_get_coordinatedict(prec_selection_raster.nodes)
     )
     conv_prec.parameters.control.maxnmbinputs()
     conv_prec.parameters.control.power(2.0)
     element = hydpy.Element(
-        "ConvPrec", inlets=precselection_stat.nodes, outlets=precselection_raster.nodes
+        "ConvPrec",
+        inlets=prec_selection_stat.nodes,
+        outlets=prec_selection_raster.nodes,
     )
     element.model = conv_prec
-    precselection_stat.elements.add_device(element)
+    prec_selection_stat.elements.add_device(element)
 
 
 def _save_results(
     write_output: bool,
-    OUTPUTDIR: str,
-    OUTPUTMODE: str,
+    outputdir: str,
+    outputmode: str,
     nrow: int,
     ncol: int,
     hp: hydpy.HydPy,
-    CELLSIZE: int,
-    SIMULATION_START: str,
-    SIMULATION_END: str,
+    cellsize: int,
+    simulation_start: str,
+    simulation_end: str,
     xllcorner: float,
     yllcorner: float,
-    NODATA_VALUE: float,
-    PERSON_IN_CHARGE: str,
+    nodata_value: float,
+    person_in_charge: str,
 ) -> None:
     def convert_values2string(values_: Sequence[float]) -> str:
         return " ".join(str(-9999.0 if v == -9999.0 else v * 365.24) for v in values_)
 
-    period = f"{SIMULATION_START[0:4]}-{SIMULATION_END[0:4]}"
+    period = f"{simulation_start[0:4]}-{simulation_end[0:4]}"
 
-    # write = commandtools.print_textandtime
-    if write_output == True:
-        write(f"Write Output in {OUTPUTDIR}")
+    if write_output:
+        commandtools.print_textandtime(f"Write Output in {outputdir}")
 
     logger_akt = hp.loggers["logger_akt"]
     assert isinstance(logger_akt, logtools.Logger)
     logger_verz = hp.loggers["logger_verz"]
     assert isinstance(logger_verz, logtools.Logger)
 
-    if "sum_txt" in OUTPUTMODE:
+    if "sum_txt" in outputmode:
         grid_akt = numpy.full((nrow, ncol), -9999.0, dtype=float)
 
         for sequence, value in logger_akt.sequence2mean.items():
@@ -839,15 +828,15 @@ def _save_results(
             _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
             grid_akt[int(row) - 1, int(col) - 1] = value
 
-        filepath = os.path.join(OUTPUTDIR, f"Sum_Groundwater_Recharge_{period}.txt")
+        filepath = os.path.join(outputdir, f"Sum_Groundwater_Recharge_{period}.txt")
         with open(filepath, "w", encoding="utf-8") as gridfile:
             gridfile.write(
                 f"ncols         {ncol}\n"
                 f"nrows         {nrow}\n"
                 f"xllcorner     {xllcorner}\n"
                 f"yllcorner     {yllcorner}\n"
-                f"cellsize      {CELLSIZE}\n"
-                f"nodata_value  {NODATA_VALUE}\n"
+                f"cellsize      {cellsize}\n"
+                f"nodata_value  {nodata_value}\n"
             )
 
             for values in grid_akt:
@@ -862,7 +851,7 @@ def _save_results(
             grid_verz[int(row) - 1, int(col) - 1] = value
 
         filepath = os.path.join(
-            OUTPUTDIR, f"Sum_Verz_Groundwater_Recharge_{period}.txt"
+            outputdir, f"Sum_Verz_Groundwater_Recharge_{period}.txt"
         )
         with open(filepath, "w", encoding="utf-8") as gridfile:
             gridfile.write(
@@ -870,20 +859,20 @@ def _save_results(
                 f"nrows         {nrow}\n"
                 f"xllcorner     {xllcorner}\n"
                 f"yllcorner     {yllcorner}\n"
-                f"cellsize      {CELLSIZE}\n"
-                f"nodata_value  {NODATA_VALUE}\n"
+                f"cellsize      {cellsize}\n"
+                f"nodata_value  {nodata_value}\n"
             )
 
             for values in grid_verz:
                 gridfile.write(f"{convert_values2string(values)}\n")
 
-    if "txt" in OUTPUTMODE:
-        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_{period}.txt")
+    if "txt" in outputmode:
+        filepath = os.path.join(outputdir, f"Groundwater_Recharge_{period}.txt")
         with open(filepath, "w", encoding="utf-8") as seriesfile:
             seriesfile.write(
-                f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
+                f"# {person_in_charge}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in mm\n"
-                f"# Monthly values from {SIMULATION_START} to {SIMULATION_END}\n"
+                f"# Monthly values from {simulation_start} to {simulation_end}\n"
                 f"##########################################################\n"
             )
             month_logger_akt = hp.loggers["month_logger_akt"]
@@ -893,12 +882,12 @@ def _save_results(
                 month2sequence2value=month_logger_akt.month2sequence2sum,
             )
 
-        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_Verz_{period}.txt")
+        filepath = os.path.join(outputdir, f"Groundwater_Recharge_Verz_{period}.txt")
         with open(filepath, "w", encoding="utf-8") as seriesfile:
             seriesfile.write(
-                f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
+                f"# {person_in_charge}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in mm\n"
-                f"# Monthly values from {SIMULATION_START} to {SIMULATION_END}\n"
+                f"# Monthly values from {simulation_start} to {simulation_end}\n"
                 f"##########################################################\n"
             )
             month_logger_verz = hp.loggers["month_logger_verz"]
@@ -908,25 +897,25 @@ def _save_results(
                 month2sequence2value=month_logger_verz.month2sequence2sum,
             )
 
-    if "rch" in OUTPUTMODE:
-        filepath = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_{period}.rch")
+    if "rch" in outputmode:
+        filepath = os.path.join(outputdir, f"Groundwater_Recharge_{period}.rch")
         with open(filepath, "w", encoding="utf-8") as rchfile:
             rchfile.write(
-                f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
+                f"# {person_in_charge}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in m/s\n"
-                f"# Monthly values from {SIMULATION_START} to {SIMULATION_END}\n"
+                f"# Monthly values from {simulation_start} to {simulation_end}\n"
                 f"##########################################################\n"
             )
             month_logger_akt = hp.loggers["month_logger_akt"]
             assert isinstance(month_logger_akt, whmod_model.WHModMonthLogger)
             month_logger_akt.write_rchfile(rchfile)
 
-        period = os.path.join(OUTPUTDIR, f"Groundwater_Recharge_Verz_{period}.rch")
+        period = os.path.join(outputdir, f"Groundwater_Recharge_Verz_{period}.rch")
         with open(period, "w", encoding="utf-8") as rchfile:
             rchfile.write(
-                f"# {PERSON_IN_CHARGE}, {datetime.datetime.now()}\n"
+                f"# {person_in_charge}, {datetime.datetime.now()}\n"
                 f"# Monthly WHMod-Groundwater Recharge in m/s\n"
-                f"# Monthly values from {SIMULATION_START} to {SIMULATION_END}\n"
+                f"# Monthly values from {simulation_start} to {simulation_end}\n"
                 f"##########################################################\n"
             )
             month_logger_verz = hp.loggers["month_logger_verz"]

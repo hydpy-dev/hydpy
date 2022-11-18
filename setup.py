@@ -56,7 +56,7 @@ setuptools.setup(
     python_requires=">=3.7",
     install_requires=[
         "black",
-        "bokeh",
+        "bokeh < 3.0.0",
         "click",
         "Cython",
         "matplotlib",

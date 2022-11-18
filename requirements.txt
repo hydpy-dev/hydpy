@@ -1,6 +1,6 @@
 attrs
 black
-bokeh
+bokeh < 3.0.0
 build
 click
 coverage

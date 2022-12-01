@@ -11,7 +11,7 @@ strategy allows, for example, to combine the "LARSIM" process equations of
 application model |lland_v2| with different types of PET calculatable by the
 available |evap| models.
 
-As a start, we provide the application model |evap_v001| for calculating the
+As a start, we provide the application model |evap_fao56| for calculating the
 FAO reference evapotranspiration.
 
 Base model:
@@ -25,4 +25,4 @@ Application model:
 
 .. toctree::
 
-   evap_v001 (FAO) <evap_v001>
+   evap_fao56 (FAO) <evap_fao>

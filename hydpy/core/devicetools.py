@@ -261,17 +261,17 @@ class FusedVariable:
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to the |evap_v001| model, which requires this and other
+    this temperature as input to the |evap_fao56| model, which requires this and other
     meteorological data to calculate potential evapotranspiration.  Further, we pass
     the calculated potential evapotranspiration as input to |lland_v2| for calculating
     the actual evapotranspiration.  Hence, we need to connect the output sequence
-    |evap_fluxes.ReferenceEvapotranspiration| of |evap_v001| with the input sequence
+    |evap_fluxes.ReferenceEvapotranspiration| of |evap_fao56| with the input sequence
     |lland_inputs.PET| of |lland_v2|.
 
     Additionally, |lland_v2| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
-    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_v001| and
+    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
     |lland_v2|, respectively).
 
     For our concrete example, we need to create two |FusedVariable| objects.  `E`
@@ -322,7 +322,7 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model("evap_v001")
+    >>> evap.model = prepare_model("evap_fao56")
     >>> lland.model = prepare_model("lland_v2")
 
     We assign a temperature value to node `t1`:
@@ -336,7 +336,7 @@ class FusedVariable:
     >>> t2.sequences.sim
     sim(-273.15)
 
-    Without further configuration, |evap_v001| cannot perform any simulation steps.
+    Without further configuration, |evap_fao56| cannot perform any simulation steps.
     Hence, we just call its |Model.load_data| method to show that its input sequence
     |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
     and receives the correct data:

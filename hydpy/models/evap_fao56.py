@@ -2,20 +2,19 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """Implementation of the FAO reference evapotranspiration model.
 
-Version 1 of the HydPy-E model (Evap) follows the guide-line provided by
-:cite:t:`ref-Allen1998`.  However, there are some differences in input data assumptions
-(averaged daily temperature and relative humidity values instead of maximum and minimum
-values).  You can use the models of the `HydPy-Meteo` family to "pre-process" some of
-the required input data.  A suitable choice for |GlobalRadiation| and
-|ClearSkySolarRadiation| might be the application model |evap_v001|, which also follows
-the FAO guide-line.
+|evap_fao56| follows the guide-line provided by :cite:t:`ref-Allen1998`.  However, there
+are some differences in input data assumptions (averaged daily temperature and relative
+humidity values instead of maximum and minimum values).  You can use the models of the
+`HydPy-Meteo` family to "pre-process" some of the required input data.  A suitable
+choice for |GlobalRadiation| and |ClearSkySolarRadiation| might be the application
+model |meteo_v001|, which also follows the FAO guide-line.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Application model |evap_v001| does not calculate runoff and thus does not define an
+Application model |evap_fao56| does not calculate runoff and thus does not define an
 outlet sequence.  Hence, we must manually select an output sequence, which is usually
 |ReferenceEvapotranspiration|.  We import its globally available alias and prepare the
 corresponding output node:
@@ -24,13 +23,16 @@ corresponding output node:
 >>> from hydpy.outputs import evap_ReferenceEvapotranspiration
 >>> node = Node("node", variable=evap_ReferenceEvapotranspiration)
 
-Now we can prepare an instance of |evap_v001| and assign it to an element connected to
+Now we can prepare an instance of |evap_fao56| and assign it to an element connected to
 the prepared node:
 
->>> from hydpy.models.evap_v001 import *
+>>> from hydpy.models.evap_fao56 import *
 >>> parameterstep()
 >>> element = Element("element", outputs=node)
 >>> element.model = model
+
+
+.. _evap_fao56_daily_simulation:
 
 daily simulation
 ________________
@@ -62,7 +64,7 @@ recalculates example 18 of :cite:t:`ref-Allen1998`:
 The calculated reference evapotranspiration is about 0.1 mm (3 %) smaller than the one
 given by :cite:t:`ref-Allen1998`. This discrepancy is mainly due to different ways to
 calculate |SaturationVapourPressure|.  :cite:t:`ref-Allen1998` estimates it both for the
-minimum and maximum temperature and averages the results, while |evap_v001| directly
+minimum and maximum temperature and averages the results, while |evap_fao56| directly
 applies the corresponding formula on the average air temperature.  The first approach
 results in higher pressure values due to the nonlinearity of the vapour pressure curve.
 All other methodical differences show, at least in this example, less severe impacts:
@@ -73,6 +75,9 @@ All other methodical differences show, at least in this example, less severe imp
     |       date | airtemperature | relativehumidity | windspeed | atmosphericpressure | globalradiation | clearskysolarradiation | adjustedwindspeed | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | psychrometricconstant | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | referenceevapotranspiration |     node |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-06-07 |           16.9 |             73.0 |  2.777778 |              1001.0 |      255.367464 |              356.40121 |          2.077091 |                19.254836 |                      1.221127 |             14.05603 |              0.665665 |            196.632947 |            43.150905 |   153.482043 |          0.0 |                    3.750015 | 3.750015 |
+
+
+.. _evap_fao56_hourly_simulation:
 
 hourly simulation
 _________________
@@ -141,7 +146,7 @@ calculation of the saturation vapour pressure:
 
 .. integration-test::
 
-    >>> test("evap_v001_hourly", update_parameters=False,
+    >>> test("evap_fao56_hourly", update_parameters=False,
     ...      axis1=fluxes.referenceevapotranspiration)
     |             date | airtemperature | relativehumidity | windspeed | atmosphericpressure | globalradiation | clearskysolarradiation | adjustedwindspeed | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | psychrometricconstant | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | referenceevapotranspiration |      node |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -191,7 +196,7 @@ from hydpy.models.evap import evap_model
 
 
 class Model(modeltools.AdHocModel):
-    """Version 1 of the Evap model."""
+    """The FAO version of the HydPy-Evap."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

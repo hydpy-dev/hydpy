@@ -1,6 +1,6 @@
 attrs
 black
-bokeh
+bokeh == 2.4.3
 build
 click
 coverage
@@ -10,9 +10,9 @@ lastversion
 matplotlib
 netcdf4 < 1.6; python_version == "3.7"
 netcdf4; python_version > "3.7"
-networkx
+networkx==2.8.8
 nox
-numpy
+numpy == 1.23.0
 packaging
 pandas
 plotly

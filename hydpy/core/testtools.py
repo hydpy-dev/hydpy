@@ -739,9 +739,9 @@ datetime of the Python standard library for for further information.
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
-        prepare_series = self.element.model.sequences.inputs.prepare_series
-        prepare_series(allocate_ram=False)
-        prepare_series(allocate_ram=True)
+        prepare_inputseries = self.element.prepare_inputseries
+        prepare_inputseries(allocate_ram=False)
+        prepare_inputseries(allocate_ram=True)
 
     def extract_print_sequences(self):
         """Return a list of all input, factor, flux, and state sequences of the model

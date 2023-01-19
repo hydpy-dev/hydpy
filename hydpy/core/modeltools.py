@@ -51,9 +51,9 @@ class Method:
 class SubmodelInterface:
     """Base class for defining interfaces for submodels.
 
-    Main models reference their submodels by their interface's class name in lower
-    case letters without the version qualifier, as available via the (automatically
-    created) attribute |SubmodelInterface.name|:
+    Main models reference their submodels by their interface's class name in lowercase
+    letters without the version qualifier, as available via the (automatically created)
+    attribute |SubmodelInterface.name|:
 
     >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
     >>> SoilModel_V1.name
@@ -74,7 +74,7 @@ class SubmodelInterface:
         """Type identifier that we use for differentiating submodels that target the
         same process group (e.g. infiltration) but follow different interfaces.
 
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2 and so
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
         on.
 
         We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
@@ -822,6 +822,107 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         return self._NAME
 
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Model.prepare_inputseries| with `read_jit=jit` and methods
+        |Model.prepare_factorseries|, |Model.prepare_fluxseries|, and
+        |Model.prepare_stateseries| with `write_jit=jit`."""
+        self.prepare_inputseries(allocate_ram=allocate_ram, read_jit=jit)
+        self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+
+    def prepare_inputseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |InputSequence| objects."""
+        self.sequences.inputs.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_factorseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_fluxseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |FluxSequence|."""
+        self.sequences.fluxes.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_stateseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |StateSequence| objects and."""
+        self.sequences.states.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def load_allseries(self) -> None:
+        """Call method |Model.load_inputseries|, |Model.load_factorseries|,
+        |Model.load_fluxseries|, and |Model.load_stateseries|."""
+        self.load_inputseries()
+        self.load_factorseries()
+        self.load_fluxseries()
+        self.load_stateseries()
+
+    def load_inputseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |InputSequence|
+        objects."""
+        self.sequences.inputs.load_series()
+
+    def load_factorseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.load_series()
+
+    def load_fluxseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |FluxSequence|
+        objects."""
+        self.sequences.fluxes.load_series()
+
+    def load_stateseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |StateSequence|
+        objects."""
+        self.sequences.states.load_series()
+
+    def save_allseries(self) -> None:
+        """Call method |Model.save_inputseries|, |Model.save_factorseries|,
+        |Model.save_fluxseries|, and |Model.save_stateseries|."""
+        self.save_inputseries()
+        self.save_factorseries()
+        self.save_fluxseries()
+        self.save_stateseries()
+
+    def save_inputseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |InputSequence|
+        objects."""
+        self.sequences.inputs.save_series()
+
+    def save_factorseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.save_series()
+
+    def save_fluxseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |FluxSequence|
+        objects."""
+        self.sequences.fluxes.save_series()
+
+    def save_stateseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |StateSequence|
+        objects."""
+        self.sequences.states.save_series()
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
@@ -1440,7 +1541,7 @@ class ELSModel(SolverModel):
 
     The "Explicit Lobatto Sequence" is a variable order Runge Kutta method combining
     different Lobatto methods.  Its main idea is to first calculate a solution with a
-    lower order method, then to use these results to apply the next higher-order method,
+    lower order method, then use these results to apply the next higher-order method,
     and to compare both results.  If they are close enough, the latter results are
     accepted.  If not, the next higher-order method is applied (or, if no higher-order
     method is available, the step size is decreased, and the algorithm restarts with

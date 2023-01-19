@@ -1483,77 +1483,63 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
 
     @printtools.print_progress
     def load_allseries(self) -> None:
-        """Call methods |Elements.load_inputseries|, |Elements.load_factorseries|,
-        |Elements.load_fluxseries|, and |Elements.load_stateseries|."""
-        self.load_inputseries()
-        self.load_factorseries()
-        self.load_fluxseries()
-        self.load_stateseries()
+        """Call method |Element.load_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_allseries()
 
     @printtools.print_progress
     def load_inputseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |InputSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("inputs")
+        """Call method |Element.load_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_inputseries()
 
     @printtools.print_progress
     def load_factorseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |FactorSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("factors")
+        """Call method |Element.load_factorseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_factorseries()
 
     @printtools.print_progress
     def load_fluxseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |FluxSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("fluxes")
+        """Call method |Element.load_fluxseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_fluxseries()
 
     @printtools.print_progress
     def load_stateseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |StateSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("states")
-
-    def __load_modelseries(self, name_subseqs: str) -> None:
+        """Call method |Element.load_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.model.sequences[name_subseqs].load_series()
+            element.load_stateseries()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
-        """Call methods |Elements.save_inputseries|, |Elements.save_factorseries|,
-        |Elements.save_fluxseries|, and |Elements.save_stateseries|."""
-        self.save_inputseries()
-        self.save_factorseries()
-        self.save_fluxseries()
-        self.save_stateseries()
+        """Call method |Element.save_allseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_allseries()
 
     @printtools.print_progress
     def save_inputseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |InputSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("inputs")
+        """Call method |Element.save_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_inputseries()
 
     @printtools.print_progress
     def save_factorseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |FactorSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("factors")
+        """Call method |Element.save_factorseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_factorseries()
 
     @printtools.print_progress
     def save_fluxseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |FluxSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("fluxes")
+        """Call method |Element.save_fluxseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_fluxseries()
 
     @printtools.print_progress
     def save_stateseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |StateSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("states")
-
-    def __save_modelseries(self, name_subseqs: str) -> None:
+        """Call method |Element.save_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.model.sequences[name_subseqs].save_series()
+            element.save_stateseries()
 
 
 class Device:
@@ -1819,7 +1805,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
 
     @property
     def exits(self) -> Elements:
-        """Group of |Element| objects which query the simulated or observed value of
+        """Group of |Element| objects that query the simulated or observed value of
         the actual |Node| object."""
         return self._exits
 
@@ -2905,49 +2891,123 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         return variables
 
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
-        """Call method |Element.prepare_inputseries| with `read_jit=jit` and methods
-        |Element.prepare_factorseries|, |Element.prepare_fluxseries|, and
-        |Element.prepare_stateseries| with `write_jit=jit`."""
-        self.prepare_inputseries(allocate_ram=allocate_ram, read_jit=jit)
-        self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
-        self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
-        self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+        """Call method |Model.prepare_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |InputSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.inputs.prepare_series(
+        """Call method |Model.prepare_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_inputseries(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_inputseries(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
     def prepare_factorseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |FactorSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.factors.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_factorseries(
+                allocate_ram=allocate_ram, write_jit=write_jit
+            )
 
     def prepare_fluxseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |FluxSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.fluxes.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_stateseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |StateSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.states.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
+    def load_allseries(self) -> None:
+        """Call method |Model.load_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_allseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_allseries()
+
+    def load_inputseries(self) -> None:
+        """Call method |Model.load_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_inputseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_inputseries()
+
+    def load_factorseries(self) -> None:
+        """Call method |Model.load_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_factorseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_factorseries()
+
+    def load_fluxseries(self) -> None:
+        """Call method |Model.load_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_fluxseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_fluxseries()
+
+    def load_stateseries(self) -> None:
+        """Call method |Model.load_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_stateseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_stateseries()
+
+    def save_allseries(self) -> None:
+        """Call method |Model.save_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_allseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_allseries()
+
+    def save_inputseries(self) -> None:
+        """Call method |Model.save_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_inputseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_inputseries()
+
+    def save_factorseries(self) -> None:
+        """Call method |Model.save_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_factorseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_factorseries()
+
+    def save_fluxseries(self) -> None:
+        """Call method |Model.save_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_fluxseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_fluxseries()
+
+    def save_stateseries(self) -> None:
+        """Call method |Model.save_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_stateseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_stateseries()
 
     def _plot_series(
         self,

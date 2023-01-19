@@ -15,22 +15,28 @@ class NetShortwaveRadiation(sequencetools.FluxSequence):
 class NetLongwaveRadiation(sequencetools.FluxSequence):
     """Net longwave radiation [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class NetRadiation(sequencetools.FluxSequence):
     """Total net radiation [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class SoilHeatFlux(sequencetools.FluxSequence):
     """Soil heat flux [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class ReferenceEvapotranspiration(sequencetools.FluxSequence):
     """Reference evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):
+    """Mean reference evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False

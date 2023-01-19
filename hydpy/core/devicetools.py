@@ -265,8 +265,8 @@ class FusedVariable:
     meteorological data to calculate potential evapotranspiration.  Further, we pass
     the calculated potential evapotranspiration as input to |lland_v2| for calculating
     the actual evapotranspiration.  Hence, we need to connect the output sequence
-    |evap_fluxes.ReferenceEvapotranspiration| of |evap_fao56| with the input sequence
-    |lland_inputs.PET| of |lland_v2|.
+    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
+    sequence |lland_inputs.PET| of |lland_v2|.
 
     Additionally, |lland_v2| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
@@ -275,14 +275,14 @@ class FusedVariable:
     |lland_v2|, respectively).
 
     For our concrete example, we need to create two |FusedVariable| objects.  `E`
-    combines |evap_fluxes.ReferenceEvapotranspiration| and |lland_inputs.PET| and `T`
-    combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we
-    import their globally available aliases):
+    combines |evap_fluxes.MeanReferenceEvapotranspiration| and |lland_inputs.PET| and
+    `T` combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience,
+    we import their globally available aliases):
 
     >>> from hydpy import FusedVariable
     >>> from hydpy.inputs import lland_PET, evap_AirTemperature, lland_TemL
-    >>> from hydpy.outputs import evap_ReferenceEvapotranspiration
-    >>> E = FusedVariable("E", evap_ReferenceEvapotranspiration, lland_PET)
+    >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
+    >>> E = FusedVariable("E", evap_MeanReferenceEvapotranspiration, lland_PET)
     >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     Now we can construct the network:
@@ -345,11 +345,11 @@ class FusedVariable:
     >>> evap.model.sequences.inputs.airtemperature
     airtemperature(-273.15)
 
-    The output sequence |evap_fluxes.ReferenceEvapotranspiration| is also well
+    The output sequence |evap_fluxes.MeanReferenceEvapotranspiration| is also well
     connected.  A call to method |Model.update_outputs| passes its (manually set) value
     to node `e`, respectively:
 
-    >>> evap.model.sequences.fluxes.referenceevapotranspiration = 999.9
+    >>> evap.model.sequences.fluxes.meanreferenceevapotranspiration = 999.9
     >>> evap.model.update_outputs()
     >>> e.sequences.sim
     sim(999.9)

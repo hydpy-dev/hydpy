@@ -2,4 +2,9 @@
 
 
 cdef class BaseInterface:
-    pass
+
+    cdef void load_data(self) nogil:
+        pass
+
+    cdef void save_data(self, int idx) nogil:
+        pass

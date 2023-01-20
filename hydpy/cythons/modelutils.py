@@ -1373,6 +1373,13 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void simulate(self, int idx) {_nogil}:")
         lines.add(2, "self.idx_sim = idx")
+        submodels = self.model.find_submodels(
+            include_subsubmodels=False, include_optional=True
+        )
+        for fullname in submodels:
+            name = fullname.rpartition(".")[2]
+            lines.add(2, f"if self.{name} is not None:")
+            lines.add(3, f"self.{name}.idx_sim = idx")
         seqs = self.model.sequences
         if seqs.inputs:
             lines.add(2, "self.load_data()")
@@ -1450,6 +1457,13 @@ class PyxWriter:
                     lines.add(
                         2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
                     )
+            submodels = self.model.find_submodels(
+                include_subsubmodels=False, include_optional=True
+            )
+            for fullname in submodels:
+                name = fullname.rpartition(".")[2]
+                lines.add(2, f"if self.{name} is not None:")
+                lines.add(3, f"self.{name}.{func}({'idx' if idx_as_arg else ''})")
         return lines
 
     @property

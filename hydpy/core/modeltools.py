@@ -813,16 +813,20 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """Perform a simulation run over a single simulation time step."""
 
     def load_data(self) -> None:
-        """Call method |Sequences.load_data| of attribute `sequences`.
+        """Call method |Sequences.load_data| of the attribute `sequences` of the
+        current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         if self.sequences:
             self.sequences.load_data(self.idx_sim)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.load_data()
 
     def save_data(self, idx: int) -> None:
-        """Call method |Sequences.save_data| of attribute `sequences`.
+        """Call method |Sequences.save_data| of the attribute `sequences` of the
+        current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
@@ -830,6 +834,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self.idx_sim = idx
         if self.sequences:
             self.sequences.save_data(idx)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.save_data(idx)
 
     def update_inlets(self) -> None:
         """Call all methods defined as "INLET_METHODS" in the defined order.
@@ -982,6 +988,71 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         yield method
                 for method in getattr(cls, groupname, ()):
                     yield method
+
+    @overload
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: Literal[False] = False,
+    ) -> Dict[str, Model]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: Literal[True] = True,
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: bool = False,
+    ) -> Dict[str, Optional[Model]]:
+        """Find the (sub)submodel instances of the current main model instance.
+
+        Method |Model.find_submodels| returns by default an empty dictionary if no
+        submodel is available:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model("lland_v1")
+        >>> model.find_submodels()
+        {}
+
+        The `include_mainmodel` parameter allows the addition of the main model:
+
+        >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
+        {'lland_v1': <hydpy.models.lland_v1.Model ...>}
+
+        The `include_optional` parameter allows considering prepared and unprepared
+        submodels:
+
+        >>> model.find_submodels(include_optional=True)
+        {'lland_v1.petmodel': None, 'lland_v1.soilmodel': None}
+        >>> model.petmodel = prepare_model("evap_fao56")
+        >>> model.find_submodels(include_optional=True)  # doctest: +ELLIPSIS
+        {'lland_v1.petmodel': <hydpy.models.evap_fao56.Model ...>, \
+'lland_v1.soilmodel': None}
+        """
+
+        def _find_submodels(name: str, model: Model) -> None:
+            name2submodel_new = {}
+            for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
+                submodel = getattr(model, submodelproperty.name)
+                if include_optional or (submodel is not None):
+                    name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+            name2submodel.update(name2submodel_new)
+            if include_subsubmodels:
+                for subname, submodel in name2submodel_new.items():
+                    _find_submodels(f"{name}.{subname}", submodel)
+
+        name2submodel = {self.name: self} if include_mainmodel else {}
+        _find_submodels(self.name, self)
+        return dict(sorted(name2submodel.items()))
 
     def __str__(self) -> str:
         return self.name
@@ -1161,6 +1232,8 @@ class RunModel(Model):
             >>> Element.clear_all()
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels().values():
+            submodel.idx_sim = idx
         self.load_data()
         self.update_inlets()
         self.run()
@@ -1409,6 +1482,8 @@ class ELSModel(SolverModel):
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels().values():
+            submodel.idx_sim = idx
         self.load_data()
         self.update_inlets()
         self.solve()

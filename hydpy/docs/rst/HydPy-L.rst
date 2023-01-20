@@ -45,8 +45,7 @@ So far, we compiled the following application models:
 .. toctree::
    :maxdepth: 1
 
-   lland_v1 (Turc-Wendling, Degree day) <lland_v1>
-   lland_v2 (External PET, Degree day) <lland_v2>
+   lland_v1 (External PET, Degree day) <lland_v1>
    lland_v3 (Penman-Monteith, Knauf) <lland_v3>
    lland_v4 (Penman-Monteith, Knauf, snow interception) <lland_v4>
    lstream_v001 (Kinematic Wave, Manning-Strickler) <lstream_v001>

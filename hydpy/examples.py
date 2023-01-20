@@ -44,7 +44,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the
-    application models |lland_v1|, |lland_v2|, and |hland_v1|.  Here, we apply
+    application models |lland_v1|, |lland_v3|, and |hland_v1|.  Here, we apply
     |prepare_io_example_1| and shortly discuss different aspects of its generated data.
 
     >>> from hydpy.examples import prepare_io_example_1
@@ -69,13 +69,13 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     []
 
     (3) It returns four |Element| objects handling either application model |lland_v1|
-    |lland_v2|, or |hland_v1|, and two |Node| objects handling variables `Q` and `T`:
+    |lland_v3|, or |hland_v1|, and two |Node| objects handling variables `Q` and `T`:
 
     >>> for element in elements:
     ...     print(element.name, element.model)
     element1 lland_v1
     element2 lland_v1
-    element3 lland_v2
+    element3 lland_v3
     element4 hland_v1
     >>> for node in nodes:
     ...     print(node.name, node.variable)
@@ -155,7 +155,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     element1.model = importtools.prepare_model("lland_v1")
     element2.model = importtools.prepare_model("lland_v1")
-    element3.model = importtools.prepare_model("lland_v2")
+    element3.model = importtools.prepare_model("lland_v3")
     element4.model = importtools.prepare_model("hland_v1")
 
     for idx, element in enumerate(elements_lland):

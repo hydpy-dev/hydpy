@@ -3105,12 +3105,12 @@ class ConditionSequence(ModelSequence):
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
-        We use the |lland_v2| application model, which handles sequences derived from
+        We use the |lland_v1| application model, which handles sequences derived from
         |StateSequence| (taking |lland_states.Inzp| as an example) and from
         |LogSequence| (taking |lland_logs.WET0| as an example):
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("lland_v2")
+        >>> model = prepare_model("lland_v1")
 
         After defining their shapes, both sequences contain |numpy.nan|
         values:

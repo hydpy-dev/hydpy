@@ -12,7 +12,7 @@ Europe.
 The following list summarises the main components of |hland_v1|:
 
  * Calculate the current from average potential evapotranspiration values.
- * Apply different correction factors on the liquid and the frozen amount of
+ * Apply different correction factors to the liquid and the frozen amount of
    precipitation.
  * Simulate interception via simple "bucket" storages.
  * Reflect local spatial heterogeneity of snow by defining snow classes.
@@ -49,8 +49,13 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-The following integration tests rely on the data used for testing the application model
-|lland_v2|.  Hopefully, this eases drawing comparisons between both models.
+The following integration tests rely on the meteorological input data used for testing
+the application model |lland_v1|. The values of the input sequences |P| (precipitation)
+and |T| (temperature) are copy-pasted.  The |EPN| (normed potential evaporation) values
+are the |lland_fluxes.ET0| values calcuted by |evap_tw2002| but divided by 0.4 to
+account for the selected value of the evaporation adjustment factor
+|evap_control.EvapotranspirationFactor|.  Hopefully, this eases drawing comparisons
+between both models.
 
 We perform all integration tests over five days with a simulation step of one hour:
 
@@ -156,7 +161,7 @@ and all other storages are empty:
 ...               (logs.quh, 0.05))
 
 As mentioned above, the values of the input sequences |P|, |hland_inputs.T|, and |EPN|
-stem from :ref:`here <lland_v2_acker_summer>`. For educational purposes, we again use
+stem from :ref:`here <lland_v1_acker_summer>`. For educational purposes, we again use
 unrealistically high values of |EPN|.  For the sake of simplicity, we define |TN| to be
 constantly 1 °C below |hland_inputs.T|:
 
@@ -206,7 +211,7 @@ for the accuracy-related parameter |RecStep|:
 
 The following results show the response of application model |hland_v1| to the given
 extreme precipitation event.  The intense evaporation weakens the response markedly.
-One striking difference to other models like |lland_v2| is the block-like appearance of
+One striking difference to other models like |lland_v1| is the block-like appearance of
 percolation (|Perc|), which is one reason for the unusual transitions between event
 periods (consisting of both runoff components |Q0| and |Q1|) and the subsequent pure
 base flow periods (consisting of |Q1| only):

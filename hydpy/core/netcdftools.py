@@ -870,8 +870,8 @@ class NetCDFInterface:
     >>> print_values(interface.filenames)
     hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_flux_nkor,
     lland_v1_flux_nkor_mean, lland_v1_input_nied,
-    lland_v1_input_nied_mean, lland_v2_flux_nkor, lland_v2_flux_nkor_mean,
-    lland_v2_input_nied, lland_v2_input_nied_mean, node_sim_q,
+    lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
+    lland_v3_input_nied, lland_v3_input_nied_mean, node_sim_q,
     node_sim_q_mean, node_sim_t, node_sim_t_mean
     >>> interface.variablenames
     ('flux_nkor', 'input_nied', 'sim_q', 'sim_t', 'state_sp')
@@ -885,13 +885,13 @@ class NetCDFInterface:
     default_hland_v1_state_sp, default_hland_v1_state_sp_mean,
     default_lland_v1_flux_nkor, default_lland_v1_flux_nkor_mean,
     default_lland_v1_input_nied, default_lland_v1_input_nied_mean,
-    default_lland_v2_flux_nkor, default_lland_v2_flux_nkor_mean,
-    default_lland_v2_input_nied, default_lland_v2_input_nied_mean,
+    default_lland_v3_flux_nkor, default_lland_v3_flux_nkor_mean,
+    default_lland_v3_input_nied, default_lland_v3_input_nied_mean,
     default_node_sim_q, default_node_sim_q_mean, default_node_sim_t,
     default_node_sim_t_mean, hland_v1_state_sp, hland_v1_state_sp_mean,
-    lland_v1_input_nied, lland_v1_input_nied_mean, lland_v2_flux_nkor,
-    lland_v2_flux_nkor_mean, lland_v2_input_nied,
-    lland_v2_input_nied_mean, node_sim_q, node_sim_q_mean, node_sim_t,
+    lland_v1_input_nied, lland_v1_input_nied_mean, lland_v3_flux_nkor,
+    lland_v3_flux_nkor_mean, lland_v3_input_nied,
+    lland_v3_input_nied_mean, node_sim_q, node_sim_q_mean, node_sim_t,
     node_sim_t_mean, test_lland_v1_flux_nkor, test_lland_v1_flux_nkor_mean
 
     If multiple NetCDF files have the same name, you must prefix the relevant folder

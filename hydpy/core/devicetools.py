@@ -250,44 +250,52 @@ _registry_fusedvariable: Dict[str, FusedVariable] = {}
 
 class FusedVariable:
     """Combines |InputSequence| and |OutputSequence| subclasses of different models
-    dealing with the same property into a single variable.
+    dealing with the same property in a single variable.
 
-    Class |FusedVariable| is one possible type of the property |Node.variable| of class
-    |Node|.  We need it in some *HydPy* projects where the involved models do not only
-    pass runoff to each other but share other types of data as well.  Each
+    Class |FusedVariable| is one possible type of property |Node.variable| of class
+    |Node|.  We need it in some *HydPy* projects where the involved models not only
+    pass runoff to each other but also share other types of data.  Each
     project-specific |FusedVariable| object serves as a "meta-type", indicating which
     input and output sequences of the different models correlate and are thus
-    connectable with each other.
+    connectable.
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
     this temperature as input to the |evap_fao56| model, which requires this and other
     meteorological data to calculate potential evapotranspiration.  Further, we pass
-    the calculated potential evapotranspiration as input to |lland_v2| for calculating
-    the actual evapotranspiration.  Hence, we need to connect the output sequence
+    the estimated potential evapotranspiration as input to |lland_v1| for calculating
+    the actual evapotranspiration, which receives it through a submodel instance of
+    |evap_io|.  Hence, we need to connect the output sequence
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
-    sequence |lland_inputs.PET| of |lland_v2|.
+    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
 
-    Additionally, |lland_v2| requires temperature data itself for modelling snow
+    ToDo: This example needs to be updated.  Today one could directly use |evap_fao56|
+          as a submodel of |lland_v1|.  However, it still demonstrates the relevant
+          connection mechanisms correctly.
+
+    Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
     (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
-    |lland_v2|, respectively).
+    |lland_v1|, respectively).
 
-    For our concrete example, we need to create two |FusedVariable| objects.  `E`
-    combines |evap_fluxes.MeanReferenceEvapotranspiration| and |lland_inputs.PET| and
-    `T` combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience,
-    we import their globally available aliases):
+    We need to create two |FusedVariable| objects, for our concrete example.  `E`
+    combines |evap_fluxes.MeanReferenceEvapotranspiration| and
+    |evap_inputs.ReferenceEvapotranspiration| and `T` combines
+    |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we import
+    their globally available aliases):
 
     >>> from hydpy import FusedVariable
-    >>> from hydpy.inputs import lland_PET, evap_AirTemperature, lland_TemL
+    >>> from hydpy.inputs import (
+    ...     evap_ReferenceEvapotranspiration, evap_AirTemperature, lland_TemL)
     >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
-    >>> E = FusedVariable("E", evap_MeanReferenceEvapotranspiration, lland_PET)
+    >>> E = FusedVariable(
+    ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
     >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     Now we can construct the network:
 
-     * Node `t1` handles the original temperature and serves as the input node to
+     * Node `t1` handles the original temperature data and serves as the input node to
        element `conv`. We define the (arbitrarily selected) string `Temp` to be its
        variable.
      * Node `e` receives the potential evapotranspiration calculated by element `evap`
@@ -300,15 +308,9 @@ class FusedVariable:
     >>> t1 = Node("t1", variable="Temp")
     >>> t2 = Node("t2", variable=T)
     >>> e = Node("e", variable=E)
-    >>> conv = Element("element_conv",
-    ...                inlets=t1,
-    ...                outlets=t2)
-    >>> evap = Element("element_evap",
-    ...                inputs=t2,
-    ...                outputs=e)
-    >>> lland = Element("element_lland",
-    ...                 inputs=(t2, e),
-    ...                 outlets="node_q")
+    >>> conv = Element("element_conv", inlets=t1, outlets=t2)
+    >>> evap = Element("element_evap", inputs=t2, outputs=e)
+    >>> lland = Element("element_lland", inputs=(t2, e), outlets="node_q")
 
     Now we can prepare the different model objects and assign them to their
     corresponding elements (note that parameters |conv_control.InputCoordinates| and
@@ -323,7 +325,9 @@ class FusedVariable:
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
     >>> evap.model = prepare_model("evap_fao56")
-    >>> lland.model = prepare_model("lland_v2")
+    >>> model = prepare_model("lland_v1")
+    >>> model.petmodel = prepare_model("evap_io")
+    >>> lland.model = model
 
     We assign a temperature value to node `t1`:
 
@@ -354,14 +358,15 @@ class FusedVariable:
     >>> e.sequences.sim
     sim(999.9)
 
-    Finally, both input sequences |lland_inputs.TemL| and |lland_inputs.PET| receive
-    the current values of nodes `t2` and `e`:
+    Finally, both input sequences |lland_inputs.TemL| and
+    |evap_inputs.ReferenceEvapotranspiration| receive the current values of nodes `t2`
+    and `e`:
 
     >>> lland.model.load_data()
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
-    >>> lland.model.sequences.inputs.pet
-    pet(999.9)
+    >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration
+    referenceevapotranspiration(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
     behind the scenes, similar to what classes |Node| and |Element| do.  Again, the
@@ -384,15 +389,14 @@ The already defined sequences of the fused variable `T` are `evap_AirTemperature
 lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
 unique identifier for fused variable instances.
 
-
-    Defining additional fused variables with the same member sequences does not seem
-    advisable but is allowed:
+    Defining additional fused variables with the same member sequences is not advisable
+    but is allowed:
 
     >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
     >>> T is Temp
     False
 
-    To get an overview of the already existing fused variables, call method
+    To get an overview of the existing fused variables, call method
     |FusedVariable.get_registry|:
 
     >>> len(FusedVariable.get_registry())
@@ -446,7 +450,7 @@ unique identifier for fused variable instances.
         return self
 
     @classmethod
-    def get_registry(cls) -> Tuple["FusedVariable", ...]:
+    def get_registry(cls) -> Tuple[FusedVariable, ...]:
         """Get all |FusedVariable| objects initialised so far."""
         return tuple(_registry_fusedvariable.values())
 
@@ -1829,8 +1833,8 @@ following error occurred: Adding devices to immutable Elements objects is not al
         >>> Node("test3", variable=T)
         Node("test3", variable=hland_T)
 
-        The last above example shows that the string representations of nodes handling
-        "class variables" use the aliases importable from the top-level of the *HydPy*
+        The last example above shows that the string representations of nodes handling
+        "class variables" use the aliases importable from the top level of the *HydPy*
         package:
 
         >>> from hydpy.inputs import hland_P
@@ -1945,8 +1949,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
-        Method |Node.get_double| should be of interest for framework developers only
-        (and eventually for model developers).
+        Method |Node.get_double| should interest framework developers only (and
+        eventually model developers).
 
         Let |Node| object `node1` handle different simulation and observation values:
 
@@ -2663,7 +2667,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     @property
     def inputs(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
-        "external" input values, instead of reading them from files (e.g. interpolated
+        "external" input values instead of reading them from files (e.g. interpolated
         precipitation)."""
         return self._inputs
 
@@ -2737,7 +2741,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         >>> attrready(hland, "model")
         False
 
-        For the "usual" approach to prepare models, please see the method
+        For the "usual" approach to preparing models, please see the method
         |Element.prepare_model|.
 
         The following examples show that assigning |Model| objects to property
@@ -2869,7 +2873,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """A set of all different |Node.variable| values of the |Node| objects directly
         connected to the actual |Element| object.
 
-        Suppose there is an element connected to five nodes, which (partly) represent
+        Suppose an element is connected to five nodes, which (partly) represent
         different variables:
 
         >>> from hydpy import Element, Node
@@ -3117,7 +3121,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time-series of all
         input sequences handled by its |Model| object directly to the screen (in our
-        example |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
+        example, |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
         |hland_inputs.EPN| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
@@ -3155,7 +3159,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         individual time-series in the same colour.  We demonstrate this for the frozen
         (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
         snow cover of different hydrological response units.  Therefore, we restrict
-        the shown period to February and March via the |Timegrids.eval_| time-grid:
+        the shown period to February and March via the |Timegrids.eval_| time grid:
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
         ...     figure = land.plot_stateseries(["sp", "wc"])

@@ -59,14 +59,14 @@ class Auxfiler:
     Each |Auxfiler| object is capable of handling parameter information for
     different kinds of models and performs some plausibility checks on added data.
     Assume, we want to store the control files of a "LARSIM type" HydPy project
-    involving the application models |lland_v1|, |lland_v2| and |lstream_v001|.
+    involving the application models |lland_v1|, |lland_v3| and |lstream_v001|.
     The following example shows how we add these models to the |Auxfiler| object
-    by passing through module (|lland_v1|), a working model object (|lland_v2|)
+    by passing through module (|lland_v1|), a working model object (|lland_v3|)
     or their name (|lstream_v001|):
 
     >>> from hydpy import prepare_model
     >>> from hydpy.models import lland_v1 as module
-    >>> model = prepare_model("lland_v2")
+    >>> model = prepare_model("lland_v3")
     >>> string = "lstream_v001"
 
     You can add all model types individually or in groups:
@@ -74,12 +74,12 @@ class Auxfiler:
     >>> auxfiler.add_models(module)
     >>> auxfiler.add_models(model, string)
     >>> auxfiler
-    Auxfiler("lland_v1", "lland_v2", "lstream_v001")
+    Auxfiler("lland_v1", "lland_v3", "lstream_v001")
 
     Alternatively, you can pass the models directly to the constructor:
 
     >>> Auxfiler(model, string, module)
-    Auxfiler("lland_v1", "lland_v2", "lstream_v001")
+    Auxfiler("lland_v1", "lland_v3", "lstream_v001")
 
     Wrong model specifications result in errors like the following:
 
@@ -94,13 +94,13 @@ class Auxfiler:
 
     >>> auxfiler["lland_v1"]
     SubAuxfiler()
-    >>> auxfiler.lland_v2
+    >>> auxfiler.lland_v3
     SubAuxfiler()
 
     Adding new and deleting existing |SubAuxfiler| objects via attribute access
     is disabled for safety purposes:
 
-    >>> auxfiler.lland_v2 = auxfiler.lland_v1
+    >>> auxfiler.lland_v3 = auxfiler.lland_v1
     Traceback (most recent call last):
     ...
     AttributeError: Class `Auxfiler` does not support adding `SubAuxfiler` \
@@ -117,7 +117,7 @@ objects via attribute access.  Use method `remove_models` to remove registered m
 
     >>> auxfiler.remove_models(module, string)
     >>> auxfiler
-    Auxfiler("lland_v2")
+    Auxfiler("lland_v3")
 
     >>> auxfiler.remove_models(module, string)
     Traceback (most recent call last):
@@ -148,16 +148,12 @@ attribute nor does it handle a model named `lland_v1`.
 
     _model2subauxfiler: Dict[str, "SubAuxfiler"]
 
-    def __init__(
-        self,
-        *models: Union[str, types.ModuleType, modeltools.Model],
-    ) -> None:
+    def __init__(self, *models: Union[str, types.ModuleType, modeltools.Model]) -> None:
         self._model2subauxfiler = {}
         self.add_models(*models)
 
     def add_models(
-        self,
-        *models: Union[str, types.ModuleType, modeltools.Model],
+        self, *models: Union[str, types.ModuleType, modeltools.Model]
     ) -> None:
         """Register an arbitrary number of |Model| types.
 
@@ -177,8 +173,7 @@ attribute nor does it handle a model named `lland_v1`.
             )
 
     def remove_models(
-        self,
-        *models: Union[str, types.ModuleType, modeltools.Model],
+        self, *models: Union[str, types.ModuleType, modeltools.Model]
     ) -> None:
         """Unregister an arbitrary number of |Model| classes.
 
@@ -201,16 +196,13 @@ attribute nor does it handle a model named `lland_v1`.
 
     @staticmethod
     def _get_model(
-        value: Union[str, types.ModuleType, modeltools.Model],
+        value: Union[str, types.ModuleType, modeltools.Model]
     ) -> modeltools.Model:
         if isinstance(value, modeltools.Model):
             return value
         return importtools.prepare_model(value)
 
-    def get(
-        self,
-        model: Union[str, modeltools.Model],
-    ) -> Optional["SubAuxfiler"]:
+    def get(self, model: Union[str, modeltools.Model]) -> Optional["SubAuxfiler"]:
         """Get the |SubAuxfiler| object related to the given |Model| type.
 
         In contrast to attribute and keyword access, method |Auxfiler.get| returns
@@ -220,7 +212,7 @@ attribute nor does it handle a model named `lland_v1`.
         >>> auxfiler = Auxfiler("lland_v1")
         >>> auxfiler.get("lland_v1")
         SubAuxfiler()
-        >>> auxfiler.get("lland_v2")
+        >>> auxfiler.get("lland_v3")
         """
         return self._model2subauxfiler.get(str(model))
 
@@ -238,8 +230,8 @@ attribute nor does it handle a model named `lland_v1`.
         """A sorted |tuple| of all names of the handled models.
 
         >>> from hydpy import Auxfiler
-        >>> Auxfiler("lland_v2", "lstream_v001", "lland_v1").modelnames
-        ('lland_v1', 'lland_v2', 'lstream_v001')
+        >>> Auxfiler("lland_v3", "lstream_v001", "lland_v1").modelnames
+        ('lland_v1', 'lland_v3', 'lstream_v001')
         """
         return tuple(sorted(self._model2subauxfiler.keys()))
 
@@ -260,17 +252,17 @@ attribute nor does it handle a model named `lland_v1`.
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqd1(200.0)
         >>> eqd2(100.0)
 
         >>> from hydpy import Auxfiler
-        >>> auxfiler = Auxfiler("lland_v1", "lland_v2")
+        >>> auxfiler = Auxfiler("lland_v1", "lland_v3")
         >>> auxfiler.lland_v1.add_parameter(eqd1, filename="file1")
-        >>> auxfiler.lland_v1.add_parameter(parameter=treft,
+        >>> auxfiler.lland_v1.add_parameter(parameter=tgr,
         ...                                 filename="file1",
-        ...                                 keywordarguments=treft.keywordarguments)
-        >>> auxfiler.lland_v2.add_parameters(eqd1, eqd2, filename="file2")
+        ...                                 keywordarguments=tgr.keywordarguments)
+        >>> auxfiler.lland_v3.add_parameters(eqd1, eqd2, filename="file2")
 
         Class |Auxfiler| takes the target path from the |ControlManager| object
         stored in the global |pub| object.  For testing, we initialise one and
@@ -301,7 +293,7 @@ attribute nor does it handle a model named `lland_v1`.
         simulationstep("12h")
         parameterstep("1d")
         <BLANKLINE>
-        treft(acker=2.0, laubw=1.0)
+        tgr(acker=2.0, laubw=1.0)
         eqd1(200.0)
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,7 +302,7 @@ attribute nor does it handle a model named `lland_v1`.
         -----------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.lland_v2 import *
+        from hydpy.models.lland_v3 import *
         <BLANKLINE>
         simulationstep("12h")
         parameterstep("1d")
@@ -339,10 +331,7 @@ attribute nor does it handle a model named `lland_v1`.
                     text="".join((header, body, "\n")),
                 )
 
-    def __getattr__(
-        self,
-        name: str,
-    ) -> "SubAuxfiler":
+    def __getattr__(self, name: str) -> "SubAuxfiler":
         try:
             return self._model2subauxfiler[name]
         except KeyError:
@@ -426,7 +415,7 @@ class SubAuxfiler:
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqi2(1000.0)
@@ -486,7 +475,7 @@ has already been allocated to filename `file1`.
         filename twice:
 
         >>> auxfiler.add_models("lstream_v001")
-        >>> auxfiler.lstream_v001.add_parameter(treft, filename="file1")
+        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to extend the range of parameters handled by the \
@@ -495,12 +484,12 @@ is already allocated to another `SubAuxfiler` object.
 
         Second, it checks that an assigned parameter belongs to the corresponding model:
 
-        >>> auxfiler.lstream_v001.add_parameter(treft, filename="file3")
+        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file3")
         Traceback (most recent call last):
         ...
         TypeError: While trying to extend the range of parameters handled by the \
-actual `SubAuxfiler` object, the following error occurred: Variable type \
-`TRefT` is not handled by model `lstream_v001`.
+actual `SubAuxfiler` object, the following error occurred: Variable type `TGr` is not \
+handled by model `lstream_v001`.
 
         The examples above deal with simple 0-dimensional |Parameter| subclasses
         where there is no question in how to define equality.  However, for
@@ -509,15 +498,15 @@ actual `SubAuxfiler` object, the following error occurred: Variable type \
 
         The auxiliary file functionalities of *HydPy* allow using the
         |Parameter.keywordarguments| property of a parameter to check for equality
-        instead (put more concretely, method |SubAuxfiler.get_parameterstrings|
-        uses method |KeywordArguments.subset_of| of class |KeywordArguments| for
+        instead (put more concretely, method |SubAuxfiler.get_parameterstrings| uses
+        method |KeywordArguments.subset_of| of class |KeywordArguments| for
         comparisons). If we want to apply this feature for the instances of the
-        |ZipParameter| subclass |lland_control.TRefT|, we need to additionally
-        pass a |KeywordArguments| object to method |SubAuxfiler.add_parameter|:
+        |ZipParameter| subclass |lland_control.TGr|, we need to additionally pass a
+        |KeywordArguments| object to method |SubAuxfiler.add_parameter|:
 
         >>> auxfiler.lland_v1.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
-        >>> auxfiler.lland_v1.treft
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        >>> auxfiler.lland_v1.tgr
         (KeywordArguments(acker=2.0, laubw=1.0),)
 
         Alternatively, we can also pass a manually defined |KeywordArguments| object
@@ -525,23 +514,23 @@ actual `SubAuxfiler` object, the following error occurred: Variable type \
 
         >>> from hydpy import KeywordArguments
         >>> auxfiler.lland_v1.add_parameter(
-        ...     treft, filename="file2",
+        ...     tgr, filename="file2",
         ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0))
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to extend the range of parameters handled by the \
 actual `SubAuxfiler` object, the following error occurred: You tried to allocate \
-parameter `treft(acker=2.0, laubw=1.0)` with keyword arguments \
-`KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but an `TRefT` with \
-equal keyword arguments has already been allocated to filename `file1`.
+parameter `tgr(acker=2.0, laubw=1.0)` with keyword arguments \
+`KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but an `TGr` with equal \
+keyword arguments has already been allocated to filename `file1`.
 
         Often, we want such a manually defined |KeywordArguments| object to be more
         general so that it covers as many actual parameter objects as possible:
 
         >>> auxfiler.lland_v1.add_parameter(
-        ...     treft, filename="file2",
+        ...     tgr, filename="file2",
         ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
-        >>> auxfiler.lland_v1.treft
+        >>> auxfiler.lland_v1.tgr
         (KeywordArguments(acker=2.0, laubw=1.0), \
 KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
 
@@ -587,10 +576,7 @@ parameter handled by the actual `SubAuxfiler` object.
                 f"the actual `{type(self).__name__}` object"
             )
 
-    def _check_filename(
-        self,
-        filename: str,
-    ) -> None:
+    def _check_filename(self, filename: str) -> None:
         objecttools.valid_variable_identifier(filename)
         if self._master is not None:
             for _, subauxf in self._master:
@@ -600,10 +586,7 @@ parameter handled by the actual `SubAuxfiler` object.
                         f"another `{type(self).__name__}` object."
                     )
 
-    def _check_parameter(
-        self,
-        parameter: parametertools.Parameter,
-    ) -> None:
+    def _check_parameter(self, parameter: parametertools.Parameter) -> None:
         if self._model and not isinstance(
             parameter, self._model.parameters.control.CLASSES
         ):
@@ -638,9 +621,7 @@ parameter handled by the actual `SubAuxfiler` object.
                     )
 
     def add_parameters(
-        self,
-        *parameters: parametertools.Parameter,
-        filename: str,
+        self, *parameters: parametertools.Parameter, filename: str
     ) -> None:
         """Add an arbitrary number of |Parameter| objects to the actual
         |SubAuxfiler| object.
@@ -671,7 +652,7 @@ parameter handled by the actual `SubAuxfiler` object.
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -681,7 +662,7 @@ parameter handled by the actual `SubAuxfiler` object.
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -793,8 +774,7 @@ error occurred: 'NoneType' object has no attribute 'items'
             )
 
     def get_filenames(
-        self,
-        parametertype: Optional[Type[parametertools.Parameter]] = None,
+        self, parametertype: Optional[Type[parametertools.Parameter]] = None
     ) -> Tuple[str, ...]:
         """Return a |tuple| of all or a selection of the handled auxiliary file names.
 
@@ -805,7 +785,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -815,7 +795,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -838,8 +818,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         return tuple(sorted(filenames))
 
     def get_parametertypes(
-        self,
-        filename: Optional[str] = None,
+        self, filename: Optional[str] = None
     ) -> Tuple[Type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
@@ -850,7 +829,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -860,7 +839,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -869,7 +848,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> for parametertype in subauxfiler.get_parametertypes():
         ...     print(parametertype.__name__)
-        TRefT
+        TGr
         EQB
         EQI1
         EQD1
@@ -879,7 +858,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> for parametertype in subauxfiler.get_parametertypes(filename="file1"):
         ...     print(parametertype.__name__)
-        TRefT
+        TGr
         EQB
         EQI1
         """
@@ -904,7 +883,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -914,7 +893,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -923,7 +902,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> for string in subauxfiler.get_parameterstrings():
         ...     print(string)
-        treft(acker=2.0, laubw=1.0)
+        tgr(acker=2.0, laubw=1.0)
         eqb(5000.0)
         eqb(10000.0)
         eqi1(2000.0)
@@ -935,7 +914,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> for string in subauxfiler.get_parameterstrings(filename="file1"):
         ...     print(string)
-        treft(acker=2.0, laubw=1.0)
+        tgr(acker=2.0, laubw=1.0)
         eqb(5000.0)
         eqi1(2000.0)
 
@@ -984,7 +963,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -994,7 +973,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -1033,10 +1012,7 @@ error occurred: 'NoneType' object has no attribute 'items'
                     references.append(ref)
         return tuple(references)
 
-    def get_filename(
-        self,
-        parameter: parametertools.Parameter,
-    ) -> Optional[str]:
+    def get_filename(self, parameter: parametertools.Parameter) -> Optional[str]:
         """If possible, return an auxiliary filename suitable for the given parameter
         object.
 
@@ -1047,7 +1023,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -1057,7 +1033,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -1081,55 +1057,55 @@ error occurred: 'NoneType' object has no attribute 'items'
         method |KeywordArguments.subset_of| to check if the keyword arguments of the
         given parameter are a subset of keyword arguments of the registered parameter:
 
-        >>> subauxfiler.get_filename(treft)
+        >>> subauxfiler.get_filename(tgr)
         'file1'
-        >>> treft(acker=2.0, laubw=0.0)
-        >>> subauxfiler.get_filename(treft)
+        >>> tgr(acker=2.0, laubw=0.0)
+        >>> subauxfiler.get_filename(tgr)
 
         As a result, auxiliary file `file1` is also considered suitable for a
-        |lland_control.TRefT| object related to land-use type |lland_constants.ACKER|
+        |lland_control.TGr| object related to land-use type |lland_constants.ACKER|
         (acre) only:
 
         >>> lnk(ACKER)
-        >>> treft(acker=3.0)
-        >>> subauxfiler.get_filename(treft)
-        >>> treft(acker=2.0)
-        >>> subauxfiler.get_filename(treft)
+        >>> tgr(acker=3.0)
+        >>> subauxfiler.get_filename(tgr)
+        >>> tgr(acker=2.0)
+        >>> subauxfiler.get_filename(tgr)
         'file1'
 
         The above mechanism is convenient (and possibly even necessary to make
         writing auxiliary files feasible for many parameter types) but can lead
         to ambiguous situations.  To demonstrate this, we register the currently
-        relevant keyword arguments of parameter |lland_control.TRefT|:
+        relevant keyword arguments of parameter |lland_control.TGr|:
 
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file2", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file2", keywordarguments=tgr.keywordarguments)
 
-        Now, the keyword arguments of |lland_control.TRefT| are a subset of
+        Now, the keyword arguments of |lland_control.TGr| are a subset of
         both registered |KeywordArguments| objects:
 
-        >>> treft.keywordarguments
+        >>> tgr.keywordarguments
         KeywordArguments(acker=2.0)
         >>> kwargs = subauxfiler.get_references(
-        ...     parametertype=type(treft), filename="file1")[0]
+        ...     parametertype=type(tgr), filename="file1")[0]
         >>> kwargs
         KeywordArguments(acker=2.0, laubw=1.0)
-        >>> treft.keywordarguments.subset_of(kwargs)
+        >>> tgr.keywordarguments.subset_of(kwargs)
         True
         >>> kwargs = subauxfiler.get_references(
-        ...     parametertype=type(treft), filename="file2")[0]
+        ...     parametertype=type(tgr), filename="file2")[0]
         >>> kwargs
         KeywordArguments(acker=2.0)
-        >>> treft.keywordarguments.subset_of(kwargs)
+        >>> tgr.keywordarguments.subset_of(kwargs)
         True
 
         Method |SubAuxfiler.get_filename| emits a warning when it finds multiple
         suitable auxiliary files:
 
-        >>> subauxfiler.get_filename(treft)
+        >>> subauxfiler.get_filename(tgr)
         Traceback (most recent call last):
         ...
-        UserWarning: Parameter `treft(2.0)` matches several auxiliary files: \
+        UserWarning: Parameter `tgr(2.0)` matches several auxiliary files: \
 file1 and file2
 
         Nevertheless, it returns the first match (which might be confusing due to
@@ -1138,7 +1114,7 @@ file1 and file2
         >>> import warnings
         >>> with warnings.catch_warnings() :
         ...     warnings.filterwarnings("ignore")
-        ...     subauxfiler.get_filename(treft)
+        ...     subauxfiler.get_filename(tgr)
         'file1'
         """
         filenames = []
@@ -1188,7 +1164,7 @@ file1 and file2
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-        >>> treft(acker=2.0, laubw=1.0)
+        >>> tgr(acker=2.0, laubw=1.0)
         >>> eqb(5000.0)
         >>> eqi1(2000.0)
         >>> eqd1(100.0)
@@ -1198,12 +1174,12 @@ file1 and file2
         >>> subauxfiler = auxfiler.lland_v1
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     treft, filename="file1", keywordarguments=treft.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
         >>> sorted(set(dir(subauxfiler)) - set(object.__dir__(subauxfiler)))
-        ['eqb', 'eqd1', 'eqi1', 'file1', 'file2', 'treft']
+        ['eqb', 'eqd1', 'eqi1', 'file1', 'file2', 'tgr']
         """
         names = itertools.chain(
             cast(List[str], super().__dir__()),

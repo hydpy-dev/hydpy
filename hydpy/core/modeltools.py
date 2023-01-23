@@ -10,7 +10,7 @@ import itertools
 import os
 import types
 from typing import *
-from typing_extensions import Final  # type: ignore[misc]
+from typing_extensions import Final
 
 # ...from site-packages
 import numpy
@@ -692,40 +692,59 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_inputs(self) -> None:
         for node in self.element.inputs:
             if isinstance(node.variable, devicetools.FusedVariable):
-                for sequence in self.sequences.inputs:
-                    if sequence in node.variable:
-                        break
-                else:
+                connected = False
+                for submodel in self.find_submodels(include_mainmodel=True).values():
+                    for sequence in submodel.sequences.inputs:
+                        if sequence in node.variable:
+                            sequence.set_pointer(node.get_double("inputs"))
+                            connected = True
+                            break
+                if not connected:
+                    submodelphrase = objecttools.submodelphrase(self)
                     raise TypeError(
-                        f"None of the input sequences of model `{self}` is among the "
-                        f"sequences of the fused variable `{node.variable}` of node "
-                        f"`{node.name}`."
+                        f"None of the input sequences of {submodelphrase} is among "
+                        f"the sequences of the fused variable `{node.variable}` of "
+                        f"node `{node.name}`."
                     )
             else:
                 name = node.variable.__name__.lower()
-                try:
-                    sequence = getattr(self.sequences.inputs, name)
-                except AttributeError:
+                sequence = getattr(self.sequences.inputs, name, None)
+                if sequence is None:
                     raise TypeError(
                         f"No input sequence of model `{self}` is named `{name}`."
-                    ) from None
-            sequence.set_pointer(node.get_double("inputs"))
+                    )
+                sequence.set_pointer(node.get_double("inputs"))
 
     def _connect_outputs(self) -> None:
+        def _set_pointer(
+            seq: sequencetools.OutputSequence, node_: devicetools.Node
+        ) -> None:
+            if seq.NDIM > 0:
+                raise TypeError(
+                    f"Only connections with 0-dimensional output sequences are "
+                    f"supported, but sequence `{seq.name}` is {seq.NDIM}-dimensional."
+                )
+            seq.set_pointer(node_.get_double("outputs"))
+
         for node in self.element.outputs:
             if isinstance(node.variable, devicetools.FusedVariable):
-                for sequence in itertools.chain(
-                    self.sequences.factors,
-                    self.sequences.fluxes,
-                    self.sequences.states,
-                ):
-                    if sequence in node.variable:
-                        break
-                else:
+                connected = False
+                for submodel in self.find_submodels(include_mainmodel=True).values():
+                    for sequence in itertools.chain(
+                        submodel.sequences.factors,
+                        submodel.sequences.fluxes,
+                        submodel.sequences.states,
+                    ):
+                        if sequence in node.variable:
+                            _set_pointer(sequence, node)
+                            connected = True
+                            break
+                if not connected:
+                    submodelphrase = objecttools.submodelphrase(self)
                     raise TypeError(
-                        f"None of the output sequences of model `{self}` is among the "
-                        f"sequences of the fused variable `{node.variable}` of node "
-                        f"`{node.name}`."
+                        f"None of the output sequences of {submodelphrase} is among "
+                        f"the sequences of the fused variable `{node.variable}` of "
+                        f"node `{node.name}`."
                     )
             else:
                 name = node.variable.__name__.lower()
@@ -739,13 +758,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"No factor, flux, or state sequence of model `{self}` is "
                         f"named `{name}`."
                     )
-            if sequence.NDIM > 0:
-                raise TypeError(
-                    f"Only connections with 0-dimensional output sequences are "
-                    f"supported, but sequence `{sequence.name}` is "
-                    f"{sequence.NDIM}-dimensional."
-                )
-            sequence.set_pointer(node.get_double("outputs"))
+                _set_pointer(sequence, node)
 
     def _connect_inlets(self) -> None:
         self._connect_subgroup("inlets")

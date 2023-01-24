@@ -4,6 +4,7 @@
 # ...from standard library
 from __future__ import annotations
 import abc
+import collections
 import importlib
 import itertools
 import os
@@ -163,20 +164,36 @@ instance of any of the following types: `SoilModel_V1`.
     The automatically generated docstrings list the supported interfaces:
 
     >>> print(type(mainmodel_python).soilmodel.__doc__)
-    Optional submodel following one of the following interface(s): SoilModel_V1.
+    Optional submodel that complies with the following interface: SoilModel_V1.
     """
 
-    _interfaces: Tuple[Type[SubmodelInterface], ...]
-    _name: str
+    interfaces: Final[Tuple[Type[SubmodelInterface], ...]]
+    optional: Final[bool]
+    name: Final[str]  # type: ignore[misc]
+    modeltype2instance: ClassVar[
+        DefaultDict[Type[Model], List[SubmodelProperty]]
+    ] = collections.defaultdict(lambda: [])
 
-    def __init__(self, interfaces: Iterable[Type[SubmodelInterface]]) -> None:
-        self._interfaces = tuple(interfaces)
-        self._name = self._interfaces[0].name
-        interfacenames = (i.__name__ for i in self._interfaces)
+    def __init__(
+        self, *interfaces: Type[SubmodelInterface], optional: bool = False
+    ) -> None:
+        self.interfaces = tuple(interfaces)
+        self.optional = optional
+        interfacenames = (i.__name__ for i in self.interfaces)
+        prefix = "Optional submodel" if optional else "Required submodel"
+        suffix = (
+            "the following interface"
+            if len(interfaces) == 1
+            else "one of the following interfaces"
+        )
         self.__doc__ = (
-            f"Optional submodel following one of the following interface(s): "
+            f"{prefix} that complies with {suffix}: "
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self.name = name  # type: ignore[misc]
+        self.modeltype2instance[owner].append(self)
 
     @overload
     def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
@@ -193,14 +210,14 @@ instance of any of the following types: `SoilModel_V1`.
     ) -> Union[SubmodelProperty, Optional[Model]]:
         if obj is None:
             return self
-        return vars(obj).get(self._name, None)
+        return vars(obj).get(self.name, None)
 
     def __set__(self, obj: Model, value: Optional[Model]) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
-            elif isinstance(value, self._interfaces):
-                vars(obj)[self._name] = value
+            elif isinstance(value, self.interfaces):
+                vars(obj)[self.name] = value
                 if obj.cymodel is not None:
                     if value.cymodel is None:
                         raise RuntimeError(
@@ -209,9 +226,9 @@ instance of any of the following types: `SoilModel_V1`.
                             f"mode, so that the main model's cythonized methods "
                             f"cannot apply the submodel's methods."
                         )
-                    getattr(obj.cymodel, f"set_{self._name}")(value.cymodel)
+                    getattr(obj.cymodel, f"set_{self.name}")(value.cymodel)
             else:
-                interfacenames = (i.__name__ for i in self._interfaces)
+                interfacenames = (i.__name__ for i in self.interfaces)
                 raise ValueError(
                     f"The given value is neither `None` nor an instance of any of the "
                     f"following types: `{objecttools.enumeration(interfacenames)}`."
@@ -219,13 +236,13 @@ instance of any of the following types: `SoilModel_V1`.
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to assign {objecttools.value_of_type(value)} to "
-                f"property `{self._name}`"
+                f"property `{self.name}`"
             )
 
     def __delete__(self, obj: Model) -> None:
-        vars(obj)[self._name] = None
+        vars(obj)[self.name] = None
         if obj.cymodel is not None:
-            getattr(obj.cymodel, f"set_{self._name}")(None)
+            getattr(obj.cymodel, f"set_{self.name}")(None)
 
 
 class IndexProperty:
@@ -380,9 +397,6 @@ class Model:
         self.cymodel = None
         self.element = None
         self._init_methods()
-        if hasattr(self, "SUBMODELINTERFACES"):
-            for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
-                setattr(self, interfacename, None)
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
@@ -1057,19 +1071,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def __str__(self) -> str:
         return self.name
 
-    @classmethod
-    def _init_submodelproperties(cls) -> None:
-        def _key(interface: Type[SubmodelInterface]) -> str:
-            return interface.name
-
-        if hasattr(cls, "SUBMODELINTERFACES"):
-            interfaces = sorted(cls.SUBMODELINTERFACES, key=_key)
-            for name, subinterfaces in itertools.groupby(interfaces, key=_key):
-                setattr(cls, name, SubmodelProperty(subinterfaces))
-
     def __init_subclass__(cls) -> None:
-
-        cls._init_submodelproperties()
 
         modulename = cls.__module__
         if modulename.count(".") > 2:

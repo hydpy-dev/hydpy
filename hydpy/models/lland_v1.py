@@ -2044,6 +2044,8 @@ class Model(modeltools.AdHocModel):
     SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
     SUBMODELS = ()
 
+    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
+
     def check_waterbalance(
         self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
     ) -> float:

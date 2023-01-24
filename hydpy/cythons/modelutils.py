@@ -1291,7 +1291,10 @@ class PyxWriter:
     @property
     def modeldeclarations(self) -> List[str]:
         """The attribute declarations of the model class."""
-        submodels = getattr(self.model, "SUBMODELS", ())
+        submodeltypes_old = getattr(self.model, "SUBMODELS", ())
+        submodelnames_new = [
+            n.split(".")[-1] for n in self.model.find_submodels(include_optional=True)
+        ]
         lines = Lines()
         lines.add(0, "@cython.final")
         interfacebases = ", ".join(
@@ -1307,22 +1310,22 @@ class PyxWriter:
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
-        for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+        for name in submodelnames_new:
             lines.add(1, f"cdef public interfaceutils.BaseInterface {name}")
-        for submodel in submodels:
+        for submodel in submodeltypes_old:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
             lines.add(1, "cdef public NumConsts numconsts")
         if hasattr(self.model, "numvars"):
             lines.add(1, "cdef public NumVars numvars")
-        if submodels:
+        if submodeltypes_old or submodelnames_new:
             lines.add(1, "def __init__(self):")
-            for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+            for name in submodelnames_new:
                 lines.add(2, f"self.{name} = None")
-            for submodel in submodels:
+            for submodel in submodeltypes_old:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
         baseinterface = "Optional[interfaceutils.BaseInterface]"
-        for name in set(i.name for i in self.model.SUBMODELINTERFACES):
+        for name in submodelnames_new:
             lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
             lines.add(2, f"return self.{name}")
             lines.add(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
@@ -1447,7 +1450,9 @@ class PyxWriter:
             print(f"            . {func}")
             nogil = func in ("load_data", "save_data")
             idx_as_arg = func == "save_data"
-            lines.add(1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg))
+            lines.add(
+                1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg, inline=False)
+            )
             for subseqs in seqs:
                 if func == "load_data":
                     applyfuncs: Tuple[str, ...] = ("inputs",)

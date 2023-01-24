@@ -9941,3 +9941,4 @@ class Model(modeltools.AdHocModel):
         PegasusTempSSurface,
     )
     idx_hru = modeltools.Idx_HRU()
+    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)

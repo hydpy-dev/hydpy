@@ -7,22 +7,22 @@ environment:
   PYPIPA:
     secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
   matrix:
-    - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Python38-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
-    - PYTHON: "C:\\Python38-x64"
+    - PYTHON: "C:\\Python39-x64"
       make_exe: false
       python_mode: true
-      cython_mode: false
-    - PYTHON: "C:\\Python39-x64"
-      make_exe: true
-      python_mode: false
       cython_mode: false
     - PYTHON: "C:\\Python310-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
+    - PYTHON: "C:\\Python311-x64"
+      make_exe: true
+      python_mode: false
+      cython_mode: false
 
 install:
 #  - cinst nsis

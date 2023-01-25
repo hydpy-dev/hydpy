@@ -9,7 +9,7 @@
 .. _`Travis CI`: https://travis-ci.com/hydpy-dev/hydpy/branches
 .. _`AppVeyor`: https://ci.appveyor.com/project/tyralla/hydpy/history
 .. _`example 13`: https://hydpy-dev.github.io/hydpy/master/dam_v001.html#dam-v001-ex13
-.. _Bokeh: https://bokeh.pydata.org/en/latest/
+.. _Plotly: https://plotly.com/python/
 .. _`GitHub issue`: https://github.com/hydpy-dev/hydpy/issues
 .. _`Pull Request`: https://github.com/pulls
 
@@ -89,7 +89,7 @@ period of 20 days, and for each day all input and output values, as well
 as all internal states (e.g. the |dam_states.WaterVolume|), are tabulated.
 Again, `Travis CI`_ checks that all of these values are exactly recalculated
 by each new *HydPy* version.  Additionally, the tabulated values are
-shown in a `Bokeh`_ plot, which is also updated for each new *HydPy*
+shown in a `Plotly`_ plot, which is also updated for each new *HydPy*
 version automatically.  You can click on the variables and zoom into some
 details you are actually interested in.
 

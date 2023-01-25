@@ -86,16 +86,16 @@ def _collect_hrus(
     {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, \
 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', \
 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
-'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, \
+'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', 'init_boden': 50.0, \
 'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, \
 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': \
 'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, \
-'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, \
+'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', \
 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, \
 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': \
 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
-'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}}
+'verzoegerung': '10', 'init_boden': 50.0, 'init_gwn': 40.0}}
     """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
@@ -159,7 +159,18 @@ def run_whmod(basedir: str, write_output: str) -> None:
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> run_whmod(basedir=projectpath, write_output=False)
     Mean GWN [mm/a]: 38.974463878806326
-    Mean verz. GWN [mm/a]: 37.08220562567088
+    Mean verz. GWN [mm/a]: 36.916119888336866
+
+    >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
+    Start WHMOD calculations (...).
+    Initialize WHMOD (...).
+    method simulate started at ...
+        |---------------------|
+        ***********************
+        seconds elapsed: ...
+    Write Output in ...\WHMod\Results (...).
+    Mean GWN [mm/a]: 38.974463878806326
+    Mean verz. GWN [mm/a]: 36.916119888336866
 
     You can also run the script from the command prompt with hyd.py:
 
@@ -205,30 +216,30 @@ def run_whmod(basedir: str, write_output: str) -> None:
     # Monthly WHMod-Groundwater Recharge in mm
     # Monthly values from 1990-01-01 to 1992-01-01
     ##########################################################
-    1990-01	0.504696689719403
-    1990-02	5.280034261935127
-    1990-03	6.507156798481166
-    1990-04	1.7592548141958948
-    1990-05	-0.6521513894042236
-    1990-06	-1.2823977911443254
-    1990-07	-0.6882606042567393
-    1990-08	-2.786795134951806
-    1990-09	0.002608084389830808
-    1990-10	1.013022695504447
-    1990-11	10.800620422132269
-    1990-12	12.841188607554402
-    1991-01	17.868759068161086
-    1991-02	4.9419235837607784
-    1991-03	6.079125105953163
-    1991-04	1.4384822500396144
-    1991-05	0.4140395138400266
-    1991-06	-0.07346846793458793
-    1991-07	-0.4314218487462396
-    1991-08	-2.122982678287689
-    1991-09	-2.5636837556668635
-    1991-10	0.7334155284697944
-    1991-11	5.93051244197711
-    1991-12	8.601999459353767
+    1990-01	0.5045038812540086
+    1990-02	5.250603291729102
+    1990-03	6.4497203320862395
+    1990-04	1.7912861345033646
+    1990-05	-0.6268182705790565
+    1990-06	-1.2685268478426805
+    1990-07	-0.6807497284977176
+    1990-08	-2.782809513177545
+    1990-09	0.00455351862727867
+    1990-10	1.0133223565827008
+    1990-11	10.543526380157056
+    1990-12	12.408252255341312
+    1991-01	17.41453327524282
+    1991-02	5.238857183865606
+    1991-03	6.298480526672588
+    1991-04	1.705189692982093
+    1991-05	0.5847423425736368
+    1991-06	0.01631629765354097
+    1991-07	-0.3823595659513151
+    1991-08	-2.097171803288229
+    1991-09	-2.5505616288699913
+    1991-10	0.7403114329158353
+    1991-11	5.877001644492123
+    1991-12	8.331521262534562
     >>> with open(os.path.join(projectpath, "Results",
     ... "Sum_Verz_Groundwater_Recharge_1990-1992.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
@@ -238,29 +249,19 @@ def run_whmod(basedir: str, write_output: str) -> None:
     yllcorner     5567507.03
     cellsize      100
     nodata_value  -9999.0
-    31.645292796869786 81.48036442990723 25.435750936414053
+    31.645292796869786 81.48036442990723 23.44272208840597
     40.700753395675605 49.292163415765636 -103.99671214064254
     28.282173000284654 19.35690518826799 66.62374633575931
     87.69237800071348 73.3194305226362 45.154221626399156
     """
-    write_output_ = objecttools.value2bool("x", write_output)
-    if write_output_:
-        commandtools.print_textandtime("Start WHMOD calculations")
-        hydpy.pub.options.printprogress = True
-    else:
-        hydpy.pub.options.printprogress = False
+    write_output_ = print_hydpy_progress(write_output=write_output)
 
     whmod_main = read_whmod_main(basedir)
 
     person_in_charge = whmod_main["PERSON_IN_CHARGE"][1].strip()
     hydpy_version = whmod_main["HYDPY_VERSION"][1].strip()
 
-    # check Hydpy-Version
-    if hydpy_version != hydpy.__version__:
-        warnings.warn(
-            f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the "
-            f"Hydpy-Version ({hydpy_version}) defined in WHMod_Main.txt"
-        )
+    check_hydpy_version(hydpy_version=hydpy_version)
 
     outputdir = os.path.join(basedir, whmod_main["OUTPUTDIR"][1].strip())
     outputmode = [mode.strip() for mode in whmod_main["OUTPUTMODE"][1].split(",")]
@@ -432,6 +433,44 @@ def run_whmod(basedir: str, write_output: str) -> None:
     )
 
 
+def check_hydpy_version(hydpy_version: str):
+    """
+    Check Hydpy-Version
+    >>> with warnings.catch_warnings(record=True) as w:
+    ...     check_hydpy_version(hydpy_version="6.0a0")
+    ...     print([wm.message for wm in w])
+    []
+    >>> with warnings.catch_warnings(record=True) as w:
+    ...     check_hydpy_version(hydpy_version="7.0a0")
+    ...     print([wm.message for wm in w])
+    [UserWarning('The currently used Hydpy-Version (6.0a0) differs from the \
+Hydpy-Version (7.0a0) defined in WHMod_Main.txt')]
+    """
+    if hydpy_version != hydpy.__version__:
+        warnings.warn(
+            f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the "
+            f"Hydpy-Version ({hydpy_version}) defined in WHMod_Main.txt"
+        )
+
+
+def print_hydpy_progress(write_output: str) -> bool:
+    """
+    Activate hydpy printprogress and return wirte_output handle.
+    >>> print_hydpy_progress(write_output="True")  # doctest: +ELLIPSIS
+    Start WHMOD calculations (...).
+    True
+    >>> print_hydpy_progress(write_output="False")
+    False
+    """
+    write_output_ = objecttools.value2bool("x", write_output)
+    if write_output_:
+        commandtools.print_textandtime("Start WHMOD calculations")
+        hydpy.pub.options.printprogress = True
+    else:
+        hydpy.pub.options.printprogress = False
+    return write_output_
+
+
 def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:
     """
     Read the node property file
@@ -453,7 +492,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         "nfk_offset": float,
         "flurab": float,
         "bfi": float,
-        "verzoegerung": float,
+        "verzoegerung": str,
         "init_boden": float,
         "init_gwn": float,
     }
@@ -504,11 +543,22 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
 def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
     """
     Read the landuse file.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data.csv")
+    >>> landuse_dict = read_landuse(filepath_landuse=os.path.join(basedir,
+    ... "nutzung_wrong.txt"))
+    Traceback (most recent call last):
+    ...
+    AssertionError: Landnutzungsklasse 1 fehlerhaft. Summe muss 100 ergeben
     """
     landuse_dict = {}
     with open(filepath_landuse, mode="r", encoding="utf-8") as infile:
         reader = csv.reader(infile, delimiter=":")
         for row in reader:
+            if row[0].strip().startswith("#"):
+                continue
             landuse_dict[row[0].strip()] = {
                 u[0].strip(): int(u[1])
                 for u in [s.split("=") for s in row[1].split(",")]
@@ -542,11 +592,13 @@ def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
     Traceback (most recent call last):
     ...
     ValueError: Unable to parse string "WABOA" at position 6
-    >>> read_root_depth(root_depth_option="max_root_depth_wrong2.txt", basedir=basedir)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >>> read_root_depth(root_depth_option="max_root_depth_wrong2.txt",
+    ...                 basedir=basedir)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Traceback (most recent call last):
     ...
     AssertionError:
-    In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht zu den Basislandnutzungsklassen gehört
+    In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht \
+zu den Basislandnutzungsklassen gehört
     In der Datei zur Wurzeltiefe wurde kein Wert für 'mais' definiert
     >>> read_root_depth(root_depth_option="test.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -773,14 +825,19 @@ def _initialize_whmod_models(
         )
         con.bfi(_return_con_hru(hrus, "bfi")[0])
 
-        verzoegerung = _return_con_hru(hrus, "verzoegerung")[0]
-        assert isinstance(verzoegerung, float)
-        if verzoegerung > 0:
-            con.schwerpunktlaufzeit(verzoegerung)
-        else:
+        verzoegerung = str(_return_con_hru(hrus, "verzoegerung")[0])
+        if verzoegerung == "flurab_probst":
             flurab = _return_con_hru(hrus, "flurab")[0]
             assert isinstance(flurab, float)
             con.schwerpunktlaufzeit(flurab_probst=flurab)
+        else:
+            try:
+                verzoegerung_flt = float(verzoegerung.replace(",", "."))
+            except ValueError:
+                raise ValueError("'verzoegerung' muss den Datentyp float enthalten "
+                                     "oder die Option 'flurab_probst") from None
+            con.schwerpunktlaufzeit(verzoegerung_flt)
+
 
         whmod.sequences.states.interzeptionsspeicher(0.0)
         whmod.sequences.states.schneespeicher(0.0)

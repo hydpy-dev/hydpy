@@ -1,3 +1,7 @@
+# Definition der benutzerdefinierten Landnutzungsklassen. Zur Verfügung stehen die
+# Basislandnutzungsklassen Laubwald, Nadelwald, Gras, Zuckerrueben, Winterweizen,
+# Sommerweizen, Wasser, Versiegelt, Mais. Alle genutzten Landnutzungsklassen müssen
+# hier definiert sein, auch wenn sie zu 100% der Basislandnutzungsklasse entsprechen.
 LAUBWALD: Laubwald=100
 NADELWALD: Nadelwald=100
 GRAS: Gras=100

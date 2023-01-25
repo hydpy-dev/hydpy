@@ -1,3 +1,6 @@
+# Angabe der maximalen Durchwurzelungstiefe. Muss angegeben werden für Gras, Laubwald,
+# Nadelwald, Mais, Sommerweizen, Winterweizen und Zuckerrüben. Für Wasser und
+# versiegelte Flächen wird keine Durchwurzelungstiefe berücksichtigt.
 GRAS=0.6
 LAUBWALD=1.5
 NADELWALD=1.5

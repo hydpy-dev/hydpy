@@ -1,0 +1,15 @@
+LAUBWALD: Laubwald=100
+NADELWALD: Nadelwald=100
+GRAS: Gras=100
+ZUCKERRUEBEN: Zuckerrueben=100
+WINTERWEIZEN: Winterweizen=100
+SOMMERWEIZEN: Sommerweizen=100
+WASSER: Wasser=100
+VERSIEGELT: Versiegelt=100
+MAIS: Mais=100
+MISCHWALD: Nadelwald=50, Laubwald=50
+1: Sommerweizen=40, Winterweizen=30, Mais=20
+2: Mais=50, Sommerweizen=50
+3: Gras=20, Versiegelt=80
+4: Gras=60, Versiegelt=40
+5: Gras=50, Laubwald=50

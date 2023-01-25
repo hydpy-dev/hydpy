@@ -1,0 +1,8 @@
+# Das ist ein Beispiel für falsche Durchwurzelungstiefen
+GRAS=0.4
+LAUBWALD=1.6
+NADELWALD=1.4
+MAIS=0.7
+SOMMERWEIZEN=0.8
+WINTERWEIZEN=0.6
+ZUCKERRUEBEN=WABOA

@@ -270,6 +270,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     filename_landuse = whmod_main["FILENAME_LANDUSE"][1].strip()
     with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1]
     day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1]
+    root_depth_option = whmod_main["ROOT_DEPTH_OPTION"][1].strip()
     simulation_start = whmod_main["SIMULATION_START"][1]
     simulation_end = whmod_main["SIMULATION_END"][1]
     frequence = whmod_main["FREQUENCE"][1]
@@ -292,6 +293,9 @@ def run_whmod(basedir: str, write_output: str) -> None:
     )
     df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
         lambda a: a.split("_")[1].split(".")[0]
+    )
+    root_depth_dict = read_root_depth(
+        root_depth_option=root_depth_option, basedir=basedir
     )
 
     # define Selections
@@ -320,6 +324,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
         whmod_selection=whmod_selection,
         with_capillary_rise=with_capillary_rise,
         day_degree_factor=day_degree_factor,
+        root_depth=root_depth_dict,
         node2xy=node2xy,
         landuse_dict=landuse_dict,
     )
@@ -471,6 +476,7 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
         "HYDPY_VERSION": str,
         "OUTPUTDIR": str,
         "OUTPUTMODE": str,
+        "ROOT_DEPTH_OPTION": str,
         "FILENAME_NODE_DATA": str,
         "FILENAME_TIMESERIES": str,
         "FILENAME_STATION_DATA": str,
@@ -519,6 +525,97 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
     return landuse_dict
 
 
+def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
+    """
+    Reads maximum root_depth from file or takes predefined values according to the
+    chosen option.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> read_root_depth(root_depth_option="WABOA", basedir=basedir)
+    {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.9, 'mais': 1.0, 'sommerweizen': 1.0, \
+'winterweizen': 1.0, 'zuckerrueben': 1.0}
+    >>> read_root_depth(root_depth_option="max_root_depth.txt", basedir=basedir)
+    {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.5, 'mais': 1.0, 'sommerweizen': 1.0, \
+'winterweizen': 1.0, 'zuckerrueben': 0.8}
+    >>> read_root_depth(root_depth_option="max_root_depth_wrong1.txt", basedir=basedir)
+    Traceback (most recent call last):
+    ...
+    ValueError: Unable to parse string "WABOA" at position 6
+    >>> read_root_depth(root_depth_option="max_root_depth_wrong2.txt", basedir=basedir)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    AssertionError:
+    In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht zu den Basislandnutzungsklassen gehört
+    In der Datei zur Wurzeltiefe wurde kein Wert für 'mais' definiert
+    >>> read_root_depth(root_depth_option="test.txt", basedir=basedir)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Der Wert für ROOT_DEPTH_OPTION (test.txt) ist ungültig er muss \
+entweder auf eine Datei verweisen oder den Wert 'BK', 'WABOA', 'TGU' oder 'DARMSTADT' \
+enthalten.
+    """
+    predefined_root_depth = pandas.DataFrame(
+        index=[
+            "gras",
+            "laubwald",
+            "nadelwald",
+            "mais",
+            "sommerweizen",
+            "winterweizen",
+            "zuckerrueben",
+        ],
+        columns=["BK", "WABOA", "TGU", "DARMSTADT"],
+        data=[
+            [0.3, 0.6, 0.5, 1.0],
+            [1.2, 1.5, 1.5, 2.5],
+            [0.8, 1.9, 1.9, 2.5],
+            [0.6, 1.0, 0.5, 1.0],
+            [0.6, 1.0, 0.5, 1.0],
+            [0.6, 1.0, 0.5, 1.0],
+            [0.6, 1.0, 0.4, 1.0],
+        ],
+    )
+    if root_depth_option in ("BK", "WABOA", "TGU", "DARMSTADT"):
+        root_depth = dict(predefined_root_depth[root_depth_option])
+    else:
+        try:
+            root_depth_table = pandas.read_csv(
+                os.path.join(basedir, root_depth_option),
+                sep="=",
+                comment="#",
+                index_col=0,
+                header=None,
+                names=["BENUTZERDEFINIERT"],
+            )
+        except FileNotFoundError:
+            raise AssertionError(
+                f"Der Wert für ROOT_DEPTH_OPTION ({root_depth_option}) ist "
+                f"ungültig er muss entweder auf eine Datei verweisen oder den "
+                f"Wert 'BK', 'WABOA', 'TGU' oder 'DARMSTADT' enthalten."
+            )
+        root_depth_table.index = [i.lower() for i in root_depth_table.index]
+        error = []
+        for entry in root_depth_table.index:
+            if entry not in predefined_root_depth.index:
+                error.append(
+                    f"In der Datei zur Wurzeltiefe wurde ein Wert für "
+                    f"'{entry}' definiert, der nicht zu den "
+                    f"Basislandnutzungsklassen gehört"
+                )
+        for entry in predefined_root_depth.index:
+            if entry not in root_depth_table.index:
+                error.append(
+                    f"In der Datei zur Wurzeltiefe wurde kein Wert für "
+                    f"'{entry}' definiert"
+                )
+        if error:
+            raise AssertionError("\n" + "\n".join(error))
+
+        root_depth = dict(pandas.to_numeric(root_depth_table["BENUTZERDEFINIERT"]))
+    return root_depth
+
+
 def _initialize_whmod_models(
     write_output: bool,
     df_knoteneigenschaften: pandas.DataFrame,
@@ -529,6 +626,7 @@ def _initialize_whmod_models(
     with_capillary_rise: bool,
     day_degree_factor: float,
     landuse_dict: Dict[str, Dict[str, int]],
+    root_depth: Dict[str, float],
     node2xy: Dict[hydpy.Node, _XY],
 ) -> None:
     """In this function, the whmod-elements are initialized based on the data provided
@@ -657,15 +755,7 @@ def _initialize_whmod_models(
         con.nfk100_mittel(nfk)
 
         con.flurab(_return_con_hru(hrus, "flurab"))
-        con.maxwurzeltiefe(
-            gras=0.6,
-            laubwald=1.5,
-            nadelwald=1.5,
-            mais=1.0,
-            sommerweizen=1.0,
-            winterweizen=1.0,
-            zuckerrueben=0.8,
-        )
+        con.maxwurzeltiefe(**root_depth)
         con.minhasr(
             gras=4.0,
             laubwald=6.0,

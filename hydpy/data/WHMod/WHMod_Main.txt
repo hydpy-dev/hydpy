@@ -6,6 +6,7 @@ OUTPUTMODE	rch, txt, sum_txt # Mehrfachangabe möglich getrennt durch Komma; Alt
 FILENAME_NODE_DATA	Node_Data.csv
 FILENAME_TIMESERIES	Timeseries
 FILENAME_STATION_DATA	Station_Data.txt
+FILENAME_LANDUSE	nutzung.txt
 SIMULATION_START	1990-01-01
 SIMULATION_END	1992-01-01
 FREQUENCE	1d

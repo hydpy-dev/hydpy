@@ -42,13 +42,14 @@ The last argument defines the output-mode. When True the progess of the simulati
 printed in the terminal.
 """
 
+import csv
 import datetime
 import os
 import warnings
 from typing import *
 
 import numpy
-import pandas
+import pandas  # type: ignore[import]
 
 import hydpy
 from hydpy.core import devicetools
@@ -70,14 +71,36 @@ class _XY(NamedTuple):
     hoch: float
 
 
-def _collect_hrus(table: pandas.DataFrame, idx_: int) -> Dict[str, Dict[str, object]]:
-    """Collect the hrus of the respective raster-cell. Returns Dictionary."""
+def _collect_hrus(
+    table: pandas.DataFrame, idx_: int, landuse_dict: Dict[str, Dict[str, int]]
+) -> Dict[str, Dict[str, object]]:
+    """
+    Collect the hrus of the respective raster-cell. Returns Dictionary.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data.csv")
+    >>> landuse_dict = read_landuse(filepath_landuse=os.path.join(basedir,
+    ... "nutzung.txt"))
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=11, landuse_dict=landuse_dict)
+    {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}}
+    """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
-    for i in range(len(hrus)):
+    extended_hrus = pandas.DataFrame(columns=hrus.columns)
+    n_hrus = 0
+    for i, hru in hrus.iterrows():
+        for landuse, area_perc in landuse_dict[hru["nutz_nr"]].items():
+            extended_hrus.loc[n_hrus] = hrus.loc[i].copy()
+            extended_hrus.loc[n_hrus, "nutz_nr"] = landuse.upper()
+            extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
+            n_hrus += 1
+
+    # hru in nutzungstabelle prüfen, wenn ja: aufteilen ansonsten Fehler
+    for i in range(len(extended_hrus)):
         result[f"nested_dict_nr-{i}"] = {}
         for key in table.columns:
-            result[f"nested_dict_nr-{i}"][key] = hrus.reset_index().loc[i, key]
+            result[f"nested_dict_nr-{i}"][key] = extended_hrus.reset_index().loc[i, key]
     return result
 
 
@@ -122,9 +145,91 @@ def run_whmod(basedir: str, write_output: str) -> None:
     >>> from hydpy import run_subprocess, TestIO
     >>> TestIO.clear()
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> run_whmod(basedir=projectpath, write_output=False)
+    Mean GWN [mm/a]: 38.974463878806326
+    Mean verz. GWN [mm/a]: 37.08220562567088
+
+    You can also run the script from the command prompt with hyd.py:
+
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
-    Mean GWN [mm/a]: 39.05889624326555
-    Mean verz. GWN [mm/a]: 37.17119700488022
+    Mean GWN [mm/a]: 38.974463878806326
+    Mean verz. GWN [mm/a]: 37.08220562567088
+
+    >>> with open(os.path.join(projectpath, "Results",
+    ... "Groundwater_Recharge_1990-1992.txt"), 'r') as file:
+    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    # Max Mustermann, ...
+    # Monthly WHMod-Groundwater Recharge in mm
+    # Monthly values from 1990-01-01 to 1992-01-01
+    ##########################################################
+    1990-01	0.3123535222629805
+    1990-02	11.26990972195137
+    1990-03	1.202722479827292
+    1990-04	1.6153368961041545
+    1990-05	-1.966510855767592
+    1990-06	-0.7622536716921774
+    1990-07	-1.482467549347431
+    1990-08	-2.7902887575098454
+    1990-09	1.1584295976408858
+    1990-10	1.8341058769334753
+    1990-11	15.30160514900505
+    1990-12	16.083881574719623
+    1991-01	12.867846494514447
+    1991-02	5.596682579465355
+    1991-03	4.404740610210456
+    1991-04	0.3109043749421045
+    1991-05	-0.7420669814995602
+    1991-06	0.5799537654768397
+    1991-07	-1.707045080537081
+    1991-08	-2.807612545031555
+    1991-09	-2.0378062382157776
+    1991-10	1.0124938321292507
+    1991-11	7.57714758711962
+    1991-12	11.065644964600226
+    >>> with open(os.path.join(projectpath, "Results",
+    ... "Groundwater_Recharge_Verz_1990-1992.txt"), 'r') as file:
+    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    # Max Mustermann, ...
+    # Monthly WHMod-Groundwater Recharge in mm
+    # Monthly values from 1990-01-01 to 1992-01-01
+    ##########################################################
+    1990-01	0.504696689719403
+    1990-02	5.280034261935127
+    1990-03	6.507156798481166
+    1990-04	1.7592548141958948
+    1990-05	-0.6521513894042236
+    1990-06	-1.2823977911443254
+    1990-07	-0.6882606042567393
+    1990-08	-2.786795134951806
+    1990-09	0.002608084389830808
+    1990-10	1.013022695504447
+    1990-11	10.800620422132269
+    1990-12	12.841188607554402
+    1991-01	17.868759068161086
+    1991-02	4.9419235837607784
+    1991-03	6.079125105953163
+    1991-04	1.4384822500396144
+    1991-05	0.4140395138400266
+    1991-06	-0.07346846793458793
+    1991-07	-0.4314218487462396
+    1991-08	-2.122982678287689
+    1991-09	-2.5636837556668635
+    1991-10	0.7334155284697944
+    1991-11	5.93051244197711
+    1991-12	8.601999459353767
+    >>> with open(os.path.join(projectpath, "Results",
+    ... "Sum_Verz_Groundwater_Recharge_1990-1992.txt"), 'r') as file:
+    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
+    ncols         3
+    nrows         4
+    xllcorner     3455523.97
+    yllcorner     5567507.03
+    cellsize      100
+    nodata_value  -9999.0
+    31.645292796869786 81.48036442990723 25.435750936414053
+    40.700753395675605 49.292163415765636 -103.99671214064254
+    28.282173000284654 19.35690518826799 66.62374633575931
+    87.69237800071348 73.3194305226362 45.154221626399156
     """
     write_output_ = objecttools.value2bool("x", write_output)
     if write_output_:
@@ -133,33 +238,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     else:
         hydpy.pub.options.printprogress = False
 
-    dtype_whmod_main = {
-        "PERSON_IN_CHARGE": str,
-        "HYDPY_VERSION": str,
-        "OUTPUTDIR": str,
-        "OUTPUTMODE": str,
-        "FILENAME_NODE_DATA": str,
-        "FILENAME_TIMESERIES": str,
-        "FILENAME_STATION_DATA": str,
-        "SIMULATION_START": str,
-        "SIMULATION_END": str,
-        "FREQUENCE": str,
-        "WITH_CAPPILARY_RISE": bool,
-        "DEGREE_DAY_FACTOR": float,
-        "PRECIP_RICHTER_CORRECTION": bool,
-        "EVAPORATION_MODE": str,
-        "CELLSIZE": int,
-        "NODATA_VALUE": float,
-    }
-
-    whmod_main = pandas.read_csv(
-        os.path.join(basedir, "WHMod_Main.txt"),
-        sep="\t",
-        comment="#",
-        header=None,
-        index_col=0,
-    ).T
-    whmod_main = whmod_main.astype(dtype_whmod_main)
+    whmod_main = read_whmod_main(basedir)
 
     person_in_charge = whmod_main["PERSON_IN_CHARGE"][1].strip()
     hydpy_version = whmod_main["HYDPY_VERSION"][1].strip()
@@ -178,6 +257,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     filename_node_data = whmod_main["FILENAME_NODE_DATA"][1].strip()
     filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
     filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
+    filename_landuse = whmod_main["FILENAME_LANDUSE"][1].strip()
     with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1]
     day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1]
     simulation_start = whmod_main["SIMULATION_START"][1]
@@ -219,7 +299,9 @@ def run_whmod(basedir: str, write_output: str) -> None:
         sep=";",
         decimal=",",
     )
-    df_knoteneigenschaften = df_knoteneigenschaften.astype(dtype_knoteneigenschaften)
+    filepath_landuse = os.path.join(basedir, filename_landuse)
+
+    landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
     df_stammdaten = pandas.read_csv(
         os.path.join(basedir, filename_station_data), sep="\t"
@@ -255,6 +337,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
         with_capillary_rise=with_capillary_rise,
         day_degree_factor=day_degree_factor,
         node2xy=node2xy,
+        landuse_dict=landuse_dict,
     )
 
     _initialize_weather_stations(
@@ -360,6 +443,98 @@ def run_whmod(basedir: str, write_output: str) -> None:
     )
 
 
+def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:
+    """
+    Read the node property file
+    """
+    # Read Node Data
+    dtype_knoteneigenschaften = {
+        "id": int,
+        "f_id": int,
+        "row": int,
+        "col": int,
+        "x": float,
+        "y": float,
+        "area": int,
+        "f_area": int,
+        "nutz_nr": str,
+        "bodentyp": str,
+        "nfk100_mittel": float,
+        "nfk_faktor": float,
+        "nfk_offset": float,
+        "flurab": float,
+        "bfi": float,
+        "verzoegerung": float,
+        "init_boden": float,
+        "init_gwn": float,
+    }
+    df_knoteneigenschaften = pandas.read_csv(
+        os.path.join(basedir, filename_node_data),
+        skiprows=[1],
+        sep=";",
+        decimal=",",
+        dtype=dtype_knoteneigenschaften,
+    )
+    return df_knoteneigenschaften
+
+
+def read_whmod_main(basedir: str) -> pandas.DataFrame:
+    """
+    Read the whmod main file.
+    """
+    dtype_whmod_main = {
+        "PERSON_IN_CHARGE": str,
+        "HYDPY_VERSION": str,
+        "OUTPUTDIR": str,
+        "OUTPUTMODE": str,
+        "FILENAME_NODE_DATA": str,
+        "FILENAME_TIMESERIES": str,
+        "FILENAME_STATION_DATA": str,
+        "SIMULATION_START": str,
+        "SIMULATION_END": str,
+        "FREQUENCE": str,
+        "WITH_CAPPILARY_RISE": bool,
+        "DEGREE_DAY_FACTOR": float,
+        "PRECIP_RICHTER_CORRECTION": bool,
+        "EVAPORATION_MODE": str,
+        "CELLSIZE": int,
+        "NODATA_VALUE": float,
+    }
+    whmod_main = pandas.read_csv(
+        os.path.join(basedir, "WHMod_Main.txt"),
+        sep="\t",
+        comment="#",
+        header=None,
+        index_col=0,
+        dtype=dtype_whmod_main,
+    ).T
+    return whmod_main
+
+
+def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
+    """
+    Read the landuse file.
+    """
+    landuse_dict = {}
+    with open(filepath_landuse, mode="r") as infile:
+        reader = csv.reader(infile, delimiter=":")
+        for row in reader:
+            landuse_dict[row[0].strip()] = {
+                u[0].strip(): int(u[1])
+                for u in [s.split("=") for s in row[1].split(",")]
+            }
+    # check dictionary
+    for lnk, landuse_orig_dict in landuse_dict.items():
+        rel_area_sum = 0
+        for vals in landuse_orig_dict.values():
+            rel_area_sum += vals
+        if rel_area_sum != 100:
+            raise AssertionError(
+                f"Landnutzungsklasse {lnk} fehlerhaft. Summe muss 100 ergeben"
+            )
+    return landuse_dict
+
+
 def _initialize_whmod_models(
     write_output: bool,
     df_knoteneigenschaften: pandas.DataFrame,
@@ -369,6 +544,7 @@ def _initialize_whmod_models(
     whmod_selection: hydpy.Selection,
     with_capillary_rise: bool,
     day_degree_factor: float,
+    landuse_dict: Dict[str, Dict[str, int]],
     node2xy: Dict[hydpy.Node, _XY],
 ) -> None:
     """In this function, the whmod-elements are initialized based on the data provided
@@ -413,7 +589,9 @@ def _initialize_whmod_models(
         whmod_selection.elements.add_device(raster)
 
         # find number of hrus in element
-        hrus = _collect_hrus(df_knoteneigenschaften, idx)
+        hrus = _collect_hrus(
+            table=df_knoteneigenschaften, idx_=idx, landuse_dict=landuse_dict
+        )
 
         # Coordinates
         rechts = _return_con_hru(hrus, "x")[0]

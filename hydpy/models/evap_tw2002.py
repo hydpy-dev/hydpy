@@ -82,6 +82,7 @@ class Model(modeltools.AdHocModel, petinterfaces.PETModel_V1):
     INTERFACE_METHODS = (
         evap_model.Determine_PotentialEvapotranspiration_V1,
         evap_model.Get_PotentialEvapotranspiration_V1,
+        evap_model.Get_MeanPotentialEvapotranspiration_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

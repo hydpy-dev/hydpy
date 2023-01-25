@@ -853,6 +853,28 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
         return flu.referenceevapotranspiration[s]
 
 
+class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
+    """Get the averaged reference evapotranspiration.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.meanreferenceevapotranspiration = 3.0
+        >>> model.get_meanpotentialevapotranspiration_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.MeanReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.meanreferenceevapotranspiration
+
+
 class Model(
     modeltools.AdHocModel,
 ):
@@ -882,6 +904,7 @@ class Model(
     INTERFACE_METHODS = (
         Determine_PotentialEvapotranspiration_V1,
         Get_PotentialEvapotranspiration_V1,
+        Get_MeanPotentialEvapotranspiration_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

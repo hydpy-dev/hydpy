@@ -83,7 +83,19 @@ def _collect_hrus(
     >>> landuse_dict = read_landuse(filepath_landuse=os.path.join(basedir,
     ... "nutzung.txt"))
     >>> _collect_hrus(table=df_knoteneigenschaften, idx_=11, landuse_dict=landuse_dict)
-    {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, 'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, 'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}}
+    {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, \
+'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', \
+'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
+'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, 'init_boden': 50.0, \
+'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, \
+'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': \
+'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, \
+'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': 10.0, \
+'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, \
+'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': \
+3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
+'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
+'verzoegerung': 10.0, 'init_boden': 50.0, 'init_gwn': 40.0}}
     """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
@@ -251,9 +263,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
         )
 
     outputdir = os.path.join(basedir, whmod_main["OUTPUTDIR"][1].strip())
-    outputmode = whmod_main["OUTPUTMODE"][1].split(",")
-    for i, mode in enumerate(outputmode):
-        outputmode[i] = mode.strip()
+    outputmode = [mode.strip() for mode in whmod_main["OUTPUTMODE"][1].split(",")]
     filename_node_data = whmod_main["FILENAME_NODE_DATA"][1].strip()
     filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
     filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
@@ -269,35 +279,9 @@ def run_whmod(basedir: str, write_output: str) -> None:
     hydpy.pub.timegrids = simulation_start, simulation_end, frequence
     hydpy.pub.options.parameterstep = frequence
     hydpy.pub.options.checkseries = False
-    hydpy.pub.options.usecython = True
 
-    # Read Node Data
-    dtype_knoteneigenschaften = {
-        "id": int,
-        "f_id": int,
-        "row": int,
-        "col": int,
-        "x": float,
-        "y": float,
-        "area": int,
-        "f_area": int,
-        "nutz_nr": str,
-        "bodentyp": str,
-        "nfk100_mittel": float,
-        "nfk_faktor": float,
-        "nfk_offset": float,
-        "flurab": float,
-        "bfi": float,
-        "verzoegerung": float,
-        "init_boden": float,
-        "init_gwn": float,
-    }
-
-    df_knoteneigenschaften = pandas.read_csv(
-        os.path.join(basedir, filename_node_data),
-        skiprows=[1],
-        sep=";",
-        decimal=",",
+    df_knoteneigenschaften = read_nodeproperties(
+        basedir=basedir, filename_node_data=filename_node_data
     )
     filepath_landuse = os.path.join(basedir, filename_landuse)
 
@@ -516,7 +500,7 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
     Read the landuse file.
     """
     landuse_dict = {}
-    with open(filepath_landuse, mode="r") as infile:
+    with open(filepath_landuse, mode="r", encoding="utf-8") as infile:
         reader = csv.reader(infile, delimiter=":")
         for row in reader:
             landuse_dict[row[0].strip()] = {
@@ -978,7 +962,7 @@ def _initialize_conv_models(
 def _save_results(
     write_output: bool,
     outputdir: str,
-    outputmode: str,
+    outputmode: List[Union[Literal["rch"], Literal["txt"], Literal["sum_txt"]]],
     nrow: int,
     ncol: int,
     hp: hydpy.HydPy,

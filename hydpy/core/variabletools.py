@@ -14,8 +14,6 @@ import inspect
 import textwrap
 import warnings
 from typing import *
-from typing import NoReturn
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -1023,8 +1021,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.__valueready = False
         self.__shapeready = False
 
-    # We do not want to implement the signature of Generic.__init_subclass__ here:
-    def __init_subclass__(cls) -> None:  # pylint: disable=arguments-differ
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()

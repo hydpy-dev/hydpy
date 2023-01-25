@@ -9,7 +9,6 @@ import itertools
 import os
 import types
 from typing import *
-from typing_extensions import Final  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

@@ -9,7 +9,6 @@ import copy
 import itertools
 import types
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import networkx
@@ -513,7 +512,7 @@ objects, but the type of the given argument is `str`.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 prefix = f"{prefix}{type(self).__name__}("
                 return (
                     f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
@@ -1498,7 +1497,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     classname = type(self).__name__
                     blanks = " " * (len(prefix + classname) + 1)

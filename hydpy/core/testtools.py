@@ -19,7 +19,6 @@ import sys
 import types
 import warnings
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -306,7 +305,6 @@ hydpy.models.hland.hland_control.ZoneType
         )
         for name in self.modulenames:
             print(f"    * {name}:")
-            # pylint: disable=not-callable
             with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
                 False
             ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
@@ -326,7 +324,6 @@ hydpy.models.hland.hland_control.ZoneType
             ), opt.simulationstep(
                 timetools.Period()
             ), devicetools.clear_registries_temporarily():
-                # pylint: enable=not-callable
                 projectname = exceptiontools.getattr_(
                     hydpy.pub, "projectname", None, str
                 )

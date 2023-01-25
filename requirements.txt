@@ -12,7 +12,7 @@ nox
 numpy
 pandas
 plotly
-pylint != 2.15.*
+pylint
 pynsist
 setuptools
 typing_extensions

@@ -9,9 +9,6 @@ import abc
 import inspect
 import types
 from typing import *
-from typing import Optional, Type, Any
-
-from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from HydPy
 from hydpy.core import exceptiontools

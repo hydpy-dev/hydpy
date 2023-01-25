@@ -78,7 +78,6 @@ import itertools
 import operator
 import warnings
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -634,8 +633,7 @@ classes: Node and str.
     _name2device: Dict[str, TypeDevice]
     _shadowed_keywords: Set[str]
 
-    # We do not want to implement the signature of Generic.__new__ here:
-    def __new__(  # pylint: disable=arguments-differ
+    def __new__(
         cls, *values: MayNonerable2[TypeDevice, str], mutable: bool = True
     ) -> Devices[Any]:
         if len(values) == 1 and isinstance(values[0], Devices):
@@ -1068,7 +1066,7 @@ conflict with using their names as identifiers.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 prefix += f"{type(self).__name__}("
                 repr_ = objecttools.assignrepr_values(self.names, prefix, width=70)
                 return repr_ + ")"
@@ -1693,7 +1691,7 @@ class Node(Device):
     >>> node.entries = "element"  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AttributeError: can't set attribute...
+    AttributeError: ...
     >>> node.exits.add_device("element")
     Traceback (most recent call last):
     ...
@@ -1803,7 +1801,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
         >>> node.variable = "H"  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: can't set attribute...
+        AttributeError: ...
         >>> Node("test1", variable="H")
         Traceback (most recent call last):
         ...
@@ -2782,7 +2780,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                     "`timegrids` of module `pub` yet but might be required to prepare "
                     "the model properly."
                 ) from None
-            with options.warnsimulationstep(False):  # pylint: disable=not-callable
+            with options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry
                 )

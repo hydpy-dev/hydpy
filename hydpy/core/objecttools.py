@@ -15,9 +15,7 @@ import sys
 import textwrap
 import types
 from typing import *
-from typing import NoReturn
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import black
@@ -1613,7 +1611,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
-    with hydpy.pub.options.reprdigits(decimals):  # pylint: disable=not-callable
+    with hydpy.pub.options.reprdigits(decimals):
         if isinstance(values, numpy.ndarray) and (values.ndim == 0):
             string = repr_(values.item())
         elif isinstance(values, str):

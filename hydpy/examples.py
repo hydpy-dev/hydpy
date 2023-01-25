@@ -169,7 +169,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     control.zonetype(hland.FIELD)
     control.zonearea.values = 10.0
 
-    with hydpy.pub.options.printprogress(False):  # pylint: disable=not-callable
+    with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
         nodes.prepare_simseries(allocate_ram=True)
         elements.prepare_inputseries(allocate_ram=False)

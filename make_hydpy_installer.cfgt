@@ -14,14 +14,16 @@ version = [auto]
 bitness = 64
 
 [Include]
-pypi_wheels = numpy==[auto]
+pypi_wheels =
+    numpy==[auto]
 	scipy==[auto]
-	typing_extensions==4.0.1
+	typing_extensions==[auto]
 	matplotlib==[auto]
+	contourpy==[auto]
 	cycler==[auto]
 	six==[auto]
+	fonttools==[auto]
 	kiwisolver==[auto]
-	setuptools==[auto]
 	pyparsing==[auto]
 	python-dateutil==[auto]
 	netCDF4==[auto]
@@ -30,20 +32,15 @@ pypi_wheels = numpy==[auto]
 	pytz==[auto]
 	xmlschema==[auto]
 	elementpath==[auto]
-	markupsafe==[auto]
-	PyYAML==[auto]
 	packaging==[auto]
-	attrs==[auto]
 	Pillow==[auto]
 	plotly==[auto]
-	tornado==[auto]
+	tenacity==[auto]
 	networkx==[auto]
 	platformdirs==[auto]
 	click==[auto]
-	mypy_extensions==0.4.3
+	mypy_extensions==[auto]
 	pathspec==[auto]
-	tomli==[auto]
-	click==[auto]
 	colorama==[auto]
 	black==[auto]
 
@@ -51,13 +48,10 @@ local_wheels = dist/*.whl
 
 extra_wheel_sources = extra_wheel_sources
 	
-packages = wrapt
-	bokeh
-	jinja2
+packages =
+    wrapt
 	tkinter
 	_tkinter
-	blib2to3
-	regex
 
 files = lib
 	tcl86t.dll > $INSTDIR\pkgs

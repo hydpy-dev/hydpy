@@ -4,7 +4,6 @@
 # ...from standard library
 from __future__ import annotations
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

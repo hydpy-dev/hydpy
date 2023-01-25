@@ -14,7 +14,6 @@ import copy
 import datetime as datetime_
 import time
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from third party packages
 import numpy

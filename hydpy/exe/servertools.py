@@ -237,7 +237,6 @@ import urllib.parse
 import urllib.request
 import types
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

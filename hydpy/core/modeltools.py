@@ -10,7 +10,6 @@ import itertools
 import os
 import types
 from typing import *
-from typing_extensions import Final
 
 # ...from site-packages
 import numpy

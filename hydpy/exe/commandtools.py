@@ -15,7 +15,6 @@ import time
 import traceback
 from typing import *
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 import hydpy

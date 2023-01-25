@@ -7,7 +7,6 @@
 # ...from standard library
 from abc import abstractmethod
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 from hydpy.core import modeltools

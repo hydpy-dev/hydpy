@@ -113,7 +113,7 @@ def black(session: nox.Session) -> None:
 def pylint(session: nox.Session) -> None:
     """Use `pylint` to evaluate the code style."""
     _install_hydpy(session)
-    session.install("pylint!=2.15.*", "coverage", "ghp_import", "sphinx")
+    session.install("pylint", "coverage", "ghp_import", "sphinx")
     session.run("pylint", "hydpy")
 
 

@@ -1935,7 +1935,7 @@ string=f"a {10*'very '}long test"))
 
 
 def assert_never(value: NoReturn) -> NoReturn:
-    """Function |assert_never| serves for exhaustiveness checking.
+    """Function `assert_never` serves for exhaustiveness checking.
 
     >>> from hydpy.core.objecttools import assert_never
     >>> assert_never(1.0)

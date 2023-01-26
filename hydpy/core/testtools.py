@@ -1042,7 +1042,8 @@ class UnitTest(Test):
         for parseq in self.parseqs:
             shape = [len(self.raw_first_col_strings)] + list(parseq.shape)
             type_ = getattr(parseq, "TYPE", float)
-            array = numpy.full(shape, numpy.nan, type_)
+            init = 0 if issubclass(type_, int) else numpy.nan
+            array = numpy.full(shape, init, type_)
             setattr(self.results, parseq.name, array)
 
     def reset_inits(self):

@@ -457,10 +457,9 @@ base 10: '0X'
            information and corresponds to |Options.utcoffset|, which defaults to
            UTC+01:00.
         """
-        intarray = numpy.array(array, dtype=int)
-        for dummy in range(1, array.ndim):
-            intarray = intarray[:, 0]
-        return cls.from_datetime(datetime_.datetime(*intarray[:6]))
+        for _ in range(1, array.ndim):
+            array = array[:, 0]
+        return cls.from_datetime(datetime_.datetime(*array.astype(int)[:6]))
 
     def to_array(self) -> numpy.ndarray:
         """Return a 1-dimensional |numpy| |numpy.ndarray|  with six entries defining

@@ -496,7 +496,7 @@ class Substituter:
 
         Members that are actually imported modules should not be added:
 
-        >>> Substituter.consider_member("warnings", numpy.warnings, numpy)
+        >>> Substituter.consider_member("warnings", numpy.random, numpy)
         False
 
         Members that are actually defined in other modules should not be added:

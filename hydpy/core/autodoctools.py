@@ -1068,7 +1068,7 @@ def prepare_mainsubstituter() -> Substituter:
     ):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, interfaces, exe):
-        for _, name, _ in pkgutil.walk_packages(subpackage.__path__):
+        for _, name, _ in pkgutil.iter_modules(subpackage.__path__):
             full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))
     substituter.add_module(examples)

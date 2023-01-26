@@ -777,7 +777,7 @@ def _initialize_whmod_models(
         for i in range(len(_return_con_hru(hrus, "bodentyp"))):
             bodentyp = _return_con_hru(hrus, "bodentyp")[i]
             assert isinstance(bodentyp, str)
-            temp_list.append(whmod_constants.SOIL_CONSTANTS[bodentyp])
+            temp_list.append(whmod_constants.SOIL_CONSTANTS[bodentyp.upper()])
         con.bodentyp(temp_list)
 
         # fmt: off

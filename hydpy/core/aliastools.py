@@ -166,7 +166,7 @@ def write_sequencealiases() -> None:
         ),
     ):
         sequence2alias: Dict[sqt.InOutSequenceTypes, str] = {}
-        for moduleinfo in pkgutil.walk_packages([modelpath]):
+        for moduleinfo in pkgutil.iter_modules([modelpath]):
             if not moduleinfo.ispkg:
                 continue
             for groupname in groupnames:

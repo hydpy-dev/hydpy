@@ -290,7 +290,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
     df_stammdaten = pandas.read_csv(
-        os.path.join(basedir, filename_station_data), sep="\t"
+        os.path.join(basedir, filename_station_data), comment="#", sep="\t"
     )
     df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
         lambda a: a.split("_")[1].split(".")[0]
@@ -433,7 +433,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     )
 
 
-def check_hydpy_version(hydpy_version: str):
+def check_hydpy_version(hydpy_version: str) -> None:
     """
     Check Hydpy-Version
     >>> with warnings.catch_warnings(record=True) as w:
@@ -500,6 +500,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         os.path.join(basedir, filename_node_data),
         skiprows=[1],
         sep=";",
+        comment="#",
         decimal=",",
         dtype=dtype_knoteneigenschaften,
     )
@@ -551,7 +552,7 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
     ... "nutzung_wrong.txt"))
     Traceback (most recent call last):
     ...
-    AssertionError: Landnutzungsklasse 1 fehlerhaft. Summe muss 100 ergeben
+    ValueError: Landnutzungsklasse 1 fehlerhaft. Summe muss 100 ergeben
     """
     landuse_dict = {}
     with open(filepath_landuse, mode="r", encoding="utf-8") as infile:
@@ -569,7 +570,7 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
         for vals in landuse_orig_dict.values():
             rel_area_sum += vals
         if rel_area_sum != 100:
-            raise AssertionError(
+            raise ValueError(
                 f"Landnutzungsklasse {lnk} fehlerhaft. Summe muss 100 ergeben"
             )
     return landuse_dict
@@ -596,14 +597,14 @@ def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
     ...                 basedir=basedir)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AssertionError:
+    ValueError:
     In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht \
 zu den Basislandnutzungsklassen gehört
     In der Datei zur Wurzeltiefe wurde kein Wert für 'mais' definiert
     >>> read_root_depth(root_depth_option="test.txt", basedir=basedir)
     Traceback (most recent call last):
     ...
-    AssertionError: Der Wert für ROOT_DEPTH_OPTION (test.txt) ist ungültig er muss \
+    ValueError: Der Wert für ROOT_DEPTH_OPTION (test.txt) ist ungültig er muss \
 entweder auf eine Datei verweisen oder den Wert 'BK', 'WABOA', 'TGU' oder 'DARMSTADT' \
 enthalten.
     """
@@ -641,7 +642,7 @@ enthalten.
                 names=["BENUTZERDEFINIERT"],
             )
         except FileNotFoundError:
-            raise AssertionError(
+            raise ValueError(
                 f"Der Wert für ROOT_DEPTH_OPTION ({root_depth_option}) ist "
                 f"ungültig er muss entweder auf eine Datei verweisen oder den "
                 f"Wert 'BK', 'WABOA', 'TGU' oder 'DARMSTADT' enthalten."
@@ -662,7 +663,7 @@ enthalten.
                     f"'{entry}' definiert"
                 )
         if error:
-            raise AssertionError("\n" + "\n".join(error))
+            raise ValueError("\n" + "\n".join(error))
 
         root_depth = dict(pandas.to_numeric(root_depth_table["BENUTZERDEFINIERT"]))
     return root_depth

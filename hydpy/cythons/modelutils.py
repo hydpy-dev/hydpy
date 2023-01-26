@@ -254,8 +254,6 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 # ...from standard library
 from __future__ import annotations
 import copy
-import distutils.core
-import distutils.extension
 
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
@@ -274,6 +272,7 @@ from typing import *
 import numpy
 from numpy import inf  # pylint: disable=unused-import
 from numpy import nan  # pylint: disable=unused-import
+import setuptools
 
 # ...from HydPy
 import hydpy
@@ -612,13 +611,13 @@ class Cythonizer:
             "--build-temp=" + self.buildpath,
         ]
         exc_modules = [
-            distutils.extension.Extension(
+            setuptools.Extension(
                 "hydpy.cythons.autogen." + self.cyname,
                 [self.pyxfilepath],
                 extra_compile_args=["-O2"],
             )
         ]
-        distutils.core.setup(
+        setuptools.setup(
             ext_modules=build.cythonize(exc_modules), include_dirs=[numpy.get_include()]
         )
         sys.argv = argv

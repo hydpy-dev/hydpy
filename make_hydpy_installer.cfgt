@@ -24,6 +24,7 @@ pypi_wheels =
 	six==[auto]
 	fonttools==[auto]
 	kiwisolver==[auto]
+	setuptools==[auto]
 	pyparsing==[auto]
 	python-dateutil==[auto]
 	netCDF4==[auto]

@@ -64,6 +64,7 @@ setuptools.setup(
         "pandas",
         "plotly",
         "scipy",
+        "setuptools",
         "typing_extensions",
         "wrapt",
         "xmlschema",

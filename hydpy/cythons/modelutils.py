@@ -21,10 +21,10 @@ but these are untested in model applications:
 
 >>> from hydpy.models.test import cythonizer
 >>> pyxwriter = cythonizer.pyxwriter
->>> pyxwriter.get_point_states
+>>> pyxwriter.get_point_states  # doctest: +ELLIPSIS
             . get_point_states
     cpdef inline void get_point_states(self) nogil:
-        cdef int idx0
+        cdef ...int... idx0
         self.sequences.states.s = \
 self.sequences.states._s_points[self.numvars.idx_stage]
         for idx0 in range(self.sequences.states._sv_length):
@@ -33,10 +33,10 @@ self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 2
->>> pyxwriter.get_point_states
+>>> pyxwriter.get_point_states  # doctest: +ELLIPSIS
             . get_point_states
     cpdef inline void get_point_states(self) nogil:
-        cdef int idx0, idx1
+        cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.states._s_length0):
             for idx1 in range(self.sequences.states._s_length1):
                 self.sequences.states.s[idx0, idx1] = \
@@ -56,10 +56,10 @@ The following examples show the results for some methods which are also
 related to numerical integration but deal with |FluxSequence| objects.
 We start with the method |ELSModel.integrate_fluxes|:
 
->>> pyxwriter.integrate_fluxes
+>>> pyxwriter.integrate_fluxes  # doctest: +ELLIPSIS
             . integrate_fluxes
     cpdef inline void integrate_fluxes(self) nogil:
-        cdef int jdx, idx0
+        cdef ...int... jdx, idx0
         self.sequences.fluxes.q = 0.
         for jdx in range(self.numvars.idx_method):
             self.sequences.fluxes.q = \
@@ -77,10 +77,10 @@ self.sequences.fluxes._qv_points[jdx, idx0]
 
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.integrate_fluxes
+>>> pyxwriter.integrate_fluxes  # doctest: +ELLIPSIS
             . integrate_fluxes
     cpdef inline void integrate_fluxes(self) nogil:
-        cdef int jdx, idx0, idx1
+        cdef ...int... jdx, idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.sequences.fluxes.q[idx0, idx1] = 0.
@@ -107,20 +107,20 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.reset_sum_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.reset_sum_fluxes
+>>> pyxwriter.reset_sum_fluxes  # doctest: +ELLIPSIS
             . reset_sum_fluxes
     cpdef inline void reset_sum_fluxes(self) nogil:
-        cdef int idx0
+        cdef ...int... idx0
         self.sequences.fluxes._q_sum = 0.
         for idx0 in range(self.sequences.fluxes._qv_length):
             self.sequences.fluxes._qv_sum[idx0] = 0.
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.reset_sum_fluxes
+>>> pyxwriter.reset_sum_fluxes  # doctest: +ELLIPSIS
             . reset_sum_fluxes
     cpdef inline void reset_sum_fluxes(self) nogil:
-        cdef int idx0, idx1
+        cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.sequences.fluxes._q_sum[idx0, idx1] = 0.
@@ -137,10 +137,10 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.addup_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.addup_fluxes
+>>> pyxwriter.addup_fluxes  # doctest: +ELLIPSIS
             . addup_fluxes
     cpdef inline void addup_fluxes(self) nogil:
-        cdef int idx0
+        cdef ...int... idx0
         self.sequences.fluxes._q_sum = \
 self.sequences.fluxes._q_sum + self.sequences.fluxes.q
         for idx0 in range(self.sequences.fluxes._qv_length):
@@ -149,10 +149,10 @@ self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.addup_fluxes
+>>> pyxwriter.addup_fluxes  # doctest: +ELLIPSIS
             . addup_fluxes
     cpdef inline void addup_fluxes(self) nogil:
-        cdef int idx0, idx1
+        cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.sequences.fluxes._q_sum[idx0, idx1] = \
@@ -171,10 +171,10 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.calculate_error|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.calculate_error
+>>> pyxwriter.calculate_error  # doctest: +ELLIPSIS
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
-        cdef int idx0
+        cdef ...int... idx0
         cdef double abserror
         self.numvars.abserror = 0.
         if self.numvars.use_relerror:
@@ -206,10 +206,10 @@ fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.calculate_error
+>>> pyxwriter.calculate_error  # doctest: +ELLIPSIS
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
-        cdef int idx0, idx1
+        cdef ...int... idx0, idx1
         cdef double abserror
         self.numvars.abserror = 0.
         if self.numvars.use_relerror:
@@ -401,13 +401,14 @@ def get_methodheader(
     >>> print(get_methodheader("test", nogil=True, idxarg=False, inline=True))
     cpdef inline void test(self):
     >>> config.FASTCYTHON = True
-    >>> print(get_methodheader("test", nogil=True, idxarg=True, inline=False))
-    cpdef void test(self, int idx) nogil:
+    >>> methodheader = get_methodheader("test", nogil=True, idxarg=True, inline=False)
+    >>> print(methodheader)  # doctest: +ELLIPSIS
+    cpdef void test(self, ...int... idx) nogil:
     """
     if not config.FASTCYTHON:
         nogil = False
     nogil_ = " nogil" if nogil else ""
-    idxarg_ = ", int idx" if idxarg else ""
+    idxarg_ = f", {_int} idx" if idxarg else ""
     inline_ = " inline" if inline else ""
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
 
@@ -904,16 +905,16 @@ class PyxWriter:
                         lines.add(1, f"cdef double *{seq.name}")
                     elif seq.NDIM == 1:
                         lines.add(1, f"cdef double **{seq.name}")
-                        lines.add(1, f"cdef public int len_{seq.name}")
+                        lines.add(1, f"cdef public {_int} len_{seq.name}")
                         lines.add(
                             1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready"
                         )
                 else:
                     lines.add(1, f"cdef public {ctype} {seq.name}")
-                lines.add(1, f"cdef public int _{seq.name}_ndim")
-                lines.add(1, f"cdef public int _{seq.name}_length")
+                lines.add(1, f"cdef public {_int} _{seq.name}_ndim")
+                lines.add(1, f"cdef public {_int} _{seq.name}_length")
                 for idx in range(seq.NDIM):
-                    lines.add(1, f"cdef public int _{seq.name}_length_{idx}")
+                    lines.add(1, f"cdef public {_int} _{seq.name}_length_{idx}")
                 if seq.NUMERIC:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_points")
@@ -973,16 +974,16 @@ class PyxWriter:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
-            lines.add(2, f"cdef int {jdxs}")
+            lines.add(2, f"cdef {_int} {jdxs}")
 
     @classmethod
     def load_data(cls, subseqs: sequencetools.IOSequences[Any, Any, Any]) -> List[str]:
         """Load data statements."""
         print("            . load_data")
         lines = Lines()
-        lines.add(1, f"cpdef inline void load_data(self, int idx) {_nogil}:")
+        lines.add(1, f"cpdef inline void load_data(self, {_int} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        lines.add(2, "cdef int k")
+        lines.add(2, f"cdef {_int} k")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence):
                 lines.add(2, f"if self._{seq.name}_inputflag:")
@@ -1027,9 +1028,9 @@ class PyxWriter:
         """Save data statements."""
         print("            . save_data")
         lines = Lines()
-        lines.add(1, f"cpdef inline void save_data(self, int idx) {_nogil}:")
+        lines.add(1, f"cpdef inline void save_data(self, {_int} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        lines.add(2, "cdef int k")
+        lines.add(2, f"cdef {_int} k")
         for seq in subseqs:
             lines.add(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
@@ -1107,7 +1108,7 @@ class PyxWriter:
         print("            . get_value")
         lines = Lines()
         lines.add(1, "cpdef get_value(self, str name):")
-        lines.add(2, "cdef int idx")
+        lines.add(2, f"cdef {_int} idx")
         for seq in subseqs:
             lines.add(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
@@ -1183,7 +1184,7 @@ class PyxWriter:
         lines.add(
             1,
             "cpdef inline set_pointer1d"
-            "(self, str name, pointerutils.Double value, int idx):",
+            f"(self, str name, pointerutils.Double value, {_int} idx):",
         )
         lines.add(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
@@ -1305,7 +1306,8 @@ class PyxWriter:
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
-                    lines.add(1, f"cdef public int {name}")
+                    if (name != "idx_sim") or not interfacebases:
+                        lines.add(1, f"cdef public {_int} {name}")
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
@@ -1373,7 +1375,7 @@ class PyxWriter:
         """Simulation statements."""
         print("                . simulate")
         lines = Lines()
-        lines.add(1, f"cpdef inline void simulate(self, int idx) {_nogil}:")
+        lines.add(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         lines.add(2, "self.idx_sim = idx")
         submodels = self.model.find_submodels(
             include_subsubmodels=False, include_optional=True
@@ -1410,12 +1412,12 @@ class PyxWriter:
 
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
-        >>> pyxwriter.iofunctions
+        >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef inline void load_data(self) nogil:
+            cpdef void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
-            cpdef inline void save_data(self, int idx) nogil:
+            cpdef void save_data(self, ...int... idx) nogil:
                 self.sequences.inputs.save_data(self.idx_sim)
                 self.sequences.factors.save_data(self.idx_sim)
                 self.sequences.fluxes.save_data(self.idx_sim)
@@ -1425,12 +1427,12 @@ class PyxWriter:
         >>> pyxwriter.model.sequences.factors = None
         >>> pyxwriter.model.sequences.fluxes = None
         >>> pyxwriter.model.sequences.states = None
-        >>> pyxwriter.iofunctions
+        >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef inline void load_data(self) nogil:
+            cpdef void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
-            cpdef inline void save_data(self, int idx) nogil:
+            cpdef void save_data(self, ...int... idx) nogil:
                 self.sequences.inputs.save_data(self.idx_sim)
         <BLANKLINE>
 
@@ -1710,9 +1712,9 @@ class PyxWriter:
         for seq in subseqs:
             maxdim = max(maxdim, seq.NDIM)
         if maxdim == 1:
-            yield "cdef int idx0"
+            yield f"cdef {_int} idx0"
         elif maxdim == 2:
-            yield "cdef int idx0, idx1"
+            yield f"cdef {_int} idx0, idx1"
 
     @decorate_method
     def get_point_states(self) -> Iterator[str]:
@@ -1787,11 +1789,11 @@ class PyxWriter:
         for seq in self.model.sequences.fluxes.numericsequences:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
-            yield "cdef int jdx"
+            yield f"cdef {_int} jdx"
         elif max_ndim == 1:
-            yield "cdef int jdx, idx0"
+            yield f"cdef {_int} jdx, idx0"
         elif max_ndim == 2:
-            yield "cdef int jdx, idx0, idx1"
+            yield f"cdef {_int} jdx, idx0, idx1"
         for seq in self.model.sequences.fluxes.numericsequences:
             to_ = f"self.sequences.fluxes.{seq.name}"
             from_ = f"self.sequences.fluxes._{seq.name}_points"
@@ -2374,10 +2376,11 @@ class FuncConverter:
         ...             d_pc = con.kg[k]*inp.p[k]
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
-        >>> FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
+        >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
+        >>> lines  # doctest: +ELLIPSIS
             cpdef inline void calc_test_v1(self) nogil:
                 cdef double d_pc
-                cdef int k
+                cdef ...int... k
                 for k in range(self.parameters.control.nmbzones):
                     d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
                     self.sequences.fluxes.pc[k] = d_pc

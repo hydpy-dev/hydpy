@@ -6,6 +6,12 @@
 from hydpy.core import sequencetools
 
 
+class AdjustedAirTemperature(sequencetools.FactorSequence):
+    """Adjusted air temperature [°C]."""
+
+    NDIM, NUMERIC = 1, False
+
+
 class AdjustedWindSpeed(sequencetools.FactorSequence):
     """Adjusted wind speed [m/s]."""
 
@@ -15,19 +21,19 @@ class AdjustedWindSpeed(sequencetools.FactorSequence):
 class SaturationVapourPressure(sequencetools.FactorSequence):
     """Saturation vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class SaturationVapourPressureSlope(sequencetools.FactorSequence):
     """The slope of the saturation vapour pressure curve [hPa/K]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class ActualVapourPressure(sequencetools.FactorSequence):
     """Actual vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class PsychrometricConstant(sequencetools.FactorSequence):

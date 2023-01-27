@@ -12,6 +12,18 @@ class PC(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
+class PET(sequencetools.FluxSequence):
+    """Potential evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class PE(sequencetools.FluxSequence):
+    """Potential evaporation [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class PETL(sequencetools.FluxSequence):
     """Adjusted potential evapotranspiration of the land areas [mm/T]."""
 

@@ -7,7 +7,6 @@
 # ...from standard library
 from abc import abstractmethod
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 from hydpy.core import modeltools
@@ -23,8 +22,8 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     for getting the current soil water content (|SoilModel_V1.get_soilwatercontent|)
     but not for setting it.
 
-    The reason for implementing |SoilModel_V1| was to couple |lland_v2| with
-    |ga_garto|, as discussed in `issue 89`_.
+    The reason for implementing |SoilModel_V1| was to couple |lland| with |ga_garto|,
+    as discussed in `issue 89`_.
 
     All units in mm or mm/T.  The method parameter "k" is the index of the considered
     soil compartment.

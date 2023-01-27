@@ -15,8 +15,6 @@ import types
 import warnings
 from typing import *
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
-from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
 import black
@@ -807,10 +805,10 @@ class Replace(Rule[parametertools.Parameter]):
         See the documentation on class |Rule| for further information.
         """
         opt = hydpy.pub.options
-        with opt.parameterstep(self.parameterstep):  # pylint: disable=not-callable
+        with opt.parameterstep(self.parameterstep):
             for parameter in self:
                 if self.adaptor:
-                    self.adaptor(parameter)  # pylint: disable=not-callable
+                    self.adaptor(parameter)
                 else:
                     self._update_parameter(parameter, self.value)
 

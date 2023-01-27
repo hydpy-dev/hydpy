@@ -15,9 +15,7 @@ import sys
 import textwrap
 import types
 from typing import *
-from typing import NoReturn
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import black
@@ -31,6 +29,7 @@ from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
+    from hydpy.core import modeltools
 
 
 _builtinnames = set(dir(builtins))
@@ -204,6 +203,36 @@ def devicephrase(self: object) -> str:
     '`sim` of node `n1`'
     """
     return _devicephrase(self)
+
+
+def submodelphrase(model: modeltools.Model, include_subsubmodels: bool = True) -> str:
+    """Return a standard phrase for listing a model and its submodels in exception
+    messages.
+
+    >>> from hydpy import prepare_model
+    >>> from hydpy.core.objecttools import submodelphrase
+    >>> model = prepare_model("lland_v1")
+    >>> submodelphrase(model)
+    'model `lland_v1`'
+
+    >>> model.petmodel = prepare_model("evap_io")
+    >>> submodelphrase(model)
+    'model `lland_v1` and its submodel (`petmodel/evap_io`)'
+
+    >>> model.soilmodel = prepare_model("ga_garto_submodel1")
+    >>> submodelphrase(model)
+    'model `lland_v1` and its submodels (`petmodel/evap_io` and \
+`soilmodel/ga_garto_submodel1`)'
+    """
+    submodels = model.find_submodels(include_subsubmodels=include_subsubmodels)
+    if submodels:
+        suffix = "s" if len(submodels) > 1 else ""
+        names = enumeration(
+            f"`{name.rpartition('.')[2]}/{submodel}`"
+            for name, submodel in submodels.items()
+        )
+        return f"model `{model}` and its submodel{suffix} ({names})"
+    return f"model `{model}`"
 
 
 def valid_variable_identifier(string: str) -> None:
@@ -1608,7 +1637,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
-    with hydpy.pub.options.reprdigits(decimals):  # pylint: disable=not-callable
+    with hydpy.pub.options.reprdigits(decimals):
         if isinstance(values, numpy.ndarray) and (values.ndim == 0):
             string = repr_(values.item())
         elif isinstance(values, str):
@@ -1904,7 +1933,7 @@ string=f"a {10*'very '}long test"))
 
 
 def assert_never(value: NoReturn) -> NoReturn:
-    """Function |assert_never| serves for exhaustiveness checking.
+    """Function `assert_never` serves for exhaustiveness checking.
 
     >>> from hydpy.core.objecttools import assert_never
     >>> assert_never(1.0)

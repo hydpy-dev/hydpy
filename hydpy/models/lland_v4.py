@@ -1958,7 +1958,9 @@ class Model(modeltools.AdHocModel):
         lland_model.PegasusESnow,
         lland_model.PegasusTempSSurface,
     )
+
     idx_hru = modeltools.Idx_HRU()
+    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
     def check_waterbalance(
         self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]

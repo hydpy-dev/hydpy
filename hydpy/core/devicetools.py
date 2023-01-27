@@ -79,7 +79,6 @@ import itertools
 import operator
 import warnings
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -250,44 +249,52 @@ _registry_fusedvariable: Dict[str, FusedVariable] = {}
 
 class FusedVariable:
     """Combines |InputSequence| and |OutputSequence| subclasses of different models
-    dealing with the same property into a single variable.
+    dealing with the same property in a single variable.
 
-    Class |FusedVariable| is one possible type of the property |Node.variable| of class
-    |Node|.  We need it in some *HydPy* projects where the involved models do not only
-    pass runoff to each other but share other types of data as well.  Each
+    Class |FusedVariable| is one possible type of property |Node.variable| of class
+    |Node|.  We need it in some *HydPy* projects where the involved models not only
+    pass runoff to each other but also share other types of data.  Each
     project-specific |FusedVariable| object serves as a "meta-type", indicating which
     input and output sequences of the different models correlate and are thus
-    connectable with each other.
+    connectable.
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to the |evap_v001| model, which requires this and other
+    this temperature as input to the |evap_fao56| model, which requires this and other
     meteorological data to calculate potential evapotranspiration.  Further, we pass
-    the calculated potential evapotranspiration as input to |lland_v2| for calculating
-    the actual evapotranspiration.  Hence, we need to connect the output sequence
-    |evap_fluxes.ReferenceEvapotranspiration| of |evap_v001| with the input sequence
-    |lland_inputs.PET| of |lland_v2|.
+    the estimated potential evapotranspiration as input to |lland_v1| for calculating
+    the actual evapotranspiration, which receives it through a submodel instance of
+    |evap_io|.  Hence, we need to connect the output sequence
+    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
+    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
 
-    Additionally, |lland_v2| requires temperature data itself for modelling snow
+    ToDo: This example needs to be updated.  Today one could directly use |evap_fao56|
+          as a submodel of |lland_v1|.  However, it still demonstrates the relevant
+          connection mechanisms correctly.
+
+    Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
-    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_v001| and
-    |lland_v2|, respectively).
+    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
+    |lland_v1|, respectively).
 
-    For our concrete example, we need to create two |FusedVariable| objects.  `E`
-    combines |evap_fluxes.ReferenceEvapotranspiration| and |lland_inputs.PET| and `T`
-    combines |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we
-    import their globally available aliases):
+    We need to create two |FusedVariable| objects, for our concrete example.  `E`
+    combines |evap_fluxes.MeanReferenceEvapotranspiration| and
+    |evap_inputs.ReferenceEvapotranspiration| and `T` combines
+    |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we import
+    their globally available aliases):
 
     >>> from hydpy import FusedVariable
-    >>> from hydpy.inputs import lland_PET, evap_AirTemperature, lland_TemL
-    >>> from hydpy.outputs import evap_ReferenceEvapotranspiration
-    >>> E = FusedVariable("E", evap_ReferenceEvapotranspiration, lland_PET)
+    >>> from hydpy.inputs import (
+    ...     evap_ReferenceEvapotranspiration, evap_AirTemperature, lland_TemL)
+    >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
+    >>> E = FusedVariable(
+    ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
     >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
 
     Now we can construct the network:
 
-     * Node `t1` handles the original temperature and serves as the input node to
+     * Node `t1` handles the original temperature data and serves as the input node to
        element `conv`. We define the (arbitrarily selected) string `Temp` to be its
        variable.
      * Node `e` receives the potential evapotranspiration calculated by element `evap`
@@ -300,15 +307,9 @@ class FusedVariable:
     >>> t1 = Node("t1", variable="Temp")
     >>> t2 = Node("t2", variable=T)
     >>> e = Node("e", variable=E)
-    >>> conv = Element("element_conv",
-    ...                inlets=t1,
-    ...                outlets=t2)
-    >>> evap = Element("element_evap",
-    ...                inputs=t2,
-    ...                outputs=e)
-    >>> lland = Element("element_lland",
-    ...                 inputs=(t2, e),
-    ...                 outlets="node_q")
+    >>> conv = Element("element_conv", inlets=t1, outlets=t2)
+    >>> evap = Element("element_evap", inputs=t2, outputs=e)
+    >>> lland = Element("element_lland", inputs=(t2, e), outlets="node_q")
 
     Now we can prepare the different model objects and assign them to their
     corresponding elements (note that parameters |conv_control.InputCoordinates| and
@@ -322,8 +323,10 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model("evap_v001")
-    >>> lland.model = prepare_model("lland_v2")
+    >>> evap.model = prepare_model("evap_fao56")
+    >>> model = prepare_model("lland_v1")
+    >>> model.petmodel = prepare_model("evap_io")
+    >>> lland.model = model
 
     We assign a temperature value to node `t1`:
 
@@ -336,7 +339,7 @@ class FusedVariable:
     >>> t2.sequences.sim
     sim(-273.15)
 
-    Without further configuration, |evap_v001| cannot perform any simulation steps.
+    Without further configuration, |evap_fao56| cannot perform any simulation steps.
     Hence, we just call its |Model.load_data| method to show that its input sequence
     |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
     and receives the correct data:
@@ -345,23 +348,24 @@ class FusedVariable:
     >>> evap.model.sequences.inputs.airtemperature
     airtemperature(-273.15)
 
-    The output sequence |evap_fluxes.ReferenceEvapotranspiration| is also well
+    The output sequence |evap_fluxes.MeanReferenceEvapotranspiration| is also well
     connected.  A call to method |Model.update_outputs| passes its (manually set) value
     to node `e`, respectively:
 
-    >>> evap.model.sequences.fluxes.referenceevapotranspiration = 999.9
+    >>> evap.model.sequences.fluxes.meanreferenceevapotranspiration = 999.9
     >>> evap.model.update_outputs()
     >>> e.sequences.sim
     sim(999.9)
 
-    Finally, both input sequences |lland_inputs.TemL| and |lland_inputs.PET| receive
-    the current values of nodes `t2` and `e`:
+    Finally, both input sequences |lland_inputs.TemL| and
+    |evap_inputs.ReferenceEvapotranspiration| receive the current values of nodes `t2`
+    and `e`:
 
     >>> lland.model.load_data()
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
-    >>> lland.model.sequences.inputs.pet
-    pet(999.9)
+    >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration
+    referenceevapotranspiration(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
     behind the scenes, similar to what classes |Node| and |Element| do.  Again, the
@@ -384,15 +388,14 @@ The already defined sequences of the fused variable `T` are `evap_AirTemperature
 lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
 unique identifier for fused variable instances.
 
-
-    Defining additional fused variables with the same member sequences does not seem
-    advisable but is allowed:
+    Defining additional fused variables with the same member sequences is not advisable
+    but is allowed:
 
     >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
     >>> T is Temp
     False
 
-    To get an overview of the already existing fused variables, call method
+    To get an overview of the existing fused variables, call method
     |FusedVariable.get_registry|:
 
     >>> len(FusedVariable.get_registry())
@@ -446,7 +449,7 @@ unique identifier for fused variable instances.
         return self
 
     @classmethod
-    def get_registry(cls) -> Tuple["FusedVariable", ...]:
+    def get_registry(cls) -> Tuple[FusedVariable, ...]:
         """Get all |FusedVariable| objects initialised so far."""
         return tuple(_registry_fusedvariable.values())
 
@@ -661,8 +664,7 @@ classes: Node and str.
     _name2device: Dict[str, TypeDevice]
     _shadowed_keywords: Set[str]
 
-    # We do not want to implement the signature of Generic.__new__ here:
-    def __new__(  # pylint: disable=arguments-differ
+    def __new__(
         cls, *values: MayNonerable2[TypeDevice, str], mutable: bool = True
     ) -> Devices[Any]:
         if len(values) == 1 and isinstance(values[0], Devices):
@@ -1131,7 +1133,7 @@ conflict with using their names as identifiers.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 prefix += f"{type(self).__name__}("
                 repr_ = objecttools.assignrepr_values(self.names, prefix, width=70)
                 return repr_ + ")"
@@ -1483,77 +1485,63 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
 
     @printtools.print_progress
     def load_allseries(self) -> None:
-        """Call methods |Elements.load_inputseries|, |Elements.load_factorseries|,
-        |Elements.load_fluxseries|, and |Elements.load_stateseries|."""
-        self.load_inputseries()
-        self.load_factorseries()
-        self.load_fluxseries()
-        self.load_stateseries()
+        """Call method |Element.load_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_allseries()
 
     @printtools.print_progress
     def load_inputseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |InputSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("inputs")
+        """Call method |Element.load_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_inputseries()
 
     @printtools.print_progress
     def load_factorseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |FactorSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("factors")
+        """Call method |Element.load_factorseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_factorseries()
 
     @printtools.print_progress
     def load_fluxseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |FluxSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("fluxes")
+        """Call method |Element.load_fluxseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_fluxseries()
 
     @printtools.print_progress
     def load_stateseries(self) -> None:
-        """Call method |IOSequence.load_series| of all |StateSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__load_modelseries("states")
-
-    def __load_modelseries(self, name_subseqs: str) -> None:
+        """Call method |Element.load_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.model.sequences[name_subseqs].load_series()
+            element.load_stateseries()
 
     @printtools.print_progress
     def save_allseries(self) -> None:
-        """Call methods |Elements.save_inputseries|, |Elements.save_factorseries|,
-        |Elements.save_fluxseries|, and |Elements.save_stateseries|."""
-        self.save_inputseries()
-        self.save_factorseries()
-        self.save_fluxseries()
-        self.save_stateseries()
+        """Call method |Element.save_allseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_allseries()
 
     @printtools.print_progress
     def save_inputseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |InputSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("inputs")
+        """Call method |Element.save_inputseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_inputseries()
 
     @printtools.print_progress
     def save_factorseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |FactorSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("factors")
+        """Call method |Element.save_factorseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_factorseries()
 
     @printtools.print_progress
     def save_fluxseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |FluxSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("fluxes")
+        """Call method |Element.save_fluxseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_fluxseries()
 
     @printtools.print_progress
     def save_stateseries(self) -> None:
-        """Call method |IOSequence.save_series| of all |StateSequence| objects with an
-        activated |IOSequence.memoryflag|."""
-        self.__save_modelseries("states")
-
-    def __save_modelseries(self, name_subseqs: str) -> None:
+        """Call method |Element.save_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
-            element.model.sequences[name_subseqs].save_series()
+            element.save_stateseries()
 
 
 class Device:
@@ -1756,7 +1744,7 @@ class Node(Device):
     >>> node.entries = "element"  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AttributeError: can't set attribute...
+    AttributeError: ...
     >>> node.exits.add_device("element")
     Traceback (most recent call last):
     ...
@@ -1819,7 +1807,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
 
     @property
     def exits(self) -> Elements:
-        """Group of |Element| objects which query the simulated or observed value of
+        """Group of |Element| objects that query the simulated or observed value of
         the actual |Node| object."""
         return self._exits
 
@@ -1843,8 +1831,8 @@ following error occurred: Adding devices to immutable Elements objects is not al
         >>> Node("test3", variable=T)
         Node("test3", variable=hland_T)
 
-        The last above example shows that the string representations of nodes handling
-        "class variables" use the aliases importable from the top-level of the *HydPy*
+        The last example above shows that the string representations of nodes handling
+        "class variables" use the aliases importable from the top level of the *HydPy*
         package:
 
         >>> from hydpy.inputs import hland_P
@@ -1866,7 +1854,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
         >>> node.variable = "H"  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: can't set attribute...
+        AttributeError: ...
         >>> Node("test1", variable="H")
         Traceback (most recent call last):
         ...
@@ -1959,8 +1947,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
-        Method |Node.get_double| should be of interest for framework developers only
-        (and eventually for model developers).
+        Method |Node.get_double| should interest framework developers only (and
+        eventually model developers).
 
         Let |Node| object `node1` handle different simulation and observation values:
 
@@ -2677,7 +2665,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     @property
     def inputs(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
-        "external" input values, instead of reading them from files (e.g. interpolated
+        "external" input values instead of reading them from files (e.g. interpolated
         precipitation)."""
         return self._inputs
 
@@ -2751,7 +2739,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         >>> attrready(hland, "model")
         False
 
-        For the "usual" approach to prepare models, please see the method
+        For the "usual" approach to preparing models, please see the method
         |Element.prepare_model|.
 
         The following examples show that assigning |Model| objects to property
@@ -2834,7 +2822,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                     "`timegrids` of module `pub` yet but might be required to prepare "
                     "the model properly."
                 ) from None
-            with options.warnsimulationstep(False):  # pylint: disable=not-callable
+            with options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry
                 )
@@ -2883,7 +2871,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """A set of all different |Node.variable| values of the |Node| objects directly
         connected to the actual |Element| object.
 
-        Suppose there is an element connected to five nodes, which (partly) represent
+        Suppose an element is connected to five nodes, which (partly) represent
         different variables:
 
         >>> from hydpy import Element, Node
@@ -2905,49 +2893,123 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         return variables
 
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
-        """Call method |Element.prepare_inputseries| with `read_jit=jit` and methods
-        |Element.prepare_factorseries|, |Element.prepare_fluxseries|, and
-        |Element.prepare_stateseries| with `write_jit=jit`."""
-        self.prepare_inputseries(allocate_ram=allocate_ram, read_jit=jit)
-        self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
-        self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
-        self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+        """Call method |Model.prepare_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |InputSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.inputs.prepare_series(
+        """Call method |Model.prepare_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_inputseries(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_inputseries(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
     def prepare_factorseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |FactorSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.factors.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_factorseries(
+                allocate_ram=allocate_ram, write_jit=write_jit
+            )
 
     def prepare_fluxseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |FluxSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.fluxes.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_stateseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
-        """Call method |IOSequence.prepare_series| of all |StateSequence| objects of
-        the currently handled |Model| instance."""
-        self.model.sequences.states.prepare_series(
-            allocate_ram=allocate_ram, write_jit=write_jit
-        )
+        """Call method |Model.prepare_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for submodel in self.model.find_submodels().values():
+            submodel.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
+    def load_allseries(self) -> None:
+        """Call method |Model.load_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_allseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_allseries()
+
+    def load_inputseries(self) -> None:
+        """Call method |Model.load_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_inputseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_inputseries()
+
+    def load_factorseries(self) -> None:
+        """Call method |Model.load_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_factorseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_factorseries()
+
+    def load_fluxseries(self) -> None:
+        """Call method |Model.load_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_fluxseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_fluxseries()
+
+    def load_stateseries(self) -> None:
+        """Call method |Model.load_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.load_stateseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.load_stateseries()
+
+    def save_allseries(self) -> None:
+        """Call method |Model.save_allseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_allseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_allseries()
+
+    def save_inputseries(self) -> None:
+        """Call method |Model.save_inputseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_inputseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_inputseries()
+
+    def save_factorseries(self) -> None:
+        """Call method |Model.save_factorseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_factorseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_factorseries()
+
+    def save_fluxseries(self) -> None:
+        """Call method |Model.save_fluxseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_fluxseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_fluxseries()
+
+    def save_stateseries(self) -> None:
+        """Call method |Model.save_stateseries| of the currently handled |Model|
+        instance and its submodels."""
+        self.model.save_stateseries()
+        for submodel in self.model.find_submodels().values():
+            submodel.save_stateseries()
 
     def _plot_series(
         self,
@@ -3057,7 +3119,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time-series of all
         input sequences handled by its |Model| object directly to the screen (in our
-        example |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
+        example, |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
         |hland_inputs.EPN| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
@@ -3095,7 +3157,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         individual time-series in the same colour.  We demonstrate this for the frozen
         (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
         snow cover of different hydrological response units.  Therefore, we restrict
-        the shown period to February and March via the |Timegrids.eval_| time-grid:
+        the shown period to February and March via the |Timegrids.eval_| time grid:
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
         ...     figure = land.plot_stateseries(["sp", "wc"])

@@ -5,7 +5,6 @@
 # ...from standard library
 import inspect
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

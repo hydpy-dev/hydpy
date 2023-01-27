@@ -5,7 +5,6 @@
 # ...from standard library
 import itertools
 from typing import *
-from typing_extensions import Literal
 
 # ...from HydPy
 from hydpy.core import objecttools

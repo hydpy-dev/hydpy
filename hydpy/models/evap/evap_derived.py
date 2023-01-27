@@ -2,10 +2,39 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+
+# ...from evap
+from hydpy.models.evap import evap_control
+
+
+class HRUAreaFraction(parametertools.Parameter):
+    """The area fraction of each hydrological response unit [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+    CONTROLPARAMETERS = (evap_control.HRUArea,)
+
+    def update(self) -> None:
+        r"""Calculate the fractions based on
+        :math:`HRUAreaFraction_i = HRUArea_i / \Sigma HRUArea`.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(5)
+        >>> hruarea(10.0, 40.0, 20.0, 25.0, 5.0)
+        >>> derived.hruareafraction.update()
+        >>> derived.hruareafraction
+        hruareafraction(0.1, 0.4, 0.2, 0.25, 0.05)
+        """
+        hruarea = self.subpars.pars.control.hruarea.values
+        self.values = hruarea / numpy.sum(hruarea)
 
 
 class Hours(parametertools.HoursParameter):

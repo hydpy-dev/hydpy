@@ -24,8 +24,8 @@ class AS_(parametertools.Parameter):
 class NU(parametertools.Parameter):
     """Number of hydrological response units [-].
 
-    Parameter |NU| automatically sets the length of most 1-dimensional parameters
-    and sequences of *HydPy-W-Land*:
+    Parameter |NU| automatically sets the length of most 1-dimensional parameters and
+    sequences of *HydPy-W-Land*:
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
@@ -35,8 +35,8 @@ class NU(parametertools.Parameter):
     >>> states.ic.shape
     (3,)
 
-    Changing the value of parameter |NU| reshapes the related parameters
-    and sequences and thereby eventually deletes predefined values:
+    Changing the value of parameter |NU| reshapes the related parameters and sequences
+    and eventually deletes predefined values:
 
     >>> states.ic = 1.0
     >>> states.ic
@@ -45,8 +45,8 @@ class NU(parametertools.Parameter):
     >>> states.ic
     ic(nan, nan)
 
-    Redefining the same value for parameter |NU| does not affect any related
-    parameter and sequence object:
+    Redefining the same value for parameter |NU| does not affect any related parameter
+    and sequence object:
 
     >>> states.ic = 1.0
     >>> states.ic
@@ -78,9 +78,9 @@ class NU(parametertools.Parameter):
 class LT(parametertools.NameParameter):
     """Landuse type [-].
 
-    For better readability, use the land-use related constants defined in
-    module |wland_constants| to set the individual hydrological response
-    units' land-use types:
+    For better readability, use the land-use-related constants defined in module
+    |wland_constants| to set the individual hydrological response units' land-use
+    types:
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
@@ -112,15 +112,9 @@ class CP(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class CPET(parametertools.Parameter):
-    """Factor for correcting potential evapotranspiration [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
 class CPETL(wland_parameters.LanduseMonthParameter):
     """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to land-use specific potential evapotranspiration
+    reference evapotranspiration) to land-use-specific potential evapotranspiration
     [-]."""
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)

@@ -15,7 +15,6 @@ import time
 import traceback
 from typing import *
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from hydpy
 import hydpy
@@ -512,9 +511,9 @@ class LogFileInterface:
     """Wraps a usual file object, exposing all its methods while modifying only the
     `write` method.
 
-    At the moment, class |LogFileInterface| only supports only two log styles, as
-    explained in the documentation on module |hyd|.  The following example shows its
-    basic usage:
+    At the moment, class |LogFileInterface| supports only two log styles, as explained
+    in the documentation on module |hyd|.  The following example shows its basic
+    usage:
 
     >>> from hydpy import TestIO
     >>> from hydpy.exe.commandtools import LogFileInterface
@@ -561,25 +560,11 @@ class LogFileInterface:
             ) from None
         self._string = stdtype2string[infotype]
 
-    def _ignore(self, substring: str) -> bool:
-        """Tell if a substring should be ignored.
-
-        So far, we only ignore warning lines like `# -*- coding: utf-8 -*-` which occur
-        when using Python 3.6 and 3.7 but not when using Python 3.8.
-        """
-        return (self._infotype == "warning") and substring.strip().startswith("#")
-
     def write(self, string: str) -> None:
         """Write the given string as explained in the main documentation on class
         |LogFileInterface|."""
-
-        self.logfile.write(
-            "\n".join(
-                f"{self._string}{substring}" if substring else ""
-                for substring in string.split("\n")
-                if not self._ignore(substring)
-            )
-        )
+        substrings = (f"{self._string}{s}" if s else "" for s in string.split("\n"))
+        self.logfile.write("\n".join(substrings))
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.logfile, name)

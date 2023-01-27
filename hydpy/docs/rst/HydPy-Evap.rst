@@ -3,16 +3,9 @@
 HydPy-Evap
 ==========
 
-The "HydPy-Evap" model family aims to calculate potential evapotranspiration
-(PET).  While application models like |lland_v1| calculate potential
-evaporation on their own, it seems preferable to separate the PET calculations
-from the more model-specific process equations to increase flexibility.  This
-strategy allows, for example, to combine the "LARSIM" process equations of
-application model |lland_v2| with different types of PET calculatable by the
-available |evap| models.
-
-As a start, we provide the application model |evap_v001| for calculating the
-FAO reference evapotranspiration.
+The "HydPy-Evap" model family aims to calculate different kinds of (potential)
+evapo(transpi)ration.  The implemented application models work as stand-alone models
+but are primarily thought to be used as submodels by main models like |lland_v1|.
 
 Base model:
 
@@ -21,8 +14,10 @@ Base model:
 
    evap
 
-Application model:
+Application models:
 
 .. toctree::
 
-   evap_v001 (FAO) <evap_v001>
+   evap_io (external data) <evap_io>
+   evap_fao56 (FAO-56) <evap_fao56>
+   evap_tw2002 (Turc-Wendling, 2002) <evap_tw2002>

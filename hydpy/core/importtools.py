@@ -419,7 +419,6 @@ the following error occurred: ...
     ...         control.nhru(2)
     ...         control.ft(1.0)
     ...         control.fhru(0.5)
-    ...         control.hnn(100.0)
     ...         control.lnk(ACKER)
     ...         control.lai.acker_jan = 0.5
     ...         control.lai.acker_jul = 5.0

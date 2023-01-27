@@ -100,7 +100,6 @@ import os
 import warnings
 from typing import *
 from xml.etree import ElementTree
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from HydPy
 import hydpy

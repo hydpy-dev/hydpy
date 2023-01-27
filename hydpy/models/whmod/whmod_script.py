@@ -923,7 +923,7 @@ def _initialize_weather_stations(
         gsr_selection_stat.nodes.add_device(gsr_node)
 
         evap_node = hydpy.Node(
-            f"E_{stat}", variable=outputs.evap_ReferenceEvapotranspiration
+            f"E_{stat}", variable=outputs.evap_MeanReferenceEvapotranspiration
         )
         node2xy[evap_node] = xy
 
@@ -936,7 +936,7 @@ def _initialize_weather_stations(
         evap_element = hydpy.Element(
             f"Evap_{stat}", inputs=(cssr_node, gsr_node), outputs=(evap_node)
         )
-        evap = hydpy.prepare_model("evap_v001", "1d")
+        evap = hydpy.prepare_model("evap_fao56", "1d")
         evap_element.model = evap
 
         con_evap = evap.parameters.control
@@ -950,7 +950,11 @@ def _initialize_weather_stations(
         meteo.parameters.update()
 
         # Control Evap-Element
+        con_evap.nmbhru(1)
+        con_evap.hruarea(1.0)  # tatsächliche Fläche hier irrelevant
         con_evap.measuringheightwindspeed(10.0)
+        con_evap.airtemperatureaddend(0.0)
+        con_evap.evapotranspirationfactor(1.0)
         evap.parameters.update()
 
         evap_element.model.sequences.logs.loggedglobalradiation(0.0)

@@ -438,20 +438,19 @@ def run_whmod(basedir: str, write_output: str) -> None:
 def check_hydpy_version(hydpy_version: str) -> None:
     """Check Hydpy-Version
 
-    >>> with warnings.catch_warnings(record=True) as w:
-    ...     check_hydpy_version(hydpy_version="6.0a0")
-    ...     print([wm.message for wm in w])
-    []
-    >>> with warnings.catch_warnings(record=True) as w:
-    ...     check_hydpy_version(hydpy_version="7.0a0")
-    ...     print([wm.message for wm in w])
-    [UserWarning('The currently used Hydpy-Version (6.0a0) differs from the \
-Hydpy-Version (7.0a0) defined in WHMod_Main.txt')]
+    >>> import hydpy
+    >>> check_hydpy_version(hydpy_version=hydpy.__version__)
+
+    >>> check_hydpy_version(hydpy_version="5.0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The currently used Hydpy-Version (...) differs from the \
+Hydpy-Version (5.0) defined in WHMod_Main.txt.
     """
     if hydpy_version != hydpy.__version__:
         warnings.warn(
             f"The currently used Hydpy-Version ({hydpy.__version__}) differs from the "
-            f"Hydpy-Version ({hydpy_version}) defined in WHMod_Main.txt"
+            f"Hydpy-Version ({hydpy_version}) defined in WHMod_Main.txt."
         )
 
 

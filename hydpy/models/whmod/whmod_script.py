@@ -176,7 +176,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
     Mean GWN [mm/a]: 38.974463878806326
-    Mean verz. GWN [mm/a]: 37.08220562567088
+    Mean verz. GWN [mm/a]: 36.916119888336866
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "Groundwater_Recharge_1990-1992.txt"), 'r') as file:

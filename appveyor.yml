@@ -25,10 +25,8 @@ environment:
       cython_mode: false
 
 install:
-#  - cinst nsis
-  - ps: (new-object net.webclient).DownloadFile('https://downloads.sourceforge.net/project/nsis/NSIS%203/3.05/nsis-3.05-setup.exe', 'nsis-3.05-setup.exe')
-  - ps: nsis-3.05-setup.exe /S
-  - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - cinst nsis
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python -m pip install --upgrade pip
   - python -m pip install -r requirements.txt
   - if %make_exe%==true python -m pip install pynsist
@@ -47,8 +45,9 @@ before_test:
 test_script:
   - if %make_exe%==false nox -s doctest -- --python-mode=%python_mode% --cython-mode=%cython_mode%
   - if %make_exe%==true rename hydpy _hydpy
-  - if %make_exe%==true SET PATH=C:\Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
-  - if %make_exe%==true nox -s installer
+  - if %make_exe%==true python call_installer.py
+  - if %make_exe%==true set PATH=C:/Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
+  - if %make_exe%==true C:/Users\appveyor\AppData\Local\Programs\HydPy\bin\hyd.py.exe run_doctests
 
 after_test:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"

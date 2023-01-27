@@ -49,7 +49,7 @@ import warnings
 from typing import *
 
 import numpy
-import pandas  # type: ignore[import]
+import pandas
 
 import hydpy
 from hydpy.core import devicetools
@@ -74,8 +74,8 @@ class _XY(NamedTuple):
 def _collect_hrus(
     table: pandas.DataFrame, idx_: int, landuse_dict: Dict[str, Dict[str, int]]
 ) -> Dict[str, Dict[str, object]]:
-    """
-    Collect the hrus of the respective raster-cell. Returns Dictionary.
+    """Collect the hrus of the respective raster-cell. Returns Dictionary.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -209,6 +209,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     1991-10	1.0124938321292507
     1991-11	7.57714758711962
     1991-12	11.065644964600226
+
     >>> with open(os.path.join(projectpath, "Results",
     ... "Groundwater_Recharge_Verz_1990-1992.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
@@ -240,6 +241,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
     1991-10	0.7403114329158353
     1991-11	5.877001644492123
     1991-12	8.331521262534562
+
     >>> with open(os.path.join(projectpath, "Results",
     ... "Sum_Verz_Groundwater_Recharge_1990-1992.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
@@ -434,8 +436,8 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
 
 def check_hydpy_version(hydpy_version: str) -> None:
-    """
-    Check Hydpy-Version
+    """Check Hydpy-Version
+
     >>> with warnings.catch_warnings(record=True) as w:
     ...     check_hydpy_version(hydpy_version="6.0a0")
     ...     print([wm.message for wm in w])
@@ -454,8 +456,8 @@ Hydpy-Version (7.0a0) defined in WHMod_Main.txt')]
 
 
 def print_hydpy_progress(write_output: str) -> bool:
-    """
-    Activate hydpy printprogress and return wirte_output handle.
+    """Activate hydpy printprogress and return wirte_output handle.
+
     >>> print_hydpy_progress(write_output="True")  # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
     True
@@ -472,9 +474,7 @@ def print_hydpy_progress(write_output: str) -> bool:
 
 
 def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:
-    """
-    Read the node property file
-    """
+    """Read the node property file"""
     # Read Node Data
     dtype_knoteneigenschaften = {
         "id": int,
@@ -508,9 +508,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
 
 
 def read_whmod_main(basedir: str) -> pandas.DataFrame:
-    """
-    Read the whmod main file.
-    """
+    """Read the whmod main file."""
     dtype_whmod_main = {
         "PERSON_IN_CHARGE": str,
         "HYDPY_VERSION": str,
@@ -542,8 +540,8 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
 
 
 def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
-    """
-    Read the landuse file.
+    """Read the landuse file.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -577,22 +575,25 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
 
 
 def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
-    """
-    Reads maximum root_depth from file or takes predefined values according to the
+    """Reads maximum root_depth from file or takes predefined values according to the
     chosen option.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> read_root_depth(root_depth_option="WABOA", basedir=basedir)
     {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.9, 'mais': 1.0, 'sommerweizen': 1.0, \
 'winterweizen': 1.0, 'zuckerrueben': 1.0}
+
     >>> read_root_depth(root_depth_option="max_root_depth.txt", basedir=basedir)
     {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.5, 'mais': 1.0, 'sommerweizen': 1.0, \
 'winterweizen': 1.0, 'zuckerrueben': 0.8}
+
     >>> read_root_depth(root_depth_option="max_root_depth_wrong1.txt", basedir=basedir)
     Traceback (most recent call last):
     ...
     ValueError: Unable to parse string "WABOA" at position 6
+
     >>> read_root_depth(root_depth_option="max_root_depth_wrong2.txt",
     ...                 basedir=basedir)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Traceback (most recent call last):
@@ -601,6 +602,7 @@ def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
     In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht \
 zu den Basislandnutzungsklassen gehört
     In der Datei zur Wurzeltiefe wurde kein Wert für 'mais' definiert
+
     >>> read_root_depth(root_depth_option="test.txt", basedir=basedir)
     Traceback (most recent call last):
     ...

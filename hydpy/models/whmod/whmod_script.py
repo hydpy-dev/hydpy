@@ -837,10 +837,11 @@ def _initialize_whmod_models(
             try:
                 verzoegerung_flt = float(verzoegerung.replace(",", "."))
             except ValueError:
-                raise ValueError("'verzoegerung' muss den Datentyp float enthalten "
-                                     "oder die Option 'flurab_probst") from None
+                raise ValueError(
+                    "'verzoegerung' muss den Datentyp float enthalten "
+                    "oder die Option 'flurab_probst"
+                ) from None
             con.schwerpunktlaufzeit(verzoegerung_flt)
-
 
         whmod.sequences.states.interzeptionsspeicher(0.0)
         whmod.sequences.states.schneespeicher(0.0)

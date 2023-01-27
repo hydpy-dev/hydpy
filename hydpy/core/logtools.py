@@ -146,7 +146,7 @@ class MonthLogger(BaseLogger):
     @staticmethod
     def write_seriesfile(
         seriesfile: TextIO,
-        month2sequence2value: Dict[str, Dict[sequencetools.Sequence_ , float]],
+        month2sequence2value: Dict[str, Dict[sequencetools.Sequence_, float]],
     ) -> None:
         """Write the averaged values of the given nested dictionary to the
         given file.

@@ -14,7 +14,7 @@ version = [auto]
 bitness = 64
 
 [Include]
-pypi_wheels = numpy==[auto]
+pypi_wheels = numpy==1.23.0
 	scipy==[auto]
 	typing_extensions==4.0.1
 	matplotlib==[auto]
@@ -37,7 +37,7 @@ pypi_wheels = numpy==[auto]
 	Pillow==[auto]
 	plotly==[auto]
 	tornado==[auto]
-	networkx==[auto]
+	networkx==2.8.8
 	platformdirs==[auto]
 	click==[auto]
 	mypy_extensions==0.4.3
@@ -52,7 +52,7 @@ local_wheels = dist/*.whl
 extra_wheel_sources = extra_wheel_sources
 	
 packages = wrapt
-	bokeh
+	bokeh==2.4.3
 	jinja2
 	tkinter
 	_tkinter

@@ -1,14 +1,14 @@
 [build-system]
 requires = [
     "black",
-    "bokeh",
+    "bokeh == 2.4.3",
     "click",
     "Cython",
     "matplotlib",
     "netcdf4 < 1.6; python_version == '3.7'",
     "netcdf4; python_version > '3.7'",
-    "networkx",
-    "numpy",
+    "networkx == 2.8.8",
+    "numpy == 1.23.0",
     "pandas",
     "plotly",
     "scipy",

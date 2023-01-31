@@ -1212,7 +1212,9 @@ class RespArea(parametertools.Parameter):
 
 
 class RecStep(parametertools.Parameter):
-    """Number of internal computation steps per simulation time step [-].
+    """Number of internal computation steps per simulation time step [-]. The default
+    value of 1440 internal computation steps per day corresponds to 1 ccomputation
+    step per minute.
 
     The default value of 1440 internal computation steps per day corresponds to 1
     computation step per minute.

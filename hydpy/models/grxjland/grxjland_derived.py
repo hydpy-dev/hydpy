@@ -6,6 +6,7 @@
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy.core import parametertools
 # ...from grxjland
 from hydpy.models.grxjland import grxjland_control
@@ -211,7 +212,7 @@ class QFactor(parametertools.Parameter):
         
         """
         self(self.subpars.pars.control.area*1000. /
-             self.subpars.qfactor.simulationstep.seconds)
+             hydpy.pub.options.simulationstep.seconds)
 
 
 class ZLayers(parametertools.Parameter):

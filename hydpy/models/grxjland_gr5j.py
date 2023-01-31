@@ -413,4 +413,3 @@ class Model(modeltools.AdHocModel):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

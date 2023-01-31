@@ -821,7 +821,7 @@ class PyxWriter:
             "import numpy",
             "cimport numpy",
             "from libc.math cimport exp, fabs, log, "
-            "sin, cos, tan, asin, acos, atan, isnan, isinf",
+            "sin, cos, tan, asin, acos, atan, tanh, isnan, isinf",
             "from libc.math cimport NAN as nan",
             "from libc.math cimport INFINITY as inf",
             "import cython",
@@ -2550,6 +2550,7 @@ def atan(double: float) -> float:
     call(123.4)
     """
     return numpy.arctan(double)
+
 
 def tanh(double: float) -> float:
     """Cython wrapper for the |numpy.tanh| function of module |numpy| applied

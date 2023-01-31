@@ -1305,7 +1305,7 @@ either the keyword argument `alpha` must be given or the value of parameter `alp
 must be defined beforehand.
 
         The default value for k of 0.009633 results from the default
-        values for `alpha`, `hq` and `khq` given in HBV96.
+        values for `alpha`, `hq` and `khq` given in HBV96:
 
         >>> k(hq=3.0, khq=0.17, alpha=1.0)
         >>> k

@@ -1923,3 +1923,5 @@ class Model(modeltools.AdHocModel):
         Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()

@@ -420,6 +420,8 @@ class Model(modeltools.AdHocModel):
         grxjland_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

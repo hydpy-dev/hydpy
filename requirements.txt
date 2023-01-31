@@ -1,6 +1,4 @@
-attrs
 black
-bokeh
 build
 click
 coverage
@@ -8,15 +6,13 @@ Cython
 docutils
 lastversion
 matplotlib
-netcdf4 < 1.6; python_version == "3.7"
-netcdf4; python_version > "3.7"
+netcdf4
 networkx
 nox
 numpy
-packaging
 pandas
 plotly
-pylint != 2.15.*
+pylint
 pynsist
 setuptools
 typing_extensions

@@ -4,12 +4,12 @@
 # ...from standard library
 from __future__ import annotations
 import abc
+import collections
 import importlib
 import itertools
 import os
 import types
 from typing import *
-from typing_extensions import Final  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -50,9 +50,9 @@ class Method:
 class SubmodelInterface:
     """Base class for defining interfaces for submodels.
 
-    Main models reference their submodels by their interface's class name in lower
-    case letters without the version qualifier, as available via the (automatically
-    created) attribute |SubmodelInterface.name|:
+    Main models reference their submodels by their interface's class name in lowercase
+    letters without the version qualifier, as available via the (automatically created)
+    attribute |SubmodelInterface.name|:
 
     >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
     >>> SoilModel_V1.name
@@ -73,7 +73,7 @@ class SubmodelInterface:
         """Type identifier that we use for differentiating submodels that target the
         same process group (e.g. infiltration) but follow different interfaces.
 
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2 and so
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
         on.
 
         We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
@@ -163,20 +163,36 @@ instance of any of the following types: `SoilModel_V1`.
     The automatically generated docstrings list the supported interfaces:
 
     >>> print(type(mainmodel_python).soilmodel.__doc__)
-    Optional submodel following one of the following interface(s): SoilModel_V1.
+    Optional submodel that complies with the following interface: SoilModel_V1.
     """
 
-    _interfaces: Tuple[Type[SubmodelInterface], ...]
-    _name: str
+    interfaces: Final[Tuple[Type[SubmodelInterface], ...]]
+    optional: Final[bool]
+    name: Final[str]  # type: ignore[misc]
+    modeltype2instance: ClassVar[
+        DefaultDict[Type[Model], List[SubmodelProperty]]
+    ] = collections.defaultdict(lambda: [])
 
-    def __init__(self, interfaces: Iterable[Type[SubmodelInterface]]) -> None:
-        self._interfaces = tuple(interfaces)
-        self._name = self._interfaces[0].name
-        interfacenames = (i.__name__ for i in self._interfaces)
+    def __init__(
+        self, *interfaces: Type[SubmodelInterface], optional: bool = False
+    ) -> None:
+        self.interfaces = tuple(interfaces)
+        self.optional = optional
+        interfacenames = (i.__name__ for i in self.interfaces)
+        prefix = "Optional submodel" if optional else "Required submodel"
+        suffix = (
+            "the following interface"
+            if len(interfaces) == 1
+            else "one of the following interfaces"
+        )
         self.__doc__ = (
-            f"Optional submodel following one of the following interface(s): "
+            f"{prefix} that complies with {suffix}: "
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self.name = name  # type: ignore[misc]
+        self.modeltype2instance[owner].append(self)
 
     @overload
     def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
@@ -193,14 +209,14 @@ instance of any of the following types: `SoilModel_V1`.
     ) -> Union[SubmodelProperty, Optional[Model]]:
         if obj is None:
             return self
-        return vars(obj).get(self._name, None)
+        return vars(obj).get(self.name, None)
 
     def __set__(self, obj: Model, value: Optional[Model]) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
-            elif isinstance(value, self._interfaces):
-                vars(obj)[self._name] = value
+            elif isinstance(value, self.interfaces):
+                vars(obj)[self.name] = value
                 if obj.cymodel is not None:
                     if value.cymodel is None:
                         raise RuntimeError(
@@ -209,9 +225,9 @@ instance of any of the following types: `SoilModel_V1`.
                             f"mode, so that the main model's cythonized methods "
                             f"cannot apply the submodel's methods."
                         )
-                    getattr(obj.cymodel, f"set_{self._name}")(value.cymodel)
+                    getattr(obj.cymodel, f"set_{self.name}")(value.cymodel)
             else:
-                interfacenames = (i.__name__ for i in self._interfaces)
+                interfacenames = (i.__name__ for i in self.interfaces)
                 raise ValueError(
                     f"The given value is neither `None` nor an instance of any of the "
                     f"following types: `{objecttools.enumeration(interfacenames)}`."
@@ -219,13 +235,13 @@ instance of any of the following types: `SoilModel_V1`.
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to assign {objecttools.value_of_type(value)} to "
-                f"property `{self._name}`"
+                f"property `{self.name}`"
             )
 
     def __delete__(self, obj: Model) -> None:
-        vars(obj)[self._name] = None
+        vars(obj)[self.name] = None
         if obj.cymodel is not None:
-            getattr(obj.cymodel, f"set_{self._name}")(None)
+            getattr(obj.cymodel, f"set_{self.name}")(None)
 
 
 class IndexProperty:
@@ -380,9 +396,6 @@ class Model:
         self.cymodel = None
         self.element = None
         self._init_methods()
-        if hasattr(self, "SUBMODELINTERFACES"):
-            for interfacename in set(i.name for i in self.SUBMODELINTERFACES):
-                setattr(self, interfacename, None)
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
@@ -678,40 +691,59 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_inputs(self) -> None:
         for node in self.element.inputs:
             if isinstance(node.variable, devicetools.FusedVariable):
-                for sequence in self.sequences.inputs:
-                    if sequence in node.variable:
-                        break
-                else:
+                connected = False
+                for submodel in self.find_submodels(include_mainmodel=True).values():
+                    for sequence in submodel.sequences.inputs:
+                        if sequence in node.variable:
+                            sequence.set_pointer(node.get_double("inputs"))
+                            connected = True
+                            break
+                if not connected:
+                    submodelphrase = objecttools.submodelphrase(self)
                     raise TypeError(
-                        f"None of the input sequences of model `{self}` is among the "
-                        f"sequences of the fused variable `{node.variable}` of node "
-                        f"`{node.name}`."
+                        f"None of the input sequences of {submodelphrase} is among "
+                        f"the sequences of the fused variable `{node.variable}` of "
+                        f"node `{node.name}`."
                     )
             else:
                 name = node.variable.__name__.lower()
-                try:
-                    sequence = getattr(self.sequences.inputs, name)
-                except AttributeError:
+                sequence = getattr(self.sequences.inputs, name, None)
+                if sequence is None:
                     raise TypeError(
                         f"No input sequence of model `{self}` is named `{name}`."
-                    ) from None
-            sequence.set_pointer(node.get_double("inputs"))
+                    )
+                sequence.set_pointer(node.get_double("inputs"))
 
     def _connect_outputs(self) -> None:
+        def _set_pointer(
+            seq: sequencetools.OutputSequence, node_: devicetools.Node
+        ) -> None:
+            if seq.NDIM > 0:
+                raise TypeError(
+                    f"Only connections with 0-dimensional output sequences are "
+                    f"supported, but sequence `{seq.name}` is {seq.NDIM}-dimensional."
+                )
+            seq.set_pointer(node_.get_double("outputs"))
+
         for node in self.element.outputs:
             if isinstance(node.variable, devicetools.FusedVariable):
-                for sequence in itertools.chain(
-                    self.sequences.factors,
-                    self.sequences.fluxes,
-                    self.sequences.states,
-                ):
-                    if sequence in node.variable:
-                        break
-                else:
+                connected = False
+                for submodel in self.find_submodels(include_mainmodel=True).values():
+                    for sequence in itertools.chain(
+                        submodel.sequences.factors,
+                        submodel.sequences.fluxes,
+                        submodel.sequences.states,
+                    ):
+                        if sequence in node.variable:
+                            _set_pointer(sequence, node)
+                            connected = True
+                            break
+                if not connected:
+                    submodelphrase = objecttools.submodelphrase(self)
                     raise TypeError(
-                        f"None of the output sequences of model `{self}` is among the "
-                        f"sequences of the fused variable `{node.variable}` of node "
-                        f"`{node.name}`."
+                        f"None of the output sequences of {submodelphrase} is among "
+                        f"the sequences of the fused variable `{node.variable}` of "
+                        f"node `{node.name}`."
                     )
             else:
                 name = node.variable.__name__.lower()
@@ -725,13 +757,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"No factor, flux, or state sequence of model `{self}` is "
                         f"named `{name}`."
                     )
-            if sequence.NDIM > 0:
-                raise TypeError(
-                    f"Only connections with 0-dimensional output sequences are "
-                    f"supported, but sequence `{sequence.name}` is "
-                    f"{sequence.NDIM}-dimensional."
-                )
-            sequence.set_pointer(node.get_double("outputs"))
+                _set_pointer(sequence, node)
 
     def _connect_inlets(self) -> None:
         self._connect_subgroup("inlets")
@@ -808,21 +834,126 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         return self._NAME
 
+    def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
+        """Call method |Model.prepare_inputseries| with `read_jit=jit` and methods
+        |Model.prepare_factorseries|, |Model.prepare_fluxseries|, and
+        |Model.prepare_stateseries| with `write_jit=jit`."""
+        self.prepare_inputseries(allocate_ram=allocate_ram, read_jit=jit)
+        self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+
+    def prepare_inputseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |InputSequence| objects."""
+        self.sequences.inputs.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_factorseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_fluxseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |FluxSequence|."""
+        self.sequences.fluxes.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def prepare_stateseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |StateSequence| objects and."""
+        self.sequences.states.prepare_series(
+            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+        )
+
+    def load_allseries(self) -> None:
+        """Call method |Model.load_inputseries|, |Model.load_factorseries|,
+        |Model.load_fluxseries|, and |Model.load_stateseries|."""
+        self.load_inputseries()
+        self.load_factorseries()
+        self.load_fluxseries()
+        self.load_stateseries()
+
+    def load_inputseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |InputSequence|
+        objects."""
+        self.sequences.inputs.load_series()
+
+    def load_factorseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.load_series()
+
+    def load_fluxseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |FluxSequence|
+        objects."""
+        self.sequences.fluxes.load_series()
+
+    def load_stateseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |StateSequence|
+        objects."""
+        self.sequences.states.load_series()
+
+    def save_allseries(self) -> None:
+        """Call method |Model.save_inputseries|, |Model.save_factorseries|,
+        |Model.save_fluxseries|, and |Model.save_stateseries|."""
+        self.save_inputseries()
+        self.save_factorseries()
+        self.save_fluxseries()
+        self.save_stateseries()
+
+    def save_inputseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |InputSequence|
+        objects."""
+        self.sequences.inputs.save_series()
+
+    def save_factorseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled
+        |FactorSequence| objects."""
+        self.sequences.factors.save_series()
+
+    def save_fluxseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |FluxSequence|
+        objects."""
+        self.sequences.fluxes.save_series()
+
+    def save_stateseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |StateSequence|
+        objects."""
+        self.sequences.states.save_series()
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
     def load_data(self) -> None:
-        """Call method |Sequences.load_data| of attribute `sequences`.
+        """Call method |Sequences.load_data| of the attribute `sequences` of the
+        current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         if self.sequences:
             self.sequences.load_data(self.idx_sim)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.load_data()
 
     def save_data(self, idx: int) -> None:
-        """Call method |Sequences.save_data| of attribute `sequences`.
+        """Call method |Sequences.save_data| of the attribute `sequences` of the
+        current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
@@ -830,6 +961,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self.idx_sim = idx
         if self.sequences:
             self.sequences.save_data(idx)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.save_data(idx)
 
     def update_inlets(self) -> None:
         """Call all methods defined as "INLET_METHODS" in the defined order.
@@ -983,22 +1116,75 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 for method in getattr(cls, groupname, ()):
                     yield method
 
+    @overload
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: Literal[False] = False,
+    ) -> Dict[str, Model]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: Literal[True] = True,
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    def find_submodels(
+        self,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_optional: bool = False,
+    ) -> Dict[str, Optional[Model]]:
+        """Find the (sub)submodel instances of the current main model instance.
+
+        Method |Model.find_submodels| returns by default an empty dictionary if no
+        submodel is available:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model("lland_v1")
+        >>> model.find_submodels()
+        {}
+
+        The `include_mainmodel` parameter allows the addition of the main model:
+
+        >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
+        {'lland_v1': <hydpy.models.lland_v1.Model ...>}
+
+        The `include_optional` parameter allows considering prepared and unprepared
+        submodels:
+
+        >>> model.find_submodels(include_optional=True)
+        {'lland_v1.petmodel': None, 'lland_v1.soilmodel': None}
+        >>> model.petmodel = prepare_model("evap_fao56")
+        >>> model.find_submodels(include_optional=True)  # doctest: +ELLIPSIS
+        {'lland_v1.petmodel': <hydpy.models.evap_fao56.Model ...>, \
+'lland_v1.soilmodel': None}
+        """
+
+        def _find_submodels(name: str, model: Model) -> None:
+            name2submodel_new = {}
+            for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
+                submodel = getattr(model, submodelproperty.name)
+                if include_optional or (submodel is not None):
+                    name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+            name2submodel.update(name2submodel_new)
+            if include_subsubmodels:
+                for subname, submodel in name2submodel_new.items():
+                    _find_submodels(f"{name}.{subname}", submodel)
+
+        name2submodel = {self.name: self} if include_mainmodel else {}
+        _find_submodels(self.name, self)
+        return dict(sorted(name2submodel.items()))
+
     def __str__(self) -> str:
         return self.name
 
-    @classmethod
-    def _init_submodelproperties(cls) -> None:
-        def _key(interface: Type[SubmodelInterface]) -> str:
-            return interface.name
-
-        if hasattr(cls, "SUBMODELINTERFACES"):
-            interfaces = sorted(cls.SUBMODELINTERFACES, key=_key)
-            for name, subinterfaces in itertools.groupby(interfaces, key=_key):
-                setattr(cls, name, SubmodelProperty(subinterfaces))
-
     def __init_subclass__(cls) -> None:
-
-        cls._init_submodelproperties()
 
         modulename = cls.__module__
         if modulename.count(".") > 2:
@@ -1161,6 +1347,8 @@ class RunModel(Model):
             >>> Element.clear_all()
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels().values():
+            submodel.idx_sim = idx
         self.load_data()
         self.update_inlets()
         self.run()
@@ -1365,7 +1553,7 @@ class ELSModel(SolverModel):
 
     The "Explicit Lobatto Sequence" is a variable order Runge Kutta method combining
     different Lobatto methods.  Its main idea is to first calculate a solution with a
-    lower order method, then to use these results to apply the next higher-order method,
+    lower order method, then use these results to apply the next higher-order method,
     and to compare both results.  If they are close enough, the latter results are
     accepted.  If not, the next higher-order method is applied (or, if no higher-order
     method is available, the step size is decreased, and the algorithm restarts with
@@ -1409,6 +1597,8 @@ class ELSModel(SolverModel):
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels().values():
+            submodel.idx_sim = idx
         self.load_data()
         self.update_inlets()
         self.solve()

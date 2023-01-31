@@ -13,6 +13,43 @@ from hydpy.models.evap import evap_fluxes
 from hydpy.models.evap import evap_logs
 
 
+class Calc_AdjustedAirTemperature_V1(modeltools.Method):
+    """Adjust the average air temperature to the (heights) of the individual
+    hydrological response units.
+
+    Basic equation:
+      :math:`AdjustedAirTemperature = AirTemperatureAddend + AirTemperature`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> airtemperatureaddend(-2.0, 0.0, 2.0)
+        >>> inputs.airtemperature(1.0)
+        >>> model.calc_adjustedairtemperature_v1()
+        >>> factors.adjustedairtemperature
+        adjustedairtemperature(-1.0, 1.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.AirTemperatureAddend,
+    )
+    REQUIREDSEQUENCES = (evap_inputs.AirTemperature,)
+    RESULTSEQUENCES = (evap_factors.AdjustedAirTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.adjustedairtemperature[k] = (
+                con.airtemperatureaddend[k] + inp.airtemperature
+            )
+
+
 class Calc_AdjustedWindSpeed_V1(modeltools.Method):
     r"""Adjust the measured wind speed to a height of two meters above the ground
     according to :cite:t:`ref-Allen1998`.
@@ -60,29 +97,34 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
     r"""Calculate the saturation vapour pressure according to :cite:t:`ref-Allen1998`.
 
     Basic equation (:cite:t:`ref-Allen1998`, equation 11):
-      :math:`SaturationVapourPressure = 6.108 \cdot
-      \exp \left( \frac{17.27 \cdot AirTemperature}{AirTemperature + 237.3} \right)`
+      :math:`SaturationVapourPressure = 6.108 \cdot \exp \left(
+      \frac{17.27 \cdot AdjustedAirTemperature}{AdjustedAirTemperature + 237.3}\right)`
 
     Example:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> inputs.airtemperature = 10.0
+        >>> nmbhru(1)
+        >>> factors.adjustedairtemperature = 10.0
         >>> model.calc_saturationvapourpressure_v1()
         >>> factors.saturationvapourpressure
         saturationvapourpressure(12.279626)
     """
 
-    REQUIREDSEQUENCES = (evap_inputs.AirTemperature,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    REQUIREDSEQUENCES = (evap_factors.AdjustedAirTemperature,)
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressure,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        inp = model.sequences.inputs.fastaccess
+        con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
-        fac.saturationvapourpressure = 6.108 * modelutils.exp(
-            17.27 * inp.airtemperature / (inp.airtemperature + 237.3)
-        )
+        for k in range(con.nmbhru):
+            fac.saturationvapourpressure[k] = 6.108 * modelutils.exp(
+                17.27
+                * fac.adjustedairtemperature[k]
+                / (fac.adjustedairtemperature[k] + 237.3)
+            )
 
 
 class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
@@ -91,32 +133,37 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
 
     Basic equation (:cite:t:`ref-Allen1998`, equation 13):
       :math:`SaturationVapourPressureSlope = 4098 \cdot
-      \frac{SaturationVapourPressure}{(AirTemperature + 237.3)^2}`
+      \frac{SaturationVapourPressure}{(AdjustedAirTemperature + 237.3)^2}`
 
     Example:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> inputs.airtemperature = 10.0
+        >>> nmbhru(1)
+        >>> factors.adjustedairtemperature = 10.0
         >>> factors.saturationvapourpressure = 12.279626
         >>> model.calc_saturationvapourpressureslope_v1()
         >>> factors.saturationvapourpressureslope
         saturationvapourpressureslope(0.822828)
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     REQUIREDSEQUENCES = (
-        evap_inputs.AirTemperature,
+        evap_factors.AdjustedAirTemperature,
         evap_factors.SaturationVapourPressure,
     )
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressureSlope,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        inp = model.sequences.inputs.fastaccess
+        con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
-        fac.saturationvapourpressureslope = (
-            4098.0 * fac.saturationvapourpressure / (inp.airtemperature + 237.3) ** 2
-        )
+        for k in range(con.nmbhru):
+            fac.saturationvapourpressureslope[k] = (
+                4098.0
+                * fac.saturationvapourpressure[k]
+                / (fac.adjustedairtemperature[k] + 237.3) ** 2
+            )
 
 
 class Calc_ActualVapourPressure_V1(modeltools.Method):
@@ -130,6 +177,7 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> nmbhru(1)
         >>> inputs.relativehumidity = 60.0
         >>> factors.saturationvapourpressure = 30.0
         >>> model.calc_actualvapourpressure_v1()
@@ -137,6 +185,7 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
         actualvapourpressure(18.0)
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     REQUIREDSEQUENCES = (
         evap_inputs.RelativeHumidity,
         evap_factors.SaturationVapourPressure,
@@ -145,11 +194,13 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
-        fac.actualvapourpressure = (
-            fac.saturationvapourpressure * inp.relativehumidity / 100.0
-        )
+        for k in range(con.nmbhru):
+            fac.actualvapourpressure[k] = (
+                fac.saturationvapourpressure[k] * inp.relativehumidity / 100.0
+            )
 
 
 class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
@@ -282,7 +333,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
     Basic equations (:cite:t:`ref-Allen1998`, equation 39, modified):
       :math:`NetLongwaveRadiation =
-      \sigma \cdot (AirTemperature + 273.16)^4
+      \sigma \cdot (AdjustedAirTemperature + 273.16)^4
       \cdot \left( 0.34 - 0.14 \sqrt{ActualVapourPressure / 10} \right) \cdot
       (1.35 \cdot GR / CSSR - 0.35)`
 
@@ -305,9 +356,9 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
       :math:`\sigma = 5.6747685185185184 \cdot 10^{-8}`
 
     Note that when clear sky radiation is zero during night periods, we use the global
-    radiation and clear sky radiation sums of the last 24 hours.  The averaging over
-    three hours before sunset suggested by  :cite:t:`ref-Allen1998` could be more
-    precise but is a more complicated and error-prone approach.
+    radiation and clear sky radiation sums of the last 24 hours.  Averaging over three
+    hours before sunset, as :cite:t:`ref-Allen1998` suggests, could be more precise but
+    is a more complicated and error-prone approach.
 
     Example:
 
@@ -315,10 +366,11 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> nmbhru(1)
         >>> derived.nmblogentries(1)
-        >>> inputs.airtemperature = 22.1
         >>> inputs.globalradiation = 167.824074
         >>> inputs.clearskysolarradiation = 217.592593
+        >>> factors.adjustedairtemperature = 22.1
         >>> factors.actualvapourpressure = 21.0
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
@@ -334,11 +386,12 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         netlongwaveradiation(45.832275)
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
     REQUIREDSEQUENCES = (
-        evap_inputs.AirTemperature,
         evap_inputs.ClearSkySolarRadiation,
         evap_inputs.GlobalRadiation,
+        evap_factors.AdjustedAirTemperature,
         evap_factors.ActualVapourPressure,
         evap_logs.LoggedGlobalRadiation,
         evap_logs.LoggedClearSkySolarRadiation,
@@ -347,6 +400,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -361,12 +415,13 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
             for idx in range(der.nmblogentries):
                 d_clearskysolarradiation += log.loggedclearskysolarradiation[idx]
                 d_globalradiation += log.loggedglobalradiation[idx]
-        flu.netlongwaveradiation = (
-            5.674768518518519e-08
-            * (inp.airtemperature + 273.16) ** 4
-            * (0.34 - 0.14 * (fac.actualvapourpressure / 10.0) ** 0.5)
-            * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
-        )
+        for k in range(con.nmbhru):
+            flu.netlongwaveradiation[k] = (
+                5.674768518518519e-08
+                * (fac.adjustedairtemperature[k] + 273.16) ** 4
+                * (0.34 - 0.14 * (fac.actualvapourpressure[k] / 10.0) ** 0.5)
+                * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
+            )
 
 
 class Calc_NetRadiation_V1(modeltools.Method):
@@ -381,6 +436,7 @@ class Calc_NetRadiation_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> nmbhru(1)
         >>> fluxes.netshortwaveradiation  = 111.0
         >>> fluxes.netlongwaveradiation  = 35.0
         >>> model.calc_netradiation_v1()
@@ -388,6 +444,7 @@ class Calc_NetRadiation_V1(modeltools.Method):
         netradiation(76.0)
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     REQUIREDSEQUENCES = (
         evap_fluxes.NetShortwaveRadiation,
         evap_fluxes.NetLongwaveRadiation,
@@ -396,8 +453,12 @@ class Calc_NetRadiation_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.netradiation = flu.netshortwaveradiation - flu.netlongwaveradiation
+        for k in range(con.nmbhru):
+            flu.netradiation[k] = (
+                flu.netshortwaveradiation - flu.netlongwaveradiation[k]
+            )
 
 
 class Calc_SoilHeatFlux_V1(modeltools.Method):
@@ -416,14 +477,15 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
     Examples:
 
-        For simulation time steps shorter one day, we define all steps with positive
-        |NetRadiation| as part of the daylight period and all steps with negative
-        |NetRadiation| as part of the nighttime period.  If the summed |NetRadiation|
-        during daytime is five times as high as the absolute summed |NetRadiation|
-        during nighttime, the total |SoilHeatFlux| is zero:
+        For simulation time steps shorter than one day, we define all steps with
+        positive |NetRadiation| as part of the daylight period and all with negative
+        |NetRadiation| as part of the nighttime period.  The total |SoilHeatFlux| is
+        zero if the summed |NetRadiation| during daytime is five times as high as the
+        absolute summed |NetRadiation| during nighttime:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> nmbhru(1)
         >>> derived.days(1/24)
         >>> fluxes.netradiation = 100.0
         >>> model.calc_soilheatflux_v1()
@@ -452,21 +514,25 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         results for intermediate (e.g. 12 hours) or larger step sizes (e.g. one month).
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     DERIVEDPARAMETERS = (evap_derived.Days,)
     REQUIREDSEQUENCES = (evap_fluxes.NetRadiation,)
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if der.days < 1.0:
-            if flu.netradiation >= 0.0:
-                flu.soilheatflux = 0.1 * flu.netradiation
-            else:
-                flu.soilheatflux = 0.5 * flu.netradiation
+            for k in range(con.nmbhru):
+                if flu.netradiation[k] >= 0.0:
+                    flu.soilheatflux[k] = 0.1 * flu.netradiation[k]
+                else:
+                    flu.soilheatflux[k] = 0.5 * flu.netradiation[k]
         else:
-            flu.soilheatflux = 0.0
+            for k in range(con.nmbhru):
+                flu.soilheatflux[k] = 0.0
 
 
 class Calc_PsychrometricConstant_V1(modeltools.Method):
@@ -525,10 +591,11 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
+        >>> nmbhru(1)
         >>> derived.days(1)
         >>> derived.hours(24)
-        >>> inputs.airtemperature = 16.9
         >>> factors.psychrometricconstant = 0.666
+        >>> factors.adjustedairtemperature = 16.9
         >>> factors.adjustedwindspeed = 2.078
         >>> factors.actualvapourpressure = 14.09
         >>> factors.saturationvapourpressure = 19.97
@@ -541,13 +608,13 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
 
         The following calculation agrees with example 19 of :cite:t:`ref-Allen1998`,
         dealing with an hourly simulation step (note that there is a  difference due to
-        using 37.5 instead of 37 that is smaller than the precision of the results
+        using 37.5 instead of 37, which is smaller than the precision of the results
         tabulated by :cite:t:`ref-Allen1998`:
 
         >>> derived.days(1/24)
         >>> derived.hours(1)
-        >>> inputs.airtemperature = 38.0
         >>> factors.psychrometricconstant = 0.673
+        >>> factors.adjustedairtemperature = 38.0
         >>> factors.adjustedwindspeed = 3.3
         >>> factors.actualvapourpressure = 34.45
         >>> factors.saturationvapourpressure = 66.25
@@ -559,14 +626,15 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         referenceevapotranspiration(0.629106)
     """
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
     DERIVEDPARAMETERS = (
         evap_derived.Days,
         evap_derived.Hours,
     )
     REQUIREDSEQUENCES = (
-        evap_inputs.AirTemperature,
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.PsychrometricConstant,
+        evap_factors.AdjustedAirTemperature,
         evap_factors.AdjustedWindSpeed,
         evap_factors.SaturationVapourPressure,
         evap_factors.ActualVapourPressure,
@@ -577,31 +645,245 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[k] = (
+                0.0352512
+                * der.days
+                * fac.saturationvapourpressureslope[k]
+                * (flu.netradiation[k] - flu.soilheatflux[k])
+                + (fac.psychrometricconstant * 3.75 * der.hours)
+                / (fac.adjustedairtemperature[k] + 273.0)
+                * fac.adjustedwindspeed
+                * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
+            ) / (
+                fac.saturationvapourpressureslope[k]
+                + fac.psychrometricconstant * (1.0 + 0.34 * fac.adjustedwindspeed)
+            )
+
+
+class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
+    r"""Calculate reference evapotranspiration after Turc-Wendling.
+
+    Basic equation:
+      :math:`ReferenceEvapotranspiration =
+      \frac{(8.64 \cdot GlobalRadiation + 93 \cdot CoastFactor) \cdot
+      (AdjustedAirTemperature + 22)}
+      {165 \cdot (AdjustedAirTemperature + 123) \cdot
+      (1 + 0.00019 \cdot min(Altitude, 600))}`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> coastfactor(0.6)
+        >>> altitude(200.0, 600.0, 1000.0)
+        >>> inputs.globalradiation = 200.0
+        >>> factors.adjustedairtemperature = 15.0
+        >>> model.calc_referenceevapotranspiration_v2()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(2.792463, 2.601954, 2.601954)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Altitude,
+        evap_control.CoastFactor,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.GlobalRadiation,
+        evap_factors.AdjustedAirTemperature,
+    )
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.referenceevapotranspiration = (
-            0.0352512
-            * der.days
-            * fac.saturationvapourpressureslope
-            * (flu.netradiation - flu.soilheatflux)
-            + (fac.psychrometricconstant * 3.75 * der.hours)
-            / (inp.airtemperature + 273.0)
-            * fac.adjustedwindspeed
-            * (fac.saturationvapourpressure - fac.actualvapourpressure)
-        ) / (
-            fac.saturationvapourpressureslope
-            + fac.psychrometricconstant * (1.0 + 0.34 * fac.adjustedwindspeed)
-        )
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[k] = (
+                (8.64 * inp.globalradiation + 93.0 * con.coastfactor[k])
+                * (fac.adjustedairtemperature[k] + 22.0)
+            ) / (
+                165.0
+                * (fac.adjustedairtemperature[k] + 123.0)
+                * (1.0 + 0.00019 * min(con.altitude[k], 600.0))
+            )
 
 
-class Model(modeltools.AdHocModel):
-    """The Evap base model."""
+class Calc_ReferenceEvapotranspiration_V3(modeltools.Method):
+    r"""Take the input reference evapotranspiration for each hydrological response
+    unit.
+
+    Basic equation:
+      :math:`ReferenceEvapotranspiration_{fluxes} =
+      ReferenceEvapotranspiration_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.referenceevapotranspiration = 2.0
+        >>> model.calc_referenceevapotranspiration_v3()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(2.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    REQUIREDSEQUENCES = (evap_inputs.ReferenceEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[k] = inp.referenceevapotranspiration
+
+
+class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
+    r"""Adjust the previously calculated reference evapotranspiration.
+
+    Basic equation:
+      :math:`ReferenceEvapotranspiration_{new} = EvapotranspirationFactor \cdot
+      ReferenceEvapotranspiration_{old}`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> evapotranspirationfactor(0.5, 2.0)
+        >>> fluxes.referenceevapotranspiration = 2.0
+        >>> model.adjust_referenceevapotranspiration_v1()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(1.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.EvapotranspirationFactor,
+    )
+    UPDATEDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[k] *= con.evapotranspirationfactor[k]
+
+
+class Calc_MeanReferenceEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate the average reference evapotranspiration.
+
+    Basic equation:
+      :math:`MeanReferenceEvapotranspiration =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot ReferenceEvapotranspiration_i`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> fluxes.referenceevapotranspiration = 1.0, 2.0
+        >>> model.calc_meanreferenceevapotranspiration_v1()
+        >>> fluxes.meanreferenceevapotranspiration
+        meanreferenceevapotranspiration(1.2)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.MeanReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.meanreferenceevapotranspiration = 0.0
+        for s in range(con.nmbhru):
+            flu.meanreferenceevapotranspiration += (
+                der.hruareafraction[s] * flu.referenceevapotranspiration[s]
+            )
+
+
+class Determine_PotentialEvapotranspiration_V1(modeltools.Method):
+    r"""Interface method that applies the complete application model by executing all
+    "run methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_PotentialEvapotranspiration_V1(modeltools.Method):
+    """Get the current reference evapotranspiration from the selected hydrological
+    response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.referenceevapotranspiration = 2.0, 4.0
+        >>> model.get_potentialevapotranspiration_v1(0)
+        2.0
+        >>> model.get_potentialevapotranspiration_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.referenceevapotranspiration[s]
+
+
+class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
+    """Get the averaged reference evapotranspiration.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.meanreferenceevapotranspiration = 3.0
+        >>> model.get_meanpotentialevapotranspiration_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.MeanReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.meanreferenceevapotranspiration
+
+
+class Model(
+    modeltools.AdHocModel,
+):
+    """The HydPy-Evap base model."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
+        Calc_AdjustedAirTemperature_V1,
         Calc_AdjustedWindSpeed_V1,
         Calc_SaturationVapourPressure_V1,
         Calc_SaturationVapourPressureSlope_V1,
@@ -614,6 +896,15 @@ class Model(modeltools.AdHocModel):
         Calc_SoilHeatFlux_V1,
         Calc_PsychrometricConstant_V1,
         Calc_ReferenceEvapotranspiration_V1,
+        Calc_ReferenceEvapotranspiration_V2,
+        Calc_ReferenceEvapotranspiration_V3,
+        Adjust_ReferenceEvapotranspiration_V1,
+        Calc_MeanReferenceEvapotranspiration_V1,
+    )
+    INTERFACE_METHODS = (
+        Determine_PotentialEvapotranspiration_V1,
+        Get_PotentialEvapotranspiration_V1,
+        Get_MeanPotentialEvapotranspiration_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

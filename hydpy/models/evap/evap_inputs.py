@@ -6,6 +6,12 @@
 from hydpy.core import sequencetools
 
 
+class ReferenceEvapotranspiration(sequencetools.InputSequence):
+    """Reference evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class AirTemperature(sequencetools.InputSequence):
     """Air temperature [°C]."""
 

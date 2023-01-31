@@ -33,8 +33,6 @@ class Model(modeltools.AdHocModel, ga_model.MixinGARTO, soilinterfaces.SoilModel
     """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
     a submodel meeting the requirements of the |SoilModel_V1| interface."""
 
-    # pylint: disable=abstract-method  # ToDo: is there a way to help pylint here?
-
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()

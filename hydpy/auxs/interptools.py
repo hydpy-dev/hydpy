@@ -99,10 +99,10 @@ class InterpAlgorithm(abc.ABC, _Labeled):
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives.
 
-        The documentation on class |PPoly| includes some examples for a strictly
-        univariate interpolator.  Here, we take up some of the examples discussed for
-        class |ANN| to show that method |InterpAlgorithm.print_table| also correctly
-        reports all outputs and derivatives for multivariate interpolators.
+        The documentation on class |PPoly| includes some examples of a strictly
+        univariate interpolator.  Here, we take up some examples discussed for class
+        |ANN| to show that method |InterpAlgorithm.print_table| also correctly reports
+        all outputs and derivatives for multivariate interpolators.
 
         A single-input single-output example:
 
@@ -235,7 +235,7 @@ class BaseInterpolator(_Labeled):
     SPAN = (None, None)
 
     name: str
-    """Class name in lower case letters."""
+    """Class name in lowercase letters."""
     subvars: parametertools.SubParameters
     """The |SubParameters| object containing the current |BaseInterpolator| object."""
     subpars: parametertools.SubParameters
@@ -508,46 +508,24 @@ class SeasonalInterpolator(BaseInterpolator):
     >>> seasonalinterpolator.shape
     (366, 3)
 
-    The following interactive plot shows the |SeasonalInterpolator.ratios| used for
-    weighting (note that the missing values for October, November, and December are not
-    relevant for the initialisation period):
+    The following plot shows the |SeasonalInterpolator.ratios| used for weighting (note
+    that the missing values for October, November, and December are irrelevant for the
+    initialisation period):
 
     .. testsetup::
 
-        >>> from bokeh import plotting, models, palettes
-        >>> from hydpy import docs
+        >>> from matplotlib import pyplot
+        >>> from hydpy.docs import autofigs
         >>> import os
-        >>> plotting.output_file(os.path.join(
-        ...     docs.__path__[0], "html_", "anntools.SeasonalInterpolator.ratios.html"))
-        >>> hover = models.HoverTool(tooltips=[("(x,y)", "($x, $y)")])
-        >>> plot = plotting.figure(toolbar_location="above",
-        ...                        plot_width=500, plot_height=300)
-        >>> plot.tools.append(hover)
-        >>> legend_entries = []
-        >>> for idx, (toy, color) in enumerate(
-        ...         zip(seasonalinterpolator.toys, palettes.Dark2_5)):
-        ...     line = plot.line(range(366), seasonalinterpolator.ratios[:, idx],
-        ...                      alpha=0.8, muted_alpha=0.2, color=color)
-        ...     line.muted = True
-        ...     legend_entries.append((str(toy), [line]))
-        >>> legend = models.Legend(items=legend_entries,
-        ...                        location=(10, 0),
-        ...                        click_policy="mute")
-        >>> plot.add_layout(legend, "right")
-        >>> label_dict = {0: "Jan 1", 60: "Mar 1", 182: "Jul 1"}
-        >>> plot.xaxis.ticker =  sorted(label_dict.keys())
-        >>> plot.xaxis.formatter = models.FuncTickFormatter(
-        ...     code=f"var labels = {label_dict}; return labels[tick];")
-        >>> dummy = plotting.save(plot)
+        >>> for idx, toy in enumerate(seasonalinterpolator.toys):
+        ...     _ = pyplot.plot(seasonalinterpolator.ratios[:, idx], label=str(toy))
+        >>> _ = pyplot.legend()
+        >>> _ = pyplot.xticks(ticks=[0, 60, 182], labels=["Jan 1", "Mar 1", "Jul 1"])
+        >>> filename = "SeasonalInterpolator_ratios.png"
+        >>> pyplot.savefig(os.path.join(autofigs.__path__[0], filename))
+        >>> pyplot.clf()
 
-    .. raw:: html
-
-        <iframe
-            src="anntools.SeasonalInterpolator.ratios.html"
-            width="100%"
-            height="300px"
-            frameborder=0
-        ></iframe>
+    ... image:: SeasonalInterpolator_ratios.png
 
     For example, on July 1 (which is the 183rd day of a leap year), only the output of
     the third interpolator is relevant:

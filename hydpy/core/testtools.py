@@ -19,7 +19,6 @@ import sys
 import types
 import warnings
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -306,7 +305,6 @@ hydpy.models.hland.hland_control.ZoneType
         )
         for name in self.modulenames:
             print(f"    * {name}:")
-            # pylint: disable=not-callable
             with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
                 False
             ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
@@ -326,7 +324,6 @@ hydpy.models.hland.hland_control.ZoneType
             ), opt.simulationstep(
                 timetools.Period()
             ), devicetools.clear_registries_temporarily():
-                # pylint: enable=not-callable
                 projectname = exceptiontools.getattr_(
                     hydpy.pub, "projectname", None, str
                 )
@@ -739,9 +736,9 @@ datetime of the Python standard library for for further information.
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
-        prepare_series = self.element.model.sequences.inputs.prepare_series
-        prepare_series(allocate_ram=False)
-        prepare_series(allocate_ram=True)
+        prepare_inputseries = self.element.prepare_inputseries
+        prepare_inputseries(allocate_ram=False)
+        prepare_inputseries(allocate_ram=True)
 
     def extract_print_sequences(self):
         """Return a list of all input, factor, flux, and state sequences of the model
@@ -1045,7 +1042,8 @@ class UnitTest(Test):
         for parseq in self.parseqs:
             shape = [len(self.raw_first_col_strings)] + list(parseq.shape)
             type_ = getattr(parseq, "TYPE", float)
-            array = numpy.full(shape, numpy.nan, type_)
+            init = 0 if issubclass(type_, int) else numpy.nan
+            array = numpy.full(shape, init, type_)
             setattr(self.results, parseq.name, array)
 
     def reset_inits(self):

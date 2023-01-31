@@ -18,12 +18,6 @@ class P(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class PET(sequencetools.InputSequence):
-    """Potential evapotranspiration [mm/T]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class FXG(sequencetools.InputSequence):
     """Seepage/extraction (normalised to |AT|) [mm/T]."""
 

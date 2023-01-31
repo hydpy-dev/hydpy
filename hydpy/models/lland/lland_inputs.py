@@ -49,12 +49,6 @@ class WindSpeed(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class PET(sequencetools.InputSequence):
-    """Potenzielle Verdunstung (potential evapotranspiration) [mm/T]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class AtmosphericPressure(sequencetools.InputSequence):
     """Luftdruck (atmospheric pressure) [hPa]."""
 

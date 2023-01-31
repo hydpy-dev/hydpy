@@ -9,7 +9,6 @@ import copy
 import itertools
 import types
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import networkx
@@ -513,7 +512,7 @@ objects, but the type of the given argument is `str`.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 prefix = f"{prefix}{type(self).__name__}("
                 return (
                     f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
@@ -778,7 +777,7 @@ the "outlet device", but the given `device` value is of type `int`.
         try:
             device = self._check_device(device, "outlet")
             devices = networkx.ancestors(
-                G=hydpytools.create_directedgraph(self), source=device
+                hydpytools.create_directedgraph(self), source=device
             )
             devices.add(device)
             selection = Selection(
@@ -927,8 +926,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         try:
             device = self._check_device(device, "inlet")
             devices = networkx.descendants(
-                G=hydpytools.create_directedgraph(self),
-                source=device,
+                hydpytools.create_directedgraph(self), source=device
             )
             devices.add(device)
             selection = Selection(
@@ -1498,7 +1496,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             options = hydpy.pub.options
-            with options.ellipsis(2, optional=True):  # pylint: disable=not-callable
+            with options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     classname = type(self).__name__
                     blanks = " " * (len(prefix + classname) + 1)

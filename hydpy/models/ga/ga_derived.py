@@ -43,12 +43,12 @@ class SoilAreaFraction(parametertools.Parameter):
         :math:`SoilAreaFraction_i = SoilArea_i / \Sigma SoilArea`.
 
         >>> from hydpy.models.ga import *
-        >>> simulationstep("1h")
-        >>> parameterstep("1s")
-        >>> dt(1)
-        >>> derived.nmbsubsteps.update()
-        >>> derived.nmbsubsteps
-        nmbsubsteps(3600)
+        >>> parameterstep()
+        >>> nmbsoils(5)
+        >>> soilarea(10.0, 40.0, 20.0, 25.0, 5.0)
+        >>> derived.soilareafraction.update()
+        >>> derived.soilareafraction
+        soilareafraction(0.1, 0.4, 0.2, 0.25, 0.05)
         """
         soilarea = self.subpars.pars.control.soilarea.values
         self.values = soilarea / numpy.sum(soilarea)

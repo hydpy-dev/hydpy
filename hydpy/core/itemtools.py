@@ -6,7 +6,6 @@
 import itertools
 import warnings
 from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
 
 # ...from site-packages
 import numpy
@@ -406,6 +405,7 @@ class ChangeItem(ExchangeItem):
                     subnames.extend(subsubnames)
             return tuple(subnames)
         objecttools.assert_never(self.level)
+        return None
 
     @property
     def value(self) -> NDArrayFloat:

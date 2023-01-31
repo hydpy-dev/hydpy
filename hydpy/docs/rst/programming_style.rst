@@ -21,7 +21,7 @@
 .. _rst: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/rst
 .. _figs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/figs
 .. _html: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/html
-.. _bokeh: https://bokeh.pydata.org/en/latest/
+.. _plotly: https://plotly.com/python/
 .. _tests: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests
 .. _iotesting: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests/iotesting
 .. _LaTeX: https://www.sphinx-doc.org/en/master/latex.html
@@ -162,7 +162,7 @@ Subpackage `docs`_ contains different subpackages.  `sphinx`_
 controls the automatic generation of the HTML documentation. `rst`_
 contains all `reStructuredText`_ files written manually. `figs`_ contains
 all manually generated figures in the *png* format.  After the build
-process, `html`_ contains the `bokeh`_ plots automatically generated
+process, `html`_ contains the `plotly`_ plots automatically generated
 during testing.  Note that the actual HTML generation takes place in
 a folder *auto*, automatically created and filled with information
 during the process.
@@ -568,6 +568,6 @@ subclasses containing "special" source code (for example, modifications
 of |trim|) must contain doctests addressing these code sections.
 Finally, write integration tests for each application model based on
 class |IntegrationTest|, explaining all model functionalities in detail
-both with text and `bokeh`_ plots, and preventing future regression by
+both with text and `plotly`_ plots, and preventing future regression by
 sufficiently complete tabulated calculation results.
 

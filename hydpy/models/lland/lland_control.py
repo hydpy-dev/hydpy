@@ -123,12 +123,6 @@ class FHRU(lland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
 
-class HNN(lland_parameters.ParameterComplete):
-    """Höhe über Normal-Null (height above sea level) [m]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-
-
 # input correction
 
 
@@ -146,14 +140,6 @@ class KT(lland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.0
-
-
-class KE(lland_parameters.ParameterComplete):
-    """Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
-    reference evapotranspiration) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 1.0
 
 
 # energy adjustment
@@ -498,19 +484,12 @@ class WG2Z(parametertools.MonthParameter):
 # evapotranspiration
 
 
-class KF(lland_parameters.ParameterComplete):
-    """Küstenfaktor ("coast factor" of Turc-Wendling's evaporation equation
-    [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.6, 1.0)
-    INIT = 1.0
-
-
 class WfET0(lland_parameters.ParameterComplete):
     """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
     weighting factor for reference evapotranspiration)."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
+    INIT = 0.0
 
 
 class FLn(lland_parameters.LanduseMonthParameter):

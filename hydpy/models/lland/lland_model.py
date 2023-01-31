@@ -9,6 +9,7 @@ from typing import *
 from hydpy.core import modeltools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
+from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import soilinterfaces
 
 # ...from lland
@@ -812,94 +813,98 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         flu.dailyglobalradiation /= der.nmblogentries
 
 
-class Calc_ET0_V1(modeltools.Method):
-    """Calculate reference evapotranspiration after Turc-Wendling.
-
-    Basic equation:
-      :math:`ET0 = KE \\cdot
-      \\frac{(8.64 \\cdot GlobalRadiation + 93 \\cdot KF) \\cdot (TKor+22)}
-      {165 \\cdot (TKor+123) \\cdot (1 + 0.00019 \\cdot min(HNN, 600))}`
+class Calc_ET0_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evapotranspiration.
 
     Example:
+
+        We use |evap_tw2002| as an example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> ke(1.1)
-        >>> kf(0.6)
-        >>> hnn(200.0, 600.0, 1000.0)
-        >>> inputs.globalradiation = 200.0
-        >>> fluxes.tkor = 15.0
+        >>> from hydpy import prepare_model
+        >>> tw = prepare_model("evap_tw2002")
+        >>> tw.parameters.control.nmbhru(3)
+        >>> tw.parameters.control.altitude(200.0, 600.0, 1000.0)
+        >>> tw.parameters.control.airtemperatureaddend(1.0)
+        >>> tw.parameters.control.coastfactor(0.6)
+        >>> tw.parameters.control.evapotranspirationfactor(1.1)
+        >>> tw.sequences.inputs.globalradiation = 200.0
+        >>> tw.sequences.inputs.airtemperature = 14.0
+        >>> model.petmodel = tw
         >>> model.calc_et0_v1()
         >>> fluxes.et0
         et0(3.07171, 2.86215, 2.86215)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KE,
-        lland_control.KF,
-        lland_control.HNN,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.GlobalRadiation,
-        lland_fluxes.TKor,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU,)
+    RESULTSEQUENCES = (lland_fluxes.ET0,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nhru):
+            flu.et0[k] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_ET0_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evapotranspiration."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_ET0_PETModel_V1,)
+    CONTROLPARAMETERS = (lland_control.NHRU,)
     RESULTSEQUENCES = (lland_fluxes.ET0,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nhru):
-            flu.et0[k] = con.ke[k] * (
-                ((8.64 * inp.globalradiation + 93.0 * con.kf[k]) * (flu.tkor[k] + 22.0))
-                / (
-                    165.0
-                    * (flu.tkor[k] + 123.0)
-                    * (1.0 + 0.00019 * min(con.hnn[k], 600.0))
-                )
-            )
+        if model.petmodel.typeid == 1:
+            model.calc_et0_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
-class Calc_ET0_WET0_V1(modeltools.Method):
-    """Correct the given reference evapotranspiration and update the
-    corresponding log sequence.
+class Update_ET0_WET0_V1(modeltools.Method):
+    r"""Delay the given reference evapotranspiration and update the corresponding log
+    sequence.
 
     Basic equation:
-      :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
-      (1-WfET0) \\cdot ET0_{old}`
+      :math:`ET0_{new} = WfET0 \cdot ET0_{old} + (1 - WfET0) \cdot WET0`
 
     Example:
 
-        Prepare four hydrological response units with different value
-        combinations of parameters |KE| and |WfET0|:
+        Prepare four hydrological response units with different combinations of delay
+        factors and "old" reference evapotranspiration values:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
         >>> nhru(4)
-        >>> ke(0.8, 1.2, 0.8, 1.2)
         >>> wfet0(2.0, 2.0, 0.2, 0.2)
+        >>> fluxes.et0 = 1.6, 2.4, 1.6, 2.4
 
-        Note that the actual value of time dependend parameter |WfET0|
-        is reduced due the difference between the given parameter and
-        simulation time steps:
+        Note that the actual value of the time-dependent parameter |WfET0| is reduced
+        due to the difference between the given parameter and simulation time steps:
 
         >>> from hydpy import round_
         >>> round_(wfet0.values)
         1.0, 1.0, 0.1, 0.1
 
-        For the first two hydrological response units, the given |PET|
-        value is modified by -0.4 mm and +0.4 mm, respectively.  For the
-        other two response units, which weight the "new" evapotranspiration
-        value with 10 %, |ET0| does deviate from the old value of |WET0|
-        by -0.04 mm and +0.04 mm only:
+        The evapotranspiration value of the last simulation step is 2.0 mm:
 
-        >>> inputs.pet = 2.0
         >>> logs.wet0 = 2.0
-        >>> model.calc_et0_wet0_v1()
+
+        For the first two hydrological response units, the "old" |ET0| value is
+        modified by -0.4 mm and +0.4 mm, respectively.  For the other two response
+        units, which weigh the "new" evapotranspiration value with 10 %, the new value
+        of |ET0| deviates from |WET0| by -0.04 mm and +0.04 mm only:
+
+        >>> model.update_et0_wet0_v1()
         >>> fluxes.et0
         et0(1.6, 2.4, 1.96, 2.04)
         >>> logs.wet0
@@ -909,22 +914,18 @@ class Calc_ET0_WET0_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.WfET0,
-        lland_control.KE,
     )
-    REQUIREDSEQUENCES = (lland_inputs.PET,)
     UPDATEDSEQUENCES = (lland_logs.WET0,)
     RESULTSEQUENCES = (lland_fluxes.ET0,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for k in range(con.nhru):
             flu.et0[k] = (
-                con.wfet0[k] * con.ke[k] * inp.pet
-                + (1.0 - con.wfet0[k]) * log.wet0[0, k]
+                con.wfet0[k] * flu.et0[k] + (1.0 - con.wfet0[k]) * log.wet0[0, k]
             )
             log.wet0[0, k] = flu.et0[k]
 
@@ -9787,6 +9788,7 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (
+        Calc_ET0_PETModel_V1,
         Return_AdjustedWindSpeed_V1,
         Return_ActualVapourPressure_V1,
         Calc_DailyNetLongwaveRadiation_V1,
@@ -9843,7 +9845,7 @@ class Model(modeltools.AdHocModel):
         Calc_ActualVapourPressure_V1,
         Calc_DailyActualVapourPressure_V1,
         Calc_ET0_V1,
-        Calc_ET0_WET0_V1,
+        Update_ET0_WET0_V1,
         Calc_EvPo_V1,
         Calc_NBes_Inzp_V1,
         Calc_SNRatio_V1,
@@ -9934,10 +9936,16 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        soilinterfaces.SoilModel_V1,
+    )
     SUBMODELS = (
         PegasusESnowInz,
         PegasusESnow,
         PegasusTempSSurface,
     )
+
     idx_hru = modeltools.Idx_HRU()
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)

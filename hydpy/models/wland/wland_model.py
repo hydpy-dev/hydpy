@@ -4,12 +4,18 @@
 """
 
 # import...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.cythons.autogen import smoothutils
+from hydpy.interfaces import petinterfaces
+
+# ...from wland
 from hydpy.models.wland import wland_control
 from hydpy.models.wland import wland_derived
 from hydpy.models.wland import wland_fixed
@@ -155,11 +161,115 @@ class Calc_PC_V1(modeltools.Method):
         flu.pc = con.cp * inp.p
 
 
+class Calc_PET_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evapotranspiration.
+
+    Example:
+
+        We use |evap_tw2002| as an example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(3)
+        >>> from hydpy import prepare_model
+        >>> tw = prepare_model("evap_tw2002")
+        >>> tw.parameters.control.nmbhru(3)
+        >>> tw.parameters.control.altitude(200.0, 600.0, 1000.0)
+        >>> tw.parameters.control.airtemperatureaddend(1.0)
+        >>> tw.parameters.control.coastfactor(0.6)
+        >>> tw.parameters.control.evapotranspirationfactor(1.1)
+        >>> tw.sequences.inputs.globalradiation = 200.0
+        >>> tw.sequences.inputs.airtemperature = 14.0
+        >>> model.petmodel = tw
+        >>> model.calc_pet_v1()
+        >>> fluxes.pet
+        pet(3.07171, 2.86215, 2.86215)
+    """
+
+    CONTROLPARAMETERS = (wland_control.NU,)
+    RESULTSEQUENCES = (wland_fluxes.PET,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nu):
+            flu.pet[k] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_PET_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evapotranspiration."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_PET_PETModel_V1,)
+    CONTROLPARAMETERS = (wland_control.NU,)
+    RESULTSEQUENCES = (wland_fluxes.PET,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel.typeid == 1:
+            model.calc_pet_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_PE_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evaporation.
+
+    Example:
+
+        We use |evap_io| as an example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> from hydpy import prepare_model
+        >>> io = prepare_model("evap_io")
+        >>> io.parameters.control.nmbhru(2)
+        >>> io.parameters.control.evapotranspirationfactor(1.2, 1.4)
+        >>> io.parameters.derived.hruareafraction(0.5, 0.5)
+        >>> io.sequences.inputs.referenceevapotranspiration(2.0)
+        >>> model.petmodel = io
+        >>> model.calc_pe_v1()
+        >>> fluxes.pe
+        pe(2.6)
+    """
+
+    RESULTSEQUENCES = (wland_fluxes.PE,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        flu.pe = submodel.get_meanpotentialevapotranspiration()
+
+
+class Calc_PE_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    reference evaporation."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_PE_PETModel_V1,)
+    RESULTSEQUENCES = (wland_fluxes.PE,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel.typeid == 1:
+            model.calc_pe_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
 class Calc_PETL_V1(modeltools.Method):
     r"""Adjust the potential evapotranspiration of the land areas.
 
     Basic equation:
-      :math:`PETL = CETP \cdot CPETL \cdot PET`
+      :math:`PETL = CPETL \cdot PET`
 
     Examples:
 
@@ -169,21 +279,20 @@ class Calc_PETL_V1(modeltools.Method):
         >>> parameterstep()
         >>> nu(2)
         >>> lt(FIELD, DECIDIOUS)
-        >>> cpet(0.8)
         >>> cpetl.field_mar = 1.25
         >>> cpetl.field_apr = 1.5
         >>> cpetl.decidious_mar = 1.75
         >>> cpetl.decidious_apr = 2.0
         >>> derived.moy.update()
-        >>> inputs.pet = 2.0
+        >>> fluxes.pet = 2.0
         >>> model.idx_sim = pub.timegrids.init['2000-03-31']
         >>> model.calc_petl_v1()
         >>> fluxes.petl
-        petl(2.0, 2.8)
+        petl(2.5, 3.5)
         >>> model.idx_sim = pub.timegrids.init['2000-04-01']
         >>> model.calc_petl_v1()
         >>> fluxes.petl
-        petl(2.4, 3.2)
+        petl(3.0, 4.0)
 
         .. testsetup::
 
@@ -193,29 +302,27 @@ class Calc_PETL_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         wland_control.NU,
         wland_control.LT,
-        wland_control.CPET,
         wland_control.CPETL,
     )
     DERIVEDPARAMETERS = (wland_derived.MOY,)
-    REQUIREDSEQUENCES = (wland_inputs.PET,)
+    REQUIREDSEQUENCES = (wland_fluxes.PET,)
     RESULTSEQUENCES = (wland_fluxes.PETL,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nu):
             d_cpetl = con.cpetl[con.lt[k] - SEALED, der.moy[model.idx_sim]]
-            flu.petl[k] = con.cpet * d_cpetl * inp.pet
+            flu.petl[k] = d_cpetl * flu.pet[k]
 
 
 class Calc_PES_V1(modeltools.Method):
     r"""Adapt the potential evaporation for the surface water area.
 
     Basic equation:
-      :math:`PES = CETP \cdot CPES \cdot PET`
+      :math:`PES = CPES \cdot PE`
 
     Examples:
 
@@ -223,41 +330,36 @@ class Calc_PES_V1(modeltools.Method):
         >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> cpet(0.8)
         >>> cpes.mar = 1.25
         >>> cpes.apr = 1.5
         >>> derived.moy.update()
-        >>> inputs.pet = 2.0
+        >>> fluxes.pe = 2.0
         >>> model.idx_sim = pub.timegrids.init['2000-03-31']
         >>> model.calc_pes_v1()
         >>> fluxes.pes
-        pes(2.0)
+        pes(2.5)
         >>> model.idx_sim = pub.timegrids.init['2000-04-01']
         >>> model.calc_pes_v1()
         >>> fluxes.pes
-        pes(2.4)
+        pes(3.0)
 
         .. testsetup::
 
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.CPET,
-        wland_control.CPES,
-    )
+    CONTROLPARAMETERS = (wland_control.CPES,)
     DERIVEDPARAMETERS = (wland_derived.MOY,)
-    REQUIREDSEQUENCES = (wland_inputs.PET,)
+    REQUIREDSEQUENCES = (wland_fluxes.PE,)
     RESULTSEQUENCES = (wland_fluxes.PES,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_cpes = con.cpes[der.moy[model.idx_sim]]
-        flu.pes = con.cpet * d_cpes * inp.pet
+        flu.pes = d_cpes * flu.pe
 
 
 class Calc_TF_V1(modeltools.Method):
@@ -2023,9 +2125,9 @@ class Calc_CDG_V1(modeltools.Method):
 
 
 class Calc_CDG_V2(modeltools.Method):
-    r"""Calculate the change in the vadose zone's storage deficit due to percolation,
-    capillary rise, macropore-infiltration, seepage, groundwater drainage, and
-    channel water infiltration.
+    r"""Calculate the vadose zone's storage deficit change due to percolation,
+    capillary rise, macropore infiltration, seepage, groundwater drainage, and channel
+    water infiltration.
 
     Basic equation:
       :math:`CDG = \frac{DV-min(DVEq, DG)}{CV} + GF \cdot \big( FGS - PV - FXG \big)`
@@ -2695,11 +2797,15 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
+        Calc_PET_V1,
+        Calc_PE_V1,
         Calc_FR_V1,
         Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
     ADD_METHODS = (
+        Calc_PET_PETModel_V1,
+        Calc_PE_PETModel_V1,
         Return_ErrorDV_V1,
         Return_DVH_V1,
         Return_DVH_V2,
@@ -2748,9 +2854,12 @@ class Model(modeltools.ELSModel):
         Pass_R_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = (
         PegasusDGEq,
         QuadDVEq_V1,
         QuadDVEq_V2,
     )
+
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)

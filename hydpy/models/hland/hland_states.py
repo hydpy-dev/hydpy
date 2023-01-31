@@ -162,7 +162,7 @@ class BW1(hland_sequences.State1DSequence):
     Note that COSERO uses the abbreviation `BW1ZON` instead.
     """
 
-    SPAN = False, (0.0, None)
+    SPAN = (0.0, None)
     mask = hland_masks.UpperZone()
 
 

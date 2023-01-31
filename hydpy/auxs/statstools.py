@@ -8,8 +8,6 @@ import copy
 import warnings
 from typing import *
 from typing import TextIO
-from typing_extensions import Literal  # type: ignore[misc]
-from typing_extensions import Protocol  # type: ignore[misc]
 
 # ...from site-packages
 import numpy

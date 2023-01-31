@@ -12,4 +12,5 @@ more detail.
 .. toctree::
    :hidden:
 
+   petinterfaces
    soilinterfaces

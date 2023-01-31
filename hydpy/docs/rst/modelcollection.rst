@@ -78,10 +78,14 @@ and will have to be discussed later.
 
    HydPy-A
    HydPy-C
-   HydPy-E
+   HydPy-Exch
+   HydPy-Evap
    HydPy-D
+   HydPy-Dummy
+   HydPy-GA
    HydPy-H
    HydPy-L
+   HydPy-Meteo
+   HydPy-Musk
    HydPy-T
-
-
+   HydPy-W

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 Version 1 of the HydPy-A model generalises the RIMO/RIDO flood routing
 approach.
@@ -39,75 +38,85 @@ But you are free to define other parameters, e.g. those of the
 ARMA coefficients or pure MA coefficients only, as described in the
 following examples.
 
-Integration examples:
+Integration tests
+=================
 
-    The following tests are performed over a period of 20 hours:
+.. how_to_understand_integration_tests::
 
-    >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '01.01.2000 00:00',  '01.01.2000 20:00', '1h'
+The following tests are performed over a period of 20 hours:
 
-    Import the model and define the time settings:
+>>> from hydpy import pub, Nodes, Element
+>>> pub.timegrids = "01.01.2000 00:00",  "01.01.2000 20:00", "1h"
 
-    >>> from hydpy.models.arma_v1 import *
-    >>> parameterstep('1h')
+Import the model and define the time settings:
 
-    For testing purposes, the model input shall be retrieved from the nodes
-    `input1` and `input2` and the model output shall be passed to node
-    `output`.  Firstly, define all nodes:
+>>> from hydpy.models.arma_v1 import *
+>>> parameterstep("1h")
 
-    >>> nodes = Nodes('input1', 'input2', 'output')
+For testing purposes, the model input shall be retrieved from the nodes
+`input1` and `input2` and the model output shall be passed to node
+`output`.  Firstly, define all nodes:
 
-    Define the element `stream` and build the connections between
-    the nodes defined above and the |arma_v1| model instance:
+>>> nodes = Nodes("input1", "input2", "output")
 
-    >>> stream = Element('stream',
-    ...                  inlets=['input1', 'input2'],
-    ...                  outlets='output')
-    >>> stream.model = model
+Define the element `stream` and build the connections between
+the nodes defined above and the |arma_v1| model instance:
 
-    Prepare a test function object, which prints the respective values
-    of the model sequences |QIn|, |QPIn|, |QPOut|, and |QOut|.  The node
-    sequence `sim` is added in order to prove that the values calculated
-    for |QOut| are actually passed to `sim`:
+>>> stream = Element("stream",
+...                  inlets=["input1", "input2"],
+...                  outlets="output")
+>>> stream.model = model
 
-    >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.activated=(
-    ...     fluxes.qin, fluxes.qout)
-    >>> test = IntegrationTest(
-    ...     stream,
-    ...     seqs=(fluxes.qin, fluxes.qpin, fluxes.qpout,
-    ...           fluxes.qout, nodes.output.sequences.sim))
+Prepare a test function object, which prints the respective values
+of the model sequences |QIn|, |QPIn|, |QPOut|, and |QOut|.  The node
+sequence `sim` is added in order to prove that the values calculated
+for |QOut| are actually passed to `sim`:
 
-    To start the respective example runs from stationary conditions, a
-    base flow value of 2 m³/s is set for all values of the log sequences
-    |LogIn| and |LogOut|:
+>>> from hydpy import IntegrationTest
+>>> IntegrationTest.plotting_options.activated=(
+...     fluxes.qin, fluxes.qout)
+>>> test = IntegrationTest(
+...     stream,
+...     seqs=(fluxes.qin, fluxes.qpin, fluxes.qpout,
+...           fluxes.qout, nodes.output.sequences.sim))
 
-    >>> test.inits = ((logs.login, 2.),
-    ...               (logs.logout, 2.))
+To start the respective example runs from stationary conditions, a
+base flow value of 2 m³/s is set for all values of the log sequences
+|LogIn| and |LogOut|:
 
-    Print just the time instead of the whole date:
+>>> test.inits = ((logs.login, 2.0),
+...               (logs.logout, 2.0))
 
-    >>> test.dateformat = '%H:%M'
+Print just the time instead of the whole date:
 
-    Define two flood events, one for each lake inflow:
+>>> test.dateformat = "%H:%M"
 
-    >>> nodes.input1.sequences.sim.series = (
-    ...     1., 1., 2., 4., 3., 2., 1., 1., 1., 1.,
-    ...     1., 1., 1., 1., 1., 1., 1., 1., 1., 1.)
-    >>> nodes.input2.sequences.sim.series = (
-    ...     1., 2., 6., 9., 8., 6., 4., 3., 2., 1.,
-    ...     1., 1., 1., 1., 1., 1., 1., 1., 1., 1.)
+Define two flood events, one for each lake inflow:
 
-    In the first example, a pure fourth order moving avarage (MA) process is
-    defined via the control parameter |Responses|:
+>>> nodes.input1.sequences.sim.series = (
+...     1.0, 1.0, 2.0, 4.0, 3.0, 2.0, 1.0, 1.0, 1.0, 1.0,
+...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+>>> nodes.input2.sequences.sim.series = (
+...     1.0, 2.0, 6.0, 9.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.0,
+...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
-    >>> responses(((), (0.2, 0.4, 0.3, 0.1)))
+.. _arma_v1_ma:
 
-    This leads to a usual "unit hydrograph" convolution result, where all
-    inflow "impulses" are separated onto the actual and the three subsequent
-    time steps:
+MA coefficients
+_______________
 
-    >>> test('arma_v1_ex1')
+In the first example, a pure fourth order moving avarage (MA) process is
+defined via the control parameter |Responses|:
+
+>>> responses(((), (0.2, 0.4, 0.3, 0.1)))
+
+This leads to a usual "unit hydrograph" convolution result, where all
+inflow "impulses" are separated onto the actual and the three subsequent
+time steps:
+
+.. integration-test::
+
+    >>> test("arma_v1_ma")
     |  date |  qin | qpin | qpout | qout | output |
     -----------------------------------------------
     | 00:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
@@ -131,26 +140,24 @@ Integration examples:
     | 18:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
     | 19:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
 
-    .. raw:: html
+.. _arma_v1_arma:
 
-        <iframe
-            src="arma_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+ARMA coefficients
+_________________
 
-    In the second example, the mimimum order of the MA process is defined,
-    which is one.  The autoregression (AR) process is of order two.  Note
-    that negative AR coefficients are allowed (also note the opposite signs
-    of the coefficients in contrast to the statistical literature):
+Now we set the order of the MA process to the smalles possible value,
+which is one.  The autoregression (AR) process is of order two.  Note
+that negative AR coefficients are allowed (also note the opposite signs
+of the coefficients in contrast to the statistical literature):
 
-    >>> responses(((1.1, -0.3), (0.2,)))
+>>> responses(((1.1, -0.3), (0.2,)))
 
-    Due to the AR process, the maximum time delay of some fractions of
-    each input impulse is theoretically infinite:
+Due to the AR process, the maximum time delay of some fractions of
+each input impulse is theoretically infinite:
 
-    >>> test('arma_v1_ex2')
+.. integration-test::
+
+    >>> test("arma_v1_arma")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -174,21 +181,19 @@ Integration examples:
     | 18:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |
     | 19:00 |  2.0 |  2.0 | 2.027863 | 2.027863 | 2.027863 |
 
-    .. raw:: html
+.. _arma_v1_delay:
 
-        <iframe
-            src="arma_v1_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+Increased delay
+_______________
 
-    The third example equals the second one, except in the additional
-    time delay of exactly one hour, due to the changed MA process:
+This example equals the second one, except in the additional
+time delay of exactly one hour, due to the changed MA process:
 
-    >>> responses(((1.1, -0.3), (0.0, 0.2)))
+>>> responses(((1.1, -0.3), (0.0, 0.2)))
 
-    >>> test('arma_v1_ex3')
+.. integration-test::
+
+    >>> test("arma_v1_delay")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -212,27 +217,69 @@ Integration examples:
     | 18:00 |  2.0 |  2.0 | 2.074708 | 2.074708 | 2.074708 |
     | 19:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |
 
-    .. raw:: html
+.. _arma_v1_negative_discharge:
 
-        <iframe
-            src="arma_v1_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+Negative discharge
+__________________
 
-    Be aware that neither parameter |Responses| does check the assigned
-    coefficients nor does model |arma_v1| check the calculated outflow
-    for plausibility (one can use the features provided in modules
-    |iuhtools| and |armatools| to calculate reliable coefficients).
-    The fourth example increases the span of the AR coefficients used
-    in the third example.  The complete ARMA process is still mass
-    conservative, but some response values of the recession curve
-    are negative:
+In some hydrological applications, the inflow into a channel might be lower
+than 0 m³/s at times.  |arma| generally routes such negative discharges
+using the response function with the lowest discharge threshold.  When
+we repeat the calculation of the :ref:`arma_v1_delay` example with inflow
+constantly decreased by 3 m³/s, the outflow is also constantly decreased
+by 3 m³/s and many simulated values are negative:
 
+.. integration-test::
+
+    >>> nodes.input1.sequences.sim.series -= 3.0
+    >>> test.inits = ((logs.login, -1.0),
+    ...               (logs.logout, -1.0))
+    >>> test("arma_v1_negative_discharge")
+    |  date |  qin | qpin |     qpout |      qout |    output |
+    -----------------------------------------------------------
+    | 00:00 | -1.0 | -1.0 |      -1.0 |      -1.0 |      -1.0 |
+    | 01:00 |  0.0 |  0.0 |      -1.0 |      -1.0 |      -1.0 |
+    | 02:00 |  5.0 |  5.0 |      -0.8 |      -0.8 |      -0.8 |
+    | 03:00 | 10.0 | 10.0 |      0.42 |      0.42 |      0.42 |
+    | 04:00 |  8.0 |  8.0 |     2.702 |     2.702 |     2.702 |
+    | 05:00 |  5.0 |  5.0 |    4.4462 |    4.4462 |    4.4462 |
+    | 06:00 |  2.0 |  2.0 |   5.08022 |   5.08022 |   5.08022 |
+    | 07:00 |  1.0 |  1.0 |  4.654382 |  4.654382 |  4.654382 |
+    | 08:00 |  0.0 |  0.0 |  3.795754 |  3.795754 |  3.795754 |
+    | 09:00 | -1.0 | -1.0 |  2.779015 |  2.779015 |  2.779015 |
+    | 10:00 | -1.0 | -1.0 |   1.71819 |   1.71819 |   1.71819 |
+    | 11:00 | -1.0 | -1.0 |  0.856305 |  0.856305 |  0.856305 |
+    | 12:00 | -1.0 | -1.0 |  0.226478 |  0.226478 |  0.226478 |
+    | 13:00 | -1.0 | -1.0 | -0.207765 | -0.207765 | -0.207765 |
+    | 14:00 | -1.0 | -1.0 | -0.496485 | -0.496485 | -0.496485 |
+    | 15:00 | -1.0 | -1.0 | -0.683804 | -0.683804 | -0.683804 |
+    | 16:00 | -1.0 | -1.0 | -0.803239 | -0.803239 | -0.803239 |
+    | 17:00 | -1.0 | -1.0 | -0.878422 | -0.878422 | -0.878422 |
+    | 18:00 | -1.0 | -1.0 | -0.925292 | -0.925292 | -0.925292 |
+    | 19:00 | -1.0 | -1.0 | -0.954295 | -0.954295 | -0.954295 |
+
+>>> nodes.input1.sequences.sim.series += 3.0
+>>> test.inits = ((logs.login, 2.0),
+...               (logs.logout, 2.0))
+
+.. _arma_v1_plausibility:
+
+Plausibility
+____________
+
+Be aware that neither parameter |Responses| does check the assigned
+coefficients nor does model |arma_v1| check the calculated outflow
+for plausibility (one can use the features provided in modules
+|iuhtools| and |armatools| to calculate reliable coefficients).
+The fourth example increases the span of the AR coefficients used
+in the third example.  The complete ARMA process is still mass
+conservative, but some response values of the recession curve
+are negative:
+
+.. integration-test::
 
     >>> responses(((1.5, -0.7), (0.0, 0.2)))
-    >>> test('arma_v1_ex4')
+    >>> test("arma_v1_plausibility")
     |  date |  qin | qpin |     qpout |      qout |    output |
     -----------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |       2.0 |       2.0 |       2.0 |
@@ -256,39 +303,38 @@ Integration examples:
     | 18:00 |  2.0 |  2.0 |  2.014753 |  2.014753 |  2.014753 |
     | 19:00 |  2.0 |  2.0 |  2.494044 |  2.494044 |  2.494044 |
 
-    .. raw:: html
+.. _arma_v1_nonlinearity:
 
-        <iframe
-            src="arma_v1_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+Nonlinearity
+____________
 
-    In the fifth example, the coefficients of the first two examples are
-    combined.  For inflow discharges between 0 and 7 m³/s, the pure AR
-    process is applied.  For inflow discharges exceeding 7 m³/s, inflow
-    is separated.  The AR process is still applied on a portion of 7 m³/s,
-    but for the inflow exceeding the threshold the mixed ARMA model is
-    applied:
 
-    >>> responses(_0=((), (0.2, 0.4, 0.3, 0.1)),
-    ...           _7=((1.1, -0.3), (0.2,)))
+In the next example, the coefficients of the first two examples are
+combined.  For inflow discharges between 0 and 7 m³/s, the pure AR
+process is applied.  For inflow discharges exceeding 7 m³/s, inflow
+is separated.  The AR process is still applied on a portion of 7 m³/s,
+but for the inflow exceeding the threshold the mixed ARMA model is
+applied:
 
-    To again start from stationary conditions, one has to apply different
-    values to both log sequences.  The base flow value of 2 m³/s is only
-    given to the (low flow) MA model, the (high flow) ARMA model is
-    initialized with zero values instead:
+>>> responses(_0=((), (0.2, 0.4, 0.3, 0.1)),
+...           _7=((1.1, -0.3), (0.2,)))
 
-    >>> test.inits.login = [[2.0], [0.0]]
-    >>> test.inits.logout = [[2.0], [0.0]]
+To again start from stationary conditions, one has to apply different
+values to both log sequences.  The base flow value of 2 m³/s is only
+given to the (low flow) MA model, the (high flow) ARMA model is
+initialized with zero values instead:
 
-    The separate handling of the inflow can be studied by inspecting the
-    columns of sequence |QPIn| and sequence |QPOut|.  The respective left
-    columns show the input and output of the MA model, the respective
-    right colums show the input and output of the ARMA model:
+>>> test.inits.login = [[2.0], [0.0]]
+>>> test.inits.logout = [[2.0], [0.0]]
 
-    >>> test('arma_v1_ex5')
+The separate handling of the inflow can be studied by inspecting the
+columns of sequence |QPIn| and sequence |QPOut|.  The respective left
+columns show the input and output of the MA model, the respective
+right colums show the input and output of the ARMA model:
+
+.. integration-test::
+
+    >>> test("arma_v1_nonlinearity")
     |  date |  qin |      qpin |         qpout |     qout |   output |
     ------------------------------------------------------------------
     | 00:00 |  2.0 | 2.0   0.0 | 2.0       0.0 |      2.0 |      2.0 |
@@ -311,30 +357,21 @@ Integration examples:
     | 17:00 |  2.0 | 2.0   0.0 | 2.0  0.013959 | 2.013959 | 2.013959 |
     | 18:00 |  2.0 | 2.0   0.0 | 2.0  0.008488 | 2.008488 | 2.008488 |
     | 19:00 |  2.0 | 2.0   0.0 | 2.0  0.005149 | 2.005149 | 2.005149 |
-
-    .. raw:: html
-
-        <iframe
-            src="arma_v1_ex5.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
 """
 
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from arma
 from hydpy.models.arma import arma_model
 
 
 class Model(modeltools.AdHocModel):
     """Rimo/Rido version of ARMA (arma_v1)."""
-    INLET_METHODS = (
-        arma_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (arma_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         arma_model.Calc_QPIn_V1,
@@ -346,12 +383,11 @@ class Model(modeltools.AdHocModel):
         arma_model.Calc_QOut_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        arma_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (arma_model.Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()
 
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

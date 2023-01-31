@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-# noinspection PyUnresolvedReferences
-"""This module implements features for using *HydPy* as an HTTP server
-application.
+"""This module facilitates using *HydPy* as an HTTP server application.
 
 .. _`OpenDA`: https://www.openda.org/
 .. _`curl`: https://curl.haxx.se/
@@ -10,512 +8,569 @@ https://github.com/hydpy-dev/OpenDA/tree/master/extensions/\
 HydPyOpenDABBModelWrapper
 .. _`issue`: https://github.com/hydpy-dev/OpenDA/issues
 
-*HydPy* is designed to be used interactively.  Consider the typical steps of
-calibrating model parameters.  Usually, one first prepares an instance of
-class |HydPy|, then changes some parameter values and performs a simulation,
-and finally inspects whether the new simulation results are better than the
-ones of the original parameterisation or not.  One can perform these steps
-manually (in a Python console) or apply optimisation tools like those
-provided by |scipy| (usually in a Python script).
+*HydPy* is designed to be used interactively or by executing individual Python scripts.
+Consider the typical steps of calibrating model parameters.  Usually, one first
+prepares an instance of class |HydPy|, then changes some parameter values and performs
+a simulation, and finally inspects whether the new simulation results are better than
+the ones of the original parameterisation or not.  One can perform these steps
+manually (in a Python console) or apply optimisation tools like those provided by
+|scipy| (usually in a Python script).
 
-Performing or implementing such procedures is relatively simple, as long as
-all tools are written in Python or come with a Python interface, which is
-not the case for some relevant optimisation tools.  One example is
-`OpenDA`_, being written in Java, which was the original reason for
-adding module |servertools| to the *HydPy* framework.
+Performing or implementing such procedures is relatively simple, as long as all tools
+are written in Python or come with a Python interface, which is not the case for some
+relevant optimisation tools.  One example is `OpenDA`_, being written in Java, which
+was the original reason for adding module |servertools| to the *HydPy* framework.
 
-Module |servertools| solves such integration problems by allowing to run
-*HydPy* within an HTTP server.  After starting such a server, one can use
-any HTTP client (e.g. `curl`_) to perform the steps described above.
+Module |servertools| solves such integration problems by running *HydPy* within an
+HTTP server.  After starting such a server, one can use any HTTP client (e.g. `curl`_)
+to perform the above steps.
 
-The API of the |HydPy| server is relatively simple, allowing to perform a
-"normal" calibration using a few server methods only.  However, it is
-also more restrictive than controlling *HydPy* within a Python process.
-Within a Python process, you are free to do anything, when using the
-*HydPy* server you can, more or less, control *HydPy* in a manner that has
-been anticipated by the framework developers only.
+The server's API is relatively simple, allowing performing a "normal" calibration using
+only a few server methods.  However, it is also more restrictive than controlling
+*HydPy* within a Python process.  Within a Python process, you are free to do anything.
+Using the *HydPy* server, you are much more restricted to what was anticipated by the
+framework developers.
 
-Commonly but not mandatory, one configures the initial state of a *HydPy*
-server with an XML file.  As an example, we prepare the `LahnH` project
-by calling function |prepare_full_example_1|, which contains the XML
-configuration file `multiple_runs_alpha.xml`:
+Commonly but not mandatory, one configures the initial state of a *HydPy* server with
+an XML file.  As an example, we prepare the `LahnH` project by calling function
+|prepare_full_example_1|, which contains the XML configuration file
+`multiple_runs_alpha.xml`:
 
 >>> from hydpy.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
-To start the server in a new process, open a command-line tool and
-insert the following command (see module |hyd| for general information
-on how to use *HydPy* via command line):
+To start the server in a new process, open a command-line tool and insert the following
+command (see module |hyd| for general information on how to use *HydPy* via the command
+line):
 
->>> command = 'hyd.py start_server 8080 LahnH multiple_runs_alpha.xml'
+>>> command = "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml"
 >>> from hydpy import run_subprocess, TestIO
 >>> with TestIO():
 ...     process = run_subprocess(command, blocking=False, verbose=False)
-...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
-The *HydPy* server should now be running on port 8080.  You can use any
-HTTP client to check it is working.  For example, you can print the
-following URL in your web browser to get information on the types of
-exchange items defined in `multiple_runs_alpha.xml` (the
-`HydPy-OpenDA-Black-Box-Model-Wrapper`_ does it similarly):
+The *HydPy* server should now be running on port 8080.  You can use any HTTP client to
+check it is working.  For example, you can type the following URLs in your web browser
+to get information on the types and initial values of the exchange items defined in
+`multiple_runs_alpha.xml` (in a format required by the
+`HydPy-OpenDA-Black-Box-Model-Wrapper`_):
 
->>> url = f'http://localhost:8080/itemtypes'
 >>> from urllib import request
->>> print(str(request.urlopen(url).read(), encoding='utf-8'))
+>>> url = "http://localhost:8080/query_itemtypes"
+>>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = Double0D
 dill_nodes_sim_series = TimeSeries0D
 
-In general, it is possible to control the *HydPy* server via invoking
-each method with a separate HTTP request.  However, one can use methods
-|HydPyServer.GET_execute| and |HydPyServer.POST_execute| alternatively
-to execute a larger number of methods with only one HTTP request.
-We now define three such metafunctions that change the value of parameter
-|hland_control.Alpha|, perform a simulation run, and print the newly
-calculated discharge at the outlet of the headwater catchment `Dill`,
-respectively, very similar as the
+>>> url = "http://localhost:8080/query_initialitemvalues"
+>>> print(str(request.urlopen(url).read(), encoding="utf-8"))
+alpha = 2.0
+dill_nodes_sim_series = [nan, nan, nan, nan, nan]
+
+It is generally possible to control the *HydPy* server via invoking each method with a
+separate HTTP request.  However, alternatively, one can use methods
+|HydPyServer.GET_execute| and |HydPyServer.POST_execute| to execute many methods with
+only one HTTP request.  We now define three such metafunctions.  The first one changes
+the value of the parameter |hland_control.Alpha|  The second one runs a simulation.
+The third one prints the newly calculated discharge at the outlet of the headwater
+catchment `Dill`.  All of this is very similar to what the
 `HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.
 
-Function `set_itemvalues` wraps the POST methods |HydPyServer.POST_timegrid|,
-|HydPyServer.POST_parameteritemvalues|, and
-|HydPyServer.POST_conditionitemvalues|, and also the GET method
-|HydPyServer.GET_load_conditionvalues|.  These methods are executed
-in the given order.  Arguments `firstdate`, `lastdate`, and `alpha` allow
-changing the start and end point of the simulation period and the value
-of parameter |hland_control.alpha|, respectively:
+Function `set_itemvalues` wraps the POST methods
+|HydPyServer.POST_register_simulationdates|,
+|HydPyServer.POST_register_parameteritemvalues|, and
+|HydPyServer.POST_register_conditionitemvalues|.  The *HydPy* server will execute
+these methods in the given order.   The arguments `firstdate_sim`, `lastdate_sim`,
+and `alpha` allow changing the start and end date of the simulation period and the
+value of parameter |hland_control.alpha| later:
 
 >>> def set_itemvalues(id_, firstdate, lastdate, alpha):
-...     content = (f"firstdate = {firstdate}\\n"
-...                f"lastdate = {lastdate}\\n"
-...                f"alpha = {alpha}").encode('utf-8')
-...     methods = ','.join(('POST_timegrid',
-...                         'POST_parameteritemvalues',
-...                         'GET_load_conditionvalues',
-...                         'POST_conditionitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
+...     content = (f"firstdate_sim = {firstdate}\\n"
+...                f"lastdate_sim = {lastdate}\\n"
+...                f"alpha = {alpha}").encode("utf-8")
+...     methods = ",".join(("POST_register_simulationdates",
+...                         "POST_register_parameteritemvalues",
+...                         "POST_register_conditionitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url, data=content)
 
-Function `simulate` wraps only GET methods and triggers the next simulation
-run.  As for all GET and POST methods, one should pass the query parameter
-`id`, used by the *HydPy* server for internal bookmarking:
+Function `simulate` wraps only GET methods and triggers the next simulation run.  As
+for all GET and POST methods, one should pass the query parameter `id`, used by the
+*HydPy* server for internal bookmarking:
 
 >>> def simulate(id_):
-...     methods = ','.join(('GET_simulate',
-...                         'GET_save_timegrid',
-...                         'GET_save_parameteritemvalues',
-...                         'GET_save_conditionvalues',
-...                         'GET_save_modifiedconditionitemvalues',
-...                         'GET_save_getitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
+...     methods = ",".join(("GET_activate_simulationdates",
+...                         "GET_activate_parameteritemvalues",
+...                         "GET_load_internalconditions",
+...                         "GET_activate_conditionitemvalues",
+...                         "GET_simulate",
+...                         "GET_save_internalconditions",
+...                         "GET_update_conditionitemvalues",
+...                         "GET_update_getitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url)
 
-Function `print_itemvalues` also wraps only GET methods and prints the current
-value of parameter |hland_control.Alpha| as well as the lastly simulated
-discharge values corresponding to the given `id` value:
+Function `print_itemvalues` also wraps only GET methods and prints the current value of
+parameter |hland_control.Alpha| as well as the lastly simulated discharge values
+corresponding to the given `id` value:
 
 >>> from hydpy import print_values
 >>> def print_itemvalues(id_):
-...     methods = ','.join(('GET_savedtimegrid',
-...                         'GET_savedparameteritemvalues',
-...                         'GET_savedmodifiedconditionitemvalues',
-...                         'GET_savedgetitemvalues'))
-...     url = f'http://localhost:8080/execute?id={id_}&methods={methods}'
-...     data = str(request.urlopen(url).read(), encoding='utf-8')
-...     for line in data.split('\\n'):
-...         if line.startswith('alpha'):
-...             alpha = line.split('=')[1].strip()
-...         if line.startswith('dill'):
-...             discharge = eval(line.split('=')[1])
-...     print(f'{alpha}: ', end='')
+...     methods = ",".join(("GET_query_simulationdates",
+...                         "GET_query_parameteritemvalues",
+...                         "GET_query_conditionitemvalues",
+...                         "GET_query_getitemvalues"))
+...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     data = str(request.urlopen(url).read(), encoding="utf-8")
+...     for line in data.split("\\n"):
+...         if line.startswith("alpha"):
+...             alpha = line.split("=")[1].strip()
+...         if line.startswith("dill"):
+...             discharge = eval(line.split("=")[1])
+...     print(f"{alpha}: ", end="")
 ...     print_values(discharge)
 
-For the sake of brevity, we also define `do_everything` just calling
-the other functions:
+For the sake of brevity, we also define `do_everything` for calling the other functions
+at once:
 
 >>> def do_everything(id_, firstdate, lastdate, alpha):
 ...     set_itemvalues(id_, firstdate, lastdate, alpha)
 ...     simulate(id_)
 ...     print_itemvalues(id_)
 
-In the first and simplest example, we perform a simulation throughout
-five days for an |hland_control.Alpha| value of 2:
+In the simplest example, we perform a simulation throughout five days for an
+|hland_control.Alpha| value of 2:
 
->>> do_everything('1a', '1996-01-01', '1996-01-06', 2.0)
-2.0: 35.250827, 7.774062, 5.035808, 4.513706, 4.251594
+>>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
+2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874
 
-The second example shows interlocked simulation runs.  The first call
-only triggers a simulation run for the first initialised day:
+The following example shows interlocked simulation runs.  The first call only triggers
+a simulation run for the first initialised day:
 
->>> do_everything('1b', '1996-01-01', '1996-01-02', 2.0)
-2.0: 35.250827
+>>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
+2.0: 35.537828
 
 The second call repeats the first one with a different `id` value:
 
->>> do_everything('2', '1996-01-01', '1996-01-02', 2.0)
-2.0: 35.250827
+>>> do_everything("2", "1996-01-01", "1996-01-02", 2.0)
+2.0: 35.537828
 
 The third call covers the first three initialisation days:
 
->>> do_everything('3', '1996-01-01', '1996-01-04', 2.0)
-2.0: 35.250827, 7.774062, 5.035808
+>>> do_everything("3", "1996-01-01", "1996-01-04", 2.0)
+2.0: 35.537828, 7.741064, 5.018981
 
-The fourth call continues the simulation of the first call, covering
-the last four initialised days:
+The fourth call continues the simulation of the first call, covering the last four
+initialised days:
 
->>> do_everything('1b', '1996-01-02', '1996-01-06', 2.0)
-2.0: 7.774062, 5.035808, 4.513706, 4.251594
+>>> do_everything("1b", "1996-01-02", "1996-01-06", 2.0)
+2.0: 7.741064, 5.018981, 4.501784, 4.238874
 
-The results of the very first call of function `do_everything` (with
-`id=1`) are identical with the pulled-together discharge values of the
-calls with `id=1b`, made possible by the internal bookmarking feature of
-the *HydPy* server.  Here we use numbers, but any other strings are
-valid `id` values.
+The results of the very first call of function `do_everything` (with`id=1`) are
+identical with the pulled-together discharge values of the calls with `id=1b`, made
+possible by the internal bookmarking feature of the *HydPy* server.  Here we use
+numbers, but any other strings are valid `id` values.
 
-The third example extends the second one on applying different parameter
-values:
+This example extends the last one by applying different parameter values:
 
->>> do_everything('4', '1996-01-01', '1996-01-04', 2.0)
-2.0: 35.250827, 7.774062, 5.035808
->>> do_everything('5', '1996-01-01', '1996-01-04', 1.0)
-1.0: 11.658511, 8.842278, 7.103614
->>> do_everything('4', '1996-01-04', '1996-01-06', 2.0)
-2.0: 4.513706, 4.251594
->>> do_everything('5', '1996-01-04', '1996-01-06', 1.0)
-1.0: 6.00763, 5.313751
->>> do_everything('5', '1996-01-01', '1996-01-06', 1.0)
-1.0: 11.658511, 8.842278, 7.103614, 6.00763, 5.313751
+>>> do_everything("4", "1996-01-01", "1996-01-04", 2.0)
+2.0: 35.537828, 7.741064, 5.018981
+>>> do_everything("5", "1996-01-01", "1996-01-04", 1.0)
+1.0: 11.78038, 8.901179, 7.131072
+>>> do_everything("4", "1996-01-04", "1996-01-06", 2.0)
+2.0: 4.501784, 4.238874
+>>> do_everything("5", "1996-01-04", "1996-01-06", 1.0)
+1.0: 6.017787, 5.313211
+>>> do_everything("5", "1996-01-01", "1996-01-06", 1.0)
+1.0: 11.78038, 8.901179, 7.131072, 6.017787, 5.313211
 
-The order in which function `do_everything` calls its subfunctions seems quite
-natural, but some tools might require do deviate from it.  For example,
-`OpenDA`_ offers ensemble-based algorithms triggering the simulation
-of all memberse before starting to query any simulation results.  The
-fourth example shows that the underlying atomic methods do support
-such an order of execution:
+The order in which function `do_everything` calls its subfunctions seems quite natural,
+but some tools might require do deviate from it.  For example, `OpenDA`_ offers
+ensemble-based algorithms triggering the simulation of all memberse before starting to
+query any simulation results.  The final example shows that the underlying atomic
+methods support such an execution sequence:
 
->>> set_itemvalues('6', '1996-01-01', '1996-01-03', 2.0)
->>> simulate('6')
->>> set_itemvalues('7', '1996-01-01', '1996-01-03', 1.0)
->>> simulate('7')
->>> print_itemvalues('6')
-2.0: 35.250827, 7.774062
->>> print_itemvalues('7')
-1.0: 11.658511, 8.842278
->>> set_itemvalues('6', '1996-01-03', '1996-01-06', 2.0)
->>> simulate('6')
->>> set_itemvalues('7', '1996-01-03', '1996-01-06', 1.0)
->>> simulate('7')
->>> print_itemvalues('6')
-2.0: 5.035808, 4.513706, 4.251594
->>> print_itemvalues('7')
-1.0: 7.103614, 6.00763, 5.313751
+>>> set_itemvalues("6", "1996-01-01", "1996-01-03", 2.0)
+>>> simulate("6")
+>>> set_itemvalues("7", "1996-01-01", "1996-01-03", 1.0)
+>>> simulate("7")
+>>> print_itemvalues("6")
+2.0: 35.537828, 7.741064
+>>> print_itemvalues("7")
+1.0: 11.78038, 8.901179
 
-.. note::
+When working in parallel mode, `OpenDA`_ might not always call the functions
+`set_itemvalues` and `simulate` for the same `id` directly one after another, which
+also causes no problem:
 
-   The functions `set_itemvalues` and `simulate` still need to be executed
-   directly one after another.  We are not aware of an `OpenDA`_ algorithm
-   deviating from this pattern.  If you know one that might be suitable
-   for *HydPy* applications, please open an `issue`_.
+>>> set_itemvalues("6", "1996-01-03", "1996-01-06", 2.0)
+>>> set_itemvalues("7", "1996-01-03", "1996-01-06", 1.0)
+>>> simulate("6")
+>>> simulate("7")
+>>> print_itemvalues("6")
+2.0: 5.018981, 4.501784, 4.238874
+>>> print_itemvalues("7")
+1.0: 7.131072, 6.017787, 5.313211
 
-Finally, we close the server and kill its process (just closing your
-command-line tool works as well):
+Finally, we close the server and kill its process (just closing your command-line tool
+works likewise):
 
->>> _ = request.urlopen('http://localhost:8080/close_server')
+>>> _ = request.urlopen("http://localhost:8080/close_server")
 >>> process.kill()
 >>> _ = process.communicate()
 
-The above description focussed on coupling *HydPy* to `OpenDA`_.  However,
-the applied atomic submethods of class |HydPyServer| are thought to couple
-*HydPy*  with other software products, as well. See the documentation on
-class |HydPyServer| for further information.
+The above description focussed on coupling *HydPy* to `OpenDA`_.  However, the applied
+atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
+software products. See the documentation on class |HydPyServer| for further information.
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import collections
-import copy
 import mimetypes
 import os
-# import http.server   #  moved below for efficiency reasons
+
+# import http.server  # moved below for efficiency reasons
 import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 import types
-from typing import Any, Dict, List
+from typing import *
+from typing_extensions import Literal  # type: ignore[misc]
+
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy import conf
+from hydpy import config
 from hydpy.auxs import xmltools
 from hydpy.core import hydpytools
 from hydpy.core import itemtools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
+from hydpy.core.typingtools import *
 
 
 # pylint: disable=wrong-import-position, wrong-import-order
 # see the documentation on method `start_server` for explanations
 mimetypes.inited = True
 import http.server
+
 mimetypes.inited = False
 # pylint: enable=wrong-import-position, wrong-import-order
 
 
+ID = NewType("ID", str)
+
+
 class ServerState:
-    """Singleton class handling states like the current |HydPy| instance
-    and the current exchange items.
+    """Singleton class handling states like the current |HydPy| instance exchange items.
 
-    The instance of class |ServerState| is available the member `state` of
-    module |servertools|. You could create other instances, but most
-    likely, you shouldn't.  The primary purpose of this instance is to store
-    information between successive initialisations of class
-    |HydPyServer|.
+    The instance of class |ServerState| is available as the member `state` of class
+    |HydPyServer| after calling the function |start_server|.  You could create other
+    instances (like we do in the following examples), but you most likely shouldn't.
+    The primary purpose of this instance is to store information between successive
+    initialisations of class |HydPyServer|.
 
-    >>> from hydpy.exe import servertools
-    >>> isinstance(servertools.state, servertools.ServerState)
-    True
+    We use the `LahnH` project and its (complicated) XML configuration file
+    `multiple_runs.xml` as an example (module |xmltools| provides information on
+    interpreting this file):
+
+    >>> from hydpy.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> from hydpy import print_values, TestIO
+    >>> from hydpy.exe.servertools import ServerState
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     state = ServerState("LahnH", "multiple_runs.xml")
+    Start HydPy project `LahnH` (...).
+    Read configuration file `multiple_runs.xml` (...).
+    Interpret the defined options (...).
+    Interpret the defined period (...).
+    Read all network files (...).
+    Activate the selected network (...).
+    Read the required control files (...).
+    Read the required condition files (...).
+    Read the required time series files (...).
+
+    After initialisation, all defined exchange items are available:
+
+    >>> for item in state.parameteritems:
+    ...     print(item)
+    SetItem("alpha", "hland_v1", "control.alpha", None, "global")
+    SetItem("beta", "hland_v1", "control.beta", None, "global")
+    SetItem("lag", "musk_classic", "control.nmbsegments", "lag", "global")
+    SetItem("damp", "musk_classic", "control.coefficients", "damp", "global")
+    AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", "subunit")
+    MultiplyItem("k4", "hland_v1", "control.k4", "control.k", "global")
+    >>> for item in state.conditionitems:
+    ...     print(item)
+    SetItem("ic_lahn_2", "hland_v1", "states.ic", None, "device")
+    SetItem("ic_lahn_1", "hland_v1", "states.ic", None, "subunit")
+    SetItem("sm_lahn_2", "hland_v1", "states.sm", None, "device")
+    SetItem("sm_lahn_1", "hland_v1", "states.sm", None, "subunit")
+    SetItem("quh", "hland_v1", "logs.quh", None, "device")
+    >>> for item in state.getitems:
+    ...     print(item)
+    GetItem("?", "hland_v1", "factors.tmean")
+    GetItem("current_discharge", "hland_v1", "fluxes.qt")
+    GetItem("entire_discharge_series", "hland_v1", "fluxes.qt.series")
+    GetItem("?", "hland_v1", "states.sm")
+    GetItem("?", "hland_v1", "states.sm.series")
+    GetItem("?", "nodes", "nodes.sim.series")
+
+    The initialisation also memorises the initial conditions of all elements:
+
+    >>> for element in state.init_conditions:
+    ...     print(element)
+    land_dill
+    land_lahn_1
+    land_lahn_2
+    land_lahn_3
+    stream_dill_lahn_2
+    stream_lahn_1_lahn_2
+    stream_lahn_2_lahn_3
+
+    The initialisation also prepares all selected series arrays and reads the
+    required input data:
+
+    >>> print_values(state.hp.elements.land_dill.model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
+    >>> state.hp.nodes.dill.sequences.sim.series
+    InfoArray([nan, nan, nan, nan, nan])
     """
 
-    def __init__(self):
-        self.hp: hydpytools.HydPy = None
-        self.parameteritems: List[itemtools.ChangeItem] = None
-        self.conditionitems: List[itemtools.ChangeItem] = None
-        self.getitems: List[itemtools.GetItem] = None
-        self.conditions: Dict[str, Dict[int, hydpytools.ConditionsType]] = None
-        self.parameteritemvalues: Dict[str, Dict[str, Any]] = None
-        self.modifiedconditionitemvalues: Dict[str, Dict[str, Any]] = None
-        self.getitemvalues: Dict[str, Dict[str, str]] = None
-        self.timegrids: Dict[str, timetools.Timegrid] = None
-        self.init_conditions: hydpytools.ConditionsType = None
-        self.idx1: int = None
-        self.idx2: int = None
+    interface: xmltools.XMLInterface
+    hp: hydpytools.HydPy
+    parameteritems: List[itemtools.ChangeItem]
+    inputitems: List[itemtools.SetItem]
+    conditionitems: List[itemtools.SetItem]
+    outputitems: List[itemtools.SetItem]
+    getitems: List[itemtools.GetItem]
+    conditions: Dict[ID, Dict[int, hydpytools.ConditionsType]]
+    parameteritemvalues: Dict[ID, Dict[Name, Any]]
+    inputitemvalues: Dict[ID, Dict[Name, Any]]
+    conditionitemvalues: Dict[ID, Dict[Name, Any]]
+    outputitemvalues: Dict[ID, Dict[Name, Any]]
+    getitemvalues: Dict[ID, Dict[Name, str]]
+    initialparameteritemvalues: Dict[Name, Any]
+    initialinputitemvalues: Dict[Name, Any]
+    initialconditionitemvalues: Dict[Name, Any]
+    initialgetitemvalues: Dict[Name, Any]
+    timegrids: Dict[ID, timetools.Timegrid]
+    init_conditions: hydpytools.ConditionsType
+    inputconditiondirs: Dict[ID, str]
+    outputconditiondirs: Dict[ID, str]
+    serieswriterdirs: Dict[ID, str]
+    seriesreaderdirs: Dict[ID, str]
+    outputcontroldirs: Dict[ID, str]
+    idx1: int
+    idx2: int
 
-    def initialise(self, projectname: str, xmlfile: str) -> None:
-        """Initialise a *HydPy* project based on the given XML configuration
-        file agreeing with `HydPyConfigMultipleRuns.xsd`.
-
-        We use the `LahnH` project and its (complicated) XML configuration
-        file `multiple_runs.xml` as an example (module |xmltools| provides
-        information on interpreting this file):
-
-        >>> from hydpy.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-        >>> from hydpy import print_values, TestIO
-        >>> from hydpy.exe.servertools import ServerState
-        >>> state = ServerState()
-        >>> with TestIO():    # doctest: +ELLIPSIS
-        ...     state.initialise('LahnH', 'multiple_runs.xml')
-        Start HydPy project `LahnH` (...).
-        Read configuration file `multiple_runs.xml` (...).
-        Interpret the defined options (...).
-        Interpret the defined period (...).
-        Read all network files (...).
-        Activate the selected network (...).
-        Read the required control files (...).
-        Read the required condition files (...).
-        Read the required time series files (...).
-
-        After initialisation, all defined exchange items are available:
-
-        >>> for item in state.parameteritems:
-        ...     print(item)
-        SetItem('alpha', 'hland_v1', 'control.alpha', 0)
-        SetItem('beta', 'hland_v1', 'control.beta', 0)
-        SetItem('lag', 'hstream_v1', 'control.lag', 0)
-        SetItem('damp', 'hstream_v1', 'control.damp', 0)
-        AddItem('sfcf_1', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
-        AddItem('sfcf_2', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
-        AddItem('sfcf_3', 'hland_v1', 'control.sfcf', 'control.rfcf', 1)
-        >>> for item in state.conditionitems:
-        ...     print(item)
-        SetItem('sm_lahn_2', 'hland_v1', 'states.sm', 0)
-        SetItem('sm_lahn_1', 'hland_v1', 'states.sm', 1)
-        SetItem('quh', 'hland_v1', 'logs.quh', 0)
-        >>> for item in state.getitems:
-        ...     print(item)
-        GetItem('hland_v1', 'fluxes.qt')
-        GetItem('hland_v1', 'fluxes.qt.series')
-        GetItem('hland_v1', 'states.sm')
-        GetItem('hland_v1', 'states.sm.series')
-        GetItem('nodes', 'nodes.sim.series')
-
-        The initialisation also memorises the initial conditions of
-        all elements:
-
-        >>> for element in state.init_conditions:
-        ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        land_lahn_3
-        stream_dill_lahn_2
-        stream_lahn_1_lahn_2
-        stream_lahn_2_lahn_3
-
-        The initialisation also prepares all selected series arrays and
-        reads the required input data:
-
-        >>> print_values(
-        ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
-        -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
-        >>> state.hp.nodes.dill.sequences.sim.series
-        InfoArray([ nan,  nan,  nan,  nan,  nan])
-        """
+    def __init__(
+        self,
+        projectname: str,
+        xmlfile: str,
+        load_conditions: bool = True,
+        load_series: bool = True,
+    ) -> None:
         write = commandtools.print_textandtime
-        write(f'Start HydPy project `{projectname}`')
+        write(f"Start HydPy project `{projectname}`")
         hp = hydpytools.HydPy(projectname)
-        write(f'Read configuration file `{xmlfile}`')
-        interface = xmltools.XMLInterface(xmlfile)
-        write('Interpret the defined options')
-        interface.update_options()
-        write('Interpret the defined period')
-        interface.update_timegrids()
-        write('Read all network files')
-        hp.prepare_network()
-        write('Activate the selected network')
-        hp.update_devices(interface.fullselection)
-        write('Read the required control files')
-        hp.prepare_models()
-        write('Read the required condition files')
-        interface.conditions_io.load_conditions()
-        write('Read the required time series files')
-        interface.series_io.prepare_series()
-        interface.exchange.prepare_series()
-        interface.series_io.load_series()
+        write(f"Read configuration file `{xmlfile}`")
+        self.interface = xmltools.XMLInterface(xmlfile)
+        write("Interpret the defined options")
+        self.interface.update_options()
+        write("Interpret the defined period")
+        self.interface.update_timegrids()
+        write("Read all network files")
+        self.interface.network_io.prepare_network()
+        write("Create the custom selections (if defined)")
+        self.interface.update_selections()
+        write("Activate the selected network")
+        hp.update_devices(selection=self.interface.fullselection)
+        write("Read the required control files")
+        self.interface.control_io.prepare_models()
+        if load_conditions:
+            write("Read the required condition files")
+            self.interface.conditions_io.load_conditions()
+        if load_series:
+            write("Read the required time series files")
+        self.interface.series_io.prepare_series()
+        self.interface.exchange.prepare_series()
+        if load_series:
+            self.interface.series_io.load_series()
         self.hp = hp
-        self.parameteritems = interface.exchange.parameteritems
-        self.conditionitems = interface.exchange.conditionitems
-        self.getitems = interface.exchange.getitems
+        self.parameteritems = self.interface.exchange.parameteritems
+        self.inputitems = self.interface.exchange.inputitems
+        self.conditionitems = self.interface.exchange.conditionitems
+        self.outputitems = self.interface.exchange.outputitems
+        self.getitems = self.interface.exchange.getitems
+        self.initialparameteritemvalues = {
+            item.name: item.value for item in self.parameteritems
+        }
+        self.initialinputitemvalues = {
+            item.name: item.value for item in self.inputitems
+        }
+        self.initialconditionitemvalues = {
+            item.name: item.value for item in self.conditionitems
+        }
+        self.initialoutputitemvalues = {
+            item.name: item.value for item in self.outputitems
+        }
+        self.initialgetitemvalues = {
+            name: value
+            for item in self.getitems
+            for name, value in item.yield_name2value(*hydpy.pub.timegrids.simindices)
+        }
         self.conditions = {}
-        self.parameteritemvalues = collections.defaultdict(lambda: {})
-        self.modifiedconditionitemvalues = collections.defaultdict(lambda: {})
-        self.getitemvalues = collections.defaultdict(lambda: {})
+        self.parameteritemvalues = {}
+        self.inputitemvalues = {}
+        self.conditionitemvalues = {}
+        self.outputitemvalues = {}
+        self.getitemvalues = {}
         self.init_conditions = hp.conditions
         self.timegrids = {}
-
-
-state = ServerState()
+        self.serieswriterdirs = {}
+        self.seriesreaderdirs = {}
+        self.inputconditiondirs = {}
+        self.outputconditiondirs = {}
+        self.outputcontroldirs = {}
+        self.idx1 = 0
+        self.idx2 = 0
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
-    # noinspection PyUnresolvedReferences
     """The API of the *HydPy* server.
 
-    Note that, technically, |HydPyServer| is, strictly speaking, only the HTTP
-    request handler for the real HTTP server class (from the standard library).
+    Technically and strictly speaking, |HydPyServer| is, only the HTTP request handler
+    for the real HTTP server class (from the standard library).
 
-    After initialising the *HydPy* server, each communication via a GET
-    or POST request is handled by a new instance of |HydPyServer|.
-    All requests are handled in a unified way through using either method
-    |HydPyServer.do_GET| or [HydPyServer.do_POST|, which select and apply
-    the actual GET or POST method.  All methods provided by class
-    |HydPyServer| starting with "GET" or "POST"  are accessible via HTTP.
+    After initialising the *HydPy* server, each communication via a GET or POST request
+    is handled by a new instance of |HydPyServer|.  This handling occurs in a unified
+    way using either method |HydPyServer.do_GET| or [HydPyServer.do_POST|, which select
+    and apply the actual GET or POST method.  All methods provided by class
+    |HydPyServer| starting with "GET" or "POST" are accessible via HTTP.
 
-    As in the main documentation on module |servertools|, we use the
-    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.
-    However, this time we select the more complex XML configuration file
-    `multiple_runs.xml`, covering a higher number of cases:
+    In the main documentation on module |servertools|, we use the
+    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.  However, now
+    we select the more complex XML configuration file `multiple_runs.xml`, covering a
+    higher number of cases:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
+    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
-    We define a test function simplifying sending the following requests,
-    offering two optional arguments.  Without passing a value to `id_`,
-    `test` does not add a query parameter `id` to the URL.  When passing
-    a string to `data`, `test` sends a POST request, otherwise a GET request:
+    We define a test function that simplifies sending the following requests and offers
+    two optional arguments.  When passing a value to `id_`, `test` adds this value as
+    the query parameter `id` to the URL.  When passing a string to `data`, `test` sends
+    a POST request containing the given data; otherwise, a GET request without
+    additional data:
 
     >>> from urllib import request
-    >>> def test(name, id_=None, data=None):
-    ...     if id_ is None:
-    ...         url = f'http://localhost:8080/{name}'
-    ...     else:
-    ...         url = f'http://localhost:8080/{name}?id={id_}'
-    ...     if data is None:
-    ...         response = request.urlopen(url)
-    ...     else:
-    ...         data = bytes(data, encoding='utf-8')
-    ...         response = request.urlopen(url, data=data)
-    ...     print(str(response.read(), encoding='utf-8'))
+    >>> def test(name, id_=None, data=None, return_result=False):
+    ...     url = f"http://localhost:8080/{name}"
+    ...     if id_:
+    ...         url = f"{url}?id={id_}"
+    ...     if data:
+    ...         data = bytes(data, encoding="utf-8")
+    ...     response = request.urlopen(url, data=data)
+    ...     result = str(response.read(), encoding="utf-8")
+    ...     print(result)
+    ...     return result if return_result else None
 
-    Asking for its status tells us that the server is ready, provided that
-    the selected *HydPy* project has been initialised already (which may
-    take a while, depending on the size of the particular project):
+    Asking for its status tells us that the server is ready (which may take a while,
+    depending on the project's size):
 
-    >>> test('status')
+    >>> test("status")
     status = ready
 
-    |HydPyServer| returns the error code `400` if it realises the URL to be
-    wrongthe and the error code `500` in all other cases of error:
+    You can query the current version number of the *HydPy* installation used to start
+    the server:
 
-    >>> test('missing')
+    >>> result = test("version", return_result=True)  # doctest: +ELLIPSIS
+    version = ...
+    >>> hydpy.__version__ in result
+    True
+
+    |HydPyServer| returns the error code `400` if it realises the URL to be wrong:
+
+    >>> test("missing")
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 400: RuntimeError: \
-No method `GET_missing` available.
+    urllib.error.HTTPError: HTTP Error 400: RuntimeError: No method `GET_missing` \
+available.
 
-    >>> test('parameteritemvalues', data='alpha = []')    # doctest: +ELLIPSIS
+    The error code is `500` in all other cases of error:
+
+    >>> test("register_parameteritemvalues", id_="0", data="alpha = []")
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: ValueError: While trying to \
-execute method `POST_parameteritemvalues`, the following error occurred: \
-When trying to convert the value(s) `[]` assigned to SetItem `alpha` to a \
-numpy array of shape `()` and type `float`, the following error occurred: \
-could not broadcast input array from shape (0) into shape ()...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `POST_register_parameteritemvalues`, the following error occurred: A value for \
+parameter item `beta` is missing.
 
-    Some methods require identity information, passed as query parameter
-    `id`, used for internal bookmarking:
+    Some methods require identity information, passed as query parameter `id`, used for
+    internal bookmarking:
 
-    >>> test('save_conditionvalues')
+    >>> test("query_parameteritemvalues")
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
-execute method `GET_save_conditionvalues`, the following error occurred: \
-For the GET method `save_conditionvalues` no query parameter `id` is given.
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_parameteritemvalues`, the following error occurred: For the GET \
+method `query_parameteritemvalues` no query parameter `id` is given.
 
-    POST methods always expect an arbitrary number of lines, each one
-    assigning some values to some variable (in most cases numbers to
-    exchange items):
+    POST methods always expect an arbitrary number of lines, each one assigning some
+    values to some variable (in most cases, numbers to exchange items):
 
-    >>> test('parameteritems',
-    ...      data=('x = y\\n'
-    ...            '   \\n'
-    ...            'x == y\\n'
-    ...            'x = y'))
+    >>> test("parameteritemvalues",
+    ...      id_="a",
+    ...      data=("x = y\\n"
+    ...            "   \\n"
+    ...            "x == y\\n"
+    ...            "x = y"))
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 400: RuntimeError: The POST method \
-`parameteritems` received a wrongly formated data body.  The following line \
-has been extracted but cannot be further processed: `x == y`.
+`parameteritemvalues` received a wrongly formated data body.  The following line has \
+been extracted but cannot be further processed: `x == y`.
 
     Before explaining the more offical methods, we introduce the method
-    |HydPyServer.POST_evaluate|, which allows evaluating any expression
-    within the server process.  Its most likelely use-case ist to access
-    the (sub)attributes of the single instance of class |ServerState|
-    available in module |servertools|.  This method can be of help when
-    being puzzled about the state of the *HydPy* server.  Use it, for
-    example, to find out which |Node| objects are available and to see,
-    to which one is the outlet node of |Element| object `land_dill`:
+    |HydPyServer.POST_evaluate|, which evaluates arbitrary valid Python code within the
+    server process.  Its most likely use-case is to access the (sub)attributes of the
+    single instance of class |ServerState|, available as a member of class
+    |HydPyServer|.  This method can help when being puzzled about the state of the
+    *HydPy* server.  Use it, for example, to find out which |Node| objects are
+    available and to see which one is the outlet node of the |Element| object
+    `land_dill`:
 
-    >>> test('evaluate',
-    ...      data=('nodes = state.hp.nodes\\n'
-    ...            'elements = state.hp.elements.land_dill'))
+    >>> test("evaluate",
+    ...      data=("nodes = HydPyServer.state.hp.nodes\\n"
+    ...            "elements = HydPyServer.state.hp.elements.land_dill"))
     nodes = Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
     elements = Element("land_dill", outlets="dill", keywords="catchment")
 
-    Method |HydPyServer.GET_itemtypes|, already described in the
-    main documentation of module |servertools|, returns all available
-    exchange item types at once. However, it also possible to query those
-    that are related to setting parameter values
-    (|HydPyServer.GET_parameteritemtypes|), setting condition values
-    (|HydPyServer.GET_conditionitemtypes|), and getting different kinds
-    of values (|HydPyServer.GET_getitemtypes|) separately:
+    Method |HydPyServer.GET_query_itemtypes|, already described in the main
+    documentation of module |servertools|, returns all available exchange item types
+    at once.  However, it is also possible to query those that are related to setting
+    parameter values (|HydPyServer.GET_query_parameteritemtypes|), setting condition
+    values (|HydPyServer.GET_query_conditionitemtypes|), setting input time series
+    (|HydPyServer.GET_query_inputitemtypes|), getting values or series of factors or
+    fluxes in the "setitem style" (|HydPyServer.GET_query_outputitemtypes|) and getting
+    different kinds of values or series in the "getitem style"
+    (|HydPyServer.GET_query_getitemtypes|) separately:
 
-    >>> test('parameteritemtypes')
+    >>> test("query_parameteritemtypes")
     alpha = Double0D
     beta = Double0D
     lag = Double0D
@@ -523,11 +578,19 @@ has been extracted but cannot be further processed: `x == y`.
     sfcf_1 = Double0D
     sfcf_2 = Double0D
     sfcf_3 = Double1D
-    >>> test('conditionitemtypes')
-    sm_lahn_2 = Double0D
+    k4 = Double0D
+    >>> test("query_conditionitemtypes")
+    ic_lahn_2 = Double1D
+    ic_lahn_1 = Double1D
+    sm_lahn_2 = Double1D
     sm_lahn_1 = Double1D
-    quh = Double0D
-    >>> test('getitemtypes')
+    quh = Double1D
+    >>> test("query_inputitemtypes")
+    t_headwaters = TimeSeries1D
+    >>> test("query_outputitemtypes")
+    swe_headwaters = TimeSeries1D
+    >>> test("query_getitemtypes")
+    land_dill_factors_tmean = Double0D
     land_dill_fluxes_qt = Double0D
     land_dill_fluxes_qt_series = TimeSeries0D
     land_dill_states_sm = Double1D
@@ -537,130 +600,295 @@ has been extracted but cannot be further processed: `x == y`.
     land_lahn_3_states_sm_series = TimeSeries1D
     dill_nodes_sim_series = TimeSeries0D
 
-    One can query (|HydPyServer.GET_timegrid|) and change
-    (|HydPyServer.POST_timegrid|) the current simulation
-    period, which is identical with the initialisation period at first:
+    The same holds for the initial values of the exchange items.  Method
+    |HydPyServer.GET_query_initialitemvalues| returns them all at once, while the
+    methods |HydPyServer.GET_query_initialparameteritemvalues|,
+    |HydPyServer.GET_query_initialconditionitemvalues|,
+    |HydPyServer.GET_query_initialinputitemvalues|,
+    |HydPyServer.GET_query_initialoutputitemvalues|, and
+    (|HydPyServer.GET_query_initialgetitemvalues| return the relevant subgroup only.
+    Note that for the exchange items related to state sequence |hland_states.SM|
+    (`sm_lahn_1` and `sm_lahn_2`), the initial values stem from the XML file.  For the
+    items related to state sequence |hland_states.Ic| and input sequence
+    |hland_inputs.T|, the XML file does not provide such information.  Thus, the
+    initial values of `ic_lahn_1`, `ic_lahn_2`, and `t_headwaters` stem from the
+    corresponding sequences themselves (and thus, indirectly, from the respective
+    condition and time series files):
 
-    >>> test('timegrid')
-    firstdate = 1996-01-01T00:00:00+01:00
-    lastdate = 1996-01-06T00:00:00+01:00
+    >>> test("query_initialparameteritemvalues")
+    alpha = 2.0
+    beta = 1.0
+    lag = 5.0
+    damp = 0.5
+    sfcf_1 = 0.3
+    sfcf_2 = 0.2
+    sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
+    k4 = 10.0
+    >>> test("query_initialconditionitemvalues")
+    ic_lahn_2 = [1.184948]
+    ic_lahn_1 = [0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565, \
+1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719]
+    sm_lahn_2 = [123.0]
+    sm_lahn_1 = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0, \
+210.0, 220.0, 230.0]
+    quh = [10.0]
+    >>> test("query_initialinputitemvalues")
+    t_headwaters = [[-0.298846, -0.811539, -2.493848, -5.968849, -6.999618], \
+[-0.705395, -1.505553, -4.221268, -7.446349, -8.119366]]
+    >>> test("query_initialoutputitemvalues")
+    swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
+    >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
+    land_dill_factors_tmean = nan
+    land_dill_fluxes_qt = nan
+    land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
+    land_dill_states_sm = [185.13164...]
+    land_lahn_1_states_sm = [99.27505...]
+    land_lahn_2_states_sm = [138.31396...]
+    land_lahn_3_states_sm = [101.31248...]
+    land_lahn_3_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
+    dill_nodes_sim_series = [nan, nan, nan, nan, nan]
+
+    Some external tools require ways to identify specific sub-values of different
+    exchange items.  For example, they need to map those sub-values to location data
+    available in a separate database. Method |HydPyServer.GET_query_itemsubnames|
+    provides artificial sub names suitable for such a mapping. See property
+    |ChangeItem.subnames| of class |ChangeItem| and method |GetItem.yield_name2subnames|
+    of class |GetItem| for the specification of the sub names. Here, note the special
+    handling for change items addressing the `global` level, for which we cannot define
+    a meaningful sub name.  Method |HydPyServer.GET_query_itemsubnames| returns the
+    string `*global*` in such cases:
+
+    >>> test("query_itemsubnames") # doctest: +ELLIPSIS
+    alpha = *global*
+    beta = *global*
+    lag = *global*
+    damp = *global*
+    sfcf_1 = *global*
+    sfcf_2 = *global*
+    sfcf_3 = [land_lahn_3_0, ..., land_lahn_3_13]
+    k4 = *global*
+    t_headwaters = [land_dill, land_lahn_1]
+    ic_lahn_2 = [land_lahn_2]
+    ic_lahn_1 = [land_lahn_1_0, ..., land_lahn_1_12]
+    sm_lahn_2 = [land_lahn_2]
+    sm_lahn_1 = [land_lahn_1_0, ..., land_lahn_1_12]
+    quh = [land_lahn_2]
+    swe_headwaters = [land_dill, land_lahn_1]
+    land_dill_factors_tmean = land_dill
+    land_dill_fluxes_qt = land_dill
+    land_dill_fluxes_qt_series = land_dill
+    land_dill_states_sm = ('land_dill_0', ..., 'land_dill_11')
+    land_lahn_1_states_sm = ('land_lahn_1_0', ..., 'land_lahn_1_12')
+    land_lahn_2_states_sm = ('land_lahn_2_0', ..., 'land_lahn_2_9')
+    land_lahn_3_states_sm = ('land_lahn_3_0', ..., 'land_lahn_3_13')
+    land_lahn_3_states_sm_series = ('land_lahn_3_0', ..., 'land_lahn_3_13')
+    dill_nodes_sim_series = dill
+
+    The |Timegrids.init| time grid is immutable once the server is ready.  Method
+    |HydPyServer.GET_query_initialisationtimegrid| returns the fixed first date, last
+    date, and stepsize of the whole initialised period:
+
+    >>> test("query_initialisationtimegrid")
+    firstdate_init = 1996-01-01T00:00:00+01:00
+    lastdate_init = 1996-01-06T00:00:00+01:00
     stepsize = 1d
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-01\\n'
-    ...            'lastdate = 1996-01-02'))
+
+    The dates of the |Timegrids.sim| time grid, on the other hand, are mutable and can
+    vary for different `id` query parameters.  This flexibility makes things a little
+    more complicated, as the |Timegrids| object of the global |pub| module handles only
+    one |Timegrids.sim| object at once.  Hence, we differentiate between registered
+    simulation dates of the respective `id` values and the current simulation dates of
+    the |Timegrids| object.
+
+    Method |HydPyServer.GET_query_simulationdates| asks for registered simulation dates
+    and thus fails at first:
+
+    >>> test("query_simulationdates", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_simulationdates`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+
+    After logging new simulation dates via the POST method
+    |HydPyServer.POST_register_simulationdates|, method
+    |HydPyServer.GET_query_simulationdates| returns them correctly:
+
+    >>> test("register_simulationdates", id_="0",
+    ...      data=("firstdate_sim = 1996-01-01\\n"
+    ...            "lastdate_sim = 1996-01-02"))
     <BLANKLINE>
-    >>> test('timegrid')
-    firstdate = 1996-01-01T00:00:00+01:00
-    lastdate = 1996-01-02T00:00:00+01:00
-    stepsize = 1d
+    >>> test("query_simulationdates", id_="0")
+    firstdate_sim = 1996-01-01T00:00:00+01:00
+    lastdate_sim = 1996-01-02T00:00:00+01:00
 
-    Eventually, one might require to memorise simulation periods for different
-    simulation members.  Use method |HydPyServer.GET_save_timegrid| for
-    storing and method |HydPyServer.GET_savedtimegrid| querying this kind of
-    information.  Note that |HydPyServer.GET_savedtimegrid| returns the
-    initialisation period instead of the simulation period when
-    |HydPyServer.GET_save_timegrid| has not been called with the same `id`
-    query parameter value before:
+    Our initial call to the POST method |HydPyServer.POST_register_simulationdates| did
+    not affect the currently active simulation dates.  We need to do this manually by
+    calling method |HydPyServer.GET_activate_simulationdates|:
 
-    >>> test('savedtimegrid', id_='0')
-    firstdate = 1996-01-01T00:00:00+01:00
-    lastdate = 1996-01-06T00:00:00+01:00
-    stepsize = 1d
-    >>> test('save_timegrid', id_='0')
+    >>> test("evaluate", data="lastdate = hydpy.pub.timegrids.sim.lastdate")
+    lastdate = Date("1996-01-06T00:00:00")
+    >>> test("activate_simulationdates", id_="0")
     <BLANKLINE>
-    >>> test('savedtimegrid', id_='0')
-    firstdate = 1996-01-01T00:00:00+01:00
-    lastdate = 1996-01-02T00:00:00+01:00
-    stepsize = 1d
+    >>> test("evaluate", data="lastdate = hydpy.pub.timegrids.sim.lastdate")
+    lastdate = Date("1996-01-02 00:00:00")
 
-    Posting values of parameter items (|HydPyServer.POST_parameteritemvalues|)
-    does directly update the values of the corresponding |Parameter| objects:
+    Generally, passing a missing `id` while others are available results in error
+    messages like the following:
 
-    >>> control = 'state.hp.elements.land_dill.model.parameters.control'
-    >>> test('evaluate',
-    ...      data=(f'alpha = {control}.alpha\\n'
-    ...            f'sfcf = {control}.sfcf'))
+    >>> test("activate_simulationdates", id_="1")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_activate_simulationdates`, the following error occurred: Nothing \
+registered under the id `1`.  The available ids are: 0.
+
+    The logic of the parameter-related GET and POST methods is very similar to the one
+    of the simulation date-related methods discussed above.  Method
+    |HydPyServer.POST_register_parameteritemvalues| registers new values of the
+    exchange items, and method |HydPyServer.GET_activate_parameteritemvalues| activates
+    them (assigns them to the relevant parameters):
+
+    >>> test("register_parameteritemvalues", id_="0",
+    ...      data=("alpha = 3.0\\n"
+    ...            "beta = 2.0\\n"
+    ...            "lag = 1.0\\n"
+    ...            "damp = 0.5\\n"
+    ...            "sfcf_1 = 0.3\\n"
+    ...            "sfcf_2 = 0.2\\n"
+    ...            "sfcf_3 = 0.1\\n"
+    ...            "k4 = 10.0\\n"))
+    <BLANKLINE>
+    >>> control = "HydPyServer.state.hp.elements.land_dill.model.parameters.control"
+    >>> test("evaluate",
+    ...      data=(f"alpha = {control}.alpha\\n"
+    ...            f"sfcf = {control}.sfcf"))
     alpha = alpha(1.0)
     sfcf = sfcf(1.1)
-    >>> test('parameteritemvalues',
-    ...      data=('alpha = 3.0\\n'
-    ...            'beta = 2.0\\n'
-    ...            'lag = 1.0\\n'
-    ...            'damp = 0.5\\n'
-    ...            'sfcf_1 = 0.3\\n'
-    ...            'sfcf_2 = 0.2\\n'
-    ...            'sfcf_3 = 0.1\\n'))
+
+    >>> test("activate_parameteritemvalues", id_="0")
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=(f'alpha = {control}.alpha\\n'
-    ...            f'sfcf = {control}.sfcf'))
+    >>> test("evaluate",
+    ...      data=(f"alpha = {control}.alpha\\n"
+    ...            f"sfcf = {control}.sfcf"))
     alpha = alpha(3.0)
     sfcf = sfcf(1.34283)
 
     The list of exchange items must be complete:
-    >>> test('parameteritemvalues',
-    ...      data=('alpha = 3.0\\n'
-    ...            'beta = 2.0'))
+
+    >>> test("register_parameteritemvalues", id_="0",
+    ...      data=("alpha = 3.0\\n"
+    ...            "beta = 2.0"))
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
-execute method `POST_parameteritemvalues`, the following error occurred: \
-A value for parameter item `lag` is missing.
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `POST_register_parameteritemvalues`, the following error occurred: A value for \
+parameter item `lag` is missing.
 
-    Note that the related GET request
-    (|HydPyServer.GET_parameteritemvalues|) does return the
-    lastly applied values of the exchange items instead of the modified
-    values of the |Parameter| objects:
+    Note that the related query method (|HydPyServer.GET_query_parameteritemvalues|)
+    returns the logged values of the |ChangeItem| objects instead of the (eventually
+    modified) values of the |Parameter| objects:
 
-    >>> test('parameteritemvalues')
+    >>> test("query_parameteritemvalues", id_="0")
     alpha = 3.0
     beta = 2.0
     lag = 1.0
     damp = 0.5
     sfcf_1 = 0.3
     sfcf_2 = 0.2
-    sfcf_3 = [ 0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  \
-0.1  0.1  0.1  0.1]
+    sfcf_3 = 0.1
+    k4 = 10.0
 
-    The same is true for exchange items handling condition sequences
-    via methods |HydPyServer.POST_conditionitemvalues| and
-    |HydPyServer.GET_conditionitemvalues| (note that the too high
-    value for |hland_states.SM| is trimmed to its highest possible value
-    |hland_control.FC|):
+    The condition-related methods |HydPyServer.POST_register_conditionitemvalues|,
+    |HydPyServer.GET_activate_conditionitemvalues|, and
+    |HydPyServer.GET_query_conditionitemvalues| work like the parameter-related
+    methods described above:
 
-    >>> sequences = 'state.hp.elements.land_lahn_2.model.sequences'
-    >>> test('evaluate',
-    ...      data=(f'sm = {sequences}.states.sm \\n'
-    ...            f'quh = {sequences}.logs.quh'))    # doctest: +ELLIPSIS
+    >>> test("register_conditionitemvalues", id_="0",
+    ...      data=("sm_lahn_2 = 246.0\\n"
+    ...            "sm_lahn_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]\\n"
+    ...            "ic_lahn_2 = 642.0\\n"
+    ...            "ic_lahn_1 = [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]\\n"
+    ...            "quh = 1.0\\n"))
+    <BLANKLINE>
+    >>> test("query_conditionitemvalues", id_="0")
+    ic_lahn_2 = 642.0
+    ic_lahn_1 = [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    sm_lahn_2 = 246.0
+    sm_lahn_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    quh = 1.0
+
+    Note the trimming of the too-high value for the state sequence |hland_states.SM| to
+    its highest possible value defined by control parameter |hland_control.FC|):
+
+    >>> for element in ("land_lahn_1", "land_lahn_2"):
+    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     test("evaluate",
+    ...          data=(f"sm = {sequences}.states.sm \\n"
+    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    sm = sm(99.27505, ..., 142.84148)
+    quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
     quh = quh(0.7, 0.0)
-    >>> test('conditionitemvalues',
-    ...      data=('sm_lahn_2 = 246.0\\n'
-    ...            'sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n'
-    ...            'quh = 1.0\\n'))
+    >>> test("activate_conditionitemvalues", id_="0")
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=(f'sm = {sequences}.states.sm\\n'
-    ...            f'quh = {sequences}.logs.quh'))    # doctest: +ELLIPSIS
-    sm = sm(197.0, ... 197.0)
+    >>> for element in ("land_lahn_1", "land_lahn_2"):
+    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     test("evaluate",
+    ...          data=(f"sm = {sequences}.states.sm \\n"
+    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
+    quh = quh(0.0)
+    sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)
     quh = quh(1.0, 0.0)
-    >>> test('conditionitemvalues')
-    sm_lahn_2 = 246.0
-    sm_lahn_1 = [  1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  \
-11.  12.  13.]
-    quh = 1.0
-    >>> test('conditionitemvalues',
-    ...      data='sm_lahn_2 = 246.0')
+
+    The methods |HydPyServer.POST_register_inputitemvalues|,
+    |HydPyServer.GET_activate_inputitemvalues|, and
+    |HydPyServer.GET_query_inputitemvalues| always focus on the currently relevant
+    simulation time grid:
+
+    >>> test("update_inputitemvalues", id_="0")
+    <BLANKLINE>
+    >>> test("query_inputitemvalues", id_="0")
+    t_headwaters = [[-0.298846], [-0.705395]]
+    >>> t = "HydPyServer.state.hp.elements.land_lahn_1.model.sequences.inputs.t"
+    >>> test("evaluate", data=(f"t_series = {t}.series\\n"
+    ...                        f"t_simseries = {t}.simseries\\n"))
+    t_series = InfoArray([-0.70539496, -1.50555283, -4.22126769, -7.44634946, \
+-8.11936591])
+    t_simseries = InfoArray([-0.70539496])
+
+    >>> test("register_inputitemvalues", id_="0",
+    ...      data="t_headwaters = [[1.0], [2.0]]\\n")
+    <BLANKLINE>
+    >>> test("activate_inputitemvalues", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate", data=(f"t_series = {t}.series\\n"
+    ...                        f"t_simseries = {t}.simseries\\n"))
+    t_series = InfoArray([ 2.        , -1.50555283, -4.22126769, -7.44634946, \
+-8.11936591])
+    t_simseries = InfoArray([2.])
+
+    The "official" way to gain information on modified parameters or conditions is to
+    use the method |HydPyServer.GET_query_getitemvalues|:
+
+    >>> test("query_getitemvalues", id_="0")
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
-execute method `POST_conditionitemvalues`, the following error occurred: \
-A value for condition item `sm_lahn_1` is missing.
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_getitemvalues`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
 
-    The "official" way to gain information on modified parameters or
-    conditions is to use the method |HydPyServer.GET_getitemvalues|:
+    As the error message explains, we first need to fill the registry for the given
+    `id` parameter.  Unlike the examples above, we do not do this by sending external
+    data via a POST request but by retrieving the server's currently active data.  We
+    accomplish this task by calling the GET method
+    |HydPyServer.GET_update_getitemvalues|:
 
-    >>> test('getitemvalues')    # doctest: +ELLIPSIS
+    >>> test("update_getitemvalues", id_="0")
+    <BLANKLINE>
+    >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
+    land_dill_factors_tmean = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan]
     land_dill_states_sm = [185.13164, ...]
@@ -670,189 +898,553 @@ A value for condition item `sm_lahn_1` is missing.
     land_lahn_3_states_sm_series = [[nan, ..., nan]]
     dill_nodes_sim_series = [nan]
 
-    You can save both the current values of the exchange items (methods
-    |HydPyServer.GET_save_parameteritemvalues| and
-    |HydPyServer.GET_save_getitemvalues| for the parameter related
-    |ChangeItem| objects and for the|GetItem| objects, respectively), as
-    well as the values of the current condition sequences (method
-    |HydPyServer.GET_save_conditionvalues| for an arbitrary `id` string:
+    Besides the "official" way for retrieving information (which we sometimes call the
+    "getitem style), some sequences types (namely those derived from |FactorSequence|
+    and |FluxSequence|) also allow retrieving information in the so-called "setitem
+    style" via the methods |HydPyServer.GET_update_outputitemvalues| and
+    |HydPyServer.GET_query_outputitemvalues|:
 
-    >>> test('save_parameteritemvalues', id_='1')
+    >>> test("query_outputitemvalues", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_outputitemvalues`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+    >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
-    >>> test('save_getitemvalues', id_='1')
-    <BLANKLINE>
-    >>> test('save_conditionvalues', id_='two')
-    <BLANKLINE>
+    >>> test("query_outputitemvalues", id_="0")
+    swe_headwaters = [[nan], [nan]]
 
-    We now modify the parameter and condition values again, but this time
-    in one step through calling method |HydPyServer.POST_changeitemvalues|,
-    and trigger a simulation run afterwards by calling method
+    We now modify the parameter, condition, and input time series values again, but
+    this time in one step through calling |HydPyServer.POST_register_changeitemvalues|
+    and |HydPyServer.GET_activate_changeitemvalues|:
+
+    >>> test("register_changeitemvalues", id_="0",
+    ...      data=("alpha = 1.0\\n"
+    ...            "beta = 1.0\\n"
+    ...            "lag = 0.0\\n"
+    ...            "damp = 0.0\\n"
+    ...            "sfcf_1 = 0.0\\n"
+    ...            "sfcf_2 = 0.0\\n"
+    ...            "sfcf_3 = 0.0\\n"
+    ...            "k4 = 5.0\\n"
+    ...            "ic_lahn_1 = 1.0\\n"
+    ...            "ic_lahn_2 = 2.0\\n"
+    ...            "sm_lahn_1 = 50.0\\n"
+    ...            "sm_lahn_2 = 100.0\\n"
+    ...            "quh = 0.0\\n"
+    ...            "t_headwaters = [[-0.29884643], [-0.70539496]]\\n"))
+    <BLANKLINE>
+    >>> test("activate_changeitemvalues", id_="0")
+    <BLANKLINE>
+    >>> test("query_changeitemvalues", id_="0")  # doctest: +ELLIPSIS
+    alpha = 1.0
+    beta = 1.0
+    lag = 0.0
+    damp = 0.0
+    sfcf_1 = 0.0
+    sfcf_2 = 0.0
+    sfcf_3 = 0.0
+    k4 = 5.0
+    t_headwaters = [[-0.29884...], [-0.70539...]]
+    ic_lahn_2 = 2.0
+    ic_lahn_1 = 1.0
+    sm_lahn_2 = 100.0
+    sm_lahn_1 = 50.0
+    quh = 0.0
+
+    Next, we trigger a simulation run by calling the GET method
     |HydPyServer.GET_simulate|:
 
-    >>> test('changeitemvalues',
-    ...      data=('alpha = 1.0\\n'
-    ...            'beta = 1.0\\n'
-    ...            'lag = 0.0\\n'
-    ...            'damp = 0.0\\n'
-    ...            'sfcf_1 = 0.0\\n'
-    ...            'sfcf_2 = 0.0\\n'
-    ...            'sfcf_3 = 0.0\\n'
-    ...            'sm_lahn_2 = 100.0\\n'
-    ...            'sm_lahn_1 = 50.\\n'
-    ...            'quh = .0\\n'))
+    >>> test("simulate", id_="0")
     <BLANKLINE>
-    >>> test('simulate')
+
+    Calling methods |HydPyServer.GET_update_getitemvalues| and
+    |HydPyServer.GET_query_getitemvalues| as well as methods
+    |HydPyServer.GET_update_outputitemvalues| and
+    |HydPyServer.GET_query_outputitemvalues| reveals how the simulation results:
+
+    >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
-    >>> test('changeitemvalues')    # doctest: +ELLIPSIS
-    alpha = 1.0
-    ...
-    sm_lahn_2 = 100.0
-    ...
-
-    Now both the current and the saved |GetItem| values are available by
-    invoking methods|HydPyServer.GET_getitemvalues| and
-    |HydPyServer.GET_savedgetitemvalues|, respectively:
-
-    >>> test('getitemvalues')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
+    >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
+    land_dill_factors_tmean = -0.572053
+    land_dill_fluxes_qt = 5.515321
     ...
     land_lahn_2_states_sm = [99.848023, ..., 99.848023]
     ...
-    dill_nodes_sim_series = [7.726602]
-    >>> test('savedgetitemvalues', id_='1')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = nan
-    ...
-    land_lahn_2_states_sm = [197.0, ..., 197.0]
-    ...
-    dill_nodes_sim_series = [nan]
-
-    The same holds for the saved |ChangeItem| values and
-    methods |HydPyServer.GET_parameteritemvalues| and
-    |HydPyServer.GET_savedparameteritemvalues|:
-
-    >>> test('parameteritemvalues')    # doctest: +ELLIPSIS
-    alpha = 1.0
-    ...
-    >>> test('savedparameteritemvalues', id_='1')    # doctest: +ELLIPSIS
-    alpha = 3.0
-    ...
-
-    Be aware that, for unknown values of query parameter `id`, both
-    methods |HydPyServer.GET_savedgetitemvalues| and
-    |HydPyServer.GET_savedparameteritemvalues| fall back to methods
-    |HydPyServer.GET_getitemvalues| and |HydPyServer.GET_parameteritemvalues|,
-    respectively:
-
-    >>> test('savedgetitemvalues', id_='?')    # doctest: +ELLIPSIS
-    land_dill_fluxes_qt = 0.964291
-    ...
-    >>> test('savedparameteritemvalues', id_='?')    # doctest: +ELLIPSIS
-    alpha = 1.0
-    ...
-
-    The *HydPy* server can memorise different exchange item values for
-    different values of query parameter `id`.  Making things more complicated,
-    memorisation of the actual condition values also takes the current time
-    point into account.  You load conditions for the current start date
-    of the simulation period, and you save them for the current end date,
-    this may become more understandable by looking at the following
-    example, where method |HydPyServer.GET_load_conditionvalues|
-    overwrites the first soil moisture value for element `land_lahn_1`
-    (99.8 mm) with different values.  The value 138.3 mm was initially
-    available for the start of the first date of the initialisation
-    period, the value 197.0 has been saved when the end of the first
-    day of the initialisation period was identical with the end of the
-    simulation period:
-
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
-    sm = sm(99.848023, ..., 99.848023)
-    >>> test('load_conditionvalues', id_='two')
+    dill_nodes_sim_series = [5.515321]
+    >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
-    sm = sm(138.31396, ..., 164.63255)
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-02\\n'
-    ...            'lastdate = 1996-01-03'))
-    <BLANKLINE>
-    >>> test('load_conditionvalues', id_='two')
-    <BLANKLINE>
-    >>> test('evaluate',
-    ...      data=f'sm = {sequences}.states.sm')    # doctest: +ELLIPSIS
-    sm = sm(197.0, ..., 197.0)
+    >>> test("query_outputitemvalues", id_="0")
+    swe_headwaters = [[0.0], [0.0]]
 
-    Loading condition values for a specific time point requires saving
-    them before
+    So far, we have explained how the *HydPy* server memorises different exchange item
+    values for different values of query parameter `id`.  Complicating matters,
+    memorising condition values must also consider the relevant time point.  You load
+    conditions for the simulation period's current start date with method
+    |HydPyServer.GET_load_internalconditions| and save them for the current end date
+    with method |HydPyServer.GET_save_internalconditions|.  For example, we first save
+    the states calculated for the end time of the last simulation run (January 2):
 
-    >>> test('timegrid',
-    ...      data=('firstdate = 1996-01-04\\n'
-    ...            'lastdate = 1996-01-05'))
+    >>> test("query_simulationdates", id_="0")
+    firstdate_sim = 1996-01-01T00:00:00+01:00
+    lastdate_sim = 1996-01-02T00:00:00+01:00
+    >>> test("evaluate",
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    sm_lahn2 = sm(99.848023, ..., 99.848023)
+    >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
-    >>> test('load_conditionvalues', id_='two')
+
+    Calling method |HydPyServer.GET_load_internalconditions| without changing the
+    simulation dates reloads the initial conditions for January 1, originally read from
+    disk:
+
+    >>> test("load_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate",
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    sm_lahn2 = sm(138.31396, ..., 164.63255)
+
+    If we set the first date of the simulation period to January 2, method
+    |HydPyServer.GET_load_internalconditions| loads the conditions we saved for
+    January 2 previously:
+
+    >>> test("register_simulationdates", id_="0",
+    ...      data=("firstdate_sim = 1996-01-02\\n"
+    ...            "lastdate_sim = 1996-01-03"))
+    <BLANKLINE>
+    >>> test("activate_simulationdates", id_="0")
+    <BLANKLINE>
+    >>> test("load_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate",
+    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    sm_lahn2 = sm(99.848023, ..., 99.848023)
+
+    Loading condition values for a specific time point requires saving them before:
+
+    >>> test("register_simulationdates", id_="0",
+    ...      data=("firstdate_sim = 1996-01-03\\n"
+    ...            "lastdate_sim = 1996-01-05"))
+    <BLANKLINE>
+    >>> test("activate_simulationdates", id_="0")
+    <BLANKLINE>
+    >>> test("load_internalconditions", id_="0")
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \
-execute method `GET_load_conditionvalues`, the following error occurred: \
-Conditions for ID `two` and time point `1996-01-04 00:00:00` are required, \
-but have not been calculated so far.
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_load_internalconditions`, the following error occurred: Conditions for \
+ID `0` and time point `1996-01-03 00:00:00` are required, but have not been \
+calculated so far.
 
-    Some algorithms both provide new information about initial conditions
-    but also require information on how the conditions evolve during a
-    simulation run.  For such purposes, you can use method
-    |HydPyServer.GET_save_modifiedconditionitemvalues| to store the current
-    conditions under an arbitrary `id`, and use method
-    |HydPyServer.GET_savedmodifiedconditionitemvalues| to query them later.
-    Please note that these methods are not flexible enough for some
-    real-world applications yet and are going to be improved later:
+    For example, when restarting data assimilation subsequent forecasting periods, you
+    might need to get and set all internal conditions from the client side.  Then, you
+    have two options.  The more efficient way relies on methods
+    |HydPyServer.GET_query_internalconditions| and
+    |HydPyServer.POST_register_internalconditions|.  Method
+    |HydPyServer.GET_query_internalconditions| returns the information registered for
+    the end of the current simulation period.  All data is within a single nested
+    |dict| object (created  by the |HydPy.conditions| property of class |HydPy|):
 
-    >>> test('save_modifiedconditionitemvalues', id_='before')
+    >>> test("register_simulationdates", id_="0",
+    ...      data=("firstdate_sim = 1996-01-01\\n"
+    ...            "lastdate_sim = 1996-01-02"))
     <BLANKLINE>
-    >>> test('simulate')
+    >>> test("activate_simulationdates", id_="0")
     <BLANKLINE>
-    >>> test('save_modifiedconditionitemvalues', id_='after')
+    >>> conditions = test("query_internalconditions", id_="0",
+    ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
+    conditions = {'land_dill': {'states': {'ic': array([0.69171697, 1.19171697...
+
+    Due to the steps above, the returned dictionary agrees with the current state of
+    the |HydPy| instance:
+
+    >>> sequences = f"HydPyServer.state.hp.elements.land_dill.model.sequences"
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
+    ic_dill = ic(0.691717, 1.191717, 0.692897,...
+
+    To show that registering new internal conditions also works, we first convert the
+    string representation of the data to actual Python objects by using Python's |eval|
+    function.  Therefore, we need to clarify that "array" means the array creation
+    function |numpy.array| of |numpy|:
+
+    >>> import numpy
+    >>> conditions = eval(conditions, {"array": numpy.array})
+
+    Next, we modify an arbitrary state and convert the dictionary back to a single-line
+    string:
+
+    >>> conditions["land_dill"]["states"]["ic"][:2] = 0.5, 2.0
+    >>> conditions = str(conditions).replace("\\n", " ")
+
+    Now we can send the modified data back to the server by using the
+    |HydPyServer.POST_register_internalconditions| method, which stores it for the
+    start of the simulation period:
+
+    >>> test("register_internalconditions", id_="0", data=f"conditions = {conditions}")
     <BLANKLINE>
-    >>> test('savedmodifiedconditionitemvalues',
-    ...     id_='before')    # doctest: +ELLIPSIS
-    sm_lahn_2 = [ 197.  ...]
-    sm_lahn_1 = [  1.   ...]
-    quh = [ 1.  0.]
-    >>> test('savedmodifiedconditionitemvalues',
-    ...     id_='after')    # doctest: +ELLIPSIS
-    sm_lahn_2 = [ 196.621130...]
-    sm_lahn_1 = [  0.99808...]
-    quh = [ 0.0005...]
+    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['states']['ic']"
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {ic_dill}")  # doctest: +ELLIPSIS
+    ic_dill = array([0.5       , 2.        , 0.69289697,...
+
+    After calling method |HydPyServer.GET_load_internalconditions|, the freshly
+    registered states are ready to be used by the next simulation run:
+
+    >>> test("load_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate",
+    ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
+    ic_dill = ic(0.5, 1.5, 0.692897,...
+
+    Keeping the internal conditions for multiple time points can use plenty of RAM.
+    Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
+    conditions data available under the given `id` to avoid that:
+
+    >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
+    conditions = {'land_dill': {'states': {'ic': array([0.6917...
+    >>> test("deregister_internalconditions", id_="0")
+    <BLANKLINE>
+    >>> test("query_internalconditions", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_internalconditions`, the following error occurred: No internal \
+conditions registered under the id `0` for `1996-01-02 00:00:00`.
+
+    Some algorithms provide new information about initial conditions and require
+    information on how they evolve during a simulation.  For such purposes, you can
+    use method |HydPyServer.GET_update_conditionitemvalues| to store the current
+    conditions under an arbitrary `id` and use method
+    |HydPyServer.GET_query_conditionitemvalues| to query them later.  Note that this
+    approach so far only works when using |SetItem| objects that modify their target
+    sequence on the `device` or `subunit` level (please tell us if you encounter other
+    relevant use-cases):
+
+    >>> test("update_conditionitemvalues", id_="0")
+    <BLANKLINE>
+    >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
+    ic_lahn_2 = [0.953246...]
+    ic_lahn_1 = [0.738365, ...]
+    sm_lahn_2 = [99.84802...]
+    sm_lahn_1 = [49.92944...]
+    quh = [0.00038...]
+
+    The second option for handling multiple "simultaneous" initial conditions is
+    telling the *HydPy* server to read them from and write them to disk, which is
+    easier but often less efficient due to higher IO activity.  Use methods
+    |HydPyServer.GET_load_conditions| and |HydPyServer.GET_save_conditions| for this
+    purpose.  Reading from or writing to different directories than those defined in
+    `multiple_runs.xml` requires registering them beforehand.  If we, for example,
+    create a new empty directory with method
+    |HydPyServer.POST_register_inputconditiondir|, loading conditions from it must
+    fail:
+
+    >>> test("register_inputconditiondir", id_="0", data="inputconditiondir = new")
+    <BLANKLINE>
+    >>> test("load_conditions", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_load_conditions`, the following error occurred: While trying to \
+load the initial conditions of element `land_dill`, the following error occurred: \
+[Errno 2] No such file or directory: ...land_dill.py'
+
+    >>> test("register_outputconditiondir", id_="0", data="outputconditiondir = new")
+    <BLANKLINE>
+    >>> test("save_conditions", id_="0")
+    <BLANKLINE>
+
+    Hence, we better first write suitable conditions into the new directory:
+
+    >>> lz_dill = "self.state.hp.elements.land_dill.model.sequences.states.lz"
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
+    lz_dill = lz(9.4921...)
+
+    To prove reading and writing conditions works, we first set the current value of
+    sequence |hland_states.LZ| of catchment "Dill" to zero:
+
+    >>> test("evaluate", data=f"nothing = {lz_dill}(0.0)")
+    nothing = None
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")
+    lz_dill = lz(0.0)
+
+    As expected, applying |HydPyServer.GET_load_conditions| on the previously written
+    data resets the value of |hland_states.LZ|:
+
+    >>> test("load_conditions", id_="0")
+    <BLANKLINE>
+    >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
+    lz_dill = lz(9.4921...)
+
+    Use the GET methods |HydPyServer.GET_query_inputconditiondir| and
+    |HydPyServer.GET_deregister_inputconditiondir| to query or remove the currently
+    registered input condition directory:
+
+    >>> test("query_inputconditiondir", id_="0")
+    inputconditiondir = new
+    >>> test("deregister_inputconditiondir", id_="0")
+    <BLANKLINE>
+    >>> test("query_inputconditiondir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_inputconditiondir`, the following error occurred: Nothing \
+registered under the id `0`.  There is nothing registered, so far.
+
+    Use the GET methods |HydPyServer.GET_query_outputconditiondir| and
+    |HydPyServer.GET_deregister_outputconditiondir| to query or remove the currently
+    registered output condition directory:
+
+    >>> test("query_outputconditiondir", id_="0")
+    outputconditiondir = new
+    >>> test("deregister_outputconditiondir", id_="0")
+    <BLANKLINE>
+    >>> test("query_outputconditiondir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_outputconditiondir`, the following error occurred: Nothing \
+registered under the id `0`.  There is nothing registered, so far.
+
+    Above, we explained the recommended way to query the initial values of all or a
+    subgroup of the available exchange items.  Alternatively, you can first register
+    the initial values and query them later, which is a workaround for retrieving
+    initial and intermediate values with the same HTTP request (an `OpenDA`_
+    requirement):
+
+    >>> test("register_initialitemvalues", id_="1")
+    <BLANKLINE>
+    >>> test("query_itemvalues", id_="1")  # doctest: +ELLIPSIS
+    alpha = 2.0
+    beta = 1.0
+    lag = 5.0
+    damp = 0.5
+    sfcf_1 = 0.3
+    sfcf_2 = 0.2
+    sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
+    k4 = 10.0
+    t_headwaters = [[-0.29884...], [-0.70539...]]
+    ic_lahn_2 = [1.18494...]
+    ic_lahn_1 = [0.96404...]
+    sm_lahn_2 = [123.0]
+    sm_lahn_1 = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, \
+200.0, 210.0, 220.0, 230.0]
+    quh = [10.0]
+    swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
+    land_dill_factors_tmean = nan
+    land_dill_fluxes_qt = nan
+    land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
+    land_dill_states_sm = [185.13164...]
+    land_lahn_1_states_sm = [99.27505...]
+    land_lahn_2_states_sm = [138.31396...]
+    land_lahn_3_states_sm = [101.31248...]
+    land_lahn_3_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
+    dill_nodes_sim_series = [nan, nan, nan, nan, nan]
+
+    In contrast to running a single simulation via method |run_simulation|, the *HydPy*
+    server does (usually) not write calculated time series automatically.  Instead, one
+    must manually call method |HydPyServer.GET_save_allseries|:
+
+    >>> test("save_allseries", id_="0")
+    <BLANKLINE>
+
+    According to the fixed configuration of `multiple_runs.xml`,
+    |HydPyServer.GET_save_allseries| wrote averaged soil moisture values into the
+    directory `mean_sm`:
+
+    >>> import netCDF4
+    >>> from hydpy import print_values
+    >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["state_sm"][:, 0])
+    211.238178, 0.0, 0.0, 0.0, 0.0
+
+    To save the results of subsequent simulations without overwriting the previous
+    ones, change the current series writer directory by the GET method
+    |HydPyServer.POST_register_serieswriterdir|:
+
+    >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = sm_averaged")
+    <BLANKLINE>
+    >>> test("save_allseries", id_="0")
+    <BLANKLINE>
+    >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["state_sm"][:, 0])
+    211.238178, 0.0, 0.0, 0.0, 0.0
+
+    |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
+    from the registry so that the HydPy server falls back to the
+    configuration of `multiple_runs.xml`:
+
+    >>> test("query_serieswriterdir", id_="0")
+    serieswriterdir = sm_averaged
+    >>> test("deregister_serieswriterdir", id_="0")
+    <BLANKLINE>
+    >>> test("query_serieswriterdir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_serieswriterdir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+
+    The same holds for time series to be written "just in time" during simulation runs.
+    The `temperature` writer in `multiple_runs.xml` select the `jit` mode.  This
+    setting triggered that the *HydPy* server wrote the time series of sequences
+    |hland_inputs.T| and |hland_inputs.TN| to the directory `temperature` during the
+    last simulation:
+
+    >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["input_t"][:, 0])
+    -0.298846, 0.0, 0.0, 0.0, 0.0
+
+    The input sequences |hland_inputs.P| and |hland_inputs.EPN| are instead reading
+    their time series "just in time" (reading and writing data for the same |IOSequence|
+    object is not supported).  We query the last read value of |hland_inputs.EPN| for
+    the Dill catchment:
+
+    >>> epn = f"HydPyServer.state.hp.elements.land_dill.model.sequences.inputs.epn"
+    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
+    epn_dill = epn(0.2854...)
+
+    We can change the series writer directory before starting another simulation run to
+    write the time series of |hland_inputs.T| and |hland_inputs.TN| to another
+    directory:
+
+    >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = temp")
+    <BLANKLINE>
+    >>> test("simulate", id_="0")
+    <BLANKLINE>
+    >>> filepath = "LahnH/series/temp/hland_v1_input_t.nc"
+    >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
+    ...     print_values(ncfile["input_t"][:, 0])
+    -0.298846, 0.0, 0.0, 0.0, 0.0
+
+    The "just in time" reading of the series of "P" and "EPN" still worked, showing the
+    registered series directory "temp" only applied for writing data:
+
+    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
+    epn_dill = epn(0.2854...)
+
+    Changing the series reader directory works as explained for the series writer
+    directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
+    and |HydPyServer.GET_simulate| cannot find suitable files and report this problem:
+
+    >>> test("register_seriesreaderdir", id_="0", data="seriesreaderdir = no_data")
+    <BLANKLINE>
+    >>> test("query_seriesreaderdir", id_="0")
+    seriesreaderdir = no_data
+
+    >>> test("load_allseries", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_load_allseries`, the following error occurred: While trying to \
+load the time-series data of sequence `t` of element `land_dill`, the following error \
+occurred: [Errno 2] No such file or directory: ...land_dill_input_t.asc'
+
+    >>> test("simulate", id_="0")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
+execute method `GET_simulate`, the following error occurred: While trying to prepare \
+NetCDF files for reading or writing data "just in time" during the current simulation \
+run, the following error occurred: No file `...hland_v1_input_p.nc` available for \
+reading.
+
+    After deregistering the "no_data" directory, both methods work again:
+
+    >>> test("deregister_seriesreaderdir", id_="0")
+    <BLANKLINE>
+    >>> test("query_seriesreaderdir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_seriesreaderdir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
+
+    >>> test("load_allseries", id_="0")
+    <BLANKLINE>
+    >>> test("simulate", id_="0")
+    <BLANKLINE>
+
+    As described for time series, one must explicitly pass (comparable) requests to
+    the *HydPy* Server to let it write parameter control files.  The control files
+    reflect the current parameter values of all model instances:
+
+    >>> test("register_outputcontroldir", id_="0", data="outputcontroldir = calibrated")
+    <BLANKLINE>
+    >>> test("query_outputcontroldir", id_="0")
+    outputcontroldir = calibrated
+
+    >>> test("save_controls", id_="0")
+    <BLANKLINE>
+    >>> with TestIO(), open("LahnH/control/calibrated/land_dill.py") as file_:
+    ...     print(file_.read())  # doctest: +ELLIPSIS
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.hland_v1 import *
+    <BLANKLINE>
+    simulationstep("1d")
+    parameterstep("1d")
+    ...
+    beta(1.0)
+    ...
+
+    >>> parameterstep = "hydpy.pub.options.parameterstep"
+    >>> simulationstep = "hydpy.pub.options.simulationstep"
+    >>> beta = "HydPyServer.state.hp.elements.land_dill.model.parameters.control.beta"
+    >>> test("evaluate", data=(f"simulationstep = {simulationstep}\\n"
+    ...                        f"parameterstep = {parameterstep}\\n"
+    ...                        f"beta = {beta}"))
+    simulationstep = Period("1d")
+    parameterstep = Period("1d")
+    beta = beta(1.0)
+
+    >>> test("deregister_outputcontroldir", id_="0")
+    <BLANKLINE>
+    >>> test("query_outputcontroldir", id_="0")
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `GET_query_outputcontroldir`, the following error occurred: Nothing registered \
+under the id `0`.  There is nothing registered, so far.
 
     To close the *HydPy* server, call |HydPyServer.GET_close_server|:
 
-    >>> test('close_server')
+    >>> test("close_server")
     <BLANKLINE>
     >>> process.kill()
     >>> _ = process.communicate()
     """
-    # pylint: disable=invalid-name
-    # due to "GET" and "POST" method names in accordance
-    # with BaseHTTPRequestHandler
 
-    _requesttype: str   # either "GET" or "POST"
-    _statuscode: int    # either 200, 400, or 500
+    # pylint: disable=invalid-name
+    # due to "GET" and "POST" method names in accordance with BaseHTTPRequestHandler
+
+    server: _HTTPServerBase
+    state: ClassVar[ServerState]
+    extensions_map: ClassVar[Dict[str, str]]
+    _requesttype: Literal["GET", "POST"]
+    _statuscode: Literal[200, 400, 500]
     _inputs: Dict[str, str]
-    _outputs: Dict[str, Any]
+    _outputs: Dict[str, object]
 
     def do_GET(self) -> None:
         """Select and apply the currently requested GET method."""
-        self._requesttype = 'GET'
+        self._requesttype = "GET"
         self._do_get_or_post()
 
     def do_POST(self) -> None:
         """Select and apply the currently requested POST method."""
-        self._requesttype = 'POST'
+        self._requesttype = "POST"
         self._do_get_or_post()
 
     def _do_get_or_post(self) -> None:
         self._statuscode = 200
         try:
-            if self._requesttype == 'POST':
+            if self._requesttype == "POST":
                 self._prepare_inputs()
             self._outputs = collections.OrderedDict()
             method = self._get_method(self._methodname)
@@ -861,39 +1453,40 @@ but have not been calculated so far.
         except BaseException as exc:
             if self._statuscode not in (200, 400):
                 self._statuscode = 500
-            self.send_error(
-                self._statuscode, f'{type(exc).__name__}: {exc}')
+            self.send_error(self._statuscode, f"{type(exc).__name__}: {exc}")
 
     def _prepare_inputs(self) -> None:
-        content_length = int(self.headers['Content-Length'])
-        string = str(self.rfile.read(content_length), encoding='utf-8')
+        content_length = int(self.headers["Content-Length"])
+        string = str(self.rfile.read(content_length), encoding="utf-8")
         self._inputs = collections.OrderedDict()
-        for line in string.split('\n'):
+        for line in string.split("\n"):
             try:
                 line = line.strip()
                 if line:
-                    key, value = line.split('=')
+                    key, value = line.split("=")
                     self._inputs[key.strip()] = value.strip()
-            except BaseException:
+            except BaseException as exc:
                 self._statuscode = 400
                 raise RuntimeError(
-                    f'The POST method `{self._externalname}` received a '
-                    f'wrongly formated data body.  The following line has been '
-                    f'extracted but cannot be further processed: `{line}`.')
+                    f"The POST method `{self._externalname}` received a wrongly "
+                    f"formated data body.  The following line has been extracted but "
+                    f"cannot be further processed: `{line}`."
+                ) from exc
 
     @property
-    def _id(self) -> str:
-        return self._get_queryparameter('id')
+    def _id(self) -> ID:
+        return self._get_queryparameter("id")
 
-    def _get_queryparameter(self, name) -> str:
+    def _get_queryparameter(self, name: str) -> ID:
+        query = urllib.parse.urlparse(self.path).query
         try:
-            query = urllib.parse.urlparse(self.path).query
-            return urllib.parse.parse_qs(query)[name][0]
+            return cast(ID, urllib.parse.parse_qs(query)[name][0])
         except KeyError:
             self._statuscode = 400
             raise RuntimeError(
-                f'For the {self._requesttype} method `{self._externalname}` '
-                f'no query parameter `{name}` is given.')
+                f"For the {self._requesttype} method `{self._externalname}` no query "
+                f"parameter `{name}` is given."
+            ) from None
 
     @property
     def _externalname(self) -> str:
@@ -901,331 +1494,809 @@ but have not been calculated so far.
 
     @property
     def _methodname(self) -> str:
-        return f'{self._requesttype}_{self._externalname}'
+        return f"{self._requesttype}_{self._externalname}"
 
-    def _get_method(self, name) -> types.MethodType:
+    def _get_method(self, name: str) -> types.MethodType:
         try:
-            return getattr(self, name)
+            method = getattr(self, name)
+            assert isinstance(method, types.MethodType)
+            return method
         except AttributeError:
             self._statuscode = 400
-            raise RuntimeError(
-                f'No method `{name}` available.')
+            raise RuntimeError(f"No method `{name}` available.") from None
 
-    def _apply_method(self, method) -> None:
+    def _apply_method(self, method: types.MethodType) -> None:
         try:
             method()
         except BaseException:
             self._statuscode = 500
             objecttools.augment_excmessage(
-                f'While trying to execute method `{method.__name__}`')
+                f"While trying to execute method `{method.__name__}`"
+            )
 
     def _write_output(self) -> None:
-        string = '\n'.join(f'{key} = {value}' for key, value
-                           in self._outputs.items())
-        bstring = bytes(string, encoding='utf-8')
+        string = "\n".join(f"{key} = {value}" for key, value in self._outputs.items())
+        bstring = bytes(string, encoding="utf-8")
         self.send_response(self._statuscode)
-        self.send_header('Content-type', 'text/html')
+        self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(bstring)
 
     def GET_execute(self) -> None:
         """Execute an arbitrary number of GET methods.
 
-        The method names must be passed as query parameters, as explained
-        in the main documentation on module |servertools|.
+        The method names must be passed as query parameters, as explained in the main
+        documentation on module |servertools|.
         """
         self._execute()
 
     def POST_execute(self) -> None:
         """Execute an arbitrary number of POST and GET methods.
 
-        The method names must be passed as query parameters, as explained
-        in the main documentation on module |servertools|.
+        The method names must be passed as query parameters, as explained in the main
+        documentation on module |servertools|.
         """
         self._execute()
 
     def _execute(self) -> None:
-        for name in self._get_queryparameter('methods').split(','):
+        for name in self._get_queryparameter("methods").split(","):
             self._apply_method(self._get_method(name))
 
     def POST_evaluate(self) -> None:
-        """Evaluate any valid Python expression with the *HydPy* server
-        process and get its result.
+        """Evaluate any valid Python expression with the *HydPy* server process and get
+        its result.
 
-        Method |HydPyServer.POST_evaluate| serves to test and debug, primarily.
-        The main documentation on module |servertools| explains its usage.
+        Method |HydPyServer.POST_evaluate| serves to test and debug, primarily.  The
+        main documentation on class |HydPyServer| explains its usage.
+
+        For safety purposes, method |HydPyServer.POST_evaluate| only works if you start
+        the *HydPy* Server in debug mode by writing "debugging=enable", as we do in the
+        examples of the main documentation on class |HydPyServer|.  When not working in
+        debug mode, invoking this method results in the following error message:
+
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import run_subprocess, TestIO
+        >>> with TestIO():
+        ...     process = run_subprocess(
+        ...         "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml",
+        ...         blocking=False, verbose=False)
+        ...     _ = run_subprocess("hyd.py await_server 8080 10", verbose=False)
+        >>> from urllib import request
+        >>> request.urlopen("http://localhost:8080/evaluate", data=b"")
+        Traceback (most recent call last):
+        ...
+        urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
+method `POST_evaluate`, the following error occurred: You can only use the POST \
+method `evaluate` if you have started the `HydPy Server` in debugging mode.
+
+        >>> _ = request.urlopen("http://localhost:8080/close_server")
+        >>> process.kill()
+        >>> _ = process.communicate()
         """
+        if not self.server.debugmode:
+            raise RuntimeError(
+                "You can only use the POST method `evaluate` if you have started the "
+                "`HydPy Server` in debugging mode."
+            )
         for name, value in self._inputs.items():
             result = eval(value)
             self._outputs[name] = objecttools.flatten_repr(result)
 
     def GET_status(self) -> None:
         """Return "status = ready" as soon as possible."""
-        self._outputs['status'] = 'ready'
+        self._outputs["status"] = "ready"
+
+    def GET_version(self) -> None:
+        """Return Hydpy's version number."""
+        self._outputs["version"] = hydpy.__version__
 
     def GET_close_server(self) -> None:
         """Stop and close the *HydPy* server."""
-        def _close_server():
+
+        def _close_server() -> None:
             self.server.shutdown()
             self.server.server_close()
+
         shutter = threading.Thread(target=_close_server)
-        shutter.deamon = True
         shutter.start()
 
-    def GET_itemtypes(self) -> None:
+    @staticmethod
+    def _get_query_itemtype(item: itemtools.ExchangeItem) -> str:
+        if item.targetspecs.series:
+            return f"TimeSeries{item.ndim-1}D"
+        return f"Double{item.ndim}D"
+
+    def GET_query_itemtypes(self) -> None:
         """Get the types of all current exchange items."""
-        self.GET_changeitemtypes()
-        self.GET_getitemtypes()
+        self.GET_query_changeitemtypes()
+        self.GET_query_outputitemtypes()
+        self.GET_query_getitemtypes()
 
-    def GET_changeitemtypes(self) -> None:
-        """Get the types of all current exchange items supposed to change the
-        values of |Parameter|, |StateSequence|, or |LogSequence| objects."""
-        self.GET_parameteritemtypes()
-        self.GET_conditionitemtypes()
+    def GET_query_changeitemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to change the values of
+        |Parameter|, |StateSequence|, or |LogSequence| objects."""
+        self.GET_query_parameteritemtypes()
+        self.GET_query_inputitemtypes()
+        self.GET_query_conditionitemtypes()
 
-    def GET_parameteritemtypes(self) -> None:
-        """Get the types of all current exchange items supposed to change
-        the values of |Parameter| objects."""
-        for item in state.parameteritems:
-            self._outputs[item.name] = self._get_itemtype(item)
+    def GET_query_parameteritemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to change the values of
+        |Parameter| objects."""
+        for item in self.state.parameteritems:
+            self._outputs[item.name] = self._get_query_itemtype(item)
 
-    def GET_conditionitemtypes(self) -> None:
-        """Get the types of all current exchange items supposed to change
-        the values of |StateSequence| or |LogSequence| objects."""
-        for item in state.conditionitems:
-            self._outputs[item.name] = self._get_itemtype(item)
+    def GET_query_inputitemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to change the series of
+        |InputSequence| objects."""
+        for item in self.state.inputitems:
+            self._outputs[item.name] = self._get_query_itemtype(item)
 
-    def GET_getitemtypes(self) -> None:
-        """Get the types of all current exchange items supposed to return
-        the values of |Parameter| or |Sequence| objects or the time series
-        of |IOSequence| objects."""
-        for item in state.getitems:
-            type_ = self._get_itemtype(item)
+    def GET_query_conditionitemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to change the values of
+        |StateSequence| or |LogSequence| objects."""
+        for item in self.state.conditionitems:
+            self._outputs[item.name] = self._get_query_itemtype(item)
+
+    def GET_query_outputitemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to return the values or
+        series of |FactorSequence| or |FluxSequence| objects in the "setitem style"."""
+        for item in self.state.outputitems:
+            self._outputs[item.name] = self._get_query_itemtype(item)
+
+    def GET_query_getitemtypes(self) -> None:
+        """Get the types of all current exchange items supposed to return the values of
+        |Parameter| or |Sequence_| objects or the time series of |IOSequence|
+        objects in the "getitem style"."""
+        for item in self.state.getitems:
+            type_ = self._get_query_itemtype(item)
             for name, _ in item.yield_name2value():
                 self._outputs[name] = type_
 
-    def GET_timegrid(self) -> None:
-        """Get the current simulation |Timegrid|."""
-        self._write_timegrid(hydpy.pub.timegrids.sim)
+    def GET_query_itemsubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects."""
+        self.GET_query_changeitemsubnames()
+        self.GET_query_outputitemnames()
+        self.GET_query_getitemsubnames()
 
-    def POST_timegrid(self) -> None:
-        """Change the current simulation |Timegrid|."""
+    def GET_query_changeitemsubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |Parameter|, |StateSequence|,
+        or |LogSequence| objects."""
+        self.GET_query_parameteritemnames()
+        self.GET_query_inputitemnames()
+        self.GET_query_conditionitemnames()
+
+    def GET_query_parameteritemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |Parameter| objects."""
+        self._query_changeitemsubnames(self.state.parameteritems)
+
+    def GET_query_inputitemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |InputSequence| objects."""
+        self._query_changeitemsubnames(self.state.inputitems)
+
+    def GET_query_conditionitemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to change the values of |StateSequence| or
+        |LogSequence| objects."""
+        self._query_changeitemsubnames(self.state.conditionitems)
+
+    def GET_query_outputitemnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to return the values of or series of |FactorSequence|
+        or |FluxSequence| objects in the "setitem style"."""
+        self._query_changeitemsubnames(self.state.outputitems)
+
+    def GET_query_getitemsubnames(self) -> None:
+        """Get names (suitable as IDs) describing the individual values of all current
+        exchange objects supposed to return the values of |Parameter| or |Sequence_|
+        objects or the time series of |IOSequence| objects in the "getitem style"."""
+        for item in self.state.getitems:
+            for name, subnames in item.yield_name2subnames():
+                self._outputs[name] = subnames
+
+    def _query_changeitemsubnames(self, items: Iterable[itemtools.ChangeItem]) -> None:
+        for item in items:
+            subnames = item.subnames
+            if subnames is None:
+                self._outputs[item.name] = "*global*"
+            else:
+                self._outputs[item.name] = f"[{', '.join(subnames)}]"
+
+    def GET_query_initialitemvalues(self) -> None:
+        """Get the initial values of all current exchange items."""
+        self.GET_query_initialchangeitemvalues()
+        self.GET_query_initialoutputitemvalues()
+        self.GET_query_initialgetitemvalues()
+
+    def GET_register_initialitemvalues(self) -> None:
+        """Register the initial values of all current exchange items under the given
+        `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialitemvalues|.
+        """
+        self.GET_register_initialchangeitemvalues()
+        self.GET_register_initialoutputitemvalues()
+        self.GET_register_initialgetitemvalues()
+
+    def GET_query_initialchangeitemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to change the
+        values of |Parameter|, |InputSequence|, |StateSequence|, or |LogSequence|
+        objects."""
+        self.GET_query_initialparameteritemvalues()
+        self.GET_query_initialinputitemvalues()
+        self.GET_query_initialconditionitemvalues()
+
+    def GET_register_initialchangeitemvalues(self) -> None:
+        """Register the initial values of all current exchange items supposed to change
+        the values of |Parameter|, |InputSequence|, |StateSequence|, or |LogSequence|
+        objects under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialchangeitemvalues|.
+        """
+        self.GET_register_initialparameteritemvalues()
+        self.GET_register_initialinputitemvalues()
+        self.GET_register_initialconditionitemvalues()
+
+    @staticmethod
+    def _array2output(values: Union[float, VectorInput[Any]]) -> str:
+        # duck-typing for simplicity:
+        try:
+            try:
+                return objecttools.assignrepr_list2(values, prefix="").replace("\n", "")
+            except TypeError:
+                return objecttools.repr_list(values)  # type: ignore[arg-type]
+        except TypeError:
+            return objecttools.repr_(values)
+
+    def GET_query_initialparameteritemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to change the
+        values of |Parameter| objects."""
+        for name, value in self.state.initialparameteritemvalues.items():
+            self._outputs[name] = self._array2output(value)
+
+    def GET_register_initialparameteritemvalues(self) -> None:
+        """Register the initial values of all current exchange items supposed to change
+        the values of |Parameter| objects under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialparameteritemvalues|.
+        """
+        state = self.state
+        state.parameteritemvalues[self._id] = state.initialparameteritemvalues.copy()
+
+    def GET_query_initialinputitemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to change the
+        series of |InputSequence| objects."""
+        for name, value in self.state.initialinputitemvalues.items():
+            self._outputs[name] = self._array2output(value)
+
+    def GET_register_initialinputitemvalues(self) -> None:
+        """Register the initial series of all current exchange items supposed to change
+        the values of |InputSequence| objects under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialinputitemvalues|.
+        """
+        self.state.inputitemvalues[self._id] = self.state.initialinputitemvalues.copy()
+
+    def GET_query_initialconditionitemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to change the
+        values of |StateSequence| or |LogSequence| objects."""
+        for name, value in self.state.initialconditionitemvalues.items():
+            self._outputs[name] = self._array2output(value)
+
+    def GET_register_initialconditionitemvalues(self) -> None:
+        """Register the initial values of all current exchange items supposed to change
+        the values of |StateSequence| or |LogSequence| objects under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialconditionitemvalues|.
+        """
+        state = self.state
+        state.conditionitemvalues[self._id] = state.initialconditionitemvalues.copy()
+
+    def GET_query_initialoutputitemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to return the
+        values or sequences of |FactorSequence| or |FluxSequence| objects in the
+        "setitem style"."""
+        for name, value in self.state.initialoutputitemvalues.items():
+            self._outputs[name] = self._array2output(value)
+
+    def GET_register_initialoutputitemvalues(self) -> None:
+        """Register the initial values of all current exchange items supposed to return
+        the values or sequences of |FactorSequence| or |FluxSequence| objects in the
+        "setitem style" under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialoutputitemvalues|.
+        """
+        state = self.state
+        state.outputitemvalues[self._id] = state.initialoutputitemvalues.copy()
+
+    def GET_query_initialgetitemvalues(self) -> None:
+        """Get the initial values of all current exchange items supposed to return the
+        values of |Parameter| or |Sequence_| objects or the time series of |IOSequence|
+        objects in the "getitems style"."""
+        for name, value in self.state.initialgetitemvalues.items():
+            self._outputs[name] = value
+
+    def GET_register_initialgetitemvalues(self) -> None:
+        """Register the initial values of all current exchange items supposed to return
+        the values of |Parameter| or |Sequence_| objects or the time series of
+        |IOSequence| objects in the "getitem style" under the given `id`.
+
+        Implemented as a workaround to support `OpenDA`_.  Better use method
+        |HydPyServer.GET_query_initialgetitemvalues|.
+        """
+        self.state.getitemvalues[self._id] = self.state.initialgetitemvalues.copy()
+
+    def GET_query_initialisationtimegrid(self) -> None:
+        """Return the general |Timegrids.init| time grid."""
+        tg = hydpy.pub.timegrids.init
+        utc = hydpy.pub.options.utcoffset
+        self._outputs["firstdate_init"] = tg.firstdate.to_string("iso1", utc)
+        self._outputs["lastdate_init"] = tg.lastdate.to_string("iso1", utc)
+        self._outputs["stepsize"] = tg.stepsize
+
+    def _get_registered_content(self, dict_: Dict[ID, T]) -> T:
+        try:
+            return dict_[self._id]
+        except KeyError:
+            message = f"Nothing registered under the id `{self._id}`."
+            if dict_:
+                message += f"  The available ids are: {objecttools.enumeration(dict_)}."
+            else:
+                message += "  There is nothing registered, so far."
+            raise RuntimeError(message) from None
+
+    def POST_register_simulationdates(self) -> None:
+        """Register the send simulation dates under the given `id`."""
+        self.state.timegrids[self._id] = timetools.Timegrid(
+            firstdate=self._inputs["firstdate_sim"],
+            lastdate=self._inputs["lastdate_sim"],
+            stepsize=hydpy.pub.timegrids.stepsize,
+        )
+
+    def GET_activate_simulationdates(self) -> None:
+        """Activate the simulation dates registered under the given `id`."""
         init = hydpy.pub.timegrids.init
         sim = hydpy.pub.timegrids.sim
-        sim.firstdate = self._inputs['firstdate']
-        sim.lastdate = self._inputs['lastdate']
-        state.idx1 = init[sim.firstdate]
-        state.idx2 = init[sim.lastdate]
+        sim.dates = self._get_registered_content(self.state.timegrids).dates
+        self.state.idx1 = init[sim.firstdate]
+        self.state.idx2 = init[sim.lastdate]
 
-    @staticmethod
-    def GET_simulate() -> None:
-        """Perform a simulation run."""
-        state.hp.simulate()
+    def GET_query_simulationdates(self) -> None:
+        """Return the simulation dates registered under the given `id`."""
+        tg = self._get_registered_content(self.state.timegrids)
+        utc = hydpy.pub.options.utcoffset
+        self._outputs["firstdate_sim"] = tg.firstdate.to_string("iso1", utc)
+        self._outputs["lastdate_sim"] = tg.lastdate.to_string("iso1", utc)
 
-    def GET_changeitemvalues(self) -> None:
-        """Get the values of all |ChangeItem| objects."""
-        self.GET_parameteritemvalues()
-        self.GET_conditionitemvalues()
+    def GET_query_itemvalues(self) -> None:
+        """Get the values of all |ExchangeItem| objects registered under the given
+        `id`."""
+        self.GET_query_changeitemvalues()
+        self.GET_query_outputitemvalues()
+        self.GET_query_getitemvalues()
 
-    def POST_changeitemvalues(self) -> None:
-        """Change the values of all |ChangeItem| objects and apply them
-        on the respective |Variable| objects."""
-        self.POST_parameteritemvalues()
-        self.POST_conditionitemvalues()
+    def POST_register_changeitemvalues(self) -> None:
+        """Register the send values of all |ChangeItem| objects under the given `id`."""
+        self.POST_register_parameteritemvalues()
+        self.POST_register_inputitemvalues()
+        self.POST_register_conditionitemvalues()
 
-    def GET_parameteritemvalues(self) -> None:
-        """Get the values of all |ChangeItem| objects handling |Parameter|
-        objects."""
-        for item in state.parameteritems:
-            self._outputs[item.name] = item.value
+    def GET_activate_changeitemvalues(self) -> None:
+        """Activate the values of the |ChangeItem| objects registered under the given
+        `id`."""
+        self.GET_activate_parameteritemvalues()
+        self.GET_activate_inputitemvalues()
+        self.GET_activate_conditionitemvalues()
 
-    def POST_parameteritemvalues(self) -> None:
-        """Change the values of the relevant |ChangeItem| objects and apply
-        them to their respective |Parameter| objects."""
-        self._post_itemvalues('parameter', state.parameteritems)
+    def GET_query_changeitemvalues(self) -> None:
+        """Get the values of all |ChangeItem| objects registered under the given
+        `id`."""
+        self.GET_query_parameteritemvalues()
+        self.GET_query_inputitemvalues()
+        self.GET_query_conditionitemvalues()
 
-    def GET_conditionitemvalues(self) -> None:
-        """Get the values of all |ChangeItem| objects handling |StateSequence|
-        or |LogSequence| objects."""
-        for item in state.conditionitems:
-            self._outputs[item.name] = item.value
-
-    def POST_conditionitemvalues(self) -> None:
-        """Change the values of the relevant |ChangeItem| objects and apply
-        them to their respective |StateSequence| or |LogSequence| objects."""
-        self._post_itemvalues('condition', state.conditionitems)
-
-    def GET_getitemvalues(self) -> None:
-        """Get the values of all |Variable| objects observed by the
-        current |GetItem| objects.
-
-        For |GetItem| objects observing time series,
-        |HydPyServer.GET_getitemvalues| returns only the values within
-        the current simulation period.
-        """
-        for item in state.getitems:
-            for name, value in item.yield_name2value(state.idx1, state.idx2):
-                self._outputs[name] = value
-
-    def GET_load_conditionvalues(self) -> None:
-        """Assign the |StateSequence| or |LogSequence| object values available
-        for the current simulation start point to the current |HydPy| instance.
-
-        When the simulation start point is identical with the initialisation
-        time point, and you did not save conditions for it beforehand, the
-        "original" initial conditions are used (usually those of the
-        conditions files of the respective *HydPy*  project).
-        """
-        try:
-            state.hp.conditions = state.conditions[self._id][state.idx1]
-        except KeyError:
-            if state.idx1:
-                self._statuscode = 500
-                raise RuntimeError(
-                    f'Conditions for ID `{self._id}` and time point '
-                    f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
-                    f'but have not been calculated so far.')
-            state.hp.conditions = state.init_conditions
-
-    def GET_save_conditionvalues(self) -> None:
-        """Save the |StateSequence| and |LogSequence| object values of the
-        current |HydPy| instance for the current simulation endpoint."""
-        state.conditions[self._id] = state.conditions.get(self._id, {})
-        state.conditions[self._id][state.idx2] = state.hp.conditions
-
-    def GET_save_parameteritemvalues(self) -> None:
-        """Save the values of those |ChangeItem| objects which are
-        handling |Parameter| objects."""
-        for item in state.parameteritems:
-            state.parameteritemvalues[self._id][item.name] = item.value.copy()
-
-    def GET_savedparameteritemvalues(self) -> None:
-        """Get the previously saved values of those |ChangeItem| objects
-        which are handling |Parameter| objects."""
-        dict_ = state.parameteritemvalues.get(self._id)
-        if dict_ is None:
-            self.GET_parameteritemvalues()
-        else:
-            for name, value in dict_.items():
-                self._outputs[name] = value
-
-    def GET_save_modifiedconditionitemvalues(self) -> None:
-        """ToDo: extend functionality"""
-        for item in state.conditionitems:
-            state.modifiedconditionitemvalues[self._id][item.name] = \
-                copy.deepcopy(list(item.device2target.values())[0].value)
-
-    def GET_savedmodifiedconditionitemvalues(self) -> None:
-        """ToDo: extend functionality"""
-        dict_ = state.modifiedconditionitemvalues.get(self._id)
-        if dict_ is None:
-            self.GET_conditionitemvalues()
-        else:
-            for name, value in dict_.items():
-                self._outputs[name] = value
-
-    def GET_save_getitemvalues(self) -> None:
-        """Save the values of all current |GetItem| objects."""
-        for item in state.getitems:
-            for name, value in item.yield_name2value(state.idx1, state.idx2):
-                state.getitemvalues[self._id][name] = value
-
-    def GET_savedgetitemvalues(self) -> None:
-        """Get the previously saved values of all |GetItem| objects."""
-        dict_ = state.getitemvalues.get(self._id)
-        if dict_ is None:
-            self.GET_getitemvalues()
-        else:
-            for name, value in dict_.items():
-                self._outputs[name] = value
-
-    def GET_save_timegrid(self) -> None:
-        """Save the current simulation period."""
-        state.timegrids[self._id] = copy.deepcopy(hydpy.pub.timegrids.sim)
-
-    def GET_savedtimegrid(self) -> None:
-        """Get the previously saved simulation period."""
-        try:
-            self._write_timegrid(state.timegrids[self._id])
-        except KeyError:
-            self._write_timegrid(hydpy.pub.timegrids.init)
-
-    @staticmethod
-    def _get_itemtype(item) -> str:
-        if item.targetspecs.series:
-            return f'TimeSeries{item.ndim-1}D'
-        return f'Double{item.ndim}D'
-
-    def _write_timegrid(self, timegrid):
-        utcoffset = hydpy.pub.options.utcoffset
-        self._outputs['firstdate'] = timegrid.firstdate.to_string(
-            'iso1', utcoffset)
-        self._outputs['lastdate'] = timegrid.lastdate.to_string(
-            'iso1', utcoffset)
-        self._outputs['stepsize'] = timegrid.stepsize
-
-    def _post_itemvalues(self, typename, items) -> None:
+    def _post_register_itemvalues(
+        self,
+        typename: str,
+        items: Iterable[itemtools.ChangeItem],
+        itemvalues: Dict[ID, Dict[Name, Any]],
+    ) -> None:
+        item2value: Dict[Name, Any] = {}
         for item in items:
             try:
                 value = self._inputs[item.name]
             except KeyError:
                 self._statuscode = 500
                 raise RuntimeError(
-                    f'A value for {typename} item `{item.name}` is missing.')
-            item.value = eval(value)
+                    f"A value for {typename} item `{item.name}` is missing."
+                ) from None
+            item2value[item.name] = eval(value)
+        itemvalues[self._id] = item2value
+
+    def POST_register_parameteritemvalues(self) -> None:
+        """Register the send parameter values under the given `id`."""
+        self._post_register_itemvalues(
+            typename="parameter",
+            items=self.state.parameteritems,
+            itemvalues=self.state.parameteritemvalues,
+        )
+
+    def GET_activate_parameteritemvalues(self) -> None:
+        """Activate the parameter values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.parameteritemvalues)
+        for item in self.state.parameteritems:
+            item.value = item2value[item.name]
             item.update_variables()
 
+    def GET_query_parameteritemvalues(self) -> None:
+        """Return the parameter values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.parameteritemvalues)
+        for item, value in item2value.items():
+            self._outputs[item] = self._array2output(value)
 
-def start_server(socket, projectname, xmlfilename: str) -> None:
+    def POST_register_inputitemvalues(self) -> None:
+        """Register the send input item values under the given `id`."""
+        self._post_register_itemvalues(
+            typename="input",
+            items=self.state.inputitems,
+            itemvalues=self.state.inputitemvalues,
+        )
+
+    def GET_activate_inputitemvalues(self) -> None:
+        """Apply the input item values registered under the given `id` to modify the
+        current |InputSequence| values."""
+        item2value = self._get_registered_content(self.state.inputitemvalues)
+        for item in self.state.inputitems:
+            item.value = item2value[item.name]
+            item.update_variables()
+
+    def GET_update_inputitemvalues(self) -> None:
+        """Convert the current |InputSequence| values to input item values (when
+        necessary) and register them under the given `id`."""
+        item2value = {}
+        for item in self.state.inputitems:
+            item.extract_values()
+            item2value[item.name] = item.value
+        self.state.inputitemvalues[self._id] = item2value
+
+    def GET_query_inputitemvalues(self) -> None:
+        """Return the input item values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.inputitemvalues)
+        for item, value in item2value.items():
+            self._outputs[item] = self._array2output(value)
+
+    def POST_register_conditionitemvalues(self) -> None:
+        """Register the send condition item values under the given `id`."""
+        self._post_register_itemvalues(
+            typename="condition",
+            items=self.state.conditionitems,
+            itemvalues=self.state.conditionitemvalues,
+        )
+
+    def GET_activate_conditionitemvalues(self) -> None:
+        """Apply the condition item values registered under the given `id` to modify
+        the current |StateSequence| and |LogSequence| values."""
+        item2value = self._get_registered_content(self.state.conditionitemvalues)
+        for item in self.state.conditionitems:
+            item.value = item2value[item.name]
+            item.update_variables()
+
+    def GET_update_conditionitemvalues(self) -> None:
+        """Convert the current |StateSequence| and |LogSequence| values to condition
+        item values (when necessary) and register them under the given `id`."""
+        item2value = {}
+        for item in self.state.conditionitems:
+            item.extract_values()
+            item2value[item.name] = item.value
+        self.state.conditionitemvalues[self._id] = item2value
+
+    def GET_query_conditionitemvalues(self) -> None:
+        """Return the condition item values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.conditionitemvalues)
+        for item, value in item2value.items():
+            self._outputs[item] = self._array2output(value)
+
+    def GET_update_outputitemvalues(self) -> None:
+        """Convert the current |FactorSequence| and |FluxSequence| values or series to
+        output item values (when necessary) and register them under the given `id`."""
+        item2value = {}
+        for item in self.state.outputitems:
+            item.extract_values()
+            item2value[item.name] = item.value
+        self.state.outputitemvalues[self._id] = item2value
+
+    def GET_query_outputitemvalues(self) -> None:
+        """Return the output item values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.outputitemvalues)
+        for item, value in item2value.items():
+            self._outputs[item] = self._array2output(value)
+
+    def GET_save_internalconditions(self) -> None:
+        """Register the |StateSequence| and |LogSequence| values of the |HydPy|
+        instance for the current simulation endpoint under the given `id`."""
+        self.state.conditions[self._id] = self.state.conditions.get(self._id, {})
+        self.state.conditions[self._id][self.state.idx2] = self.state.hp.conditions
+
+    def GET_load_internalconditions(self) -> None:
+        """Activate the |StateSequence| or |LogSequence| values registered for the
+        current simulation start point under the given `id`.
+
+        When the simulation start point is identical with the initialisation time
+        point, and you do not register alternative conditions manually, method
+        |HydPyServer.GET_load_internalconditions| uses the "original" initial
+        conditions of the current process (usually those of the conditions files of the
+        respective *HydPy*  project).
+        """
+        try:
+            self.state.hp.conditions = self.state.conditions[self._id][self.state.idx1]
+        except KeyError:
+            if self.state.idx1:
+                self._statuscode = 500
+                raise RuntimeError(
+                    f"Conditions for ID `{self._id}` and time point "
+                    f"`{hydpy.pub.timegrids.sim.firstdate}` are required, but have "
+                    f"not been calculated so far."
+                ) from None
+            self.state.hp.conditions = self.state.init_conditions
+
+    def POST_register_internalconditions(self) -> None:
+        """Register the send internal conditions under the given `id`."""
+        conditions = eval(self._inputs["conditions"], {"array": numpy.array})
+        self.state.conditions[self._id][self.state.idx1] = conditions
+
+    def GET_deregister_internalconditions(self) -> None:
+        """Remove all internal condition directories registered under the given `id`."""
+        self.state.conditions[self._id] = {}
+
+    def GET_query_internalconditions(self) -> None:
+        """Get the internal conditions registered under the given `id`."""
+        all_conditions = self._get_registered_content(self.state.conditions)
+        try:
+            relevant_conditons = all_conditions[self.state.idx2]
+        except KeyError:
+            raise RuntimeError(
+                f"No internal conditions registered under the id `{self._id}` for "
+                f"`{self.state.timegrids[self._id].lastdate}`."
+            ) from None
+        self._outputs["conditions"] = str(relevant_conditons).replace("\n", " ")
+
+    def POST_register_inputconditiondir(self) -> None:
+        """Register the send input condition directory under the given `id`."""
+        self.state.inputconditiondirs[self._id] = self._inputs["inputconditiondir"]
+
+    def GET_deregister_inputconditiondir(self) -> None:
+        """Remove the input condition directory registered under the `id`."""
+        self.state.inputconditiondirs.pop(self._id, None)
+
+    def GET_query_inputconditiondir(self) -> None:
+        """Return the input condition directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.inputconditiondirs)
+        self._outputs["inputconditiondir"] = dir_
+
+    def POST_register_outputconditiondir(self) -> None:
+        """Register the send output condition directory under the given `id`."""
+        self.state.outputconditiondirs[self._id] = self._inputs["outputconditiondir"]
+
+    def GET_deregister_outputconditiondir(self) -> None:
+        """Remove the output condition directory registered under the `id`."""
+        self.state.outputconditiondirs.pop(self._id, None)
+
+    def GET_query_outputconditiondir(self) -> None:
+        """Return the output condition directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.outputconditiondirs)
+        self._outputs["outputconditiondir"] = dir_
+
+    def GET_load_conditions(self) -> None:
+        """Load the (initial) conditions."""
+        dir_ = self.state.inputconditiondirs.get(self._id)
+        self.state.interface.conditions_io.load_conditions(dir_)
+
+    def GET_save_conditions(self) -> None:
+        """Save the (resulting) conditions."""
+        dir_ = self.state.outputconditiondirs.get(self._id)
+        self.state.interface.conditions_io.save_conditions(dir_)
+
+    def GET_update_getitemvalues(self) -> None:
+        """Register the current |GetItem| values under the given `id`.
+
+        For |GetItem| objects observing time series, method
+        |HydPyServer.GET_update_getitemvalues| registers only the values within the
+        current simulation period.
+        """
+        item2value = {}
+        for item in self.state.getitems:
+            for name, value in item.yield_name2value(self.state.idx1, self.state.idx2):
+                item2value[name] = value
+        self.state.getitemvalues[self._id] = item2value
+
+    def GET_query_getitemvalues(self) -> None:
+        """Get the |GetItem| values registered under the given `id`."""
+        item2value = self._get_registered_content(self.state.getitemvalues)
+        for name, value in item2value.items():
+            self._outputs[name] = value
+
+    def GET_simulate(self) -> None:
+        """Perform a simulation run."""
+        readerdir = self.state.seriesreaderdirs.get(self._id, None)
+        writerdir = self.state.serieswriterdirs.get(self._id, None)
+        sio = self.state.interface.series_io
+        with sio.modify_inputdir(readerdir), sio.modify_outputdir(writerdir):
+            self.state.hp.simulate()
+
+    def POST_register_seriesreaderdir(self) -> None:
+        """Register the send series reader directory under the given `id`."""
+        self.state.seriesreaderdirs[self._id] = self._inputs["seriesreaderdir"]
+
+    def GET_deregister_seriesreaderdir(self) -> None:
+        """Remove the series reader directory registered under the `id`."""
+        self.state.seriesreaderdirs.pop(self._id, None)
+
+    def GET_query_seriesreaderdir(self) -> None:
+        """Return the series reader directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.seriesreaderdirs)
+        self._outputs["seriesreaderdir"] = dir_
+
+    def POST_register_serieswriterdir(self) -> None:
+        """Register the send series writer directory under the given `id`."""
+        self.state.serieswriterdirs[self._id] = self._inputs["serieswriterdir"]
+
+    def GET_deregister_serieswriterdir(self) -> None:
+        """Remove the series writer directory registered under the `id`."""
+        self.state.serieswriterdirs.pop(self._id, None)
+
+    def GET_query_serieswriterdir(self) -> None:
+        """Return the series writer directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.serieswriterdirs)
+        self._outputs["serieswriterdir"] = dir_
+
+    def GET_load_allseries(self) -> None:
+        """Load the time series of all sequences selected for (non-jit) reading."""
+        state = self.state
+        state.interface.series_io.load_series(state.seriesreaderdirs.get(self._id))
+
+    def GET_save_allseries(self) -> None:
+        """Save the time series of all sequences selected for (non-jit) writing."""
+        state = self.state
+        state.interface.series_io.save_series(state.serieswriterdirs.get(self._id))
+
+    def POST_register_outputcontroldir(self) -> None:
+        """Register the send output control directory under the given `id`."""
+        self.state.outputcontroldirs[self._id] = self._inputs["outputcontroldir"]
+
+    def GET_deregister_outputcontroldir(self) -> None:
+        """Remove the output control directory registered under the `id`."""
+        self.state.outputcontroldirs.pop(self._id, None)
+
+    def GET_query_outputcontroldir(self) -> None:
+        """Return the output control directory registered under the `id`."""
+        dir_ = self._get_registered_content(self.state.outputcontroldirs)
+        self._outputs["outputcontroldir"] = dir_
+
+    def GET_save_controls(self) -> None:
+        """Save the control files of all model instances."""
+        state = self.state
+        controldir = self._get_registered_content(state.outputcontroldirs)
+        hydpy.pub.controlmanager.currentdir = controldir
+        state.hp.save_controls()
+
+
+class _HTTPServerBase(http.server.HTTPServer):
+
+    debugmode: bool = False
+
+
+def start_server(
+    socket: Union[int, str],
+    projectname: str,
+    xmlfilename: str,
+    load_conditions: Union[bool, str] = True,
+    load_series: Union[bool, str] = True,
+    maxrequests: Union[int, str] = 5,
+    debugging: Literal["enable", "disable"] = "disable",
+) -> None:
     """Start the *HydPy* server using the given socket.
 
-    The folder with the given `projectname` must be available within the
-    current working directory.  The XML configuration file must be placed
-    within the project folder unless `xmlfilename` is an absolute file path.
-    The XML configuration file must be valid concerning the schema file
-    `HydPyConfigMultipleRuns.xsd` (see method |ServerState.initialise|
-    for further information).
+    The folder with the given `projectname` must be available within the current
+    working directory.  The XML configuration file must be placed within the project
+    folder unless `xmlfilename` is an absolute file path. The XML configuration file
+    must be valid concerning the schema file `HydPyConfigMultipleRuns.xsd` (see class
+    |ServerState| for further information).
 
-    Note that function |start_server| tries to read the "mime types" from
-    a dictionary stored in the file `mimetypes.txt` available in subpackage
-    `conf`, and passes it as attribute `extension_map` to class |HydPyServer|.
-    The reason is to avoid the long computation time of function
-    |mimetypes.init| of module |mimetypes|, usually called when defining
-    class `BaseHTTPRequestHandler` of module `http.server`.  If file
-    `mimetypes.txt` does not exist or does not work for some reasons,
-    |start_server| calls |mimetypes.init| as usual, (over)writes
-    `mimetypes.txt`, and tries to proceed as expected.
+    The |HydPyServer| allows for five still unhandled requests before refusing new
+    connections by default.  Use the optional `maxrequests` argument to increase this
+    number (which might be necessary when parallelising optimisation or data
+    assimilation):
+
+    >>> from hydpy.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> command = (
+    ...     "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml "
+    ...     "debugging=enable maxrequests=100")
+    >>> from hydpy import run_subprocess, TestIO
+    >>> with TestIO():
+    ...     process = run_subprocess(command, blocking=False, verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
+
+    >>> from urllib import request
+    >>> command = "maxrequests = self.server.request_queue_size"
+    >>> response = request.urlopen("http://localhost:8080/evaluate",
+    ...                            data=bytes(command, encoding="utf-8"))
+    >>> print(str(response.read(), encoding="utf-8"))
+    maxrequests = 100
+
+    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> process.kill()
+    >>> _ = process.communicate()
+
+    Please see the documentation on method |HydPyServer.POST_evaluate| that explains
+    the "debugging" argument.
+
+    Note that function |start_server| tries to read the "mime types" from a dictionary
+    stored in the file `mimetypes.txt` available in subpackage `conf` and passes it as
+    attribute `extension_map` to class |HydPyServer|.  The reason is to avoid the long
+    computation time of function |mimetypes.init| of module |mimetypes|, usually called
+    when defining class `BaseHTTPRequestHandler` of module `http.server`.  If file
+    `mimetypes.txt` does not exist or does not work for , |start_server| calls
+    |mimetypes.init| as usual, (over)writes `mimetypes.txt` and tries to proceed as
+    expected.
     """
-    filepath = os.path.join(conf.__path__[0], 'mimetypes.txt')
+    confpath: str = conf.__path__[0]
+    filepath = os.path.join(confpath, "mimetypes.txt")
     try:
-        with open(filepath) as file_:
-            dict_ = eval(open(file_.read()))
+        with open(filepath, encoding=config.ENCODING) as file_:
+            types_map: Dict[str, str] = eval(str(file_.read()))
     except BaseException:
         mimetypes.init()
-        dict_ = mimetypes.types_map.copy()
-        dict_.update({
-            '': 'application/octet-stream',
-            '.py': 'text/plain',
-            '.c': 'text/plain',
-            '.h': 'text/plain',
-            })
-        with open(filepath, 'w') as file_:
-            file_.write(str(dict_))
-    HydPyServer.extensions_map = dict_
-    state.initialise(projectname, xmlfilename)
-    server = http.server.HTTPServer(('', int(socket)), HydPyServer)
+        types_map = mimetypes.types_map.copy()
+        types_map.update(
+            {
+                "": "application/octet-stream",
+                ".py": "text/plain",
+                ".c": "text/plain",
+                ".h": "text/plain",
+            }
+        )
+        with open(filepath, "w", encoding=config.ENCODING) as file_:
+            file_.write(str(types_map))
+    HydPyServer.extensions_map = types_map
+    HydPyServer.state = ServerState(
+        projectname=projectname,
+        xmlfile=xmlfilename,
+        load_conditions=objecttools.value2bool("load_conditions", load_conditions),
+        load_series=objecttools.value2bool("load_series", load_series),
+    )
+
+    class _HTTPServer(_HTTPServerBase):
+
+        debugmode = debugging == "enable"
+        request_queue_size = int(maxrequests)
+
+    server = _HTTPServer(("", int(socket)), HydPyServer)
     server.serve_forever()
 
 
-def await_server(port, seconds):
-    """Block the current process until either the *HydPy* server is responding
-    on the given `port` or the given number of `seconds` elapsed.
+def await_server(
+    port: Union[int, str],
+    seconds: Union[float, str],
+) -> None:
+    """Block the current process until either the *HydPy* server is responding on the
+    given `port` or the given number of `seconds` elapsed.
 
     >>> from hydpy import run_subprocess, TestIO
-    >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     run_subprocess('hyd.py await_server 8080 0.1')
-    Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \
-the following error:
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     result = run_subprocess("hyd.py await_server 8080 0.1")
+    Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in the \
+following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 
@@ -1233,12 +2304,12 @@ the following error:
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
+    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml",
     ...         blocking=False, verbose=False)
-    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     >>> from urllib import request
-    >>> _ = request.urlopen('http://localhost:8080/close_server')
+    >>> _ = request.urlopen("http://localhost:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
     """
@@ -1246,11 +2317,12 @@ the following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            urllib.request.urlopen(f'http://localhost:{port}/status')
-            break
+            with urllib.request.urlopen(f"http://localhost:{port}/status"):
+                break
         except urllib.error.URLError:
             time.sleep(0.1)
             now = time.perf_counter()
     else:
         raise urllib.error.URLError(
-            f'Waited for {seconds} seconds without response on port {port}.')
+            f"Waited for {seconds} seconds without response on port {port}."
+        )

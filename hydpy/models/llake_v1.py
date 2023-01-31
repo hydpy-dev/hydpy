@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """
 The LARSIM-Lake version of HydPy-L-Lake (called llake_v1) is a simple lake
 model. Its continuity equation is primarily solved via a central finite
@@ -23,28 +23,31 @@ to vary in time, as explained for the outflow vector.
 Note that the accuracy of the results calculated by lake_v1 depend
 on the internal step size parameter |MaxDT|.
 
-Integration examples:
+Integration tests
+=================
+
+    .. how_to_understand_integration_tests::
 
     The following calculations are performed over a period of 20 days:
 
     >>> from hydpy import pub, Nodes, Element
-    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
+    >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
     Import the model and define the time settings:
 
     >>> from hydpy.models.llake_v1 import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
 
     For testing purposes, the model input shall be retrieved from the nodes
     `input1` and `input2` and the model output shall be passed to node
     `output`.  Firstly, define all nodes:
 
-    >>> nodes = Nodes('input1', 'input2', 'output')
+    >>> nodes = Nodes("input1", "input2", "output")
 
     Secondly, define the element "lake" and build the connections between
     the nodes defined above and the `llake_v1` model instance:
 
-    >>> lake = Element('lake', inlets=['input1', 'input2'], outlets='output')
+    >>> lake = Element("lake", inlets=["input1", "input2"], outlets="output")
     >>> lake.model = model
 
     Prepare a test function object, which prints the respective values of
@@ -61,7 +64,7 @@ Integration examples:
     ...                              states.v, states.w),
     ...                        inits=((states.v, 0.0),
     ...                               (states.w, 0.0)))
-    >>> test.dateformat = '%d.%m.'
+    >>> test.dateformat = "%d.%m."
 
     Set the values of those control parameter, which remain fixed for all
     three example simulations, in the most simple manner:
@@ -70,7 +73,7 @@ Integration examples:
     >>> w(0.0, 1.0)
     >>> v(0.0, 1e6)
     >>> q(0.0, 10.0)
-    >>> maxdt('1d')
+    >>> maxdt("1d")
 
     Define two flood events, one for each lake inflow:
 
@@ -89,7 +92,7 @@ Integration examples:
 
     >>> maxdw(0.0)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex1')
+    >>> test("llake_v1_ex1")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -115,12 +118,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex1.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex1.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     When the maximum water drop is set to 0.1 m/d, the resulting
     outflow hydrograph shows a plateau in its falling limb.  This
@@ -131,7 +132,7 @@ Integration examples:
 
     >>> maxdw(0.1)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex2')
+    >>> test("llake_v1_ex2")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -157,12 +158,10 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex2.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex2.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the above example, the water balance is still maintained.  This
     is not the case for the last example, where 1 m³/s is subtracted
@@ -172,7 +171,7 @@ Integration examples:
 
     >>> maxdw(0.0)
     >>> verzw(1.0)
-    >>> test('llake_v1_ex3')
+    >>> test("llake_v1_ex3")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -198,18 +197,16 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex3.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex3.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     In the following, the given examples above repeated.  The only
     parameter that will be altered is the internal simulation step size,
     being one hour instead of one day:
 
-    >>> maxdt('1h')
+    >>> maxdt("1h")
     >>> model.parameters.update()
 
     Hence, the principles discussed above remain valid, but the result are
@@ -219,7 +216,7 @@ Integration examples:
 
     >>> maxdw(0.0)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex4')
+    >>> test("llake_v1_ex4")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -245,18 +242,16 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex4.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex4.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Repetition of the second experiment:
 
     >>> maxdw(0.1)
     >>> verzw(0.0)
-    >>> test('llake_v1_ex5')
+    >>> test("llake_v1_ex5")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -282,18 +277,16 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex5.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
+        <a
+            href="llake_v1_ex5.html"
+            target="_blank"
+        >Click here to see the graph</a>
 
     Repetition of the third experiment:
 
     >>> maxdw(0.0)
     >>> verzw(1.0)
-    >>> test('llake_v1_ex6')
+    >>> test("llake_v1_ex6")
     |   date |   qz |       qa |   output |             v |        w |
     ------------------------------------------------------------------
     | 01.01. |  0.0 |      0.0 |      0.0 |           0.0 |      0.0 |
@@ -319,28 +312,26 @@ Integration examples:
 
     .. raw:: html
 
-        <iframe
-            src="llake_v1_ex6.html"
-            width="100%"
-            height="330px"
-            frameborder=0
-        ></iframe>
-
+        <a
+            href="llake_v1_ex6.html"
+            target="_blank"
+        >Click here to see the graph</a>
 """
 # import...
 # ...from standard library
 from hydpy.core import modeltools
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
+
 # ...from llake
 from hydpy.models.llake import llake_model
 
 
 class Model(modeltools.AdHocModel):
     """LARSIM-Lake version of HydPy-L-Lake (llake_v1)."""
-    INLET_METHODS = (
-        llake_model.Pick_Q_V1,
-    )
+
+    INLET_METHODS = (llake_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         llake_model.Solve_DV_DT_V1,
@@ -354,12 +345,11 @@ class Model(modeltools.AdHocModel):
         llake_model.Interp_QA_V1,
         llake_model.Calc_V_QA_V1,
     )
-    OUTLET_METHODS = (
-        llake_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (llake_model.Pass_Q_V1,)
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()
 
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

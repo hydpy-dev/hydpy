@@ -1,264 +1,328 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """Version 2 of HydPy-Dam.
 
-Application model |dam_v002| is a simplification of |dam_v001|.
-While most functionlities are identical, |dam_v002| does not calculate
-|RequiredRemoteRelease| on its own, but picks this information from
-the simulation results of another model.
+Application model |dam_v002| is a simplification of |dam_v001|.  While most
+functionalities are identical, |dam_v002| does not calculate |RequiredRemoteRelease| on
+its own but picks this information from the simulation results of another model.
 
-The following explanations focus on this difference.  For further
-information on the usage of |dam_v002| please read the documentation
-on model |dam_v001|.
+The following explanations focus on this difference.  For further information on using
+|dam_v002|, please read the documentation on model |dam_v001|.
 
-Integration examples:
+Integration tests
+=================
 
-    Each of the following examples is a repetition of an example performed
-    to demonstrate the functionality of model |dam_v001|.  To achieve
-    comparability, identical parameter values and initial conditions are set.
-    Additionally, the values of sequence |RequiredRemoteRelease| calculated
-    by |dam_v001| in the respective example are used as input data of
-    |dam_v002| via the node object `remote`.  (Note that this nodes handles
-    variable |dam_receivers.D|). Due to the limit precision of the
-    copy-pasted |RequiredRemoteRelease| values, there are some tiny
-    deviations between the results of both models.
+.. how_to_understand_integration_tests::
 
-    :ref:`Recalculation of example 7 <dam_v001_ex07>`
+Each of the following examples repeats one example demonstrating a specific
+functionality of application model |dam_v001|.  To achieve comparability, we define
+identical parameter values, initial conditions, and input time series.  The sequence
+|RequiredRemoteRelease| requires special care.  |dam_v001| calculates its values based
+on other information but |dam_v002| expects externally calculated values for it.
+Hence, we use the tabulated results of the selected |dam_v001| examples as the input
+data of the node object `demand`, which passes this information to |dam_v002| during
+simulation.  The limited precision of the copy-pasted |RequiredRemoteRelease| values
+causes some tiny deviations between the results of both models.
 
-    The general time- and space-related set up is identical, except that
-    no other models need to bee included to construct meaningful examples:
+The following time- and space-related setup is identical to the one of |dam_v001|,
+except we do not need to add other models to construct meaningful examples:
 
-    >>> from hydpy import pub
-    >>> pub.timegrids = '01.01.2000', '21.01.2000',  '1d'
-    >>> from hydpy import Node
-    >>> input_ = Node('input_')
-    >>> output = Node('output')
-    >>> remote = Node('remote', variable='D')
-    >>> from hydpy import Element
-    >>> dam = Element('dam', inlets=input_, outlets=output, receivers=remote)
-    >>> from hydpy.models.dam_v002 import *
-    >>> parameterstep('1d')
-    >>> dam.model = model
+>>> from hydpy import pub
+>>> pub.timegrids = "01.01.2000", "21.01.2000",  "1d"
+>>> from hydpy import Node
+>>> inflow = Node("inflow")
+>>> outflow = Node("outflow")
+>>> demand = Node("demand", variable="D")
+>>> from hydpy import Element
+>>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=demand)
+>>> from hydpy.models.dam_v002 import *
+>>> parameterstep("1d")
+>>> dam.model = model
 
-    Next, all initial conditions and the external input time series data
-    are defined.  Note that the first value of |RequiredRemoteRelease|
-    calculated by model |dam_v001| is inserted as an initial condition
-    via the `test` object and all other values are passed to the series
-    object of node `remote`:
+We prepare an identical |IntegrationTest| object:
 
-    >>> from hydpy import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 200
-    >>> IntegrationTest.plotting_options.activated=(
-    ...     fluxes.inflow, fluxes.outflow)
-    >>> test = IntegrationTest(
-    ...     dam,
-    ...     inits=((states.watervolume, 0.0),
-    ...            (logs.loggedrequiredremoterelease, 0.005)))
-    >>> test.dateformat = '%d.%m.'
-    >>> input_.sequences.sim.series = 1.0
-    >>> remote.sequences.sim.series = [
-    ...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075,
-    ...     0.235523, 0.470414, 0.735001, 0.891263, 0.696325,
-    ...     0.349797, 0.105231, 0.111928, 0.240436, 0.229369,
-    ...     0.058622, 0.016958, 0.008447, 0.004155, 0.0]
+>>> from hydpy import IntegrationTest
+>>> test = IntegrationTest(dam)
+>>> test.dateformat = "%d.%m."
+>>> test.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
+>>> test.plotting_options.axis2 = states.watervolume
 
-    Except that |dam_v002| implements less parameters
-    than |dam_v001|, all parameter settings are identical:
+As initial conditions, |dam_v002| requires logged values for the required remote release
+instead of logged values for the total remote discharge and its outflow.  Following the
+above reasoning, we copy-paste the first value of the "requiredremoterelease"
+column that is identical for all drought-related calculations performed by |dam_v001|:
 
-    >>> watervolume2waterlevel(
-    ...         weights_input=1e-6, weights_output=1e6,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
-    >>> waterlevel2flooddischarge(ann(
-    ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0))
-    >>> catchmentarea(86.4)
-    >>> neardischargeminimumthreshold(0.2)
-    >>> neardischargeminimumtolerance(0.2)
-    >>> waterlevelminimumthreshold(0.0)
-    >>> waterlevelminimumtolerance(0.0)
-    >>> restricttargetedrelease(True)
-    >>> parameters.update()
+>>> test.inits=((states.watervolume, 0.0),
+...             (logs.loggedadjustedevaporation, 0.0),
+...             (logs.loggedrequiredremoterelease, 0.005))
 
-    The following test results confirm that both models behave identical
-    under low flow conditions both when there is a "near" and/or a "remote"
-    need for water supply:
+Apart from the unnecessary "natural" discharge of the subcatchment underneath the dam,
+we define identical (for now, constant) input time series:
 
-    >>> test('dam_v002_ex7')
-    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |   remote |
-    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |    1.0 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 |    1.0 | 0.201754 | 0.008588 |
-    | 02.01. |    1.0 |              0.008588 |         0.21092 |         0.21092 |       0.21092 |            0.0 |  0.21092 |    0.137145 |    1.0 |  0.21092 | 0.010053 |
-    | 03.01. |    1.0 |              0.010053 |        0.211084 |        0.211084 |      0.211084 |            0.0 | 0.211084 |    0.205307 |    1.0 | 0.211084 | 0.013858 |
-    | 04.01. |    1.0 |              0.013858 |        0.211523 |        0.211523 |      0.211523 |            0.0 | 0.211523 |    0.273432 |    1.0 | 0.211523 | 0.027322 |
-    | 05.01. |    1.0 |              0.027322 |        0.213209 |        0.213209 |      0.213209 |            0.0 | 0.213209 |     0.34141 |    1.0 | 0.213209 | 0.064075 |
-    | 06.01. |    1.0 |              0.064075 |        0.219043 |        0.219043 |      0.219043 |            0.0 | 0.219043 |    0.408885 |    1.0 | 0.219043 | 0.235523 |
-    | 07.01. |    1.0 |              0.235523 |        0.283419 |        0.283419 |      0.283419 |            0.0 | 0.283419 |    0.470798 |    1.0 | 0.283419 | 0.470414 |
-    | 08.01. |    1.0 |              0.470414 |        0.475211 |        0.475211 |      0.475211 |            0.0 | 0.475211 |    0.516139 |    1.0 | 0.475211 | 0.735001 |
-    | 09.01. |    1.0 |              0.735001 |         0.73528 |         0.73528 |       0.73528 |            0.0 |  0.73528 |    0.539011 |    1.0 |  0.73528 | 0.891263 |
-    | 10.01. |    1.0 |              0.891263 |        0.891314 |        0.891314 |      0.891314 |            0.0 | 0.891314 |    0.548402 |    1.0 | 0.891314 | 0.696325 |
-    | 11.01. |    1.0 |              0.696325 |         0.69675 |         0.69675 |       0.69675 |            0.0 |  0.69675 |    0.574602 |    1.0 |  0.69675 | 0.349797 |
-    | 12.01. |    1.0 |              0.349797 |        0.366407 |        0.366407 |      0.366407 |            0.0 | 0.366407 |    0.629345 |    1.0 | 0.366407 | 0.105231 |
-    | 13.01. |    1.0 |              0.105231 |        0.228241 |        0.228241 |      0.228241 |            0.0 | 0.228241 |    0.696025 |    1.0 | 0.228241 | 0.111928 |
-    | 14.01. |    1.0 |              0.111928 |        0.230054 |        0.230054 |      0.230054 |            0.0 | 0.230054 |    0.762548 |    1.0 | 0.230054 | 0.240436 |
-    | 15.01. |    1.0 |              0.240436 |        0.286374 |        0.286374 |      0.286374 |            0.0 | 0.286374 |    0.824205 |    1.0 | 0.286374 | 0.229369 |
-    | 16.01. |    1.0 |              0.229369 |        0.279807 |        0.279807 |      0.279807 |            0.0 | 0.279807 |     0.88643 |    1.0 | 0.279807 | 0.058622 |
-    | 17.01. |    1.0 |              0.058622 |         0.21805 |         0.21805 |       0.21805 |            0.0 |  0.21805 |    0.953991 |    1.0 |  0.21805 | 0.016958 |
-    | 18.01. |    1.0 |              0.016958 |        0.211893 |        0.211893 |      0.211893 |            0.0 | 0.211893 |    1.022083 |    1.0 | 0.211893 | 0.008447 |
-    | 19.01. |    1.0 |              0.008447 |        0.210904 |        0.210904 |      0.210904 |            0.0 | 0.210904 |    1.090261 |    1.0 | 0.210904 | 0.004155 |
-    | 20.01. |    1.0 |              0.004155 |        0.210435 |        0.210435 |      0.210435 |            0.0 | 0.210435 |    1.158479 |    1.0 | 0.210435 |      0.0 |
+>>> inflow.sequences.sim.series = 1.0
+>>> inputs.precipitation.series = 0.0
+>>> inputs.evaporation.series = 0.0
 
-    .. raw:: html
+|dam_v002| implements fewer parameters than |dam_v001|.  Besides that, all parameter
+settings are identical:
 
-        <iframe
-            src="dam_v002_ex7.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+>>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> catchmentarea(86.4)
+>>> neardischargeminimumthreshold(0.2)
+>>> neardischargeminimumtolerance(0.2)
+>>> waterlevelminimumthreshold(0.0)
+>>> waterlevelminimumtolerance(0.0)
+>>> restricttargetedrelease(True)
+>>> surfacearea(1.44)
+>>> correctionprecipitation(1.2)
+>>> correctionevaporation(1.2)
+>>> weightevaporation(0.8)
+>>> thresholdevaporation(0.0)
+>>> toleranceevaporation(0.001)
 
+.. _dam_v002_smooth_near_minimum:
 
-    :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
+smooth near minimum
+___________________
 
-    The next recalculation confirms that the restriction on releasing
-    water when there is little inflow works as explained for model
-    |dam_v001|:
+This example repeats the :ref:`dam_v001_smooth_near_minimum` example of application
+model |dam_v001|.  We use the values of |RequiredRemoteRelease| calculated by
+|dam_v001|, as explained above:
 
-    >>> input_.sequences.sim.series[10:] = 0.1
-    >>> remote.sequences.sim.series = [
-    ...     0.008746, 0.010632, 0.015099, 0.03006, 0.068641,
-    ...     0.242578, 0.474285, 0.784512, 0.95036, 0.35,
-    ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
-    ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
-    >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v002_ex8_1')
-    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |   remote |
-    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |    1.0 | 0.191667 | 0.008746 |
-    | 02.01. |    1.0 |              0.008746 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.13896 |    1.0 |      0.2 | 0.010632 |
-    | 03.01. |    1.0 |              0.010632 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.20808 |    1.0 |      0.2 | 0.015099 |
-    | 04.01. |    1.0 |              0.015099 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |      0.2772 |    1.0 |      0.2 |  0.03006 |
-    | 05.01. |    1.0 |               0.03006 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.34632 |    1.0 |      0.2 | 0.068641 |
-    | 06.01. |    1.0 |              0.068641 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.41544 |    1.0 |      0.2 | 0.242578 |
-    | 07.01. |    1.0 |              0.242578 |        0.242578 |        0.242578 |      0.242578 |            0.0 | 0.242578 |    0.480881 |    1.0 | 0.242578 | 0.474285 |
-    | 08.01. |    1.0 |              0.474285 |        0.474285 |        0.474285 |      0.474285 |            0.0 | 0.474285 |    0.526303 |    1.0 | 0.474285 | 0.784512 |
-    | 09.01. |    1.0 |              0.784512 |        0.784512 |        0.784512 |      0.784512 |            0.0 | 0.784512 |    0.544921 |    1.0 | 0.784512 |  0.95036 |
-    | 10.01. |    1.0 |               0.95036 |         0.95036 |         0.95036 |       0.95036 |            0.0 |  0.95036 |     0.54921 |    1.0 |  0.95036 |     0.35 |
-    | 11.01. |    0.1 |                  0.35 |            0.35 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.034564 |
-    | 12.01. |    0.1 |              0.034564 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.299482 |
-    | 13.01. |    0.1 |              0.299482 |        0.299482 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.585979 |
-    | 14.01. |    0.1 |              0.585979 |        0.585979 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.557422 |
-    | 15.01. |    0.1 |              0.557422 |        0.557422 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.229369 |
-    | 16.01. |    0.1 |              0.229369 |        0.229369 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.142578 |
-    | 17.01. |    0.1 |              0.142578 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.068641 |
-    | 18.01. |    0.1 |              0.068641 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.029844 |
-    | 19.01. |    0.1 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 | 0.012348 |
-    | 20.01. |    0.1 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |    0.1 |      0.1 |      0.0 |
+>>> demand.sequences.sim.series = [
+...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075, 0.235523, 0.470414,
+...     0.735001, 0.891263, 0.696325, 0.349797, 0.105231, 0.111928, 0.240436,
+...     0.229369, 0.058622, 0.016958, 0.008447, 0.004155, 0.0]
 
-    .. raw:: html
+Note that the first tabulated value (0.005 m³/s) serves as an initial condition, and we
+have to assign the following nineteen values to the time series of the `demand` node.
+The last value of the node's time series is of no importance.  We arbitrarily set it to
+0.0 m³/s.
 
-        <iframe
-            src="dam_v002_ex8_1.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+The test results confirm that both models behave identically under low flow conditions
+for a "near" and a "remote" need for water supply:
 
-    :ref:`Recalculation of example 10 <dam_v001_ex10>`
+.. integration-test::
 
-    The last recalculation for low flow conditions deals with a case where
-    the available water storage is too limited to supply enough discharge:
+    >>> test("dam_v002_smooth_near_minimum")
+    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   demand | inflow |  outflow |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |           0.0 |         0.0 |   0.017242 |                   0.0 |                 0.0 |               0.0 |    1.0 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 | 0.008588 |    1.0 | 0.201754 |
+    | 02.01. |           0.0 |         0.0 |   0.034286 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.008588 |         0.21092 |         0.21092 |       0.21092 |            0.0 |  0.21092 |    0.137145 | 0.010053 |    1.0 |  0.21092 |
+    | 03.01. |           0.0 |         0.0 |   0.051327 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.010053 |        0.211084 |        0.211084 |      0.211084 |            0.0 | 0.211084 |    0.205307 | 0.013858 |    1.0 | 0.211084 |
+    | 04.01. |           0.0 |         0.0 |   0.068358 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.013858 |        0.211523 |        0.211523 |      0.211523 |            0.0 | 0.211523 |    0.273432 | 0.027322 |    1.0 | 0.211523 |
+    | 05.01. |           0.0 |         0.0 |   0.085353 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.027322 |        0.213209 |        0.213209 |      0.213209 |            0.0 | 0.213209 |     0.34141 | 0.064075 |    1.0 | 0.213209 |
+    | 06.01. |           0.0 |         0.0 |   0.102221 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.064075 |        0.219043 |        0.219043 |      0.219043 |            0.0 | 0.219043 |    0.408885 | 0.235523 |    1.0 | 0.219043 |
+    | 07.01. |           0.0 |         0.0 |   0.117699 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.235523 |        0.283419 |        0.283419 |      0.283419 |            0.0 | 0.283419 |    0.470798 | 0.470414 |    1.0 | 0.283419 |
+    | 08.01. |           0.0 |         0.0 |   0.129035 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.470414 |        0.475211 |        0.475211 |      0.475211 |            0.0 | 0.475211 |    0.516139 | 0.735001 |    1.0 | 0.475211 |
+    | 09.01. |           0.0 |         0.0 |   0.134753 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.735001 |         0.73528 |         0.73528 |       0.73528 |            0.0 |  0.73528 |    0.539011 | 0.891263 |    1.0 |  0.73528 |
+    | 10.01. |           0.0 |         0.0 |     0.1371 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.891263 |        0.891314 |        0.891314 |      0.891314 |            0.0 | 0.891314 |    0.548402 | 0.696325 |    1.0 | 0.891314 |
+    | 11.01. |           0.0 |         0.0 |   0.143651 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.696325 |         0.69675 |         0.69675 |       0.69675 |            0.0 |  0.69675 |    0.574602 | 0.349797 |    1.0 |  0.69675 |
+    | 12.01. |           0.0 |         0.0 |   0.157336 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.349797 |        0.366407 |        0.366407 |      0.366407 |            0.0 | 0.366407 |    0.629345 | 0.105231 |    1.0 | 0.366407 |
+    | 13.01. |           0.0 |         0.0 |   0.174006 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.105231 |        0.228241 |        0.228241 |      0.228241 |            0.0 | 0.228241 |    0.696025 | 0.111928 |    1.0 | 0.228241 |
+    | 14.01. |           0.0 |         0.0 |   0.190637 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.111928 |        0.230054 |        0.230054 |      0.230054 |            0.0 | 0.230054 |    0.762548 | 0.240436 |    1.0 | 0.230054 |
+    | 15.01. |           0.0 |         0.0 |   0.206051 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.240436 |        0.286374 |        0.286374 |      0.286374 |            0.0 | 0.286374 |    0.824205 | 0.229369 |    1.0 | 0.286374 |
+    | 16.01. |           0.0 |         0.0 |   0.221608 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.229369 |        0.279807 |        0.279807 |      0.279807 |            0.0 | 0.279807 |     0.88643 | 0.058622 |    1.0 | 0.279807 |
+    | 17.01. |           0.0 |         0.0 |   0.238498 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.058622 |         0.21805 |         0.21805 |       0.21805 |            0.0 |  0.21805 |    0.953991 | 0.016958 |    1.0 |  0.21805 |
+    | 18.01. |           0.0 |         0.0 |   0.255521 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.016958 |        0.211893 |        0.211893 |      0.211893 |            0.0 | 0.211893 |    1.022083 | 0.008447 |    1.0 | 0.211893 |
+    | 19.01. |           0.0 |         0.0 |   0.272565 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.008447 |        0.210904 |        0.210904 |      0.210904 |            0.0 | 0.210904 |    1.090261 | 0.004155 |    1.0 | 0.210904 |
+    | 20.01. |           0.0 |         0.0 |    0.28962 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.004155 |        0.210435 |        0.210435 |      0.210435 |            0.0 | 0.210435 |    1.158479 |      0.0 |    1.0 | 0.210435 |
 
-    >>> input_.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
-    >>> neardischargeminimumthreshold(0.0)
-    >>> waterlevelminimumtolerance(0.01)
-    >>> waterlevelminimumthreshold(0.005)
-    >>> remote.sequences.sim.series = [
-    ...     0.01232, 0.029323, 0.064084, 0.120198, 0.247367,
-    ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
-    ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
-    ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test('dam_v008_ex10')
-    |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   input_ |   output |   remote |
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |      0.2 | 0.001282 |  0.01232 |
-    | 02.01. | 0.189474 |               0.01232 |         0.01232 |         0.01232 |      0.007624 |            0.0 | 0.007624 |    0.032881 | 0.189474 | 0.007624 | 0.029323 |
-    | 03.01. | 0.178947 |              0.029323 |        0.029323 |        0.029323 |      0.025921 |            0.0 | 0.025921 |    0.046103 | 0.178947 | 0.025921 | 0.064084 |
-    | 04.01. | 0.168421 |              0.064084 |        0.064084 |        0.064084 |      0.062021 |            0.0 | 0.062021 |    0.055296 | 0.168421 | 0.062021 | 0.120198 |
-    | 05.01. | 0.157895 |              0.120198 |        0.120198 |        0.120198 |      0.118479 |            0.0 | 0.118479 |    0.058701 | 0.157895 | 0.118479 | 0.247367 |
-    | 06.01. | 0.147368 |              0.247367 |        0.247367 |        0.247367 |      0.242243 |            0.0 | 0.242243 |    0.050504 | 0.147368 | 0.242243 |  0.45567 |
-    | 07.01. | 0.136842 |               0.45567 |         0.45567 |         0.45567 |      0.397328 |            0.0 | 0.397328 |    0.027998 | 0.136842 | 0.397328 | 0.608464 |
-    | 08.01. | 0.126316 |              0.608464 |        0.608464 |        0.608464 |      0.290762 |            0.0 | 0.290762 |     0.01379 | 0.126316 | 0.290762 | 0.537314 |
-    | 09.01. | 0.115789 |              0.537314 |        0.537314 |        0.537314 |      0.154283 |            0.0 | 0.154283 |    0.010464 | 0.115789 | 0.154283 | 0.629775 |
-    | 10.01. | 0.105263 |              0.629775 |        0.629775 |        0.629775 |      0.138519 |            0.0 | 0.138519 |    0.007591 | 0.105263 | 0.138519 | 0.744091 |
-    | 11.01. | 0.094737 |              0.744091 |        0.744091 |        0.744091 |      0.126207 |            0.0 | 0.126207 |    0.004871 | 0.094737 | 0.126207 |  0.82219 |
-    | 12.01. | 0.084211 |               0.82219 |         0.82219 |         0.82219 |      0.109723 |            0.0 | 0.109723 |    0.002667 | 0.084211 | 0.109723 | 0.841916 |
-    | 13.01. | 0.073684 |              0.841916 |        0.841916 |        0.841916 |      0.092645 |            0.0 | 0.092645 |    0.001029 | 0.073684 | 0.092645 | 0.701812 |
-    | 14.01. | 0.063158 |              0.701812 |        0.701812 |        0.701812 |      0.068806 |            0.0 | 0.068806 |    0.000541 | 0.063158 | 0.068806 | 0.533258 |
-    | 15.01. | 0.052632 |              0.533258 |        0.533258 |        0.533258 |      0.051779 |            0.0 | 0.051779 |    0.000615 | 0.052632 | 0.051779 | 0.351863 |
-    | 16.01. | 0.042105 |              0.351863 |        0.351863 |        0.351863 |      0.035499 |            0.0 | 0.035499 |    0.001185 | 0.042105 | 0.035499 | 0.185207 |
-    | 17.01. | 0.031579 |              0.185207 |        0.185207 |        0.185207 |       0.02024 |            0.0 |  0.02024 |    0.002165 | 0.031579 |  0.02024 | 0.107697 |
-    | 18.01. | 0.021053 |              0.107697 |        0.107697 |        0.107697 |      0.012785 |            0.0 | 0.012785 |    0.002879 | 0.021053 | 0.012785 | 0.055458 |
-    | 19.01. | 0.010526 |              0.055458 |        0.055458 |        0.055458 |      0.006918 |            0.0 | 0.006918 |    0.003191 | 0.010526 | 0.006918 | 0.025948 |
-    | 20.01. |      0.0 |              0.025948 |        0.025948 |        0.012974 |      0.001631 |            0.0 | 0.001631 |     0.00305 |      0.0 | 0.001631 |      0.0 |
+.. _dam_v002_restriction_enabled:
 
+restriction enabled
+___________________
 
-    :ref:`Recalculation of example 13 <dam_v001_ex13>`
+This example repeats the :ref:`dam_v001_restriction_enabled` example of application
+model |dam_v001|.  We update the time series of the inflow and the required remote
+release accordingly:
 
-    The final recalculation shows the equality of both models under
-    high flow conditions:
+>>> inflow.sequences.sim.series[10:] = 0.1
+>>> demand.sequences.sim.series = [
+...     0.008746, 0.010632, 0.015099, 0.03006, 0.068641, 0.242578, 0.474285,
+...     0.784512, 0.95036, 0.35, 0.034564, 0.299482, 0.585979, 0.557422,
+...     0.229369, 0.142578, 0.068641, 0.029844, 0.012348, 0.0]
+>>> neardischargeminimumtolerance(0.0)
 
-    >>> neardischargeminimumthreshold(0.0)
-    >>> neardischargeminimumtolerance(0.0)
-    >>> waterlevelminimumthreshold(0.0)
-    >>> waterlevelminimumtolerance(0.0)
-    >>> waterlevel2flooddischarge(ann(
-    ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
+The recalculation confirms that the restriction on releasing water when there is little
+inflow works as explained for model |dam_v001|:
 
-    >>> neardischargeminimumthreshold(0.0)
-    >>> input_.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
-    ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
-    >>> remote.sequences.sim.series = 0.0
-    >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test('dam_v002_ex13')
-    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output | remote |
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |    0.0 |
-    | 02.01. |    1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.026514 | 0.026514 |    0.084109 |    1.0 | 0.026514 |    0.0 |
-    | 03.01. |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.183744 | 0.183744 |    0.500234 |    5.0 | 0.183744 |    0.0 |
-    | 04.01. |    9.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.542983 | 0.542983 |     1.23092 |    9.0 | 0.542983 |    0.0 |
-    | 05.01. |    8.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.961039 | 0.961039 |    1.839086 |    8.0 | 0.961039 |    0.0 |
-    | 06.01. |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.251523 | 1.251523 |    2.162955 |    5.0 | 1.251523 |    0.0 |
-    | 07.01. |    3.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.395546 | 1.395546 |    2.301579 |    3.0 | 1.395546 |    0.0 |
-    | 08.01. |    2.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.453375 | 1.453375 |    2.348808 |    2.0 | 1.453375 |    0.0 |
-    | 09.01. |    1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.455596 | 1.455596 |    2.309444 |    1.0 | 1.455596 |    0.0 |
-    | 10.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.405132 | 1.405132 |    2.188041 |    0.0 | 1.405132 |    0.0 |
-    | 11.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.331267 | 1.331267 |    2.073019 |    0.0 | 1.331267 |    0.0 |
-    | 12.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.261285 | 1.261285 |    1.964044 |    0.0 | 1.261285 |    0.0 |
-    | 13.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.194981 | 1.194981 |    1.860798 |    0.0 | 1.194981 |    0.0 |
-    | 14.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.132163 | 1.132163 |    1.762979 |    0.0 | 1.132163 |    0.0 |
-    | 15.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.072647 | 1.072647 |    1.670302 |    0.0 | 1.072647 |    0.0 |
-    | 16.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |        1.01626 |  1.01626 |    1.582498 |    0.0 |  1.01626 |    0.0 |
-    | 17.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.962837 | 0.962837 |    1.499308 |    0.0 | 0.962837 |    0.0 |
-    | 18.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.912222 | 0.912222 |    1.420492 |    0.0 | 0.912222 |    0.0 |
-    | 19.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.864268 | 0.864268 |     1.34582 |    0.0 | 0.864268 |    0.0 |
-    | 20.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.818835 | 0.818835 |    1.275072 |    0.0 | 0.818835 |    0.0 |
+.. integration-test::
 
-    .. raw:: html
+    >>> test("dam_v002_restriction_enabled")
+    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   demand | inflow |  outflow |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |           0.0 |         0.0 |    0.01746 |                   0.0 |                 0.0 |               0.0 |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 | 0.008746 |    1.0 | 0.191667 |
+    | 02.01. |           0.0 |         0.0 |    0.03474 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.008746 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.13896 | 0.010632 |    1.0 |      0.2 |
+    | 03.01. |           0.0 |         0.0 |    0.05202 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.010632 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.20808 | 0.015099 |    1.0 |      0.2 |
+    | 04.01. |           0.0 |         0.0 |     0.0693 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.015099 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |      0.2772 |  0.03006 |    1.0 |      0.2 |
+    | 05.01. |           0.0 |         0.0 |    0.08658 |                   0.0 |                 0.0 |               0.0 |    1.0 |               0.03006 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.34632 | 0.068641 |    1.0 |      0.2 |
+    | 06.01. |           0.0 |         0.0 |    0.10386 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.068641 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.41544 | 0.242578 |    1.0 |      0.2 |
+    | 07.01. |           0.0 |         0.0 |    0.12022 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.242578 |        0.242578 |        0.242578 |      0.242578 |            0.0 | 0.242578 |    0.480881 | 0.474285 |    1.0 | 0.242578 |
+    | 08.01. |           0.0 |         0.0 |   0.131576 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.474285 |        0.474285 |        0.474285 |      0.474285 |            0.0 | 0.474285 |    0.526303 | 0.784512 |    1.0 | 0.474285 |
+    | 09.01. |           0.0 |         0.0 |    0.13623 |                   0.0 |                 0.0 |               0.0 |    1.0 |              0.784512 |        0.784512 |        0.784512 |      0.784512 |            0.0 | 0.784512 |    0.544921 |  0.95036 |    1.0 | 0.784512 |
+    | 10.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    1.0 |               0.95036 |         0.95036 |         0.95036 |       0.95036 |            0.0 |  0.95036 |     0.54921 |     0.35 |    1.0 |  0.95036 |
+    | 11.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |                  0.35 |            0.35 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.034564 |    0.1 |      0.1 |
+    | 12.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.034564 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.299482 |    0.1 |      0.1 |
+    | 13.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.299482 |        0.299482 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.585979 |    0.1 |      0.1 |
+    | 14.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.585979 |        0.585979 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.557422 |    0.1 |      0.1 |
+    | 15.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.557422 |        0.557422 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.229369 |    0.1 |      0.1 |
+    | 16.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.229369 |        0.229369 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.142578 |    0.1 |      0.1 |
+    | 17.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.142578 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.068641 |    0.1 |      0.1 |
+    | 18.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.068641 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.029844 |    0.1 |      0.1 |
+    | 19.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 | 0.012348 |    0.1 |      0.1 |
+    | 20.01. |           0.0 |         0.0 |   0.137303 |                   0.0 |                 0.0 |               0.0 |    0.1 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |      0.0 |    0.1 |      0.1 |
 
-        <iframe
-            src="dam_v002_ex13.html"
-            width="100%"
-            height="230px"
-            frameborder=0
-        ></iframe>
+.. _dam_v002_smooth_stage_minimum:
+
+smooth stage minimum
+____________________
+
+This example repeats the :ref:`dam_v001_smooth_stage_minimum` example of application
+model |dam_v001|.  We update parameters |NearDischargeMinimumThreshold|,
+|WaterLevelMinimumThreshold|, and |WaterLevelMinimumTolerance|, as well as the time
+series of the inflow and the required remote release, accordingly:
+
+>>> inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
+>>> neardischargeminimumthreshold(0.0)
+>>> waterlevelminimumthreshold(0.005)
+>>> waterlevelminimumtolerance(0.01)
+>>> demand.sequences.sim.series = [
+...     0.01232, 0.029323, 0.064084, 0.120198, 0.247367, 0.45567, 0.608464,
+...     0.537314, 0.629775, 0.744091, 0.82219, 0.841916, 0.701812, 0.533258,
+...     0.351863, 0.185207, 0.107697, 0.055458, 0.025948, 0.0]
+
+|dam_v002| deals with limited water available as already known from |dam_v001|:
+
+.. integration-test::
+
+    >>> test("dam_v002_smooth_stage_minimum")
+    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   demand |   inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |           0.0 |         0.0 |   0.004292 |                   0.0 |                 0.0 |               0.0 |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |  0.01232 |      0.2 | 0.001282 |
+    | 02.01. |           0.0 |         0.0 |    0.00822 |                   0.0 |                 0.0 |               0.0 | 0.189474 |               0.01232 |         0.01232 |         0.01232 |      0.007624 |            0.0 | 0.007624 |    0.032881 | 0.029323 | 0.189474 | 0.007624 |
+    | 03.01. |           0.0 |         0.0 |   0.011526 |                   0.0 |                 0.0 |               0.0 | 0.178947 |              0.029323 |        0.029323 |        0.029323 |      0.025921 |            0.0 | 0.025921 |    0.046103 | 0.064084 | 0.178947 | 0.025921 |
+    | 04.01. |           0.0 |         0.0 |   0.013824 |                   0.0 |                 0.0 |               0.0 | 0.168421 |              0.064084 |        0.064084 |        0.064084 |      0.062021 |            0.0 | 0.062021 |    0.055296 | 0.120198 | 0.168421 | 0.062021 |
+    | 05.01. |           0.0 |         0.0 |   0.014675 |                   0.0 |                 0.0 |               0.0 | 0.157895 |              0.120198 |        0.120198 |        0.120198 |      0.118479 |            0.0 | 0.118479 |    0.058701 | 0.247367 | 0.157895 | 0.118479 |
+    | 06.01. |           0.0 |         0.0 |   0.012626 |                   0.0 |                 0.0 |               0.0 | 0.147368 |              0.247367 |        0.247367 |        0.247367 |      0.242243 |            0.0 | 0.242243 |    0.050504 |  0.45567 | 0.147368 | 0.242243 |
+    | 07.01. |           0.0 |         0.0 |   0.006999 |                   0.0 |                 0.0 |               0.0 | 0.136842 |               0.45567 |         0.45567 |         0.45567 |      0.397328 |            0.0 | 0.397328 |    0.027998 | 0.608464 | 0.136842 | 0.397328 |
+    | 08.01. |           0.0 |         0.0 |   0.003447 |                   0.0 |                 0.0 |               0.0 | 0.126316 |              0.608464 |        0.608464 |        0.608464 |      0.290762 |            0.0 | 0.290762 |     0.01379 | 0.537314 | 0.126316 | 0.290762 |
+    | 09.01. |           0.0 |         0.0 |   0.002616 |                   0.0 |                 0.0 |               0.0 | 0.115789 |              0.537314 |        0.537314 |        0.537314 |      0.154283 |            0.0 | 0.154283 |    0.010464 | 0.629775 | 0.115789 | 0.154283 |
+    | 10.01. |           0.0 |         0.0 |   0.001898 |                   0.0 |                 0.0 |               0.0 | 0.105263 |              0.629775 |        0.629775 |        0.629775 |      0.138519 |            0.0 | 0.138519 |    0.007591 | 0.744091 | 0.105263 | 0.138519 |
+    | 11.01. |           0.0 |         0.0 |   0.001218 |                   0.0 |                 0.0 |               0.0 | 0.094737 |              0.744091 |        0.744091 |        0.744091 |      0.126207 |            0.0 | 0.126207 |    0.004871 |  0.82219 | 0.094737 | 0.126207 |
+    | 12.01. |           0.0 |         0.0 |   0.000667 |                   0.0 |                 0.0 |               0.0 | 0.084211 |               0.82219 |         0.82219 |         0.82219 |      0.109723 |            0.0 | 0.109723 |    0.002667 | 0.841916 | 0.084211 | 0.109723 |
+    | 13.01. |           0.0 |         0.0 |   0.000257 |                   0.0 |                 0.0 |               0.0 | 0.073684 |              0.841916 |        0.841916 |        0.841916 |      0.092645 |            0.0 | 0.092645 |    0.001029 | 0.701812 | 0.073684 | 0.092645 |
+    | 14.01. |           0.0 |         0.0 |   0.000135 |                   0.0 |                 0.0 |               0.0 | 0.063158 |              0.701812 |        0.701812 |        0.701812 |      0.068806 |            0.0 | 0.068806 |    0.000541 | 0.533258 | 0.063158 | 0.068806 |
+    | 15.01. |           0.0 |         0.0 |   0.000154 |                   0.0 |                 0.0 |               0.0 | 0.052632 |              0.533258 |        0.533258 |        0.533258 |      0.051779 |            0.0 | 0.051779 |    0.000615 | 0.351863 | 0.052632 | 0.051779 |
+    | 16.01. |           0.0 |         0.0 |   0.000296 |                   0.0 |                 0.0 |               0.0 | 0.042105 |              0.351863 |        0.351863 |        0.351863 |      0.035499 |            0.0 | 0.035499 |    0.001185 | 0.185207 | 0.042105 | 0.035499 |
+    | 17.01. |           0.0 |         0.0 |   0.000541 |                   0.0 |                 0.0 |               0.0 | 0.031579 |              0.185207 |        0.185207 |        0.185207 |       0.02024 |            0.0 |  0.02024 |    0.002165 | 0.107697 | 0.031579 |  0.02024 |
+    | 18.01. |           0.0 |         0.0 |    0.00072 |                   0.0 |                 0.0 |               0.0 | 0.021053 |              0.107697 |        0.107697 |        0.107697 |      0.012785 |            0.0 | 0.012785 |    0.002879 | 0.055458 | 0.021053 | 0.012785 |
+    | 19.01. |           0.0 |         0.0 |   0.000798 |                   0.0 |                 0.0 |               0.0 | 0.010526 |              0.055458 |        0.055458 |        0.055458 |      0.006918 |            0.0 | 0.006918 |    0.003191 | 0.025948 | 0.010526 | 0.006918 |
+    | 20.01. |           0.0 |         0.0 |   0.000763 |                   0.0 |                 0.0 |               0.0 |      0.0 |              0.025948 |        0.025948 |        0.012974 |      0.001631 |            0.0 | 0.001631 |     0.00305 |      0.0 |      0.0 | 0.001631 |
+
+.. _dam_v002_evaporation:
+
+evaporation
+___________
+
+This example repeats the :ref:`dam_v001_evaporation` example of application model
+|dam_v001|.  We update the time series of potential evaporation and the required remote
+release accordingly:
+
+>>> inputs.evaporation.series = 10 * [1.0] + 10 * [5.0]
+>>> demand.sequences.sim.series = [
+...     0.012321, 0.029352, 0.064305, 0.120897, 0.248435, 0.453671, 0.585089,
+...     0.550583, 0.694398, 0.784979, 0.81852, 0.840207, 0.72592, 0.575373,
+...     0.386003, 0.198088, 0.113577, 0.05798, 0.026921, 0.0]
+
+|dam_v002| uses the given evaporation values as discussed for |dam_v001|:
+
+.. integration-test::
+
+    >>> test("dam_v002_evaporation")
+    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |   demand |   inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |           0.0 |         1.0 |   0.004034 |                   0.0 |               0.016 |             0.012 |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001234 |            0.0 | 0.001234 |    0.016137 | 0.012321 |      0.2 | 0.001234 |
+    | 02.01. |           0.0 |         1.0 |   0.007558 |                   0.0 |              0.0192 |            0.0192 | 0.189474 |              0.012321 |        0.012321 |        0.012321 |       0.00714 |            0.0 |  0.00714 |    0.030231 | 0.029352 | 0.189474 |  0.00714 |
+    | 03.01. |           0.0 |         1.0 |   0.010459 |                   0.0 |             0.01984 |           0.01984 | 0.178947 |              0.029352 |        0.029352 |        0.029352 |      0.024809 |            0.0 | 0.024809 |    0.041835 | 0.064305 | 0.178947 | 0.024809 |
+    | 04.01. |           0.0 |         1.0 |   0.012351 |                   0.0 |            0.019968 |          0.019968 | 0.168421 |              0.064305 |        0.064305 |        0.064305 |      0.060838 |            0.0 | 0.060838 |    0.049405 | 0.120897 | 0.168421 | 0.060838 |
+    | 05.01. |           0.0 |         1.0 |   0.012797 |                   0.0 |            0.019994 |          0.019994 | 0.157895 |              0.120897 |        0.120897 |        0.120897 |      0.117273 |            0.0 | 0.117273 |    0.051187 | 0.248435 | 0.157895 | 0.117273 |
+    | 06.01. |           0.0 |         1.0 |   0.010468 |                   0.0 |            0.019999 |          0.019999 | 0.147368 |              0.248435 |        0.248435 |        0.248435 |      0.235187 |            0.0 | 0.235187 |    0.041871 | 0.453671 | 0.147368 | 0.235187 |
+    | 07.01. |           0.0 |         1.0 |   0.005562 |                   0.0 |                0.02 |              0.02 | 0.136842 |              0.453671 |        0.453671 |        0.453671 |      0.343976 |            0.0 | 0.343976 |    0.022247 | 0.585089 | 0.136842 | 0.343976 |
+    | 08.01. |           0.0 |         1.0 |   0.002981 |                   0.0 |                0.02 |              0.02 | 0.126316 |              0.585089 |        0.585089 |        0.585089 |      0.225783 |            0.0 | 0.225783 |    0.011925 | 0.550583 | 0.126316 | 0.225783 |
+    | 09.01. |           0.0 |         1.0 |   0.002144 |                   0.0 |                0.02 |              0.02 | 0.115789 |              0.550583 |        0.550583 |        0.550583 |      0.134548 |            0.0 | 0.134548 |    0.008576 | 0.694398 | 0.115789 | 0.134548 |
+    | 10.01. |           0.0 |         1.0 |   0.001291 |                   0.0 |                0.02 |          0.019988 | 0.105263 |              0.694398 |        0.694398 |        0.694398 |      0.124783 |            0.0 | 0.124783 |    0.005163 | 0.784979 | 0.105263 | 0.124783 |
+    | 11.01. |           0.0 |         5.0 |   0.000063 |                   0.0 |               0.084 |          0.063974 | 0.094737 |              0.784979 |        0.784979 |        0.784979 |       0.08761 |            0.0 |  0.08761 |    0.000251 |  0.81852 | 0.094737 |  0.08761 |
+    | 12.01. |           0.0 |         5.0 |  -0.000321 |                   0.0 |              0.0968 |          0.032045 | 0.084211 |               0.81852 |         0.81852 |         0.81852 |      0.069957 |            0.0 | 0.069957 |   -0.001286 | 0.840207 | 0.084211 | 0.069957 |
+    | 13.01. |           0.0 |         5.0 |  -0.000374 |                   0.0 |             0.09936 |          0.012511 | 0.073684 |              0.840207 |        0.840207 |        0.840207 |      0.063591 |            0.0 | 0.063591 |   -0.001495 |  0.72592 | 0.073684 | 0.063591 |
+    | 14.01. |           0.0 |         5.0 |  -0.000426 |                   0.0 |            0.099872 |          0.011118 | 0.063158 |               0.72592 |         0.72592 |         0.72592 |      0.054477 |            0.0 | 0.054477 |   -0.001705 | 0.575373 | 0.063158 | 0.054477 |
+    | 15.01. |           0.0 |         5.0 |  -0.000452 |                   0.0 |            0.099974 |          0.010651 | 0.052632 |              0.575373 |        0.575373 |        0.575373 |      0.043191 |            0.0 | 0.043191 |    -0.00181 | 0.386003 | 0.052632 | 0.043191 |
+    | 16.01. |           0.0 |         5.0 |  -0.000439 |                   0.0 |            0.099995 |          0.012092 | 0.042105 |              0.386003 |        0.386003 |        0.386003 |      0.029384 |            0.0 | 0.029384 |   -0.001756 | 0.198088 | 0.042105 | 0.029384 |
+    | 17.01. |           0.0 |         5.0 |  -0.000406 |                   0.0 |            0.099999 |          0.014695 | 0.031579 |              0.198088 |        0.198088 |        0.198088 |      0.015375 |            0.0 | 0.015375 |   -0.001625 | 0.113577 | 0.031579 | 0.015375 |
+    | 18.01. |           0.0 |         5.0 |  -0.000416 |                   0.0 |                 0.1 |          0.012793 | 0.021053 |              0.113577 |        0.113577 |        0.113577 |      0.008699 |            0.0 | 0.008699 |   -0.001663 |  0.05798 | 0.021053 | 0.008699 |
+    | 19.01. |           0.0 |         5.0 |  -0.000496 |                   0.0 |                 0.1 |          0.009947 | 0.010526 |               0.05798 |         0.05798 |         0.05798 |       0.00431 |            0.0 |  0.00431 |   -0.001985 | 0.026921 | 0.010526 |  0.00431 |
+    | 20.01. |           0.0 |         5.0 |  -0.000655 |                   0.0 |                 0.1 |          0.006415 |      0.0 |              0.026921 |        0.026921 |        0.013461 |      0.000952 |            0.0 | 0.000952 |   -0.002622 |      0.0 |      0.0 | 0.000952 |
+
+>>> inputs.evaporation.series = 0.0
+
+.. _dam_v002_flood_retention:
+
+flood retention
+_______________
+
+This example repeats the :ref:`dam_v001_flood_retention` example of application model
+|dam_v001|.  We use the same parameter and input time series configuration:
+
+>>> neardischargeminimumthreshold(0.0)
+>>> neardischargeminimumtolerance(0.0)
+>>> waterlevelminimumthreshold(0.0)
+>>> waterlevelminimumtolerance(0.0)
+>>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
+>>> neardischargeminimumthreshold(0.0)
+>>> inputs.precipitation.series = [0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+>>> inflow.sequences.sim.series = [0.0, 0.0, 5.0, 9.0, 8.0, 5.0, 3.0, 2.0, 1.0, 0.0,
+...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+>>> demand.sequences.sim.series = 0.0
+>>> test.inits.loggedrequiredremoterelease = 0.0
+
+The recalculation results confirm the equality of both models for high flow conditions:
+
+.. integration-test::
+
+    >>> test("dam_v002_flood_retention")
+    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | demand | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |    0.0 |      0.0 |
+    | 02.01. |          50.0 |         0.0 |   0.021027 |                   1.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.026514 | 0.026514 |    0.084109 |    0.0 |    0.0 | 0.026514 |
+    | 03.01. |           0.0 |         0.0 |   0.125058 |                   0.0 |                 0.0 |               0.0 |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.183744 | 0.183744 |    0.500234 |    0.0 |    5.0 | 0.183744 |
+    | 04.01. |           0.0 |         0.0 |    0.30773 |                   0.0 |                 0.0 |               0.0 |    9.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.542983 | 0.542983 |     1.23092 |    0.0 |    9.0 | 0.542983 |
+    | 05.01. |           0.0 |         0.0 |   0.459772 |                   0.0 |                 0.0 |               0.0 |    8.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.961039 | 0.961039 |    1.839086 |    0.0 |    8.0 | 0.961039 |
+    | 06.01. |           0.0 |         0.0 |   0.540739 |                   0.0 |                 0.0 |               0.0 |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.251523 | 1.251523 |    2.162955 |    0.0 |    5.0 | 1.251523 |
+    | 07.01. |           0.0 |         0.0 |   0.575395 |                   0.0 |                 0.0 |               0.0 |    3.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.395546 | 1.395546 |    2.301579 |    0.0 |    3.0 | 1.395546 |
+    | 08.01. |           0.0 |         0.0 |   0.587202 |                   0.0 |                 0.0 |               0.0 |    2.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.453375 | 1.453375 |    2.348808 |    0.0 |    2.0 | 1.453375 |
+    | 09.01. |           0.0 |         0.0 |   0.577361 |                   0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.455596 | 1.455596 |    2.309444 |    0.0 |    1.0 | 1.455596 |
+    | 10.01. |           0.0 |         0.0 |    0.54701 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.405132 | 1.405132 |    2.188041 |    0.0 |    0.0 | 1.405132 |
+    | 11.01. |           0.0 |         0.0 |   0.518255 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.331267 | 1.331267 |    2.073019 |    0.0 |    0.0 | 1.331267 |
+    | 12.01. |           0.0 |         0.0 |   0.491011 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.261285 | 1.261285 |    1.964044 |    0.0 |    0.0 | 1.261285 |
+    | 13.01. |           0.0 |         0.0 |     0.4652 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.194981 | 1.194981 |    1.860798 |    0.0 |    0.0 | 1.194981 |
+    | 14.01. |           0.0 |         0.0 |   0.440745 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.132163 | 1.132163 |    1.762979 |    0.0 |    0.0 | 1.132163 |
+    | 15.01. |           0.0 |         0.0 |   0.417576 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.072647 | 1.072647 |    1.670302 |    0.0 |    0.0 | 1.072647 |
+    | 16.01. |           0.0 |         0.0 |   0.395624 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |        1.01626 |  1.01626 |    1.582498 |    0.0 |    0.0 |  1.01626 |
+    | 17.01. |           0.0 |         0.0 |   0.374827 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.962837 | 0.962837 |    1.499308 |    0.0 |    0.0 | 0.962837 |
+    | 18.01. |           0.0 |         0.0 |   0.355123 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.912222 | 0.912222 |    1.420492 |    0.0 |    0.0 | 0.912222 |
+    | 19.01. |           0.0 |         0.0 |   0.336455 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.864268 | 0.864268 |     1.34582 |    0.0 |    0.0 | 0.864268 |
+    | 20.01. |           0.0 |         0.0 |   0.318768 |                   0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.818835 | 0.818835 |    1.275072 |    0.0 |    0.0 | 0.818835 |
 """
 
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
+
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
@@ -266,6 +330,7 @@ from hydpy.models.dam import dam_solver
 
 class Model(modeltools.ELSModel):
     """Version 2 of HydPy-Dam."""
+
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,
@@ -274,31 +339,32 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
+        dam_model.Calc_AdjustedEvaporation_V1,
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_RequiredRemoteRelease_V2,
         dam_model.Calc_RequiredRelease_V1,
         dam_model.Calc_TargetedRelease_V1,
     )
-    RECEIVER_METHODS = (
-        dam_model.Pic_LoggedRequiredRemoteRelease_V1,
-    )
+    RECEIVER_METHODS = (dam_model.Pic_LoggedRequiredRemoteRelease_V1,)
     ADD_METHODS = ()
     PART_ODE_METHODS = (
+        dam_model.Calc_AdjustedPrecipitation_V1,
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
+        dam_model.Calc_ActualEvaporation_V1,
         dam_model.Calc_ActualRelease_V1,
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_Outflow_V1,
     )
-    FULL_ODE_METHODS = (
-        dam_model.Update_WaterVolume_V1,
-    )
+    FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (
+        dam_model.Calc_WaterLevel_V1,
         dam_model.Pass_Outflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()
 
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.finalise()

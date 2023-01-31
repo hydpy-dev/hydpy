@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+
 # ...from lland
 from hydpy.models.lland import lland_derived
 
@@ -18,7 +18,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     The following example shows how subclass |NKor| works:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(4)
     >>> lnk(ACKER, GLETS, VERS, SEE)
     >>> derived.absfhru(10.0, 20.0, 30.0, 40.0)
@@ -27,9 +27,8 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> round_(fluxes.nkor.average_values())
     2.5
     """
-    DERIVEDPARAMETERS = (
-        lland_derived.AbsFHRU,
-    )
+
+    DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
     def refweights(self):
@@ -49,19 +48,18 @@ class State1DSequence(sequencetools.StateSequence):
     implements mask |Land|:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
+    >>> parameterstep("1d")
     >>> nhru(4)
     >>> lnk(ACKER, GLETS, VERS, SEE)
-    >>> nfk(100.0)
+    >>> wmax(100.0)
     >>> derived.absfhru(10.0, 20.0, 30.0, 40.0)
     >>> states.bowa(50.0, 20.0, 40.0, 10.0)
     >>> from hydpy import round_
     >>> round_(states.bowa.average_values())
     30.0
     """
-    DERIVEDPARAMETERS = (
-        lland_derived.AbsFHRU,
-    )
+
+    DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
     def refweights(self):

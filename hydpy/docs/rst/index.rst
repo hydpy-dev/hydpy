@@ -2,13 +2,13 @@
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
 .. _`German Federal Institute of Hydrology`: https://www.bafg.de/EN
-.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
+.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/en/bjoernsen-consulting-engineers
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
-.. _`Travis CI`: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. _`Travis CI`: https://travis-ci.com/hydpy-dev/hydpy/branches
 .. _`AppVeyor`: https://ci.appveyor.com/project/tyralla/hydpy/history
-.. _`example 13`: https://hydpy-dev.github.io/hydpy/dam_v001.html#dam-v001-ex13
+.. _`example 13`: https://hydpy-dev.github.io/hydpy/master/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/
 .. _`GitHub issue`: https://github.com/hydpy-dev/hydpy/issues
 .. _`Pull Request`: https://github.com/pulls
@@ -116,9 +116,12 @@ Sections :ref:`core` covers the basic functionalities of the
 
    install
    quickstart
+   how_to
    framework
    modelcollection
+   interfaces
    development
    Example Projects <examples>
+   Bibliography <zbibliography>
 
 

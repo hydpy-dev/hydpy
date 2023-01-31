@@ -2,27 +2,112 @@
 """This module provides features for handling public (global) project data."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import types
 from typing import *
-from typing_extensions import Literal
+from typing import NoReturn
+
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.cythons import configutils
 
 
-class _PubProperty(propertytools.DefaultProperty):
-
-    def __init__(self):
+class _PubProperty(
+    propertytools.DefaultProperty[propertytools.TypeInput, propertytools.TypeOutput]
+):
+    def __init__(self) -> None:
         super().__init__(self._fget)
 
-    def _fget(self, obj):
-        raise RuntimeError(
-            f'Attribute {self.name} of module `pub` '
-            f'is not defined at the moment.')
+    def _fget(self, obj: Any) -> NoReturn:
+        raise exceptiontools.AttributeNotReady(
+            f"Attribute {self.name} of module `pub` is not defined at the moment.",
+        )
+
+
+class TimegridsProperty(
+    _PubProperty[
+        Union[
+            timetools.Timegrids,
+            timetools.Timegrid,
+            Tuple[
+                timetools.DateConstrArg,
+                timetools.DateConstrArg,
+                timetools.PeriodConstrArg,
+            ],
+        ],
+        timetools.Timegrids,
+    ]
+):
+    """|DefaultProperty| specialised for |Timegrids| objects.
+
+    For convenience, property |TimegridsProperty| can create a |Timegrids|
+    object from a combination of a first and a last date (of type |str| or
+    |Date|) and a step size (of type |str| or |Period|):
+
+    >>> from hydpy import pub, Timegrid, Timegrids
+    >>> pub.timegrids = "2000-01-01", "2010-01-01", "1d"
+
+    The given date and period information applies for the |Timegrids.init|,
+    the |Timegrids.sim|, and the |Timegrids.eval_| attribute, as well:
+
+    >>> pub.timegrids.init
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
+    >>> pub.timegrids.sim
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
+    >>> pub.timegrids.eval_
+    Timegrid("2000-01-01 00:00:00",
+             "2010-01-01 00:00:00",
+             "1d")
+
+    Alternatively, you can assign a ready |Timegrids| object directly:
+
+    >>> pub.timegrids = Timegrids(Timegrid("2000-01-01", "2010-01-01", "1d"),
+    ...                           Timegrid("2000-01-01", "2001-01-01", "1d"))
+    >>> pub.timegrids
+    Timegrids(init=Timegrid("2000-01-01 00:00:00",
+                            "2010-01-01 00:00:00",
+                            "1d"),
+              sim=Timegrid("2000-01-01 00:00:00",
+                           "2001-01-01 00:00:00",
+                           "1d"),
+              eval_=Timegrid("2000-01-01 00:00:00",
+                             "2001-01-01 00:00:00",
+                             "1d"))
+    """
+
+    def call_fset(
+        self,
+        obj: Any,
+        value: Union[
+            timetools.Timegrids,
+            Tuple[
+                timetools.DateConstrArg,
+                timetools.DateConstrArg,
+                timetools.PeriodConstrArg,
+            ],
+        ],
+    ) -> None:
+        """Try to convert the given input value(s)."""
+        try:
+            timegrids = timetools.Timegrids(*value)
+        except TypeError:
+            timegrids = timetools.Timegrids(value)  # type: ignore
+            # this will most likely fail, we just want to reuse
+            # the standard error message
+        super().call_fset(obj, timegrids)
 
 
 class Pub(types.ModuleType):
@@ -42,8 +127,8 @@ class Pub(types.ModuleType):
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    RuntimeError: Attribute timegrids of module `pub` \
-is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of \
+module `pub` is not defined at the moment.
 
     After setting an attribute value successfully, it is accessible (we
     select the `timegrids` attribute here, as its setter supplies a little
@@ -52,17 +137,18 @@ is not defined at the moment.
     >>> pub.timegrids = None
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new Timegrids object based on \
-arguments `None`, the following error occurred: When passing a single \
-argument to the constructor of class `Timegrids`, the argument must be \
-a `Timegrid` or a `Timegrids` object, but a `NoneType` is given.
+    ValueError: While trying to define a new `Timegrids` object based on the \
+arguments `None`, the following error occurred: Initialising a `Timegrids` \
+object either requires one, two, or three `Timegrid` objects or two dates objects \
+(of type `Date`, `datetime`, or `str`) and one period object (of type \
+`Period`, `timedelta`, or `str`), but objects of the types `None, None, and \
+None` are given.
 
-
-    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.timegrids
-    Timegrids(Timegrid('2000-01-01 00:00:00',
-                       '2001-01-01 00:00:00',
-                       '1d'))
+    Timegrids("2000-01-01 00:00:00",
+              "2001-01-01 00:00:00",
+              "1d")
 
     After deleting, the attribute is not accessible anymore:
 
@@ -70,46 +156,48 @@ a `Timegrid` or a `Timegrids` object, but a `NoneType` is given.
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    RuntimeError: Attribute timegrids of module `pub` \
-is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of \
+module `pub` is not defined at the moment.
     """
-    projectname: str = _PubProperty()
-    indexer: indextools.Indexer = _PubProperty()
-    networkmanager: filetools.NetworkManager = _PubProperty()
-    controlmanager: filetools.ControlManager = _PubProperty()
-    conditionmanager: filetools.ConditionManager = _PubProperty()
-    sequencemanager: filetools.SequenceManager = _PubProperty()
-    timegrids: timetools.Timegrids = _PubProperty()
-    selections: selectiontools.Selections = _PubProperty()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.options: optiontools.Options = optiontools.Options()
-        self.scriptfunctions: Dict[str, Callable] = {}
+    options: optiontools.Options
+    config: "configutils.Config"
+    scriptfunctions: Dict[str, ScriptFunction]
 
-    @timegrids.setter
-    def timegrids(self, args):
-        # pylint: disable=missing-docstring, no-self-use
-        try:
-            return timetools.Timegrids(*args)
-        except TypeError:
-            return timetools.Timegrids(args)
+    projectname = _PubProperty[
+        str,
+        str,
+    ]()
+    indexer = _PubProperty[
+        indextools.Indexer,
+        indextools.Indexer,
+    ]()
+    networkmanager = _PubProperty[
+        filetools.NetworkManager,
+        filetools.NetworkManager,
+    ]()
+    controlmanager = _PubProperty[
+        filetools.ControlManager,
+        filetools.ControlManager,
+    ]()
+    conditionmanager = _PubProperty[
+        filetools.ConditionManager,
+        filetools.ConditionManager,
+    ]()
+    sequencemanager = _PubProperty[
+        filetools.SequenceManager,
+        filetools.SequenceManager,
+    ]()
+    timegrids = TimegridsProperty()
+    selections = _PubProperty[
+        selectiontools.Selections,
+        selectiontools.Selections,
+    ]()
 
-    @overload
-    def get(self, name: Literal['timegrids']) -> Optional[timetools.Timegrids]:
-        """Try to return the current |Timegrids| object."""
-
-    def get(self, name, default=None):
-        """Return |None| or the given default value, if the attribute
-         defined by the given name is not accessible at the moment.
-
-        >>> from hydpy import pub
-        >>> pub.get('timegrids') is None
-        True
-        >>> pub.get('timegrids', 'test')
-        'test'
-        """
-        try:
-            return getattr(self, name)
-        except RuntimeError:
-            return default
+    def __init__(self, name: str, doc: Optional[str] = None) -> None:
+        super().__init__(
+            name=name,
+            doc=doc,
+        )
+        self.options = optiontools.Options()
+        self.scriptfunctions = {}

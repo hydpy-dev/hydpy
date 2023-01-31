@@ -34,9 +34,14 @@ offers other strategies to decrease computation times.
 .. toctree::
    :hidden:
 
-   modelutils
    annutils
    configutils
+   interfaceutils
+   interputils
+   modelutils
    pointerutils
+   ppolyutils
+   quadutils
+   rootutils
    sequenceutils
    smoothutils

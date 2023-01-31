@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from hydpy.models.hstream_v1 import *
+from hydpy.models.musk_classic import *
 
 simulationstep("1h")
 parameterstep("1d")
 
-lag(0.417)
-damp(0.0)
+nmbsegments(lag=0.417)
+coefficients(damp=0.0)

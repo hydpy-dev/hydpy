@@ -1,48 +1,28 @@
 language: python
 
-os:
-  - linux
+os: linux
+
+dist: focal
 
 matrix:
   include:
-    - python: 3.6
-    - python: 3.7
-      dist: xenial
-      sudo: true
-      addons:
-        apt:
-          packages:
-            - libhdf5-serial-dev
-            - netcdf-bin
-            - libnetcdf-dev
+    - python: 3.8
+    - python: 3.9
+    - python: 3.10
 
 install:
-  - pip install --upgrade pip setuptools wheel
-  - pip install Cython --install-option="--no-cython-compile"
-  - pip install numpy --upgrade
-  - pip install --only-binary=scipy scipy
-  - pip install matplotlib
-  - pip install bokeh
-  - pip install coverage
-  - pip install networkx
-  - pip install pandas
-  - pip install pylint
-  - pip install typing_extensions
-  - pip install wrapt
-  - pip install xmlschema
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install travis-sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxcontrib-fulltoc; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxprettysearchresults; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install netCDF4; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install netCDF4; fi
+  - pip install --upgrade pip virtualenv
+  - pip install --upgrade -r requirements.txt
 
 script:
-  - python setup.py install
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pylint hydpy; fi
+  - python prepare_build.py
+  - python -m build
+  - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then travis_wait 30 nox -s black -s pylint ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then pip install ghp-import; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then nox -s sphinx -- -W; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then python hydpy/docs/combine_docversions.py ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.10" ] ; then nox -s doctest ; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.10" ] ; then nox -s check_consistency ; fi
 
 env:
   global:
@@ -50,4 +30,4 @@ env:
     - secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == "3.7" ]]; then travis-sphinx deploy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == "3.9" ]]; then python publish_docs_copy.py ; fi

@@ -30,20 +30,20 @@ all relevant features:
 After such an import, features like the |Date| class can be used and
 learned interactively:
 
->>> date = Date('01.01.2000')
+>>> date = Date("01.01.2000")
 >>> date
-Date('01.01.2000 00:00:00')
->>> date += '1d'
+Date("01.01.2000 00:00:00")
+>>> date += "1d"
 >>> date
-Date('02.01.2000 00:00:00')
+Date("02.01.2000 00:00:00")
 
 The cleaner approach would be to import the required features explicitly,
 e.g. class |Period|:
 
 >>> from hydpy import Period
->>> date += 2*Period('1d')
+>>> date += 2*Period("1d")
 >>> date
-Date('04.01.2000 00:00:00')
+Date("04.01.2000 00:00:00")
 
 The above examples try to give a first impression on that, albeit
 one has the use the programming language Python to control *HydPy*,

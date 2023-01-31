@@ -20,6 +20,7 @@ Thereafter, the following objects are available:
 import numpy
 from numpy import nan
 from numpy import inf
+
 # ...from HydPy
 # Load the required `magic` functions into the local namespace.
 from hydpy.core.importtools import parameterstep
@@ -28,11 +29,13 @@ from hydpy.core.importtools import controlcheck
 from hydpy.core.testtools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
-__all__ = ['numpy',
-           'nan',
-           'inf',
-           'parameterstep',
-           'simulationstep',
-           'controlcheck',
-           'Tester',
-           'Cythonizer']
+__all__ = [
+    "numpy",
+    "nan",
+    "inf",
+    "parameterstep",
+    "simulationstep",
+    "controlcheck",
+    "Tester",
+    "Cythonizer",
+]

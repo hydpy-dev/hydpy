@@ -61,18 +61,21 @@ disable=attribute-defined-outside-init,
         exec-used,
         function-redefined,
         global-statement,
+        no-member,
         too-many-function-args,
         trailing-comma-tuple,
         trailing-whitespace,
         unused-wildcard-import,
-        useless-super-delegation
+        useless-super-delegation,
+        too-many-ancestors
 
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
-enable=c-extension-no-member
+enable=c-extension-no-member,
+       useless-suppression
 
 
 [REPORTS]
@@ -231,17 +234,10 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=80
+max-line-length=88
 
 # Maximum number of lines in a module
-max-module-lines=10000
-
-# List of optional constructs for which whitespace checking is disabled. `dict-
-# separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
-# `trailing-comma` allows a space between comma and closing bracket: (a, ).
-# `empty-line` allows space-only lines.
-no-space-check=trailing-comma,
-               dict-separator
+max-module-lines=100000
 
 # Allow the body of a class to be on the same line as the declaration if body
 # contains single statement.
@@ -262,8 +258,7 @@ logging-modules=logging
 [MISCELLANEOUS]
 
 # List of note tags to take in consideration, separated by a comma.
-notes=FixMe,
-      ToDo
+notes=FixMe
 
 
 [SIMILARITIES]
@@ -406,7 +401,7 @@ valid-metaclass-classmethod-first-arg=mcs
 max-args=20
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=25
+max-attributes=50
 
 # Maximum number of boolean expressions in a if statement
 max-bool-expr=5

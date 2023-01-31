@@ -7,33 +7,29 @@
         <lastdate>1996-01-06T00:00:00</lastdate>
         <stepsize>1d</stepsize>
     </timegrid>
-    <selections/>
-    <devices>
-        dill
-        land_dill
-    </devices>
+    <add_selections>
+        <add_selection>
+            <name>gauge</name>
+            <devices>dill</devices>
+        </add_selection>
+        <add_selection>
+            <name>catchment</name>
+            <devices>land_dill</devices>
+        </add_selection>
+    </add_selections>
+    <selections>
+        gauge
+        catchment
+    </selections>
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
         <outputdir>init_1996_01_06</outputdir> <!-- optional ? -->
         <zip>false</zip> <!-- optional ? -->
     </conditions_io>
     <series_io>
-        <filetype>
-            <general>asc</general>
-        </filetype>
-        <overwrite>
-            <general>true</general>
-        </overwrite>
-        <dirpath>
-            <inputs>LahnH/series/input</inputs>
-            <fluxes>LahnH/series/output</fluxes>
-            <states>LahnH/series/output</states>
-            <nodes>LahnH/series/node</nodes>
-        </dirpath>
-        <aggregation>
-            <general>none</general>
-        </aggregation>
-        <zip>false</zip>
+        <filetype>asc</filetype>
+        <overwrite>true</overwrite>
+        <aggregation>none</aggregation>
         <readers>
             <reader info="all input data">
                 <sequences>
@@ -55,8 +51,9 @@
             <hland_v1>
                 <control>
                     <alpha>
-                        <alias>alpha</alias>
-                        <dim>0</dim>
+                        <selections>catchment</selections>
+                        <name>alpha</name>
+                        <level>global</level>
                         <init>2.0</init>
                     </alpha>
                 </control>
@@ -64,8 +61,7 @@
         </setitems>
         <getitems>
             <nodes>
-                <selections/>
-                <devices>dill</devices>
+                <selections>gauge</selections>
                 <sim.series/>
             </nodes>
         </getitems>

@@ -4,16 +4,15 @@
 
     <options>
         <checkseries>true</checkseries>
+        <parameterstep>1d</parameterstep>
         <reprdigits>6</reprdigits>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
+        <timestampleft>true</timestampleft>
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>
         <warntrim>true</warntrim>
-        <flattennetcdf>true</flattennetcdf>
-        <isolatenetcdf>true</isolatenetcdf>
-        <timeaxisnetcdf>0</timeaxisnetcdf>
     </options>
 
     <timegrid>
@@ -22,15 +21,35 @@
         <stepsize>1d</stepsize>
     </timegrid>
 
+    <add_selections>
+        <add_selection>
+            <name>from_devices</name>
+            <devices>
+                land_lahn_1
+                land_lahn_2
+            </devices>
+        </add_selection>
+        <add_selection>
+            <name>from_keywords</name>
+            <keywords>catchment</keywords>
+        </add_selection>
+        <add_selection>
+            <name>from_selections</name>
+            <selections>
+                headwaters
+                nonheadwaters
+                streams
+            </selections>
+        </add_selection>
+    </add_selections>
+
     <selections>
-        complete
+        from_selections
     </selections>
 
-    <devices>
-        land_dill
-        land_lahn_1
-        dill
-    </devices>
+    <network_io>default</network_io>
+
+    <control_io>default</control_io>
 
     <conditions_io>
         <inputdir>init_1996_01_01_00_00_00</inputdir>
@@ -40,33 +59,14 @@
     
     <series_io>
 
-        <filetype>
-            <general>npy</general>
-        </filetype>
-
-        <overwrite>
-            <general>true</general>
-        </overwrite>
-
-        <dirpath>
-            <inputs>LahnH/series/input</inputs>
-            <fluxes>LahnH/series/output</fluxes>
-            <states>LahnH/series/output</states>
-            <nodes>LahnH/series/node</nodes>
-        </dirpath>
-
-        <aggregation>
-            <general>none</general>
-        </aggregation>
-
-        <zip>false</zip>
+        <directory>default</directory>
+        <filetype>npy</filetype>
+        <overwrite>true</overwrite>
+        <mode>jit</mode>
 
         <readers>
             <reader info="all input data">
-                <selections/>
-                <devices>
-                    catchment
-                </devices>
+                <selections>from_keywords</selections>
                 <sequences>
                     <hland_v1>
                         <inputs>
@@ -77,43 +77,31 @@
                         </inputs>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <inputs>nc</inputs>
-                </filetype>
+                <filetype>nc</filetype>
+                <mode>jit</mode>
             </reader>
         </readers>
 
         <writers>
-
             <writer info="precipitation">
                 <selections>
                     headwaters
+                    from_devices
                 </selections>
-                <devices>
-                    land_lahn_1
-                    land_lahn_2
-                </devices>
                 <sequences>
                     <hland_v1>
-                        <inputs>
-                            <p/>
-                        </inputs>
                         <fluxes>
                             <pc/>
                             <tf/>
                         </fluxes>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <inputs>asc</inputs>
-                    <fluxes>npy</fluxes>
-                </filetype>
+                <filetype>asc</filetype>
             </writer>
 
             <writer info="soilmoisture">
-                <selections>
-                    complete
-                </selections>
+                <directory>soildata</directory>
+                <selections>complete</selections>
                 <sequences>
                     <hland_v1>
                         <states>
@@ -121,42 +109,37 @@
                         </states>
                     </hland_v1>
                 </sequences>
-                <filetype>
-                    <general>nc</general>
-                </filetype>
-                <overwrite>
-                    <states>false</states>
-                </overwrite>
+                <filetype>nc</filetype>
+                <overwrite>false</overwrite>
+                <mode>jit</mode>
             </writer>
 
             <writer info="averaged">
-                <devices/>
+                <directory>averages</directory>
                 <sequences>
                     <node>
                         <sim/>
                         <obs/>
                     </node>
                     <hland_v1>
+                        <factors>
+                            <tc/>
+                        </factors>
                         <fluxes>
-                            <pc/>
                             <tf/>
                         </fluxes>
                         <states>
                             <sm/>
                         </states>
                     </hland_v1>
-                    <hstream_v1>
+                    <musk_classic>
                         <states>
-                            <qjoints/>
+                            <discharge/>
                         </states>
-                    </hstream_v1>
+                    </musk_classic>
                 </sequences>
-                <dirpath>
-                    <nodes>LahnH/series/output</nodes>
-                </dirpath>
-                <aggregation>
-                    <general>mean</general>
-                </aggregation>
+                <aggregation>mean</aggregation>
+                <mode>ram</mode>
             </writer>
 
         </writers>

@@ -1,5 +1,7 @@
 
-.. _Bremicker (2000): http://www.larsim.info/fileadmin/files/Dokumentation/FSH-Bd11-Bremicker.pdf
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+.. _Bremicker: http://www.larsim.info/fileadmin/files/Dokumentation/FSH-Bd11-Bremicker.pdf
 .. _LARSIM-Entwicklergemeinschaft: http://www.larsim.info/fileadmin/files/Dokumentation/LARSIM-Dokumentation.pdf
 .. _LARSIM Online-Hilfe: http://www.larsim.info/larsim-hilfe/
 .. _KLIWAS: http://www.kliwas.de/KLIWAS/DE/Service/Downloads/Publikationen/abschlussbericht.pdf;jsessionid=C89ED85DF782A3D5FE117808A6129002.live21303?__blob=publicationFile
@@ -9,51 +11,52 @@
 HydPy-L (LARSIM)
 ================
 
-HydPy implements a close emulation of the central routines of the LARSIM
-model, which is applied by many forecasting centres in Germany and
-some neighbouring countries.  The version 1 application models of HydPy-L
-agree very well with a LARSIM configuration called LARSIM-ME (Middle Europe),
-being used by the German Federal Institute of Germany (BfG) for calculating
-hydroclimatic scenarios for large river basins (see e.g. the `KLIWAS`_
-project).  HydPy-L is partly based on the original publication on
-LARSIM (`BREMICKER (2000)`_), the summary of the theory and the range of
-applications of LARSIM, which is continuously updated by the LARSIM
-development community (`LARSIM-Entwicklergemeinschaft`_), the LARSIM online
-documentation (`LARSIM Online-Hilfe`_), and some useful hints of the
-colleagues of the LUBW (Landesanstalt für Umwelt, Messungen und Naturschutz
-Baden-Württemberg) and the HYDRON GmbH.  Some other parts of HydPy-L
-have been programmed more independently and were incorporated into the
-original LARSIM implementation later.
+*HydPy* implements a close but not exact emulation of the central routines
+of the `LARSIM`_ model, applied by many forecasting centres in Germany and
+some neighbouring countries.  The version 1 application models of *HydPy-L*
+agree very well with a LARSIM configuration called LARSIM-ME ("ME" stands
+for Middle Europe), used by the `German Federal Institute of Hydrology (BfG)`_
+for calculating hydroclimatic scenarios for large river basins (see e. g.
+the `KLIWAS`_ project).
+
+*HydPy-L* is partly based on the original publication on LARSIM (`BREMICKER`_),
+the summary of the theory and the range of applications of LARSIM, which is
+continuously updated by the LARSIM development community
+(`LARSIM-Entwicklergemeinschaft`_), the LARSIM online documentation
+(`LARSIM Online-Hilfe`_), and some useful hints of the colleagues of the
+LUBW (Landesanstalt für Umwelt, Messungen und Naturschutz Baden-Württemberg)
+and the HYDRON GmbH.  Some other parts of *HydPy-L* have been programmed more
+independently and were incorporated into the original LARSIM implementation
+later.
 
 
-HydPy-L is divided into three base models, which can be used to compile
-different application models:
+*HydPy-L* includes three different base models:
 
 .. toctree::
    :maxdepth: 1
 
-   lland (HydPy-L-Land) <lland>
-   lstream (HydPy-L-Stream) <lstream>
-   llake (HydPy-L-Lake) <llake>
+   lland (L-Land) <lland>
+   lstream (L-Stream) <lstream>
+   llake (L-Lake) <llake>
 
 
-So far the following application models are compiled (the purpose of the
-bracketed descriptions is to give experienced LARSIM modellers a first
-clue on what to expect by mentioning related LARSIM models and options):
+So far, we compiled the following application models:
 
 .. toctree::
+   :maxdepth: 1
 
-   lland_v1 ("LARSIM-ME") <lland_v1>
-   lland_v2 (|lland_v1| without internal PET calculations) <lland_v2>
-   lstream_v001 ("Williams") <lstream_v001>
-   lstream_v002 ("dV/dQ fuer Williams") <lstream_v002>
-   lstream_v003 ("V/Q-BEZIEHUNG EXTERN") <lstream_v003>
-   llake_v1 ("SEEG") <llake_v1>
+   lland_v1 (Turc-Wendling, Degree day) <lland_v1>
+   lland_v2 (External PET, Degree day) <lland_v2>
+   lland_v3 (Penman-Monteith, Knauf) <lland_v3>
+   lland_v4 (Penman-Monteith, Knauf, snow interception) <lland_v4>
+   lstream_v001 (Kinematic Wave, Manning-Strickler) <lstream_v001>
+   lstream_v002 (Kinematic wave, External rating curve) <lstream_v002>
+   llake_v1 (controlled lake) <llake_v1>
 
-All these application models are stand-alone models, which can be
-combined freely with other models implemented in HydPy.
+These application models are stand-alone models.  You can combine them
+freely with all other models implemented in *HydPy*.
 
-For reason of consistency with the original LARSIM implementation, the
-names of all parameter and sequence classes are German terms and abbreviations.
-However, the documentation on each parameter or sequence contains an English
-translation.
+For reasons of consistency with the original LARSIM implementation,
+the names of all parameter and sequence classes are German terms and
+abbreviations.  Additionally, the documentation on each parameter or
+sequence contains an English translation.

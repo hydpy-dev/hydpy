@@ -82,8 +82,9 @@ cdef class Config(object):
         value = float(value)
         if value <= 0.:
             raise ValueError(
-                'The numerical tolerance value `abs_error_max` must be larger '
-                'than zero, but the value `%s` was given.' % value)
+                f"The numerical tolerance value `abs_error_max` must be "
+                f"larger than zero, but the value `{value}` was given."
+            )
         else:
             self._abs_error_max = value
 
@@ -98,9 +99,9 @@ cdef class Config(object):
         value = float(value)
         if (value < 0.) or (value > 1.):
             raise ValueError(
-                'The smallest integration time step `_rel_dt_min` must not be '
-                'smaller than zero or larger than one, but the value `%s` was '
-                'given.' % value)
+                f"The smallest integration time step `_rel_dt_min` must not be smaller "
+                f"than zero or larger than one, but the value `{value}` was given."
+            )
         else:
             self._rel_dt_min = value
 

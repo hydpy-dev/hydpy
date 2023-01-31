@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
@@ -14,11 +13,13 @@ class K(parametertools.Parameter):
     not depend on the difference between the actual simulation time step and
     the actual parameter time step.
     """
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class N(parametertools.Parameter):
     """Number of storages [-]."""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):

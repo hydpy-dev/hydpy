@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.arma import arma_control
@@ -12,17 +12,16 @@ from hydpy.models.arma import arma_control
 
 class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine the number of response functions.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.nmb.update()
         >>> derived.nmb
@@ -52,17 +51,16 @@ class Nmb(parametertools.Parameter):
 
 class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine the maximum discharge values.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.maxq.update()
         >>> derived.maxq
@@ -75,17 +73,16 @@ class MaxQ(parametertools.Parameter):
 
 class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine the "max Q deltas".
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.diffq.update()
         >>> derived.diffq
@@ -96,23 +93,22 @@ class DiffQ(parametertools.Parameter):
         diffq([])
         """
         responses = self.subpars.pars.control.responses
-        self.shape = len(responses)-1
+        self.shape = len(responses) - 1
         self.value = numpy.diff(responses.thresholds)
 
 
 class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
+
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine the total number of AR coefficients.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.ar_order.update()
         >>> derived.ar_order
@@ -125,17 +121,16 @@ class AR_Order(parametertools.Parameter):
 
 class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
+
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine the total number of MA coefficients.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.ma_order.update()
         >>> derived.ma_order
@@ -148,17 +143,16 @@ class MA_Order(parametertools.Parameter):
 
 class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine all AR coefficients.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.ar_coefs.update()
         >>> derived.ar_coefs
@@ -181,17 +175,16 @@ class AR_Coefs(parametertools.Parameter):
 
 class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        arma_control.Responses,
-    )
+    CONTROLPARAMETERS = (arma_control.Responses,)
 
     def update(self):
         """Determine all MA coefficients.
 
         >>> from hydpy.models.arma import *
-        >>> parameterstep('1d')
+        >>> parameterstep("1d")
         >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
         >>> derived.ma_coefs.update()
         >>> derived.ma_coefs

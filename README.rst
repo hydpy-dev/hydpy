@@ -1,19 +1,71 @@
-.. _online documentation: https://hydpy-dev.github.io/hydpy/
+.. _`online documentation`: https://hydpy-dev.github.io/hydpy/
 .. _Python: http://www.python.org/
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
-.. _`German Federal Institute of Hydrology`: http://www.bafg.de/EN/Home/homepage_en_node.html;jsessionid=E48E3BA5184A678BB2D23AD16AD5FC09.live21304
-.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
+.. _`German Federal Institute of Hydrology`: https://www.bafg.de/EN
+.. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/en/bjoernsen-consulting-engineers
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
-.. _`HydPy release`: https://github.com/hydpy-dev/hydpy/releases
-.. _`installation instructions`: https://hydpy-dev.github.io/hydpy/install.html#install
-.. _FEWS: https://www.deltares.nl/en/software/flood-forecasting-system-delft-fews-2
-.. _`NetCDF-CF`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html
 
 .. figure:: hydpy/docs/figs/HydPy_Logo_Text.png
-    :alt: HydPy logo
+   :alt: HydPy logo
+
+
+.. image:: https://img.shields.io/pypi/v/HydPy
+   :alt: PyPI
+   :target: https://pypi.org/project/HydPy
+.. image:: https://img.shields.io/pypi/v/HydPy?label=download
+   :alt: Releases
+   :target: https://github.com/hydpy-dev/hydpy/releases
+.. image:: https://img.shields.io/badge/docs-latest-informational
+   :alt: Documentation
+   :target: https://hydpy-dev.github.io/hydpy/index.html
+.. image:: https://img.shields.io/github/license/hydpy-dev/hydpy?color=blue
+   :alt: GitHub
+   :target: https://github.com/hydpy-dev/hydpy/blob/master/LICENSE
+
+\
+
+.. image:: https://img.shields.io/badge/Coverage-100%20%25-green
+   :alt: Coverage
+   :target: https://coverage.readthedocs.io
+.. image:: https://img.shields.io/badge/Black-All%20done%21-green
+   :alt: Black
+   :target: https://github.com/psf/black
+.. image:: https://img.shields.io/badge/Pylint-10.00/10-green
+   :alt: Pylint
+   :target: https://www.pylint.org/
+.. image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
+   :alt: Mypy
+   :target: https://mypy.readthedocs.io/en/stable
+
+\
+
+.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
+   :alt: Travis master
+   :target: https://app.travis-ci.com/github/hydpy-dev/hydpy/branches
+.. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
+   :alt: Travis latest
+   :target: https://app.travis-ci.com/hydpy-dev/hydpy
+
+\
+
+.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
+   :alt: AppVeyor master
+   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
+.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest
+   :alt: AppVeyor latest
+   :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s
+
+\
+
+.. image:: https://img.shields.io/github/issues-raw/hydpy-dev/hydpy
+   :alt: GitHub issues
+   :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aopen+is%3Aissue
+.. image:: https://img.shields.io/github/issues-closed-raw/hydpy-dev/hydpy?label=closed
+   :alt: GitHub closed issues
+   :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aissue+is%3Aclosed
 
 *HydPy* is an interactive framework for developing and applying
 different types of hydrological models, originally developed

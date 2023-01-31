@@ -1,47 +1,49 @@
-
-import importlib
 import os
 import shutil
 import sys
 
+import lastversion
 
-with open('make_hydpy_installer.cfgt') as file_:
+
+with open("make_hydpy_installer.cfgt") as file_:
     lines = file_.readlines()
+
 for idx, line in enumerate(lines):
-    if 'cp[auto]' in line:
+    if "cp[auto]" in line:
         lines[idx] = line.replace(
-            '[auto]', "".join(str(v) for v in sys.version_info[:2]))
+            "[auto]", "".join(str(v) for v in sys.version_info[:2])
+        )
+
 for idx, line in enumerate(lines):
-    if 'version = [auto]' in line:
+    if "version = [auto]" in line:
         lines[idx] = line.replace(
-            '[auto]', ".".join(str(v) for v in sys.version_info[:3]))
+            "[auto]", ".".join(str(v) for v in sys.version_info[:3])
+        )
+
 for idx, line in enumerate(lines):
-    if '==[auto]' in line:
-        name = line.split()[-1].split('==')[0]
-        if name == 'python-dateutil':
-            version = importlib.import_module('dateutil').__version__
-        elif name == 'PyYAML':
-            version = importlib.import_module('yaml').__version__
-        elif name == 'attrs':
-            version = importlib.import_module('attr').__version__
-        elif name == 'Pillow':
-            version = importlib.import_module('PIL').__version__
-        elif name == 'tornado':
-            version_info = importlib.import_module('tornado').version_info
-            version = '.'.join(str(v) for v in version_info[:3])
-        else:
-            version = importlib.import_module(name).__version__
-        lines[idx] = line.replace('[auto]', version)
-with open('make_hydpy_installer.cfg', 'w') as file_:
+    if "==[auto]" in line:
+        name = line.split()[-1].split("==")[0]
+        version = lastversion.latest(name, at="pip")
+        lines[idx] = line.replace("[auto]", str(version))
+
+with open("make_hydpy_installer.cfg", "w") as file_:
     file_.writelines(lines)
 
+
+wheeldir = "extra_wheel_sources"
+if os.path.exists(wheeldir):
+    shutil.rmtree(wheeldir)
+os.makedirs(wheeldir)
+os.system(f"{sys.executable} -m pip wheel retrying --wheel-dir={wheeldir}")
+
+this_path = os.path.abspath(os.getcwd())
 for folderpath in sys.path:
-    if os.path.isdir(folderpath):
+    if os.path.isdir(folderpath) and (os.path.abspath(folderpath) != this_path):
         for filename in os.listdir(folderpath):
-            if filename in ('tcl86t.dll', 'tk86t.dll', 'tcl'):
+            if filename in ("tcl86t.dll", "tk86t.dll", "tcl"):
                 source = os.path.join(folderpath, filename)
-                print(f'copy {source} to {filename}')
-                if filename == 'tcl':
-                    shutil.copytree(source, 'lib')
+                print(f"copy {source} to {filename}")
+                if filename == "tcl":
+                    shutil.copytree(source, "lib")
                 else:
                     shutil.copy(source, filename)

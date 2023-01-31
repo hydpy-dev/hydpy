@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
-
+# pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
@@ -10,7 +8,8 @@ from hydpy.core import sequencetools
 
 class WET0(sequencetools.LogSequence):
     """Zeitlich gewichtete Grasreferenzverdunstung (temporally weighted
-    reference evapotranspiration) [mm]."""
+    reference evapotranspiration) [mm/T]."""
+
     NDIM, NUMERIC = 2, False
 
     def __hydpy__get_shape__(self):
@@ -29,3 +28,39 @@ class WET0(sequencetools.LogSequence):
         super().__hydpy__set_shape__((1, shape))
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+
+
+class LoggedTemL(sequencetools.LogSequence):
+    """Logged air temperature [°C]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedRelativeHumidity(sequencetools.LogSequence):
+    """Logged relative humidity [%]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedSunshineDuration(sequencetools.LogSequence):
+    """Logged sunshine duration [h]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
+    """Logged astronomically possible sunshine duration [h]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedGlobalRadiation(sequencetools.LogSequence):
+    """Logged global radiation [W/m²]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedWindSpeed2m(sequencetools.LogSequence):
+    """Logged wind speed [m/s]."""
+
+    NDIM, NUMERIC = 1, False

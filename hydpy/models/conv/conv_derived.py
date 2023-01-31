@@ -1,36 +1,42 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
+
 # ...from site-packages
 import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.conv import conv_control
+from hydpy.models.conv import conv_fluxes
 
 
 class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    CONTROLPARAMETERS = (
-        conv_control.InputCoordinates,
+    CONTROLPARAMETERS = (conv_control.InputCoordinates,)
+
+    _DEPENDENT_SEQUENCES = (
+        conv_fluxes.Inputs,
+        conv_fluxes.InputPredictions,
+        conv_fluxes.InputResiduals,
     )
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.fluxes.inputs.shape = self
+        for sequence in self.subpars.pars.model.sequences.fluxes:
+            if isinstance(sequence, self._DEPENDENT_SEQUENCES):
+                sequence.shape = self
 
     def update(self) -> None:
-        """Determine the number of inlet nodes via inspecting control
-        parameter |InputCoordinates|.
+        """Determine the number of inlet nodes via inspecting control parameter
+        |InputCoordinates|.
 
-        Note that invoking method |NmbInputs.update| as well as calling
-        the parameter directly also sets the shape of flux sequence
-        |conv_fluxes.Inputs|:
+        Note that invoking method |NmbInputs.update| like calling the parameter
+        directly also sets the shape of flux sequence |conv_fluxes.Inputs|:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -54,23 +60,29 @@ class NmbInputs(parametertools.Parameter):
 
 class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    CONTROLPARAMETERS = (
-        conv_control.OutputCoordinates,
+    CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
+
+    _DEPENDENT_SEQUENCES = (
+        conv_fluxes.Outputs,
+        conv_fluxes.OutputPredictions,
+        conv_fluxes.OutputResiduals,
     )
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.fluxes.outputs.shape = self
+        for sequence in self.subpars.pars.model.sequences.fluxes:
+            if isinstance(sequence, self._DEPENDENT_SEQUENCES):
+                sequence.shape = self
 
     def update(self) -> None:
-        """Determine the number of inlet nodes via inspecting control
-        parameter |OutputCoordinates|.
+        """Determine the number of inlet nodes via inspecting control parameter
+        |OutputCoordinates|.
 
-        Note that invoking method |NmbOutputs.update| as well as calling
-        the parameter directly also sets the shape of flux sequence
-        |conv_fluxes.Outputs|:
+        Note that invoking method |NmbOutputs.update| like calling the parameter
+        directly also sets the shape of flux sequence |conv_fluxes.Outputs|:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -94,6 +106,7 @@ class NmbOutputs(parametertools.Parameter):
 
 class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -105,7 +118,7 @@ class Distances(parametertools.Parameter):
         """Determine the distances.
 
         The individual rows of parameter |Distances| correspond to the
-        outlet nodes; the columns contain the indices of the inlet nodes:
+        outlet nodes; the columns contain the inlet nodes' indices:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -128,7 +141,8 @@ class Distances(parametertools.Parameter):
         distances = numpy.empty((len(outcoords), len(incoords)), dtype=float)
         for idx, outcoord in enumerate(outcoords):
             distances[idx, :] = numpy.sqrt(
-                numpy.sum((outcoord-incoords)**2, axis=1))
+                numpy.sum((outcoord - incoords) ** 2, axis=1)
+            )
         self.__hydpy__set_shape__(distances.shape)
         self.__hydpy__set_value__(distances)
 
@@ -136,6 +150,7 @@ class Distances(parametertools.Parameter):
 class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
     outlet node [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -143,15 +158,13 @@ class ProximityOrder(parametertools.Parameter):
         conv_control.InputCoordinates,
         conv_control.OutputCoordinates,
     )
-    DERIVEDPARAMETERS = (
-        Distances,
-    )
+    DERIVEDPARAMETERS = (Distances,)
 
     def update(self) -> None:
         """Determine the proximity-order of the inlet and outlet nodes.
 
         The individual rows of parameter |ProximityOrder| correspond to the
-        outlet nodes; the columns contain the indices of the inlet nodes:
+        outlet nodes; the columns contain the inlet nodes' indices:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -193,6 +206,7 @@ class ProximityOrder(parametertools.Parameter):
 class Weights(parametertools.Parameter):
     """Weighting coefficients of the inlet nodes corresponding to their
     proximity to each outlet node and parameter |Power| [-]."""
+
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
     CONTROLPARAMETERS = (
@@ -256,8 +270,8 @@ class Weights(parametertools.Parameter):
         weights = numpy.empty((len(distances), nmbinputs), dtype=float)
         for idx, distances_ in enumerate(distances):
             sorteddistances = distances_[proximityorder[idx, :]]
-            jdxs = sorteddistances > 0.
-            weights[idx, jdxs] = 1./sorteddistances[jdxs]**power
+            jdxs = sorteddistances > 0.0
+            weights[idx, jdxs] = 1.0 / sorteddistances[jdxs] ** power
             weights[idx, ~jdxs] = numpy.inf
         self.__hydpy__set_shape__(weights.shape)
         self.__hydpy__set_value__(weights)

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # imports...
 # ...from HydPy
@@ -29,21 +28,17 @@ class Calc_Q_V1(modeltools.Method):
        >>> fluxes.q
        q(1.0)
     """
-    CONTROLPARAMETERS = (
-        test_control.K,
-    )
-    REQUIREDSEQUENCES = (
-        test_states.S,
-    )
-    RESULTSEQUENCES = (
-        test_fluxes.Q,
-    )
+
+    CONTROLPARAMETERS = (test_control.K,)
+    REQUIREDSEQUENCES = (test_states.S,)
+    RESULTSEQUENCES = (test_fluxes.Q,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.q = con.k*sta.s
+        flu.q = con.k * sta.s
 
 
 class Calc_Q_V2(modeltools.Method):
@@ -73,24 +68,20 @@ class Calc_Q_V2(modeltools.Method):
        >>> fluxes.q
        q(0.0)
     """
-    CONTROLPARAMETERS = (
-        test_control.K,
-    )
-    REQUIREDSEQUENCES = (
-        test_states.S,
-    )
-    RESULTSEQUENCES = (
-        test_fluxes.Q,
-    )
+
+    CONTROLPARAMETERS = (test_control.K,)
+    REQUIREDSEQUENCES = (test_states.S,)
+    RESULTSEQUENCES = (test_fluxes.Q,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        if sta.s > 0.:
+        if sta.s > 0.0:
             flu.q = con.k
         else:
-            flu.q = 0.
+            flu.q = 0.0
 
 
 class Calc_QV_V1(modeltools.Method):
@@ -112,23 +103,21 @@ class Calc_QV_V1(modeltools.Method):
        >>> fluxes.qv
        qv(1.0, 1.5)
     """
+
     CONTROLPARAMETERS = (
         test_control.N,
         test_control.K,
     )
-    REQUIREDSEQUENCES = (
-        test_states.SV,
-    )
-    RESULTSEQUENCES = (
-        test_fluxes.QV,
-    )
+    REQUIREDSEQUENCES = (test_states.SV,)
+    RESULTSEQUENCES = (test_fluxes.QV,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for i in range(con.n):
-            flu.qv[i] = con.k*sta.sv[i]
+            flu.qv[i] = con.k * sta.sv[i]
 
 
 class Calc_S_V1(modeltools.Method):
@@ -147,21 +136,16 @@ class Calc_S_V1(modeltools.Method):
        >>> states.s
        s(0.2)
     """
-    CONTROLPARAMETERS = (
-        test_control.K,
-    )
-    REQUIREDSEQUENCES = (
-        test_fluxes.Q,
-    )
-    UPDATEDSEQUENCES = (
-        test_states.S,
-    )
+
+    REQUIREDSEQUENCES = (test_fluxes.Q,)
+    UPDATEDSEQUENCES = (test_states.S,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        new.s = old.s-flu.q
+        new.s = old.s - flu.q
 
 
 class Calc_SV_V1(modeltools.Method):
@@ -183,16 +167,11 @@ class Calc_SV_V1(modeltools.Method):
        >>> states.sv
        sv(0.2, 1.2)
     """
-    CONTROLPARAMETERS = (
-        test_control.N,
-        test_control.K,
-    )
-    REQUIREDSEQUENCES = (
-        test_fluxes.QV,
-    )
-    UPDATEDSEQUENCES = (
-        test_states.SV,
-    )
+
+    CONTROLPARAMETERS = (test_control.N,)
+    REQUIREDSEQUENCES = (test_fluxes.QV,)
+    UPDATEDSEQUENCES = (test_states.SV,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -200,11 +179,12 @@ class Calc_SV_V1(modeltools.Method):
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         for i in range(con.n):
-            new.sv[i] = old.sv[i]-flu.qv[i]
+            new.sv[i] = old.sv[i] - flu.qv[i]
 
 
 class Model(modeltools.ELSModel):
     """Test model."""
+
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,
         test_solver.RelErrorMax,
@@ -226,3 +206,5 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+    SUBMODELINTERFACES = ()
+    SUBMODELS = ()

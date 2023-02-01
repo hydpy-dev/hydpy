@@ -294,42 +294,49 @@ class PCorr(hland_parameters.ParameterComplete):
     """General precipitation correction factor [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
 
 
 class PCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for precipitation [1/100m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.1
 
 
 class RfCF(hland_parameters.ParameterComplete):
     """Rainfall correction factor [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
 
 
 class SfCF(hland_parameters.ParameterComplete):
     """Snowfall correction factor [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
 
 
 class TCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for temperature [-1°C/100m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.6
 
 
 class ECorr(hland_parameters.ParameterNoGlacier):
     """General evaporation correction factor [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
 
 
 class ECAlt(hland_parameters.ParameterNoGlacier):
     """Elevation correction factor for evaporation [-1/100m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.1
 
 
 class EPF(hland_parameters.ParameterNoGlacier):
@@ -342,6 +349,7 @@ class ETF(hland_parameters.ParameterNoGlacier):
     """Temperature factor for evaporation [1/°C]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.1
 
 
 class ERed(hland_parameters.ParameterSoil):
@@ -1096,24 +1104,28 @@ class TT(hland_parameters.ParameterComplete):
     """Temperature threshold for snow/rain [°C]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.0
 
 
 class TTInt(hland_parameters.ParameterComplete):
     """Temperature interval with a mixture of snow and rain [°C]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 0.0
 
 
 class DTTM(hland_parameters.ParameterLand):
     """Difference between |TTM| and |TT| [°C]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.0
 
 
 class CFMax(hland_parameters.ParameterLand):
     """Average degree day factor for snow (on glaciers or not) [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    INIT = 3.5
 
 
 class CFVar(hland_parameters.ParameterLand):
@@ -1131,6 +1143,7 @@ class GMelt(hland_parameters.ParameterGlacier):
     """Degree day factor for glacial ice [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    INIT = 3.5
 
 
 class GVar(hland_parameters.ParameterGlacier):
@@ -1148,30 +1161,35 @@ class CFR(hland_parameters.ParameterLand):
     """Refreezing factor for water stored within the snow layer [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 0.05
 
 
 class WHC(hland_parameters.ParameterLand):
     """Relative water holding capacity of the snow layer [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 0.1
 
 
 class FC(hland_parameters.ParameterSoil):
     """Maximum soil moisture content (field capacity) [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 200
 
 
 class LP(hland_parameters.ParameterSoil):
     """Relative limit for potential evaporation [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 0.9
 
 
 class Beta(hland_parameters.ParameterSoil):
     """Nonlinearity parameter of the soil routine [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 2.0
 
 
 class PercMax(parametertools.Parameter):
@@ -1184,6 +1202,7 @@ class CFlux(hland_parameters.ParameterSoil):
     """Capacity (maximum) of the capillary return flux [mm/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    INIT = 1.0
 
 
 class RespArea(parametertools.Parameter):
@@ -1195,6 +1214,9 @@ class RespArea(parametertools.Parameter):
 class RecStep(parametertools.Parameter):
     """Number of internal computation steps per simulation time step [-].
 
+    The default value of 1440 internal computation steps per day corresponds to 1
+    computation step per minute.
+
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
     >>> simulationstep("12h")
@@ -1204,12 +1226,14 @@ class RecStep(parametertools.Parameter):
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
+    INIT = 1440
 
 
 class Alpha(parametertools.Parameter):
     """Nonlinearity parameter of the upper zone layer [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.0
 
 
 class K(parametertools.Parameter):
@@ -1279,9 +1303,17 @@ at least the keywords arguments `khq` and `hq` must be given.
         RuntimeError: For the alternative calculation of parameter `k` of element `?`, \
 either the keyword argument `alpha` must be given or the value of parameter `alpha` \
 must be defined beforehand.
+
+        The default value for k of 0.009633 results from the default
+        values for `alpha`, `hq` and `khq` given in HBV96:
+
+        >>> k(hq=3.0, khq=0.17, alpha=1.0)
+        >>> k
+        k(0.009633)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    INIT = 0.009633
 
     def __call__(self, *args, **kwargs):
         try:
@@ -1456,6 +1488,7 @@ class K4(parametertools.Parameter):
     """Recession coefficient of the lower zone layer [1/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    INIT = 0.01
 
 
 class K2(hland_parameters.ParameterUpperZone):

@@ -12,6 +12,7 @@ requires = [
     "scipy",
     "setuptools",
     "typing_extensions",
+    "wheel",
     "wrapt",
     "xmlschema",
 ]

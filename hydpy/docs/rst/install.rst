@@ -49,7 +49,7 @@ installer.
 Selecting a Python distribution
 --------------------------------
 
-Using *HydPy* requires installing `Python 3.7, 3.8, 3.9, or 3.10`_ first.  You
+Using *HydPy* requires installing `Python 3.8, 3.9, 3.10 or 3.11`_ first.  You
 should favour the latest Python version unless you plan to use other libraries
 still only available for earlier versions.  Alternatively, consider installing
 a more comprehensive Python distribution like `Anaconda`_, already containing

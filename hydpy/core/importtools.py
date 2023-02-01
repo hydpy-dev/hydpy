@@ -19,14 +19,12 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-
-if TYPE_CHECKING:
-    from hydpy.core import modeltools
 
 
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
@@ -43,7 +41,9 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timestep
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is None:
         model = namespace["Model"]()
@@ -98,14 +98,14 @@ def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
     cls_parameters = dict_.get("Parameters", parametertools.Parameters)
-    return cls_parameters(dict_)
+    return cls_parameters(dict_)  # type: ignore[no-any-return]
 
 
 def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
     cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
-    return cls_sequences(
+    return cls_sequences(  # type: ignore[no-any-return]
         model=dict_.get("model"),
         cls_inlets=dict_.get("InletSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
@@ -180,7 +180,9 @@ def reverse_model_wildcard_import() -> None:
     ...
     NameError: name 'test' is not defined
     """
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is not None:
         for subpars in model.parameters:
@@ -238,11 +240,10 @@ def prepare_model(
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timetools.Period(timestep)
-    try:
-        model = module.Model()
-    except AttributeError:
+    if isinstance(module, str):
         module = importlib.import_module(f"hydpy.models.{module}")
-        model = module.Model()
+    model = module.Model()
+    assert isinstance(model, modeltools.Model)
     if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
@@ -277,7 +278,7 @@ def prepare_model(
     return model
 
 
-def simulationstep(timestep) -> None:
+def simulationstep(timestep: timetools.PeriodConstrArg) -> None:
     """Define a simulation time step size for testing purposes within a
     parameter control file.
 
@@ -541,7 +542,9 @@ as function arguments.
     the case when a condition file is executed within the context of a
     complete *HydPy* project.
     """
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is None:
         if not controlfile:

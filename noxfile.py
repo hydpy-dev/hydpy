@@ -179,3 +179,4 @@ def sphinx(session: nox.Session) -> None:
     session.run(
         "sphinx-build", "hydpy/docs/auto", "hydpy/docs/auto/build", *session.posargs
     )
+    shutil.rmtree("hydpy/docs/auto/build/.doctrees")

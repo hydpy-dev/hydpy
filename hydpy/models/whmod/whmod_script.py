@@ -500,7 +500,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         skiprows=[1],
         sep=";",
         comment="#",
-        decimal=",",
+        decimal=".",
         dtype=dtype_knoteneigenschaften,
     )
     return df_knoteneigenschaften

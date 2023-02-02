@@ -84,15 +84,15 @@ def _collect_hrus(
     ... "nutzung.txt"))
     >>> _collect_hrus(table=df_knoteneigenschaften, idx_=11, landuse_dict=landuse_dict)
     {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, \
-'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', \
+'y': 5567507.03, 'area': 10000.0, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', \
 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', 'init_boden': 50.0, \
 'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, \
-'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': 3500.0, 'nutz_nr': \
+'x': 3455723.97, 'y': 5567507.03, 'area': 10000.0, 'f_area': 3500.0, 'nutz_nr': \
 'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, \
 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', \
 'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, \
-'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000, 'f_area': \
+'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000.0, 'f_area': \
 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
 'verzoegerung': '10', 'init_boden': 50.0, 'init_gwn': 40.0}}
@@ -482,7 +482,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         "col": int,
         "x": float,
         "y": float,
-        "area": int,
+        "area": float,
         "f_area": float,
         "nutz_nr": str,
         "bodentyp": str,

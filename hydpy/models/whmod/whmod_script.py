@@ -483,7 +483,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         "x": float,
         "y": float,
         "area": int,
-        "f_area": int,
+        "f_area": float,
         "nutz_nr": str,
         "bodentyp": str,
         "nfk100_mittel": float,

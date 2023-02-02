@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 Cemaneige-GR4J Version of the GrXJ-Land model.
 The model can briefly be summarized as follows:
@@ -488,12 +488,14 @@ Perrin, C., C. Michel & V. Andréassian (2003): Improvement of a parsimonious mo
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+
 # ...from  grxjland
 from hydpy.models.grxjland import grxjland_model
 
 
 class Model(modeltools.AdHocModel):
     """GR4J version of GRxJ-Land (|grxjland_cngr4j|)."""
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
@@ -512,9 +514,7 @@ class Model(modeltools.AdHocModel):
         grxjland_model.Calc_Qt_V1,
     )
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        grxjland_model.Pass_Q_V1,
-    )
+    OUTLET_METHODS = (grxjland_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

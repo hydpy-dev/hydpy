@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 # import...
 # from site-packages
 
-import numpy
 # ...from HydPy
 from hydpy.core import parametertools
-# ...from grxjland
 
-from hydpy.core import objecttools
+# ...from grxjland
 
 
 class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+
 
 class Z(parametertools.Parameter):
     """Mean subbasin elevation [m]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+
 
 class NSnowLayers(parametertools.Parameter):
     """Number of snow layers  [-].
@@ -37,6 +38,7 @@ class NSnowLayers(parametertools.Parameter):
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
     """
+
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, 101)
 
     def __call__(self, *args, **kwargs):
@@ -48,8 +50,8 @@ class NSnowLayers(parametertools.Parameter):
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.parameters.control.meanansolidprecip.shape = self.value
         for der in self.subpars.pars.model.parameters.derived:
-            if (der.NDIM > 0) and (der.name != 'uh1' and der.name != 'uh2'):
-                    der.shape = self.value
+            if (der.NDIM > 0) and (der.name not in ("uh1", "uh2")):
+                der.shape = self.value
         for seq in self.subpars.pars.model.sequences.fluxes:
             if seq.NDIM > 0:
                 seq.shape = self.value
@@ -60,89 +62,117 @@ class NSnowLayers(parametertools.Parameter):
             if seq.NDIM > 0:
                 seq.shape = self.value
 
+
 class HypsoData(parametertools.Parameter):
-    """Array of length 101 : min, q01 to q99 and max of catchment elevation distribution [m]."""
+    """Array of length 101 : min, q01 to q99 and max of catchment elevation
+    distribution [m]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
     def __call__(self, *args, **kwargs):
-        """Set shape of HypsoData to 101
-        """
+        """Set shape of HypsoData to 101"""
         self.shape = 101
         super().__call__(*args, **kwargs)
 
+
 class GradTMean(parametertools.Parameter):
-    """Array of length 366 : gradient of daily mean temperature for each day of year [°C/100m]."""
+    """Array of length 366 : gradient of daily mean temperature for each day of year
+    [°C/100m]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
     def __call__(self, *args, **kwargs):
-        """Set shape of HypsoData to 366
-        """
+        """Set shape of HypsoData to 366"""
         self.shape = 366
         super().__call__(*args, **kwargs)
+
 
 class GradTMin(parametertools.Parameter):
-    """Array of length 366 : gradient of daily minimum temperature for each day of year [°C/100m]."""
+    """Array of length 366 : gradient of daily minimum temperature for each day of
+    year [°C/100m]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
     def __call__(self, *args, **kwargs):
-        """Set shape of HypsoData to 366
-        """
+        """Set shape of HypsoData to 366"""
         self.shape = 366
         super().__call__(*args, **kwargs)
+
 
 class GradTMax(parametertools.Parameter):
-    """Array of length 366 : elevation gradient of daily maximum temperature for each day of year [°C/100m]."""
+    """Array of length 366 : elevation gradient of daily maximum temperature for each
+    day of year [°C/100m]."""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
     def __call__(self, *args, **kwargs):
-        """Set shape of HypsoData to 366
-        """
+        """Set shape of HypsoData to 366"""
         self.shape = 366
         super().__call__(*args, **kwargs)
 
+
 class MeanAnSolidPrecip(parametertools.Parameter):
-    """Mean annual solid precipitation [mm/a] """
+    """Mean annual solid precipitation [mm/a]"""
+
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
+
 class CN1(parametertools.Parameter):
-    """weighting coefficient for snow pack thermal state [-] """
+    """weighting coefficient for snow pack thermal state [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
 
 class CN2(parametertools.Parameter):
-    """Degree-day melt coefficient [mm/°C/d] """
+    """Degree-day melt coefficient [mm/°C/d]"""
+
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0, None)
 
+
 class CN3(parametertools.Parameter):
-    """Accumulation threshold [mm]  """
+    """Accumulation threshold [mm]"""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
+
 class CN4(parametertools.Parameter):
-    """Percentage (between 0 and 1) of annual snowfall defining the melt threshold [-]"""
+    """Percentage (between 0 and 1) of annual snowfall defining the melt threshold
+    [-]"""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, 1)
+
 
 class X1(parametertools.Parameter):
     """Maximum capacity of the production storage [mm]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-    
+
+
 class X2(parametertools.Parameter):
     """groundwater exchange coefficient [mm]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-    
+
+
 class X3(parametertools.Parameter):
     """One timestep ahead maximum capacity of the routing store [mm]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-    
+
+
 class X4(parametertools.Parameter):
     """Time base of unit hydrographs UH1 (X4) and UH2 (2*X4) [d]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.5, None)
-    
+
+
 class X5(parametertools.Parameter):
     """Intercatchment exchange threshold [-]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-    
+
+
 class X6(parametertools.Parameter):
     """coefficient for emptying exponential store [mm]."""
+
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-    
-
-

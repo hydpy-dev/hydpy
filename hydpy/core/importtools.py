@@ -27,6 +27,9 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 
+__HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
+
+
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
@@ -68,30 +71,39 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                     setattr(model, name, getattr(model.cymodel, name))
         model.parameters = prepare_parameters(namespace)
         model.sequences = prepare_sequences(namespace)
-        namespace["parameters"] = model.parameters
-        for pars in model.parameters:
-            namespace[pars.name] = pars
-        namespace["sequences"] = model.sequences
-        for seqs in model.sequences:
-            namespace[seqs.name] = seqs
+        namespace.pop("cymodel", None)
+        namespace.pop("cythonmodule", None)
         if "Masks" in namespace:
             model.masks = namespace["Masks"]()
-            namespace["masks"] = model.masks
         else:
             model.masks = masktools.Masks()
         for submodelclass in namespace["Model"].SUBMODELS:
             submodel = submodelclass(model)
             setattr(model, submodel.name, submodel)
-    try:
-        namespace.update(namespace["CONSTANTS"])
-    except KeyError:
-        pass
+        del namespace["model"]
+    _add_locals_to_namespace(model=model, namespace=namespace)
+
+
+def _add_locals_to_namespace(
+    model: modeltools.Model, namespace: Dict[str, Any]
+) -> None:
+    new_locals: Dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
+    new_locals["model"] = model
+    new_locals["parameters"] = model.parameters
+    for pars in model.parameters:
+        new_locals[pars.name] = pars
+    new_locals["sequences"] = model.sequences
+    for seqs in model.sequences:
+        new_locals[seqs.name] = seqs
+    new_locals["masks"] = model.masks
     focus = namespace.get("focus")
     for par in model.parameters.control:
         if (focus is None) or (par is focus):
-            namespace[par.name] = par
+            new_locals[par.name] = par
         else:
-            namespace[par.name] = lambda *args, **kwargs: None
+            new_locals[par.name] = lambda *args, **kwargs: None
+    namespace[__HYDPY_MODEL_LOCALS__] = new_locals
+    namespace.update(new_locals)
 
 
 def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
@@ -125,11 +137,10 @@ def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
 def reverse_model_wildcard_import() -> None:
     """Clear the local namespace from a model wildcard import.
 
-    Calling this method should remove the critical imports into the local
-    namespace due to the last wildcard import of a particular application
-    model. In this manner, it secures the repeated preparation of different
-    types of models via wildcard imports.  See the following example, on
-    how it can be applied.
+    Calling this method should remove the critical imports into the local namespace due
+    to the last wildcard import of a particular application model. In this manner, it
+    secures the repeated preparation of different types of models via wildcard imports.
+    See the following example, on how it can be applied.
 
     >>> from hydpy import reverse_model_wildcard_import
 
@@ -137,22 +148,21 @@ def reverse_model_wildcard_import() -> None:
 
     >>> from hydpy.models.lland_v1 import *
 
-    This import adds, for example, the collection class for handling control
-    parameters of `lland_v1` into the local namespace:
+    This import adds, for example, the collection class for handling control parameters
+    of `lland_v1` into the local namespace:
 
     >>> print(ControlParameters(None).name)
     control
 
-    Calling function |parameterstep| prepares, for example, the control
-    parameter object of class |lland_control.NHRU|:
+    Calling function |parameterstep| prepares, for example, the control parameter
+    object of class |lland_control.NHRU|:
 
     >>> parameterstep("1d")
     >>> nhru
     nhru(?)
 
-    Calling function |reverse_model_wildcard_import| tries to give its
-    best to clear the local namespace (even from unexpected classes as
-    the one we define now):
+    Calling function |reverse_model_wildcard_import| tries to give its best to clear
+    the local namespace (even from unexpected classes as the one we define now):
 
     >>> class Test:
     ...     __module__ = "hydpy.models.lland_v1"
@@ -211,12 +221,13 @@ def reverse_model_wildcard_import() -> None:
             "cythonmodule",
         ):
             namespace.pop(name, None)
-        for key in list(namespace.keys()):
+        for key in tuple(namespace):
             try:
                 if namespace[key].__module__ == model.__module__:
                     del namespace[key]
             except AttributeError:
                 pass
+        namespace[__HYDPY_MODEL_LOCALS__] = {}
 
 
 def prepare_model(
@@ -358,10 +369,10 @@ def controlcheck(
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
     <BLANKLINE>
     ...
-    While trying to set the value(s) of variable `sm`, the following error \
-occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to \
-a numpy ndarray with shape `(12,)` and type `float`, the following error \
-occurred: could not broadcast input array from shape (2...) into shape (12...)
+    While trying to set the value(s) of variable `sm`, the following error occurred: \
+While trying to convert the value(s) `(185.13164, 181.18755)` to a numpy ndarray with \
+shape `(12,)` and type `float`, the following error occurred: could not broadcast \
+input array from shape (2...) into shape (12...)
     ...
 
     With a little trick, we can fake to be "inside" condition file `land_dill.py`.
@@ -377,9 +388,9 @@ occurred: could not broadcast input array from shape (2...) into shape (12...)
     >>> ic.shape
     (12,)
 
-    In the above example, we use the default names for the project directory
-    (the one containing the executed condition file) and the control
-    directory (`default`).  The following example shows how to change them:
+    In the above example, we use the default names for the project directory (the one
+    containing the executed condition file) and the control directory (`default`).  The
+    following example shows how to change them:
 
     >>> del model
     >>> with TestIO():   # doctest: +ELLIPSIS
@@ -391,15 +402,14 @@ occurred: could not broadcast input array from shape (2...) into shape (12...)
 from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
 the following error occurred: ...
 
-    For some models, the suitable states may depend on the initialisation
-    date.  One example is the interception storage (|lland_states.Inzp|) of
-    application model |lland_v1|, which should not exceed the interception
-    capacity (|lland_derived.KInz|).  However, |lland_derived.KInz| itself
-    depends on the leaf area index parameter |lland_control.LAI|, which
-    offers varying values both for different land-use types and months.
-    Hence, one can assign higher values to state |lland_states.Inzp| during
-    periods with high leaf area indices than during periods with small
-    leaf area indices.
+    For some models, the suitable states may depend on the initialisation date.  One
+    example is the interception storage (|lland_states.Inzp|) of application model
+    |lland_v1|, which should not exceed the interception capacity
+    (|lland_derived.KInz|).  However, |lland_derived.KInz| itself depends on the leaf
+    area index parameter |lland_control.LAI|, which offers varying values both for
+    different land-use types and months.  Hence, one can assign higher values to state
+    |lland_states.Inzp| during periods with high leaf area indices than during periods
+    with small leaf area indices.
 
     To show the related functionalities, we first replace the |hland_v1| application
     model of element `land_dill` with a |lland_v1| model object, define some of its
@@ -428,12 +438,11 @@ the following error occurred: ...
     ...     land_dill.model.parameters.save_controls()
     ...     land_dill.model.sequences.save_conditions()
 
-    Unfortunately, state |lland_states.Inzp| does not define a |trim| method
-    taking the actual value of parameter |lland_derived.KInz| into account
-    (due to compatibility with the original LARSIM model).  As an auxiliary
-    solution, we define such a function within the `land_dill.py` condition
-    file (and additionally modify some warning settings in favour of the
-    next examples):
+    Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
+    actual value of parameter |lland_derived.KInz| into account (due to compatibility
+    with the original LARSIM model).  As an auxiliary solution, we define such a
+    function within the `land_dill.py` condition file (and additionally modify some
+    warning settings in favour of the next examples):
 
     >>> cwd = os.path.join("LahnH", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():
@@ -455,16 +464,16 @@ the following error occurred: ...
     ...             "type(inzp).trim = trim\\n"])
     ...         file_.writelines(lines[5:])
 
-    Now, executing the condition file (and thereby calling function
-    |controlcheck|) does not raise any warnings due to extracting the
-    initialisation date from the name of the condition directory:
+    Now, executing the condition file (and thereby calling function |controlcheck|)
+    does not raise any warnings due to extracting the initialisation date from the name
+    of the condition directory:
 
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
 
-    If the directory name does imply the initialisation date to be within
-    January 2000 instead of July 2000, we correctly get the following warning:
+    If the directory name does imply the initialisation date to be within January 2000
+    instead of July 2000, we correctly get the following warning:
 
     >>> cwd_old = cwd
     >>> cwd_new = os.path.join("LahnH", "conditions", "init_2000_01_01")
@@ -472,14 +481,13 @@ the following error occurred: ...
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    For variable `inzp` at least one value needed to be trimmed.  \
-The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    For variable `inzp` at least one value needed to be trimmed.  The old and the new \
+value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...
 
-    One can define an alternative initialisation date via argument
-    `firstdate`:
+    One can define an alternative initialisation date via argument `firstdate`:
 
     >>> text_old = ('controlcheck(projectdir=r"LahnH", '
     ...             'controldir="default", stepsize="1d")')
@@ -494,9 +502,9 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
 
-    Default condition directory names do not contain any information about
-    the simulation step size.  Hence, one needs to define it explicitly for
-    all application modelsrelying on the functionalities of class |Indexer|:
+    Default condition directory names do not contain any information about the
+    simulation step size.  Hence, one needs to define it explicitly for all application
+    models relying on the functionalities of class |Indexer|:
 
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd_new)
@@ -506,17 +514,16 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     with open("land_dill.py", "w") as file_:
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    To apply function `controlcheck` requires time information for some \
-model types.  Please define the `Timegrids` object of module `pub` manually \
-or pass the required information (`stepsize` and eventually `firstdate`) \
-as function arguments.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    To apply function `controlcheck` requires time information for some model types.  \
+Please define the `Timegrids` object of module `pub` manually or pass the required \
+information (`stepsize` and eventually `firstdate`) as function arguments.
     ...
 
-    The same error occurs we do not use the argument `firstdate` to define
-    the initialisation time point, and method |controlcheck| cannot
-    extract it from the directory name:
+    The same error occurs we do not use the argument `firstdate` to define the
+    initialisation time point, and method |controlcheck| cannot extract it from the
+    directory name:
 
     >>> cwd_old = cwd_new
     >>> cwd_new = os.path.join("LahnH", "conditions", "init")
@@ -529,18 +536,16 @@ as function arguments.
     ...     with open("land_dill.py", "w") as file_:
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    To apply function `controlcheck` requires time information for some \
-model types.  Please define the `Timegrids` object of module `pub` manually \
-or pass the required information (`stepsize` and eventually `firstdate`) \
-as function arguments.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    To apply function `controlcheck` requires time information for some model types.  \
+Please define the `Timegrids` object of module `pub` manually or pass the required \
+information (`stepsize` and eventually `firstdate`) as function arguments.
     ...
 
-    Note that the functionalities of function |controlcheck| do not come
-    into action if there is a `model` variable in the namespace, which is
-    the case when a condition file is executed within the context of a
-    complete *HydPy* project.
+    Note that the functionalities of function |controlcheck| do not come into action if
+    there is a `model` variable in the namespace, which is the case when a condition
+    file is executed within the context of a complete *HydPy* project.
     """
     frame = inspect.currentframe()
     assert (frame is not None) and (frame.f_back is not None)
@@ -581,8 +586,8 @@ as function arguments.
             model = CM().load_file(filename=controlfile)["model"]
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the control file `{controlfile}` "
-                f"from directory `{objecttools.repr_(dirpath)}`"
+                f"While trying to load the control file `{controlfile}` from "
+                f"directory `{objecttools.repr_(dirpath)}`"
             )
         finally:
             os.chdir(cwd)
@@ -590,11 +595,10 @@ as function arguments.
             model.parameters.update()
         except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
-                "To apply function `controlcheck` requires time "
-                "information for some model types.  Please define "
-                "the `Timegrids` object of module `pub` manually "
-                "or pass the required information (`stepsize` and "
-                "eventually `firstdate`) as function arguments."
+                "To apply function `controlcheck` requires time information for some "
+                "model types.  Please define the `Timegrids` object of module `pub` "
+                "manually or pass the required information (`stepsize` and eventually "
+                "`firstdate`) as function arguments."
             ) from exc
 
         namespace["model"] = model

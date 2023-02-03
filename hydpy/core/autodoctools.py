@@ -4,6 +4,7 @@ standardisation of the online documentation generated with Sphinx."""
 # import...
 # ...from standard library
 from __future__ import annotations
+import abc
 import builtins
 import collections
 import copy
@@ -1042,6 +1043,7 @@ def prepare_mainsubstituter() -> Substituter:
 
     substituter = Substituter()
     for module in (
+        abc,
         builtins,
         numpy,
         datetime,

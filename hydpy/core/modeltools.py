@@ -22,6 +22,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
@@ -45,6 +46,25 @@ class Method:
 
     def __init_subclass__(cls) -> None:
         cls.__call__.CYTHONIZE = True
+
+
+abstractmodelmethods: Set[Callable[..., Any]] = set()
+
+
+def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
+    """Alternative for Python's |abc.abstractmethod|.
+
+    We currently use it to mark abstract methods in submodel interfaces that are not
+    statically overridden by concrete implementations but dynamically added during
+    model initialisation (either in a pure Python or a Cython version).
+
+    So far, the only functionality of |abstractmodelmethod| is to collect all decorated
+    functions in the set `abstractmodelmethods` so that one can find out which methods
+    are "abstract model methods" and which are not. We might also use it later to
+    extend our model consistency checks.
+    """
+    abstractmodelmethods.add(method)
+    return method
 
 
 class SubmodelInterface:

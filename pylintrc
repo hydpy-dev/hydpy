@@ -70,7 +70,6 @@ disable=attribute-defined-outside-init,
         too-many-ancestors,
         not-callable,
         invalid-name,
-        abstract-method,
         c-extension-no-member
 
 

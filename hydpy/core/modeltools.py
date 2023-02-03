@@ -67,44 +67,6 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
     return method
 
 
-class SubmodelInterface:
-    """Base class for defining interfaces for submodels.
-
-    Main models reference their submodels by their interface's class name in lowercase
-    letters without the version qualifier, as available via the (automatically created)
-    attribute |SubmodelInterface.name|:
-
-    >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
-    >>> SoilModel_V1.name
-    'soilmodel'
-    >>> SoilModel_V1().name
-    'soilmodel'
-    """
-
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-
-    name: str
-    """The main model's attribute name for submodels following the respective
-    interface."""
-
-    @property
-    @abc.abstractmethod
-    def typeid(self) -> int:
-        """Type identifier that we use for differentiating submodels that target the
-        same process group (e.g. infiltration) but follow different interfaces.
-
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
-        on.
-
-        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
-        checks in model equations as it allows releasing Python's Globel Interpreter
-        Lock in Cython.
-        """
-
-    def __init_subclass__(cls) -> None:
-        cls.name = cls.__name__.lower().rpartition("_")[0]
-
-
 class SubmodelProperty:
     """Descriptor for submodel attributes.
 
@@ -1207,6 +1169,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def __init_subclass__(cls) -> None:
 
         modulename = cls.__module__
+        if not modulename.startswith("hydpy.models."):
+            return
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
         module = importlib.import_module(modulename)
@@ -2583,6 +2547,26 @@ class ELSModel(SolverModel):
                     self.numvars.extrapolated_relerror = -999.9
             else:
                 self.numvars.extrapolated_relerror = modelutils.inf
+
+
+class SubmodelInterface(Model):
+    """Base class for defining interfaces for submodels."""
+
+    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+
+    @property
+    @abc.abstractmethod
+    def typeid(self) -> int:
+        """Type identifier that we use for differentiating submodels that target the
+        same process group (e.g. infiltration) but follow different interfaces.
+
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
+        on.
+
+        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
+        checks in model equations as it allows releasing Python's Globel Interpreter
+        Lock in Cython.
+        """
 
 
 class Submodel:

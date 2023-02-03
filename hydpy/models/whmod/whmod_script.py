@@ -695,7 +695,7 @@ def _initialize_whmod_models(
     if write_output:
         commandtools.print_textandtime("Initialize WHMOD")
 
-    for idx in range(len(df_knoteneigenschaften["id"].unique())):
+    for idx in sorted(df_knoteneigenschaften["id"].unique()):
 
         row = getattr(
             df_knoteneigenschaften[df_knoteneigenschaften["id"] == idx], "row"

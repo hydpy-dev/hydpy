@@ -839,7 +839,7 @@ class PyxWriter:
         )
         interfaces = self.model.SUBMODELINTERFACES + tuple(
             interface
-            for interface in type(self.model).__bases__
+            for interface in inspect.getmro(type(self.model))
             if interface.__module__.startswith("hydpy.interfaces")
         )
         for interface in set(interfaces):
@@ -1299,8 +1299,9 @@ class PyxWriter:
         lines.add(0, "@cython.final")
         interfacebases = ", ".join(
             f"{base.__module__.split('.')[-1]}.{base.__name__}"
-            for base in type(self.model).__bases__
+            for base in inspect.getmro(type(self.model))
             if issubclass(base, modeltools.SubmodelInterface)
+            and base.__module__.startswith("hydpy.interfaces.")
         )
         lines.add(0, f"cdef class Model({interfacebases}):")
         for cls in inspect.getmro(type(self.model)):

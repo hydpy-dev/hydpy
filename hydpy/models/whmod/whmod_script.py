@@ -96,13 +96,26 @@ def _collect_hrus(
 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
 'verzoegerung': '10', 'init_boden': 50.0, 'init_gwn': 40.0}}
+    >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse_dict)
+    Traceback (most recent call last):
+    ...
+    KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der id 4 angesetzt wird ist nicht definiert"
     """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
     extended_hrus = pandas.DataFrame(columns=hrus.columns)
     n_hrus = 0
     for i, hru in hrus.iterrows():
-        for landuse, area_perc in landuse_dict[hru["nutz_nr"]].items():
+        try:
+            landuse = landuse_dict[hru["nutz_nr"]]
+        except KeyError:
+            raise KeyError(
+                f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die "
+                f"Rasterzelle mit der id {idx_} angesetzt wird ist nicht "
+                f"definiert"
+            )
+        for landuse, area_perc in landuse.items():
             extended_hrus.loc[n_hrus] = hrus.loc[i].copy()
             extended_hrus.loc[n_hrus, "nutz_nr"] = landuse.upper()
             extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
@@ -291,12 +304,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
-    df_stammdaten = pandas.read_csv(
-        os.path.join(basedir, filename_station_data), comment="#", sep="\t"
-    )
-    df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
-        lambda a: a.split("_")[1].split(".")[0]
-    )
+    df_stammdaten = read_stationdata(os.path.join(basedir, filename_station_data))
     root_depth_dict = read_root_depth(
         root_depth_option=root_depth_option, basedir=basedir
     )
@@ -470,6 +478,88 @@ def print_hydpy_progress(write_output: str) -> bool:
     else:
         hydpy.pub.options.printprogress = False
     return write_output_
+
+
+def read_stationdata(path_station_data: str) -> pandas.DataFrame:
+    """
+    Lesse die Stationsdaten ein.
+
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> station_path = os.path.join(basedir, "Station_Data.txt")
+    >>> read_stationdata(path_station_data=station_path)  # doctest: +NORMALIZE_WHITESPACE
+           Messnetz  StationsNr  ...                  Dateiname          Messungsart
+    0       DWD           1  ...       1_Lufttemperatur.asc       Lufttemperatur
+    1       DWD           1  ...     1_Relative-Feuchte.asc     Relative-Feuchte
+    2       DWD           1  ...  1_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    3       DWD           1  ...    1_Sonnenscheindauer.asc    Sonnenscheindauer
+    4       DWD           1  ...            1_Luftdruck.asc            Luftdruck
+    5       DWD           1  ...         1_Niederschlag.asc         Niederschlag
+    6       DWD           2  ...       2_Lufttemperatur.asc       Lufttemperatur
+    7       DWD           2  ...     2_Relative-Feuchte.asc     Relative-Feuchte
+    8       DWD           2  ...  2_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    9       DWD           2  ...    2_Sonnenscheindauer.asc    Sonnenscheindauer
+    10      DWD           2  ...            2_Luftdruck.asc            Luftdruck
+    11      DWD           2  ...         2_Niederschlag.asc         Niederschlag
+    12      DWD           3  ...       3_Lufttemperatur.asc       Lufttemperatur
+    13      DWD           3  ...     3_Relative-Feuchte.asc     Relative-Feuchte
+    14      DWD           3  ...  3_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    15      DWD           3  ...    3_Sonnenscheindauer.asc    Sonnenscheindauer
+    16      DWD           3  ...            3_Luftdruck.asc            Luftdruck
+    17      DWD           3  ...         3_Niederschlag.asc         Niederschlag
+    18      DWD           4  ...       4_Lufttemperatur.asc       Lufttemperatur
+    19      DWD           4  ...     4_Relative-Feuchte.asc     Relative-Feuchte
+    20      DWD           4  ...  4_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    21      DWD           4  ...    4_Sonnenscheindauer.asc    Sonnenscheindauer
+    22      DWD           4  ...            4_Luftdruck.asc            Luftdruck
+    23      DWD           4  ...         4_Niederschlag.asc         Niederschlag
+    24      DWD           5  ...         5_Niederschlag.asc         Niederschlag
+    25      DWD           6  ...         6_Niederschlag.asc         Niederschlag
+    26      DWD           7  ...         7_Niederschlag.asc         Niederschlag
+    27      DWD           8  ...         8_Niederschlag.asc         Niederschlag
+    28      DWD           9  ...         9_Niederschlag.asc         Niederschlag
+    <BLANKLINE>
+    [29 rows x 10 columns]
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong1.txt")
+    >>> read_stationdata(path_station_data=station_path)
+    Traceback (most recent call last):
+    ...
+    ValueError: Die Dateinamen müssen den Parameternamen: ('Lufttemperatur', 'Relative-Feuchte', 'Windgeschwindigkeit', 'Sonnenscheindauer', 'Luftdruck', 'Niederschlag') entsprechen. Die Messsungsart ist jedoch RelativeFeuchte
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong2.txt")
+    >>> read_stationdata(path_station_data=station_path)
+    Traceback (most recent call last):
+    ...
+    ValueError: Notwendiger Spaltenname 'StationsNr' ist nicht in der Stationsdaten-Datei vorhanden.
+    """
+    df_stammdaten = pandas.read_csv(path_station_data, comment="#", sep="\t")
+    df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
+        lambda a: a.split("_")[1].split(".")[0]
+    )
+    possible_variables = (
+        "Lufttemperatur",
+        "Relative-Feuchte",
+        "Windgeschwindigkeit",
+        "Sonnenscheindauer",
+        "Luftdruck",
+        "Niederschlag",
+    )
+    valid_messart = df_stammdaten["Messungsart"].isin(possible_variables)
+    if not all(valid_messart):
+        raise ValueError(
+            f"Die Dateinamen müssen den Parameternamen: "
+            f"{possible_variables} entsprechen. Die Messsungsart ist "
+            f"jedoch "
+            f"{', '.join(df_stammdaten['Messungsart'][~valid_messart].values)}"
+        )
+    valid_columns = ("StationsNr", "Messungsart", "Dateiname", "Lat", "Long", "X", "Y")
+    for column in valid_columns:
+        if column not in df_stammdaten.columns:
+            raise ValueError(
+                f"Notwendiger Spaltenname '{column}' ist nicht in der "
+                f"Stationsdaten-Datei vorhanden."
+            )
+    return df_stammdaten
 
 
 def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:

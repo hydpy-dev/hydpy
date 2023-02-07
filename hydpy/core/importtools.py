@@ -407,7 +407,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @contextlib.contextmanager
     def __call__(
-        self, module: Union[types.ModuleType, str]
+        self, module: Union[types.ModuleType, str], update: bool = True
     ) -> Generator[None, None, None]:
         try:
             submodel = prepare_model(module)
@@ -428,6 +428,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             try:
                 _add_locals_to_namespace(submodel, namespace)
                 yield
+                if update:
+                    submodel.parameters.update()
             finally:
                 new_locals = namespace[__HYDPY_MODEL_LOCALS__]
                 for name in new_locals:

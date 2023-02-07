@@ -186,7 +186,7 @@ class IUH(metaclass=MetaIUH):
         given = sorted(kwargs.keys())
         required = sorted(self._PRIMARY_PARAMETERS)
         if given == required:
-            for (key, value) in kwargs.items():
+            for key, value in kwargs.items():
                 setattr(self, key, value)
         else:
             raise ValueError(
@@ -282,7 +282,7 @@ class IUH(metaclass=MetaIUH):
 
     def __repr__(self) -> str:
         parts = [type(self).__name__, "("]
-        for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
+        for name, primpar in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, "=", objecttools.repr_(value), ", "])

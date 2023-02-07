@@ -22,6 +22,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
@@ -47,42 +48,23 @@ class Method:
         cls.__call__.CYTHONIZE = True
 
 
-class SubmodelInterface:
-    """Base class for defining interfaces for submodels.
+abstractmodelmethods: Set[Callable[..., Any]] = set()
 
-    Main models reference their submodels by their interface's class name in lowercase
-    letters without the version qualifier, as available via the (automatically created)
-    attribute |SubmodelInterface.name|:
 
-    >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
-    >>> SoilModel_V1.name
-    'soilmodel'
-    >>> SoilModel_V1().name
-    'soilmodel'
+def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
+    """Alternative for Python's |abc.abstractmethod|.
+
+    We currently use it to mark abstract methods in submodel interfaces that are not
+    statically overridden by concrete implementations but dynamically added during
+    model initialisation (either in a pure Python or a Cython version).
+
+    So far, the only functionality of |abstractmodelmethod| is to collect all decorated
+    functions in the set `abstractmodelmethods` so that one can find out which methods
+    are "abstract model methods" and which are not. We might also use it later to
+    extend our model consistency checks.
     """
-
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-
-    name: str
-    """The main model's attribute name for submodels following the respective
-    interface."""
-
-    @property
-    @abc.abstractmethod
-    def typeid(self) -> int:
-        """Type identifier that we use for differentiating submodels that target the
-        same process group (e.g. infiltration) but follow different interfaces.
-
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
-        on.
-
-        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
-        checks in model equations as it allows releasing Python's Globel Interpreter
-        Lock in Cython.
-        """
-
-    def __init_subclass__(cls) -> None:
-        cls.name = cls.__name__.lower().rpartition("_")[0]
+    abstractmodelmethods.add(method)
+    return method
 
 
 class SubmodelProperty:
@@ -1185,8 +1167,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return self.name
 
     def __init_subclass__(cls) -> None:
-
         modulename = cls.__module__
+        if not modulename.startswith("hydpy.models."):
+            return
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
         module = importlib.import_module(modulename)
@@ -2563,6 +2546,26 @@ class ELSModel(SolverModel):
                     self.numvars.extrapolated_relerror = -999.9
             else:
                 self.numvars.extrapolated_relerror = modelutils.inf
+
+
+class SubmodelInterface(Model, abc.ABC):
+    """Base class for defining interfaces for submodels."""
+
+    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+
+    @property
+    @abc.abstractmethod
+    def typeid(self) -> int:
+        """Type identifier that we use for differentiating submodels that target the
+        same process group (e.g. infiltration) but follow different interfaces.
+
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
+        on.
+
+        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
+        checks in model equations as it allows releasing Python's Globel Interpreter
+        Lock in Cython.
+        """
 
 
 class Submodel:

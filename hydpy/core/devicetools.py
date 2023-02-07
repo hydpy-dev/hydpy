@@ -1059,7 +1059,7 @@ conflict with using their names as identifiers.
             raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
-        for (_, device) in sorted(self._name2device.items()):
+        for _, device in sorted(self._name2device.items()):
             yield device
 
     def __contains__(self, value: object) -> bool:
@@ -2239,8 +2239,8 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns=dict(series=label_))
-                kwargs = dict(label=label_, ax=pyplot.gca())
+                    ps = ps.rename(columns={"series": label_})
+                kwargs = {"label": label_, "ax": pyplot.gca()}
                 if color is not None:
                     kwargs["color"] = color
                 if linestyle is not None:
@@ -3069,7 +3069,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 label_ = f"{label_}, averaged"
             else:
                 series = sequence.evalseries
-            kwargs = dict(label=label_, ax=pyplot.gca())
+            kwargs = {"label": label_, "ax": pyplot.gca()}
             if color is not None:
                 kwargs["color"] = color
             if linestyle is not None:
@@ -3285,10 +3285,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                     group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="
-                        # pylint: disable=not-an-iterable
-                        # because pylint is wrong
                         nodes = [str(node) for node in group]
-                        # pylint: enable=not-an-iterable
                         line = objecttools.assignrepr_list(nodes, subprefix, width=70)
                         lines.append(line + ",")
                 if self.keywords:

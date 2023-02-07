@@ -35,9 +35,6 @@ Integration tests
 >>> from hydpy.models.wland_v002 import *
 >>> parameterstep("1d")
 >>> land = Element("land", outlets="outlet")
->>> from hydpy import prepare_model
->>> model.petmodel = prepare_model("evap_io")
->>> model.pemodel = prepare_model("evap_io")
 >>> land.model = model
 >>> al(9.8)
 >>> as_(0.2)
@@ -75,14 +72,10 @@ Integration tests
 >>> zeta2(400.0)
 >>> sh(1.0)
 >>> st(1.0)
->>> model.petmodel.parameters.control.nmbhru(3)
->>> model.petmodel.parameters.control.evapotranspirationfactor(0.9)
->>> model.petmodel.parameters.control.hruarea.values = aur.values
->>> model.petmodel.parameters.update()
->>> model.pemodel.parameters.control.nmbhru(1)
->>> model.pemodel.parameters.control.evapotranspirationfactor(0.9)
->>> model.pemodel.parameters.control.hruarea(1.0)
->>> model.pemodel.parameters.update()
+>>> with model.add_petmodel_v1("evap_io"):
+...     evapotranspirationfactor(0.9)
+>>> with model.add_pemodel_v1("evap_io"):
+...     evapotranspirationfactor(0.9)
 >>> test = IntegrationTest(land)
 >>> test.inits = ((states.ic, -3.0),
 ...               (states.sp, -3.0),
@@ -594,7 +587,7 @@ from hydpy.models.wland import wland_solver
 from hydpy.models.wland.wland_constants import *
 
 
-class Model(modeltools.ELSModel):
+class Model(wland_model.Base_PETModel_V1):
     """The *HydPy-W-Land* model."""
 
     SOLVERPARAMETERS = (

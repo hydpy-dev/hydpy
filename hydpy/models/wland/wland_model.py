@@ -8,6 +8,7 @@
 from typing import *
 
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
@@ -1399,7 +1400,7 @@ class Calc_DVEq_V2(modeltools.Method):
     power law. The benefit of method |Calc_DVEq_V2| is that it supports the
     regularisation of |Return_DVH_V1|, which |Calc_DVEq_V1| does not.  In our
     experience, this benefit does not justify the additional numerical cost.
-    However, we keep it for educational purposes; mainly as a starting point to
+    However, we keep it for educational purposes, mainly as a starting point to
     implement alternative relationships between the soil water deficit and the
     groundwater table that we cannot solve analytically.
 
@@ -1652,9 +1653,9 @@ class Calc_DVEq_V4(modeltools.Method):
     Basic equation:
       :math:`DHEq = \int_{0}^{DG} Return\_DVH\_V2(h) \ \ dh`
 
-    Method |Calc_DVEq_V4| integrates |Return_DVH_V2| numerically, based on the
+    Method |Calc_DVEq_V4| integrates |Return_DVH_V2| numerically based on the
     Lobatto-Gauß quadrature.  The short discussion in the documentation on
-    |Calc_DVEq_V2| (which integrates |Return_DVH_V1|) also applies on |Calc_DVEq_V4|.
+    |Calc_DVEq_V2| (which integrates |Return_DVH_V1|) also applies to |Calc_DVEq_V4|.
 
     Examples:
 
@@ -1780,8 +1781,8 @@ class Return_ErrorDV_V1(modeltools.Method):
 
         As mentioned above, method |Return_ErrorDV_V1| changes the values of the
         sequences |DG| and |DVEq|, but only temporarily.  Hence, we do not include
-        them into the method specifications, even if the following check considers
-        this to be erroneous:
+        them in the method specifications, even if the following check considers this
+        to be erroneous:
 
         >>> from hydpy.core.testtools import check_selectedvariables
         >>> from hydpy.models.wland.wland_model import Return_ErrorDV_V1
@@ -1914,7 +1915,7 @@ class Calc_GF_V1(modeltools.Method):
 
     The original `WALRUS`_ model attributes a passive role to groundwater dynamics.
     All water entering or leaving the underground is added to or subtracted from the
-    vadose zone, and the groundwater table only reacts on such changes until it is in
+    vadose zone, and the groundwater table only reacts to such changes until it is in
     equilibrium with the updated water deficit in the vadose zone.  Hence, the movement
     of the groundwater table is generally slow.  However, in catchments with
     near-surface water tables, we often observe fast responses of groundwater to input
@@ -1930,7 +1931,7 @@ class Calc_GF_V1(modeltools.Method):
     depths above the groundwater table.  To keep the vertically lumped approach, we
     use the difference between the actual (|DG|) and the equilibrium groundwater depth
     (|DGEq|) as an indicator for the wetness above the groundwater table.  When |DG|
-    is identical with |DGEq|, soil moisture and groundwater are in equilibrium.  Then,
+    is identical to |DGEq|, soil moisture and groundwater are in equilibrium.  Then,
     the tension-saturated area is fully developed, and the groundwater table moves
     quickly (depending on |ThetaR|).  The opposite case is when |DG| is much smaller
     than |DGEq|.  Such a situation occurs after a fast rise of the groundwater table
@@ -2039,11 +2040,10 @@ class Calc_CDG_V1(modeltools.Method):
       :math:`CDG = \frac{DV-min(DVEq, DG)}{CV}`
 
     Note that this equation slightly differs from equation 6 of
-    :cite:t:`ref-Brauer2014`.
-    In case of large-scale ponding, |DVEq| always stays at zero and we let |DG|
-    take control of the speed of the water table movement.  See the documentation
-    on method |Calc_FGS_V1| for additional information on the differences between
-    |wland| and `WALRUS`_ for this rare situation.
+    :cite:t:`ref-Brauer2014`.  In the case of large-scale ponding, |DVEq| always stays
+    at zero, and we let |DG| take control of the speed of the water table movement.
+    See the documentation on method |Calc_FGS_V1| for additional information on the
+    differences between |wland| and `WALRUS`_ for this rare situation.
 
     Examples:
 
@@ -2234,7 +2234,7 @@ class Calc_FGS_V1(modeltools.Method):
     water instantaneously in such cases (see :cite:t:`ref-Brauer2014`, section 5.11),
     which relates to infinitely high flow velocities and cannot be handled by the
     numerical integration algorithm underlying |wland|.  Hence, we instead introduce
-    the parameter |CGF|.  Setting it to a value larger zero increases the flow
+    the parameter |CGF|.  Setting it to a value larger than zero increases the flow
     velocity with increasing large-scale ponding.  The larger the value of |CGF|,
     the stronger the functional similarity of both approaches.  But note that very
     high values can result in increased computation times.
@@ -2863,3 +2863,61 @@ class Model(modeltools.ELSModel):
 
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+
+
+class Base_PETModel_V1(modeltools.ELSModel):
+    """Base class for HydPy-W models that support submodels that comply with the
+    |PETModel_V1| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    pemodel: modeltools.SubmodelProperty
+
+    @importtools.prepare_submodel(
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
+        is responsible for calculating the potential evapotranspiration of the
+        (land-related) hydrological response units.
+
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+        >>> nu(2)
+        >>> al(10.0)
+        >>> aur(0.2, 0.8)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     nmbhru
+        nmbhru(2)
+        >>> model.petmodel.parameters.control.hruarea
+        hruarea(2.0, 8.0)
+        """
+        self.petmodel = petmodel
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(control.nu.value)
+        petmodel.prepare_subareas(control.al.value * control.aur.values)
+
+    @importtools.prepare_submodel(
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_pemodel_v1(self, pemodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given `pemodel` that follows the |PETModel_V1| interface and
+        is responsible for calculating the potential evaporation of the surface water
+        storage.
+
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+        >>> as_(5.0)
+        >>> with model.add_pemodel_v1("evap_tw2002"):
+        ...     nmbhru
+        nmbhru(1)
+        >>> model.pemodel.parameters.control.hruarea
+        hruarea(5.0)
+        """
+        self.pemodel = pemodel
+        control = self.parameters.control
+        pemodel.prepare_nmbzones(1)
+        pemodel.prepare_subareas(control.as_.value)

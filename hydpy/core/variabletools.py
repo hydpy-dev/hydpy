@@ -1775,7 +1775,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def __deepcopy__(self, memo):
         new = type(self)(None)
-        for (key, value) in vars(self).items():
+        for key, value in vars(self).items():
             if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
         if self.NDIM:

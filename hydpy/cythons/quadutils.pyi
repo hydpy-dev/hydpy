@@ -15,5 +15,4 @@ class QuadBase:
     ) -> float: ...
 
 class QuadPython(QuadBase):
-
     method0: modeltools.Method

@@ -1059,7 +1059,7 @@ conflict with using their names as identifiers.
             raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
-        for (_, device) in sorted(self._name2device.items()):
+        for _, device in sorted(self._name2device.items()):
             yield device
 
     def __contains__(self, value: object) -> bool:

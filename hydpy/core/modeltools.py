@@ -1167,7 +1167,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return self.name
 
     def __init_subclass__(cls) -> None:
-
         modulename = cls.__module__
         if not modulename.startswith("hydpy.models."):
             return

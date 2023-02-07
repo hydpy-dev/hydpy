@@ -29,7 +29,6 @@ else:
 class _ANNArrayProperty(
     propertytools.DependentProperty[propertytools.TypeInput, propertytools.TypeOutput]
 ):
-
     _obj2cann: Dict[Any, annutils.ANN]  # pylint: disable=used-before-assignment
     _obj2cann = weakref.WeakKeyDictionary()
 

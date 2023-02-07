@@ -165,14 +165,14 @@ following error occurred: hour must be in 0..23
     """
 
     # These are the so far accepted date format strings.
-    formatstrings = dict(
-        os="%Y_%m_%d_%H_%M_%S",
-        iso2="%Y-%m-%d %H:%M:%S",
-        iso1="%Y-%m-%dT%H:%M:%S",
-        din1="%d.%m.%Y %H:%M:%S",
-        din2="%Y.%m.%d %H:%M:%S",
-        raw="%Y%m%d%H%M%S",
-    )
+    formatstrings = {
+        "os": "%Y_%m_%d_%H_%M_%S",
+        "iso2": "%Y-%m-%d %H:%M:%S",
+        "iso1": "%Y-%m-%dT%H:%M:%S",
+        "din1": "%d.%m.%Y %H:%M:%S",
+        "din2": "%Y.%m.%d %H:%M:%S",
+        "raw": "%Y%m%d%H%M%S",
+    }
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
     _lastformatstring = "os", formatstrings["os"]

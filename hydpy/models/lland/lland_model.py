@@ -9956,6 +9956,8 @@ class Base_PETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
     |PETModel_V1| interface."""
 
+    petmodel: modeltools.SubmodelProperty
+
     @importtools.prepare_submodel(
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
@@ -9980,3 +9982,32 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nhru.value)
         petmodel.prepare_subareas(control.fhru.value * control.ft.value)
+
+
+class Base_SoilModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |SoilModel_V1| interface."""
+
+    soilmodel: modeltools.SubmodelProperty
+
+    @importtools.prepare_submodel(
+        soilinterfaces.SoilModel_V1,
+        soilinterfaces.SoilModel_V1.prepare_nmbzones,
+    )
+    def add_soilmodel_v1(self, soilmodel: soilinterfaces.SoilModel_V1) -> None:
+        """Initialise the given soil model that follows the |SoilModel_V1| interface.
+
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> ft(10.0)
+        >>> fhru(0.2, 0.8)
+        >>> with model.add_soilmodel_v1("ga_garto_submodel1", update=False):
+        ...     nmbsoils
+        nmbsoils(2)
+        >>> model.soilmodel.parameters.control.nmbsoils
+        nmbsoils(2)
+        """
+        self.soilmodel = soilmodel
+        control = self.parameters.control
+        soilmodel.prepare_nmbzones(control.nhru.value)

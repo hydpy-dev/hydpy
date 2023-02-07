@@ -924,7 +924,7 @@ class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
 
     @importtools.define_targetparameter(evap_control.NmbHRU)
     def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of hydrological response units in m.
+        """Set the number of hydrological response units.
 
         >>> from hydpy.models.evap_tw2002 import *
         >>> parameterstep()

@@ -444,24 +444,21 @@ We set the soil depth in agreement with the maximum soil water content (309.0 mm
 the initial relative soil moisture in agreement with the initial water content (72 mm)
 of the previous :ref:`lland_v3_acker_heavy_rain_daily` example:
 
->>> from hydpy import prepare_model, pub
->>> soilmodel = prepare_model("ga_garto_submodel1")
->>> soilmodel.parameters.control.nmbsoils(1)
->>> soilmodel.parameters.control.nmbbins(4)
->>> with pub.options.parameterstep("1m"):
-...     soilmodel.parameters.control.dt(1.0)
->>> soilmodel.parameters.control.sealed(False)
->>> soilmodel.parameters.control.soildepth(309.0 / 0.434)
->>> soilmodel.parameters.control.residualmoisture(0.027)
->>> soilmodel.parameters.control.saturationmoisture(0.434)
->>> soilmodel.parameters.control.saturatedconductivity(13.2)
->>> soilmodel.parameters.control.poresizedistribution(0.252)
->>> soilmodel.parameters.control.airentrypotential(111.5)
->>> soilmodel.parameters.update()
->>> soilmodel.sequences.states.moisture = 72.0 / 309.0 * 0.434
->>> soilmodel.sequences.states.frontdepth = 0.0
->>> soilmodel.sequences.states.moisturechange = 0.0
->>> model.soilmodel = soilmodel
+>>> from hydpy import pub
+>>> with model.add_soilmodel_v1("ga_garto_submodel1"):
+...     nmbbins(4)
+...     with pub.options.parameterstep("1m"):
+...         dt(1.0)
+...     sealed(False)
+...     soildepth(309.0 / 0.434)
+...     residualmoisture(0.027)
+...     saturationmoisture(0.434)
+...     saturatedconductivity(13.2)
+...     poresizedistribution(0.252)
+...     airentrypotential(111.5)
+...     states.moisture = 72.0 / 309.0 * 0.434
+...     states.frontdepth = 0.0
+...     states.moisturechange = 0.0
 
 When comparing the |lland_v1| examples :ref:`lland_v1_acker_summer` and
 :ref:`lland_v1_acker_garto`, we see an increase in direct runoff generation due to
@@ -2098,7 +2095,7 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(modeltools.AdHocModel):
+class Model(lland_model.Base_SoilModel_V1):
     """Penman-Monteith and Knauf version of HydPy-L-Land (|lland_v3|)."""
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)

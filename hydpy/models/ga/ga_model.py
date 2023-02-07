@@ -10,9 +10,11 @@ from typing import *
 import numpy
 
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
-from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
+from hydpy.cythons import modelutils
+from hydpy.interfaces import soilinterfaces
 
 # ...from hland
 from hydpy.models.ga import ga_control
@@ -2951,3 +2953,20 @@ class MixinGARTO:
             frontdepth=frontdepth, moisture=moisture
         )
         return numpy.nansum(weights * watercontents)
+
+
+class Base_SoilModel_V1(modeltools.AdHocModel, soilinterfaces.SoilModel_V1):
+    """Base class for HydPy-GA models that comply with the |SoilModel_V1| submodel
+    interface."""
+
+    @importtools.define_targetparameter(ga_control.NmbSoils)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of soil compartments.
+
+        >>> from hydpy.models.ga_garto_submodel1 import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbsoils
+        nmbsoils(2)
+        """
+        self.parameters.control.nmbsoils(nmbzones)

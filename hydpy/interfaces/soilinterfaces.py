@@ -5,6 +5,7 @@
 """
 # import...
 # ...from standard library
+import abc
 from typing import *
 
 # ...from hydpy
@@ -29,6 +30,10 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+
+    @abc.abstractmethod
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
 
     @modeltools.abstractmodelmethod
     def set_initialsurfacewater(self, k: int, v: float) -> None:

@@ -3900,8 +3900,6 @@ class TOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        # pylint: disable=no-member
-        # pylint does not understand descriptors well enough, so far
         indexarray = hydpy.pub.indexer.timeofyear
         self.__hydpy__set_shape__(indexarray.shape)
         self.__hydpy__set_value__(indexarray)
@@ -3932,8 +3930,6 @@ class MOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        # pylint: disable=no-member
-        # pylint does not understand descriptors well enough, so far
         indexarray = hydpy.pub.indexer.monthofyear
         self.__hydpy__set_shape__(indexarray.shape)
         self.__hydpy__set_value__(indexarray)
@@ -3964,8 +3960,6 @@ class DOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        # pylint: disable=no-member
-        # pylint does not understand descriptors well enough, so far
         indexarray = hydpy.pub.indexer.dayofyear
         self.__hydpy__set_shape__(indexarray.shape)
         self.__hydpy__set_value__(indexarray)
@@ -3996,8 +3990,6 @@ class SCTParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        # pylint: disable=no-member
-        # pylint does not understand descriptors well enough, so far
         array = hydpy.pub.indexer.standardclocktime
         self.__hydpy__set_shape__(array.shape)
         self.__hydpy__set_value__(array)

@@ -2549,7 +2549,7 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
-class SubmodelInterface(Model):
+class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]

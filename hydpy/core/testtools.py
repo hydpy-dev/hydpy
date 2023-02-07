@@ -861,7 +861,7 @@ datetime of the Python standard library for for further information.
                     sel_series.append(list(series))
                     _update_act_names(sequence, subname)
 
-        fig = subplots.make_subplots(rows=1, cols=1, specs=[[dict(secondary_y=True)]])
+        fig = subplots.make_subplots(rows=1, cols=1, specs=[[{"secondary_y": True}]])
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
         fig.update_layout(showlegend=True)
@@ -906,51 +906,51 @@ datetime of the Python standard library for for further information.
             ["add all to y-axis 2", [False, True]],
         ):
             subbuttons = [
-                dict(
-                    label=label,
-                    method="restyle",
-                    args=[dict(visible=len(sel_sequences) * visibles)],
-                )
+                {
+                    "label": label,
+                    "method": "restyle",
+                    "args": [{"visible": len(sel_sequences) * visibles}],
+                }
             ]
             for idx, name in enumerate(sel_names):
                 subbuttons.append(
-                    dict(
-                        label=name,
-                        method="restyle",
-                        args=[dict(visible=visibles), [2 * idx, 2 * idx + 1]],
-                    )
+                    {
+                        "label": name,
+                        "method": "restyle",
+                        "args": [{"visible": visibles}, [2 * idx, 2 * idx + 1]],
+                    }
                 )
             buttons.append(subbuttons)
 
         fig.update_layout(
             hovermode="x unified",
             updatemenus=[
-                dict(
-                    active=0,
-                    xanchor="left",
-                    x=0.0,
-                    yanchor="bottom",
-                    y=1.02,
-                    buttons=buttons[0],
-                ),
-                dict(
-                    active=0,
-                    xanchor="center",
-                    x=0.5,
-                    yanchor="bottom",
-                    y=1.02,
-                    buttons=buttons[1],
-                ),
-                dict(
-                    active=0,
-                    xanchor="right",
-                    x=1.0,
-                    yanchor="bottom",
-                    y=1.02,
-                    buttons=buttons[2],
-                ),
+                {
+                    "active": 0,
+                    "xanchor": "left",
+                    "x": 0.0,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[0],
+                },
+                {
+                    "active": 0,
+                    "xanchor": "center",
+                    "x": 0.5,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[1],
+                },
+                {
+                    "active": 0,
+                    "xanchor": "right",
+                    "x": 1.0,
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "buttons": buttons[2],
+                },
             ],
-            legend=dict(tracegroupgap=100),
+            legend={"tracegroupgap": 100},
         )
 
         docspath = docs.__path__[0]
@@ -1568,7 +1568,7 @@ def update_integrationtests(
     """
     module = importlib.import_module(f"hydpy.models.{applicationmodel}")
     docstring: str = module.__doc__
-    stringio = io.StringIO  # pylint: disable=no-member
+    stringio = io.StringIO
     with stringio() as resultfile, contextlib.redirect_stdout(resultfile):
         module.tester.perform_tests()
         result = resultfile.getvalue()

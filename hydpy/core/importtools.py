@@ -60,7 +60,7 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                 if hasattr(cythonizer.cymodule, numpars_name):
                     numpars_new = getattr(cythonizer.cymodule, numpars_name)()
                     numpars_old = getattr(model, numpars_name.lower())
-                    for (name_numpar, numpar) in vars(numpars_old).items():
+                    for name_numpar, numpar in vars(numpars_old).items():
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
             for name in dir(model.cymodel):
@@ -254,7 +254,7 @@ def prepare_model(
             if hasattr(cymodule, numpars_name):
                 numpars_new = getattr(cymodule, numpars_name)()
                 numpars_old = getattr(model, numpars_name.lower())
-                for (name_numpar, numpar) in vars(numpars_old).items():
+                for name_numpar, numpar in vars(numpars_old).items():
                     setattr(numpars_new, name_numpar, numpar)
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):

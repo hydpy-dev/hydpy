@@ -321,7 +321,7 @@ attribute nor does it handle a model named `lland_v1`.
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
         options = hydpy.pub.options
-        for (modelname, subauxfiler) in self:
+        for modelname, subauxfiler in self:
             for filename in subauxfiler.get_filenames():
                 with options.parameterstep(parameterstep), options.simulationstep(
                     simulationstep

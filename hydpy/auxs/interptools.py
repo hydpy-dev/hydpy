@@ -742,7 +742,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                 )
             if algorithm:
                 algorithms["_1"] = algorithm[0]
-            for (toystr, value) in algorithms.items():
+            for toystr, value in algorithms.items():
                 if not isinstance(value, InterpAlgorithm):
                     raise TypeError(
                         f"Type `{type(value).__name__}` is not (a subclass of) type "

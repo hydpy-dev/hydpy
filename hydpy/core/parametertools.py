@@ -191,7 +191,7 @@ class Constants(Dict[str, int]):
         frame = inspect.currentframe().f_back
         self.__module__ = frame.f_locals.get("__name__")
         if not (args or kwargs):
-            for (key, value) in frame.f_locals.items():
+            for key, value in frame.f_locals.items():
                 if key.isupper() and isinstance(value, IntConstant):
                     kwargs[key] = value
             super().__init__(**kwargs)
@@ -2235,7 +2235,7 @@ error occurred: could not convert string to float: 'test'
             values[mask] = kwargs.pop("default")
         else:
             check = True
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             try:
                 selidx = self.MODEL_CONSTANTS[key.upper()]
                 if selidx in relidxs:
@@ -2305,7 +2305,7 @@ error occurred: could not convert string to float: 'test'
         mask = self.mask
         refindices = mask.refindices.values
         name2unique = KeywordArguments()
-        for (key, value) in self.MODEL_CONSTANTS.items():
+        for key, value in self.MODEL_CONSTANTS.items():
             if value in mask.RELEVANT_VALUES:
                 unique = numpy.unique(self.values[refindices == value])
                 unique = self.revert_timefactor(unique)
@@ -2558,7 +2558,7 @@ broadcast input array from shape (2,) into shape (366,3)
             self._toy2values = []
             if args:
                 raise exc
-            for (toystr, values) in kwargs.items():
+            for toystr, values in kwargs.items():
                 try:
                     self._add_toyvaluepair(toystr, values)
                 except BaseException:
@@ -3051,7 +3051,7 @@ index 1 is out of bounds for axis 0 with size 1
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            for (idx, key) in enumerate(self.ENTRYNAMES):
+            for idx, key in enumerate(self.ENTRYNAMES):
                 try:
                     self.values[idx] = self.apply_timefactor(kwargs[key])
                 except KeyError:
@@ -3331,8 +3331,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
         rownames = cls.ROWNAMES
         colnames = cls.COLNAMES
         rowcolmappings = {}
-        for (idx, rowname) in enumerate(rownames):
-            for (jdx, colname) in enumerate(colnames):
+        for idx, rowname in enumerate(rownames):
+            for jdx, colname in enumerate(colnames):
                 rowcolmappings["_".join((rowname, colname))] = (idx, jdx)
         cls._ROWCOLMAPPINGS = rowcolmappings
 
@@ -3344,7 +3344,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            for (idx, key) in enumerate(self.ROWNAMES):
+            for idx, key in enumerate(self.ROWNAMES):
                 try:
                     self.values[idx, :] = self.apply_timefactor(kwargs[key])
                 except KeyError:
@@ -3430,7 +3430,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
-        for (idx, key) in enumerate(self.ROWNAMES):
+        for idx, key in enumerate(self.ROWNAMES):
             subprefix = f"{prefix}{key}=" if idx == 0 else f"{blanks}{key}="
             lines.append(
                 objecttools.assignrepr_list(values[idx, :], subprefix, 75) + ","

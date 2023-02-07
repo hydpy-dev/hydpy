@@ -214,7 +214,7 @@ class Model:
                     shortnames.add(shortname)
                 else:
                     shortname2method.pop(shortname, None)
-            for (shortname, method) in shortname2method.items():
+            for shortname, method in shortname2method.items():
                 if method is not None:
                     setattr(self, shortname, method)
 
@@ -784,7 +784,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return self.name
 
     def __init_subclass__(cls) -> None:
-
         modulename = cls.__module__
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]

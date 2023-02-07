@@ -447,7 +447,7 @@ class Cythonizer:
         frame = frame.f_back
         assert frame is not None
         self.pymodule = frame.f_globals["__name__"]
-        for (key, value) in frame.f_locals.items():
+        for key, value in frame.f_locals.items():
             setattr(self, key, value)
 
     def cythonize(self) -> None:
@@ -844,7 +844,7 @@ class PyxWriter:
     def constants(self) -> List[str]:
         """Constants declaration lines."""
         lines = Lines()
-        for (name, member) in vars(self.cythonizer).items():
+        for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
                 and not inspect.isclass(member)
@@ -1587,7 +1587,7 @@ class PyxWriter:
     def listofmodeluserfunctions(self) -> List[Tuple[str, Callable[..., Any]]]:
         """User functions of the model class."""
         lines = []
-        for (name, member) in vars(self.model).items():
+        for name, member in vars(self.model).items():
             if getattr(getattr(member, "__func__", None), "CYTHONIZE", False):
                 lines.append((name, member))
         return lines
@@ -1596,7 +1596,7 @@ class PyxWriter:
     def modeluserfunctions(self) -> List[str]:
         """Model-specific functions."""
         lines = Lines()
-        for (name, func) in self.listofmodeluserfunctions:
+        for name, func in self.listofmodeluserfunctions:
             print(f"            . {name}")
             funcconverter = FuncConverter(self.model, name, func)
             lines.extend(funcconverter.pyxlines)
@@ -2215,7 +2215,7 @@ class FuncConverter:
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
         code = code.replace("model.", "self.")
-        for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
+        for name, shortcut in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()

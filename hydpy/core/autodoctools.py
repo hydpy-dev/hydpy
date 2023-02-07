@@ -277,14 +277,14 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         methods = list(model.get_methods())
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
-    for (title, spec2capt) in (
+    for title, spec2capt in (
         ("Parameter Features", _PAR_SPEC2CAPT),
         ("Sequence Features", _SEQ_SPEC2CAPT),
         ("Auxiliary Features", _AUX_SPEC2CAPT),
     ):
         found_module = False
         new_lines = _add_title(title, "-")
-        for (specification, caption) in spec2capt.items():
+        for specification, caption in spec2capt.items():
             modulename = f"{basemodulename}_{specification}"
             if modulename in modules:
                 module = modules[modulename]
@@ -843,7 +843,7 @@ class Substituter:
         short = f"|{name_module}|"
         long = f":mod:`~{module.__name__}`"
         self.short2long[short] = long
-        for (name_member, member) in vars(module).items():
+        for name_member, member in vars(module).items():
             if self.consider_member(name_member, member, module):
                 role = self.get_role(member, cython)
                 short = f"|{name_member}|"
@@ -1125,7 +1125,7 @@ def autodoc_module(module: types.ModuleType) -> None:
         lines = [
             f"\n\nModule :mod:`~{module.__name__}` implements the following members:\n"
         ]
-        for (name, member) in members:
+        for name, member in members:
             if inspect.isfunction(member):
                 type_ = "func"
             elif inspect.isclass(member):

@@ -108,7 +108,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
     def __init__(self, *args: str, **kwargs: str) -> None:
         for arg in args:
             self.add(arg)
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             self.add(key, value)
 
     def add(self, directory: str, path: Optional[str] = None) -> None:
@@ -741,7 +741,7 @@ error occurred: name 'y' is not defined
                 f"The directory `{self.currentpath}` does not contain any network "
                 f"files."
             )
-        for (filename, path) in zip(self.filenames, self.filepaths):
+        for filename, path in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
             devicetools.Node.extract_new()
             devicetools.Element.extract_new()

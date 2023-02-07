@@ -2190,7 +2190,6 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
 
 
 class _HTTPServerBase(http.server.HTTPServer):
-
     debugmode: bool = False
 
 
@@ -2276,7 +2275,6 @@ def start_server(
     )
 
     class _HTTPServer(_HTTPServerBase):
-
         debugmode = debugging == "enable"
         request_queue_size = int(maxrequests)
 

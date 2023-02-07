@@ -992,7 +992,7 @@ conflict with using their names as identifiers.
         del self._name2device[name]
 
     def __iter__(self) -> Iterator[TypeDevice]:
-        for (_, device) in sorted(self._name2device.items()):
+        for _, device in sorted(self._name2device.items()):
             yield device
 
     def __contains__(self, value: object) -> bool:

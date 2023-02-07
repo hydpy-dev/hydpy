@@ -367,7 +367,7 @@ class ArrayDescriptor:
         if values is not None:
             names = tuple(value[0].name for value in values)
             duplicates = any(names.count(name) > 1 for name in names)
-            for (key, value) in values:
+            for key, value in values:
                 if duplicates:
                     name = objecttools.devicename(key)
                     setattr(self.values, f"{name}_{key.name}", value)
@@ -436,7 +436,7 @@ class Test:
     def raw_body_strings(self) -> List[List[str]]:
         """All raw strings for the body of the table."""
         strings = []
-        for (idx, first_string) in enumerate(self.raw_first_col_strings):
+        for idx, first_string in enumerate(self.raw_first_col_strings):
             strings.append([first_string])
             for parseq in self.parseqs:
                 array = self.get_output_array(parseq)
@@ -1068,7 +1068,6 @@ class UnitTest(Test):
 
 
 class _Open:
-
     __readingerror = (
         "Reading is not possible at the moment.  Please see the "
         "documentation on class `Open` of module `testtools` "

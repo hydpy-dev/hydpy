@@ -236,7 +236,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import types
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -1743,11 +1742,15 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self.GET_register_initialconditionitemvalues()
 
     @staticmethod
-    def _array2output(values: Union[float, VectorInput[Any]]) -> str:
+    def _array2output(
+        values: Union[float, VectorInputObject, MatrixInputObject]
+    ) -> str:
         # duck-typing for simplicity:
         try:
             try:
-                return objecttools.assignrepr_list2(values, prefix="").replace("\n", "")
+                return objecttools.assignrepr_list2(
+                    values, prefix=""  # type: ignore[arg-type]
+                ).replace("\n", "")
             except TypeError:
                 return objecttools.repr_list(values)  # type: ignore[arg-type]
         except TypeError:
@@ -2282,10 +2285,7 @@ def start_server(
     server.serve_forever()
 
 
-def await_server(
-    port: Union[int, str],
-    seconds: Union[float, str],
-) -> None:
+def await_server(port: Union[int, str], seconds: Union[float, str]) -> None:
     """Block the current process until either the *HydPy* server is responding on the
     given `port` or the given number of `seconds` elapsed.
 

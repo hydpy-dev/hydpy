@@ -28,8 +28,6 @@ import copy
 import itertools
 import types
 import warnings
-from typing import *
-from typing import NoReturn
 
 # ...from HydPy
 import hydpy

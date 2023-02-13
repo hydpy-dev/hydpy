@@ -6,7 +6,6 @@
 import enum
 import importlib
 import types
-from typing import *
 
 # ...from HydPy
 from hydpy.core import objecttools

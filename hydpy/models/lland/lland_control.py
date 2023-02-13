@@ -18,7 +18,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 # ...from lland
-from hydpy.models.lland import lland_constants
+from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
 
 
@@ -109,11 +109,8 @@ class Lnk(parametertools.NameParameter):
     """
 
     NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(lland_constants.CONSTANTS.values()),
-        max(lland_constants.CONSTANTS.values()),
-    )
-    CONSTANTS = lland_constants.CONSTANTS
+    SPAN = (min(CONSTANTS_.values()), max(CONSTANTS_.values()))
+    CONSTANTS = CONSTANTS_
 
 
 class FHRU(lland_parameters.ParameterComplete):

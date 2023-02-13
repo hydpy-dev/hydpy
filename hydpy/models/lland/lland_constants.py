@@ -68,5 +68,23 @@ SEE = parametertools.IntConstant(18)
 CONSTANTS = parametertools.Constants()
 """Dictionary containing all constants defined by HydPy-L-Land."""
 
-# Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys())
+__all__ = [
+    "SIED_D",
+    "SIED_L",
+    "VERS",
+    "ACKER",
+    "WEINB",
+    "OBSTB",
+    "BODEN",
+    "GLETS",
+    "GRUE_I",
+    "FEUCHT",
+    "GRUE_E",
+    "BAUMB",
+    "NADELW",
+    "LAUBW",
+    "MISCHW",
+    "WASSER",
+    "FLUSS",
+    "SEE",
+]

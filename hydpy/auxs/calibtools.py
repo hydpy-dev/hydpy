@@ -13,8 +13,6 @@ import itertools
 import time
 import types
 import warnings
-from typing import *
-from typing import TextIO
 
 # ...from site-packages
 import black
@@ -28,6 +26,7 @@ from hydpy.core import hydpytools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.core import variabletools
@@ -541,7 +540,7 @@ handle any `musk_classic` model instances.
     _value: float
     _model: Optional[str]
     _parameterstep: Optional[timetools.Period]
-    _original_parameter_values: Tuple[Union[float, Vector[float], Matrix[float]], ...]
+    _original_parameter_values: Tuple[Any, ...]
 
     def __init__(
         self,
@@ -606,7 +605,7 @@ handle any `musk_classic` model instances.
             self.parametertype = type(  # type: ignore[assignment]
                 tuple(self.elements)[0].model.parameters.control[self.parametername]
             )
-            self.parameterstep = parameterstep  # type: ignore[assignment]
+            self.parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
@@ -614,9 +613,7 @@ handle any `musk_classic` model instances.
                 f"`{name}`"
             )
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Union[float, Vector[float], Matrix[float]], ...]:
+    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
                 return tuple(par.revert_timefactor(par.value) for par in self)
@@ -682,7 +679,7 @@ value `200.0` instead.
     def _update_parameter(
         self,
         parameter: parametertools.Parameter,
-        value: Union[float, Vector[float], Matrix[float]],
+        value: Union[float, VectorFloat, MatrixFloat],
     ) -> None:
         if self.keyword is None:
             parameter(value)
@@ -716,8 +713,7 @@ value `200.0` instead.
             for parameter, orig in zip(self, self._original_parameter_values):
                 self._update_parameter(parameter, orig)
 
-    @property
-    def parameterstep(self) -> Optional[timetools.Period]:
+    def _get_parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
         For non-time-dependent parameters, property |Rule.parameterstep| is (usually)
@@ -725,8 +721,7 @@ value `200.0` instead.
         """
         return self._parameterstep
 
-    @parameterstep.setter
-    def parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
         if self.keyword is None:
             time_ = self.parametertype.TIME
         else:
@@ -746,6 +741,10 @@ value `200.0` instead.
                         "it directly or define it via option `parameterstep`."
                     ) from None
             self._parameterstep = timetools.Period(value)
+
+    parameterstep = propertytools.Property(
+        fget=_get_parameterstep, fset=_set_parameterstep
+    )
 
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |Rule| object prefixed with the
@@ -782,7 +781,9 @@ value `200.0` instead.
 
     def __iter__(self) -> Iterator[TypeParameter]:
         for element in self.elements:
-            yield element.model.parameters.control[self.parametername]
+            parameter = element.model.parameters.control[self.parametername]
+            assert isinstance(parameter, self.parametertype)
+            yield parameter
 
 
 class Replace(Rule[parametertools.Parameter]):
@@ -2239,9 +2240,7 @@ class RuleIUH(Rule[arma_control.Responses]):
         )
         self.target = target
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Tuple[Vector[float], Vector[float]], ...]:
+    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
         return tuple(
             (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
         )

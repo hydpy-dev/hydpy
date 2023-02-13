@@ -12,7 +12,7 @@ This script does not push anything to Github-Pages.
 import os
 import shutil
 import sys
-from typing import *
+from typing import Dict, List, Tuple
 
 
 def print_(*message: str) -> None:

@@ -757,9 +757,6 @@ There is no violation of the water balance:
 0.0
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools

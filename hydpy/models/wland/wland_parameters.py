@@ -2,12 +2,10 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland import wland_masks
 
@@ -82,7 +80,7 @@ element `?` could not be set based on the given keyword arguments.
     _SOIL2VALUE: Dict[int, float]
     _soil: Optional[int]
 
-    def __init__(self, subvars: "variabletools.SubgroupType"):
+    def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)
         self._soil = None
 

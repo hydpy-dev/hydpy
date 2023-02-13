@@ -10,7 +10,6 @@ import collections
 import contextlib
 import itertools
 import warnings
-from typing import *
 
 # ...from site-packages
 import networkx
@@ -1842,7 +1841,10 @@ needed to be trimmed.  The old and the new value(s) are \
         modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
         for element in self.elements:
             model = exceptiontools.getattr_(
-                element, "model", "unprepared", modeltools.Model
+                element,
+                "model",
+                "unprepared",
+                modeltools.Model,  # type: ignore[type-abstract]
             )
             modeltypes[str(model)] += 1
         return dict(sorted(modeltypes.items()))

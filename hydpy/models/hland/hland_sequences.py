@@ -70,7 +70,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         return self.subseqs.seqs.model.parameters.control.zonearea
 
     @property
-    def valuevector(self) -> Vector[float]:
+    def valuevector(self) -> VectorFloat:
         """Values of the individual zones; each entry is the average of the values of
         all snow classes of a specific zone.
 
@@ -97,7 +97,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         return numpy.mean(self.value, axis=0)
 
     @property
-    def seriesmatrix(self) -> Matrix[float]:
+    def seriesmatrix(self) -> MatrixFloat:
         """Time series of the values of the individual zones; each entry is the average
         of the values of all snow classes of a specific zone.
 
@@ -194,7 +194,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         return self.subseqs.seqs.model.parameters.control.zonearea
 
     @property
-    def valuevector(self) -> Vector[float]:
+    def valuevector(self) -> VectorFloat:
         """Values of the individual zones; each entry is the average of the values of
         all snow classes of a specific zone.
 
@@ -221,7 +221,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         return numpy.mean(self.value, axis=0)
 
     @property
-    def seriesmatrix(self) -> Matrix[float]:
+    def seriesmatrix(self) -> MatrixFloat:
         """Time series of the values of the individual zones; each entry is the average
         of the values of all snow classes of a specific zone.
 
@@ -319,7 +319,7 @@ class State2DSequence(sequencetools.StateSequence):
         return self.subseqs.seqs.model.parameters.control.zonearea
 
     @property
-    def valuevector(self) -> Vector[float]:
+    def valuevector(self) -> VectorFloat:
         """Values of the individual zones; each entry is the average of the values of
         all snow classes of a specific zone.
 
@@ -346,7 +346,7 @@ class State2DSequence(sequencetools.StateSequence):
         return numpy.mean(self.value, axis=0)
 
     @property
-    def seriesmatrix(self) -> Matrix[float]:
+    def seriesmatrix(self) -> MatrixFloat:
         """Time series of the values of the individual zones; each entry is the average
         of the values of all snow classes of a specific zone.
 

@@ -1789,9 +1789,6 @@ acre (snow surface temperature)
 0.0
 """
 # import...
-# from standard-library
-from typing import *
-
 # ...from site-packages
 import numpy
 
@@ -2002,10 +1999,12 @@ class Model(lland_model.Base_SoilModel_V1):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["states"]
-        idxs_water = numpy.isin(control.lnk, [WASSER, FLUSS, SEE])
+        idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
-        idxs_soil = numpy.invert(numpy.isin(control.lnk, [VERS, WASSER, FLUSS, SEE]))
-        idxs_forest = numpy.isin(control.lnk, [LAUBW, MISCHW, NADELW])
+        idxs_soil = numpy.invert(
+            numpy.isin(control.lnk.values, [VERS, WASSER, FLUSS, SEE])
+        )
+        idxs_forest = numpy.isin(control.lnk.values, [LAUBW, MISCHW, NADELW])
         return (
             numpy.sum(fluxes.nkor.evalseries * control.fhru)
             + numpy.sum(fluxes.qzh.evalseries)

@@ -6,11 +6,10 @@ Module |quadtools| provides Python interfaces only.  See the Cython extension mo
 """
 
 # import...
-# ...from standard library
-from typing import *
 
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.cythons import quadutils

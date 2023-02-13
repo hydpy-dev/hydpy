@@ -720,6 +720,7 @@ set the number of subchannels to zero:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
@@ -730,7 +731,7 @@ from hydpy.models.lstream import lstream_model
 from hydpy.models.lstream import lstream_solver
 
 
-class Model(lstream_model.Model):
+class Model(modeltools.ELSModel):
     """Version 2 of HydPy-L-Stream."""
 
     SOLVERPARAMETERS = (

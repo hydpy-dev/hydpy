@@ -6,10 +6,10 @@
 # import...
 # ...from standard library
 import abc
-from typing import *
 
 # ...from hydpy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 
 class SoilModel_V1(modeltools.SubmodelInterface):
@@ -78,21 +78,21 @@ class SoilModel_V1(modeltools.SubmodelInterface):
         """Remove the given (direct) soil water demand."""
 
     @modeltools.abstractmodelmethod
-    def get_infiltration(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_infiltration(self, k: int) -> float:
         """Get the previously calculated infiltration rate."""
 
     @modeltools.abstractmodelmethod
-    def get_percolation(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_percolation(self, k: int) -> float:
         """Get the previously calculated percolation rate."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwateraddition(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwateraddition(self, k: int) -> float:
         """Get the previously calculated actual soil water addition."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwaterremoval(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwaterremoval(self, k: int) -> float:
         """Get the previously calculated actual soil water removal."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwatercontent(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwatercontent(self, k: int) -> float:
         """Get the current soil water content."""

@@ -4,8 +4,6 @@
 # ...from standard library
 from __future__ import annotations
 import types
-from typing import *
-from typing import NoReturn
 
 # ...from HydPy
 from hydpy.core import exceptiontools
@@ -21,9 +19,7 @@ if TYPE_CHECKING:
     from hydpy.cythons import configutils
 
 
-class _PubProperty(
-    propertytools.DefaultProperty[propertytools.TypeInput, propertytools.TypeOutput]
-):
+class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
     def __init__(self) -> None:
         super().__init__(self._fget)
 
@@ -93,6 +89,7 @@ class TimegridsProperty(
         obj: Any,
         value: Union[
             timetools.Timegrids,
+            timetools.Timegrid,
             Tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
@@ -113,36 +110,35 @@ class TimegridsProperty(
 class Pub(types.ModuleType):
     """Base class/module of module |pub|.
 
-    After initialisation |pub| takes over |Pub| as its new base class.
-    The reason for this complicated trick is that it makes the attribute
-    handling of |pub| easier for users.
+    After initialisation |pub| takes over |Pub| as its new base class.  The reason for
+    this complicated trick is that it makes the attribute handling of |pub| easier for
+    users.
 
     You can import |pub| like other modules:
 
     >>> from hydpy import pub
 
-    However, if you try to access unprepared attributes, |Pub| returns
-    the following error message:
+    However, if you try to access unprepared attributes, |Pub| returns the following
+    error message:
 
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of \
-module `pub` is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \
+is not defined at the moment.
 
-    After setting an attribute value successfully, it is accessible (we
-    select the `timegrids` attribute here, as its setter supplies a little
-    magic to make defining new |Timegrids| objects more convenient:
+    After setting an attribute value successfully, it is accessible (we select the
+    `timegrids` attribute here, as its setter supplies a little magic to make defining
+    new |Timegrids| objects more convenient:
 
     >>> pub.timegrids = None
     Traceback (most recent call last):
     ...
     ValueError: While trying to define a new `Timegrids` object based on the \
-arguments `None`, the following error occurred: Initialising a `Timegrids` \
-object either requires one, two, or three `Timegrid` objects or two dates objects \
-(of type `Date`, `datetime`, or `str`) and one period object (of type \
-`Period`, `timedelta`, or `str`), but objects of the types `None, None, and \
-None` are given.
+arguments `None`, the following error occurred: Initialising a `Timegrids` object \
+either requires one, two, or three `Timegrid` objects or two dates objects (of type \
+`Date`, `datetime`, or `str`) and one period object (of type `Period`, `timedelta`, \
+or `str`), but objects of the types `None, None, and None` are given.
 
     >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.timegrids
@@ -156,48 +152,28 @@ None` are given.
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of \
-module `pub` is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \
+is not defined at the moment.
     """
 
     options: optiontools.Options
-    config: "configutils.Config"
-    scriptfunctions: Dict[str, ScriptFunction]
+    config: configutils.Config
+    scriptfunctions: Dict[str, Callable[..., Optional[int]]]
 
-    projectname = _PubProperty[
-        str,
-        str,
-    ]()
-    indexer = _PubProperty[
-        indextools.Indexer,
-        indextools.Indexer,
-    ]()
-    networkmanager = _PubProperty[
-        filetools.NetworkManager,
-        filetools.NetworkManager,
-    ]()
-    controlmanager = _PubProperty[
-        filetools.ControlManager,
-        filetools.ControlManager,
-    ]()
+    projectname = _PubProperty[str, str]()
+    indexer = _PubProperty[indextools.Indexer, indextools.Indexer]()
+    networkmanager = _PubProperty[filetools.NetworkManager, filetools.NetworkManager]()
+    controlmanager = _PubProperty[filetools.ControlManager, filetools.ControlManager]()
     conditionmanager = _PubProperty[
-        filetools.ConditionManager,
-        filetools.ConditionManager,
+        filetools.ConditionManager, filetools.ConditionManager
     ]()
     sequencemanager = _PubProperty[
-        filetools.SequenceManager,
-        filetools.SequenceManager,
+        filetools.SequenceManager, filetools.SequenceManager
     ]()
     timegrids = TimegridsProperty()
-    selections = _PubProperty[
-        selectiontools.Selections,
-        selectiontools.Selections,
-    ]()
+    selections = _PubProperty[selectiontools.Selections, selectiontools.Selections]()
 
     def __init__(self, name: str, doc: Optional[str] = None) -> None:
-        super().__init__(
-            name=name,
-            doc=doc,
-        )
+        super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
         self.scriptfunctions = {}

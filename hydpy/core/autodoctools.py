@@ -25,7 +25,6 @@ import sys
 import time
 import types
 import typing
-from typing import *
 import unittest
 import warnings
 
@@ -48,6 +47,8 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -1097,7 +1098,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     module."""
 
     def _query_index_first_line(member_: object) -> int:
-        result = member_.__code__.co_firstlineno
+        result = member_.__code__.co_firstlineno  # type: ignore[attr-defined]
         assert isinstance(result, int)
         return result
 
@@ -1107,7 +1108,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     except AttributeError:
         pass
     try:
-        return inspect.findsource(member)[1]
+        return inspect.findsource(member)[1]  # type: ignore[arg-type]
     except BaseException:
         pass
     for value in vars(member).values():

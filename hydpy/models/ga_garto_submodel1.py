@@ -13,9 +13,6 @@ the integration tests :ref:`lland_v1_acker_garto` of application model |lland_v1
 :ref:`lland_v3_acker_heavy_garto_daily` of application model |lland_v3|.
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 

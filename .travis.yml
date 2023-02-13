@@ -20,6 +20,7 @@ script:
   - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then nox -s sphinx -- -W; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.8" ] ; then python hydpy/docs/combine_docversions.py ; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.11" ] ; then nox -s black; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.11" ] ; then nox -s mypy; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.11" ] ; then travis_wait 30 nox -s pylint; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.11" ] ; then nox -s doctest; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.11" ] ; then nox -s check_consistency; fi

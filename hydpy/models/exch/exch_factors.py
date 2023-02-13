@@ -6,7 +6,7 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 
 
-class WaterLevel(variabletools.MixinFixedShape, sequencetools.FactorSequence):
+class WaterLevel(variabletools.MixinFixedShape, sequencetools.FactorSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
     """Water level [m].
 
     After each simulation step, the value of |WaterLevel| corresponds to the value

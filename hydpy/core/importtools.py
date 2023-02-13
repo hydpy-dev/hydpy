@@ -13,8 +13,6 @@ import importlib
 import inspect
 import types
 import warnings
-from typing import *
-from typing_extensions import Concatenate
 
 # ...from HydPy
 import hydpy
@@ -114,14 +112,14 @@ def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
     cls_parameters = dict_.get("Parameters", parametertools.Parameters)
-    return cls_parameters(dict_)  # type: ignore[no-any-return]
+    return cls_parameters(dict_)
 
 
 def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
     cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
-    return cls_sequences(  # type: ignore[no-any-return]
+    return cls_sequences(
         model=dict_.get("model"),
         cls_inlets=dict_.get("InletSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
@@ -482,7 +480,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM, P]):
     wrapped: Callable[Concatenate[TM, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
-    targetparameter = Type[parametertools.Parameter]
+    targetparameter: Type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
 
     _model: Optional[TM]

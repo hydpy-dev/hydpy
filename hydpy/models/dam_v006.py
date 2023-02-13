@@ -401,9 +401,6 @@ volumes at the end of the simulation period:
 0.0
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import

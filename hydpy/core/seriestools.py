@@ -3,7 +3,6 @@
 # import...
 # ...from standard library
 from __future__ import annotations
-from typing import *
 
 # ...from site-packages
 import numpy

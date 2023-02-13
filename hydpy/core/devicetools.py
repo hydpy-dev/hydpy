@@ -78,7 +78,6 @@ import copy
 import itertools
 import operator
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -89,6 +88,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import printtools
+from hydpy.core import propertytools
 from hydpy.core import sequencetools
 from hydpy.core import seriestools
 from hydpy.core import timetools
@@ -108,6 +108,8 @@ else:
 
 TypeDevice = TypeVar("TypeDevice", bound="Device")
 TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
+NodeOrElement = Union["Node", "Element"]
+TypeNodeElement = TypeVar("TypeNodeElement", "Node", "Element", NodeOrElement)
 
 NodesConstrArg = MayNonerable2["Node", str]
 ElementsConstrArg = MayNonerable2["Element", str]
@@ -1103,7 +1105,7 @@ conflict with using their names as identifiers.
                 pass
         return self
 
-    def __compare(self, other: object, func: Callable[[object, object], bool]) -> bool:
+    def __compare(self, other: object, func: Callable[[Any, Any], bool]) -> bool:
         if isinstance(other, type(self)):
             return func(set(self), set(other))
         return NotImplemented
@@ -1576,7 +1578,7 @@ class Device:
         """To be overridden."""
 
     @classmethod
-    def query_all(cls) -> Devices[Device]:
+    def query_all(cls) -> Devices[Self]:
         """Get all |Node| or |Element| objects initialised so far.
 
         See the main documentation on module |devicetools| for further information.
@@ -1584,7 +1586,7 @@ class Device:
         return cls.get_handlerclass()(*_registry[cls].values())
 
     @classmethod
-    def extract_new(cls) -> Devices[Device]:
+    def extract_new(cls) -> Devices[Self]:
         """Gather all "new" |Node| or |Element| objects.
 
         See the main documentation on module |devicetools| for further information.
@@ -1670,8 +1672,7 @@ a valid variable identifier.  ...
                 f"`{name}` of type `{type(name).__name__}`"
             )
 
-    @property
-    def keywords(self) -> Keywords:
+    def _get_keywords(self) -> Keywords:
         """Keywords describing the actual |Node| or |Element| object.
 
         The keywords are contained within a |Keywords| object:
@@ -1704,14 +1705,16 @@ a valid variable identifier.  ...
         """
         return self._keywords
 
-    @keywords.setter
-    def keywords(self, keywords: Mayberable1[str]) -> None:
+    def _set_keywords(self, keywords: MayNonerable1[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
         self._keywords.update(*keywords)
 
-    @keywords.deleter
-    def keywords(self) -> None:
+    def _del_keywords(self) -> None:
         self._keywords.clear()
+
+    keywords = propertytools.Property(
+        fget=_get_keywords, fset=_set_keywords, fdel=_del_keywords
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -1790,9 +1793,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
                 f"`name` is the unique identifier of node objects."
             )
         if keywords is not None:
-            self.keywords = keywords  # type: ignore
-            # due to internal type conversion
-            # see issue https://github.com/python/mypy/issues/3004
+            self.keywords = keywords
 
     @classmethod
     def get_handlerclass(cls) -> Type[Nodes]:
@@ -2566,19 +2567,19 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             )
             self._model = None
             delattr(self, "new_instance")
-        self.keywords = keywords  # type: ignore
+        self.keywords = keywords
         if inlets is not None:
-            self.inlets = inlets  # type: ignore
+            self.inlets = inlets
         if outlets is not None:
-            self.outlets = outlets  # type: ignore
+            self.outlets = outlets
         if receivers is not None:
-            self.receivers = receivers  # type: ignore
+            self.receivers = receivers
         if senders is not None:
-            self.senders = senders  # type: ignore
+            self.senders = senders
         if inputs is not None:
-            self.inputs = inputs  # type: ignore
+            self.inputs = inputs
         if outputs is not None:
-            self.outputs = outputs  # type: ignore
+            self.outputs = outputs
         # due to internal type conversion
         # see issue https://github.com/python/mypy/issues/3004
 
@@ -2602,14 +2603,12 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             nodegroup: Elements = getattr(node, targetelements)
             nodegroup.add_device(self, force=True)
 
-    @property
-    def inlets(self) -> Nodes:
+    def _get_inlets(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "upstream" input values (e.g. inflow)."""
         return self._inlets
 
-    @inlets.setter
-    def inlets(self, values: NodesConstrArg) -> None:
+    def _set_inlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_inlets",
@@ -2617,14 +2616,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_outlets", "_inputs", "_outputs"),
         )
 
-    @property
-    def outlets(self) -> Nodes:
+    inlets = propertytools.Property(fget=_get_inlets, fset=_set_inlets)
+
+    def _get_outlets(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "downstream" output values (e.g. outflow)."""
         return self._outlets
 
-    @outlets.setter
-    def outlets(self, values: NodesConstrArg) -> None:
+    def _set_outlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_outlets",
@@ -2632,14 +2631,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_inlets", "_inputs", "_outputs"),
         )
 
-    @property
-    def receivers(self) -> Nodes:
+    outlets = propertytools.Property(fget=_get_outlets, fset=_set_outlets)
+
+    def _get_receivers(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "remote" information values (e.g. discharge at a remote downstream)."""
         return self._receivers
 
-    @receivers.setter
-    def receivers(self, values: NodesConstrArg) -> None:
+    def _set_receivers(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_receivers",
@@ -2647,14 +2646,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_senders", "_inputs", "_outputs"),
         )
 
-    @property
-    def senders(self) -> Nodes:
+    receivers = propertytools.Property(fget=_get_receivers, fset=_set_receivers)
+
+    def _get_senders(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "remote" information values (e.g. water level of a |dam| model)."""
         return self._senders
 
-    @senders.setter
-    def senders(self, values: NodesConstrArg) -> None:
+    def _set_senders(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_senders",
@@ -2662,15 +2661,15 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_receivers", "_inputs", "_outputs"),
         )
 
-    @property
-    def inputs(self) -> Nodes:
+    senders = propertytools.Property(fget=_get_senders, fset=_set_senders)
+
+    def _get_inputs(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "external" input values instead of reading them from files (e.g. interpolated
         precipitation)."""
         return self._inputs
 
-    @inputs.setter
-    def inputs(self, values: NodesConstrArg) -> None:
+    def _set_inputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_inputs",
@@ -2684,15 +2683,15 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             ),
         )
 
-    @property
-    def outputs(self) -> Nodes:
+    inputs = propertytools.Property(fget=_get_inputs, fset=_set_inputs)
+
+    def _get_outputs(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "internal" output values, available via sequences of type |FluxSequence| or
         |StateSequence| (e.g. potential evaporation)."""
         return self._outputs
 
-    @outputs.setter
-    def outputs(self, values: NodesConstrArg) -> None:
+    def _set_outputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_outputs",
@@ -2705,6 +2704,8 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                 "_inputs",
             ),
         )
+
+    outputs = propertytools.Property(fget=_get_outputs, fset=_set_outputs)
 
     @classmethod
     def get_handlerclass(cls) -> Type[Elements]:
@@ -2788,19 +2789,23 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         if model:
             return model
         raise exceptiontools.AttributeNotReady(
-            f"The model object of element `{self.name}` has "
-            f"been requested but not been prepared so far."
+            f"The model object of element `{self.name}` has been requested but not "
+            f"been prepared so far."
         )
 
     @model.setter
     def model(self, model: modeltools.Model) -> None:
         self._model = model
-        model.element = self
+        if exceptiontools.getattr_(model, "element", None) is not self:
+            model.element = self
         model.connect()
 
     @model.deleter
     def model(self) -> None:
-        self._model = None
+        if (model := self._model) is not None:
+            self._model = None
+            if exceptiontools.getattr_(model, "element", None) is self:
+                del model.element
 
     def prepare_model(self, clear_registry: bool = True) -> None:
         """Load the control file of the actual |Element| object, initialise its |Model|

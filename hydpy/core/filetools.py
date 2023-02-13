@@ -10,7 +10,6 @@ import runpy
 import shutil
 import zipfile
 import types
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -203,7 +202,8 @@ class FileManager:
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
 `filemanager` has not been prepared so far.
         """
-        return self._projectdir  # type: ignore[return-value]
+        assert (projectdir := self._projectdir) is not None
+        return projectdir
 
     def _set_projectdir(self, name: str) -> None:
         self._projectdir = name
@@ -1097,7 +1097,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     DEFAULTDIR = None
 
     @property
-    def inputpath(self) -> str:  # type: ignore[return]
+    def inputpath(self) -> str:
         """The directory path for loading initial conditions.
 
         See the main documentation on class |ConditionManager| for further information.
@@ -1117,7 +1117,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
             self._currentdir = currentdir
 
     @property
-    def outputpath(self) -> str:  # type: ignore[return]
+    def outputpath(self) -> str:
         """The directory path for saving (final) conditions.
 
         See the main documentation on class |ConditionManager| for further information.

@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import os
-from typing import *
+from typing import Literal
+from typing import Final, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 from matplotlib import pyplot
 import numpy

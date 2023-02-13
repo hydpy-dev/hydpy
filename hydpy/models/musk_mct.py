@@ -1021,9 +1021,6 @@ drops to zero before it finally starts to reflect the expected flood wave shape:
 -0.000044
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from site-packages
 import numpy
 

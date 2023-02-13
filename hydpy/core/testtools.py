@@ -18,7 +18,6 @@ import shutil
 import sys
 import types
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -38,6 +37,8 @@ from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
+
+_Conditions = Dict[str, Union[float, NDArrayFloat]]
 
 if TYPE_CHECKING:
     import matplotlib
@@ -540,6 +541,7 @@ class PlottingOptions:
     height: int
     axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
     axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
+    activated: Optional[Tuple[sequencetools.IOSequence, ...]]
 
     def __init__(self) -> None:
         self.width = 600
@@ -567,11 +569,15 @@ class IntegrationTest(Test):
     """The header of the first column containing dates."""
 
     plotting_options = PlottingOptions()
+    element: devicetools.Element
+    elements: devicetools.Devices[devicetools.Element]
+    nodes: devicetools.Devices[devicetools.Node]
+    parseqs: Tuple[sequencetools.IOSequence, ...]
 
     def __init__(
         self,
         element: devicetools.Element,
-        seqs=None,
+        seqs: Optional[Tuple[sequencetools.IOSequence, ...]] = None,
         inits=None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object,
@@ -585,7 +591,6 @@ class IntegrationTest(Test):
         self.parseqs = seqs if seqs else self.extract_print_sequences()
         self.inits = inits
         self.model = element.model
-        hydpytools.HydPy.nmb_instances = 0
         self.hydpy = hydpytools.HydPy()
         self.hydpy.update_devices(
             nodes=self.nodes,
@@ -597,11 +602,12 @@ class IntegrationTest(Test):
     def __call__(
         self,
         filename: Optional[str] = None,
+        *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
-        get_conditions: Literal[None] = None,
-        use_conditions: Optional[timetools.DateConstrArg] = None,
+        get_conditions: Literal[None] = ...,
+        use_conditions: Optional[Dict[str, _Conditions]] = None,
     ) -> None:
         """do not return conditions"""
 
@@ -609,23 +615,25 @@ class IntegrationTest(Test):
     def __call__(
         self,
         filename: Optional[str] = None,
+        *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
-        get_conditions: timetools.DateConstrArg = None,
-        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]] = None,
-    ) -> Dict[sequencetools.IOSequence, Union[float, numpy.array]]:
+        get_conditions: timetools.DateConstrArg,
+        use_conditions: Optional[Dict[str, _Conditions]],
+    ) -> Dict[sequencetools.IOSequence, _Conditions]:
         """do return conditions"""
 
     def __call__(
         self,
-        filename=None,
-        axis1=None,
-        axis2=None,
-        update_parameters=True,
-        get_conditions=None,
-        use_conditions=None,
-    ):
+        filename: Optional[str] = None,
+        *,
+        axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
+        update_parameters: bool = True,
+        get_conditions: Optional[timetools.DateConstrArg] = None,
+        use_conditions: Optional[Dict[str, _Conditions]] = None,
+    ) -> Optional[Dict[sequencetools.IOSequence, _Conditions]]:
         """Prepare and perform an integration test and print and eventually plot its
         results.
 
@@ -633,8 +641,7 @@ class IntegrationTest(Test):
         ones given via keyword `use_conditions`.
         """
         self.prepare_model(
-            update_parameters=update_parameters,
-            use_conditions=use_conditions,
+            update_parameters=update_parameters, use_conditions=use_conditions
         )
         seq2value = self._perform_simulation(get_conditions)
         self.print_table()
@@ -716,11 +723,11 @@ datetime of the Python standard library for for further information.
             ) from exc
         vars(self)["dateformat"] = dateformat
 
-    def get_output_array(self, parseqs):
+    def get_output_array(self, parseqs: sequencetools.IOSequence):
         """Return the array containing the output results of the given sequence."""
         return parseqs.series
 
-    def prepare_node_sequences(self):
+    def prepare_node_sequences(self) -> None:
         """Prepare the simulations series of all nodes.
 
         This preparation might not be suitable for all types of integration
@@ -733,14 +740,14 @@ datetime of the Python standard library for for further information.
             sim.prepare_series(allocate_ram=False)
             sim.prepare_series(allocate_ram=True)
 
-    def prepare_input_model_sequences(self):
+    def prepare_input_model_sequences(self) -> None:
         """Configure the input sequences of the model in a manner that allows
         for applying their time-series data in integration tests."""
         prepare_inputseries = self.element.prepare_inputseries
         prepare_inputseries(allocate_ram=False)
         prepare_inputseries(allocate_ram=True)
 
-    def extract_print_sequences(self):
+    def extract_print_sequences(self) -> Tuple[sequencetools.IOSequence, ...]:
         """Return a list of all input, factor, flux, and state sequences of the model
         and the simulation sequences of all nodes."""
         seqs = []
@@ -750,12 +757,12 @@ datetime of the Python standard library for for further information.
                 seqs.append(seq)
         for node in self.nodes:
             seqs.append(node.sequences.sim)
-        return seqs
+        return tuple(seqs)
 
     def prepare_model(
         self,
         update_parameters: bool,
-        use_conditions: Optional[Dict[str, Dict[str, Union[float, ArrayFloat]]]],
+        use_conditions: Optional[Dict[str, Dict[str, Union[float, NDArrayFloat]]]],
     ) -> None:
         """Derive the secondary parameter values, prepare all required time
         series and set the initial conditions."""
@@ -771,13 +778,13 @@ datetime of the Python standard library for for further information.
                 self.element.model.sequences.conditions = use_conditions
         self.reset_inits()
 
-    def reset_outputs(self):
+    def reset_outputs(self) -> None:
         """Set the values of the simulation sequences of all outlet nodes to zero."""
         for node in self.nodes:
             if (node in self.element.outlets) or (node in self.element.senders):
                 node.sequences.sim[:] = 0.0
 
-    def reset_inits(self):
+    def reset_inits(self) -> None:
         """Set all initial conditions of all models."""
         with hydpy.pub.options.trimvariables(False):
             inits = self.inits
@@ -795,7 +802,7 @@ datetime of the Python standard library for for further information.
         filename: str,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
-    ):
+    ) -> None:
         """Save a plotly HTML file plotting the current test results.
 
         (Optional) arguments:
@@ -808,7 +815,7 @@ datetime of the Python standard library for for further information.
             * axis2: sequences to be shown initially on the second axis.
         """
 
-        def _update_act_names(sequence_, name_) -> None:
+        def _update_act_names(sequence_: sequencetools.IOSequence, name_: str) -> None:
             if isinstance(sequence_, act_types1):
                 act_names1.append(name_)
             if isinstance(sequence_, act_types2):
@@ -827,16 +834,17 @@ datetime of the Python standard library for for further information.
                 axis1 = self.parseqs
             if axis2 is None:
                 axis2 = ()
-            axis1 = objecttools.extract(axis1, sequencetools.IOSequence)
-            axis2 = objecttools.extract(axis2, sequencetools.IOSequence)
+            axis1 = objecttools.extract(axis1, (sequencetools.IOSequence,))
+            axis2 = objecttools.extract(axis2, (sequencetools.IOSequence,))
         sel_sequences = self.plotting_options.selected
         if sel_sequences is None:
             sel_sequences = self.parseqs
-        sel_sequences = sorted(sel_sequences, key=lambda seq_: seq_.name)
+        sel_sequences = tuple(sorted(sel_sequences, key=lambda seq_: seq_.name))
         act_types1 = tuple(type(seq_) for seq_ in axis1)
         act_types2 = tuple(type(seq_) for seq_ in axis2)
         sel_names, sel_series, sel_units = [], [], []
-        act_names1, act_names2 = [], []
+        act_names1: List[str] = []
+        act_names2: List[str] = []
         for sequence in sel_sequences:
             name = type(sequence).__name__
             if sequence.NDIM == 0:
@@ -901,9 +909,9 @@ datetime of the Python standard library for for further information.
 
         buttons = []
         for label, visibles in (
-            ["add all to y-axis 1", [True, False]],
-            ["remove all", [False, False]],
-            ["add all to y-axis 2", [False, True]],
+            ("add all to y-axis 1", (True, False)),
+            ("remove all", (False, False)),
+            ("add all to y-axis 2", (False, True)),
         ):
             subbuttons = [
                 {
@@ -1274,6 +1282,11 @@ class TestIO:
     reported as uncovered.
     """
 
+    _clear_own: bool
+    _clear_all: bool
+    _path: Optional[str]
+    _olds: Optional[List[str]]
+
     def __init__(
         self,
         clear_own: bool = False,
@@ -1284,8 +1297,9 @@ class TestIO:
         self._path = None
         self._olds = None
 
-    def __enter__(self) -> "TestIO":
-        self._path = os.getcwd()
+    def __enter__(self) -> TestIO:
+        assert (path := os.getcwd()) is not None
+        self._path = path
         iotestingpath: str = iotesting.__path__[0]
         os.chdir(os.path.join(iotestingpath))
         if self._clear_own:
@@ -1300,14 +1314,20 @@ class TestIO:
     ) -> None:
         for file in sorted(os.listdir(".")):
             if (file != "__init__.py") and (
-                self._clear_all or (self._clear_own and (file not in self._olds))
+                self._clear_all
+                or (
+                    self._clear_own
+                    and ((olds := self._olds) is not None)
+                    and (file not in olds)
+                )
             ):
                 if os.path.exists(file):
                     if os.path.isfile(file):
                         os.remove(file)
                     else:
                         shutil.rmtree(file)
-        os.chdir(self._path)
+        assert (path := self._path) is not None
+        os.chdir(path)
 
     @classmethod
     def clear(cls) -> None:
@@ -1344,7 +1364,7 @@ methods array, read, subdevicenames
     'NetCDFVariableBase_'
     """
     concrete = type(abstract.__name__ + "_", (abstract,), {})
-    concrete.__abstractmethods__ = frozenset()
+    concrete.__abstractmethods__ = frozenset()  # type: ignore[attr-defined]
     return concrete
 
 
@@ -1566,12 +1586,13 @@ def update_integrationtests(
     <BLANKLINE>
     """
     module = importlib.import_module(f"hydpy.models.{applicationmodel}")
-    docstring: str = module.__doc__
+    assert (docstring := module.__doc__) is not None
     stringio = io.StringIO
-    with stringio() as resultfile, contextlib.redirect_stdout(resultfile):
+    with stringio() as file_, contextlib.redirect_stdout(file_):
         module.tester.perform_tests()
-        result = resultfile.getvalue()
-    oldlines, newlines = [], []
+        result = file_.getvalue()
+    oldlines: List[str] = []
+    newlines: List[str] = []
     expected, got = False, False
     nmb_replacements = 0
     for line in result.split("\n"):
@@ -1604,7 +1625,7 @@ def update_integrationtests(
         resultfile.write(docstring)
 
 
-def _enumerate(variables: Iterable[Type[typingtools.VariableProtocol]]) -> str:
+def _enumerate(variables: Tuple[Type[variabletools.Variable], ...]) -> str:
     return objecttools.enumeration(
         v.__name__ for v in variabletools.sort_variables(variables)
     )
@@ -1704,9 +1725,9 @@ which are not among the result sequences of any of its predecessors: TKor
                     required.remove(seq)
         if required:
             results.append(
-                f"{blanks}Method {method1.__name__} requires the following "
-                f"sequences, which are not among the result sequences of any "
-                f"of its predecessors: {_enumerate(required)}"
+                f"{blanks}Method {method1.__name__} requires the following sequences, "
+                f"which are not among the result sequences of any of its "
+                f"predecessors: {_enumerate(tuple(required))}"
             )
     return "\n".join(results)
 
@@ -1879,8 +1900,8 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
 
     # search for variables selected by at least one submethod but not by the method
     # calling these submethods:
-    vars_method: Set[Type[typingtools.VariableProtocol]]
-    vars_submethods: Set[Type[typingtools.VariableProtocol]]
+    vars_method: Set[Type[variabletools.Variable]]
+    vars_submethods: Set[Type[variabletools.Variable]]
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
@@ -1899,14 +1920,16 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
                 if not found_problem:
                     found_problem = True
                     results.append(f"{blanks}Possibly missing ({group}):")
-                results.append(f"{blanks}    {submethod.__name__}: {_enumerate(diff)}")
+                results.append(
+                    f"{blanks}    {submethod.__name__}: {_enumerate(tuple(diff))}"
+                )
 
     # search for selected variables that are neither used within the source code nor
     # selected by any submethod:
-    group2vars_method: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+    group2vars_method: Dict[str, Set[Type[variabletools.Variable]]] = {
         g: set(getattr(method, g)) for g in groups
     }
-    group2vars_submethods: Dict[str, Set[Type[typingtools.VariableProtocol]]] = {
+    group2vars_submethods: Dict[str, Set[Type[variabletools.Variable]]] = {
         g: set() for g in groups
     }
     for submethod in method.SUBMETHODS:
@@ -1914,11 +1937,11 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
             vars_submethods.update(getattr(submethod, group))
     for group, vars_method in group2vars_method.items():
         vars_submethods = group2vars_submethods[group]
-        diff_ = [
+        diff_ = tuple(
             method
             for method in vars_method - vars_submethods
             if method.__name__.lower() not in varnames_source
-        ]
+        )
         if diff_:
             results.append(
                 f"{blanks}Possibly erroneously selected ({group}): "
@@ -1926,9 +1949,9 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
             )
 
     # search for variables that are selected multiple times:
-    vars1: Tuple[Type[typingtools.VariableProtocol], ...]
-    vars2: Tuple[Type[typingtools.VariableProtocol], ...]
-    dupl: Set[Type[typingtools.VariableProtocol]] = set()
+    vars1: Tuple[Type[variabletools.Variable], ...]
+    vars2: Tuple[Type[variabletools.Variable], ...]
+    dupl: Set[Type[variabletools.Variable]] = set()
     for group1 in groups:
         vars1 = getattr(method, group1)
         for var in vars1:
@@ -1939,7 +1962,7 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
                 vars2 = getattr(method, group2)
                 dupl.update(set(vars1).intersection(vars2))
     if dupl:
-        results.append(f"{blanks}Duplicates: {_enumerate(dupl)}")
+        results.append(f"{blanks}Duplicates: {_enumerate(tuple(dupl))}")
     return "\n".join(results)
 
 
@@ -1991,7 +2014,8 @@ not among the result sequences of any of its predecessors: DryAirPressure
     results: List[str] = []
     method2errors: Dict[str, str] = {}
     for method in model.get_methods():
-        if "check_selectedvariables(" not in method.__doc__:
+        assert (methoddoc := method.__doc__) is not None
+        if "check_selectedvariables(" not in methoddoc:
             subresult = check_selectedvariables(method=method, indent=indent + 8)
             if subresult:
                 method2errors[method.__name__] = subresult
@@ -1999,10 +2023,11 @@ not among the result sequences of any of its predecessors: DryAirPressure
         results.append(
             f"{blanks}Potential consistency problems for individual methods:"
         )
-        for method, errors in method2errors.items():
-            results.append(f"{blanks}   Method {method}:")
+        for methodname, errors in method2errors.items():
+            results.append(f"{blanks}   Method {methodname}:")
             results.append(errors)
-    if "check_methodorder(" not in model.__doc__:
+    assert (modeldoc := model.__doc__) is not None
+    if "check_methodorder(" not in modeldoc:
         subresult = check_methodorder(model, indent + 4)
         if subresult:
             results.append(f"{blanks}Potential consistency problems between methods:")

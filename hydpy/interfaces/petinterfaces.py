@@ -3,10 +3,10 @@ evapotranspiration."""
 # import...
 # ...from standard library
 import abc
-from typing import *
 
 # ...from hydpy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 
 class PETModel_V1(modeltools.SubmodelInterface):
@@ -21,7 +21,7 @@ class PETModel_V1(modeltools.SubmodelInterface):
 
     @abc.abstractmethod
     def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas of the individual zones in km²."""
+        """Set the areas ofthe individual zones in km²."""
 
     @abc.abstractmethod
     def prepare_elevations(self, elevations: Sequence[float]) -> None:
@@ -32,13 +32,11 @@ class PETModel_V1(modeltools.SubmodelInterface):
         """Calculate potential evapotranspiration."""
 
     @modeltools.abstractmodelmethod
-    def get_potentialevapotranspiration(  # type: ignore[empty-body]
-        self, k: int
-    ) -> float:
+    def get_potentialevapotranspiration(self, k: int) -> float:
         """Get the previously calculated potential evapotranspiration of the selected
         zone in mm/T."""
 
     @modeltools.abstractmodelmethod
-    def get_meanpotentialevapotranspiration(self) -> float:  # type: ignore[empty-body]
+    def get_meanpotentialevapotranspiration(self) -> float:
         """Get the previously calculated average calculated potential
         evapotranspiration in mm/T."""

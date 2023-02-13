@@ -3,9 +3,6 @@
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
 # imports...
-# ...from standard library
-from typing import *
-
 # ...from site-packages
 import numpy
 
@@ -880,7 +877,7 @@ class Shift_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1137,7 +1134,7 @@ class Redistribute_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1161,7 +1158,7 @@ class Redistribute_Front_V1(modeltools.Method):
             )
         else:
             drydepth: float = model.return_drydepth_v1(s)
-            conductivity: float = model.return_conductivity_v1(b - 1, s)
+            conductivity = model.return_conductivity_v1(b - 1, s)
             log.moisturechange[b, s] = (
                 aid.actualsurfacewater[s] - con.dt * conductivity
             ) / drydepth
@@ -1503,7 +1500,7 @@ class Merge_FrontDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1655,7 +1652,7 @@ class Merge_SoilDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2097,9 +2094,7 @@ class Withdraw_AllBins_V1(modeltools.Method):
         if sta.moisture[0, s] <= con.residualmoisture[s]:
             return
 
-        available: float = con.soildepth[s] * (
-            sta.moisture[0, s] - con.residualmoisture[s]
-        )
+        available = con.soildepth[s] * (sta.moisture[0, s] - con.residualmoisture[s])
         if demand <= available:
             sta.moisture[0, s] -= demand / con.soildepth[s]
             flu.withdrawal[s] += demand
@@ -2849,8 +2844,8 @@ class MixinGARTO:
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
         old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],
-            moisture=initial_conditions["states"]["moisture"],
+            frontdepth=initial_conditions["states"]["frontdepth"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
+            moisture=initial_conditions["states"]["moisture"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)
@@ -2947,7 +2942,7 @@ class MixinGARTO:
 
     def _calc_watercontent(
         self, frontdepth: NDArrayFloat, moisture: NDArrayFloat
-    ) -> Union[float, NDArrayFloat]:
+    ) -> float:
         weights = self.parameters.derived.soilareafraction.values
         watercontents = self._calc_watercontents(
             frontdepth=frontdepth, moisture=moisture

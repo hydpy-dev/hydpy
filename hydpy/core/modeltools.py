@@ -9,7 +9,6 @@ import importlib
 import itertools
 import os
 import types
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -17,16 +16,24 @@ import numpy
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
+    from hydpy.auxs import interptools
     from hydpy.core import masktools
+
+
+class _ModelModule(types.ModuleType):
+    ControlParameters: Type[parametertools.SubParameters]
+    DerivedParameters: Type[parametertools.SubParameters]
+    FixedParameters: Type[parametertools.SubParameters]
+    SolverParameters: Type[parametertools.SubParameters]
 
 
 class Method:
@@ -34,18 +41,21 @@ class Method:
 
     SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMETHODS: Tuple[Type[Method], ...] = ()
-    CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    CONTROLPARAMETERS: Tuple[
+        Type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+    ] = ()
+    DERIVEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    FIXEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    REQUIREDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    UPDATEDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    RESULTSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
 
     __call__: Callable
+    __name__: str
 
     def __init_subclass__(cls) -> None:
-        cls.__call__.CYTHONIZE = True
+        setattr(cls.__call__, "CYTHONIZE", True)
 
 
 abstractmodelmethods: Set[Callable[..., Any]] = set()
@@ -234,7 +244,15 @@ class IndexProperty:
     def __set_name__(self, owner: Model, name: str) -> None:
         self.name = name.lower()
 
-    def __get__(self, obj: Model, objtype=None):
+    @overload
+    def __get__(self, obj: Model, objtype: Type[Model]) -> int:
+        ...
+
+    @overload
+    def __get__(self, obj: None, objtype: Type[Model]) -> Self:
+        ...
+
+    def __get__(self, obj: Optional[Model], objtype: Type[Model]) -> Union[Self, int]:
         if obj is None:
             return self
         if obj.cymodel:
@@ -355,14 +373,15 @@ class Model:
     3.0
     """
 
-    element: Optional[devicetools.Element]
-    cymodel: Optional[typingtools.CyModelProtocol]
+    cymodel: Optional[CyModelProtocol]
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    _NAME: Final[str]
+    _element: Optional[devicetools.Element]
+    _NAME: ClassVar[str]
+
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -372,11 +391,11 @@ class Model:
     SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
 
-    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
 
     def __init__(self) -> None:
         self.cymodel = None
-        self.element = None
+        self._element = None
         self._init_methods()
 
     def _init_methods(self) -> None:
@@ -386,7 +405,7 @@ class Model:
         blacklist_shortnames: Set[str] = set()
         shortname2method: Dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
-            longname = cls_.__name__.lower()  # type: ignore[attr-defined]
+            longname = cls_.__name__.lower()
             if longname in blacklist_longnames:
                 continue
             blacklist_longnames.add(longname)
@@ -403,6 +422,66 @@ class Model:
         for shortname, method in shortname2method.items():
             setattr(self, shortname, method)
 
+    @property
+    def element(self) -> devicetools.Element:
+        """The model instance's master element.
+
+        Usually, one assigns a |Model| instance to an |Element| instance, but the other
+        way round works as well (for more information, see the documentation on
+        property |Element.model| of class |Element|):
+
+        >>> from hydpy import Element, prepare_model
+        >>> from hydpy.core.modeltools import Model
+        >>> model = prepare_model("musk_classic")
+        >>> model.element
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Model `musk_classic` is not \
+connected to an `Element` so far.
+
+        >>> e = Element("e")
+        >>> model.element = e
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to build the node connection of the `outlet` \
+sequences of the model handled by element `e`, the following error occurred: Sequence \
+`q` of element `e` cannot be connected due to no available node handling variable `Q`.
+        >>> model.element
+        Element("e")
+        >>> e.model.name
+        'musk_classic'
+
+        >>> del model.element
+        >>> model.element
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Model `musk_classic` is not \
+connected to an `Element` so far.
+        >>> e.model
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The model object of element `e` \
+has been requested but not been prepared so far.
+        """
+        if (element := self._element) is None:
+            raise exceptiontools.AttributeNotReady(
+                f"Model `{self.name}` is not connected to an `Element` so far."
+            )
+        return element
+
+    @element.setter
+    def element(self, element: devicetools.Element) -> None:
+        self._element = element
+        if exceptiontools.getattr_(element, "model", None) is not self:
+            element.model = self
+
+    @element.deleter
+    def element(self) -> None:
+        if (element := self._element) is not None:
+            self._element = None
+            if exceptiontools.getattr_(element, "model", None) is self:
+                del element.model
+
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and
         |OutputSequence| objects of the actual model to the corresponding
@@ -415,9 +494,9 @@ class Model:
         >>> prepare_model("musk_classic").connect()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to build the node connection of the `input` \
-sequences of the model handled by element `?`, the following error occurred: \
-'NoneType' object has no attribute 'inputs'
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to build the node \
+connection of the `input` sequences of the model handled by element `?`, the \
+following error occurred: Model `musk_classic` is not connected to an `Element` so far.
 
         The application model |musk_classic| can receive inflow from an arbitrary
         number of upstream nodes and passes its outflow to a single downstream node
@@ -622,7 +701,7 @@ variable `Wrong` of node `outp4`.
 of the model handled by element `element12`, the following error occurred: No input \
 sequence of model `hland_v1` is named `q0`.
 
-        >>> inp5 = Node("inp5", variable=hland_P)
+        >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
         >>> element13.model = prepare_model("hland_v1")
         Traceback (most recent call last):
@@ -688,13 +767,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"node `{node.name}`."
                     )
             else:
-                name = node.variable.__name__.lower()
-                sequence = getattr(self.sequences.inputs, name, None)
-                if sequence is None:
+                name = self._determine_name(node.variable)
+                sequence_ = getattr(self.sequences.inputs, name, None)
+                if sequence_ is None:
                     raise TypeError(
                         f"No input sequence of model `{self}` is named `{name}`."
                     )
-                sequence.set_pointer(node.get_double("inputs"))
+                sequence_.set_pointer(node.get_double("inputs"))
 
     def _connect_outputs(self) -> None:
         def _set_pointer(
@@ -728,18 +807,23 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"node `{node.name}`."
                     )
             else:
-                name = node.variable.__name__.lower()
-                sequence = getattr(self.sequences.factors, name, None)
-                if sequence is None:
-                    sequence = getattr(self.sequences.fluxes, name, None)
-                if sequence is None:
-                    sequence = getattr(self.sequences.states, name, None)
-                if sequence is None:
+                name = self._determine_name(node.variable)
+                sequence_ = getattr(self.sequences.factors, name, None)
+                if sequence_ is None:
+                    sequence_ = getattr(self.sequences.fluxes, name, None)
+                if sequence_ is None:
+                    sequence_ = getattr(self.sequences.states, name, None)
+                if sequence_ is None:
                     raise TypeError(
                         f"No factor, flux, or state sequence of model `{self}` is "
                         f"named `{name}`."
                     )
-                _set_pointer(sequence, node)
+                _set_pointer(sequence_, node)
+
+    def _determine_name(self, var: Union[str, sequencetools.InOutSequenceTypes]) -> str:
+        if isinstance(var, str):
+            return var.lower()
+        return var.__name__.lower()
 
     def _connect_inlets(self) -> None:
         self._connect_subgroup("inlets")
@@ -1101,27 +1185,30 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     @overload
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
-        include_optional: Literal[False] = False,
+        include_optional: Literal[False] = ...,
     ) -> Dict[str, Model]:
         ...
 
     @overload
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
-        include_optional: Literal[True] = True,
+        include_optional: Literal[True],
     ) -> Dict[str, Optional[Model]]:
         ...
 
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
         include_optional: bool = False,
-    ) -> Dict[str, Optional[Model]]:
+    ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns by default an empty dictionary if no
@@ -1172,13 +1259,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             return
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
-        module = importlib.import_module(modulename)
+        module = cast(_ModelModule, importlib.import_module(modulename))
         modelname = modulename.split(".")[-1]
         cls._NAME = modelname
 
         allsequences = set()
         st = sequencetools
-        infos = (
+        infos: Tuple[Tuple[Type[Any], Type[Any], Set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
@@ -1208,8 +1295,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     "__doc__": f"{classname[:-9]} sequences of model {modelname}.",
                     "__module__": modulename,
                 }
-                typesequence = type(classname, (typesequences,), members)
-                setattr(module, classname, typesequence)
+                setattr(module, classname, type(classname, (typesequences,), members))
 
         fixedparameters = set(getattr(module, "ADDITIONAL_FIXEDPARAMETERS", ()))
         controlparameters = set(getattr(module, "ADDITIONAL_CONTROLPARAMETERS", ()))
@@ -1280,6 +1366,10 @@ class RunModel(Model):
         "OUTLET_METHODS",
         "SENDER_METHODS",
     )
+
+    @abc.abstractmethod
+    def run(self) -> None:
+        """Call all methods defined as "run methods" in the defined order."""
 
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
@@ -1390,6 +1480,7 @@ class SegmentModel(RunModel):
 
     idx_segment = Idx_Segment()
     idx_run = Idx_Run()
+    nmb_segments: int = 0
 
     def run(self) -> None:
         """Call all methods defined as "run methods" "segment-wise".
@@ -1405,7 +1496,7 @@ class SegmentModel(RunModel):
                 for method in self.RUN_METHODS:
                     method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def run_segments(self, method: Method) -> Optional[Tuple[float, ...]]:
+    def run_segments(self, method: Method) -> None:
         """Run the given methods for all segments.
 
         Method |SegmentModel.run_segments| is mainly thought for testing purposes.
@@ -1552,9 +1643,9 @@ class ELSModel(SolverModel):
     simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.DependentSequence, ...]]
-    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    SOLVERSEQUENCES: ClassVar[Tuple[Type[sequencetools.DependentSequence], ...]]
+    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -1945,7 +2036,7 @@ class ELSModel(SolverModel):
         Python version with a model-specific Cython version.
         """
         self.numvars.use_relerror = not modelutils.isnan(
-            self.parameters.solver.relerrormax
+            self.parameters.solver.relerrormax.value
         )
         self.numvars.t0, self.numvars.t1 = 0.0, 1.0
         self.numvars.dt_est = 1.0 * self.parameters.solver.reldtmax
@@ -1956,8 +2047,8 @@ class ELSModel(SolverModel):
             self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
                 self.numvars.t1 - self.numvars.t0,
-                1.0 * self.parameters.solver.reldtmax,
-                max(self.numvars.dt_est, self.parameters.solver.reldtmin),
+                1.0 * self.parameters.solver.reldtmax.value,
+                max(self.numvars.dt_est, self.parameters.solver.reldtmin.value),
             )
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
@@ -2583,7 +2674,8 @@ class Submodel:
     METHODS: ClassVar[Tuple[Type[Method], ...]]
     CYTHONBASECLASS: ClassVar[Type]
     PYTHONCLASS: ClassVar[Type]
-    _cysubmodel: Type
+    name: ClassVar[str]
+    _cysubmodel: object
 
     def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()

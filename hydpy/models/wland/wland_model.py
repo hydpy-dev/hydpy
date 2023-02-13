@@ -4,12 +4,10 @@
 """
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils

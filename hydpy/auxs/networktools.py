@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
-"""This module provides features for preparing *HydPy* networks based on
-different data.
+"""This module provides features for preparing *HydPy* networks based on different
+data.
 
 .. _`guideline of the German organisation LAWA`: https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf    # pylint: disable=line-too-long
 """
 # import...
-# ...from standard library
-from typing import *
 
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
+from hydpy.core.typingtools import *
 
 
 class RiverBasinNumber(str):
-    """A single river basin number (Gewässerkennzahl) based on a `guideline
-    of the German organisation LAWA`_ (Länderarbeitsgemeinschaft Wasser:
-    Richtlinie für die Gebietsbezeichung und die Verschlüsselung von
-    Fließgewässern, 1970).
+    """A single river basin number (Gewässerkennzahl) based on a `guideline of the
+    German organisation LAWA`_ (Länderarbeitsgemeinschaft Wasser: Richtlinie für die
+    Gebietsbezeichung und die Verschlüsselung von Fließgewässern, 1970).
 
     |RiverBasinNumber| ignores the fill number zero:
 
@@ -27,8 +25,8 @@ class RiverBasinNumber(str):
     >>> RiverBasinNumber("0123")
     RiverBasinNumber(123)
 
-    Numbers not interpretable as a river basin number result in the
-    following error message:
+    Numbers not interpretable as a river basin number result in the following error
+    message:
 
     >>> RiverBasinNumber("123A")
     Traceback (most recent call last):
@@ -36,29 +34,38 @@ class RiverBasinNumber(str):
     ValueError: The given value `123A` could not be interpreted as a river \
 basin number.
 
-    Use the `in` operator to find out if one river basin lies within
-    the source area of another one. For example, `56626131` lies
-    upstream of `566331`:
+    Use the `in` operator to find out if one river basin lies within the source area of
+    another one. For example, `56626131` lies upstream of `566331`:
 
     >>> RiverBasinNumber(56626131) in RiverBasinNumber(566331)
     True
     >>> RiverBasinNumber(566331) in RiverBasinNumber(56626131)
     False
 
-    River basin `532142` does neither lie upstream nor downstream of
-    river basin `566331`:
+    River basin `532142` does neither lie upstream nor downstream of river basin
+    `566331`:
 
     >>> RiverBasinNumber(532142) in RiverBasinNumber(566331)
     False
     >>> RiverBasinNumber(566331) in RiverBasinNumber(532142)
     False
 
-    For river basins numbers that are identical in all shared digits,
-    the result is always |False|:
+    For river basin numbers that are identical in all shared digits, the result is
+    always |False|:
 
     >>> RiverBasinNumber(566331) in RiverBasinNumber(566331)
     False
     >>> RiverBasinNumber(566331) in RiverBasinNumber(5663311)
+    False
+
+    The `in` operator also works for |str| and |int| objects but not for other types
+    like |float|:
+
+    >>> "56626131" in RiverBasinNumber(566331)
+    True
+    >>> 56626131 in RiverBasinNumber(566331)
+    True
+    >>> 56626131.0 in RiverBasinNumber(566331)
     False
     """
 
@@ -69,8 +76,8 @@ basin number.
             return str.__new__(RiverBasinNumber, str(int(value)).strip("0"))
         except ValueError:
             raise ValueError(
-                f"The given value `{value}` could not be "
-                f"interpreted as a river basin number."
+                f"The given value `{value}` could not be interpreted as a river basin "
+                f"number."
             ) from None
 
     @property
@@ -133,15 +140,14 @@ basin number.
 
     @property
     def possible_next_initial_digits(self) -> Tuple[str, ...]:
-        """Return all potential candidates for the next downstream river
-        basin number.
+        """Return all potential candidates for the next downstream river basin number.
 
-        Eventually, only the first and the last returned candidate should be
-        relevant.  But to return all possible intermediate candidates might
-        be safer to capture unexpected river basin number specifications.
+        Eventually, only the first and the last returned candidate should be relevant.
+        But to return all possible intermediate candidates might be safer to capture
+        unexpected river basin number specifications.
 
-        The candidate numbers might be incomplete.  For example, the next
-        number downstream of `123` could be `1251` instead of `125`:
+        The candidate numbers might be incomplete.  For example, the next number
+        downstream of `123` could be `1251` instead of `125`:
 
         >>> from hydpy import RiverBasinNumber
         >>> for number in range(120, 130):
@@ -173,7 +179,9 @@ basin number.
         """
         return len(self)
 
-    def __contains__(self, number: Union[int, str]) -> bool:
+    def __contains__(self, number: object) -> bool:
+        if not isinstance(number, (str, int)):
+            return False
         other = RiverBasinNumber(number)
         for digit_self, digit_other in zip(self, other):
             ds = int(digit_self)
@@ -199,12 +207,19 @@ class RiverBasinNumbers(tuple):
     RiverBasinNumbers((111, 1121, 1122, 1123, 1124, 1125, 11261,
                        11262, 11269, 1129, 113, 1132))
 
-    The `in` operator works as to be expected, but performs an automatic
-    type conversion and relies on a more efficient implementation than the
-    one of the base class |tuple|:
+    The `in` operator works as to be expected, but performs an automatic type
+    conversion and relies on a more efficient implementation than the one of the base
+    class |tuple|:
 
+    >>> from hydpy import RiverBasinNumber
+    >>> RiverBasinNumber(113) in rbns
+    True
     >>> 113 in rbns
     True
+    >>> "113" in rbns
+    True
+    >>> 113.0 in rbns
+    False
     >>> 1126 in rbns
     False
     >>> 11262 in rbns
@@ -236,8 +251,7 @@ class RiverBasinNumbers(tuple):
         return vars(self)["_tree"]
 
     def select(self, number: Union[int, str]) -> "RiverBasinNumbers":
-        """Select and return all river basin numbers starting with the given
-        number.
+        """Select and return all river basin numbers starting with the given number.
 
         >>> from hydpy import RiverBasinNumbers
         >>> rbns = RiverBasinNumbers((111, 113, 1132, 1129, 11269, 1125, 11261,
@@ -282,26 +296,25 @@ class RiverBasinNumbers(tuple):
         return None
 
     @property
-    def next_numbers(self) -> Tuple[RiverBasinNumber, ...]:
+    def next_numbers(self) -> Tuple[Optional[RiverBasinNumber], ...]:
         """A tuple of the next downstream river basin numbers.
 
-        The order of the returned numbers corresponds to the order of the
-        numbers contained by the actual |RiverBasinNumbers| object.
+        The order of the returned numbers corresponds to the order of the numbers
+        contained by the actual |RiverBasinNumbers| object.
 
         The number of the subcatchment immediately downstream of the outlet
-        subcatchment is not known.  The tuple contains a |None| object
-        instead (or multiple |None| objects in case of multiple outlets).
+        subcatchment is not known.  The tuple contains a |None| object instead (or
+        multiple |None| objects in case of multiple outlets).
 
-        Eventually, not all possible combinations of river basin numbers
-        are covered.  Please keep us informed if you notice a problem
-        when applying this algorithm to your data.  At least, the algorithm
-        works properly on the following test case provided by Michael
-        Wagner (TU Dresden):
+        Eventually, not all possible combinations of river basin numbers are covered.
+        Please keep us informed if you notice a problem when applying this algorithm to
+        your data.  At least, the algorithm works properly on the following test case
+        provided by Michael Wagner (TU Dresden):
 
         .. image:: LAWA_river-basin-bumbers.png
 
-        At first, we consider only the black arrows, exemplifying the basic
-        definition of river basin numbers:
+        At first, we consider only the black arrows, exemplifying the basic definition
+        of river basin numbers:
 
         >>> from hydpy import RiverBasinNumbers
         >>> rbns = RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,
@@ -320,8 +333,8 @@ class RiverBasinNumbers(tuple):
         1129   113
         113    None
 
-        The coloured arrows exemplify the situation, where some additional
-        subdivisions become necessary:
+        The coloured arrows exemplify the situation, where some additional subdivisions
+        become necessary:
 
         >>> from hydpy import RiverBasinNumbers
         >>> rbns = RiverBasinNumbers((1111, 1119, 113, 1129, 1127,
@@ -346,7 +359,9 @@ class RiverBasinNumbers(tuple):
         """
         return tuple(self._get_next_number(rbn) for rbn in self)
 
-    def __contains__(self, number: Union[int, str]) -> bool:
+    def __contains__(self, number) -> bool:
+        if not isinstance(number, (int, str)):
+            return False
         tree = self._tree
         for digit in RiverBasinNumber(number):
             try:
@@ -360,17 +375,16 @@ class RiverBasinNumbers(tuple):
 
 
 class RiverBasinNumbers2Selection:
-    """Class for defining a |Selection| object based on a given
-    |RiverBasinNumbers| object.
+    """Class for defining a |Selection| object based on a given |RiverBasinNumbers|
+    object.
 
-    Note that this class does not cover all possible *HydPy* networks.
-    So it might be necessary to make some adjustments on the returned
-    selection, e.g. to define individual names for specific elements
-    or nodes.
+    Note that this class does not cover all possible *HydPy* networks.  So it might be
+    necessary to make some adjustments on the returned selection, e.g. to define
+    individual names for specific elements or nodes.
 
-    All examples in the documentation on the methods and properties of
-    class |RiverBasinNumbers2Selection| rely on the river basin numbers
-    defined in the documentation on class |RiverBasinNumbers|.
+    All examples in the documentation on the methods and properties of class
+    |RiverBasinNumbers2Selection| rely on the river basin numbers defined in the
+    documentation on class |RiverBasinNumbers|.
     """
 
     supplier_prefix: str
@@ -412,8 +426,7 @@ class RiverBasinNumbers2Selection:
     def supplier_elements(self) -> devicetools.Elements:
         """An |Elements| object containing all "supplying basins".
 
-        (All river basins are assumed to supply something to the downstream
-        basin.)
+        (All river basins are assumed to supply something to the downstream basin.)
 
         >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
@@ -448,8 +461,7 @@ class RiverBasinNumbers2Selection:
         Element("land_113",
                 outlets="node_outlet")
 
-        It is both possible to change the prefix names of the elements
-        and nodes:
+        It is possible to change the prefix names of the elements and nodes:
 
         >>> rbns2s.supplier_prefix = "a_"
         >>> rbns2s.node_prefix = "b_"
@@ -460,10 +472,11 @@ class RiverBasinNumbers2Selection:
         elements = devicetools.Elements()
         for supplier in self._supplier_numbers:
             element = self._get_suppliername(supplier)
-            try:
-                outlet = self._get_nodename(self._up2down[supplier])
-            except TypeError:
+            rbn = self._up2down[supplier]
+            if rbn is None:
                 outlet = self.last_node
+            else:
+                outlet = self._get_nodename(str(rbn))
             elements += devicetools.Element(element, outlets=outlet)
         return elements
 
@@ -471,16 +484,16 @@ class RiverBasinNumbers2Selection:
     def router_elements(self) -> devicetools.Elements:
         """An |Elements| object containing all "routing basins".
 
-        (Only river basins with an upstream basin are assumed to route
-        something to the downstream basin.)
+        (Only river basins with an upstream basin are assumed to route something to the
+        downstream basin.)
 
         >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
         ...                            (111, 113, 1129, 11269, 1125, 11261,
         ...                             11262, 1123, 1124, 1122, 1121))
 
-        The following elements are correctly connected to the required
-        inlet and outlet nodes already:
+        The following elements are correctly connected to the required inlet and outlet
+        nodes already:
 
         >>> for element in rbns2s.router_elements:
         ...     print(repr(element))
@@ -500,8 +513,7 @@ class RiverBasinNumbers2Selection:
                 inlets="node_113",
                 outlets="node_outlet")
 
-        It is both possible to change the prefix names of the elements
-        and nodes:
+        It is both possible to change the prefix names of the elements and nodes:
 
         >>> rbns2s.router_prefix = "c_"
         >>> rbns2s.node_prefix = "d_"
@@ -512,10 +524,11 @@ class RiverBasinNumbers2Selection:
         for router in self._router_numbers:
             element = self._get_routername(router)
             inlet = self._get_nodename(router)
-            try:
-                outlet = self._get_nodename(self._up2down[router])
-            except TypeError:
+            rbn = self._up2down[router]
+            if rbn is None:
                 outlet = self.last_node
+            else:
+                outlet = self._get_nodename(rbn)
             elements += devicetools.Element(element, inlets=inlet, outlets=outlet)
         return elements
 
@@ -528,8 +541,7 @@ class RiverBasinNumbers2Selection:
 
     @property
     def nodes(self) -> devicetools.Nodes:
-        """A |Nodes| object containing all required nodes, including the
-        outlet node.
+        """A |Nodes| object containing all required nodes, including the outlet node.
 
         >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
@@ -539,8 +551,8 @@ class RiverBasinNumbers2Selection:
         Nodes("node_1123", "node_1125", "node_11269", "node_1129", "node_113",
               "node_outlet")
 
-        It is both possible to change the prefix names of the nodes and
-        the name of the outlet node separately:
+        It is both possible to change the prefix names of the nodes and the name of the
+        outlet node separately:
 
         >>> rbns2s.node_prefix = "b_"
         >>> rbns2s.last_node = "l_node"
@@ -553,8 +565,7 @@ class RiverBasinNumbers2Selection:
 
     @property
     def selection(self) -> selectiontools.Selection:
-        """A complete |Selection| object containing all required elements
-        and nodes.
+        """A complete |Selection| object containing all required elements and nodes.
 
         >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
@@ -570,9 +581,8 @@ class RiverBasinNumbers2Selection:
                             "land_113", "stream_1123", "stream_1125",
                             "stream_11269", "stream_1129", "stream_113"))
 
-        Besides the possible modifications on the names of the different
-        nodes and elements, one is also free to define an arbitrary
-        selection name:
+        Besides the possible modifications on the names of the different nodes and
+        elements, one is also free to define an arbitrary selection name:
 
         >>> rbns2s.selection_name = "sel"
         >>> from hydpy import pub

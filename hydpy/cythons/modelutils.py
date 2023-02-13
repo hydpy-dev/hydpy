@@ -266,7 +266,6 @@ import platform
 import shutil
 import sys
 import types
-from typing import *
 
 # ...third party modules
 import numpy
@@ -285,7 +284,8 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     import Cython.Build as build
@@ -336,14 +336,14 @@ TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicat
     None: "void",
     "None": "void",
     type(None): "void",
-    typingtools.Vector: "double[:]",  # to be removed as soon as possible
-    "typingtools.Vector": "double[:]",
+    Vector: "double[:]",  # to be removed as soon as possible
     "Vector": "double[:]",
-    typingtools.Vector[float]: "double[:]",  # This works because the `__getitem__`
+    "Vector": "double[:]",
+    VectorFloat: "double[:]",  # This works because the `__getitem__`
     # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
     # is documented behaviour, so this might cause (little) trouble in the future.
-    "typingtools.Vector[float]": "double[:]",
-    "Vector[float]": "double[:]",
+    "VectorFloat": "double[:]",
+    "VectorFloat": "double[:]",
 }
 """Maps Python types to Cython compatible type declarations.
 
@@ -374,7 +374,7 @@ class Lines(List[str]):
     def __init__(self, *args: str) -> None:
         super().__init__(args)
 
-    def add(self, indent: int, line: typingtools.Mayberable1[str]) -> None:
+    def add(self, indent: int, line: Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following the given number
         of indentation levels.
         """
@@ -1902,7 +1902,7 @@ class PyxWriter:
         assert isinstance(self.model, modeltools.ELSModel)
         if self.model.SOLVERSEQUENCES:
             subseqs = [
-                seq for seq in subseqs if isinstance(seq, self.model.SOLVERSEQUENCES)  # type: ignore[arg-type]  # pylint: disable=line-too-long
+                seq for seq in subseqs if isinstance(seq, self.model.SOLVERSEQUENCES)
             ]
         yield from self._declare_idxs(subseqs)
         userel = "self.numvars.use_relerror:"
@@ -2122,7 +2122,7 @@ class FuncConverter:
     ) -> None:
         self.model = model
         self.funcname = funcname
-        self.func = func  # type: ignore[assignment]
+        self.func = func
         self.inline = inline
 
     @property
@@ -2266,6 +2266,7 @@ class FuncConverter:
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
           * replace " model." with " self."
+          * remove ".values" and "value"
           * remove the ": float" annotation
         """
         code = inspect.getsource(self.func)
@@ -2274,6 +2275,8 @@ class FuncConverter:
         code = code.replace(" model.", " self.")
         code = code.replace("[model.", "[self.")
         code = code.replace("(model.", "(self.")
+        code = code.replace(".values", "")
+        code = code.replace(".value", "")
         code = code.replace(": float", "")
         for name, shortcut in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")

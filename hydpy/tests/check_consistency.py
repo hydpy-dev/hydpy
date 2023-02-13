@@ -3,7 +3,7 @@
 # ...from standard library
 import os
 import sys
-from typing import *
+from typing import List
 
 # ...from HydPy
 from hydpy import models

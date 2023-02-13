@@ -12,7 +12,7 @@ from __future__ import annotations
 import importlib
 import os
 import warnings
-from typing import *
+from typing import Dict, TYPE_CHECKING
 
 # ...from site-packages
 import numpy

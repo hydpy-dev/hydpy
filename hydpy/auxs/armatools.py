@@ -5,7 +5,6 @@ Autoregressive-Moving Average (ARMA) models."""
 # ...from standard library
 import itertools
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -14,6 +13,7 @@ import numpy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.auxs import statstools
 from hydpy.core.typingtools import *
 
@@ -193,27 +193,28 @@ check the calculated coefficients: 1.0.
     smallest_coeff: float = 1e-9
     """Smalles MA coefficient to be determined at the end of the response."""
 
-    _coefs = None
+    _coefs: Optional[VectorFloat] = None
 
     def __init__(self, iuh=None, coefs=None) -> None:
         self.iuh = iuh
         if coefs is not None:
             self.coefs = coefs
 
-    @property
-    def coefs(self) -> Vector[float]:
+    def _get_coefs(self) -> VectorFloat:
         """|numpy.ndarray| containing all MA coefficents."""
-        if self._coefs is None:
-            self.update_coefs()
-        return self._coefs
+        if (coefs := self._coefs) is not None:
+            return coefs
+        self.update_coefs()
+        assert (coefs := self._coefs) is not None
+        return coefs
 
-    @coefs.setter
-    def coefs(self, values) -> None:
+    def _set_coefs(self, values: VectorInputFloat) -> None:
         self._coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    @coefs.deleter
-    def coefs(self) -> None:
+    def _del_coefs(self) -> None:
         self._coefs = None
+
+    coefs = propertytools.Property(fget=_get_coefs, fset=_set_coefs, fdel=_del_coefs)
 
     @property
     def order(self) -> int:
@@ -226,7 +227,7 @@ check the calculated coefficients: 1.0.
     def update_coefs(self) -> None:
         """(Re)calculate the MA coefficients based on the instantaneous unit
         hydrograph."""
-        coefs = []
+        coefs: List[float] = []
         sum_coefs = 0.0
         moment1 = self.iuh.moment1
         for t in itertools.count(0.0, 1.0):
@@ -235,12 +236,12 @@ check the calculated coefficients: 1.0.
                 coef = integrate.quad(self._quad, 0.0, 1.0, args=(t,), points=points)[0]
             except integrate.IntegrationWarning:
                 idx = int(moment1)
-                coefs = numpy.zeros(idx + 2, dtype=float)
+                coefs_ = numpy.zeros(idx + 2, dtype=float)
                 weight = moment1 - idx
-                coefs[idx] = 1.0 - weight
-                coefs[idx + 1] = weight
-                self.coefs = coefs
-                self._raise_integrationwarning(coefs)
+                coefs_[idx] = 1.0 - weight
+                coefs_[idx + 1] = weight
+                self.coefs = coefs_
+                self._raise_integrationwarning(coefs_)
                 break  # pragma: no cover
             sum_coefs += coef
             if (sum_coefs < 0.5) and (t > 10.0 * moment1):
@@ -253,9 +254,7 @@ check the calculated coefficients: 1.0.
                     f"instantaneous unit hydrograph `{repr(self.iuh)}`."
                 )
             if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
-                coefs = numpy.array(coefs)
-                coefs /= numpy.sum(coefs)
-                self.coefs = coefs
+                self.coefs = (coefs_ := numpy.asarray(coefs)) / sum(coefs_)
                 break
             coefs.append(coef)
 
@@ -284,7 +283,7 @@ check the calculated coefficients: 1.0.
         )
 
     @property
-    def delays(self) -> Vector[float]:
+    def delays(self) -> VectorFloat:
         """Time delays related to the individual MA coefficients."""
         return numpy.arange(self.order, dtype=float)
 
@@ -527,8 +526,9 @@ the MA coefficients `1.0, 1.0, 1.0`.
     """Maximum deviation of the sum of all coefficents from one to be accepted by 
     method |ARMA.update_coefs|."""
 
-    _ma_coefs = None
-    _ar_coefs = None
+    _ma_coefs: Optional[VectorFloat] = None
+    _ar_coefs: Optional[VectorFloat] = None
+    _rel_rmse: Optional[float]
 
     def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None) -> None:
         self.ma = ma_model
@@ -541,41 +541,59 @@ the MA coefficients `1.0, 1.0, 1.0`.
     @property
     def rel_rmse(self) -> float:
         """Relative root mean squared error the last time achieved by method
-        |ARMA.update_coefs|."""
-        return self._rel_rmse
+        |ARMA.update_coefs|.
 
-    @property
-    def ar_coefs(self) -> Vector[float]:
+        >>> from hydpy.auxs.armatools import ARMA
+        >>> ARMA().rel_rmse
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The relative root mean squared error has not been determined so \
+far.
+        """
+        if (rel_rmse := self._rel_rmse) is None:
+            raise RuntimeError(
+                "The relative root mean squared error has not been determined so far."
+            )
+        return rel_rmse
+
+    def _get_ar_coefs(self) -> VectorFloat:
         """The AR coefficients of the AR model."""
-        if self._ar_coefs is None:
-            self.update_ar_coefs()
-        return self._ar_coefs
+        if (ar_coefs := self._ar_coefs) is not None:
+            return ar_coefs
+        self.update_ar_coefs()
+        assert (ar_coefs := self._ar_coefs) is not None
+        return ar_coefs
 
-    @ar_coefs.setter
-    def ar_coefs(self, values) -> None:
+    def _set_ar_coefs(self, values) -> None:
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    @ar_coefs.deleter
-    def ar_coefs(self) -> None:
+    def _del_ar_coefs(self) -> None:
         self._ar_coefs = None
 
-    @property
-    def ma_coefs(self) -> Vector[float]:
-        """The MA coefficients of the ARMA model."""
-        if self._ma_coefs is None:
-            self.update_ma_coefs()
-        return self._ma_coefs
+    ar_coefs = propertytools.Property(
+        fget=_get_ar_coefs, fset=_set_ar_coefs, fdel=_del_ar_coefs
+    )
 
-    @ma_coefs.setter
-    def ma_coefs(self, values) -> None:
+    def _get_ma_coefs(self) -> VectorFloat:
+        """The MA coefficients of the ARMA model."""
+        if (ma_coefs := self._ma_coefs) is not None:
+            return ma_coefs
+        self.update_ma_coefs()
+        assert (ma_coefs := self._ma_coefs) is not None
+        return ma_coefs
+
+    def _set_ma_coefs(self, values: VectorInputFloat) -> None:
         self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    @ma_coefs.deleter
-    def ma_coefs(self) -> None:
+    def _del_ma_coefs(self) -> None:
         self._ma_coefs = None
 
+    ma_coefs = propertytools.Property(
+        fget=_get_ma_coefs, fset=_set_ma_coefs, fdel=_del_ma_coefs
+    )
+
     @property
-    def coefs(self) -> Tuple[Vector[float], Vector[float]]:
+    def coefs(self) -> Tuple[VectorFloat, VectorFloat]:
         """Tuple containing both the AR and the MA coefficients."""
         return self.ar_coefs, self.ma_coefs
 
@@ -621,24 +639,22 @@ the MA coefficients `1.0, 1.0, 1.0`.
         |ARMA.update_ar_coefs| raises a warning.
         """
         del self.ar_coefs
-        max_ar_order = self.effective_max_ar_order
-        if max_ar_order == 0:
+        if (max_ar_order := self.effective_max_ar_order) == 0:
             self.ar_coefs = ()
         else:
-            for ar_order in range(1, self.effective_max_ar_order + 1):
+            for ar_order in range(1, max_ar_order + 1):
                 self.calc_all_ar_coefs(ar_order, self.ma)
-                if self._rel_rmse < self.max_rel_rmse:
+                if self.rel_rmse < self.max_rel_rmse:
                     break
             else:
                 with hydpy.pub.options.reprdigits(12):
                     warnings.warn(
-                        f"Method `update_ar_coefs` is not able to determine "
-                        f"the AR coefficients of the ARMA model with the desired "
-                        f"accuracy.  You can either set the tolerance value "
-                        f"`max_rel_rmse` to a higher value or increase the "
-                        f"allowed `max_ar_order`.  An accuracy of `"
-                        f"{objecttools.repr_(self._rel_rmse)}` has been reached "
-                        f"using `{self.effective_max_ar_order}` coefficients."
+                        f"Method `update_ar_coefs` is not able to determine the AR "
+                        f"coefficients of the ARMA model with the desired accuracy.  "
+                        f"You can either set the tolerance value `max_rel_rmse` to a "
+                        f"higher value or increase the allowed `max_ar_order`.  An "
+                        f"accuracy of `{objecttools.repr_(self._rel_rmse)}` has been "
+                        f"reached using `{self.effective_max_ar_order}` coefficients."
                     )
 
     @property
@@ -658,14 +674,14 @@ the MA coefficients `1.0, 1.0, 1.0`.
     @property
     def sum_coefs(self) -> float:
         """The sum of all AR and MA coefficients"""
-        return numpy.sum(self.ar_coefs) + numpy.sum(self.ma_coefs)
+        return float(numpy.sum(self.ar_coefs) + numpy.sum(self.ma_coefs))
 
     @property
     def dev_coefs(self) -> float:
         """Absolute deviation of |ARMA.sum_coefs| from one."""
         return abs(self.sum_coefs - 1.0)
 
-    def calc_all_ar_coefs(self, ar_order, ma_model) -> None:
+    def calc_all_ar_coefs(self, ar_order: int, ma_model: MA) -> None:
         """Determine the AR coeffcients based on a least squares approach.
 
         The argument `ar_order` defines the number of AR coefficients to be determined.
@@ -724,12 +740,11 @@ the MA coefficients `1.0, 1.0, 1.0`.
         else:
             with hydpy.pub.options.reprdigits(12):
                 warnings.warn(
-                    f"Method `update_ma_coefs` is not able to determine the "
-                    f"MA coefficients of the ARMA model with the desired "
-                    f"accuracy.  You can set the tolerance value "
-                    f"´max_dev_coefs` to a higher value.  An accuracy of "
-                    f"`{objecttools.repr_(self.dev_coefs)}` has been reached "
-                    f"using `{self.ma.order}` MA coefficients."
+                    f"Method `update_ma_coefs` is not able to determine the MA "
+                    f"coefficients of the ARMA model with the desired accuracy.  You "
+                    f"can set the tolerance value ´max_dev_coefs` to a higher value.  "
+                    f"An accuracy of `{objecttools.repr_(self.dev_coefs)}` has been "
+                    f"reached using `{self.ma.order}` MA coefficients."
                 )
         if numpy.min(self.response) < 0.0:
             warnings.warn(
@@ -753,12 +768,12 @@ the MA coefficients `1.0, 1.0, 1.0`.
             zdx = idx - jdx - 1
             if zdx >= 0:
                 coef -= ar_coef * ma_model.coefs[zdx]
-        self.ma_coefs = numpy.concatenate((self.ma_coefs, [coef]))
+        self.ma_coefs = numpy.concatenate((self.ma_coefs, numpy.asarray([coef])))
 
     @property
-    def response(self) -> Vector[float]:
+    def response(self) -> VectorFloat:
         """Return the response to a standard dt impulse."""
-        values = []
+        values: List[float] = []
         sum_values = 0.0
         ma_coefs = self.ma_coefs
         ar_coefs = self.ar_coefs

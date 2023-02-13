@@ -2133,12 +2133,11 @@ group name `test`.
         >>> figure = lahn_1.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of sequence(s) obs and sim \
-of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
+        ValueError: While trying to plot the time series of sequence(s) obs and sim of \
+node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
-ones are supported: `monthly` (default) and `daily`.
-
+ones are supported: `monthly` (default), `daily` and `yearly`.
         >>> from hydpy import pub
         >>> del pub.timegrids
         >>> figure = lahn_1.plot_allseries()

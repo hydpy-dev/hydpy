@@ -236,16 +236,25 @@ size only.
     ValueError: While trying to aggregate the given series, the following error \
 occurred: Data aggregation is not supported for simulation step sizes greater one day.
 
+    >>> pub.timegrids = "01.10.2000 22:00", "01.10.2003 22:00", "1d"
+    >>> node.prepare_simseries()
+    >>> sim = node.sequences.sim
+    >>> sim.series = numpy.ones((1, 1095))
+    >>> aggregate_series(series=sim.series, stepsize="yearly", aggregator="sum")
+    2001-01-01    365.0
+    2002-01-01    365.0
+    Freq: AS-JAN, Name: series, dtype: float64
+
     We are looking forward supporting other useful aggregation step sizes later:
 
     >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1d"
     >>> node.prepare_simseries()
-    >>> aggregate_series(series=node.sequences.sim.series, stepsize="yearly")
+    >>> aggregate_series(series=node.sequences.sim.series, stepsize="3T")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following error \
-occurred: Argument `stepsize` received value `yearly`, but only the following ones \
-are supported: `monthly` (default) and `daily`.
+occurred: Argument `stepsize` received value `3T`, but only the following ones are \
+supported: `monthly` (default), `daily` and `yearly`.
     """
     timegrids: timetools.Timegrids = hydpy.pub.timegrids
     if isinstance(aggregator, str):
@@ -275,10 +284,14 @@ are supported: `monthly` (default) and `daily`.
     elif stepsize in ("m", "monthly"):
         rule = "MS"
         offset = 0
+    elif stepsize in ("y", "yearly"):
+        rule = "YS"
+        offset = 0
+        # Todo: hydrologisches Jahr? "AS_NOV" date.wateryear?
     else:
         raise ValueError(
             f"Argument `stepsize` received value `{stepsize}`, but only the following "
-            f"ones are supported: `monthly` (default) and `daily`."
+            f"ones are supported: `monthly` (default), `daily` and `yearly`."
         )
     if len(series) != len(timegrids.init):
         raise ValueError(
@@ -307,6 +320,8 @@ are supported: `monthly` (default) and `daily`.
         date = timetools.Date(date1)
         if stepsize in ("daily", "d"):
             date += "1d"
+        elif stepsize in ("yearly", "y"):
+            date = date.beginning_next_year
         else:
             date = date.beginning_next_month
         if date <= tg.lastdate:

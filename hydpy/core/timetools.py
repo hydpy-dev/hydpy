@@ -912,6 +912,30 @@ twelve (December) but `0` is given
             date.month += 1
         return date
 
+    @property
+    def beginning_next_year(self) -> Date:
+        """The first possible date of the next month after the month of the current
+        |Date| object.
+
+        >>> from hydpy import Date
+        >>> Date("2001-01-01 00:00:00").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-01-31 12:30:30").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-12-01 00:00:00").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-12-31 12:30:30").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        """
+        date = Date(self)
+        date.year += 1
+        date.month = 1
+        date.day = 1
+        date.hour = 0
+        date.second = 0
+        date.minute = 0
+        return date
+
     def __add__(self: TypeDate, other: PeriodConstrArg) -> TypeDate:
         new = self.from_datetime(self.datetime + Period(other).timedelta)
         new.style = self.style

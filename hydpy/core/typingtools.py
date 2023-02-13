@@ -50,7 +50,7 @@ NDMatrixBytes = numpy.typing.NDArray[bytes]  # type: ignore[type-var]
 
 DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
 
 class VectorInput(Protocol[Float_co]):

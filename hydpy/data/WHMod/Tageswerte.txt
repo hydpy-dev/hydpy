@@ -1,0 +1,9 @@
+# Das ist ein Kommentar
+sequence:           AktGrundwasserneubildung
+                    VerzGrundwasserneubildung
+                    NiederschlagRichter
+                    InterzeptionsVerdunstung
+steps:              daily
+name_rch_file:      daily_rch
+name_mean_file:     daily_mean
+name_time_series:   daily_timeseries

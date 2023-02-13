@@ -67,6 +67,7 @@ setuptools.setup(
         "setuptools",
         "typing_extensions",
         "wrapt",
+        "xarray",
         "xmlschema",
     ],
 )

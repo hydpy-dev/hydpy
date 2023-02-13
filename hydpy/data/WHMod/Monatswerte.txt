@@ -1,0 +1,8 @@
+# Das ist ein Kommentar
+sequence:           AktGrundwasserneubildung
+                    VerzGrundwasserneubildung
+                    NiederschlagRichter
+steps:              monthly
+name_rch_file:      monthly_rch
+name_mean_file:     monthly_mean
+name_time_series:   monthly_timeseries

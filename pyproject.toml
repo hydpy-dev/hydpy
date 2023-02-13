@@ -14,5 +14,6 @@ requires = [
     "typing_extensions",
     "wheel",
     "wrapt",
+    "xarray",
     "xmlschema",
 ]

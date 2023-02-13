@@ -2239,7 +2239,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns={"series": label_})
+                    ps.name = label_
                 kwargs = {"label": label_, "ax": pyplot.gca()}
                 if color is not None:
                     kwargs["color"] = color

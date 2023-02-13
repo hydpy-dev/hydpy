@@ -78,13 +78,13 @@ def aggregate_series(
     (note that the index addresses the left boundary of each time step:
 
     >>> aggregate_series(series=sim.series)
-                series
-    2000-11-01    15.5
-    2000-12-01    46.0
-    2001-01-01    77.0
-    2001-02-01   106.5
-    2001-03-01   136.0
-    2001-04-01   166.5
+    2000-11-01     15.5
+    2000-12-01     46.0
+    2001-01-01     77.0
+    2001-02-01    106.5
+    2001-03-01    136.0
+    2001-04-01    166.5
+    Freq: MS, Name: series, dtype: float64
 
     The following example shows how to restrict the considered period via the
     |Timegrids.eval_| |Timegrid| of the |Timegrids| object available in the |pub|
@@ -92,9 +92,9 @@ def aggregate_series(
 
     >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-03-01"
     >>> aggregate_series(series=sim.series, aggregator=numpy.sum)
-                series
-    2001-01-01  2387.0
-    2001-02-01  2982.0
+    2001-01-01    2387.0
+    2001-02-01    2982.0
+    Freq: MS, Name: series, dtype: float64
 
     Even for short evaluation periods, the passed data must still cover the correspond
     to the complete initialisation period:
@@ -123,8 +123,8 @@ following error occurred: wrong function
 
     >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-02-01"
     >>> aggregate_series(series=sim.series, aggregator="sum")
-                series
-    2001-01-01  2387.0
+    2001-01-01    2387.0
+    Freq: MS, Name: series, dtype: float64
 
     |aggregate_series| raises the following error when the requested function does not
     exist:
@@ -143,27 +143,25 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     >>> sim.series = numpy.arange(30, 152+1)
     >>> sim = node.sequences.sim
     >>> aggregate_series(series=sim.series, aggregator="sum")
-                series
-    2000-12-01  1426.0
-    2001-01-01  2387.0
-    2001-02-01  2982.0
-    2001-03-01  4216.0
+    2000-12-01    1426.0
+    2001-01-01    2387.0
+    2001-02-01    2982.0
+    2001-03-01    4216.0
+    Freq: MS, Name: series, dtype: float64
 
     >>> pub.timegrids.eval_.dates = "2001-01-02", "2001-02-28"
     >>> aggregate_series(series=sim.series)
-    Empty DataFrame
-    Columns: [series]
-    Index: []
+    Series([], Freq: MS, Name: series, dtype: float64)
 
     If you want to analyse the data of the complete initialisation period independently
     of the state of |Timegrids.eval_|, set argument `subperiod` to |False|:
 
     >>> aggregate_series(series=sim.series, aggregator="sum", subperiod=False)
-                series
-    2000-12-01  1426.0
-    2001-01-01  2387.0
-    2001-02-01  2982.0
-    2001-03-01  4216.0
+    2000-12-01    1426.0
+    2001-01-01    2387.0
+    2001-02-01    2982.0
+    2001-03-01    4216.0
+    Freq: MS, Name: series, dtype: float64
 
     The following example shows that even with only one missing value at the respective
     ends of the simulation period, |aggregate_series| does not return any result for
@@ -173,11 +171,11 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     >>> node.prepare_simseries()
     >>> sim.series = numpy.arange(2, 180+1)
     >>> aggregate_series(series=node.sequences.sim.series)
-                series
-    2000-12-01    46.0
-    2001-01-01    77.0
-    2001-02-01   106.5
-    2001-03-01   136.0
+    2000-12-01     46.0
+    2001-01-01     77.0
+    2001-02-01    106.5
+    2001-03-01    136.0
+    Freq: MS, Name: series, dtype: float64
 
     Now we prepare a time grid with an hourly simulation step size to show some
     examples of daily aggregation:
@@ -192,21 +190,21 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     entire period:
 
     >>> aggregate_series(series=sim.series, stepsize="daily")
-                series
     2000-01-02    14.5
     2000-01-03    38.5
     2000-01-04    62.5
+    Freq: 86400S, Name: series, dtype: float64
 
     If you want the aggregation to start at a different time of the day, use the
     `basetime` argument.  In our example, starting at 22 o'clock fits the defined
     initialisation time grid and ensures the usage of all available data:
 
     >>> aggregate_series(series=sim.series, stepsize="daily", basetime="22:00")
-                         series
     2000-01-01 22:00:00    12.5
     2000-01-02 22:00:00    36.5
     2000-01-03 22:00:00    60.5
     2000-01-04 22:00:00    84.5
+    Freq: 86400S, Name: series, dtype: float64
 
     So far, the `basetime` argument works for daily aggregation only:
 
@@ -225,10 +223,10 @@ size only.
     >>> sim = node.sequences.sim
     >>> sim.series = numpy.arange(1, 1+4)
     >>> aggregate_series(series=sim.series, stepsize="daily")
-                series
-    2000-01-02     2.0
-    2000-01-03     3.0
-    2000-01-04     4.0
+    2000-01-02    2.0
+    2000-01-03    3.0
+    2000-01-04    4.0
+    Freq: 86400S, Name: series, dtype: float64
 
     >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "2d"
     >>> node.prepare_simseries()
@@ -287,9 +285,8 @@ are supported: `monthly` (default) and `daily`.
             f"The length of the passed vector ({len(series)}) differs from the length "
             f"of the initialisation time grid ({len(timegrids.init)})."
         )
-    dataframe_orig = pandas.DataFrame()
     idx0, idx1 = timegrids.evalindices if subperiod else timegrids.initindices
-    dataframe_orig["series"] = numpy.asarray(series)[idx0:idx1]
+    dataframe_orig = pandas.Series(name="series", data=numpy.asarray(series)[idx0:idx1])
     dataframe_orig.index = pandas.date_range(
         start=tg.firstdate.datetime,
         end=(tg.lastdate - tg.stepsize).datetime,

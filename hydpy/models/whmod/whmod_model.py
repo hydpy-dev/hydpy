@@ -1366,6 +1366,7 @@ class Calc_Basisabfluss_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
+        whmod_control.Nutz_Nr,
         whmod_control.BFI,
     )
     REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)

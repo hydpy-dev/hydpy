@@ -3077,7 +3077,7 @@ class ProfileMixin:
         -0.6, -0.37037, 0.318519, 1.466667, 3.074074, 5.140741, 7.666667,
         10.651852, 14.096296, 18.0
         """
-        if hmax is None:
+        if hmin is None:
             hmin = -0.1 * self.parameters.control.hm
         if hmax is None:
             hmax = 3.0 * self.parameters.control.hm

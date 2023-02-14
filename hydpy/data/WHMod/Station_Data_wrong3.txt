@@ -23,7 +23,7 @@ DWD	4	3475760.0	5553921.0	50.121	8.66	-999	-999	4_Windgeschwindigkeit.asc
 DWD	4	3475760.0	5553921.0	50.121	8.66	-999	-999	4_Sonnenscheindauer.asc
 DWD	4	3475760.0	5553921.0	50.121	8.66	-999	-999	4_Luftdruck.asc
 DWD	4	3475760.0	5553921.0	50.121	8.66	-999	frei	4_Niederschlag.asc
-DWD	5	3438168.0	5543991.0	nan	nan	-999	leicht_geschuetzt	5_Niederschlag.asc
+DWD	5	3438168.0	5543991.0	nan	nan	-999	wald	5_Niederschlag.asc
 DWD	6	3457044.0	5556598.0	nan	nan	-999	maessig_geschuetzt	6_Niederschlag.asc
 DWD	7	3484302.0	5540430.0	nan	nan	-999	stark_geschuetzt	7_Niederschlag.asc
 DWD	8	3445255.0	5536238.0	nan	nan	-999	frei	8_Niederschlag.asc

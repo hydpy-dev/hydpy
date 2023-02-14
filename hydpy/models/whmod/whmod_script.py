@@ -48,7 +48,7 @@ import os
 import warnings
 from typing import *
 from itertools import product
-from dateutil.parser import parse
+from dateutil.parser import parse  # type: ignore[import]
 import numpy
 import pandas  # type: ignore[import]
 import xarray
@@ -219,10 +219,10 @@ def run_whmod(basedir: str, write_output: bool) -> None:
     >>> TestIO.clear()
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> run_whmod(basedir=projectpath, write_output=False)
-    Mean AktGrundwasserneubildung [mm/a]: 38.97446387880633
-    Mean VerzGrundwasserneubildung [mm/a]: 36.91611988833687
-    Mean NiederschlagRichter [mm/a]: 614.0519598783678
-    Mean InterzeptionsVerdunstung [mm/a]: 120.62138261633623
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
@@ -232,18 +232,19 @@ def run_whmod(basedir: str, write_output: bool) -> None:
         ***********************
         seconds elapsed: ...
     Write Output in ...Results (...).
-    Mean AktGrundwasserneubildung [mm/a]: 38.97446387880633
-    Mean VerzGrundwasserneubildung [mm/a]: 36.91611988833687
-    Mean NiederschlagRichter [mm/a]: 614.0519598783678
-    Mean InterzeptionsVerdunstung [mm/a]: 120.62138261633623
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
+
 
     You can also run the script from the command prompt with hyd.py:
 
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
-    Mean AktGrundwasserneubildung [mm/a]: 38.97446387880633
-    Mean VerzGrundwasserneubildung [mm/a]: 36.91611988833687
-    Mean NiederschlagRichter [mm/a]: 614.0519598783678
-    Mean InterzeptionsVerdunstung [mm/a]: 120.62138261633623
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
@@ -252,30 +253,30 @@ def run_whmod(basedir: str, write_output: bool) -> None:
     # monthly WHMod-AktGrundwasserneubildung in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01-01 0.3123535222629806
-    1990-02-01 11.269909721951366
-    1990-03-01 1.202722479827292
-    1990-04-01 1.6153368961041545
-    1990-05-01 -1.966510855767592
-    1990-06-01 -0.7622536716921774
-    1990-07-01 -1.482467549347431
-    1990-08-01 -2.790288757509846
-    1990-09-01 1.1584295976408856
-    1990-10-01 1.834105876933475
-    1990-11-01 15.30160514900505
-    1990-12-01 16.083881574719623
-    1991-01-01 12.867846494514447
-    1991-02-01 5.596682579465355
-    1991-03-01 4.404740610210456
-    1991-04-01 0.3109043749421045
-    1991-05-01 -0.7420669814995601
-    1991-06-01 0.5799537654768399
-    1991-07-01 -1.7070450805370807
-    1991-08-01 -2.807612545031556
-    1991-09-01 -2.037806238215778
-    1991-10-01 1.0124938321292503
-    1991-11-01 7.57714758711962
-    1991-12-01 11.065644964600224
+    1990-01-01 0.7028468260577259
+    1990-02-01 13.957352151783375
+    1990-03-01 1.654816419935198
+    1990-04-01 2.443347283036093
+    1990-05-01 -1.661790198704215
+    1990-06-01 -0.25917369919965183
+    1990-07-01 -1.1187220679497472
+    1990-08-01 -2.6569262117737877
+    1990-09-01 1.8769592964940027
+    1990-10-01 2.6141286249982136
+    1990-11-01 19.13499252643273
+    1990-12-01 19.95844763416463
+    1991-01-01 14.87164920372785
+    1991-02-01 7.71029234354305
+    1991-03-01 5.466120234439423
+    1991-04-01 0.6625795438813451
+    1991-05-01 -0.3612378678536788
+    1991-06-01 1.4033637032773913
+    1991-07-01 -1.4542704826475383
+    1991-08-01 -2.7211217368665888
+    1991-09-01 -1.8467053575494965
+    1991-10-01 1.5482994669932146
+    1991-11-01 9.942934126770014
+    1991-12-01 14.254362030837713
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
@@ -284,30 +285,30 @@ def run_whmod(basedir: str, write_output: bool) -> None:
     # monthly WHMod-VerzGrundwasserneubildung in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01-01 0.5045038812540082
-    1990-02-01 5.250603291729104
-    1990-03-01 6.4497203320862395
-    1990-04-01 1.7912861345033646
-    1990-05-01 -0.6268182705790565
-    1990-06-01 -1.2685268478426799
-    1990-07-01 -0.6807497284977176
-    1990-08-01 -2.782809513177545
-    1990-09-01 0.00455351862727867
-    1990-10-01 1.013322356582701
-    1990-11-01 10.543526380157056
-    1990-12-01 12.408252255341312
-    1991-01-01 17.414533275242814
-    1991-02-01 5.238857183865606
-    1991-03-01 6.298480526672588
-    1991-04-01 1.705189692982093
-    1991-05-01 0.5847423425736368
-    1991-06-01 0.016316297653541267
-    1991-07-01 -0.38235956595131526
-    1991-08-01 -2.0971718032882287
-    1991-09-01 -2.5505616288699926
-    1991-10-01 0.7403114329158353
-    1991-11-01 5.877001644492123
-    1991-12-01 8.33152126253456
+    1990-01-01 0.7354062546860497
+    1990-02-01 6.536275191558225
+    1990-03-01 7.993232702855191
+    1990-04-01 2.553324343490558
+    1990-05-01 -0.07375077659961421
+    1990-06-01 -0.8320219215894414
+    1990-07-01 -0.144611371666009
+    1990-08-01 -2.624242426838646
+    1990-09-01 0.5426003650433756
+    1990-10-01 1.6253440338171956
+    1990-11-01 13.208931733858217
+    1990-12-01 15.669861097926352
+    1991-01-01 20.553139501800576
+    1991-02-01 6.636077386899841
+    1991-03-01 8.277475250923542
+    1991-04-01 2.282198592422247
+    1991-05-01 1.2149947349015224
+    1991-06-01 0.6957100402292622
+    1991-07-01 0.16127378204943124
+    1991-08-01 -1.8628242647164013
+    1991-09-01 -2.4254028076651135
+    1991-10-01 1.3074037551443471
+    1991-11-01 7.682496633141494
+    1991-12-01 10.768426259118066
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_mean_AktGrundwasserneubildung.txt"), 'r') as file:
@@ -318,11 +319,10 @@ def run_whmod(basedir: str, write_output: bool) -> None:
         yllcorner     5567507.03
         cellsize      100.0
         nodata_value  -9999.0
-        8.825367550911751569e-02 2.317557171844069064e-01 7.281403909474958025e-02
-        1.363885421499326511e-01 1.395707504261204657e-01 -2.775004247352159115e-01
-        7.951290979539728243e-02 5.312265218569789393e-02 1.898398357353074939e-01
-        2.493865225873505287e-01 2.076083832570031484e-01 1.275745928115135930e-01
-
+        1.214049718260273442e-01 2.756014615062301054e-01 1.019817010459422163e-01
+        1.753518676336352222e-01 1.719348460699934300e-01 -2.089579331110139881e-01
+        1.113094151188262632e-01 7.927670621589584521e-02 2.311449451727813076e-01
+        2.937570084599854248e-01 2.506958064706713007e-01 1.635317903660306327e-01
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_rch_AktGrundwasserneubildung.rch"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
@@ -333,148 +333,148 @@ def run_whmod(basedir: str, write_output: bool) -> None:
              1        51         1         1
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.8509e-011 2.3414e-009 2.2647e-012
-     4.1739e-011 9.6647e-010-7.3711e-009
-     2.0722e-011 1.4558e-012 1.1500e-009
-     2.4499e-009 1.1637e-009 6.0437e-010
+     4.0298e-011 2.7098e-009 3.5240e-012
+     5.8612e-011 1.1418e-009-7.1452e-009
+     2.9174e-011 2.1543e-012 1.3740e-009
+     2.8379e-009 1.3883e-009 7.0852e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.3977e-009 9.4332e-009 8.6053e-010
-     3.6510e-009 5.8304e-009 1.6162e-009
-     1.9091e-009 4.2226e-010 7.7649e-009
-     9.7359e-009 7.9192e-009 4.3620e-009
+     3.5793e-009 1.0631e-008 1.5328e-009
+     4.9996e-009 6.9113e-009 3.0186e-009
+     2.9883e-009 8.1067e-010 9.0592e-009
+     1.0953e-008 9.1995e-009 5.5499e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.8571e-010 5.8266e-010 8.5452e-011
-     7.3161e-010 4.4152e-010-1.4511e-010
-     1.3623e-010 4.8464e-011 9.3179e-010
-     8.3634e-010 9.6042e-010 4.9347e-010
+     4.3868e-010 7.4476e-010 1.7819e-010
+     9.6702e-010 5.7982e-010 6.4246e-011
+     2.4445e-010 1.1639e-010 1.1696e-009
+     1.0417e-009 1.1982e-009 6.7102e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.1630e-010 1.2581e-009 4.5122e-011
-     1.1389e-009 7.2919e-010-1.6534e-009
-     8.3694e-011 2.7532e-011 1.6146e-009
-     1.4325e-009 1.8992e-009 6.8671e-010
+     3.8115e-010 1.6603e-009 1.2298e-010
+     1.5621e-009 9.6095e-010-8.7607e-010
+     1.7865e-010 8.6864e-011 2.0672e-009
+     1.8604e-009 2.3682e-009 9.3908e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     3.9276e-012 2.5061e-010 2.2013e-013
-     6.7696e-011 6.2647e-011-9.8188e-009
-     4.9588e-013 2.0173e-013 1.0291e-010
-     2.2481e-010 2.4319e-010 5.1528e-011
+     9.9119e-012 3.2886e-010 1.2723e-012
+     1.0133e-010 8.3732e-011-8.7863e-009
+     2.0511e-012 1.3058e-012 1.4711e-010
+     2.8037e-010 3.1370e-010 7.1312e-011
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     3.2407e-013 1.8402e-009 1.4479e-013
-     2.9738e-011 3.6266e-010-8.4772e-009
-     1.5763e-013 1.4729e-014 2.9758e-010
-     1.4829e-009 6.7429e-010 2.6026e-010
+     1.0174e-012 2.3132e-009 4.1851e-013
+     6.1311e-011 4.8064e-010-7.6799e-009
+     4.5234e-013 6.4443e-014 4.4086e-010
+     1.8971e-009 9.3933e-010 3.4555e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     9.6794e-013 8.8300e-010 6.5769e-013
-     4.2576e-011 2.2239e-010-9.4673e-009
-     7.0232e-013 6.9812e-014 2.6684e-010
-     7.7564e-010 4.7349e-010 1.5913e-010
+     2.7332e-012 1.0936e-009 1.7335e-012
+     8.8423e-011 2.9442e-010-8.7002e-009
+     1.8439e-012 2.4722e-013 3.8015e-010
+     9.7696e-010 6.4094e-010 2.0692e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     1.5859e-016 3.6192e-010 1.6907e-016
-     1.4832e-013 8.0982e-011-1.3475e-008
-     1.6778e-016 2.3690e-018 3.8032e-011
-     3.5854e-010 7.7848e-011 5.5871e-011
+     5.8607e-016 4.7051e-010 5.9146e-016
+     3.3689e-013 1.0603e-010-1.3185e-008
+     5.9018e-016 1.0682e-017 5.5257e-011
+     4.6542e-010 1.1010e-010 7.3888e-011
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     1.5421e-012 2.5288e-009 1.3133e-012
-     6.9623e-011 8.4177e-010-4.3207e-009
-     1.3472e-012 7.5581e-014 1.0732e-009
-     3.0015e-009 1.5498e-009 6.1488e-010
+     4.1137e-012 3.0805e-009 3.4913e-012
+     1.3916e-010 1.0678e-009-3.4625e-009
+     3.5858e-012 2.4143e-013 1.4496e-009
+     3.6183e-009 2.0194e-009 7.6587e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.2571e-011 2.2899e-009 1.6310e-011
-     4.8628e-010 9.1819e-010-2.4806e-009
-     1.6663e-011 2.0347e-012 1.5645e-009
-     2.6035e-009 2.1282e-009 6.4978e-010
+     5.0483e-011 2.7242e-009 3.6191e-011
+     8.6146e-010 1.1609e-009-1.6718e-009
+     3.7002e-011 5.1276e-012 2.0294e-009
+     3.0615e-009 2.6150e-009 8.0268e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     3.3850e-009 8.8986e-009 2.8593e-009
-     7.4838e-009 5.9312e-009 6.2305e-009
-     2.9465e-009 1.0407e-009 8.2716e-009
-     1.0035e-008 8.8084e-009 4.9507e-009
+     5.1633e-009 1.0113e-008 4.4975e-009
+     9.3461e-009 7.1751e-009 7.9829e-009
+     4.6436e-009 2.0894e-009 9.6793e-009
+     1.1195e-008 1.0134e-008 6.5700e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     5.9659e-009 6.3698e-009 5.5671e-009
-     6.4529e-009 5.2872e-009 6.3509e-009
-     5.7633e-009 4.3913e-009 6.5430e-009
-     6.6524e-009 6.5973e-009 6.1194e-009
+     7.5081e-009 7.6639e-009 7.1218e-009
+     7.7078e-009 6.4708e-009 7.7489e-009
+     7.3815e-009 6.5446e-009 7.8713e-009
+     7.9088e-009 7.9026e-009 7.5894e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     4.8355e-009 4.9641e-009 4.5850e-009
-     4.8914e-009 4.1449e-009 4.9153e-009
-     4.7704e-009 4.6046e-009 5.0134e-009
-     5.0129e-009 5.0261e-009 4.8882e-009
+     5.5747e-009 5.7102e-009 5.3044e-009
+     5.6065e-009 4.8025e-009 5.6623e-009
+     5.5197e-009 5.4825e-009 5.7847e-009
+     5.7531e-009 5.7908e-009 5.6379e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.1185e-009 2.5080e-009 1.9179e-009
-     2.5110e-009 2.0759e-009 2.0815e-009
-     1.9898e-009 1.9874e-009 2.7898e-009
-     2.6517e-009 2.8005e-009 2.3292e-009
+     2.9730e-009 3.4122e-009 2.7246e-009
+     3.4194e-009 2.8365e-009 2.9373e-009
+     2.8279e-009 2.8378e-009 3.7367e-009
+     3.5825e-009 3.7467e-009 3.2110e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     1.3138e-009 1.9439e-009 9.6164e-010
-     2.1439e-009 1.4701e-009 1.0253e-009
-     9.9650e-010 1.0145e-009 2.4626e-009
-     2.2318e-009 2.4964e-009 1.6742e-009
+     1.7071e-009 2.3391e-009 1.3149e-009
+     2.5750e-009 1.8054e-009 1.4170e-009
+     1.3631e-009 1.3830e-009 2.8990e-009
+     2.6787e-009 2.9285e-009 2.0788e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     5.2579e-011 5.7555e-010 2.7434e-011
-     3.8838e-010 2.8054e-010-2.2318e-009
-     2.8263e-011 4.4179e-011 6.2743e-010
-     5.0831e-010 8.8593e-010 2.5255e-010
+     8.4803e-011 7.4646e-010 4.7840e-011
+     5.1980e-010 3.7496e-010-1.7700e-009
+     4.9300e-011 7.1991e-011 8.2085e-010
+     6.7948e-010 1.1037e-009 3.3827e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     1.0786e-011 2.6001e-010 3.8426e-012
-     1.3985e-010 9.7219e-011-4.7235e-009
-     3.9343e-012 5.4189e-012 1.9869e-010
-     2.9593e-010 3.0009e-010 8.3060e-011
+     2.8974e-011 3.9625e-010 1.2958e-011
+     2.3531e-010 1.5352e-010-3.8097e-009
+     1.3232e-011 1.6726e-011 3.1431e-010
+     4.4449e-010 4.4129e-010 1.3414e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     1.3967e-011 2.7104e-009 5.3731e-012
-     2.7502e-010 6.7965e-010-6.2664e-009
-     5.6720e-012 3.5380e-012 7.9013e-010
-     2.5682e-009 1.4153e-009 4.8406e-010
+     4.1289e-011 3.3646e-009 1.6024e-011
+     5.1787e-010 9.0439e-010-5.3030e-009
+     1.6830e-011 1.2293e-011 1.1402e-009
+     3.2260e-009 1.9154e-009 6.4514e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     3.1666e-014 5.6559e-010 1.5250e-014
-     1.1306e-011 9.3699e-011-9.0491e-009
-     1.5305e-014 3.8052e-015 6.6503e-011
-     3.6405e-010 2.3322e-010 6.6606e-011
+     1.0800e-013 6.9241e-010 3.9418e-014
+     2.2268e-011 1.1881e-010-8.2911e-009
+     3.9652e-014 1.6434e-014 9.3029e-011
+     4.5710e-010 3.0687e-010 8.4912e-011
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     4.1873e-016 5.7498e-011 2.3714e-016
-     9.2857e-013 1.1656e-011-1.2733e-008
-     2.4442e-016 3.8964e-017 8.2531e-012
-     3.4190e-011 3.2843e-011 8.7246e-012
+     1.3550e-015 8.2011e-011 6.9764e-016
+     2.0702e-012 1.6296e-011-1.2413e-008
+     7.1351e-016 1.6307e-016 1.2850e-011
+     4.8891e-011 4.7225e-011 1.2292e-011
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     6.2899e-014 7.1647e-010 5.6574e-014
-     1.8976e-012 2.2999e-010-1.2089e-008
-     5.8085e-014 1.5028e-015 1.8038e-010
-     1.1218e-009 2.4187e-010 1.6248e-010
+     1.4846e-013 8.9732e-010 1.3402e-013
+     3.7507e-012 2.8780e-010-1.1864e-008
+     1.3777e-013 4.2916e-015 2.4226e-010
+     1.3558e-009 3.2430e-010 2.0275e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     2.7842e-012 1.5936e-009 2.0982e-012
-     4.9922e-011 6.1814e-010-2.2324e-009
-     2.1634e-012 1.1712e-013 8.2902e-010
-     2.2271e-009 1.0040e-009 4.3967e-010
+     6.8313e-012 1.9552e-009 5.1955e-012
+     9.9705e-011 7.9047e-010-1.5831e-009
+     5.3635e-012 3.4622e-013 1.1132e-009
+     2.6695e-009 1.3246e-009 5.4963e-010
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     6.7799e-010 6.0145e-009 5.4286e-010
-     2.2932e-009 3.3234e-009 2.5701e-009
-     5.6513e-010 9.5225e-011 4.7805e-009
-     6.8250e-009 5.2296e-009 2.1619e-009
+     1.3597e-009 7.1142e-009 1.1252e-009
+     3.6297e-009 4.2708e-009 3.8605e-009
+     1.1713e-009 2.4787e-010 5.9657e-009
+     7.9071e-009 6.4096e-009 2.9704e-009
              1         1         0         0
             18     1.000(20e12.4)                   -1     RECHARGE
-     3.1805e-009 5.4287e-009 2.7415e-009
-     4.9830e-009 4.0699e-009 4.6612e-009
-     2.8462e-009 1.0673e-009 5.3677e-009
-     5.8446e-009 5.5082e-009 3.8786e-009
+     4.7678e-009 6.3129e-009 4.2770e-009
+     6.1842e-009 4.9651e-009 5.8056e-009
+     4.4418e-009 2.3116e-009 6.3612e-009
+     6.7004e-009 6.4698e-009 5.2662e-009
     <BLANKLINE>
     """
     write_output_ = print_hydpy_progress(write_output=write_output)
@@ -491,14 +491,17 @@ def run_whmod(basedir: str, write_output: bool) -> None:
     filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
     filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
     filename_landuse = whmod_main["FILENAME_LANDUSE"][1].strip()
-    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1]
-    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1]
+    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1].strip()
+    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1].strip()
     root_depth_option = whmod_main["ROOT_DEPTH_OPTION"][1].strip()
-    simulation_start = whmod_main["SIMULATION_START"][1]
-    simulation_end = whmod_main["SIMULATION_END"][1]
-    frequence = whmod_main["FREQUENCE"][1]
-    cellsize = float(whmod_main["CELLSIZE"][1])
-    nodata_value = whmod_main["NODATA_OUTPUT_VALUE"][1]
+    simulation_start = whmod_main["SIMULATION_START"][1].strip()
+    simulation_end = whmod_main["SIMULATION_END"][1].strip()
+    frequence = whmod_main["FREQUENCE"][1].strip()
+    richter = bool(
+        whmod_main["PRECIP_RICHTER_CORRECTION"][1].strip() in ("True", "true", 1)
+    )
+    cellsize = float(whmod_main["CELLSIZE"][1].strip())
+    nodata_value = whmod_main["NODATA_OUTPUT_VALUE"][1].strip()
     outputconfig = [
         stepsize.strip() for stepsize in whmod_main["OUTPUTCONFIG"][1].split(",")
     ]
@@ -514,7 +517,8 @@ def run_whmod(basedir: str, write_output: bool) -> None:
 
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
-    df_stammdaten = read_stationdata(os.path.join(basedir, filename_station_data))
+    df_stammdaten = read_stationdata(os.path.join(basedir, filename_station_data),
+                                     richter=richter)
     root_depth_dict = read_root_depth(
         root_depth_option=root_depth_option, basedir=basedir
     )
@@ -552,6 +556,7 @@ def run_whmod(basedir: str, write_output: bool) -> None:
 
     _initialize_weather_stations(
         df_stammdaten=df_stammdaten,
+        richter=richter,
         cssr_selection_stat=cssr_selection_stat,
         gsr_selection_stat=gsr_selection_stat,
         meteo_selection_stat=meteo_selection_stat,
@@ -662,7 +667,7 @@ Hydpy-Version (5.0) defined in WHMod_Main.txt.
         )
 
 
-def print_hydpy_progress(write_output: str) -> bool:
+def print_hydpy_progress(write_output: bool) -> bool:
     """Activate hydpy printprogress and return wirte_output handle.
 
     >>> print_hydpy_progress(write_output="True")  # doctest: +ELLIPSIS
@@ -680,7 +685,7 @@ def print_hydpy_progress(write_output: str) -> bool:
     return write_output_
 
 
-def read_stationdata(path_station_data: str) -> pandas.DataFrame:
+def read_stationdata(path_station_data: str, richter: bool = False) -> pandas.DataFrame:
     """
     Lese die Stationsdaten ein.
 
@@ -691,37 +696,37 @@ def read_stationdata(path_station_data: str) -> pandas.DataFrame:
     >>> pandas.set_option('display.expand_frame_repr', False)
 
     # pylint: disable=line-too-long
-    >>> read_stationdata(path_station_data=station_path)  # doctest: +NORMALIZE_WHITESPACE
-               Messnetz  StationsNr          X          Y      Lat    Long  HNN  Richterklasse                  Dateiname          Messungsart
-            0       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999       1_Lufttemperatur.asc       Lufttemperatur
-            1       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999     1_Relative-Feuchte.asc     Relative-Feuchte
-            2       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999  1_Windgeschwindigkeit.asc  Windgeschwindigkeit
-            3       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999    1_Sonnenscheindauer.asc    Sonnenscheindauer
-            4       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999            1_Luftdruck.asc            Luftdruck
-            5       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999           -999         1_Niederschlag.asc         Niederschlag
-            6       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999       2_Lufttemperatur.asc       Lufttemperatur
-            7       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999     2_Relative-Feuchte.asc     Relative-Feuchte
-            8       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999  2_Windgeschwindigkeit.asc  Windgeschwindigkeit
-            9       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999    2_Sonnenscheindauer.asc    Sonnenscheindauer
-            10      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999            2_Luftdruck.asc            Luftdruck
-            11      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999           -999         2_Niederschlag.asc         Niederschlag
-            12      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999       3_Lufttemperatur.asc       Lufttemperatur
-            13      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999     3_Relative-Feuchte.asc     Relative-Feuchte
-            14      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999  3_Windgeschwindigkeit.asc  Windgeschwindigkeit
-            15      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999    3_Sonnenscheindauer.asc    Sonnenscheindauer
-            16      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999            3_Luftdruck.asc            Luftdruck
-            17      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999           -999         3_Niederschlag.asc         Niederschlag
-            18      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999       4_Lufttemperatur.asc       Lufttemperatur
-            19      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999     4_Relative-Feuchte.asc     Relative-Feuchte
-            20      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999  4_Windgeschwindigkeit.asc  Windgeschwindigkeit
-            21      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999    4_Sonnenscheindauer.asc    Sonnenscheindauer
-            22      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999            4_Luftdruck.asc            Luftdruck
-            23      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999           -999         4_Niederschlag.asc         Niederschlag
-            24      DWD           5  3438168.0  5543991.0      NaN     NaN -999           -999         5_Niederschlag.asc         Niederschlag
-            25      DWD           6  3457044.0  5556598.0      NaN     NaN -999           -999         6_Niederschlag.asc         Niederschlag
-            26      DWD           7  3484302.0  5540430.0      NaN     NaN -999           -999         7_Niederschlag.asc         Niederschlag
-            27      DWD           8  3445255.0  5536238.0      NaN     NaN -999           -999         8_Niederschlag.asc         Niederschlag
-            28      DWD           9  3435601.0  5521105.0      NaN     NaN -999           -999         9_Niederschlag.asc         Niederschlag
+    >>> read_stationdata(path_station_data=station_path, richter=False)  # doctest:+NORMALIZE_WHITESPACE
+       Messnetz  StationsNr          X          Y      Lat    Long  HNN       Richterklasse                  Dateiname          Messungsart
+    0       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999       1_Lufttemperatur.asc       Lufttemperatur
+    1       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999     1_Relative-Feuchte.asc     Relative-Feuchte
+    2       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999  1_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    3       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999    1_Sonnenscheindauer.asc    Sonnenscheindauer
+    4       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999            1_Luftdruck.asc            Luftdruck
+    5       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999   leicht_geschuetzt         1_Niederschlag.asc         Niederschlag
+    6       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999       2_Lufttemperatur.asc       Lufttemperatur
+    7       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999     2_Relative-Feuchte.asc     Relative-Feuchte
+    8       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999  2_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    9       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999    2_Sonnenscheindauer.asc    Sonnenscheindauer
+    10      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999            2_Luftdruck.asc            Luftdruck
+    11      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999  maessig_geschuetzt         2_Niederschlag.asc         Niederschlag
+    12      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999       3_Lufttemperatur.asc       Lufttemperatur
+    13      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999     3_Relative-Feuchte.asc     Relative-Feuchte
+    14      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999  3_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    15      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999    3_Sonnenscheindauer.asc    Sonnenscheindauer
+    16      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999            3_Luftdruck.asc            Luftdruck
+    17      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999    stark_geschuetzt         3_Niederschlag.asc         Niederschlag
+    18      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999       4_Lufttemperatur.asc       Lufttemperatur
+    19      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999     4_Relative-Feuchte.asc     Relative-Feuchte
+    20      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999  4_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    21      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999    4_Sonnenscheindauer.asc    Sonnenscheindauer
+    22      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999            4_Luftdruck.asc            Luftdruck
+    23      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                frei         4_Niederschlag.asc         Niederschlag
+    24      DWD           5  3438168.0  5543991.0      NaN     NaN -999   leicht_geschuetzt         5_Niederschlag.asc         Niederschlag
+    25      DWD           6  3457044.0  5556598.0      NaN     NaN -999  maessig_geschuetzt         6_Niederschlag.asc         Niederschlag
+    26      DWD           7  3484302.0  5540430.0      NaN     NaN -999    stark_geschuetzt         7_Niederschlag.asc         Niederschlag
+    27      DWD           8  3445255.0  5536238.0      NaN     NaN -999                frei         8_Niederschlag.asc         Niederschlag
+    28      DWD           9  3435601.0  5521105.0      NaN     NaN -999                frei         9_Niederschlag.asc         Niederschlag
 
     # pylint: enable=line-too-long
     >>> station_path = os.path.join(basedir, "Station_Data_wrong1.txt")
@@ -732,11 +737,18 @@ def read_stationdata(path_station_data: str) -> pandas.DataFrame:
 'Relative-Feuchte', 'Windgeschwindigkeit', 'Sonnenscheindauer', 'Luftdruck', \
 'Niederschlag') entsprechen. Die Messsungsart ist jedoch RelativeFeuchte
     >>> station_path = os.path.join(basedir, "Station_Data_wrong2.txt")
-    >>> read_stationdata(path_station_data=station_path)
+    >>> read_stationdata(path_station_data=station_path, richter=False)
     Traceback (most recent call last):
     ...
     ValueError: Notwendiger Spaltenname 'StationsNr' ist nicht in der \
 Stationsdaten-Datei vorhanden.
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong3.txt")
+    >>> read_stationdata(path_station_data=station_path, richter=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Die Dateinamen müssen den Parameternamen: ('frei', \
+'leicht_geschuetzt', 'maessig_geschuetzt', 'stark_geschuetzt') entsprechen. Die \
+Richterklasse ist jedoch wald
     """
     df_stammdaten = pandas.read_csv(path_station_data, comment="#", sep="\t")
     df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
@@ -758,12 +770,29 @@ Stationsdaten-Datei vorhanden.
             f"jedoch "
             f"{', '.join(df_stammdaten['Messungsart'][~valid_messart].values)}"
         )
-    valid_columns = ("StationsNr", "Messungsart", "Dateiname", "Lat", "Long", "X", "Y")
+    valid_columns = ["StationsNr", "Messungsart", "Dateiname", "Lat", "Long", "X", "Y"]
+    if richter:
+        valid_columns.append("Richterklasse")
+
     for column in valid_columns:
         if column not in df_stammdaten.columns:
             raise ValueError(
                 f"Notwendiger Spaltenname '{column}' ist nicht in der "
                 f"Stationsdaten-Datei vorhanden."
+            )
+    if richter:
+        df_stammdaten["Richterklasse"] = df_stammdaten["Richterklasse"].astype(str)
+        possible_richterklasse = ("frei", "leicht_geschuetzt", "maessig_geschuetzt",
+                               "stark_geschuetzt")
+        niederschlag = df_stammdaten[df_stammdaten['Messungsart'] == "Niederschlag"]
+        valid_richterklasse = niederschlag["Richterklasse"].isin(
+            possible_richterklasse)
+        if not all(valid_richterklasse):
+            actual_richter = niederschlag['Richterklasse'][~valid_richterklasse].values
+            raise ValueError(
+                f"Die Dateinamen müssen den Parameternamen: {possible_richterklasse} "
+                f"entsprechen. Die Richterklasse ist jedoch "
+                f"{', '.join(actual_richter)}"
             )
     return df_stammdaten
 
@@ -813,7 +842,7 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
     # pylint: disable=line-too-long
     >>> read_whmod_main(basedir=basedir)
     0 PERSON_IN_CHARGE HYDPY_VERSION OUTPUTDIR FILENAME_NODE_DATA FILENAME_TIMESERIES FILENAME_STATION_DATA FILENAME_LANDUSE   ROOT_DEPTH_OPTION SIMULATION_START SIMULATION_END FREQUENCE WITH_CAPPILARY_RISE DEGREE_DAY_FACTOR PRECIP_RICHTER_CORRECTION EVAPORATION_MODE CELLSIZE NODATA_OUTPUT_VALUE                                       OUTPUTCONFIG
-    1   Max Mustermann         6.0a0   Results      Node_Data.csv          Timeseries      Station_Data.txt      nutzung.txt  max_root_depth.txt       1990-01-01     1992-01-01        1d                True               4.5                    False              FAO       100             -9999.0  Tageswerte.txt, Monatswerte.txt, Variablewerte...
+    1   Max Mustermann         6.0a0   Results      Node_Data.csv          Timeseries      Station_Data.txt      nutzung.txt  max_root_depth.txt       1990-01-01     1992-01-01        1d                True               4.5                     True              FAO       100             -9999.0  Tageswerte.txt, Monatswerte.txt, Variablewerte...
 
     # pylint: enable=line-too-long
     """
@@ -1249,6 +1278,7 @@ def _initialize_whmod_models(
 
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,
+    richter: bool,
     cssr_selection_stat: hydpy.Selection,
     gsr_selection_stat: hydpy.Selection,
     meteo_selection_stat: hydpy.Selection,
@@ -1276,6 +1306,17 @@ def _initialize_weather_stations(
     gsr = devicetools.FusedVariable(
         "GSR", outputs.meteo_GlobalRadiation, inputs.evap_GlobalRadiation
     )
+
+    timeseries_path = os.path.join(
+        basedir,
+        filename_timeseries,
+    )
+    if richter:
+        # Interpolate temperature for richter correction:
+        niederschlag_temperature_nodes = _conv_models_temperature(
+            stammdaten_in=df_stammdaten, timeseries_path=timeseries_path
+        )
+
     # Iteration over Weather Stations
     for stat in df_stammdaten["StationsNr"].unique():
         # Stationsdaten einladen
@@ -1361,35 +1402,30 @@ def _initialize_weather_stations(
         inp_evap.prepare_series()
 
         inp_meteo.sunshineduration.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_sunshineduration,
         )
         inp_meteo.sunshineduration.load_series()
         del inp_meteo.sunshineduration.filepath
 
         inp_evap.airtemperature.filepath = os.path.join(
-            basedir, filename_timeseries, seq_airtemperature
+            timeseries_path, seq_airtemperature
         )
         inp_evap.airtemperature.load_series()
 
         inp_evap.relativehumidity.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_relativehumidity,
         )
         inp_evap.relativehumidity.load_series()
         del inp_evap.relativehumidity.filepath
 
-        inp_evap.windspeed.filepath = os.path.join(
-            basedir, filename_timeseries, seq_windspeed
-        )
+        inp_evap.windspeed.filepath = os.path.join(timeseries_path, seq_windspeed)
         inp_evap.windspeed.load_series()
         del inp_evap.windspeed.filepath
 
         inp_evap.atmosphericpressure.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_atmosphericpressure,
         )
         inp_evap.atmosphericpressure.load_series()
@@ -1415,9 +1451,11 @@ def _initialize_weather_stations(
 
         index = stations_daten.index[0]
 
-        seq_precipitation = stations_daten["Dateiname"][
+        niederschlag_station = stations_daten[
             stations_daten["Messungsart"] == "Niederschlag"
-        ].values[0]
+        ].squeeze()
+
+        seq_precipitation = niederschlag_station["Dateiname"]
 
         p_node = hydpy.Node(f"P_{stat}", variable="P")
         p_node.deploymode = "obs"
@@ -1426,11 +1464,149 @@ def _initialize_weather_stations(
             rechts=df_stammdaten.loc[index, "X"], hoch=df_stammdaten.loc[index, "Y"]
         )
         p_node.prepare_obsseries()
-        p_node.sequences.obs.filepath = os.path.join(
-            basedir, filename_timeseries, seq_precipitation
-        )
+        p_node.sequences.obs.filepath = os.path.join(timeseries_path, seq_precipitation)
         p_node.sequences.obs.load_series()
+        if richter:
+            temperature_node = niederschlag_temperature_nodes[f"Tinterp_{stat}"]
+            apply_richter(
+                richterklasse=niederschlag_station["Richterklasse"],
+                temperature_node=temperature_node,
+                precipitation_node=p_node,
+            )
+
         del p_node.sequences.obs.filepath
+
+
+def apply_richter(
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    temperature_node: hydpy.Node,
+    precipitation_node: hydpy.Node,
+) -> None:
+    """
+    Führe die Richterkorrektur durch
+    >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
+    >>> p = hydpy.Node("p")
+    >>> p.prepare_obsseries()
+    >>> p.sequences.obs.series = [0., 2., 1., 5., 1., 1., 1., 3., 1., 0.5]
+    >>> t = hydpy.Node("t")
+    >>> t.prepare_simseries()
+    >>> t.sequences.sim.series = [-1., -2., 3., 0., 5., 5., 5., -3., 5., 0.5]
+    >>> apply_richter(temperature_node=t, precipitation_node=p, richterklasse="frei")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 3.27109231, 1.345     , 6.29654407, 1.345     ,
+               1.345     , 1.34      , 4.77244156, 1.34      , 0.86541577])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="maessig_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.58258398, 1.28      , 5.73915129, 1.28      ,
+               1.28      , 1.24      , 3.81236905, 1.24      , 0.70832114])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="maessig_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.58258398, 1.28      , 5.73915129, 1.28      ,
+               1.28      , 1.24      , 3.81236905, 1.24      , 0.70832114])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="stark_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.37073526, 1.245     , 5.44833767, 1.245     ,
+               1.245     , 1.19      , 3.51696212, 1.19      , 0.62635872])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="wald")
+    Traceback (most recent call last):
+    ...
+    KeyError: 'wald'
+    """
+
+    precipitation_node.prepare_simseries()
+    precipitation_node.deploymode = "oldsim"
+    ns_art = get_ns_art(temperature_node=temperature_node)
+    precipitation_node.sequences.sim.series = calc_richter(
+        ns_art=ns_art,
+        precipitation=precipitation_node.sequences.obs.series,
+        richterklasse=richterklasse,
+    )
+
+
+def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.character]:
+    """
+    Bestimme ob Niederschlag als Sommerregen, Winterregen, Mischniederschlag oder
+    Schnee fällt
+    >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
+    >>> t = hydpy.Node("t")
+    >>> t.prepare_simseries()
+    >>> t.sequences.sim.series = [-1., -2., 3., 0., 5., 5., 5., -3., 5., 0.5]
+    >>> get_ns_art(temperature_node=t)
+    array(['Schnee', 'Schnee', 'Sommerregen', 'Mischniederschlag',
+           'Sommerregen', 'Sommerregen', 'Winterregen', 'Schnee',
+           'Winterregen', 'Mischniederschlag'], dtype='<U20')
+    """
+    t_node_ser = temperature_node.sequences.sim.series
+    winter = numpy.array(
+        [i.month > 9 or i.month < 5 for i in
+         hydpy.pub.timegrids.init]
+    )
+    ns_art = numpy.empty(shape=t_node_ser.shape, dtype="<U20")
+    ns_art[numpy.logical_and(t_node_ser >= 3, winter)] = "Winterregen"
+    ns_art[numpy.logical_and(t_node_ser >= 3, ~winter)] = "Sommerregen"
+    ns_art[(-0.7 < t_node_ser) & (t_node_ser < 3)] = "Mischniederschlag"
+    ns_art[t_node_ser <= -0.7] = "Schnee"
+    return ns_art
+
+
+def _conv_models_temperature(
+    stammdaten_in: pandas.DataFrame, timeseries_path: str
+) -> hydpy.Nodes:
+    """
+    Interpolate temperature data for Richter-correction.
+    """
+    temperature_in = stammdaten_in[stammdaten_in["Messungsart"] == "Lufttemperatur"]
+    temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
+
+    hp_temperature = hydpy.HydPy("temperature")
+    in_coords_dict: Dict[str, Tuple[float, float]] = {}
+    out_coords_dict: Dict[str, Tuple[float, float]] = {}
+    e = hydpy.Element("conv_temperature_richter")
+
+    inlet_nodes = hydpy.Nodes()
+    outlet_nodes = hydpy.Nodes()
+    for _, input_station in temperature_in.iterrows():
+        name = "Tin_" + str(input_station["StationsNr"])
+        n = hydpy.Node(name)
+        n.deploymode = "obs"
+        n.sequences.obs.prepare_series()
+        n.sequences.obs.filepath = os.path.join(
+            timeseries_path, input_station["Dateiname"]
+        )
+        n.sequences.obs.load_series()
+        inlet_nodes.add_device(n)
+        # Coordinates
+        in_coords_dict[n.name] = _XY(rechts=input_station["X"], hoch=input_station["Y"])
+    for _, output_station in temperature_out.iterrows():
+        n = hydpy.Node("Tinterp_" + str(output_station["StationsNr"]))
+        n.deploymode = "newsim"
+        n.sequences.sim.prepare_series()
+        outlet_nodes.add_device(n)
+        # Coordinates
+        out_coords_dict[n.name] = _XY(
+            rechts=output_station["X"], hoch=output_station["Y"]
+        )
+
+    e.inlets = inlet_nodes
+    e.outlets = outlet_nodes
+    model_t = hydpy.prepare_model("conv_v002")
+    model_t.parameters.control.inputcoordinates(**in_coords_dict)
+    model_t.parameters.control.outputcoordinates(**out_coords_dict)
+    model_t.parameters.control.maxnmbinputs()
+    model_t.parameters.control.power(2.0)
+    e.model = model_t
+    e.model.parameters.update()
+
+    hp_temperature.update_devices(nodes=outlet_nodes + inlet_nodes, elements=e)
+    hp_temperature.simulate()
+
+    return outlet_nodes
 
 
 def _initialize_conv_models(
@@ -1658,7 +1834,7 @@ def save_results(
             if "name_time_series" in logger.keys():
                 for filename in logger["name_time_series"]:
                     filepath = os.path.join(outputdir, filename + "_" + seq + ".txt")
-                    if grid["mean"].name.split("_")[1] == "mm":
+                    if str(grid["mean"].name).split("_")[1] == "mm":
                         data = grid["sum"]
                     else:
                         data = grid["mean"]
@@ -1692,7 +1868,7 @@ def save_results(
 
 def prepare_rch(
     grid: Dict[Union[Literal["mean"], Literal["sum"]], xarray.DataArray], seq: str
-):
+) -> xarray.DataArray:
     """
     Konvertiere Einheiten entsprechend Anforderungen.
     """
@@ -1793,7 +1969,7 @@ def aggregate_whmod_series(
     return aggregated_series
 
 
-def is_date(string):
+def is_date(string: str) -> bool:
     """
     Return whether the string can be interpreted as a date.
 
@@ -1868,7 +2044,7 @@ def aggregate_flexible_series(
     ps = pandas.Series(name="series", index=aggregation_timegrid[:-1], dtype=float)
     for i, time in enumerate(aggregation_timegrid):
         if i > 0:
-            start = hydpy.pub.timegrids.eval_[start_time]
+            start: datetime.datetime = hydpy.pub.timegrids.eval_[start_time]
             end = hydpy.pub.timegrids.eval_[time]
             if aggregator == "sum":
                 ps.loc[start_time] = series[start:end].sum()
@@ -1878,3 +2054,64 @@ def aggregate_flexible_series(
                 raise ValueError(f"Aggregator `{aggregator}` not defined")
         start_time = time
     return ps
+
+
+richter_factor_b = pandas.DataFrame(
+    index=["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+    columns=["frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"],
+    data=[
+        [0.345, 0.310, 0.280, 0.245],
+        [0.340, 0.280, 0.240, 0.190],
+        [0.535, 0.390, 0.305, 0.185],
+        [0.720, 0.510, 0.330, 0.210],
+    ],
+)
+richter_factor_epsilon = pandas.Series(
+    index=["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+    data=[0.38, 0.46, 0.55, 0.82],
+)
+
+
+def get_richter_factors(
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    ns_art: Literal["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+) -> Tuple[float, float]:
+    """
+    Gibt den Richterkorrekturwert zurück
+
+    >>> get_richter_factors(richterklasse="frei", ns_art="Sommerregen")
+    (0.345, 0.38)
+    >>> get_richter_factors(richterklasse="test", ns_art="Sommerregen")
+    Traceback (most recent call last):
+    ...
+    KeyError: 'test'
+    """
+    b = richter_factor_b.loc[ns_art, richterklasse]
+    epsilon = richter_factor_epsilon.loc[ns_art]
+    return b, epsilon
+
+
+def calc_richter(
+    ns_art: numpy.typing.NDArray[numpy.character],
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    precipitation: numpy.typing.NDArray[numpy.float64],
+) -> List[float]:
+    """
+    Gibt nach Richter korrigiergte Zeitreihe zurück
+
+    >>> ns_art = numpy.array(["Sommerregen", "Winterregen", "Mischniederschlag",
+    ...                       "Schnee"])
+    >>> precipitation = numpy.array([0., 2., 1., 3.])
+    >>> calc_richter(ns_art=ns_art, precipitation=precipitation, richterklasse="frei")
+    [0.0, 2.4676842181675127, 1.5350000000000001, 4.772441562190775]
+    """
+    corr_precipitation = []
+    for art, p in zip(ns_art, precipitation):
+        b, epsilon = get_richter_factors(ns_art=art, richterklasse=richterklasse)
+        p_corr = p + b * p**epsilon
+        corr_precipitation.append(p_corr)
+    return corr_precipitation

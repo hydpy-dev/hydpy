@@ -519,14 +519,12 @@ class Calc_EI_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
+    DERIVEDPARAMETERS = (wland_derived.RH1,)
     REQUIREDSEQUENCES = (
         wland_fluxes.PETL,
         wland_states.IC,
     )
-    RESULTSEQUENCES = (
-        wland_fluxes.EI,
-        wland_derived.RH1,
-    )
+    RESULTSEQUENCES = (wland_fluxes.EI,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:

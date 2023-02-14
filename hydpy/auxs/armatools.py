@@ -14,6 +14,7 @@ import numpy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.auxs import statstools
 from hydpy.core.typingtools import *
 
@@ -328,7 +329,7 @@ check the calculated coefficients: 1.0.
 class ARMA:
     """Autoregressive-Moving Average model.
 
-    One can sett all ARMA coefficients manually:
+    One can set all ARMA coefficients manually:
 
     >>> from hydpy import MA, ARMA
     >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
@@ -434,11 +435,11 @@ class ARMA:
 
     >>> arma.max_rel_rmse = 1e-2
     >>> arma.max_dev_coefs = 1e-2
-    >>> arma.update_coefs()
-    Traceback (most recent call last):
-    ...
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     arma.update_coefs()
     UserWarning: Note that the smallest response to a standard impulse of the \
-determined ARMA model is negative (`-0.000316`).
+determined ARMA model is negative (`-0.000336`).
     >>> arma
     ARMA(ar_coefs=(0.736954, -0.166457),
          ma_coefs=(0.01946, 0.05418, 0.077804, 0.098741, 0.091295,
@@ -498,13 +499,13 @@ of `0.0` has been reached using `10` coefficients.
     >>> arma.update_coefs()
     Traceback (most recent call last):
     ...
-    UserWarning: Not able to detect a turning point in the impulse response defined by \
-the MA coefficients `1.0, 1.0, 1.0`.
+    UserWarning: Not able to detect a turning point in the impulse response defined \
+by the MA coefficients `1.0, 1.0, 1.0`.
 
     When getting such warnings, you need to inspect the achieved coefficients manually.
     In the last case, when the turning point detection failed, method
-    |ARMA.update_coefs| simplified the ARMA to the original MA model, which is a safe
-    but not always a good choice:
+    |ARMA.update_coefs| simplified the ARMA to the original MA model, which is safe but
+    not always a good choice:
 
     >>> import warnings
     >>> with warnings.catch_warnings():
@@ -512,7 +513,7 @@ the MA coefficients `1.0, 1.0, 1.0`.
     ...     arma.update_coefs()
     >>> arma
     ARMA(ar_coefs=(),
-         ma_coefs=(1.0, 1.0, 1.0))
+         ma_coefs=(0.333333, 0.333333, 0.333333))
     """
 
     max_ar_order: int = 10
@@ -541,38 +542,103 @@ the MA coefficients `1.0, 1.0, 1.0`.
     @property
     def rel_rmse(self) -> float:
         """Relative root mean squared error the last time achieved by method
-        |ARMA.update_coefs|."""
-        return self._rel_rmse
+        |ARMA.update_coefs|.
 
-    @property
-    def ar_coefs(self) -> Vector[float]:
-        """The AR coefficients of the AR model."""
-        if self._ar_coefs is None:
-            self.update_ar_coefs()
-        return self._ar_coefs
+        >>> from hydpy.auxs.armatools import ARMA
+        >>> ARMA().rel_rmse
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The relative root mean squared error has not been determined so \
+far.
+        """
+        if (rel_rmse := self._rel_rmse) is None:
+            raise RuntimeError(
+                "The relative root mean squared error has not been determined so far."
+            )
+        return rel_rmse
 
-    @ar_coefs.setter
-    def ar_coefs(self, values) -> None:
+    def _get_ar_coefs(self) -> Vector[float]:
+        """The AR coefficients of the ARMA model.
+
+        |property| |ARMA.ar_coefs| does not recalculate already defined coefficients
+        automatically for efficiency:
+
+        >>> from hydpy import MA, ARMA, print_values
+        >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
+        >>> from scipy import stats
+        >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
+        >>> arma.ma.iuh.moment1 = 3.94
+        >>> print_values(arma.ar_coefs)
+        0.5
+
+        You can trigger the recalculation by removing the available coefficients first:
+
+        >>> del arma.ar_coefs
+        >>> print_values(arma.ar_coefs)
+        0.680483, -0.228511, 0.047283, -0.006022, 0.000377
+        >>> arma
+        ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
+             ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,
+                       0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
+                       0.00005))
+        """
+        if (ar_coefs := self._ar_coefs) is not None:
+            return ar_coefs
+        self.update_coefs()
+        assert (ar_coefs := self._ar_coefs) is not None
+        return ar_coefs
+
+    def _set_ar_coefs(self, values) -> None:
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    @ar_coefs.deleter
-    def ar_coefs(self) -> None:
+    def _del_ar_coefs(self) -> None:
         self._ar_coefs = None
 
-    @property
-    def ma_coefs(self) -> Vector[float]:
-        """The MA coefficients of the ARMA model."""
-        if self._ma_coefs is None:
-            self.update_ma_coefs()
-        return self._ma_coefs
+    ar_coefs = propertytools.Property(
+        fget=_get_ar_coefs, fset=_set_ar_coefs, fdel=_del_ar_coefs
+    )
 
-    @ma_coefs.setter
-    def ma_coefs(self, values) -> None:
+    def _get_ma_coefs(self) -> Vector[float]:
+        """The MA coefficients of the ARMA model.
+
+        |property| |ARMA.ma_coefs| does not recalculate already defined coefficients
+        automatically for efficiency:
+
+        >>> from hydpy import MA, ARMA, print_values
+        >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
+        >>> from scipy import stats
+        >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
+        >>> arma.ma.iuh.moment1 = 3.94
+        >>> print_values(arma.ma_coefs)
+        0.3, 0.2
+
+        You can trigger the recalculation by removing the available coefficients first:
+
+        >>> del arma.ma_coefs
+        >>> print_values(arma.ma_coefs)
+        0.019322, 0.054783, 0.08195, 0.107757, 0.104458, 0.07637, 0.041095,
+        0.01581, 0.004132, 0.000663, 0.00005
+        >>> arma
+        ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
+             ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,
+                       0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
+                       0.00005))
+        """
+        if (ma_coefs := self._ma_coefs) is not None:
+            return ma_coefs
+        self.update_coefs()
+        assert (ma_coefs := self._ma_coefs) is not None
+        return ma_coefs
+
+    def _set_ma_coefs(self, values) -> None:
         self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    @ma_coefs.deleter
-    def ma_coefs(self) -> None:
+    def _del_ma_coefs(self) -> None:
         self._ma_coefs = None
+
+    ma_coefs = propertytools.Property(
+        fget=_get_ma_coefs, fset=_set_ma_coefs, fdel=_del_ma_coefs
+    )
 
     @property
     def coefs(self) -> Tuple[Vector[float], Vector[float]]:
@@ -598,6 +664,7 @@ the MA coefficients `1.0, 1.0, 1.0`.
         """Determine both the AR and the MA coefficients."""
         self.update_ar_coefs()
         self.update_ma_coefs()
+        self.norm_coefs()
 
     @property
     def effective_max_ar_order(self) -> int:
@@ -719,7 +786,6 @@ the MA coefficients `1.0, 1.0, 1.0`.
         for ma_order in range(1, self.ma.order + 1):
             self.calc_next_ma_coef(ma_order, self.ma)
             if self.dev_coefs < self.max_dev_coefs:
-                self.norm_coefs()
                 break
         else:
             with hydpy.pub.options.reprdigits(12):

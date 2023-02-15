@@ -31,7 +31,6 @@ from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
-    from hydpy.core import logtools
     from hydpy.models.whmod import whmod_model
 
 
@@ -687,15 +686,6 @@ is not requested to make any time-series data available.
     """
 
     deviceorder: List[Union[devicetools.Node, devicetools.Element]]
-    loggers: Dict[
-        str,
-        Union[
-            logtools.Logger,
-            logtools.MonthLogger,
-            whmod_model.WHModLogger,
-            whmod_model.WHModMonthLogger,
-        ],
-    ]
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
@@ -704,7 +694,6 @@ is not requested to make any time-series data available.
         self._nodes = None
         self._elements = None
         self.deviceorder = []
-        self.loggers = {}
         if projectname is not None:
             hydpy.pub.projectname = projectname
             hydpy.pub.networkmanager = filetools.NetworkManager()
@@ -2048,8 +2037,6 @@ time.
             funcs.append(node.sequences.fastaccess.save_obsdata)
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             funcs.append(hydpy.pub.sequencemanager.write_netcdfslices)
-        for logger in self.loggers.values():
-            funcs.append(logger.update)
         return funcs
 
     @printtools.print_progress

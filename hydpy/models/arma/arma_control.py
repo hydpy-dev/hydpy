@@ -231,7 +231,7 @@ Most probably, you defined the same threshold value(s) twice.
                 f"For parameter {objecttools.elementphrase(self)} at most one "
                 f"positional argument is allowed, but `{len(args)}` are given."
             )
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
             setattr(self, "th_0_0", args[0])

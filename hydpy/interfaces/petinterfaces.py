@@ -2,7 +2,7 @@
 evapotranspiration."""
 # import...
 # ...from standard library
-from abc import abstractmethod
+import abc
 from typing import *
 
 # ...from hydpy
@@ -15,16 +15,30 @@ class PETModel_V1(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[1]] = 1
 
-    @abstractmethod
+    @abc.abstractmethod
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
+
+    @abc.abstractmethod
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the areas of the individual zones in km²."""
+
+    @abc.abstractmethod
+    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+        """Set the elevations of the individual zones in m."""
+
+    @modeltools.abstractmodelmethod
     def determine_potentialevapotranspiration(self) -> None:
         """Calculate potential evapotranspiration."""
 
-    @abstractmethod
-    def get_potentialevapotranspiration(self, k: int) -> float:
+    @modeltools.abstractmodelmethod
+    def get_potentialevapotranspiration(  # type: ignore[empty-body]
+        self, k: int
+    ) -> float:
         """Get the previously calculated potential evapotranspiration of the selected
-        hydrological response unit in mm/T."""
+        zone in mm/T."""
 
-    @abstractmethod
-    def get_meanpotentialevapotranspiration(self) -> float:
-        """Get the previously average calculated potential evapotranspiration in
-        mm/T."""
+    @modeltools.abstractmodelmethod
+    def get_meanpotentialevapotranspiration(self) -> float:  # type: ignore[empty-body]
+        """Get the previously calculated average calculated potential
+        evapotranspiration in mm/T."""

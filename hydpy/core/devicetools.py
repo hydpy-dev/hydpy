@@ -1059,7 +1059,7 @@ conflict with using their names as identifiers.
             raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
-        for (_, device) in sorted(self._name2device.items()):
+        for _, device in sorted(self._name2device.items()):
             yield device
 
     def __contains__(self, value: object) -> bool:
@@ -2133,12 +2133,11 @@ group name `test`.
         >>> figure = lahn_1.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of sequence(s) obs and sim \
-of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
+        ValueError: While trying to plot the time series of sequence(s) obs and sim of \
+node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
-ones are supported: `monthly` (default) and `daily`.
-
+ones are supported: `monthly` (default), `daily` and `yearly`.
         >>> from hydpy import pub
         >>> del pub.timegrids
         >>> figure = lahn_1.plot_allseries()
@@ -2239,8 +2238,8 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns=dict(series=label_))
-                kwargs = dict(label=label_, ax=pyplot.gca())
+                    ps.name = label_
+                kwargs = {"label": label_, "ax": pyplot.gca()}
                 if color is not None:
                     kwargs["color"] = color
                 if linestyle is not None:
@@ -3069,7 +3068,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 label_ = f"{label_}, averaged"
             else:
                 series = sequence.evalseries
-            kwargs = dict(label=label_, ax=pyplot.gca())
+            kwargs = {"label": label_, "ax": pyplot.gca()}
             if color is not None:
                 kwargs["color"] = color
             if linestyle is not None:
@@ -3285,10 +3284,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                     group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="
-                        # pylint: disable=not-an-iterable
-                        # because pylint is wrong
                         nodes = [str(node) for node in group]
-                        # pylint: enable=not-an-iterable
                         line = objecttools.assignrepr_list(nodes, subprefix, width=70)
                         lines.append(line + ",")
                 if self.keywords:

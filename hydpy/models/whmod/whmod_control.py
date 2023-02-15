@@ -136,7 +136,7 @@ class NFK100_Mittel(whmod_parameters.NutzBodenParameter):
 class Flurab(whmod_parameters.NutzBodenParameter):
     """[m]"""
 
-    SPAN = (None, None)
+    SPAN = (0.0, None)
 
 
 class MaxWurzeltiefe(whmod_parameters.NutzBodenParameter):

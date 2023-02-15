@@ -63,12 +63,10 @@ For the example at hand, there is an excellent agreement with the result calcula
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import modeltools
-from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_model
 
 
-class Model(modeltools.AdHocModel, petinterfaces.PETModel_V1):
+class Model(evap_model.Base_PETModel_V1):
     """The Turc-Wendling version of HydPy-Evap."""
 
     INLET_METHODS = ()

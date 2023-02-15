@@ -80,25 +80,11 @@ inflow to zero most of the time):
 >>> land = Element("land", inlets=inlet, outlets=outlet)
 >>> land.model = model
 
-We select |evap_tw2002| as the submodel for calculating reference evapotranspiration,
-which implements the Turc-Wendling method (despite the following examples working on an
-hourly step size while the Turc-Wendling should be applied on at least daily time
-steps):
-
->>> from hydpy import prepare_model
->>> model.petmodel = prepare_model("evap_tw2002")
-
 We focus on a single hydrological response unit with one square kilometre:
 
 >>> nhru(1)
 >>> ft(1.0)
 >>> fhru(1.0)
-
-We initialise a test function object that prepares and runs the tests and prints and
-plots their results:
-
->>> from hydpy import IntegrationTest
->>> test = IntegrationTest(land)
 
 .. _lland_v1_acker_summer:
 
@@ -152,6 +138,24 @@ implemented methods on the shown results:
 >>> eqd2(2.0)
 >>> negq(False)
 
+We select |evap_tw2002| as the submodel for calculating reference evapotranspiration,
+which implements the Turc-Wendling method (despite the following examples working on an
+hourly step size while the Turc-Wendling should be applied on at least daily time
+steps):
+
+>>> with model.add_petmodel_v1("evap_tw2002"):
+...     altitude(100.0)
+...     airtemperatureaddend.values = kt.values
+...     coastfactor(0.6)
+...     evapotranspirationfactor(0.4)
+
+
+We initialise a test function object that prepares and runs the tests and prints and
+plots their results:
+
+>>> from hydpy import IntegrationTest
+>>> test = IntegrationTest(land)
+
 Initially, relative soil moisture is 10 %, but all other storages are empty (this
 setting is not very realistic but makes it easier to understand the results of the
 different integration tests):
@@ -189,15 +193,6 @@ inflow to zero:
 ...     15.2, 14.5, 12.4, 11.7, 11.9)
 >>> inlet.sequences.sim.series = 0.0
 
-Finally, we define the parameter values of |evap_tw2002| and the required global
-radiation time series:
-
->>> model.petmodel.parameters.control.nmbhru(1)
->>> model.petmodel.parameters.control.hruarea(1.0)
->>> model.petmodel.parameters.control.altitude(100.0)
->>> model.petmodel.parameters.control.airtemperatureaddend.values = kt.values
->>> model.petmodel.parameters.control.coastfactor(0.6)
->>> model.petmodel.parameters.control.evapotranspirationfactor(0.4)
 >>> model.petmodel.sequences.inputs.globalradiation.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.2, 105.5, 248.3, 401.3, 449.7, 493.4, 261.5,
 ...     363.6, 446.2, 137.6, 103.0, 63.7, 41.4, 7.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -2133,7 +2128,7 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(modeltools.AdHocModel):
+class Model(lland_model.Base_PETModel_V1):
     """External PET/degree-day version of HydPy-L-Land."""
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)

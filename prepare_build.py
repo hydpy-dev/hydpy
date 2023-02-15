@@ -83,6 +83,7 @@ def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
 
 
 def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
+    from hydpy.core.modeltools import abstractmodelmethods
     from hydpy.cythons.modelutils import TYPE2STR
 
     def _write_twice(text: str) -> None:
@@ -114,7 +115,9 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                     f"\n\ncdef class {classname}(interfaceutils.BaseInterface):\n"
                 )
                 name2func = {
-                    n: m for n, m in inspect.getmembers(class_) if inspect.isfunction(m)
+                    n: m
+                    for n, m in inspect.getmembers(class_)
+                    if inspect.isfunction(m) and (m in abstractmodelmethods)
                 }
                 for funcname, func in name2func.items():
                     typehints = get_type_hints(func)

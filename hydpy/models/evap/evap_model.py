@@ -2,9 +2,14 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+# ...from standard library
+from typing import *
+
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
+from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_derived
 from hydpy.models.evap import evap_inputs
@@ -911,3 +916,46 @@ class Model(
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+
+class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
+    """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
+    interface."""
+
+    @importtools.define_targetparameter(evap_control.NmbHRU)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of hydrological response units in m.
+
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbhru
+        nmbhru(2)
+        """
+        self.parameters.control.nmbhru(nmbzones)
+
+    @importtools.define_targetparameter(evap_control.HRUArea)
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the area of all hydrological response units in km².
+
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_subareas([1.0, 3.0])
+        >>> hruarea
+        hruarea(1.0, 3.0)
+        """
+        self.parameters.control.hruarea(subareas)
+
+    @importtools.define_targetparameter(evap_control.Altitude)
+    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+        """Set the altitude of all hydrological response units in m.
+
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_elevations([1.0, 3.0])
+        >>> altitude
+        altitude(1.0, 3.0)
+        """
+        self.parameters.control.altitude(elevations)

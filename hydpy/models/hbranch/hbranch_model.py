@@ -297,7 +297,7 @@ so far.
         for idx, node in enumerate(nodes):
             double = node.get_double("inlets")
             total.set_pointer(double, idx)
-        for (idx, name) in enumerate(self.nodenames):
+        for idx, name in enumerate(self.nodenames):
             try:
                 outlet = getattr(element.outlets, name)
             except AttributeError:

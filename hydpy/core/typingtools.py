@@ -5,6 +5,7 @@ eventually dynamical) typing."""
 # ...from standard library
 from __future__ import annotations
 from typing import *
+from typing_extensions import ParamSpec  # type: ignore[assignment]
 
 # ...from site-packages
 import numpy
@@ -20,6 +21,8 @@ T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
+
+P = ParamSpec("P")
 
 Name = NewType("Name", str)
 
@@ -47,7 +50,7 @@ NDMatrixBytes = numpy.typing.NDArray[bytes]  # type: ignore[type-var]
 
 DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
 
 class VectorInput(Protocol[Float_co]):
@@ -498,6 +501,7 @@ __all__ = [
     "Name",
     "NDArrayFloat",
     "NDMatrixBytes",
+    "P",
     "ScriptFunction",
     "SeriesAggregationType",
     "SeriesFileType",

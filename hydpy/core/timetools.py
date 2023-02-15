@@ -164,14 +164,14 @@ following error occurred: hour must be in 0..23
     """
 
     # These are the so far accepted date format strings.
-    formatstrings = dict(
-        os="%Y_%m_%d_%H_%M_%S",
-        iso2="%Y-%m-%d %H:%M:%S",
-        iso1="%Y-%m-%dT%H:%M:%S",
-        din1="%d.%m.%Y %H:%M:%S",
-        din2="%Y.%m.%d %H:%M:%S",
-        raw="%Y%m%d%H%M%S",
-    )
+    formatstrings = {
+        "os": "%Y_%m_%d_%H_%M_%S",
+        "iso2": "%Y-%m-%d %H:%M:%S",
+        "iso1": "%Y-%m-%dT%H:%M:%S",
+        "din1": "%d.%m.%Y %H:%M:%S",
+        "din2": "%Y.%m.%d %H:%M:%S",
+        "raw": "%Y%m%d%H%M%S",
+    }
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
     _lastformatstring = "os", formatstrings["os"]
@@ -910,6 +910,30 @@ twelve (December) but `0` is given
             date.year += 1
         else:
             date.month += 1
+        return date
+
+    @property
+    def beginning_next_year(self) -> Date:
+        """The first possible date of the next month after the month of the current
+        |Date| object.
+
+        >>> from hydpy import Date
+        >>> Date("2001-01-01 00:00:00").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-01-31 12:30:30").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-12-01 00:00:00").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        >>> Date("2001-12-31 12:30:30").beginning_next_year
+        Date("2002-01-01 00:00:00")
+        """
+        date = Date(self)
+        date.year += 1
+        date.month = 1
+        date.day = 1
+        date.hour = 0
+        date.second = 0
+        date.minute = 0
         return date
 
     def __add__(self: TypeDate, other: PeriodConstrArg) -> TypeDate:

@@ -8,7 +8,6 @@ from hydpy.cythons.annutils import ANN
 from hydpy.cythons.ppolyutils import PPoly
 
 class SimpleInterpolator:
-
     nmb_inputs: int
     nmb_outputs: int
     algorithm: Union[ANN, PPoly]

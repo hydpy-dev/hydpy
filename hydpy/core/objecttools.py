@@ -1051,7 +1051,7 @@ def assignrepr_values(
     if not wrapped:
         wrapped = [""]
     lines = []
-    for (idx, line) in enumerate(wrapped):
+    for idx, line in enumerate(wrapped):
         if idx == 0:
             lines.append(f"{prefix}{line}")
         else:
@@ -1065,7 +1065,6 @@ class _AssignReprBracketed:
     |assignrepr_tuple| and |assignrepr_list|."""
 
     class _AlwaysBracketed:
-
         _new_value: bool
         _old_value: bool
 
@@ -1219,7 +1218,7 @@ def assignrepr_values2(
     """
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(f"{assignrepr_values(subvalues, prefix=prefix, width=width)},")
         else:
@@ -1241,7 +1240,7 @@ def _assignrepr_bracketed2(
     prefix += brackets[0]
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(assignrepr_bracketed1(subvalues, prefix, width))
         else:
@@ -1341,7 +1340,7 @@ def _assignrepr_bracketed3(
     prefix += brackets[0]
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(
                 _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, prefix, width)

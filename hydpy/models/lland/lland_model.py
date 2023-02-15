@@ -6,6 +6,7 @@
 from typing import *
 
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
@@ -9949,3 +9950,33 @@ class Model(modeltools.AdHocModel):
     idx_hru = modeltools.Idx_HRU()
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
+
+
+class Base_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |PETModel_V1| interface."""
+
+    @importtools.prepare_submodel(
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given evapotranspiration model that follows the |PETModel_V1|
+        interface and set the number and the subareas of its zones.
+
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> ft(10.0)
+        >>> fhru(0.2, 0.8)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     nmbhru
+        ...     hruarea
+        nmbhru(2)
+        hruarea(2.0, 8.0)
+        """
+        self.petmodel = petmodel
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(control.nhru.value)
+        petmodel.prepare_subareas(control.fhru.value * control.ft.value)

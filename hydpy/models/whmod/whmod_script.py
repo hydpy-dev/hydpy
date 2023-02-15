@@ -47,23 +47,70 @@ import datetime
 import os
 import warnings
 from typing import *
-
+from itertools import product
+from dateutil.parser import parse  # type: ignore[import]
 import numpy
-import pandas
+import pandas  # type: ignore[import]
+import xarray
 
 import hydpy
 from hydpy.core import devicetools
-from hydpy.core import logtools
 from hydpy.core import objecttools
-from hydpy.core import sequencetools
 from hydpy.exe import commandtools
 from hydpy.models import whmod_pet
 from hydpy.models.whmod import whmod_constants
-from hydpy.models.whmod import whmod_model
 from hydpy.core.typingtools import *
 
 # from hydpy import inputs  # actual imports below
 # from hydpy import outputs  # actual imports below
+
+
+class Position(NamedTuple):
+    """The row and column of a `WHMod` grid cell.
+
+    Counting starts with 1.
+    """
+
+    row: int
+    col: int
+
+    @classmethod
+    def from_elementname(cls, elementname: str) -> "Position":
+        """Extract the grid cell position from the name of the |Element|
+        object handling the given sequence."""
+        _, row, col = elementname.split("_")
+        return cls(row=int(row), col=int(col))
+
+
+class Positionbounds(NamedTuple):
+    """The smallest and heighest row and column values of multiple `WHMod`
+    grid cells."""
+
+    rowmin: int
+    rowmax: int
+    colmin: int
+    colmax: int
+
+    @classmethod
+    def from_elementnames(cls, elementnames: Iterable[str]) -> "Positionbounds":
+        """Extract the grid cell position from the names of the |Element|
+        objects handling the given sequences."""
+        rowmin = numpy.inf
+        rowmax = -numpy.inf
+        colmin = numpy.inf
+        colmax = -numpy.inf
+        for elementname in elementnames:
+            row, col = Position.from_elementname(elementname)
+            rowmin = min(rowmin, row)
+            rowmax = max(rowmax, row)
+            colmin = min(colmin, col)
+            colmax = max(colmax, col)
+        return Positionbounds(
+            rowmin=rowmin,
+            rowmax=rowmax,
+            colmin=colmin,
+            colmax=colmax,
+        )
 
 
 class _XY(NamedTuple):
@@ -96,15 +143,29 @@ def _collect_hrus(
 3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
 'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
 'verzoegerung': '10', 'init_boden': 50.0, 'init_gwn': 40.0}}
+    >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse_dict)
+    Traceback (most recent call last):
+    ...
+    KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
+id 4 angesetzt wird ist nicht definiert"
     """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
     extended_hrus = pandas.DataFrame(columns=hrus.columns)
     n_hrus = 0
     for i, hru in hrus.iterrows():
-        for landuse, area_perc in landuse_dict[hru["nutz_nr"]].items():
+        try:
+            landuse = landuse_dict[hru["nutz_nr"]]
+        except KeyError as exc:
+            raise KeyError(
+                f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die "
+                f"Rasterzelle mit der id {idx_} angesetzt wird ist nicht "
+                f"definiert"
+            ) from exc
+        for luse, area_perc in landuse.items():
             extended_hrus.loc[n_hrus] = hrus.loc[i].copy()
-            extended_hrus.loc[n_hrus, "nutz_nr"] = landuse.upper()
+            extended_hrus.loc[n_hrus, "nutz_nr"] = luse.upper()
             extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
             n_hrus += 1
 
@@ -134,7 +195,7 @@ def _init_gwn_to_zwischenspeicher(
     return init_storage
 
 
-def run_whmod(basedir: str, write_output: str) -> None:
+def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     """Run_whmod takes the WHMod input data and prepares an instance of the model.
     After the initialization the simulation can be run.  Apart from WHMod_Main.txt,
     Node_Data.csv, Station_Data.txt and a folder with the time series are required.
@@ -158,8 +219,10 @@ def run_whmod(basedir: str, write_output: str) -> None:
     >>> TestIO.clear()
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> run_whmod(basedir=projectpath, write_output=False)
-    Mean GWN [mm/a]: 38.974463878806326
-    Mean verz. GWN [mm/a]: 36.916119888336866
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
@@ -168,94 +231,255 @@ def run_whmod(basedir: str, write_output: str) -> None:
         |---------------------|
         ***********************
         seconds elapsed: ...
-    Write Output in ...\WHMod\Results (...).
-    Mean GWN [mm/a]: 38.974463878806326
-    Mean verz. GWN [mm/a]: 36.916119888336866
+    Write Output in ...Results (...).
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
+
 
     You can also run the script from the command prompt with hyd.py:
 
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
-    Mean GWN [mm/a]: 38.974463878806326
-    Mean verz. GWN [mm/a]: 36.916119888336866
+    Mean AktGrundwasserneubildung [mm/a]: 53.0961615003527
+    Mean VerzGrundwasserneubildung [mm/a]: 50.27369399928801
+    Mean NiederschlagRichter [mm/a]: 686.7624195313758
+    Mean InterzeptionsVerdunstung [mm/a]: 127.57986770079988
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "Groundwater_Recharge_1990-1992.txt"), 'r') as file:
+    ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # Monthly WHMod-Groundwater Recharge in mm
-    # Monthly values from 1990-01-01 to 1992-01-01
+    # monthly WHMod-AktGrundwasserneubildung in mm
+    # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01	0.3123535222629805
-    1990-02	11.26990972195137
-    1990-03	1.202722479827292
-    1990-04	1.6153368961041545
-    1990-05	-1.966510855767592
-    1990-06	-0.7622536716921774
-    1990-07	-1.482467549347431
-    1990-08	-2.7902887575098454
-    1990-09	1.1584295976408858
-    1990-10	1.8341058769334753
-    1990-11	15.30160514900505
-    1990-12	16.083881574719623
-    1991-01	12.867846494514447
-    1991-02	5.596682579465355
-    1991-03	4.404740610210456
-    1991-04	0.3109043749421045
-    1991-05	-0.7420669814995602
-    1991-06	0.5799537654768397
-    1991-07	-1.707045080537081
-    1991-08	-2.807612545031555
-    1991-09	-2.0378062382157776
-    1991-10	1.0124938321292507
-    1991-11	7.57714758711962
-    1991-12	11.065644964600226
+    1990-01-01 0.7028468260577259
+    1990-02-01 13.957352151783375
+    1990-03-01 1.654816419935198
+    1990-04-01 2.443347283036093
+    1990-05-01 -1.661790198704215
+    1990-06-01 -0.25917369919965183
+    1990-07-01 -1.1187220679497472
+    1990-08-01 -2.6569262117737877
+    1990-09-01 1.8769592964940027
+    1990-10-01 2.6141286249982136
+    1990-11-01 19.13499252643273
+    1990-12-01 19.95844763416463
+    1991-01-01 14.87164920372785
+    1991-02-01 7.71029234354305
+    1991-03-01 5.466120234439423
+    1991-04-01 0.6625795438813451
+    1991-05-01 -0.3612378678536788
+    1991-06-01 1.4033637032773913
+    1991-07-01 -1.4542704826475383
+    1991-08-01 -2.7211217368665888
+    1991-09-01 -1.8467053575494965
+    1991-10-01 1.5482994669932146
+    1991-11-01 9.942934126770014
+    1991-12-01 14.254362030837713
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "Groundwater_Recharge_Verz_1990-1992.txt"), 'r') as file:
+    ... "monthly_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # Monthly WHMod-Groundwater Recharge in mm
-    # Monthly values from 1990-01-01 to 1992-01-01
+    # monthly WHMod-VerzGrundwasserneubildung in mm
+    # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01	0.5045038812540086
-    1990-02	5.250603291729102
-    1990-03	6.4497203320862395
-    1990-04	1.7912861345033646
-    1990-05	-0.6268182705790565
-    1990-06	-1.2685268478426805
-    1990-07	-0.6807497284977176
-    1990-08	-2.782809513177545
-    1990-09	0.00455351862727867
-    1990-10	1.0133223565827008
-    1990-11	10.543526380157056
-    1990-12	12.408252255341312
-    1991-01	17.41453327524282
-    1991-02	5.238857183865606
-    1991-03	6.298480526672588
-    1991-04	1.705189692982093
-    1991-05	0.5847423425736368
-    1991-06	0.01631629765354097
-    1991-07	-0.3823595659513151
-    1991-08	-2.097171803288229
-    1991-09	-2.5505616288699913
-    1991-10	0.7403114329158353
-    1991-11	5.877001644492123
-    1991-12	8.331521262534562
+    1990-01-01 0.7354062546860497
+    1990-02-01 6.536275191558225
+    1990-03-01 7.993232702855191
+    1990-04-01 2.553324343490558
+    1990-05-01 -0.07375077659961421
+    1990-06-01 -0.8320219215894414
+    1990-07-01 -0.144611371666009
+    1990-08-01 -2.624242426838646
+    1990-09-01 0.5426003650433756
+    1990-10-01 1.6253440338171956
+    1990-11-01 13.208931733858217
+    1990-12-01 15.669861097926352
+    1991-01-01 20.553139501800576
+    1991-02-01 6.636077386899841
+    1991-03-01 8.277475250923542
+    1991-04-01 2.282198592422247
+    1991-05-01 1.2149947349015224
+    1991-06-01 0.6957100402292622
+    1991-07-01 0.16127378204943124
+    1991-08-01 -1.8628242647164013
+    1991-09-01 -2.4254028076651135
+    1991-10-01 1.3074037551443471
+    1991-11-01 7.682496633141494
+    1991-12-01 10.768426259118066
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "Sum_Verz_Groundwater_Recharge_1990-1992.txt"), 'r') as file:
+    ... "monthly_mean_AktGrundwasserneubildung.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
-    ncols         3
-    nrows         4
-    xllcorner     3455523.97
-    yllcorner     5567507.03
-    cellsize      100
-    nodata_value  -9999.0
-    31.645292796869786 81.48036442990723 23.44272208840597
-    40.700753395675605 49.292163415765636 -103.99671214064254
-    28.282173000284654 19.35690518826799 66.62374633575931
-    87.69237800071348 73.3194305226362 45.154221626399156
+        ncols         3
+        nrows         4
+        xllcorner     3455523.97
+        yllcorner     5567507.03
+        cellsize      100.0
+        nodata_value  -9999.0
+        1.214049718260273442e-01 2.756014615062301054e-01 1.019817010459422163e-01
+        1.753518676336352222e-01 1.719348460699934300e-01 -2.089579331110139881e-01
+        1.113094151188262632e-01 7.927670621589584521e-02 2.311449451727813076e-01
+        2.937570084599854248e-01 2.506958064706713007e-01 1.635317903660306327e-01
+    >>> with open(os.path.join(projectpath, "Results",
+    ... "monthly_rch_AktGrundwasserneubildung.rch"), 'r') as file:
+    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    # Max Mustermann, ...
+    # monthly WHMod-AktGrundwasserneubildung in m/s
+    # monthly values from 1990-01-01T00 to 1991-12-01T00
+    ##########################################################
+             1        51         1         1
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     4.0298e-011 2.7098e-009 3.5240e-012
+     5.8612e-011 1.1418e-009-7.1452e-009
+     2.9174e-011 2.1543e-012 1.3740e-009
+     2.8379e-009 1.3883e-009 7.0852e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     3.5793e-009 1.0631e-008 1.5328e-009
+     4.9996e-009 6.9113e-009 3.0186e-009
+     2.9883e-009 8.1067e-010 9.0592e-009
+     1.0953e-008 9.1995e-009 5.5499e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     4.3868e-010 7.4476e-010 1.7819e-010
+     9.6702e-010 5.7982e-010 6.4246e-011
+     2.4445e-010 1.1639e-010 1.1696e-009
+     1.0417e-009 1.1982e-009 6.7102e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     3.8115e-010 1.6603e-009 1.2298e-010
+     1.5621e-009 9.6095e-010-8.7607e-010
+     1.7865e-010 8.6864e-011 2.0672e-009
+     1.8604e-009 2.3682e-009 9.3908e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     9.9119e-012 3.2886e-010 1.2723e-012
+     1.0133e-010 8.3732e-011-8.7863e-009
+     2.0511e-012 1.3058e-012 1.4711e-010
+     2.8037e-010 3.1370e-010 7.1312e-011
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.0174e-012 2.3132e-009 4.1851e-013
+     6.1311e-011 4.8064e-010-7.6799e-009
+     4.5234e-013 6.4443e-014 4.4086e-010
+     1.8971e-009 9.3933e-010 3.4555e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     2.7332e-012 1.0936e-009 1.7335e-012
+     8.8423e-011 2.9442e-010-8.7002e-009
+     1.8439e-012 2.4722e-013 3.8015e-010
+     9.7696e-010 6.4094e-010 2.0692e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     5.8607e-016 4.7051e-010 5.9146e-016
+     3.3689e-013 1.0603e-010-1.3185e-008
+     5.9018e-016 1.0682e-017 5.5257e-011
+     4.6542e-010 1.1010e-010 7.3888e-011
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     4.1137e-012 3.0805e-009 3.4913e-012
+     1.3916e-010 1.0678e-009-3.4625e-009
+     3.5858e-012 2.4143e-013 1.4496e-009
+     3.6183e-009 2.0194e-009 7.6587e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     5.0483e-011 2.7242e-009 3.6191e-011
+     8.6146e-010 1.1609e-009-1.6718e-009
+     3.7002e-011 5.1276e-012 2.0294e-009
+     3.0615e-009 2.6150e-009 8.0268e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     5.1633e-009 1.0113e-008 4.4975e-009
+     9.3461e-009 7.1751e-009 7.9829e-009
+     4.6436e-009 2.0894e-009 9.6793e-009
+     1.1195e-008 1.0134e-008 6.5700e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     7.5081e-009 7.6639e-009 7.1218e-009
+     7.7078e-009 6.4708e-009 7.7489e-009
+     7.3815e-009 6.5446e-009 7.8713e-009
+     7.9088e-009 7.9026e-009 7.5894e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     5.5747e-009 5.7102e-009 5.3044e-009
+     5.6065e-009 4.8025e-009 5.6623e-009
+     5.5197e-009 5.4825e-009 5.7847e-009
+     5.7531e-009 5.7908e-009 5.6379e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     2.9730e-009 3.4122e-009 2.7246e-009
+     3.4194e-009 2.8365e-009 2.9373e-009
+     2.8279e-009 2.8378e-009 3.7367e-009
+     3.5825e-009 3.7467e-009 3.2110e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.7071e-009 2.3391e-009 1.3149e-009
+     2.5750e-009 1.8054e-009 1.4170e-009
+     1.3631e-009 1.3830e-009 2.8990e-009
+     2.6787e-009 2.9285e-009 2.0788e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     8.4803e-011 7.4646e-010 4.7840e-011
+     5.1980e-010 3.7496e-010-1.7700e-009
+     4.9300e-011 7.1991e-011 8.2085e-010
+     6.7948e-010 1.1037e-009 3.3827e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     2.8974e-011 3.9625e-010 1.2958e-011
+     2.3531e-010 1.5352e-010-3.8097e-009
+     1.3232e-011 1.6726e-011 3.1431e-010
+     4.4449e-010 4.4129e-010 1.3414e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     4.1289e-011 3.3646e-009 1.6024e-011
+     5.1787e-010 9.0439e-010-5.3030e-009
+     1.6830e-011 1.2293e-011 1.1402e-009
+     3.2260e-009 1.9154e-009 6.4514e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.0800e-013 6.9241e-010 3.9418e-014
+     2.2268e-011 1.1881e-010-8.2911e-009
+     3.9652e-014 1.6434e-014 9.3029e-011
+     4.5710e-010 3.0687e-010 8.4912e-011
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.3550e-015 8.2011e-011 6.9764e-016
+     2.0702e-012 1.6296e-011-1.2413e-008
+     7.1351e-016 1.6307e-016 1.2850e-011
+     4.8891e-011 4.7225e-011 1.2292e-011
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.4846e-013 8.9732e-010 1.3402e-013
+     3.7507e-012 2.8780e-010-1.1864e-008
+     1.3777e-013 4.2916e-015 2.4226e-010
+     1.3558e-009 3.2430e-010 2.0275e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     6.8313e-012 1.9552e-009 5.1955e-012
+     9.9705e-011 7.9047e-010-1.5831e-009
+     5.3635e-012 3.4622e-013 1.1132e-009
+     2.6695e-009 1.3246e-009 5.4963e-010
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     1.3597e-009 7.1142e-009 1.1252e-009
+     3.6297e-009 4.2708e-009 3.8605e-009
+     1.1713e-009 2.4787e-010 5.9657e-009
+     7.9071e-009 6.4096e-009 2.9704e-009
+             1         1         0         0
+            18     1.000(20e12.4)                   -1     RECHARGE
+     4.7678e-009 6.3129e-009 4.2770e-009
+     6.1842e-009 4.9651e-009 5.8056e-009
+     4.4418e-009 2.3116e-009 6.3612e-009
+     6.7004e-009 6.4698e-009 5.2662e-009
+    <BLANKLINE>
     """
+    write_output = objecttools.value2bool(
+        argument="write_output", value=write_output
+    )
     write_output_ = print_hydpy_progress(write_output=write_output)
 
     whmod_main = read_whmod_main(basedir)
@@ -266,19 +490,24 @@ def run_whmod(basedir: str, write_output: str) -> None:
     check_hydpy_version(hydpy_version=hydpy_version)
 
     outputdir = os.path.join(basedir, whmod_main["OUTPUTDIR"][1].strip())
-    outputmode = [mode.strip() for mode in whmod_main["OUTPUTMODE"][1].split(",")]
     filename_node_data = whmod_main["FILENAME_NODE_DATA"][1].strip()
     filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
     filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
     filename_landuse = whmod_main["FILENAME_LANDUSE"][1].strip()
-    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1]
-    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1]
+    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1].strip()
+    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1].strip()
     root_depth_option = whmod_main["ROOT_DEPTH_OPTION"][1].strip()
-    simulation_start = whmod_main["SIMULATION_START"][1]
-    simulation_end = whmod_main["SIMULATION_END"][1]
-    frequence = whmod_main["FREQUENCE"][1]
-    cellsize = whmod_main["CELLSIZE"][1]
-    nodata_value = whmod_main["NODATA_VALUE"][1]
+    simulation_start = whmod_main["SIMULATION_START"][1].strip()
+    simulation_end = whmod_main["SIMULATION_END"][1].strip()
+    frequence = whmod_main["FREQUENCE"][1].strip()
+    richter = bool(
+        whmod_main["PRECIP_RICHTER_CORRECTION"][1].strip() in ("True", "true", 1)
+    )
+    cellsize = float(whmod_main["CELLSIZE"][1].strip())
+    nodata_value = whmod_main["NODATA_OUTPUT_VALUE"][1].strip()
+    outputconfig = [
+        stepsize.strip() for stepsize in whmod_main["OUTPUTCONFIG"][1].split(",")
+    ]
 
     hydpy.pub.timegrids = simulation_start, simulation_end, frequence
     hydpy.pub.options.parameterstep = frequence
@@ -291,11 +520,8 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
-    df_stammdaten = pandas.read_csv(
-        os.path.join(basedir, filename_station_data), comment="#", sep="\t"
-    )
-    df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
-        lambda a: a.split("_")[1].split(".")[0]
+    df_stammdaten = read_stationdata(
+        os.path.join(basedir, filename_station_data), richter=richter
     )
     root_depth_dict = read_root_depth(
         root_depth_option=root_depth_option, basedir=basedir
@@ -334,6 +560,7 @@ def run_whmod(basedir: str, write_output: str) -> None:
 
     _initialize_weather_stations(
         df_stammdaten=df_stammdaten,
+        richter=richter,
         cssr_selection_stat=cssr_selection_stat,
         gsr_selection_stat=gsr_selection_stat,
         meteo_selection_stat=meteo_selection_stat,
@@ -382,56 +609,46 @@ def run_whmod(basedir: str, write_output: str) -> None:
     for element in hp.elements:
         element.model.parameters.update()
 
-    # define two loggers, one for the actual groundwater recharge, one for the delayed
-    # groundwater recharge (verz)
-    hp.loggers["logger_akt"] = logtools.Logger(simulation_start, simulation_end)
-    hp.loggers["logger_verz"] = logtools.Logger(simulation_start, simulation_end)
+    # Define Loggers according to OUTPUTCONFIG
+    loggers = []
+    for file in outputconfig:
+        loggers.append(read_outputconfig(basedir=basedir, outputconfigfile=file))
+    hydpy.pub.selections += hydpy.Selection(
+        name="complete", nodes=hp.nodes, elements=hp.elements
+    )
+    whm_elements = (
+        hydpy.pub.selections["complete"].search_modeltypes("whmod_pet").elements
+    )
 
-    # same for the month logger
-    if "txt" in outputmode or "rch" in outputmode:
-        hp.loggers["month_logger_akt"] = whmod_model.WHModMonthLogger()
-        hp.loggers["month_logger_verz"] = whmod_model.WHModMonthLogger()
+    seriesdir = os.path.join(outputdir, "series")
+    hydpy.pub.sequencemanager.currentdir = seriesdir
+    hydpy.pub.sequencemanager.filetype = "nc"
 
-    # add the fluxes to the respective logger
-    for element in hp.elements:
-        if element.name.startswith("WHMod"):
-            hp.loggers["logger_akt"].add_sequence(
-                element.model.sequences.fluxes.aktgrundwasserneubildung
-            )
-            hp.loggers["month_logger_akt"].add_sequence(
-                element.model.sequences.fluxes.aktgrundwasserneubildung
-            )
-            hp.loggers["logger_verz"].add_sequence(
-                element.model.sequences.fluxes.verzgrundwasserneubildung
-            )
-            hp.loggers["month_logger_verz"].add_sequence(
-                element.model.sequences.fluxes.verzgrundwasserneubildung
-            )
+    for element in whm_elements:
+        for logger in loggers:
+            for seq in logger["sequence"]:
+                sequence = getattr(element.model.sequences.fluxes, seq.lower())
+                if not sequence.diskflag_writing:
+                    sequence.prepare_series(allocate_ram=False, write_jit=True)
 
     hp.simulate()
 
     hydpy.pub.sequencemanager.overwrite = True
     hydpy.pub.sequencemanager.currentdir = outputdir
 
-    ncol = df_knoteneigenschaften["col"].max()
-    nrow = df_knoteneigenschaften["row"].max()
-    xllcorner = df_knoteneigenschaften["x"].min()
-    yllcorner = df_knoteneigenschaften["y"].min()
+    if write_output:
+        commandtools.print_textandtime(f"Write Output in {outputdir}")
 
-    _save_results(
-        write_output=write_output_,
+    aggregated_series = aggregate_whmod_series(loggers=loggers, seriesdir=seriesdir)
+
+    save_results(
+        aggregated_series=aggregated_series,
+        loggers=loggers,
         outputdir=outputdir,
-        outputmode=outputmode,
-        nrow=nrow,
-        ncol=ncol,
-        hp=hp,
         cellsize=cellsize,
-        simulation_start=simulation_start,
-        simulation_end=simulation_end,
-        xllcorner=xllcorner,
-        yllcorner=yllcorner,
-        nodata_value=nodata_value,
+        df_knoteneigenschaften=df_knoteneigenschaften,
         person_in_charge=person_in_charge,
+        nodata_value=nodata_value,
     )
 
 
@@ -454,7 +671,7 @@ Hydpy-Version (5.0) defined in WHMod_Main.txt.
         )
 
 
-def print_hydpy_progress(write_output: str) -> bool:
+def print_hydpy_progress(write_output: bool) -> bool:
     """Activate hydpy printprogress and return wirte_output handle.
 
     >>> print_hydpy_progress(write_output="True")  # doctest: +ELLIPSIS
@@ -470,6 +687,121 @@ def print_hydpy_progress(write_output: str) -> bool:
     else:
         hydpy.pub.options.printprogress = False
     return write_output_
+
+
+def read_stationdata(path_station_data: str, richter: bool = False) -> pandas.DataFrame:
+    """
+    Lese die Stationsdaten ein.
+
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> station_path = os.path.join(basedir, "Station_Data.txt")
+    >>> pandas.set_option('display.expand_frame_repr', False)
+
+    # pylint: disable=line-too-long
+    >>> read_stationdata(path_station_data=station_path, richter=False)  # doctest:+NORMALIZE_WHITESPACE
+       Messnetz  StationsNr          X          Y      Lat    Long  HNN       Richterklasse                  Dateiname          Messungsart
+    0       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999       1_Lufttemperatur.asc       Lufttemperatur
+    1       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999     1_Relative-Feuchte.asc     Relative-Feuchte
+    2       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999  1_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    3       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999    1_Sonnenscheindauer.asc    Sonnenscheindauer
+    4       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999                -999            1_Luftdruck.asc            Luftdruck
+    5       DWD           1  3465773.0  5543398.0  50.0259  8.5213 -999   leicht_geschuetzt         1_Niederschlag.asc         Niederschlag
+    6       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999       2_Lufttemperatur.asc       Lufttemperatur
+    7       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999     2_Relative-Feuchte.asc     Relative-Feuchte
+    8       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999  2_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    9       DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999    2_Sonnenscheindauer.asc    Sonnenscheindauer
+    10      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999                -999            2_Luftdruck.asc            Luftdruck
+    11      DWD           2  3476845.0  5556809.0  50.1470  8.6750 -999  maessig_geschuetzt         2_Niederschlag.asc         Niederschlag
+    12      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999       3_Lufttemperatur.asc       Lufttemperatur
+    13      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999     3_Relative-Feuchte.asc     Relative-Feuchte
+    14      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999  3_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    15      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999    3_Sonnenscheindauer.asc    Sonnenscheindauer
+    16      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999                -999            3_Luftdruck.asc            Luftdruck
+    17      DWD           3  3476407.0  5554586.0  50.1270  8.6690 -999    stark_geschuetzt         3_Niederschlag.asc         Niederschlag
+    18      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999       4_Lufttemperatur.asc       Lufttemperatur
+    19      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999     4_Relative-Feuchte.asc     Relative-Feuchte
+    20      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999  4_Windgeschwindigkeit.asc  Windgeschwindigkeit
+    21      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999    4_Sonnenscheindauer.asc    Sonnenscheindauer
+    22      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                -999            4_Luftdruck.asc            Luftdruck
+    23      DWD           4  3475760.0  5553921.0  50.1210  8.6600 -999                frei         4_Niederschlag.asc         Niederschlag
+    24      DWD           5  3438168.0  5543991.0      NaN     NaN -999   leicht_geschuetzt         5_Niederschlag.asc         Niederschlag
+    25      DWD           6  3457044.0  5556598.0      NaN     NaN -999  maessig_geschuetzt         6_Niederschlag.asc         Niederschlag
+    26      DWD           7  3484302.0  5540430.0      NaN     NaN -999    stark_geschuetzt         7_Niederschlag.asc         Niederschlag
+    27      DWD           8  3445255.0  5536238.0      NaN     NaN -999                frei         8_Niederschlag.asc         Niederschlag
+    28      DWD           9  3435601.0  5521105.0      NaN     NaN -999                frei         9_Niederschlag.asc         Niederschlag
+
+    # pylint: enable=line-too-long
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong1.txt")
+    >>> read_stationdata(path_station_data=station_path)
+    Traceback (most recent call last):
+    ...
+    ValueError: Die Dateinamen müssen den Parameternamen: ('Lufttemperatur', \
+'Relative-Feuchte', 'Windgeschwindigkeit', 'Sonnenscheindauer', 'Luftdruck', \
+'Niederschlag') entsprechen. Die Messsungsart ist jedoch RelativeFeuchte
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong2.txt")
+    >>> read_stationdata(path_station_data=station_path, richter=False)
+    Traceback (most recent call last):
+    ...
+    ValueError: Notwendiger Spaltenname 'StationsNr' ist nicht in der \
+Stationsdaten-Datei vorhanden.
+    >>> station_path = os.path.join(basedir, "Station_Data_wrong3.txt")
+    >>> read_stationdata(path_station_data=station_path, richter=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Die Dateinamen müssen den Parameternamen: ('frei', \
+'leicht_geschuetzt', 'maessig_geschuetzt', 'stark_geschuetzt') entsprechen. Die \
+Richterklasse ist jedoch wald
+    """
+    df_stammdaten = pandas.read_csv(path_station_data, comment="#", sep="\t")
+    df_stammdaten["Messungsart"] = df_stammdaten["Dateiname"].apply(
+        lambda a: a.split("_")[1].split(".")[0]
+    )
+    possible_variables = (
+        "Lufttemperatur",
+        "Relative-Feuchte",
+        "Windgeschwindigkeit",
+        "Sonnenscheindauer",
+        "Luftdruck",
+        "Niederschlag",
+    )
+    valid_messart = df_stammdaten["Messungsart"].isin(possible_variables)
+    if not all(valid_messart):
+        raise ValueError(
+            f"Die Dateinamen müssen den Parameternamen: "
+            f"{possible_variables} entsprechen. Die Messsungsart ist "
+            f"jedoch "
+            f"{', '.join(df_stammdaten['Messungsart'][~valid_messart].values)}"
+        )
+    valid_columns = ["StationsNr", "Messungsart", "Dateiname", "Lat", "Long", "X", "Y"]
+    if richter:
+        valid_columns.append("Richterklasse")
+
+    for column in valid_columns:
+        if column not in df_stammdaten.columns:
+            raise ValueError(
+                f"Notwendiger Spaltenname '{column}' ist nicht in der "
+                f"Stationsdaten-Datei vorhanden."
+            )
+    if richter:
+        df_stammdaten["Richterklasse"] = df_stammdaten["Richterklasse"].astype(str)
+        possible_richterklasse = (
+            "frei",
+            "leicht_geschuetzt",
+            "maessig_geschuetzt",
+            "stark_geschuetzt",
+        )
+        niederschlag = df_stammdaten[df_stammdaten["Messungsart"] == "Niederschlag"]
+        valid_richterklasse = niederschlag["Richterklasse"].isin(possible_richterklasse)
+        if not all(valid_richterklasse):
+            actual_richter = niederschlag["Richterklasse"][~valid_richterklasse].values
+            raise ValueError(
+                f"Die Dateinamen müssen den Parameternamen: {possible_richterklasse} "
+                f"entsprechen. Die Richterklasse ist jedoch "
+                f"{', '.join(actual_richter)}"
+            )
+    return df_stammdaten
 
 
 def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:
@@ -507,12 +839,24 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
 
 
 def read_whmod_main(basedir: str) -> pandas.DataFrame:
-    """Read the whmod main file."""
+    """
+    Read the whmod main file.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> pandas.set_option('display.expand_frame_repr', False)
+
+    # pylint: disable=line-too-long
+    >>> read_whmod_main(basedir=basedir)
+    0 PERSON_IN_CHARGE HYDPY_VERSION OUTPUTDIR FILENAME_NODE_DATA FILENAME_TIMESERIES FILENAME_STATION_DATA FILENAME_LANDUSE   ROOT_DEPTH_OPTION SIMULATION_START SIMULATION_END FREQUENCE WITH_CAPPILARY_RISE DEGREE_DAY_FACTOR PRECIP_RICHTER_CORRECTION EVAPORATION_MODE CELLSIZE NODATA_OUTPUT_VALUE                                       OUTPUTCONFIG
+    1   Max Mustermann         6.0a0   Results      Node_Data.csv          Timeseries      Station_Data.txt      nutzung.txt  max_root_depth.txt       1990-01-01     1992-01-01        1d                True               4.5                     True              FAO       100             -9999.0  Tageswerte.txt, Monatswerte.txt, Variablewerte...
+
+    # pylint: enable=line-too-long
+    """
     dtype_whmod_main = {
         "PERSON_IN_CHARGE": str,
         "HYDPY_VERSION": str,
         "OUTPUTDIR": str,
-        "OUTPUTMODE": str,
         "ROOT_DEPTH_OPTION": str,
         "FILENAME_NODE_DATA": str,
         "FILENAME_TIMESERIES": str,
@@ -526,6 +870,7 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
         "EVAPORATION_MODE": str,
         "CELLSIZE": int,
         "NODATA_VALUE": float,
+        "OUTPUTCONFIG": str,
     }
     whmod_main = pandas.read_csv(
         os.path.join(basedir, "WHMod_Main.txt"),
@@ -642,12 +987,12 @@ enthalten.
                 header=None,
                 names=["BENUTZERDEFINIERT"],
             )
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise ValueError(
                 f"Der Wert für ROOT_DEPTH_OPTION ({root_depth_option}) ist "
                 f"ungültig er muss entweder auf eine Datei verweisen oder den "
                 f"Wert 'BK', 'WABOA', 'TGU' oder 'DARMSTADT' enthalten."
-            )
+            ) from exc
         root_depth_table.index = [i.lower() for i in root_depth_table.index]
         error = []
         for entry in root_depth_table.index:
@@ -668,6 +1013,89 @@ enthalten.
 
         root_depth = dict(pandas.to_numeric(root_depth_table["BENUTZERDEFINIERT"]))
     return root_depth
+
+
+def read_outputconfig(
+    outputconfigfile: str, basedir: str
+) -> Dict[str, List[Union[str, pandas.DatetimeIndex]]]:
+    """
+    Read text files which define the stepsize of the outputfiles.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
+    >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
+    {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
+'NiederschlagRichter', 'InterzeptionsVerdunstung'], 'steps': ['daily'], \
+'name_rch_file': ['daily_rch'], 'name_mean_file': ['daily_mean'], \
+'name_time_series': ['daily_timeseries']}
+    >>> read_outputconfig(outputconfigfile="Variablewerte.txt", basedir=basedir)
+    {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
+'NiederschlagRichter'], 'steps': [DatetimeIndex(['1990-01-01', '1990-02-01', \
+'1991-01-01', '1992-01-01'], dtype='datetime64[ns]', freq=None)], 'name_rch_file': \
+['user_rch'], 'name_mean_file': ['user_mean'], 'name_time_series': ['user_timeseries']}
+
+    >>> read_outputconfig(outputconfigfile="Variablewerte_wrong1.txt", basedir=basedir)
+    Traceback (most recent call last):
+    ...
+    ValueError: Chose either one or multiple of the aggregation methods ('daily', \
+'monthly', 'yearly') OR define your own aggregation timegrid
+    >>> read_outputconfig(outputconfigfile="Variablewerte_wrong2.txt", basedir=basedir)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Output timesteps of user defined output have to be sorted
+    >>> read_outputconfig(outputconfigfile="Variablewerte_wrong3.txt", basedir=basedir)
+    Traceback (most recent call last):
+    ...
+    ValueError: Aggregation timegrid DatetimeIndex(['2000-01-01', '2000-02-01', \
+'2002-01-01'], dtype='datetime64[ns]', freq=None) outside simulation timegrid.
+    """
+    filepath = os.path.join(basedir, outputconfigfile)
+    outputconfig_dict = {}
+    with open(filepath, mode="r", encoding="utf-8") as infile:
+        lines = infile.readlines()
+        for line in lines:
+            if line.strip().startswith("#"):
+                continue
+            if ":" in line:
+                split_line = line.split(":")
+                entryname = split_line[0].strip()
+                entries = split_line[1].strip()
+            else:
+                entries += ", " + line.strip()
+
+            entries_list = [entry.strip() for entry in entries.split(",")]
+
+            outputconfig_dict[entryname] = entries_list
+    check_date = [is_date(da) for da in outputconfig_dict["steps"]]
+    allowed_steps = ("daily", "monthly", "yearly")
+    if all(step in allowed_steps for step in outputconfig_dict["steps"]):
+        pass
+    elif all(check_date):
+        aggregation_timegrid = pandas.to_datetime(
+            [parse(string, fuzzy=False) for string in outputconfig_dict["steps"]]
+        )
+        outputconfig_dict["steps"] = [
+            aggregation_timegrid,
+        ]
+        if any(sorted(aggregation_timegrid) != aggregation_timegrid):
+            raise AssertionError(
+                "Output timesteps of user defined output have to be sorted"
+            )
+        if (
+            aggregation_timegrid[0] < hydpy.pub.timegrids.eval_.firstdate
+            or aggregation_timegrid[0] > hydpy.pub.timegrids.eval_.lastdate
+        ):
+            raise ValueError(
+                f"Aggregation timegrid {aggregation_timegrid} outside simulation "
+                f"timegrid."
+            )
+    elif any(check_date):
+        raise ValueError(
+            f"Chose either one or multiple of the aggregation methods "
+            f"{allowed_steps} OR define your own aggregation timegrid"
+        )
+    return outputconfig_dict
 
 
 def _initialize_whmod_models(
@@ -695,7 +1123,7 @@ def _initialize_whmod_models(
     if write_output:
         commandtools.print_textandtime("Initialize WHMOD")
 
-    for idx in range(len(df_knoteneigenschaften["id"].unique())):
+    for idx in sorted(df_knoteneigenschaften["id"].unique()):
 
         row = getattr(
             df_knoteneigenschaften[df_knoteneigenschaften["id"] == idx], "row"
@@ -857,6 +1285,7 @@ def _initialize_whmod_models(
 
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,
+    richter: bool,
     cssr_selection_stat: hydpy.Selection,
     gsr_selection_stat: hydpy.Selection,
     meteo_selection_stat: hydpy.Selection,
@@ -884,6 +1313,17 @@ def _initialize_weather_stations(
     gsr = devicetools.FusedVariable(
         "GSR", outputs.meteo_GlobalRadiation, inputs.evap_GlobalRadiation
     )
+
+    timeseries_path = os.path.join(
+        basedir,
+        filename_timeseries,
+    )
+    if richter:
+        # Interpolate temperature for richter correction:
+        niederschlag_temperature_nodes = _conv_models_temperature(
+            stammdaten_in=df_stammdaten, timeseries_path=timeseries_path
+        )
+
     # Iteration over Weather Stations
     for stat in df_stammdaten["StationsNr"].unique():
         # Stationsdaten einladen
@@ -969,35 +1409,30 @@ def _initialize_weather_stations(
         inp_evap.prepare_series()
 
         inp_meteo.sunshineduration.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_sunshineduration,
         )
         inp_meteo.sunshineduration.load_series()
         del inp_meteo.sunshineduration.filepath
 
         inp_evap.airtemperature.filepath = os.path.join(
-            basedir, filename_timeseries, seq_airtemperature
+            timeseries_path, seq_airtemperature
         )
         inp_evap.airtemperature.load_series()
 
         inp_evap.relativehumidity.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_relativehumidity,
         )
         inp_evap.relativehumidity.load_series()
         del inp_evap.relativehumidity.filepath
 
-        inp_evap.windspeed.filepath = os.path.join(
-            basedir, filename_timeseries, seq_windspeed
-        )
+        inp_evap.windspeed.filepath = os.path.join(timeseries_path, seq_windspeed)
         inp_evap.windspeed.load_series()
         del inp_evap.windspeed.filepath
 
         inp_evap.atmosphericpressure.filepath = os.path.join(
-            basedir,
-            filename_timeseries,
+            timeseries_path,
             seq_atmosphericpressure,
         )
         inp_evap.atmosphericpressure.load_series()
@@ -1023,9 +1458,11 @@ def _initialize_weather_stations(
 
         index = stations_daten.index[0]
 
-        seq_precipitation = stations_daten["Dateiname"][
+        niederschlag_station = stations_daten[
             stations_daten["Messungsart"] == "Niederschlag"
-        ].values[0]
+        ].squeeze()
+
+        seq_precipitation = niederschlag_station["Dateiname"]
 
         p_node = hydpy.Node(f"P_{stat}", variable="P")
         p_node.deploymode = "obs"
@@ -1034,11 +1471,146 @@ def _initialize_weather_stations(
             rechts=df_stammdaten.loc[index, "X"], hoch=df_stammdaten.loc[index, "Y"]
         )
         p_node.prepare_obsseries()
-        p_node.sequences.obs.filepath = os.path.join(
-            basedir, filename_timeseries, seq_precipitation
-        )
+        p_node.sequences.obs.filepath = os.path.join(timeseries_path, seq_precipitation)
         p_node.sequences.obs.load_series()
+        if richter:
+            temperature_node = niederschlag_temperature_nodes[f"Tinterp_{stat}"]
+            apply_richter(
+                richterklasse=niederschlag_station["Richterklasse"],
+                temperature_node=temperature_node,
+                precipitation_node=p_node,
+            )
+
         del p_node.sequences.obs.filepath
+
+
+def apply_richter(
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    temperature_node: hydpy.Node,
+    precipitation_node: hydpy.Node,
+) -> None:
+    """
+    Führe die Richterkorrektur durch
+    >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
+    >>> p = hydpy.Node("p")
+    >>> p.prepare_obsseries()
+    >>> p.sequences.obs.series = [0., 2., 1., 5., 1., 1., 1., 3., 1., 0.5]
+    >>> t = hydpy.Node("t")
+    >>> t.prepare_simseries()
+    >>> t.sequences.sim.series = [-1., -2., 3., 0., 5., 5., 5., -3., 5., 0.5]
+    >>> apply_richter(temperature_node=t, precipitation_node=p, richterklasse="frei")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 3.27109231, 1.345     , 6.29654407, 1.345     ,
+               1.345     , 1.34      , 4.77244156, 1.34      , 0.86541577])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="maessig_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.58258398, 1.28      , 5.73915129, 1.28      ,
+               1.28      , 1.24      , 3.81236905, 1.24      , 0.70832114])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="maessig_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.58258398, 1.28      , 5.73915129, 1.28      ,
+               1.28      , 1.24      , 3.81236905, 1.24      , 0.70832114])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="stark_geschuetzt")
+    >>> p.sequences.sim.series
+    InfoArray([0.        , 2.37073526, 1.245     , 5.44833767, 1.245     ,
+               1.245     , 1.19      , 3.51696212, 1.19      , 0.62635872])
+    >>> apply_richter(temperature_node=t, precipitation_node=p,
+    ...     richterklasse="wald")
+    Traceback (most recent call last):
+    ...
+    KeyError: 'wald'
+    """
+
+    precipitation_node.prepare_simseries()
+    precipitation_node.deploymode = "oldsim"
+    ns_art = get_ns_art(temperature_node=temperature_node)
+    precipitation_node.sequences.sim.series = calc_richter(
+        ns_art=ns_art,
+        precipitation=precipitation_node.sequences.obs.series,
+        richterklasse=richterklasse,
+    )
+
+
+def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.character]:
+    """
+    Bestimme ob Niederschlag als Sommerregen, Winterregen, Mischniederschlag oder
+    Schnee fällt
+    >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
+    >>> t = hydpy.Node("t")
+    >>> t.prepare_simseries()
+    >>> t.sequences.sim.series = [-1., -2., 3., 0., 5., 5., 5., -3., 5., 0.5]
+    >>> get_ns_art(temperature_node=t)
+    array(['Schnee', 'Schnee', 'Sommerregen', 'Mischniederschlag',
+           'Sommerregen', 'Sommerregen', 'Winterregen', 'Schnee',
+           'Winterregen', 'Mischniederschlag'], dtype='<U20')
+    """
+    t_node_ser = temperature_node.sequences.sim.series
+    winter = numpy.array([i.month > 9 or i.month < 5 for i in hydpy.pub.timegrids.init])
+    ns_art = numpy.empty(shape=t_node_ser.shape, dtype="<U20")
+    ns_art[numpy.logical_and(t_node_ser >= 3, winter)] = "Winterregen"
+    ns_art[numpy.logical_and(t_node_ser >= 3, ~winter)] = "Sommerregen"
+    ns_art[(-0.7 < t_node_ser) & (t_node_ser < 3)] = "Mischniederschlag"
+    ns_art[t_node_ser <= -0.7] = "Schnee"
+    return ns_art
+
+
+def _conv_models_temperature(
+    stammdaten_in: pandas.DataFrame, timeseries_path: str
+) -> hydpy.Nodes:
+    """
+    Interpolate temperature data for Richter-correction.
+    """
+    temperature_in = stammdaten_in[stammdaten_in["Messungsart"] == "Lufttemperatur"]
+    temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
+
+    hp_temperature = hydpy.HydPy("temperature")
+    in_coords_dict: Dict[str, Tuple[float, float]] = {}
+    out_coords_dict: Dict[str, Tuple[float, float]] = {}
+    e = hydpy.Element("conv_temperature_richter")
+
+    inlet_nodes = hydpy.Nodes()
+    outlet_nodes = hydpy.Nodes()
+    for _, input_station in temperature_in.iterrows():
+        name = "Tin_" + str(input_station["StationsNr"])
+        n = hydpy.Node(name)
+        n.deploymode = "obs"
+        n.sequences.obs.prepare_series()
+        n.sequences.obs.filepath = os.path.join(
+            timeseries_path, input_station["Dateiname"]
+        )
+        n.sequences.obs.load_series()
+        inlet_nodes.add_device(n)
+        # Coordinates
+        in_coords_dict[n.name] = _XY(rechts=input_station["X"], hoch=input_station["Y"])
+    for _, output_station in temperature_out.iterrows():
+        n = hydpy.Node("Tinterp_" + str(output_station["StationsNr"]))
+        n.deploymode = "newsim"
+        n.sequences.sim.prepare_series()
+        outlet_nodes.add_device(n)
+        # Coordinates
+        out_coords_dict[n.name] = _XY(
+            rechts=output_station["X"], hoch=output_station["Y"]
+        )
+
+    e.inlets = inlet_nodes
+    e.outlets = outlet_nodes
+    model_t = hydpy.prepare_model("conv_v002")
+    model_t.parameters.control.inputcoordinates(**in_coords_dict)
+    model_t.parameters.control.outputcoordinates(**out_coords_dict)
+    model_t.parameters.control.maxnmbinputs()
+    model_t.parameters.control.power(2.0)
+    e.model = model_t
+    e.model.parameters.update()
+
+    hp_temperature.update_devices(nodes=outlet_nodes + inlet_nodes, elements=e)
+    hp_temperature.simulate()
+
+    return outlet_nodes
 
 
 def _initialize_conv_models(
@@ -1113,143 +1685,437 @@ def _initialize_conv_models(
     prec_selection_stat.elements.add_device(element)
 
 
-def _save_results(
-    write_output: bool,
-    outputdir: str,
-    outputmode: List[Union[Literal["rch"], Literal["txt"], Literal["sum_txt"]]],
-    nrow: int,
-    ncol: int,
-    hp: hydpy.HydPy,
-    cellsize: int,
-    simulation_start: str,
-    simulation_end: str,
-    xllcorner: float,
-    yllcorner: float,
-    nodata_value: float,
+def write_rch_file(
+    filepath: str,
+    data: xarray.DataArray,
+    step: str,
     person_in_charge: str,
+    precision: int = 4,
+    layer: int = 1,
+    balancefile: int = 51,
+    values_per_line: int = 20,
+    exp_digits: int = 3,
 ) -> None:
-    def convert_values2string(values_: Sequence[float]) -> str:
-        return " ".join(str(-9999.0 if v == -9999.0 else v * 365.24) for v in values_)
-
-    period = f"{simulation_start[0:4]}-{simulation_end[0:4]}"
-
-    if write_output:
-        commandtools.print_textandtime(f"Write Output in {outputdir}")
-
-    logger_akt = hp.loggers["logger_akt"]
-    assert isinstance(logger_akt, logtools.Logger)
-    logger_verz = hp.loggers["logger_verz"]
-    assert isinstance(logger_verz, logtools.Logger)
-
-    if "sum_txt" in outputmode:
-        grid_akt = numpy.full((nrow, ncol), -9999.0, dtype=float)
-
-        for sequence, value in logger_akt.sequence2mean.items():
-            assert isinstance(sequence.subseqs, sequencetools.ModelSequences)
-            assert sequence.subseqs.seqs.model.element is not None
-            _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
-            grid_akt[int(row) - 1, int(col) - 1] = value
-
-        filepath = os.path.join(outputdir, f"Sum_Groundwater_Recharge_{period}.txt")
-        with open(filepath, "w", encoding="utf-8") as gridfile:
-            gridfile.write(
-                f"ncols         {ncol}\n"
-                f"nrows         {nrow}\n"
-                f"xllcorner     {xllcorner}\n"
-                f"yllcorner     {yllcorner}\n"
-                f"cellsize      {cellsize}\n"
-                f"nodata_value  {nodata_value}\n"
-            )
-
-            for values in grid_akt:
-                gridfile.write(f"{convert_values2string(values)}\n")
-
-        grid_verz = numpy.full((nrow, ncol), -9999.0, dtype=float)
-
-        for sequence, value in logger_verz.sequence2mean.items():
-            assert isinstance(sequence.subseqs, sequencetools.ModelSequences)
-            assert sequence.subseqs.seqs.model.element is not None
-            _, row, col = sequence.subseqs.seqs.model.element.name.split("_")
-            grid_verz[int(row) - 1, int(col) - 1] = value
-
-        filepath = os.path.join(
-            outputdir, f"Sum_Verz_Groundwater_Recharge_{period}.txt"
+    """
+    Writes rch file
+    """
+    nchars = precision + exp_digits + 5
+    formatstring = f"({values_per_line}e{nchars}.{precision})".ljust(20)
+    ncols = len(data.col)
+    sections = numpy.arange(values_per_line, ncols, values_per_line)
+    nchars = precision + exp_digits + 5
+    name, unit = str(data.name).split("_")
+    with open(filepath, "w", encoding="utf-8") as rchfile:
+        rchfile.write(
+            f"# {person_in_charge}, {datetime.datetime.now()}\n"
+            f"# {step} WHMod-{name} in {unit}\n"
+            f"# {step} values from "
+            f"{numpy.datetime_as_string(data.time[0].values)[:13]} to "
+            f"{numpy.datetime_as_string(data.time[-1].values)[:13]}\n"
+            f"##########################################################\n"
         )
-        with open(filepath, "w", encoding="utf-8") as gridfile:
-            gridfile.write(
-                f"ncols         {ncol}\n"
-                f"nrows         {nrow}\n"
-                f"xllcorner     {xllcorner}\n"
-                f"yllcorner     {yllcorner}\n"
-                f"cellsize      {cellsize}\n"
-                f"nodata_value  {nodata_value}\n"
-            )
-
-            for values in grid_verz:
-                gridfile.write(f"{convert_values2string(values)}\n")
-
-    if "txt" in outputmode:
-        filepath = os.path.join(outputdir, f"Groundwater_Recharge_{period}.txt")
-        with open(filepath, "w", encoding="utf-8") as seriesfile:
-            seriesfile.write(
-                f"# {person_in_charge}, {datetime.datetime.now()}\n"
-                f"# Monthly WHMod-Groundwater Recharge in mm\n"
-                f"# Monthly values from {simulation_start} to {simulation_end}\n"
-                f"##########################################################\n"
-            )
-            month_logger_akt = hp.loggers["month_logger_akt"]
-            assert isinstance(month_logger_akt, whmod_model.WHModMonthLogger)
-            month_logger_akt.write_seriesfile(
-                seriesfile=seriesfile,
-                month2sequence2value=month_logger_akt.month2sequence2sum,
-            )
-
-        filepath = os.path.join(outputdir, f"Groundwater_Recharge_Verz_{period}.txt")
-        with open(filepath, "w", encoding="utf-8") as seriesfile:
-            seriesfile.write(
-                f"# {person_in_charge}, {datetime.datetime.now()}\n"
-                f"# Monthly WHMod-Groundwater Recharge in mm\n"
-                f"# Monthly values from {simulation_start} to {simulation_end}\n"
-                f"##########################################################\n"
-            )
-            month_logger_verz = hp.loggers["month_logger_verz"]
-            assert isinstance(month_logger_verz, whmod_model.WHModMonthLogger)
-            month_logger_verz.write_seriesfile(
-                seriesfile=seriesfile,
-                month2sequence2value=month_logger_verz.month2sequence2sum,
-            )
-
-    if "rch" in outputmode:
-        filepath = os.path.join(outputdir, f"Groundwater_Recharge_{period}.rch")
-        with open(filepath, "w", encoding="utf-8") as rchfile:
+        rchfile.write(
+            f"{str(layer).rjust(10)}"
+            f"{str(balancefile).rjust(10)}"
+            f"         1         1\n"
+        )
+        for time_i in data.time:
             rchfile.write(
-                f"# {person_in_charge}, {datetime.datetime.now()}\n"
-                f"# Monthly WHMod-Groundwater Recharge in m/s\n"
-                f"# Monthly values from {simulation_start} to {simulation_end}\n"
-                f"##########################################################\n"
+                f"         1         1         0         0\n"
+                f"        18     1.000{formatstring}        -1     RECHARGE\n"
             )
-            month_logger_akt = hp.loggers["month_logger_akt"]
-            assert isinstance(month_logger_akt, whmod_model.WHModMonthLogger)
-            month_logger_akt.write_rchfile(rchfile)
+            for row in data.row:
+                row_timestep = data.sel(time=time_i, row=row)
+                for subarray in numpy.array_split(row_timestep, sections):
+                    rchfile.write(
+                        "".join(
+                            numpy.format_float_scientific(
+                                value,
+                                unique=False,
+                                precision=precision,
+                                exp_digits=exp_digits,
+                            ).rjust(nchars)
+                            for value in subarray
+                        )
+                    )
+                    rchfile.write("\n")
 
-        period = os.path.join(outputdir, f"Groundwater_Recharge_Verz_{period}.rch")
-        with open(period, "w", encoding="utf-8") as rchfile:
-            rchfile.write(
-                f"# {person_in_charge}, {datetime.datetime.now()}\n"
-                f"# Monthly WHMod-Groundwater Recharge in m/s\n"
-                f"# Monthly values from {simulation_start} to {simulation_end}\n"
-                f"##########################################################\n"
+
+def write_mean_file(
+    filepath: str,
+    data: xarray.DataArray,
+    df_knoteneigenschaften: pandas.DataFrame,
+    nodata_value: str,
+    cellsize: float,
+) -> None:
+    """
+    Writes file with means
+    """
+    with open(filepath, "w", encoding="utf-8") as gridfile:
+        gridfile.write(
+            f"ncols         {data.shape[1]}\n"
+            f"nrows         {data.shape[0]}\n"
+            f"xllcorner     {df_knoteneigenschaften['x'].min()}\n"
+            f"yllcorner     {df_knoteneigenschaften['y'].min()}\n"
+            f"cellsize      {cellsize}\n"
+            f"nodata_value  {nodata_value}\n"
+        )
+        meandata = data.mean(dim="time").values
+
+        numpy.savetxt(gridfile, meandata, delimiter=" ")
+
+
+def write_time_series(
+    filepath: str, data: xarray.DataArray, person_in_charge: str, step: str
+) -> None:
+    """
+    Writes spatially aggregated timeseries
+    """
+    spatial_sum = data.mean(dim=("row", "col")).to_dataframe()
+    # todo: Länge Start und Enddatum
+    name, unit = str(data.name).split("_")
+    with open(filepath, "w", encoding="utf-8", newline="\n") as seriesfile:
+        seriesfile.write(
+            f"# {person_in_charge}, {datetime.datetime.now()}\n"
+            f"# {step} WHMod-{name} in {unit}\n"
+            f"# {step} values from "
+            f"{numpy.datetime_as_string(data.time[0].values)[:13]} to "
+            f"{numpy.datetime_as_string(data.time[-1].values)[:13]}\n"
+            f"##########################################################\n"
+        )
+        spatial_sum.to_csv(path_or_buf=seriesfile, sep=" ", header=False)
+
+
+def inplace_change(filename: str, old_string: str, new_string: str) -> None:
+    """
+    Replaces strings inplace in a file
+    """
+    # Safely read the input filename using 'with'
+    with open(filename, encoding="utf-8") as f:
+        s = f.read()
+
+    # Safely write the changed content, if found in the file
+    with open(filename, "w", encoding="utf-8") as f:
+        s = s.replace(old_string, new_string)
+        f.write(s)
+
+
+def save_results(
+    aggregated_series: Dict[str, Dict[Literal["mean", "sum"], xarray.DataArray]],
+    loggers: List[Dict[str, List[Union[str, pandas.DatetimeIndex]]]],
+    outputdir: str,
+    df_knoteneigenschaften: pandas.DataFrame,
+    cellsize: float,
+    person_in_charge: str,
+    nodata_value: str,
+) -> None:
+    """
+    Save results to specified format
+    """
+    for logger in loggers:
+        for i, (step, seq) in enumerate(product(logger["steps"], logger["sequence"])):
+            if isinstance(step, pandas.DatetimeIndex):
+                name = str(i) + "_" + "userdefined" + "_" + seq
+            else:
+                name = str(i) + "_" + step + "_" + seq
+            grid = aggregated_series[name]
+            output = False
+            if "name_rch_file" in logger.keys():
+                for filename in logger["name_rch_file"]:
+                    filepath = os.path.join(outputdir, filename + "_" + seq + ".rch")
+                    data = prepare_rch(grid=grid, seq=seq)
+                    write_rch_file(
+                        filepath=filepath,
+                        data=data,
+                        step=step,
+                        person_in_charge=person_in_charge,
+                    )
+                    inplace_change(
+                        filename=filepath, old_string="nan", new_string=nodata_value
+                    )
+                    output = True
+
+            if "name_time_series" in logger.keys():
+                for filename in logger["name_time_series"]:
+                    filepath = os.path.join(outputdir, filename + "_" + seq + ".txt")
+                    if str(grid["mean"].name).split("_")[1] == "mm":
+                        data = grid["sum"]
+                    else:
+                        data = grid["mean"]
+                    write_time_series(
+                        filepath=filepath,
+                        data=data,
+                        step=step,
+                        person_in_charge=person_in_charge,
+                    )
+                    inplace_change(
+                        filename=filepath, old_string="nan", new_string=nodata_value
+                    )
+                    output = True
+            if "name_mean_file" in logger.keys():
+                for filename in logger["name_mean_file"]:
+                    filepath = os.path.join(outputdir, filename + "_" + seq + ".txt")
+                    write_mean_file(
+                        filepath=filepath,
+                        data=grid["mean"],
+                        cellsize=cellsize,
+                        nodata_value=nodata_value,
+                        df_knoteneigenschaften=df_knoteneigenschaften,
+                    )
+                    inplace_change(
+                        filename=filepath, old_string="nan", new_string=nodata_value
+                    )
+                    output = True
+            if not output:
+                raise ValueError("The outputfiles have to be ...")
+
+
+def prepare_rch(
+    grid: Dict[Union[Literal["mean"], Literal["sum"]], xarray.DataArray], seq: str
+) -> xarray.DataArray:
+    """
+    Konvertiere Einheiten entsprechend Anforderungen.
+    """
+    if seq in ("AktGrundwasserneubildung", "VerzGrundwasserneubildung"):
+        # factor to convert from mm to m/s
+        data = grid["mean"].copy()
+        assert "_mm" in str(data.name)
+        factor = 1.0 / (1000.0 * hydpy.pub.timegrids.stepsize.seconds)
+        data.name = str(data.name).replace("_mm", "_m/s")
+    else:
+        data = grid["sum"].copy()
+        factor = 1.0
+    data *= factor
+    return data
+
+
+def aggregate_whmod_series(
+    loggers: List[Dict[str, List[Union[str, pandas.DatetimeIndex]]]], seriesdir: str
+) -> Dict[str, Dict[Literal["sum", "mean"], xarray.DataArray]]:
+    """
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> logger = read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
+    """
+    hydpy.pub.sequencemanager.currentdir = seriesdir
+    whm_elements = (
+        hydpy.pub.selections["complete"].search_modeltypes("whmod_pet").elements
+    )
+    all_series: List[str] = []
+    elementnames = (e.name for e in whm_elements)
+    pb = Positionbounds.from_elementnames(elementnames=elementnames)
+    raster_shape = (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1)
+    aggregated_series: Dict[str, Dict[Literal["sum", "mean"], xarray.DataArray]] = {}
+    for logger in loggers:
+        for i, (step, seq) in enumerate(product(logger["steps"], logger["sequence"])):
+            unit = getattr(hydpy.models.whmod.whmod_fluxes, seq).unit
+            if isinstance(step, pandas.DatetimeIndex):
+                name = str(i) + "_" + "userdefined" + "_" + seq
+                timeseries_index = step[:-1]
+            else:
+                name = str(i) + "_" + step + "_" + seq
+                timeseries_index = hydpy.aggregate_series(
+                    series=numpy.ones(len(hydpy.pub.timegrids.init)), stepsize=step
+                ).index
+            aggregated_series[name] = {}
+            agg_grid_shape = raster_shape + (len(timeseries_index),)
+            grid = numpy.full(agg_grid_shape, numpy.nan, dtype=float)
+            xarr_mean = xarray.DataArray(
+                name=seq + "_" + unit,
+                data=grid,
+                dims=["row", "col", "time"],
+                coords={"time": timeseries_index},
             )
-            month_logger_verz = hp.loggers["month_logger_verz"]
-            assert isinstance(month_logger_verz, whmod_model.WHModMonthLogger)
-            month_logger_verz.write_rchfile(rchfile)
+            xarr_sum = xarr_mean.copy()
+            with hydpy.pub.sequencemanager.netcdfreading():
+                for element in whm_elements:
+                    sequence = getattr(element.model.sequences.fluxes, seq.lower())
+                    if not sequence.ramflag:
+                        sequence.prepare_series(allocate_ram=True)
+                        sequence.load_series()
+            sum_agg_ser = 0
+            for element in whm_elements:
+                sequence = getattr(element.model.sequences.fluxes, seq.lower())
+                sim_series = sequence.average_series()
+                row, col = Position.from_elementname(element.name)
+                if isinstance(step, pandas.DatetimeIndex):
+                    agg_ser_mean = aggregate_flexible_series(
+                        series=sim_series,
+                        aggregation_timegrid=step,
+                        aggregator="mean",
+                    ).values
+                    agg_ser_sum = aggregate_flexible_series(
+                        series=sim_series,
+                        aggregation_timegrid=step,
+                        aggregator="sum",
+                    ).values
+                else:
+                    agg_ser_sum = hydpy.aggregate_series(
+                        series=sim_series, stepsize=step, aggregator="sum"
+                    ).values
+                    agg_ser_mean = hydpy.aggregate_series(
+                        series=sim_series, stepsize=step, aggregator="mean"
+                    ).values
+                sum_agg_ser += numpy.mean(sim_series)
+                xarr_sum.loc[{"row": row - 1, "col": col - 1}] = agg_ser_sum
+                xarr_mean.loc[{"row": row - 1, "col": col - 1}] = agg_ser_mean
+                sequence.prepare_series(allocate_ram=False)
+            if seq not in all_series:
+                print(
+                    f"Mean {seq} [{unit}/a]: "
+                    f"{sum_agg_ser / len(whm_elements) * 365.24}"
+                )
+                all_series.append(seq)
+            aggregated_series[name] = {}
+            aggregated_series[name]["sum"] = xarr_sum
+            aggregated_series[name]["mean"] = xarr_mean
+    return aggregated_series
 
-    mean_gwn = (
-        sum(logger_akt.sequence2mean.values()) / len(logger_akt.sequence2sum) * 365.24
-    )
-    mean_verzgwn = (
-        sum(logger_verz.sequence2mean.values()) / len(logger_verz.sequence2sum) * 365.24
-    )
 
-    print(f"Mean GWN [mm/a]: {mean_gwn}")
-    print(f"Mean verz. GWN [mm/a]: {mean_verzgwn}")
+def is_date(string: str) -> bool:
+    """
+    Return whether the string can be interpreted as a date.
+
+    :param string: str, string to check for date
+    """
+    try:
+        parse(string, fuzzy=False)
+        return True
+
+    except ValueError:
+        return False
+
+
+def aggregate_flexible_series(
+    series: numpy.typing.NDArray[numpy.float_],
+    aggregation_timegrid: pandas.DatetimeIndex,
+    aggregator: Union[Literal["mean"], Literal["sum"]] = "mean",
+) -> pandas.Series:
+    """
+    Aggregiere Zeitreihen auf vordefineirtes Grid:
+    >>> from hydpy import pub, Node
+    >>> import pandas
+    >>> import numpy
+    >>> pub.timegrids = '2011-01-01', '2011-01-10', '1d'
+    >>> node = Node("test")
+    >>> node.prepare_simseries()
+    >>> sim = node.sequences.sim
+    >>> sim.series = numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    >>> agg_timegrid = pandas.DatetimeIndex(['2011-01-01', "2011-01-02", "2011-01-08"])
+    >>> aggregate_flexible_series(series=sim.series, aggregation_timegrid=agg_timegrid)
+    2011-01-01    1.0
+    2011-01-02    4.5
+    Name: series, dtype: float64
+    >>> aggregate_flexible_series(series=sim.series, aggregation_timegrid=agg_timegrid,
+    ...     aggregator="sum")
+    2011-01-01     1.0
+    2011-01-02    27.0
+    Name: series, dtype: float64
+    >>> aggregate_flexible_series(series=sim.series, aggregation_timegrid=agg_timegrid,
+    ...     aggregator="std")
+    Traceback (most recent call last):
+    ...
+    ValueError: Aggregator `std` not defined
+
+    >>> agg_timegrid = pandas.DatetimeIndex(['2001-01-01', "2011-01-02", "2011-01-08"])
+    >>> aggregate_flexible_series(series=sim.series, aggregation_timegrid=agg_timegrid,
+    ...     aggregator="mean")
+    Traceback (most recent call last):
+    ...
+    ValueError: Aggregation timegrid DatetimeIndex(['2001-01-01', '2011-01-02', \
+'2011-01-08'], dtype='datetime64[ns]', freq=None) outside data timegrid.
+    >>> agg_timegrid = pandas.DatetimeIndex(['2001-01-02', "2011-01-01", "2011-01-08"])
+    >>> aggregate_flexible_series(series=sim.series, aggregation_timegrid=agg_timegrid,
+    ...     aggregator="mean")
+    Traceback (most recent call last):
+    ...
+    ValueError: Aggregation timegrid DatetimeIndex(['2001-01-02', '2011-01-01', \
+'2011-01-08'], dtype='datetime64[ns]', freq=None) outside data timegrid.
+    """
+    if any(sorted(aggregation_timegrid) != aggregation_timegrid):
+        raise AssertionError(
+            "Output timesteps of user defined output have to be sorted"
+        )
+    if (
+        aggregation_timegrid[0] < hydpy.pub.timegrids.eval_.firstdate
+        or aggregation_timegrid[0] > hydpy.pub.timegrids.eval_.lastdate
+    ):
+        raise ValueError(
+            f"Aggregation timegrid {aggregation_timegrid} outside data " f"timegrid."
+        )
+
+    ps = pandas.Series(name="series", index=aggregation_timegrid[:-1], dtype=float)
+    for i, time in enumerate(aggregation_timegrid):
+        if i > 0:
+            start: datetime.datetime = hydpy.pub.timegrids.eval_[start_time]
+            end = hydpy.pub.timegrids.eval_[time]
+            if aggregator == "sum":
+                ps.loc[start_time] = series[start:end].sum()
+            elif aggregator == "mean":
+                ps.loc[start_time] = series[start:end].mean()
+            else:
+                raise ValueError(f"Aggregator `{aggregator}` not defined")
+        start_time = time
+    return ps
+
+
+richter_factor_b = pandas.DataFrame(
+    index=["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+    columns=["frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"],
+    data=[
+        [0.345, 0.310, 0.280, 0.245],
+        [0.340, 0.280, 0.240, 0.190],
+        [0.535, 0.390, 0.305, 0.185],
+        [0.720, 0.510, 0.330, 0.210],
+    ],
+)
+richter_factor_epsilon = pandas.Series(
+    index=["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+    data=[0.38, 0.46, 0.55, 0.82],
+)
+
+
+def get_richter_factors(
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    ns_art: Literal["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
+) -> Tuple[float, float]:
+    """
+    Gibt den Richterkorrekturwert zurück
+
+    >>> get_richter_factors(richterklasse="frei", ns_art="Sommerregen")
+    (0.345, 0.38)
+    >>> get_richter_factors(richterklasse="test", ns_art="Sommerregen")
+    Traceback (most recent call last):
+    ...
+    KeyError: 'test'
+    """
+    b = richter_factor_b.loc[ns_art, richterklasse]
+    epsilon = richter_factor_epsilon.loc[ns_art]
+    return b, epsilon
+
+
+def calc_richter(
+    ns_art: numpy.typing.NDArray[numpy.character],
+    richterklasse: Literal[
+        "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
+    ],
+    precipitation: numpy.typing.NDArray[numpy.float64],
+) -> List[float]:
+    """
+    Gibt nach Richter korrigiergte Zeitreihe zurück
+
+    >>> ns_art = numpy.array(["Sommerregen", "Winterregen", "Mischniederschlag",
+    ...                       "Schnee"])
+    >>> precipitation = numpy.array([0., 2., 1., 3.])
+    >>> calc_richter(ns_art=ns_art, precipitation=precipitation, richterklasse="frei")
+    [0.0, 2.4676842181675127, 1.5350000000000001, 4.772441562190775]
+    """
+    corr_precipitation = []
+    for art, p in zip(ns_art, precipitation):
+        b, epsilon = get_richter_factors(ns_art=art, richterklasse=richterklasse)
+        p_corr = p + b * p**epsilon
+        corr_precipitation.append(p_corr)
+    return corr_precipitation

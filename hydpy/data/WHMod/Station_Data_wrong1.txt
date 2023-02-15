@@ -1,6 +1,6 @@
 Messnetz	StationsNr	X	Y	Lat	Long	HNN	Richterklasse	Dateiname
 DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_Lufttemperatur.asc
-DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_Relative-Feuchte.asc
+DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_RelativeFeuchte.asc
 DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_Windgeschwindigkeit.asc
 DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_Sonnenscheindauer.asc
 DWD	1	3465773.0	5543398.0	50.0259	8.5213	-999	-999	1_Luftdruck.asc

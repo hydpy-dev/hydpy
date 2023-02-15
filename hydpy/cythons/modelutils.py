@@ -450,7 +450,7 @@ class Cythonizer:
         frame = frame.f_back
         assert frame is not None
         self.pymodule = frame.f_globals["__name__"]
-        for (key, value) in frame.f_locals.items():
+        for key, value in frame.f_locals.items():
             setattr(self, key, value)
 
     def cythonize(self) -> None:
@@ -839,7 +839,7 @@ class PyxWriter:
         )
         interfaces = self.model.SUBMODELINTERFACES + tuple(
             interface
-            for interface in type(self.model).__bases__
+            for interface in inspect.getmro(type(self.model))
             if interface.__module__.startswith("hydpy.interfaces")
         )
         for interface in set(interfaces):
@@ -851,7 +851,7 @@ class PyxWriter:
     def constants(self) -> List[str]:
         """Constants declaration lines."""
         lines = Lines()
-        for (name, member) in vars(self.cythonizer).items():
+        for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
                 and not inspect.isclass(member)
@@ -1299,8 +1299,9 @@ class PyxWriter:
         lines.add(0, "@cython.final")
         interfacebases = ", ".join(
             f"{base.__module__.split('.')[-1]}.{base.__name__}"
-            for base in type(self.model).__bases__
+            for base in inspect.getmro(type(self.model))
             if issubclass(base, modeltools.SubmodelInterface)
+            and base.__module__.startswith("hydpy.interfaces.")
         )
         lines.add(0, f"cdef class Model({interfacebases}):")
         for cls in inspect.getmro(type(self.model)):
@@ -1629,7 +1630,7 @@ class PyxWriter:
     def listofmodeluserfunctions(self) -> List[Tuple[str, Callable[..., Any]]]:
         """User functions of the model class."""
         lines = []
-        for (name, member) in vars(self.model).items():
+        for name, member in vars(self.model).items():
             if getattr(getattr(member, "__func__", None), "CYTHONIZE", False):
                 lines.append((name, member))
         return lines
@@ -2274,7 +2275,7 @@ class FuncConverter:
         code = code.replace("[model.", "[self.")
         code = code.replace("(model.", "(self.")
         code = code.replace(": float", "")
-        for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
+        for name, shortcut in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()

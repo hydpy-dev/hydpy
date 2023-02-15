@@ -171,7 +171,6 @@ import itertools
 import os
 import time
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -229,7 +228,7 @@ You can set another |float| value before writing a NetCDF file:
 NetCDFVariable = Union["NetCDFVariableFlat", "NetCDFVariableAgg"]
 
 
-def str2chars(strings: Sequence[str]) -> NDMatrixBytes:
+def str2chars(strings: Sequence[str]) -> MatrixBytes:
     """Return a |numpy.ndarray| object containing the byte characters (second axis) of
     all given strings (first axis).
 
@@ -254,7 +253,7 @@ def str2chars(strings: Sequence[str]) -> NDMatrixBytes:
     return chars
 
 
-def chars2str(chars: NDMatrixBytes) -> List[str]:
+def chars2str(chars: MatrixBytes) -> List[str]:
     r"""Inversion function of |str2chars|.
 
     >>> from hydpy.core.netcdftools import chars2str
@@ -577,7 +576,7 @@ relevant sequence (`SM`).
             f"(`{type(sequence).__name__}`)."
         )
     else:
-        left = opts.timestampleft
+        left = bool(opts.timestampleft)
         text = "left" if left else "right"
         warnings.warn(
             f"The value of the `timereference` attribute (`{ncfile.timereference}`) "
@@ -991,7 +990,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
         sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray],
     ) -> str:
-        if isinstance(sequence, sequencetools.ModelSequence):
+        if isinstance(sequence, sequencetools.ModelIOSequence):
             filename = sequence.descr_model
         else:
             filename = "node"
@@ -1031,8 +1030,8 @@ named `lland_v1` nor does it define a member named `lland_v1`.
                     yield sequence
             else:
                 for subseqs in device.model.sequences.iosubsequences:
-                    for sequence in subseqs:
-                        yield sequence
+                    for sequence_ in subseqs:
+                        yield sequence_
 
     @contextlib.contextmanager
     def provide_jitaccess(

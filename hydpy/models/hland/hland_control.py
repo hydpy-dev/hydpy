@@ -6,7 +6,6 @@
 # from standard library
 import functools
 import warnings
-from typing import *
 
 # from site-packages
 import numpy
@@ -529,7 +528,7 @@ arguments are given, which is ambiguous.
 
     @staticmethod
     @functools.lru_cache()
-    def _lognormal(sclass, scale: float) -> Vector[float]:
+    def _lognormal(sclass, scale: float) -> VectorFloat:
         values = numpy.ones(sclass, dtype=float)
         if scale > 0.0:
             for idx in range(sclass):
@@ -917,23 +916,23 @@ arguments are given, which is ambiguous.
             self._keywordarguments.add(*tuple(kwargs.items())[0])
         try:
             if "n_zones" in kwargs:
-                args = [self._prepare_nzones(kwargs.pop("n_zones"))]
+                args = (self._prepare_nzones(kwargs.pop("n_zones")),)
             elif "d_height" in kwargs:
-                args = [self._prepare_dheight(kwargs.pop("d_height"))]
+                args = (self._prepare_dheight(kwargs.pop("d_height")),)
             super().__call__(*args, **kwargs)
         except BaseException as exc:
             self._keywordarguments.clear()
             raise exc
 
-    def _prepare_nzones(self, nzones: int) -> Matrix[float]:
+    def _prepare_nzones(self, nzones: int) -> MatrixFloat:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
 
-    def _prepare_dheight(self, dheight: float) -> Matrix[float]:
+    def _prepare_dheight(self, dheight: float) -> MatrixFloat:
         zonez = self.subpars.zonez.values
         nzones = (numpy.sum((z > zonez) * (zonez >= (z - dheight))) for z in zonez)
         return self._prepare(tuple(max(n, 1) for n in nzones))
 
-    def _prepare(self, nzones: Tuple[int, ...]) -> Matrix[float]:
+    def _prepare(self, nzones: Tuple[int, ...]) -> MatrixFloat:
         nmbzones = self.subpars.nmbzones.value
         zonearea = self.subpars.zonearea.value
         types_ = self.subpars.zonetype.value

@@ -34,5 +34,10 @@ SEALED = parametertools.IntConstant(5)
 CONSTANTS = parametertools.Constants()
 """Dictionary containing all constants defined by HydPy-H-Land."""
 
-# Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys())
+__all__ = [
+    "FIELD",
+    "FOREST",
+    "GLACIER",
+    "ILAKE",
+    "SEALED",
+]

@@ -7,7 +7,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from lland
-from hydpy.models.lland import lland_constants
+from hydpy.models.lland.lland_constants import CONSTANTS
 from hydpy.models.lland import lland_masks
 
 
@@ -38,7 +38,7 @@ class ParameterComplete(parametertools.ZipParameter):
     2.0
     """
 
-    MODEL_CONSTANTS = lland_constants.CONSTANTS
+    MODEL_CONSTANTS = CONSTANTS
     mask = lland_masks.Complete()
 
     @property
@@ -191,7 +191,5 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     )
     ROWNAMES = tuple(
         key.lower()
-        for (idx, key) in sorted(
-            (idx, key) for (key, idx) in lland_constants.CONSTANTS.items()
-        )
+        for (idx, key) in sorted((idx, key) for (key, idx) in CONSTANTS.items())
     )

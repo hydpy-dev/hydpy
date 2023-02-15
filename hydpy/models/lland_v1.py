@@ -343,24 +343,22 @@ type loam), but set the soil depth so that the maximum soil water content (200.0
 and the initial relative soil moisture (20 mm) agree with the previous
 :ref:`lland_v1_acker_summer` example:
 
->>> from hydpy import prepare_model, pub
->>> soilmodel = prepare_model("ga_garto_submodel1")
->>> soilmodel.parameters.control.nmbsoils(1)
->>> soilmodel.parameters.control.nmbbins(4)
->>> with pub.options.parameterstep("1m"):
-...     soilmodel.parameters.control.dt(1.0)
->>> soilmodel.parameters.control.sealed(False)
->>> soilmodel.parameters.control.soildepth(200.0 / 0.434)
->>> soilmodel.parameters.control.residualmoisture(0.027)
->>> soilmodel.parameters.control.saturationmoisture(0.434)
->>> soilmodel.parameters.control.saturatedconductivity(13.2)
->>> soilmodel.parameters.control.poresizedistribution(0.252)
->>> soilmodel.parameters.control.airentrypotential(111.5)
->>> soilmodel.parameters.update()
->>> soilmodel.sequences.states.moisture = 20.0 / 200.0 * 0.434
->>> soilmodel.sequences.states.frontdepth = 0.0
->>> soilmodel.sequences.states.moisturechange = 0.0
->>> model.soilmodel = soilmodel
+>>> from hydpy import pub
+>>> with model.add_soilmodel_v1("ga_garto_submodel1"):
+...     nmbsoils(1)
+...     nmbbins(4)
+...     with pub.options.parameterstep("1m"):
+...         dt(1.0)
+...     sealed(False)
+...     soildepth(200.0 / 0.434)
+...     residualmoisture(0.027)
+...     saturationmoisture(0.434)
+...     saturatedconductivity(13.2)
+...     poresizedistribution(0.252)
+...     airentrypotential(111.5)
+...     states.moisture = 20.0 / 200.0 * 0.434
+...     states.frontdepth = 0.0
+...     states.moisturechange = 0.0
 
 The documentation on the method |Calc_BoWa_SoilModel_V1| explains the interaction
 between |lland_v1| and |ga_garto_submodel1| in much detail.  When comparing the
@@ -2111,9 +2109,6 @@ There is no indication of an error in the water balance:
 0.0
 """
 # import...
-# from standard-library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
@@ -2128,7 +2123,7 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(lland_model.Base_PETModel_V1):
+class Model(lland_model.Base_PETModel_V1, lland_model.Base_SoilModel_V1):
     """External PET/degree-day version of HydPy-L-Land."""
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
@@ -2228,9 +2223,11 @@ class Model(lland_model.Base_PETModel_V1):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["states"]
-        idxs_water = numpy.isin(control.lnk, [WASSER, FLUSS, SEE])
+        idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
-        idxs_soil = numpy.invert(numpy.isin(control.lnk, [VERS, WASSER, FLUSS, SEE]))
+        idxs_soil = numpy.invert(
+            numpy.isin(control.lnk.values, [VERS, WASSER, FLUSS, SEE])
+        )
         return (
             numpy.sum(fluxes.nkor.evalseries * control.fhru)
             + numpy.sum(fluxes.qzh.evalseries)

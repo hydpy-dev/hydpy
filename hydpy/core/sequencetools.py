@@ -11,7 +11,6 @@ import runpy
 import sys
 import types
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -364,7 +363,7 @@ class InfoArray(NDArrayFloat):
         obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: NDArrayFloat) -> None:
+    def __array_finalize__(self, obj: Optional[NDArray]) -> None:
         if isinstance(obj, InfoArray):
             self.aggregation = obj.aggregation
         else:
@@ -987,8 +986,8 @@ class ModelSequences(
             cls_fastaccess=cls_fastaccess,
         )
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
-        super().__hydpy__initialise_fastaccess__()
+    def _init_fastaccess(self) -> None:
+        super()._init_fastaccess()
         if self._cls_fastaccess and self._cymodel:
             setattr(self._cymodel.sequences, self.name, self.fastaccess)
 
@@ -1105,8 +1104,8 @@ class StateSequences(OutputSequences["StateSequence"]):
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
-        super().__hydpy__initialise_fastaccess__()
+    def _init_fastaccess(self) -> None:
+        super()._init_fastaccess()
         self.fastaccess_new = self.fastaccess
         if (self._cls_fastaccess is None) or (self._cymodel is None):
             self.fastaccess_old = variabletools.FastAccess()
@@ -1574,13 +1573,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
     """
 
     subvars: Union[
-        SubSequences[Sequences, IOSequence, FastAccessIOSequence],
-        SubSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
+        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
     ]
     """The subgroup to which the IO sequence belongs."""
     subseqs: Union[
-        SubSequences[Sequences, IOSequence, FastAccessIOSequence],
-        SubSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
+        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
     ]
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
@@ -1636,7 +1635,7 @@ not know its file type.  Either set it manually or prepare `pub.sequencemanager`
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.filetype
+            return cast(SeriesFileType, hydpy.pub.sequencemanager.filetype)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its file "
@@ -1685,7 +1684,7 @@ know its aggregation mode.  Either set it manually or prepare `pub.sequencemanag
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.aggregation
+            return cast(SeriesAggregationType, hydpy.pub.sequencemanager.aggregation)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its "
@@ -1735,7 +1734,7 @@ know its overwrite flag.  Either set it manually or prepare `pub.sequencemanager
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.overwrite
+            return bool(hydpy.pub.sequencemanager.overwrite)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its "
@@ -1979,7 +1978,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         values = numpy.array(values, dtype=float)
         self._set_fastaccessattribute("array", values)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -1988,16 +1987,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+        super()._set_shape(shape)
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
             self.__set_array(values)
         self.update_fastaccess()
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     @property
     def seriesshape(self) -> Tuple[int, ...]:
@@ -2415,7 +2414,7 @@ sequencemanager of module `pub` is not defined at the moment.
         hydpy.pub.sequencemanager.save_file(self, array=array)
 
     @property
-    def seriesmatrix(self) -> Matrix[float]:
+    def seriesmatrix(self) -> MatrixFloat:
         """The actual |IOSequence| object's time series, arranged in a 2-dimensional
         matrix.
 
@@ -2675,10 +2674,10 @@ class ModelSequence(Sequence_):
         >>> model.sequences.fluxes.q.descr_device
         'test_element_1'
         """
-        element = self.subseqs.seqs.model.element
-        if element:
-            return element.name
-        return "?"
+        try:
+            return self.subseqs.seqs.model.element.name
+        except exceptiontools.AttributeNotReady:
+            return "?"
 
     @property
     def numericshape(self) -> Tuple[int, ...]:
@@ -3009,14 +3008,14 @@ class DependentSequence(OutputSequence):
     def _finalise_connections(self) -> None:
         super()._finalise_connections()
         if self.NUMERIC:
-            value = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._set_fastaccessattribute("points", value)
-            self._set_fastaccessattribute("integrals", copy.copy(value))
-            self._set_fastaccessattribute("results", copy.copy(value))
+            values = None if self.NDIM else numpy.zeros(self.numericshape)
+            self._set_fastaccessattribute("points", values)
+            self._set_fastaccessattribute("integrals", copy.copy(values))
+            self._set_fastaccessattribute("results", copy.copy(values))
             value = None if self.NDIM else 0.0
             self._set_fastaccessattribute("sum", value)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -3046,17 +3045,17 @@ class DependentSequence(OutputSequence):
         >>> ei.fastaccess._ei_results.shape
         (11, 2)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+        super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("integrals", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("sum", numpy.zeros(self.shape))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 class FactorSequence(DependentSequence):
@@ -3251,8 +3250,6 @@ not broadcast input array from shape (3,) into shape (2,)
     array([2., 3.])
     """
 
-    NOT_DEEPCOPYABLE_MEMBERS = "subseqs", "fastaccess_old", "fastaccess_new"
-
     subvars: StateSequences
     """The subgroup to which the state sequence belongs."""
     subseqs: StateSequences
@@ -3279,7 +3276,7 @@ not broadcast input array from shape (3,) into shape (2,)
         else:
             setattr(self.fastaccess_old, self.name, 0.0)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3308,17 +3305,17 @@ not broadcast input array from shape (3,) into shape (2,)
         >>> ic.fastaccess._ic_results.shape
         (11, 2)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+        super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
                 self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
                 self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     @property
     def new(self):
@@ -3330,11 +3327,11 @@ not broadcast input array from shape (3,) into shape (2,)
         step.  It supports testing and debugging of individual |Model| methods but is
         typically irrelevant when scripting *HydPy* workflows.
         """
-        return super().__hydpy__get_value__()
+        return super()._get_value()
 
     @new.setter
     def new(self, value):
-        super().__hydpy__set_value__(value)
+        super()._set_value(value)
 
     @property
     def old(self):
@@ -3411,7 +3408,7 @@ class LogSequenceFixed(LogSequence):
     def _finalise_connections(self):
         self.shape = (self.SHAPE,)
 
-    def __hydpy__get_shape__(self):
+    def _get_shape(self):
         """Sequences derived from |LogSequenceFixed| initialise themselves with a
         predefined shape.
 
@@ -3435,17 +3432,17 @@ changed, but this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape):
+    def _set_shape(self, shape):
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super().__hydpy__set_shape__(shape)
+        super()._set_shape(shape)
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 class AideSequence(ModelSequence):
@@ -3524,7 +3521,7 @@ could result in segmentation faults when using it, so please be careful).
         except AttributeError:
             pass
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual value(s) the |LinkSequence| object is pointing at.
 
         Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
@@ -3647,7 +3644,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def __hydpy__set_value__(self, value):
+    def _set_value(self, value):
         try:
             self.fastaccess.set_value(
                 self.name,
@@ -3659,9 +3656,9 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
                 f"{objecttools.elementphrase(self)}"
             )
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly as the
@@ -3755,7 +3752,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
         try:
             if (self.NDIM == 0) and shape:
                 self._raise_wrongshape(shape)
@@ -3771,7 +3768,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     def __repr__(self):
         if self.__isready:
@@ -3881,7 +3878,7 @@ class NodeSequence(IOSequence):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.0))
         setattr(self.fastaccess, "_reset_obsdata", False)
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual sequence value.
 
         For framework users, the property |NodeSequence.value| of class |NodeSequence|
@@ -3940,7 +3937,7 @@ number, not 'tuple'
                 f"{objecttools.nodephrase(self)}"
             )
 
-    def __hydpy__set_value__(self, value):
+    def _set_value(self, value):
         try:
             getattr(self.fastaccess, self.name)[0] = float(value)
         except BaseException:
@@ -3949,7 +3946,7 @@ number, not 'tuple'
                 f"{objecttools.nodephrase(self)}"
             )
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def seriescomplete(self) -> bool:
@@ -4216,7 +4213,7 @@ class NodeSequences(
 
     CLASSES = (Sim, Obs)
 
-    node: "devicetools.Node"
+    node: devicetools.Node
     sim: Sim
     obs: Obs
     _cymodel: Optional[CyModelProtocol]
@@ -4233,7 +4230,7 @@ class NodeSequences(
         self._cymodel = cymodel
         super().__init__(master)
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
+    def _init_fastaccess(self) -> None:
         if hydpy.pub.options.usecython:
             self.fastaccess = (
                 sequenceutils.FastAccessNodeSequence()  # pylint: disable=used-before-assignment

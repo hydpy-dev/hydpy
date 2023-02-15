@@ -5,6 +5,7 @@
 # ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 
 def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -> None:
@@ -168,7 +169,7 @@ for marker `e4`.
     with open(templatename, encoding=config.ENCODING) as templatefile:
         templatebody = templatefile.read()
     parts = templatebody.replace("<!--|", "|-->").split("|-->")
-    defaults = {}
+    defaults: Dict[str, str] = {}
     for idx, part in enumerate(parts):
         if idx % 2:
             subparts = part.partition("=")
@@ -179,9 +180,8 @@ for marker `e4`.
                         defaults[subparts[0]] != str(subparts[2])
                     ):
                         raise RuntimeError(
-                            f"Template file `{templatename}` defines "
-                            f"different default values for marker "
-                            f"`{subparts[0]}`."
+                            f"Template file `{templatename}` defines different "
+                            f"default values for marker `{subparts[0]}`."
                         )
                     defaults[subparts[0]] = str(subparts[2])
     markers = parts[1::2]

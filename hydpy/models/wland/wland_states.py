@@ -13,7 +13,7 @@ class IC(sequencetools.StateSequence):
 
 
 class SP(sequencetools.StateSequence):
-    """Snow pack [mm]."""
+    """Snowpack [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (None, None)
 

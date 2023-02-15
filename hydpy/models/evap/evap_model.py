@@ -2,12 +2,10 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_control
@@ -924,7 +922,7 @@ class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
 
     @importtools.define_targetparameter(evap_control.NmbHRU)
     def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of hydrological response units in m.
+        """Set the number of hydrological response units.
 
         >>> from hydpy.models.evap_tw2002 import *
         >>> parameterstep()

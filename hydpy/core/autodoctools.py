@@ -25,13 +25,13 @@ import sys
 import time
 import types
 import typing
-from typing import *
 import unittest
 import warnings
 
 # ...from site-packages
 # import matplotlib    actual import below
 import numpy
+import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
@@ -48,6 +48,8 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -128,7 +130,7 @@ HYDPY = Priority.HYDPY
 ELSE = Priority.ELSE
 
 
-EXCLUDE_MEMBERS = (
+excluded_members = {
     "CLASSES",
     "RUN_METHODS",
     "INTERFACE_METHODS",
@@ -158,7 +160,9 @@ EXCLUDE_MEMBERS = (
     "subvars",
     "subpars",
     "subseqs",
-)
+}
+excluded_members.update(typing.__all__)
+excluded_members.update(typing_extensions.__all__)
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
@@ -215,7 +219,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
     else:
         exists_collectionclass = False
     lines = []
-    exc_mem = ", ".join(EXCLUDE_MEMBERS)
+    exc_mem = ", ".join(excluded_members)
     if specification == "model":
         lines += [
             "",
@@ -319,13 +323,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
             target.__doc__ = "\n\n".join([doc, insertion])
         else:
             position += 2
-            target.__doc__ = "".join(
-                [
-                    doc[:position],
-                    insertion,
-                    doc[position:],
-                ]
-            )
+            target.__doc__ = "".join([doc[:position], insertion, doc[position:]])
     return
 
 
@@ -1097,7 +1095,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     module."""
 
     def _query_index_first_line(member_: object) -> int:
-        result = member_.__code__.co_firstlineno
+        result = member_.__code__.co_firstlineno  # type: ignore[attr-defined]
         assert isinstance(result, int)
         return result
 
@@ -1107,7 +1105,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     except AttributeError:
         pass
     try:
-        return inspect.findsource(member)[1]
+        return inspect.findsource(member)[1]  # type: ignore[arg-type]
     except BaseException:
         pass
     for value in vars(member).values():
@@ -1119,7 +1117,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
 
 
 def autodoc_module(module: types.ModuleType) -> None:
-    """Add a short summary of all implemented members to a modules docstring."""
+    """Add a short summary of all implemented members to a module's docstring."""
     doc = getattr(module, "__doc__")
     members = []
     for name, member in inspect.getmembers(module):

@@ -61,7 +61,7 @@ type `float`, the following error occurred: could not broadcast input array from
             )
 
     @property
-    def refweights(self) -> Vector[float]:
+    def refweights(self) -> VectorFloat:
         """A vector with identical values (so that averaging the values of |QUH|
         results in the arithmetic mean value).
 

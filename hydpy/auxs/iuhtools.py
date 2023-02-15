@@ -12,7 +12,6 @@ from __future__ import annotations
 import abc
 import itertools
 import math
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -20,9 +19,9 @@ import numpy
 # ...from Hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
-from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -48,10 +47,7 @@ class ParameterIUH:
     _name: str
 
     def __init__(
-        self,
-        name: str,
-        type_: Type[Any] = float,
-        doc: Optional[object] = None,
+        self, name: str, type_: Type[Any] = float, doc: Optional[object] = None
     ):
         self.name = name
         self._name = "_" + name
@@ -62,7 +58,7 @@ class ParameterIUH:
         )
 
     @overload
-    def __get__(self, obj: None, type_: Optional[Type[IUH]] = None) -> ParameterIUH:
+    def __get__(self, obj: None, type_: Optional[Type[IUH]] = None) -> Self:
         ...
 
     @overload
@@ -70,11 +66,9 @@ class ParameterIUH:
         ...
 
     def __get__(
-        self,
-        obj: Optional[IUH],
-        type_: Optional[Type[IUH]] = None,
+        self, obj: Optional[IUH], type_: Optional[Type[IUH]] = None
     ) -> Union[ParameterIUH, float]:
-        return self if obj is None else getattr(obj, self._name, None)
+        return self if obj is None else getattr(obj, self._name)
 
     def _convert_type(self, value: float) -> float:
         try:
@@ -125,10 +119,7 @@ class MetaIUH(type):
     """
 
     def __new__(
-        mcs,
-        name: str,
-        parents: Tuple[Type[Any]],
-        dict_: Dict[str, Any],
+        mcs, name: str, parents: Tuple[Type[Any]], dict_: Dict[str, Any]
     ) -> MetaIUH:
         primary_parameters = {}
         secondary_parameters = {}
@@ -203,7 +194,7 @@ class IUH(metaclass=MetaIUH):
         """True/False flag that indicates whether the values of all primary parameters
         are defined or not."""
         for primpar in self._PRIMARY_PARAMETERS.values():
-            if getattr(self, primpar.name) is None:
+            if getattr(self, f"_{primpar.name}", None) is None:
                 return False
         return True
 
@@ -227,7 +218,7 @@ class IUH(metaclass=MetaIUH):
                 delattr(self, secpar.name)
 
     @property
-    def delay_response_series(self) -> Tuple[Vector[float], Vector[float]]:
+    def delay_response_series(self) -> Tuple[VectorFloat, VectorFloat]:
         """A tuple of two numpy arrays, which hold the time delays and the associated
         iuh values respectively."""
         delays = []
@@ -330,7 +321,7 @@ class TranslationDiffusionEquation(IUH):
 
     >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
-    >>> round_(tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    >>> round_([tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0]])
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
     The first delay weighted central moment of the translation diffusion equation
@@ -444,10 +435,10 @@ keywords were given: d and u.
         ...
 
     @overload
-    def __call__(self, t: Vector[float]) -> Vector[float]:
+    def __call__(self, t: VectorFloat) -> VectorFloat:
         ...
 
-    def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
+    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t < 1e-10:  # pylint: disable=consider-using-max-builtin
@@ -488,7 +479,7 @@ class LinearStorageCascade(IUH):
     0.376126
     >>> round_(lsc([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
-    >>> round_(lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    >>> round_([lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0]])
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
 
     Note that we do not use the above equation directly.  Instead, we apply a
@@ -530,10 +521,10 @@ class LinearStorageCascade(IUH):
         ...
 
     @overload
-    def __call__(self, t: Vector[float]) -> Vector[float]:
+    def __call__(self, t: VectorFloat) -> VectorFloat:
         ...
 
-    def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
+    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t == 0.0:

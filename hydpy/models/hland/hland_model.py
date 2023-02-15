@@ -3,9 +3,6 @@
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
 """
 # imports...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -2305,17 +2302,17 @@ class Calc_EA_SM_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST):
-                d_snowfree = 0
+                snowfree: float = 0.0
                 for c in range(con.sclass):
                     if sta.sp[c, k] <= 0.0:
-                        d_snowfree += 1.0
-                if d_snowfree > 0.0:
+                        snowfree += 1.0
+                if snowfree > 0.0:
                     d_ea = flu.epc[k]
                     d_thresh = con.lp[k] * con.fc[k]
                     if d_thresh > 0.0:
                         d_ea *= min(sta.sm[k] / d_thresh, 1.0)
                     d_ea -= max(con.ered[k] * (d_ea + flu.ei[k] - flu.epc[k]), 0.0)
-                    flu.ea[k] = min(d_snowfree / con.sclass * d_ea, sta.sm[k])
+                    flu.ea[k] = min(snowfree / con.sclass * d_ea, sta.sm[k])
                 else:
                     flu.ea[k] = 0.0
                 sta.sm[k] -= flu.ea[k]
@@ -2851,13 +2848,13 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
     def __call__(
         model: modeltools.Model,
         k: int,
-        h: Vector[float],
-        k1: Vector[float],
-        k2: Vector[float],
-        s0: Vector[float],
-        qz: Vector[float],
-        qa1: Vector[float],
-        qa2: Vector[float],
+        h: VectorFloat,
+        k1: VectorFloat,
+        k2: VectorFloat,
+        s0: VectorFloat,
+        qz: VectorFloat,
+        qa1: VectorFloat,
+        qa2: VectorFloat,
         t0: float,
     ) -> None:
         d_h = h[k]

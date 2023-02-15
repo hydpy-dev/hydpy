@@ -5,10 +5,11 @@
 """
 # import...
 # ...from standard library
-from typing import *
+import abc
 
 # ...from hydpy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 
 class SoilModel_V1(modeltools.SubmodelInterface):
@@ -29,6 +30,10 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+
+    @abc.abstractmethod
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
 
     @modeltools.abstractmodelmethod
     def set_initialsurfacewater(self, k: int, v: float) -> None:
@@ -73,21 +78,21 @@ class SoilModel_V1(modeltools.SubmodelInterface):
         """Remove the given (direct) soil water demand."""
 
     @modeltools.abstractmodelmethod
-    def get_infiltration(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_infiltration(self, k: int) -> float:
         """Get the previously calculated infiltration rate."""
 
     @modeltools.abstractmodelmethod
-    def get_percolation(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_percolation(self, k: int) -> float:
         """Get the previously calculated percolation rate."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwateraddition(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwateraddition(self, k: int) -> float:
         """Get the previously calculated actual soil water addition."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwaterremoval(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwaterremoval(self, k: int) -> float:
         """Get the previously calculated actual soil water removal."""
 
     @modeltools.abstractmodelmethod
-    def get_soilwatercontent(self, k: int) -> float:  # type: ignore[empty-body]
+    def get_soilwatercontent(self, k: int) -> float:
         """Get the current soil water content."""

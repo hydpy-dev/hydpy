@@ -13,7 +13,6 @@ import contextlib
 import copy
 import datetime as datetime_
 import time
-from typing import *
 
 # ...from third party packages
 import numpy
@@ -215,7 +214,7 @@ following error occurred: hour must be in 0..23
         """
         self = super().__new__(cls)
         self.datetime = date.datetime
-        self.style = getattr(date, "style", None)
+        self.style = date.style
         return self
 
     @classmethod

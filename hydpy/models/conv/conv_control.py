@@ -2,15 +2,13 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from site-packages
 import numpy
 
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Coordinates(parametertools.Parameter):
@@ -89,8 +87,8 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             coordinates[idx, :] = values
         self.nodes = tuple(nodes)
-        self.__hydpy__set_shape__((len(nodes), 2))
-        self.__hydpy__set_value__(coordinates)
+        self._set_shape((len(nodes), 2))
+        self._set_value(coordinates)
 
     def __repr__(self) -> str:
         prefix = f"{self.name}("
@@ -192,8 +190,8 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             heights[idx] = value
         self.nodes = tuple(nodes)
-        self.__hydpy__set_shape__(len(nodes))
-        self.__hydpy__set_value__(heights)
+        self._set_shape(len(nodes))
+        self._set_value(heights)
 
     def __repr__(self) -> str:
         prefix = f"{self.name}("

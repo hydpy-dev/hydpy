@@ -13,7 +13,6 @@ import copy
 import inspect
 import textwrap
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -40,6 +39,7 @@ TypeGroup_co = TypeVar(
     "devicetools.Node",
     covariant=True,
 )
+TypeVariable = TypeVar("TypeVariable", bound="Variable")
 TypeVariable_co = TypeVar("TypeVariable_co", bound="Variable", covariant=True)
 TypeFastAccess_co = TypeVar("TypeFastAccess_co", bound="FastAccess", covariant=True)
 
@@ -504,7 +504,7 @@ class FastAccess:
                 yield key
 
 
-class Variable:
+class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -992,11 +992,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     )
     INIT: Union[int, float, bool, None] = None
 
-    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, str, str, str] = (
-        "subvars",
-        "subpars",
-        "subseqs",
-        "fastaccess",
+    _NOT_DEEPCOPYABLE_MEMBERS: Final[FrozenSet[str]] = frozenset(
+        (
+            "subvars",
+            "subpars",
+            "subseqs",
+            "fastaccess",
+            "fastaccess_old",
+            "fastaccess_new",
+        )
     )
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccess]]
 
@@ -1061,7 +1065,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             args = args[0]
         self.values = args
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1179,7 +1183,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
             )
         return value
 
-    def __hydpy__set_value__(self, value) -> None:
+    def _set_value(self, value) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1226,18 +1230,18 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 ) from None
         return value
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def values(self):
         """Alias for |Variable.value|."""
-        return self.__hydpy__get_value__()
+        return self._get_value()
 
     @values.setter
     def values(self, values):
-        self.__hydpy__set_value__(values)
+        self._set_value(values)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1382,13 +1386,13 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
         self.__valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array: numpy.ndarray = numpy.full(shape, initvalue, dtype=self.TYPE)
+                array = numpy.full(shape, initvalue, dtype=self.TYPE)
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
@@ -1412,7 +1416,7 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self.__valueready = True
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
@@ -1537,7 +1541,7 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> Union[parametertools.Parameter, Vector[float]]:
+    def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.  Must be overwritten by subclasses when required."""
@@ -1743,12 +1747,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return model.masks
         return self.subvars.vars.masks
 
-    def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
-        """Get a sub-mask of the mask handled by the actual |Variable| object
-        based on the given arguments.
+    def get_submask(
+        self, *args, **kwargs
+    ) -> Union[masktools.CustomMask, masktools.DefaultMask]:
+        """Get a sub-mask of the mask handled by the actual |Variable| object based on
+        the given arguments.
 
-        See the documentation on method |Variable.average_values| for
-        further information.
+        See the documentation on method |Variable.average_values| for further
+        information.
         """
         if args or kwargs:
             masks = self.availablemasks
@@ -1763,9 +1769,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     f"the mask `{repr(mask)}` has been determined, "
                     f"which is not a submask of `{repr(self.mask)}`."
                 )
-        else:
-            mask = self.mask
-        return mask
+            return mask
+        return self.mask
 
     def _prepare_mask(self, mask, masks, **kwargs):
         mask = masks[mask]
@@ -1776,7 +1781,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __deepcopy__(self, memo):
         new = type(self)(None)
         for key, value in vars(self).items():
-            if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
+            if key not in self._NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
         if self.NDIM:
             new.shape = self.shape
@@ -1823,7 +1828,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), "__hydpy__get_value__"):
+            if hasattr(type(other), "_get_value"):
                 value = other.value
             else:
                 value = other
@@ -1942,15 +1947,15 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _compare(
         self,
-        other,
+        other: object,
         comparefunc: Callable,
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
     ) -> bool:
         try:
-            vs1 = self.__hydpy__get_value__()
-            try:
-                vs2 = other.__hydpy__get_value__()
-            except AttributeError:
+            vs1 = self._get_value()
+            if isinstance(other, Variable):
+                vs2 = other._get_value()  # pylint: disable=protected-access
+            else:
                 vs2 = numpy.asarray(other)
             if self.NDIM == 0:
                 if numpy.isnan(vs1) and bool(numpy.isnan(vs2)):
@@ -1977,60 +1982,72 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 < vs2,
-                callingfunc="lt",
-            ),
+    def __lt__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 < vs2,
+                    callingfunc="lt",
+                ),
+            )
         )
 
-    def __le__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 <= vs2,
-                callingfunc="le",
-            ),
+    def __le__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 <= vs2,
+                    callingfunc="le",
+                ),
+            )
         )
 
-    def __eq__(self, other: Variable) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self is other:
             return True
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 == vs2,
-                callingfunc="eq",
-            ),
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 == vs2,
+                    callingfunc="eq",
+                ),
+            )
         )
 
-    def __ne__(self, other: Variable) -> bool:
-        return numpy.any(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 != vs2,
-                callingfunc="ne",
-            ),
+    def __ne__(self, other: object) -> bool:
+        return bool(
+            numpy.any(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 != vs2,
+                    callingfunc="ne",
+                ),
+            )
         )
 
-    def __ge__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 >= vs2,
-                callingfunc="ge",
-            ),
+    def __ge__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 >= vs2,
+                    callingfunc="ge",
+                ),
+            )
         )
 
-    def __gt__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 > vs2,
-                callingfunc="gt",
-            ),
+    def __gt__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 > vs2,
+                    callingfunc="gt",
+                ),
+            )
         )
 
     def _typeconversion(self, type_):
@@ -2042,18 +2059,18 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         return type_(self.value)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         if self.NDIM:
             return bool(len(self))
         return bool(self.value)
 
-    def __float__(self):
+    def __float__(self) -> float:
         return self._typeconversion(float)
 
-    def __int__(self):
+    def __int__(self) -> int:
         return self._typeconversion(int)
 
-    def __round__(self, ndigits=0):
+    def __round__(self, ndigits: int = 0):
         return numpy.round(self.value, ndigits)
 
     def __hash__(self) -> int:
@@ -2086,12 +2103,13 @@ class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
     SHAPE: Union[Tuple[int, ...]]
+    name: str
 
     def _finalise_connections(self) -> None:
-        super()._finalise_connections()
+        super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2117,19 +2135,19 @@ was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()  # type: ignore[misc]
 
-    def __hydpy__set_shape__(self, shape: Tuple[int, ...]) -> NoReturn:
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
-            super().__hydpy__set_shape__(shape)
+            super()._set_shape(shape)  # type: ignore[misc]
         elif shape != oldshape:
             raise AttributeError(
                 f"The shape of variable `{self.name}` cannot be changed but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 @overload
@@ -2147,8 +2165,8 @@ def sort_variables(
 
 
 def sort_variables(
-    values: Iterable[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]]]
-) -> Tuple[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]], ...]:
+    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
+) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2188,8 +2206,8 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     Area 3
     ZoneType 2
     """
-    counter_value = (
-        (value[0].__hydpy__subclasscounter__, value)
+    counter_value: Iterable[Tuple[int, Type[TypeVariable]]] = (
+        (value[0].__hydpy__subclasscounter__, value)  # type: ignore[misc]
         if isinstance(value, tuple)
         else (value.__hydpy__subclasscounter__, value)
         for value in values
@@ -2304,7 +2322,7 @@ named `wrong`.
     _name2variable: Dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
     _cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
@@ -2314,7 +2332,7 @@ named `wrong`.
         self.vars = master
         if cls_fastaccess:
             self._cls_fastaccess = cls_fastaccess
-        self.__hydpy__initialise_fastaccess__()
+        self._init_fastaccess()
         self._name2variable = {}
         for cls in self.CLASSES:
             variable = cls(self)
@@ -2326,7 +2344,7 @@ named `wrong`.
     def name(self) -> str:
         """To be overridden."""
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
+    def _init_fastaccess(self) -> None:
         """Create a `fastaccess` attribute and build the required connections
         to the related cythonized model eventually."""
         if (self._cls_fastaccess is None) or (self._cymodel is None):
@@ -2358,7 +2376,7 @@ named `wrong`.
         if variable is None:
             super().__setattr__(name, value)
         else:
-            variable.__hydpy__set_value__(value)
+            variable._set_value(value)
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
         for variable in self._name2variable.values():

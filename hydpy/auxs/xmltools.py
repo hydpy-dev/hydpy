@@ -98,7 +98,6 @@ import copy
 import itertools
 import os
 import warnings
-from typing import *
 from xml.etree import ElementTree
 
 # ...from HydPy
@@ -1256,7 +1255,7 @@ class XMLSelector(XMLBase):
 sure your XML file follows the relevant XML schema.
         """
         selections = self.find("selections")
-        master: XMLBase = self
+        master: Optional[XMLBase] = self
         while selections is None:
             master = getattr(master, "master", None)
             if master is None:
@@ -2650,9 +2649,7 @@ class XSDWriter:
         return "\n".join(lines)
 
     @staticmethod
-    def get_sequenceinsertion(
-        sequence: sequencetools.Sequence_[Any, Any], indent: int
-    ) -> str:
+    def get_sequenceinsertion(sequence: sequencetools.Sequence_, indent: int) -> str:
         """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter

@@ -251,8 +251,6 @@ There is no indication of an error in the water balance:
 0.0
 """
 # import...
-# ...from standard library
-from typing import *
 
 # ...from HydPy
 import hydpy

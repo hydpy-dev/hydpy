@@ -3,8 +3,8 @@
 |Sequence_| arrays are relevant and which are not."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import inspect
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -16,6 +16,7 @@ from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import parametertools
+    from hydpy.core import variabletools
 
 
 class _MaskDescriptor:
@@ -105,17 +106,14 @@ class CustomMask(BaseMask):
     False
     """
 
-    def __call__(
-        self: T,
-        bools: Union[VectorInput[bool], MatrixInput[bool]],
-    ) -> T:
+    def __call__(self, bools: Union[VectorInputBool, MatrixInputBool]) -> Self:
         return type(self)(bools)
 
     def __contains__(
         self,
-        other: Union[VectorInput[bool], MatrixInput[bool]],
+        other: Union[VectorInputBool, MatrixInputBool],
     ) -> bool:
-        return numpy.all(self[other])
+        return bool(numpy.all(self[other]))
 
 
 class DefaultMask(BaseMask):
@@ -149,11 +147,11 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    variable: VariableProtocol
+    variable: variabletools.Variable
 
     def __new__(
         cls,
-        variable: Optional[VariableProtocol] = None,
+        variable: Optional[variabletools.Variable] = None,
         **kwargs,
     ):
         if variable is None:
@@ -169,7 +167,7 @@ class DefaultMask(BaseMask):
         return numpy.all(self()[other])
 
     @classmethod
-    def new(cls, variable: VariableProtocol, **kwargs):
+    def new(cls, variable: variabletools.Variable, **kwargs):
         """Return a new |DefaultMask| object associated with the given |Variable|
         object."""
         return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
@@ -188,10 +186,10 @@ class IndexMask(DefaultMask):
     """
 
     RELEVANT_VALUES: Tuple[int, ...]
-    variable: VariableProtocol
+    variable: variabletools.Variable
 
     @classmethod
-    def new(cls, variable: VariableProtocol, **kwargs):
+    def new(cls, variable: variabletools.Variable, **kwargs):
         """Return a new |IndexMask| object of the same shape as the parameter
         referenced by |property| |IndexMask.refindices|.
 

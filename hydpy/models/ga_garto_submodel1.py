@@ -13,13 +13,8 @@ the integration tests :ref:`lland_v1_acker_garto` of application model |lland_v1
 :ref:`lland_v3_acker_heavy_garto_daily` of application model |lland_v3|.
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import modeltools
-from hydpy.interfaces import soilinterfaces
 
 # ...from ga
 from hydpy.models.ga import ga_control
@@ -29,7 +24,7 @@ from hydpy.models.ga import ga_model
 ADDITIONAL_CONTROLPARAMETERS = (ga_control.NmbSoils,)
 
 
-class Model(modeltools.AdHocModel, ga_model.MixinGARTO, soilinterfaces.SoilModel_V1):
+class Model(ga_model.Base_SoilModel_V1, ga_model.MixinGARTO):
     """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
     a submodel meeting the requirements of the |SoilModel_V1| interface."""
 

@@ -78,10 +78,6 @@ straightforward:
 >>> land = Element("land", outlets="outlet")
 >>> land.model = model
 
->>> from hydpy import prepare_model
->>> model.petmodel = prepare_model("evap_io")
->>> model.pemodel = prepare_model("evap_io")
-
 Our virtual test catchment has 10 km², with a land area of 9.8 km² and a surface water
 area of 0.2 km²:
 
@@ -148,15 +144,10 @@ However, note that `petmodel` must supply individual values for each hydrologica
 response unit of the basins' land fraction, while `pemodel` only needs to supply a
 single value for the basins' water fraction:
 
->>> model.petmodel.parameters.control.nmbhru(3)
->>> model.petmodel.parameters.control.evapotranspirationfactor(0.9)
->>> model.petmodel.parameters.control.hruarea.values = aur.values
->>> model.petmodel.parameters.update()
-
->>> model.pemodel.parameters.control.nmbhru(1)
->>> model.pemodel.parameters.control.evapotranspirationfactor(0.9)
->>> model.pemodel.parameters.control.hruarea(1.0)
->>> model.pemodel.parameters.update()
+>>> with model.add_petmodel_v1("evap_io"):
+...     evapotranspirationfactor(0.9)
+>>> with model.add_pemodel_v1("evap_io"):
+...     evapotranspirationfactor(0.9)
 
 Next, we initialise a test function object that prepares and runs the following tests
 and prints and plots their results:
@@ -766,9 +757,6 @@ There is no violation of the water balance:
 0.0
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
@@ -781,7 +769,7 @@ from hydpy.models.wland import wland_solver
 from hydpy.models.wland.wland_constants import *
 
 
-class Model(modeltools.ELSModel):
+class Model(wland_model.Base_PETModel_V1):
     """The *HydPy-W-Land* model."""
 
     SOLVERPARAMETERS = (
@@ -847,8 +835,7 @@ class Model(modeltools.ELSModel):
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
     def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
+        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
     ) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 

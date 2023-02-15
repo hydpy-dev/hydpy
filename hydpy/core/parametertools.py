@@ -9,9 +9,8 @@ import copy
 import inspect
 import itertools
 import textwrap
+import types
 import warnings
-from typing import *
-from typing import NoReturn
 
 # ...from site-packages
 import numpy
@@ -21,6 +20,7 @@ import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
+from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
@@ -187,9 +187,12 @@ class Constants(Dict[str, int]):
     value2name: Dict[int, str]
     """Mapping from the the values of the constants to their names."""
 
-    def __init__(self, *args, **kwargs):
-        frame = inspect.currentframe().f_back
-        self.__module__ = frame.f_locals.get("__name__")
+    def __init__(self, *args, **kwargs) -> None:
+        assert ((frame1 := inspect.currentframe()) is not None) and (
+            (frame := frame1.f_back) is not None
+        )
+        assert isinstance(modulename := frame.f_locals.get("__name__"), str)
+        self.__module__ = modulename
         if not (args or kwargs):
             for key, value in frame.f_locals.items():
                 if key.isupper() and isinstance(value, IntConstant):
@@ -200,11 +203,11 @@ class Constants(Dict[str, int]):
             super().__init__(*args, **kwargs)
         self.value2name = {value: key for key, value in self.items()}
 
-    def _prepare_docstrings(self, frame):
-        """Assign docstrings to the constants handled by |Constants|
-        to make them available in the interactive mode of Python."""
+    def _prepare_docstrings(self, frame: types.FrameType) -> None:
+        """Assign docstrings to the constants handled by |Constants| to make them
+        available in the interactive mode of Python."""
         if config.USEAUTODOC:
-            filename = inspect.getsourcefile(frame)
+            assert (filename := inspect.getsourcefile(frame)) is not None
             with open(filename, encoding=config.ENCODING) as file_:
                 sources = file_.read().split('"""')
             for code, doc in zip(sources[::2], sources[1::2]):
@@ -628,8 +631,8 @@ class SubParameters(
             cls_fastaccess=cls_fastaccess,
         )
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
-        super().__hydpy__initialise_fastaccess__()
+    def _init_fastaccess(self) -> None:
+        super()._init_fastaccess()
         if self._cls_fastaccess and self._cymodel:
             setattr(self._cymodel.parameters, self.name, self.fastaccess)
 
@@ -1425,14 +1428,18 @@ broadcast input array from shape (2,) into shape (2,3)
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, auxfile: str):
-        """Try to return the parameter values from the auxiliary control file
-        with the given name.
+        """Try to return the parameter values from the auxiliary control file with the
+        given name.
 
-        Things are a little complicated here.  To understand this method, you
-        should first take a look at the |parameterstep| function.
+        Things are a little complicated here.  To understand this method, you should
+        first take a look at the |parameterstep| function.
         """
         try:
-            frame = inspect.currentframe().f_back.f_back
+            assert (
+                ((frame1 := inspect.currentframe()) is not None)
+                and ((frame2 := frame1.f_back) is not None)
+                and ((frame := frame2.f_back) is not None)
+            )
             while frame:
                 namespace = frame.f_locals
                 try:
@@ -1442,13 +1449,13 @@ broadcast input array from shape (2,) into shape (2,3)
                     frame = frame.f_back
             else:
                 raise RuntimeError(
-                    "Cannot determine the corresponding model.  Use the "
-                    "`auxfile` keyword in usual parameter control files only."
+                    "Cannot determine the corresponding model.  Use the `auxfile` "
+                    "keyword in usual parameter control files only."
                 )
             filetools.ControlManager.read2dict(auxfile, subnamespace)
             subself = subnamespace[self.name]
             try:
-                return subself.__hydpy__get_value__()
+                return subself.value
             except exceptiontools.AttributeNotReady:
                 raise RuntimeError(
                     f"The selected auxiliary file does not define "
@@ -1462,7 +1469,7 @@ broadcast input array from shape (2,) into shape (2,3)
 
     def _find_kwargscombination(
         self,
-        given_args: List[Any],
+        given_args: Sequence[Any],
         given_kwargs: Dict[str, Any],
         allowed_combinations: Tuple[Set[str], ...],
     ) -> Optional[int]:
@@ -1631,10 +1638,7 @@ parameter and a simulation time step size first.
         variabletools.trim(self, lower, upper)
 
     @classmethod
-    def apply_timefactor(
-        cls,
-        values: ArrayFloat,
-    ) -> ArrayFloat:
+    def apply_timefactor(cls, values: ArrayFloat) -> ArrayFloat:
         """Change and return the given value(s) in accordance with
         |Parameter.get_timefactor| and the type of time-dependence
         of the actual parameter subclass.
@@ -1953,29 +1957,28 @@ implement method `update`.
 class NameParameter(Parameter):
     """Parameter displaying the names of constants instead of their values.
 
-    For demonstration, we define the test class `LandType`, covering
-    three different types of land covering.  For this purpose, we need
-    to prepare a dictionary of type |Constants| (class attribute `CONSTANTS`),
-    mapping the land type names to identity values.  The entries of the `SPAN`
-    tuple should agree with the lowest and highest identity values.
-    The class attributes `NDIM`, `TYPE`, and `TIME` are already set
+    For demonstration, we define the test class `LandType`, covering three different
+    types of land covering.  For this purpose, we need to prepare a dictionary of type
+    |Constants| (class attribute `CONSTANTS`), mapping the land type names to identity
+    values.  The entries of the `SPAN` tuple should agree with the lowest and highest
+    identity values.  The class attributes `NDIM`, `TYPE`, and `TIME` are already set
     to `1`, `float`, and `None` by base class |NameParameter|:
 
     >>> from hydpy.core.parametertools import Constants, NameParameter
     >>> class LandType(NameParameter):
+    ...     __name__ = "temp.py"
     ...     SPAN = (1, 3)
     ...     CONSTANTS = Constants(SOIL=1, WATER=2, GLACIER=3)
 
-    Additionally, we make the constants available within the local
-    namespace (which is usually done by importing the constants
-    from the selected application model automatically):
+    Additionally, we make the constants available within the local namespace (which is
+    usually done by importing the constants from the selected application model
+    automatically):
 
     >>> SOIL, WATER, GLACIER = 1, 2, 3
 
-    For parameters of zero length, unprepared values, and identical
-    required values, the string representations of |NameParameter|
-    subclasses equal the string representations of other |Parameter|
-    subclasses:
+    For parameters of zero length, unprepared values, and identical required values,
+    the string representations of |NameParameter| subclasses equal the string
+    representations of other |Parameter| subclasses:
 
     >>> landtype = LandType(None)
     >>> landtype.shape = 0
@@ -1988,8 +1991,8 @@ class NameParameter(Parameter):
     >>> landtype
     landtype(SOIL)
 
-    For non-identical required values, class |NameParameter| replaces
-    the identity values with their names:
+    For non-identical required values, class |NameParameter| replaces the identity
+    values with their names:
 
     >>> landtype(SOIL, WATER, GLACIER, WATER, SOIL)
     >>> landtype
@@ -2206,6 +2209,7 @@ error occurred: could not convert string to float: 'test'
 
     NDIM = 1
     MODEL_CONSTANTS: Dict[str, int]
+    mask: masktools.IndexMask
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -2220,13 +2224,10 @@ error occurred: could not convert string to float: 'test'
                     f"arguments `{objecttools.enumeration(kwargs)}`"
                 )
 
-    def _own_call(
-        self,
-        kwargs: Dict[str, Any],
-    ) -> None:
+    def _own_call(self, kwargs: Dict[str, Any]) -> None:
         mask = self.mask
-        self.values = numpy.nan
-        values = self.values
+        self._set_value(numpy.nan)
+        values = self._get_value()
         allidxs = mask.refindices.values
         relidxs = mask.relevantindices
         counter = 0
@@ -2304,7 +2305,7 @@ error occurred: could not convert string to float: 'test'
         """
         mask = self.mask
         refindices = mask.refindices.values
-        name2unique = KeywordArguments()
+        name2unique = KeywordArguments[Union[float]]()
         for key, value in self.MODEL_CONSTANTS.items():
             if value in mask.RELEVANT_VALUES:
                 unique = numpy.unique(self.values[refindices == value])
@@ -2680,16 +2681,16 @@ broadcast input array from shape (2,) into shape (366,3)
             >>> del pub.timegrids
         """
         if not self:
-            self.values[:] = 0.0
+            self._set_value(0.0)
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(self._toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
-            values = self.values
+            values = self._get_value()
             for idx, (date, rel) in enumerate(zip(*centred)):
                 values[idx] = self.interp(date) if rel else numpy.nan
             values = self.apply_timefactor(values)
-            self.__hydpy__set_value__(values)
+            self._set_value(values)
 
     def interp(self, date: timetools.Date) -> float:
         """Perform a linear value interpolation for the given `date` and return the
@@ -2785,7 +2786,7 @@ broadcast input array from shape (2,) into shape (366,3)
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for toy, _ in self._toy2values)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         .. testsetup::
@@ -2845,10 +2846,10 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         >>> par.shape
         (4, 3)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
-        if isinstance(shape, Iterable):
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+        if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
             shape_ = [-1]
@@ -2863,9 +2864,9 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
             )
         shape_[0] = int(numpy.ceil(timetools.Period("366d") / simulationstep))
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
-        super().__hydpy__set_shape__(shape_)
+        super()._set_shape(tuple(shape_))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
         return iter(self._toy2values)
@@ -3326,6 +3327,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
 
     strict_valuehandling: bool = False
 
+    _ROWCOLMAPPINGS: ClassVar[Dict[str, Tuple[int, int]]]
+
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         rownames = cls.ROWNAMES
@@ -3586,6 +3589,8 @@ class FixedParameter(Parameter):
     objects.  Hence, such objects prepare their "initial" values automatically
     whenever possible, even when option |Options.usedefaultvalues| is disabled.
     """
+
+    INIT: Union[int, float, bool]
 
     @property
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
@@ -3901,8 +3906,8 @@ class TOYParameter(Parameter):
             >>> del pub.timegrids
         """
         indexarray = hydpy.pub.indexer.timeofyear
-        self.__hydpy__set_shape__(indexarray.shape)
-        self.__hydpy__set_value__(indexarray)
+        self._set_shape(indexarray.shape)
+        self._set_value(indexarray)
 
 
 class MOYParameter(Parameter):
@@ -3931,8 +3936,8 @@ class MOYParameter(Parameter):
             >>> del pub.timegrids
         """
         indexarray = hydpy.pub.indexer.monthofyear
-        self.__hydpy__set_shape__(indexarray.shape)
-        self.__hydpy__set_value__(indexarray)
+        self._set_shape(indexarray.shape)
+        self._set_value(indexarray)
 
 
 class DOYParameter(Parameter):
@@ -3961,8 +3966,8 @@ class DOYParameter(Parameter):
             >>> del pub.timegrids
         """
         indexarray = hydpy.pub.indexer.dayofyear
-        self.__hydpy__set_shape__(indexarray.shape)
-        self.__hydpy__set_value__(indexarray)
+        self._set_shape(indexarray.shape)
+        self._set_value(indexarray)
 
 
 class SCTParameter(Parameter):
@@ -3991,8 +3996,8 @@ class SCTParameter(Parameter):
             >>> del pub.timegrids
         """
         array = hydpy.pub.indexer.standardclocktime
-        self.__hydpy__set_shape__(array.shape)
-        self.__hydpy__set_value__(array)
+        self._set_shape(array.shape)
+        self._set_value(array)
 
 
 class UTCLongitudeParameter(Parameter):

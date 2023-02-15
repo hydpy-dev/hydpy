@@ -61,18 +61,18 @@ class NU(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        new = self.__hydpy__get_value__()
+        new = self._get_value()
         if new != old:
             for subpars in self.subpars.pars.model.parameters:
                 for par in subpars:
                     if (par.NDIM == 1) and (
                         not isinstance(par, parametertools.MonthParameter)
                     ):
-                        par.__hydpy__set_shape__(new)
+                        par._set_shape(new)
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if seq.NDIM == 1:
-                        seq.__hydpy__set_shape__(new)
+                        seq._set_shape(new)
 
 
 class LT(parametertools.NameParameter):

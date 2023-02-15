@@ -12,7 +12,7 @@ class WET0(sequencetools.LogSequence):
 
     NDIM, NUMERIC = 2, False
 
-    def __hydpy__get_shape__(self):
+    def _get_shape(self):
         """Log sequence |WET0| is generally initialized with a length of one
         on the first axis:
 
@@ -22,12 +22,12 @@ class WET0(sequencetools.LogSequence):
         >>> logs.wet0.shape
         (1, 3)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape):
-        super().__hydpy__set_shape__((1, shape))
+    def _set_shape(self, shape):
+        super()._set_shape((1, shape))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 class LoggedTemL(sequencetools.LogSequence):

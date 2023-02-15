@@ -21,7 +21,7 @@ class AbsErrorMax(parametertools.SolverParameter):
 
     CONTROLPARAMETERS = (dam_control.CatchmentArea,)
 
-    def modify_init(self) -> None:
+    def modify_init(self) -> float:
         r"""Adjust and return the value of class constant `INIT`.
 
         Note that the default initial value 0.01 refers to mm/T.  Hence the actual

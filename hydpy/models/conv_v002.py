@@ -101,7 +101,7 @@ from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model
 
 
-class Model(conv_model.Model):
+class Model(conv_model.BaseModel):
     """Version 2 of the Conv model."""
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)

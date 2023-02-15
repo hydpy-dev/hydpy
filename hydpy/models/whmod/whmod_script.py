@@ -195,7 +195,7 @@ def _init_gwn_to_zwischenspeicher(
     return init_storage
 
 
-def run_whmod(basedir: str, write_output: bool) -> None:
+def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     """Run_whmod takes the WHMod input data and prepares an instance of the model.
     After the initialization the simulation can be run.  Apart from WHMod_Main.txt,
     Node_Data.csv, Station_Data.txt and a folder with the time series are required.
@@ -477,6 +477,9 @@ def run_whmod(basedir: str, write_output: bool) -> None:
      6.7004e-009 6.4698e-009 5.2662e-009
     <BLANKLINE>
     """
+    write_output = objecttools.value2bool(
+        argument="write_output", value=write_output
+    )
     write_output_ = print_hydpy_progress(write_output=write_output)
 
     whmod_main = read_whmod_main(basedir)
@@ -517,8 +520,9 @@ def run_whmod(basedir: str, write_output: bool) -> None:
 
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
-    df_stammdaten = read_stationdata(os.path.join(basedir, filename_station_data),
-                                     richter=richter)
+    df_stammdaten = read_stationdata(
+        os.path.join(basedir, filename_station_data), richter=richter
+    )
     root_depth_dict = read_root_depth(
         root_depth_option=root_depth_option, basedir=basedir
     )
@@ -782,13 +786,16 @@ Richterklasse ist jedoch wald
             )
     if richter:
         df_stammdaten["Richterklasse"] = df_stammdaten["Richterklasse"].astype(str)
-        possible_richterklasse = ("frei", "leicht_geschuetzt", "maessig_geschuetzt",
-                               "stark_geschuetzt")
-        niederschlag = df_stammdaten[df_stammdaten['Messungsart'] == "Niederschlag"]
-        valid_richterklasse = niederschlag["Richterklasse"].isin(
-            possible_richterklasse)
+        possible_richterklasse = (
+            "frei",
+            "leicht_geschuetzt",
+            "maessig_geschuetzt",
+            "stark_geschuetzt",
+        )
+        niederschlag = df_stammdaten[df_stammdaten["Messungsart"] == "Niederschlag"]
+        valid_richterklasse = niederschlag["Richterklasse"].isin(possible_richterklasse)
         if not all(valid_richterklasse):
-            actual_richter = niederschlag['Richterklasse'][~valid_richterklasse].values
+            actual_richter = niederschlag["Richterklasse"][~valid_richterklasse].values
             raise ValueError(
                 f"Die Dateinamen müssen den Parameternamen: {possible_richterklasse} "
                 f"entsprechen. Die Richterklasse ist jedoch "
@@ -1543,10 +1550,7 @@ def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.chara
            'Winterregen', 'Mischniederschlag'], dtype='<U20')
     """
     t_node_ser = temperature_node.sequences.sim.series
-    winter = numpy.array(
-        [i.month > 9 or i.month < 5 for i in
-         hydpy.pub.timegrids.init]
-    )
+    winter = numpy.array([i.month > 9 or i.month < 5 for i in hydpy.pub.timegrids.init])
     ns_art = numpy.empty(shape=t_node_ser.shape, dtype="<U20")
     ns_art[numpy.logical_and(t_node_ser >= 3, winter)] = "Winterregen"
     ns_art[numpy.logical_and(t_node_ser >= 3, ~winter)] = "Sommerregen"

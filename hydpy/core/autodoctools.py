@@ -31,6 +31,7 @@ import warnings
 # ...from site-packages
 # import matplotlib    actual import below
 import numpy
+import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
@@ -126,7 +127,7 @@ HYDPY = Priority.HYDPY
 ELSE = Priority.ELSE
 
 
-EXCLUDE_MEMBERS = (
+excluded_members = {
     "CLASSES",
     "RUN_METHODS",
     "ADD_METHODS",
@@ -154,7 +155,9 @@ EXCLUDE_MEMBERS = (
     "subvars",
     "subpars",
     "subseqs",
-)
+}
+excluded_members.update(typing.__all__)
+excluded_members.update(typing_extensions.__all__)
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
@@ -211,7 +214,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
     else:
         exists_collectionclass = False
     lines = []
-    exc_mem = ", ".join(EXCLUDE_MEMBERS)
+    exc_mem = ", ".join(excluded_members)
     if specification == "model":
         lines += [
             "",
@@ -315,13 +318,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
             target.__doc__ = "\n\n".join([doc, insertion])
         else:
             position += 2
-            target.__doc__ = "".join(
-                [
-                    doc[:position],
-                    insertion,
-                    doc[position:],
-                ]
-            )
+            target.__doc__ = "".join([doc[:position], insertion, doc[position:]])
     return
 
 
@@ -1114,7 +1111,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
 
 
 def autodoc_module(module: types.ModuleType) -> None:
-    """Add a short summary of all implemented members to a modules docstring."""
+    """Add a short summary of all implemented members to a module's docstring."""
     doc = getattr(module, "__doc__")
     members = []
     for name, member in inspect.getmembers(module):

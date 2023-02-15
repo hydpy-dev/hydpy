@@ -115,7 +115,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
             module = importlib.import_module(f"{models.__name__}.{filename}")
             substituter = module.substituter
         if is_module or is_package:
-            _exc_mem = list(autodoctools.EXCLUDE_MEMBERS)
+            _exc_mem = autodoctools.excluded_members.copy()
             if subpackage is models:
                 for member in vars(module).values():
                     if (
@@ -123,7 +123,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
                         and issubclass(member, variabletools.SubVariables)
                         and not member.CLASSES
                     ):
-                        _exc_mem.append(member.__name__)
+                        _exc_mem.add(member.__name__)
             excludemembers = ", ".join(_exc_mem)
             lines = [
                 "",

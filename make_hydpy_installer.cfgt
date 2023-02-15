@@ -44,6 +44,7 @@ pypi_wheels =
 	pathspec==[auto]
 	colorama==[auto]
 	black==[auto]
+	xarray==[auto]
 
 local_wheels = dist/*.whl
 

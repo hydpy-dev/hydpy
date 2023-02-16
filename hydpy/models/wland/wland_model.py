@@ -11,7 +11,7 @@ from hydpy.core.typingtools import *
 from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
-from hydpy.cythons.autogen import smoothutils
+from hydpy.cythons import smoothutils
 from hydpy.interfaces import petinterfaces
 
 # ...from wland

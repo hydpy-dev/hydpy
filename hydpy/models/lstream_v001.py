@@ -1033,7 +1033,6 @@ set the number of subchannels to zero:
 # import...
 # ...from HydPy
 from hydpy.core import objecttools
-from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 
@@ -1070,7 +1069,7 @@ class Characteristics(NamedTuple):
         return objecttools.flatten_repr(self)
 
 
-class Model(modeltools.ELSModel, lstream_model.ProfileMixin):
+class Model(lstream_model.BaseModelProfile):
     """Version 1 of HydPy-L-Stream."""
 
     SOLVERPARAMETERS = (

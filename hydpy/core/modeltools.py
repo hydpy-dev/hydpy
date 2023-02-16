@@ -1250,6 +1250,17 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         _find_submodels(self.name, self)
         return dict(sorted(name2submodel.items()))
 
+    # ToDo: Replace this hack with a Mypy plugin?
+    def __getattr__(self, item: str) -> Any:
+        assert False
+
+    del __getattr__
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        assert False
+
+    del __setattr__
+
     def __str__(self) -> str:
         return self.name
 

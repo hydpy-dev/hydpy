@@ -503,6 +503,17 @@ class FastAccess:
             if not key.startswith("_"):
                 yield key
 
+    # ToDo: Replace this hack with a Mypy plugin?
+    def __getattr__(self, item: str) -> Any:
+        assert False
+
+    del __getattr__
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        assert False
+
+    del __setattr__
+
 
 class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence_|.

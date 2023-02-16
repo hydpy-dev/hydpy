@@ -4,6 +4,7 @@
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import warnings
 
 # ...from site-packages
@@ -16,6 +17,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 # ...from lland
 from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
@@ -529,10 +531,7 @@ class WMax(lland_parameters.ParameterSoil):
     INIT = 100.0
 
     # defined at the bottom of the file:
-    # CONTROLPARAMETERS = (
-    #     PWP,
-    #     FK,
-    # )
+    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[FK]]]
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -572,10 +571,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     INIT = 0.0
 
     # defined at the bottom of the file:
-    # CONTROLPARAMETERS = (
-    #     PWP,
-    #     WMax,
-    # )
+    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[WMax]]]
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.

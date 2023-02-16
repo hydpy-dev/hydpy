@@ -4,6 +4,7 @@
 """
 # import...
 # from standard library
+from __future__ import annotations
 import functools
 import warnings
 
@@ -1360,7 +1361,8 @@ class K0(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K1,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K1]]
 
     def trim(self, lower=None, upper=None):
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
@@ -1413,7 +1415,8 @@ class K1(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K0, K2,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K0], Type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):
@@ -1495,7 +1498,8 @@ class K2(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K1, K3,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K1], Type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):

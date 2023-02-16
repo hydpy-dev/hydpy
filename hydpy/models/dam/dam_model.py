@@ -5,7 +5,7 @@
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
-from hydpy.cythons.autogen import smoothutils
+from hydpy.cythons import smoothutils
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver

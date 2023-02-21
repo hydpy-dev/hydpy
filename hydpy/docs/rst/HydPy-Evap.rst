@@ -18,6 +18,8 @@ Application models:
 
 .. toctree::
 
-   evap_io (external data) <evap_io>
-   evap_fao56 (FAO-56) <evap_fao56>
-   evap_tw2002 (Turc-Wendling, 2002) <evap_tw2002>
+   Evap-IO <evap_io>
+   Evap-FAO-56 <evap_fao56>
+   Evap-TW-2002 <evap_tw2002>
+   Evap-M <evap_m>
+   Evap-MLC <evap_mlc>

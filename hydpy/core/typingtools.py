@@ -38,6 +38,7 @@ from typing import (
     Tuple,
     TextIO,
     Type,
+    TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
@@ -52,6 +53,7 @@ from numpy.typing import NDArray
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
+    from hydpy.core import parametertools
     from hydpy.cythons import pointerutils
 
 T = TypeVar("T")
@@ -131,6 +133,15 @@ ArrayFloat = TypeVar(
 )
 
 
+class ConstantGroups(TypedDict):
+    """Groups of constants of different types."""
+
+    landtype: Optional[parametertools.Constants]
+    """Land use type-related constants."""
+    soiltype: Optional[parametertools.Constants]
+    """Soil type-related constants."""
+
+
 DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
 StepSize = Literal["daily", "d", "monthly", "m"]
@@ -176,6 +187,7 @@ __all__ = [
     "Callable",
     "cast",
     "Concatenate",
+    "ConstantGroups",
     "ClassVar",
     "Collection",
     "ContextManager",
@@ -256,6 +268,7 @@ __all__ = [
     "Tuple",
     "Type",
     "TypeVar",
+    "TypedDict",
     "TYPE_CHECKING",
     "Union",
     "Vector",

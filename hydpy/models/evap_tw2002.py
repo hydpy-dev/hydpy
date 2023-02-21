@@ -13,9 +13,9 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-Application model |evap_tw2002| requires no input from another model and does not supply
-any outlet sequence.  Hence, assigning a model instance to a blank |Element| instance
-is sufficient:
+Application model |evap_tw2002| requires no input from another model and does not
+supply any outlet sequence.  Hence, assigning a model instance to a blank |Element|
+instance is sufficient:
 
 >>> from hydpy import Element
 >>> from hydpy.models.evap_tw2002 import *
@@ -66,7 +66,7 @@ from hydpy.exe.modelimports import *
 from hydpy.models.evap import evap_model
 
 
-class Model(evap_model.Base_PETModel_V1):
+class Model(evap_model.Sub_PETModel_V1):
     """The Turc-Wendling version of HydPy-Evap."""
 
     INLET_METHODS = ()

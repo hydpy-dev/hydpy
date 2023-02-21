@@ -1888,6 +1888,10 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
         if f"{prefix}.{varname}" in source:
             if varname.startswith("len_"):
                 varname = varname[4:]
+            else:
+                for suffix in ("_rowmin", "_columnmin", "_entrymin"):
+                    if varname.endswith(suffix):
+                        varname = varname[1 : -len(suffix)]
             varnames_source.add(varname)
     varnames_selected: Set[str] = set()
     for group in groups:
@@ -2035,10 +2039,7 @@ not among the result sequences of any of its predecessors: DryAirPressure
     return "\n".join(results)
 
 
-def save_autofig(
-    filename: str,
-    figure: Optional["pyplot.Figure"] = None,
-) -> None:
+def save_autofig(filename: str, figure: Optional[pyplot.Figure] = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 

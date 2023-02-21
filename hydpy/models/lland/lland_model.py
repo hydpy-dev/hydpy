@@ -22,6 +22,7 @@ from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_logs
 from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
+from hydpy.models.lland import lland_constants
 from hydpy.models.lland.lland_constants import (
     WASSER,
     FLUSS,
@@ -812,9 +813,9 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         flu.dailyglobalradiation /= der.nmblogentries
 
 
-class Calc_ET0_PETModel_V1(modeltools.Method):
+class Calc_EvPo_PETModel_V1(modeltools.Method):
     """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evapotranspiration.
+    potential evapotranspiration.
 
     Example:
 
@@ -833,13 +834,13 @@ class Calc_ET0_PETModel_V1(modeltools.Method):
         >>> tw.sequences.inputs.globalradiation = 200.0
         >>> tw.sequences.inputs.airtemperature = 14.0
         >>> model.petmodel = tw
-        >>> model.calc_et0_v1()
-        >>> fluxes.et0
-        et0(3.07171, 2.86215, 2.86215)
+        >>> model.calc_evpo_v1()
+        >>> fluxes.evpo
+        evpo(3.07171, 2.86215, 2.86215)
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    RESULTSEQUENCES = (lland_fluxes.ET0,)
+    RESULTSEQUENCES = (lland_fluxes.EvPo,)
 
     @staticmethod
     def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
@@ -847,33 +848,33 @@ class Calc_ET0_PETModel_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
         for k in range(con.nhru):
-            flu.et0[k] = submodel.get_potentialevapotranspiration(k)
+            flu.evpo[k] = submodel.get_potentialevapotranspiration(k)
 
 
-class Calc_ET0_V1(modeltools.Method):
+class Calc_EvPo_V1(modeltools.Method):
     """Let a submodel that complies with the |PETModel_V1| interface calculate
     reference evapotranspiration."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_ET0_PETModel_V1,)
+    SUBMETHODS = (Calc_EvPo_PETModel_V1,)
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    RESULTSEQUENCES = (lland_fluxes.ET0,)
+    RESULTSEQUENCES = (lland_fluxes.EvPo,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         if model.petmodel.typeid == 1:
-            model.calc_et0_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+            model.calc_evpo_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
 
 
-class Update_ET0_WET0_V1(modeltools.Method):
-    r"""Delay the given reference evapotranspiration and update the corresponding log
+class Update_EvPo_WEvPo_V1(modeltools.Method):
+    r"""Delay the given potential evapotranspiration and update the corresponding log
     sequence.
 
     Basic equation:
-      :math:`ET0_{new} = WfET0 \cdot ET0_{old} + (1 - WfET0) \cdot WET0`
+      :math:`EvPo_{new} = WfEvPo \cdot EvPo_{old} + (1 - WfEvPo) \cdot WEvPo`
 
     Example:
 
@@ -884,38 +885,40 @@ class Update_ET0_WET0_V1(modeltools.Method):
         >>> parameterstep("1d")
         >>> simulationstep("12h")
         >>> nhru(4)
-        >>> wfet0(2.0, 2.0, 0.2, 0.2)
-        >>> fluxes.et0 = 1.6, 2.4, 1.6, 2.4
+        >>> wfevpo(2.0, 2.0, 0.2, 0.2)
+        >>> fluxes.evpo = 1.6, 2.4, 1.6, 2.4
 
-        Note that the actual value of the time-dependent parameter |WfET0| is reduced
+        Note that the actual value of the time-dependent parameter |WfEvPo| is reduced
         due to the difference between the given parameter and simulation time steps:
 
         >>> from hydpy import round_
-        >>> round_(wfet0.values)
+        >>> round_(wfevpo.values)
         1.0, 1.0, 0.1, 0.1
 
         The evapotranspiration value of the last simulation step is 2.0 mm:
 
-        >>> logs.wet0 = 2.0
+        >>> logs.wevpo = 2.0
 
-        For the first two hydrological response units, the "old" |ET0| value is
+        For the first two hydrological response units, the "old" |EvPo| value is
         modified by -0.4 mm and +0.4 mm, respectively.  For the other two response
         units, which weigh the "new" evapotranspiration value with 10 %, the new value
-        of |ET0| deviates from |WET0| by -0.04 mm and +0.04 mm only:
+        of |EvPo| deviates from |WEvPo| by -0.04 mm and +0.04 mm only:
 
-        >>> model.update_et0_wet0_v1()
-        >>> fluxes.et0
-        et0(1.6, 2.4, 1.96, 2.04)
-        >>> logs.wet0
-        wet0(1.6, 2.4, 1.96, 2.04)
+        >>> model.update_evpo_wevpo_v1()
+        >>> fluxes.evpo
+        evpo(1.6, 2.4, 1.96, 2.04)
+        >>> logs.wevpo
+        wevpo(1.6, 2.4, 1.96, 2.04)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
-        lland_control.WfET0,
+        lland_control.WfEvPo,
     )
-    UPDATEDSEQUENCES = (lland_logs.WET0,)
-    RESULTSEQUENCES = (lland_fluxes.ET0,)
+    UPDATEDSEQUENCES = (
+        lland_fluxes.EvPo,
+        lland_logs.WEvPo,
+    )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -923,92 +926,10 @@ class Update_ET0_WET0_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for k in range(con.nhru):
-            flu.et0[k] = (
-                con.wfet0[k] * flu.et0[k] + (1.0 - con.wfet0[k]) * log.wet0[0, k]
+            flu.evpo[k] = (
+                con.wfevpo[k] * flu.evpo[k] + (1.0 - con.wfevpo[k]) * log.wevpo[0, k]
             )
-            log.wet0[0, k] = flu.et0[k]
-
-
-class Calc_EvPo_V1(modeltools.Method):
-    """Calculate the potential evapotranspiration for the relevant land
-    use and month.
-
-    Additional requirements:
-      |Model.idx_sim|
-
-    Basic equation:
-      :math:`EvPo = FLn \\cdot ET0`
-
-    Example:
-
-        For clarity, this is more of a kind of an integration example.
-        Parameter |FLn| both depends on time (the actual month) and space
-        (the actual land use).  Firstly, let us define a initialization
-        time period spanning the transition from June to July:
-
-        >>> from hydpy import pub
-        >>> pub.timegrids = "30.06.2000", "02.07.2000", "1d"
-
-        Secondly, assume that the considered subbasin is differenciated in
-        two HRUs, one of primarily consisting of arable land and the other
-        one of deciduous forests:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(2)
-        >>> lnk(ACKER, LAUBW)
-
-        Thirdly, set the |FLn|
-        values, one for the relevant months and land use classes:
-
-        >>> fln.acker_jun = 1.299
-        >>> fln.acker_jul = 1.304
-        >>> fln.laubw_jun = 1.350
-        >>> fln.laubw_jul = 1.365
-
-        Fourthly, the index array connecting the simulation time steps
-        defined above and the month indexes (0...11) can be retrieved
-        from the |pub| module.  This can be done manually more
-        conveniently via its update method:
-
-        >>> derived.moy.update()
-        >>> derived.moy
-        moy(5, 6)
-
-        Finally, the actual method (with its simple equation) is applied
-        as usual:
-
-        >>> fluxes.et0 = 2.0
-        >>> model.idx_sim = 0
-        >>> model.calc_evpo_v1()
-        >>> fluxes.evpo
-        evpo(2.598, 2.7)
-        >>> model.idx_sim = 1
-        >>> model.calc_evpo_v1()
-        >>> fluxes.evpo
-        evpo(2.608, 2.73)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.FLn,
-    )
-    DERIVEDPARAMETERS = (lland_derived.MOY,)
-    REQUIREDSEQUENCES = (lland_fluxes.ET0,)
-    RESULTSEQUENCES = (lland_fluxes.EvPo,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nhru):
-            flu.evpo[k] = con.fln[con.lnk[k] - 1, der.moy[model.idx_sim]] * flu.et0[k]
+            log.wevpo[0, k] = flu.evpo[k]
 
 
 class Calc_NBes_Inzp_V1(modeltools.Method):
@@ -9787,7 +9708,7 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (
-        Calc_ET0_PETModel_V1,
+        Calc_EvPo_PETModel_V1,
         Return_AdjustedWindSpeed_V1,
         Return_ActualVapourPressure_V1,
         Calc_DailyNetLongwaveRadiation_V1,
@@ -9843,9 +9764,8 @@ class Model(modeltools.AdHocModel):
         Calc_DailySaturationVapourPressureSlope_V1,
         Calc_ActualVapourPressure_V1,
         Calc_DailyActualVapourPressure_V1,
-        Calc_ET0_V1,
-        Update_ET0_WET0_V1,
         Calc_EvPo_V1,
+        Update_EvPo_WEvPo_V1,
         Calc_NBes_Inzp_V1,
         Calc_SNRatio_V1,
         Calc_SBes_V1,
@@ -9959,7 +9879,9 @@ class Base_PETModel_V1(modeltools.AdHocModel):
     @importtools.prepare_submodel(
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_zonetypes,
         petinterfaces.PETModel_V1.prepare_subareas,
+        landtype=lland_constants.CONSTANTS,
     )
     def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
         """Initialise the given evapotranspiration model that follows the |PETModel_V1|
@@ -9970,6 +9892,7 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         >>> nhru(2)
         >>> ft(10.0)
         >>> fhru(0.2, 0.8)
+        >>> lnk(ACKER, MISCHW)
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     nmbhru
         ...     hruarea
@@ -9979,6 +9902,7 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         self.petmodel = petmodel
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nhru.value)
+        petmodel.prepare_zonetypes(control.lnk.values)
         petmodel.prepare_subareas(control.fhru.value * control.ft.value)
 
 

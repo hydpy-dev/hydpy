@@ -20,8 +20,12 @@ class PETModel_V1(modeltools.SubmodelInterface):
         """Set the number of zones in which the actual calculations take place."""
 
     @abc.abstractmethod
+    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+        """Set the types (usually land cover types) of the individual zones."""
+
+    @abc.abstractmethod
     def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas ofthe individual zones in km²."""
+        """Set the areas of the individual zones in km²."""
 
     @abc.abstractmethod
     def prepare_elevations(self, elevations: Sequence[float]) -> None:

@@ -52,7 +52,7 @@ Integration tests
 The following integration tests rely on the meteorological input data used for testing
 the application model |lland_v1|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |EPN| (normed potential evaporation) values
-are the |lland_fluxes.ET0| values calcuted by |evap_tw2002| but divided by 0.4 to
+are the |lland_fluxes.EvPo| values calcuted by |evap_tw2002| but divided by 0.4 to
 account for the selected value of the evaporation adjustment factor
 |evap_control.EvapotranspirationFactor|.  Hopefully, this eases drawing comparisons
 between both models.

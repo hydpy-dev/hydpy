@@ -10,5 +10,5 @@ cdef class BaseInterface:
     cdef public numpy.int32_t typeid
     cdef public numpy.int32_t idx_sim
 
-    cdef void load_data(self) nogil
+    cdef void load_data(self, int idx) nogil
     cdef void save_data(self, int idx) nogil

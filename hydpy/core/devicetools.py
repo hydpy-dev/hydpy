@@ -346,7 +346,7 @@ class FusedVariable:
     |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
     and receives the correct data:
 
-    >>> evap.model.load_data()
+    >>> evap.model.load_data(0)
     >>> evap.model.sequences.inputs.airtemperature
     airtemperature(-273.15)
 
@@ -363,7 +363,7 @@ class FusedVariable:
     |evap_inputs.ReferenceEvapotranspiration| receive the current values of nodes `t2`
     and `e`:
 
-    >>> lland.model.load_data()
+    >>> lland.model.load_data(0)
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
     >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration

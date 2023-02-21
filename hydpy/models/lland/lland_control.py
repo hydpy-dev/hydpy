@@ -38,7 +38,7 @@ class NHRU(parametertools.Parameter):
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
     parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WET0|).  This requires that the value of the
+    predefined length of one axis (see |WEvPo|).  This requires that the value of the
     respective |NHRU| instance is set before any of the values of these 1-dimensional
     parameters or sequences are set.  Changing the value of the |NHRU| instance
     necessitates setting their values again:
@@ -54,7 +54,7 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wet0.shape
+        >>> logs.wevpo.shape
         (1, 5)
         >>> control.wg2z.shape
         (12,)
@@ -85,15 +85,15 @@ class NHRU(parametertools.Parameter):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wet0"):
-            sequences.logs.wet0.shape = self.value
+        if hasattr(sequences.logs, "wevpo"):
+            sequences.logs.wevpo.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
-    For increasing legibility, the HydPy-L-Land constants are used for
-    string representions of |Lnk| objects:
+    For increasing legibility, the HydPy-L-Land constants are used for string
+    representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep("1d")
@@ -110,14 +110,11 @@ class Lnk(parametertools.NameParameter):
     lnk(ACKER)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (min(CONSTANTS_.values()), max(CONSTANTS_.values()))
-    CONSTANTS = CONSTANTS_
+    constants = CONSTANTS_
 
 
 class FHRU(lland_parameters.ParameterComplete):
-    """Flächenanteile der Hydrotope (area percentages of the respective
-    HRUs) [-]."""
+    """Flächenanteile der Hydrotope (area percentages of the respective HRUs) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
@@ -483,20 +480,12 @@ class WG2Z(parametertools.MonthParameter):
 # evapotranspiration
 
 
-class WfET0(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
-    weighting factor for reference evapotranspiration)."""
+class WfEvPo(lland_parameters.ParameterComplete):
+    """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal weighting factor
+    for reference evapotranspiration)."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
     INIT = 0.0
-
-
-class FLn(lland_parameters.LanduseMonthParameter):
-    """Landnutzungsabhängiger Verdunstungsfaktor (factor for adjusting
-    reference evapotranspiration to different land use classes) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 1.0
 
 
 class GrasRef_R(parametertools.Parameter):

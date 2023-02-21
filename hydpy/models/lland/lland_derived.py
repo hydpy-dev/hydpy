@@ -51,8 +51,8 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wet0(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-             nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
+        wevpo(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                    nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
@@ -74,14 +74,14 @@ class NmbLogEntries(parametertools.Parameter):
         To prevent from loosing information, updating parameter |NmbLogEntries| resets
         the shape of the relevant log sequences only when necessary:
 
-        >>> logs.wet0 = 1.0
+        >>> logs.wevpo = 1.0
         >>> logs.loggedteml = 2.0
         >>> logs.loggedrelativehumidity.shape = (6,)
         >>> logs.loggedrelativehumidity = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wet0(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        wevpo(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+              1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
         loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,

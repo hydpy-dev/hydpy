@@ -5,6 +5,7 @@
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.models.evap import evap_parameters
 
 
 class NmbHRU(parametertools.Parameter):
@@ -19,12 +20,22 @@ class NmbHRU(parametertools.Parameter):
         if nmbhru_new != nmbhru_old:
             for subpars in self.subpars.pars:
                 for par in subpars:
-                    if par.NDIM == 1:
+                    if (par.NDIM == 1) and not isinstance(
+                        par, parametertools.KeywordParameter1D
+                    ):
                         par.shape = nmbhru_new
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = nmbhru_new
+
+
+class HRUType(parametertools.NameParameter):
+    """Hydrological response unit type [-]."""
+
+    NDIM, TYPE, TIME = 1, int, None
+    SPAN = (None, None)
+    constants = parametertools.Constants(ANY=1)
 
 
 class HRUArea(parametertools.Parameter):
@@ -67,3 +78,19 @@ class EvapotranspirationFactor(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 1.0
+
+
+class MonthFactor(parametertools.MonthParameter):
+    """Factor for converting general potential evaporation or evapotranspiration
+    (usually grass reference evapotranspiration) to month-specific potential
+    evaporation or evapotranspiration [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class LandMonthFactor(evap_parameters.LandMonthParameter):
+    """Factor for converting general potential evaporation or evapotranspiration
+    (usually grass reference evapotranspiration) to land-use- and month-specific
+    potential evaporation or evapotranspiration [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)

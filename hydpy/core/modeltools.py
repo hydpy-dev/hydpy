@@ -5,6 +5,7 @@
 from __future__ import annotations
 import abc
 import collections
+import contextlib
 import importlib
 import itertools
 import os
@@ -626,10 +627,9 @@ The following nodes have not been connected to any sequences: in2.
         ...     "element8", outlets=out1, inputs=inp1, outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
-        >>> element8.model.idx_sim = 2
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
         >>> inp1.sequences.sim(9.0)
-        >>> element8.model.load_data()
+        >>> element8.model.load_data(2)
         >>> element8.model.sequences.inputs.t
         t(3.0)
         >>> element8.model.sequences.inputs.p
@@ -657,7 +657,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
         >>> element9.model = prepare_model("hland_v1")
         >>> inp2.sequences.sim(9.0)
-        >>> element9.model.load_data()
+        >>> element9.model.load_data(0)
         >>> element9.model.sequences.inputs.p
         p(9.0)
         >>> element9.model.sequences.fluxes.q0 = 99.0
@@ -1005,17 +1005,18 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
-    def load_data(self) -> None:
+    def load_data(self, idx: int) -> None:
         """Call method |Sequences.load_data| of the attribute `sequences` of the
         current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        self.idx_sim = idx
         if self.sequences:
-            self.sequences.load_data(self.idx_sim)
+            self.sequences.load_data(idx)
         for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.load_data()
+            submodel.load_data(idx)
 
     def save_data(self, idx: int) -> None:
         """Call method |Sequences.save_data| of the attribute `sequences` of the
@@ -1430,10 +1431,7 @@ class RunModel(Model):
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        self.idx_sim = idx
-        for submodel in self.find_submodels().values():
-            submodel.idx_sim = idx
-        self.load_data()
+        self.load_data(idx)
         self.update_inlets()
         self.run()
         self.new2old()
@@ -1681,10 +1679,7 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.idx_sim = idx
-        for submodel in self.find_submodels().values():
-            submodel.idx_sim = idx
-        self.load_data()
+        self.load_data(idx)
         self.update_inlets()
         self.solve()
         self.update_outlets()
@@ -2668,6 +2663,19 @@ class SubmodelInterface(Model, abc.ABC):
         checks in model equations as it allows releasing Python's Globel Interpreter
         Lock in Cython.
         """
+
+    @staticmethod
+    @contextlib.contextmanager
+    def transfer_constants(
+        constantgroups: ConstantGroups,  # pylint: disable=unused-argument
+    ) -> Generator[None, None, None]:
+        """Transfer the main model constants to the submodel temporarily.
+
+        The default implementation of method |SubmodelInterface.transfer_constants|
+        does nothing.  Submodels can overwrite it to adjust their classes to the
+        current main model during initialisation.
+        """
+        yield
 
 
 class Submodel:

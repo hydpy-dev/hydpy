@@ -14,6 +14,10 @@ from hydpy.core import parametertools
 from hydpy.models.evap import evap_control
 
 
+class MOY(parametertools.MOYParameter):
+    """References the "global" month of the year index array [-]."""
+
+
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 

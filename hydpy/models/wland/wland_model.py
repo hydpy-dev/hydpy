@@ -24,6 +24,7 @@ from hydpy.models.wland import wland_fluxes
 from hydpy.models.wland import wland_states
 from hydpy.models.wland import wland_aides
 from hydpy.models.wland import wland_outlets
+from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import SEALED
 
 
@@ -161,26 +162,27 @@ class Calc_PC_V1(modeltools.Method):
 
 
 class Calc_PET_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evapotranspiration.
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration of the land areas.
 
     Example:
 
         We use |evap_tw2002| as an example:
 
-        >>> from hydpy.models.wland import *
+        >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
         >>> nu(3)
+        >>> al(1.0)
+        >>> aur(0.5, 0.3, 0.2)
+        >>> lt(FIELD)
         >>> from hydpy import prepare_model
-        >>> tw = prepare_model("evap_tw2002")
-        >>> tw.parameters.control.nmbhru(3)
-        >>> tw.parameters.control.altitude(200.0, 600.0, 1000.0)
-        >>> tw.parameters.control.airtemperatureaddend(1.0)
-        >>> tw.parameters.control.coastfactor(0.6)
-        >>> tw.parameters.control.evapotranspirationfactor(1.1)
-        >>> tw.sequences.inputs.globalradiation = 200.0
-        >>> tw.sequences.inputs.airtemperature = 14.0
-        >>> model.petmodel = tw
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     altitude(200.0, 600.0, 1000.0)
+        ...     airtemperatureaddend(1.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.globalradiation = 200.0
+        ...     inputs.airtemperature = 14.0
         >>> model.calc_pet_v1()
         >>> fluxes.pet
         pet(3.07171, 2.86215, 2.86215)
@@ -199,8 +201,8 @@ class Calc_PET_PETModel_V1(modeltools.Method):
 
 
 class Calc_PET_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evapotranspiration."""
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration of the land areas."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMETHODS = (Calc_PET_PETModel_V1,)
@@ -217,22 +219,20 @@ class Calc_PET_V1(modeltools.Method):
 
 
 class Calc_PE_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evaporation.
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evaporation of the surface water storage.
 
     Example:
 
         We use |evap_io| as an example:
 
-        >>> from hydpy.models.wland import *
+        >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
-        >>> from hydpy import prepare_model
-        >>> io = prepare_model("evap_io")
-        >>> io.parameters.control.nmbhru(2)
-        >>> io.parameters.control.evapotranspirationfactor(1.2, 1.4)
-        >>> io.parameters.derived.hruareafraction(0.5, 0.5)
-        >>> io.sequences.inputs.referenceevapotranspiration(2.0)
-        >>> model.petmodel = io
+        >>> nu(2)
+        >>> as_(1.0)
+        >>> with model.add_pemodel_v1("evap_io"):
+        ...     evapotranspirationfactor(1.3)
+        ...     inputs.referenceevapotranspiration(2.0)
         >>> model.calc_pe_v1()
         >>> fluxes.pe
         pe(2.6)
@@ -248,8 +248,8 @@ class Calc_PE_PETModel_V1(modeltools.Method):
 
 
 class Calc_PE_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evaporation."""
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evaporation of the surface water storage."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMETHODS = (Calc_PE_PETModel_V1,)
@@ -257,108 +257,11 @@ class Calc_PE_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.petmodel.typeid == 1:
-            model.calc_pe_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+        if model.pemodel.typeid == 1:
+            model.calc_pe_petmodel_v1(cast(petinterfaces.PETModel_V1, model.pemodel))
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
-
-
-class Calc_PETL_V1(modeltools.Method):
-    r"""Adjust the potential evapotranspiration of the land areas.
-
-    Basic equation:
-      :math:`PETL = CPETL \cdot PET`
-
-    Examples:
-
-        >>> from hydpy import pub, UnitTest
-        >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
-        >>> from hydpy.models.wland import *
-        >>> parameterstep()
-        >>> nu(2)
-        >>> lt(FIELD, DECIDIOUS)
-        >>> cpetl.field_mar = 1.25
-        >>> cpetl.field_apr = 1.5
-        >>> cpetl.decidious_mar = 1.75
-        >>> cpetl.decidious_apr = 2.0
-        >>> derived.moy.update()
-        >>> fluxes.pet = 2.0
-        >>> model.idx_sim = pub.timegrids.init['2000-03-31']
-        >>> model.calc_petl_v1()
-        >>> fluxes.petl
-        petl(2.5, 3.5)
-        >>> model.idx_sim = pub.timegrids.init['2000-04-01']
-        >>> model.calc_petl_v1()
-        >>> fluxes.petl
-        petl(3.0, 4.0)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.LT,
-        wland_control.CPETL,
-    )
-    DERIVEDPARAMETERS = (wland_derived.MOY,)
-    REQUIREDSEQUENCES = (wland_fluxes.PET,)
-    RESULTSEQUENCES = (wland_fluxes.PETL,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nu):
-            d_cpetl = con.cpetl[con.lt[k] - SEALED, der.moy[model.idx_sim]]
-            flu.petl[k] = d_cpetl * flu.pet[k]
-
-
-class Calc_PES_V1(modeltools.Method):
-    r"""Adapt the potential evaporation for the surface water area.
-
-    Basic equation:
-      :math:`PES = CPES \cdot PE`
-
-    Examples:
-
-        >>> from hydpy import pub, UnitTest
-        >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
-        >>> from hydpy.models.wland import *
-        >>> parameterstep()
-        >>> cpes.mar = 1.25
-        >>> cpes.apr = 1.5
-        >>> derived.moy.update()
-        >>> fluxes.pe = 2.0
-        >>> model.idx_sim = pub.timegrids.init['2000-03-31']
-        >>> model.calc_pes_v1()
-        >>> fluxes.pes
-        pes(2.5)
-        >>> model.idx_sim = pub.timegrids.init['2000-04-01']
-        >>> model.calc_pes_v1()
-        >>> fluxes.pes
-        pes(3.0)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
-    """
-
-    CONTROLPARAMETERS = (wland_control.CPES,)
-    DERIVEDPARAMETERS = (wland_derived.MOY,)
-    REQUIREDSEQUENCES = (wland_fluxes.PE,)
-    RESULTSEQUENCES = (wland_fluxes.PES,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        d_cpes = con.cpes[der.moy[model.idx_sim]]
-        flu.pes = d_cpes * flu.pe
 
 
 class Calc_TF_V1(modeltools.Method):
@@ -463,7 +366,7 @@ class Calc_EI_V1(modeltools.Method):
     Basic equation (discontinuous):
       .. math::
         EI = \begin{cases}
-        PETL &|\ IC > 0
+        PET &|\ IC > 0
         \\
         0 &|\ IC < 0
         \end{cases}
@@ -473,7 +376,7 @@ class Calc_EI_V1(modeltools.Method):
         >>> from hydpy.models.wland import *
         >>> parameterstep()
         >>> nu(1)
-        >>> fluxes.petl = 5.0
+        >>> fluxes.pet = 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -521,7 +424,7 @@ class Calc_EI_V1(modeltools.Method):
     CONTROLPARAMETERS = (wland_control.NU,)
     DERIVEDPARAMETERS = (wland_derived.RH1,)
     REQUIREDSEQUENCES = (
-        wland_fluxes.PETL,
+        wland_fluxes.PET,
         wland_states.IC,
     )
     RESULTSEQUENCES = (wland_fluxes.EI,)
@@ -533,7 +436,7 @@ class Calc_EI_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nu):
-            flu.ei[k] = flu.petl[k] * (smoothutils.smooth_logistic1(sta.ic[k], der.rh1))
+            flu.ei[k] = flu.pet[k] * (smoothutils.smooth_logistic1(sta.ic[k], der.rh1))
 
 
 class Calc_FR_V1(modeltools.Method):
@@ -1071,7 +974,7 @@ class Calc_ETV_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        ETV = \Sigma \left( \frac{AUR}{AGR} \cdot (PETL -  EI) \cdot \begin{cases}
+        ETV = \Sigma \left( \frac{AUR}{AGR} \cdot (PET -  EI) \cdot \begin{cases}
         0 &|\ LT = SEALED
         \\
         Beta  &|\ LT \neq SEALED
@@ -1085,7 +988,7 @@ class Calc_ETV_V1(modeltools.Method):
         >>> lt(FIELD, SOIL, SEALED)
         >>> aur(0.4, 0.4, 0.2)
         >>> derived.agr.update()
-        >>> fluxes.petl = 5.0
+        >>> fluxes.pet = 5.0
         >>> fluxes.ei = 1.0, 3.0, 2.0
         >>> aides.beta = 0.75
         >>> model.calc_etv_v1()
@@ -1100,7 +1003,7 @@ class Calc_ETV_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (wland_derived.AGR,)
     REQUIREDSEQUENCES = (
-        wland_fluxes.PETL,
+        wland_fluxes.PET,
         wland_fluxes.EI,
         wland_aides.Beta,
     )
@@ -1115,7 +1018,7 @@ class Calc_ETV_V1(modeltools.Method):
         flu.etv = 0.0
         for k in range(con.nu):
             if con.lt[k] != SEALED:
-                flu.etv += aid.beta * con.aur[k] / der.agr * (flu.petl[k] - flu.ei[k])
+                flu.etv += aid.beta * con.aur[k] / der.agr * (flu.pet[k] - flu.ei[k])
 
 
 class Calc_ES_V1(modeltools.Method):
@@ -1124,7 +1027,7 @@ class Calc_ES_V1(modeltools.Method):
     Basic equation (discontinous):
       .. math::
         ES = \begin{cases}
-        PES &|\ HS > 0
+        PE &|\ HS > 0
         \\
         0 &|\ HS \leq 0
         \end{cases}
@@ -1133,7 +1036,7 @@ class Calc_ES_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> fluxes.pes = 5.0
+        >>> fluxes.pe = 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -1179,7 +1082,7 @@ class Calc_ES_V1(modeltools.Method):
     """
     DERIVEDPARAMETERS = (wland_derived.RH1,)
     REQUIREDSEQUENCES = (
-        wland_fluxes.PES,
+        wland_fluxes.PE,
         wland_states.HS,
     )
     RESULTSEQUENCES = (wland_fluxes.ES,)
@@ -1189,7 +1092,7 @@ class Calc_ES_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.es = flu.pes * smoothutils.smooth_logistic1(sta.hs, der.rh1)
+        flu.es = flu.pe * smoothutils.smooth_logistic1(sta.hs, der.rh1)
 
 
 class Calc_ET_V1(modeltools.Method):
@@ -2810,8 +2713,6 @@ class Model(modeltools.ELSModel):
         Calc_FXS_V1,
         Calc_FXG_V1,
         Calc_PC_V1,
-        Calc_PETL_V1,
-        Calc_PES_V1,
         Calc_TF_V1,
         Calc_EI_V1,
         Calc_SF_V1,
@@ -2861,8 +2762,8 @@ class Model(modeltools.ELSModel):
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
 
-class Base_PETModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-W models that support submodels that comply with the
+class Main_PETModel_V1(modeltools.ELSModel):
+    """Base class for HydPy-W models that use submodels that comply with the
     |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
@@ -2872,6 +2773,8 @@ class Base_PETModel_V1(modeltools.ELSModel):
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
+        petinterfaces.PETModel_V1.prepare_zonetypes,
+        landtype=wland_constants.LANDUSE_CONSTANTS,
     )
     def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
@@ -2883,6 +2786,7 @@ class Base_PETModel_V1(modeltools.ELSModel):
         >>> nu(2)
         >>> al(10.0)
         >>> aur(0.2, 0.8)
+        >>> lt(FIELD)
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     nmbhru
         nmbhru(2)
@@ -2892,6 +2796,7 @@ class Base_PETModel_V1(modeltools.ELSModel):
         self.petmodel = petmodel
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nu.value)
+        petmodel.prepare_zonetypes(control.lt.values)
         petmodel.prepare_subareas(control.al.value * control.aur.values)
 
     @importtools.prepare_submodel(
@@ -2916,4 +2821,4 @@ class Base_PETModel_V1(modeltools.ELSModel):
         self.pemodel = pemodel
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
-        pemodel.prepare_subareas(control.as_.value)
+        pemodel.prepare_subareas([control.as_.value])

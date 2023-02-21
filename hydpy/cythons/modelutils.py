@@ -881,6 +881,14 @@ class PyxWriter:
                     except KeyError:
                         ctype = par.TYPE + NDIM2STR[par.NDIM]
                     lines.add(1, f"cdef public {ctype} {par.name}")
+                    if isinstance(par, parametertools.KeywordParameter1D):
+                        lines.add(
+                            1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin"
+                        )
+                    elif isinstance(par, parametertools.KeywordParameter2D):
+                        prefix = f"cdef public {TYPE2STR[int]} _{par.name}"
+                        for suffix in ("rowmin", "columnmin"):
+                            lines.add(1, f"{prefix}_{suffix}")
         return lines
 
     @property
@@ -1322,6 +1330,7 @@ class PyxWriter:
             lines.add(1, "cdef public NumVars numvars")
         if submodeltypes_old or submodelnames_new:
             lines.add(1, "def __init__(self):")
+            lines.add(2, "super().__init__()")
             for name in submodelnames_new:
                 lines.add(2, f"self.{name} = None")
             for submodel in submodeltypes_old:
@@ -1378,16 +1387,9 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         lines.add(2, "self.idx_sim = idx")
-        submodels = self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True
-        )
-        for fullname in submodels:
-            name = fullname.rpartition(".")[2]
-            lines.add(2, f"if self.{name} is not None:")
-            lines.add(3, f"self.{name}.idx_sim = idx")
         seqs = self.model.sequences
-        if seqs.inputs:
-            lines.add(2, "self.load_data()")
+        if seqs.inputs or self.model.SUBMODELINTERFACES:
+            lines.add(2, "self.load_data(idx)")
         if self.model.INLET_METHODS:
             lines.add(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
@@ -1416,13 +1418,15 @@ class PyxWriter:
         >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef void load_data(self) nogil:
-                self.sequences.inputs.load_data(self.idx_sim)
+            cpdef void load_data(self, ...int... idx) nogil:
+                self.idx_sim = idx
+                self.sequences.inputs.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
-                self.sequences.inputs.save_data(self.idx_sim)
-                self.sequences.factors.save_data(self.idx_sim)
-                self.sequences.fluxes.save_data(self.idx_sim)
-                self.sequences.states.save_data(self.idx_sim)
+                self.idx_sim = idx
+                self.sequences.inputs.save_data(idx)
+                self.sequences.factors.save_data(idx)
+                self.sequences.fluxes.save_data(idx)
+                self.sequences.states.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.factors = None
@@ -1431,10 +1435,12 @@ class PyxWriter:
         >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef void load_data(self) nogil:
-                self.sequences.inputs.load_data(self.idx_sim)
+            cpdef void load_data(self, ...int... idx) nogil:
+                self.idx_sim = idx
+                self.sequences.inputs.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
-                self.sequences.inputs.save_data(self.idx_sim)
+                self.idx_sim = idx
+                self.sequences.inputs.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
@@ -1447,30 +1453,28 @@ class PyxWriter:
         if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
             return lines
         for func in ("load_data", "save_data"):
-            if (func == "load_data") and not seqs.inputs:
+            if (func == "load_data") and not (
+                seqs.inputs or self.model.SUBMODELINTERFACES
+            ):
                 continue
             print(f"            . {func}")
             nogil = func in ("load_data", "save_data")
-            idx_as_arg = func == "save_data"
-            lines.add(
-                1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg, inline=False)
-            )
+            lines.add(1, get_methodheader(func, nogil=nogil, idxarg=True, inline=False))
+            lines.add(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
                     applyfuncs: Tuple[str, ...] = ("inputs",)
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
-                    lines.add(
-                        2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
-                    )
+                    lines.add(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
             submodels = self.model.find_submodels(
                 include_subsubmodels=False, include_optional=True
             )
             for fullname in submodels:
                 name = fullname.rpartition(".")[2]
                 lines.add(2, f"if self.{name} is not None:")
-                lines.add(3, f"self.{name}.{func}({'idx' if idx_as_arg else ''})")
+                lines.add(3, f"self.{name}.{func}(idx)")
         return lines
 
     @property

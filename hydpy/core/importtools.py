@@ -301,13 +301,21 @@ class _DoctestAdder:
 
 
 def prepare_submodel(
-    submodelinterface: Type[TI], *methods: Callable[[NoReturn, NoReturn], None]
+    submodelinterface: Type[TI],
+    *methods: Callable[[NoReturn, NoReturn], None],
+    landtype: Optional[parametertools.Constants] = None,
+    soiltype: Optional[parametertools.Constants] = None,
 ) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[TM, TI]]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
 
     def _prepare_submodel(wrapped: Callable[[TM, TI], None]) -> SubmodelAdder[TM, TI]:
-        return SubmodelAdder[TM, TI](wrapped, submodelinterface, methods)
+        return SubmodelAdder[TM, TI](
+            wrapped=wrapped,
+            submodelinterface=submodelinterface,
+            methods=methods,
+            constantgroups={"landtype": landtype, "soiltype": soiltype},
+        )
 
     return _prepare_submodel
 
@@ -319,19 +327,19 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     |SubmodelAdder| offers the user-relevant feature of preparing submodels with the
     `with` statement.  When entering the `with` block, |SubmodelAdder| uses the given
     string or module to initialise the desired application model and hands it as a
-    submodel to the model-specific method, which usually sets some of its control
-    parameters  based on the main model's configuration.  Next, |SubmodelAdder| makes
-    man< attributes of the submodel directly available, most importantly, the instances
-    of the remaining control parameter, so that users can set their values as
-    conveniently as the ones of the main model ones.  As long as no name conflicts
-    occur, all main model parameter instances are also accessible:
-
+    submodel to the model-specific method, which usually sets some control parameters
+    based on the main model's configuration.  Next, |SubmodelAdder| makes many
+    attributes of the submodel directly available, most importantly, the instances of
+    the remaining control parameter, so that users can set their values as conveniently
+    as the ones of the main model ones.  As long as no name conflicts occur, all main
+    model parameter instances are also accessible:
 
     >>> from hydpy.models.lland_v1 import *
     >>> parameterstep()
     >>> nhru(2)
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
+    >>> lnk(ACKER, MISCHW)
     >>> with model.add_petmodel_v1("evap_tw2002"):
     ...     nhru
     ...     nmbhru
@@ -362,8 +370,8 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `PETModel_V1` interface.
 
-    Finally, each |SubmodelAdder| instance provides access to the appropriate interface
-    and the interface methods the wrapped method uses (this information helps framework
+    Each |SubmodelAdder| instance provides access to the appropriate interface and the
+    interface methods the wrapped method uses (this information helps framework
     developers figure out which parameters the submodel prepares on its own):
 
     >>> model.add_petmodel_v1.submodelinterface.__name__
@@ -371,7 +379,32 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     >>> for method in model.add_petmodel_v1.methods:
     ...     method.__name__
     'prepare_nmbzones'
+    'prepare_zonetypes'
     'prepare_subareas'
+
+    On top of that, |SubmodelAdder| instances provide groups of constants that
+    submodels (and sub-submodels) can use for adapting to the main model:
+
+    >>> model.add_petmodel_v1.constantgroups  # doctest: +ELLIPSIS
+    {'landtype': {'SIED_D': 1, ..., 'SEE': 18}, 'soiltype': None}
+
+
+    The submodel |evap_mlc|, for example, uses the |ConstantGroups.landtype| group to
+    adjust the land use-specific row (and attribute) names of parameter
+    |evap_control.LandMonthFactor|:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+    >>> with model.add_petmodel_v1("evap_mlc"):
+    ...     landmonthfactor.acker = 1.0
+    ...     landmonthfactor.mischw = 2.0
+    ...     with model.add_retmodel_v1("evap_mlc"):
+    ...         landmonthfactor.acker = 2.0
+    ...         landmonthfactor.mischw = 3.0
+    >>> model.petmodel.parameters.control.landmonthfactor.acker
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
+    >>> model.petmodel.retmodel.parameters.control.landmonthfactor.mischw
+    array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
     """
 
     wrapped: Callable[[TM, TI], None]
@@ -381,6 +414,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     """The relevant submodel interface."""
     methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
+    constantgroups: ConstantGroups
+    """The constant groups the submodel can use for adapting to the main model."""
 
     _model: Optional[TM]
 
@@ -389,10 +424,12 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         wrapped: Callable[[TM, TI], None],
         submodelinterface: Type[TI],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
-    ):
+        constantgroups: ConstantGroups,
+    ) -> None:
         self.wrapped = wrapped
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
+        self.constantgroups = constantgroups
         self._model = None
         self.__doc__ = wrapped.__doc__
 
@@ -408,32 +445,36 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         self, module: Union[types.ModuleType, str], update: bool = True
     ) -> Generator[None, None, None]:
         try:
-            submodel = prepare_model(module)
-            if not isinstance(submodel, self.submodelinterface):
+            if isinstance(module, str):
+                module = importlib.import_module(f"hydpy.models.{module}")
+            if not issubclass(submodeltype := module.Model, self.submodelinterface):
                 raise TypeError(
-                    f"Submodel `{submodel.name}` does not comply with the "
-                    f"`{self.submodelinterface.__name__}` interface."
+                    f"Submodel `{module.__name__.rpartition('.')[2]}` does not comply "
+                    f"with the `{self.submodelinterface.__name__}` interface."
                 )
-            assert (model := self._model) is not None
-            self.wrapped(model, submodel)
-            assert (
-                ((frame1 := inspect.currentframe()) is not None)
-                and ((frame2 := frame1.f_back) is not None)
-                and ((frame3 := frame2.f_back) is not None)
-            )
-            namespace = frame3.f_locals
-            old_locals = namespace.get(__HYDPY_MODEL_LOCALS__, {})
-            try:
-                _add_locals_to_namespace(submodel, namespace)
-                yield
-                if update:
-                    submodel.parameters.update()
-            finally:
-                new_locals = namespace[__HYDPY_MODEL_LOCALS__]
-                for name in new_locals:
-                    namespace.pop(name, None)
-                namespace.update(old_locals)
-                namespace[__HYDPY_MODEL_LOCALS__] = old_locals
+            with submodeltype.transfer_constants(self.constantgroups):
+                submodel = prepare_model(module)
+                assert isinstance(submodel, self.submodelinterface)
+                assert (model := self._model) is not None
+                self.wrapped(model, submodel)
+                assert (
+                    ((frame1 := inspect.currentframe()) is not None)
+                    and ((frame2 := frame1.f_back) is not None)
+                    and ((frame3 := frame2.f_back) is not None)
+                )
+                namespace = frame3.f_locals
+                old_locals = namespace.get(__HYDPY_MODEL_LOCALS__, {})
+                try:
+                    _add_locals_to_namespace(submodel, namespace)
+                    yield
+                    if update:
+                        submodel.parameters.update()
+                finally:
+                    new_locals = namespace[__HYDPY_MODEL_LOCALS__]
+                    for name in new_locals:
+                        namespace.pop(name, None)
+                    namespace.update(old_locals)
+                    namespace[__HYDPY_MODEL_LOCALS__] = old_locals
         except BaseException:
             assert (model := self._model) is not None
             objecttools.augment_excmessage(

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
+import contextlib
 
 # imports...
 # ...from HydPy
@@ -212,7 +213,7 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorized values to the right and stores the respective new value on the
+        three memorised values to the right and stores the respective new value on the
         most left position:
 
         >>> from hydpy.models.evap import *
@@ -265,7 +266,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorized values to the right and stores the respective new value on the
+        three memorised values to the right and stores the respective new value on the
         most left position:
 
         >>> from hydpy.models.evap import *
@@ -752,6 +753,190 @@ class Calc_ReferenceEvapotranspiration_V3(modeltools.Method):
             flu.referenceevapotranspiration[k] = inp.referenceevapotranspiration
 
 
+class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    reference evapotranspiration.
+
+    Example:
+
+        We use |evap_tw2002| as an example:
+
+        >>> from hydpy.models.evap_mlc import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(0.5, 0.3, 0.2)
+        >>> from hydpy import prepare_model
+        >>> with model.add_retmodel_v1("evap_tw2002"):
+        ...     altitude(200.0, 600.0, 1000.0)
+        ...     airtemperatureaddend(1.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.globalradiation = 200.0
+        ...     inputs.airtemperature = 14.0
+        >>> model.calc_referenceevapotranspiration_v4()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(3.07171, 2.86215, 2.86215)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[
+                k
+            ] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_ReferenceEvapotranspiration_V4(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    reference evapotranspiration."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_ReferenceEvapotranspiration_PETModel_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.retmodel.typeid == 1:
+            model.calc_referenceevapotranspiration_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.retmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_PotentialEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate month-specific potential evaporation based on reference
+    evapotranspiration.
+
+    Basic equation:
+      :math:`PotentialEvapotranspiration = MonthFactor \cdot
+      ReferenceEvapotranspiration`
+
+    Examples:
+
+        >>> from hydpy import pub, UnitTest
+        >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> monthfactor.mar = 0.5
+        >>> monthfactor.apr = 2.0
+        >>> derived.moy.update()
+        >>> fluxes.referenceevapotranspiration = 1.0, 2.0
+        >>> model.idx_sim = pub.timegrids.init['2000-03-31']
+        >>> model.calc_potentialevapotranspiration_v1()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(0.5, 1.0)
+        >>> model.idx_sim = pub.timegrids.init['2000-04-01']
+        >>> model.calc_potentialevapotranspiration_v1()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(2.0, 4.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.MonthFactor,
+    )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
+    REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            factor: float = con.monthfactor[
+                der.moy[model.idx_sim] - con._monthfactor_entrymin
+            ]
+            flu.potentialevapotranspiration[k] = (
+                factor * flu.referenceevapotranspiration[k]
+            )
+
+
+class Calc_PotentialEvapotranspiration_V2(modeltools.Method):
+    r"""Calculate month- and land cover-specific potential evaporation based on
+    reference evapotranspiration.
+
+    Basic equation:
+      :math:`PotentialEvapotranspiration = LandMonthFactor \cdot
+      ReferenceEvapotranspiration`
+
+    Examples:
+
+        Base model |evap| does not define any land cover types by itself but takes the
+        ones of the respective main model.  Here, we manually introduce the land cover
+        types of grass, trees, and water to apply |evap| as a stand-alone model:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
+        >>> from hydpy.core.parametertools import Constants
+        >>> GRASS, TREES, WATER = 1, 2, 3
+        >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
+        >>> from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
+        >>> with HRUType.modify_constants(constants), LandMonthFactor.modify_rows(
+        ...         constants.sortednames, 1):
+        ...     from hydpy.models.evap import *
+        ...     parameterstep()
+        >>> nmbhru(2)
+        >>> hrutype(TREES, WATER)
+        >>> landmonthfactor.trees_mar = 1.0
+        >>> landmonthfactor.trees_apr = 2.0
+        >>> landmonthfactor.water_mar = 0.5
+        >>> landmonthfactor.water_apr = 2.0
+        >>> derived.moy.update()
+        >>> fluxes.referenceevapotranspiration = 1.0, 2.0
+        >>> model.idx_sim = pub.timegrids.init['2000-03-31']
+        >>> model.calc_potentialevapotranspiration_v2()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(1.0, 1.0)
+        >>> model.idx_sim = pub.timegrids.init['2000-04-01']
+        >>> model.calc_potentialevapotranspiration_v2()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(2.0, 4.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.LandMonthFactor,
+    )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
+    REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            factor: float = con.landmonthfactor[
+                con.hrutype[k] - con._landmonthfactor_rowmin,
+                der.moy[model.idx_sim] - con._landmonthfactor_columnmin,
+            ]
+            flu.potentialevapotranspiration[k] = (
+                factor * flu.referenceevapotranspiration[k]
+            )
+
+
 class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
     r"""Adjust the previously calculated reference evapotranspiration.
 
@@ -822,6 +1007,43 @@ class Calc_MeanReferenceEvapotranspiration_V1(modeltools.Method):
             )
 
 
+class Calc_MeanPotentialEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate the average potential evapotranspiration.
+
+    Basic equation:
+      :math:`MeanPotentialEvapotranspiration =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot PotentialEvapotranspiration_i`
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> fluxes.potentialevapotranspiration = 1.0, 2.0
+        >>> model.calc_meanpotentialevapotranspiration_v1()
+        >>> fluxes.meanpotentialevapotranspiration
+        meanpotentialevapotranspiration(1.2)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.MeanPotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.meanpotentialevapotranspiration = 0.0
+        for s in range(con.nmbhru):
+            flu.meanpotentialevapotranspiration += (
+                der.hruareafraction[s] * flu.potentialevapotranspiration[s]
+            )
+
+
 class Determine_PotentialEvapotranspiration_V1(modeltools.Method):
     r"""Interface method that applies the complete application model by executing all
     "run methods"."""
@@ -856,6 +1078,31 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
         return flu.referenceevapotranspiration[s]
 
 
+class Get_PotentialEvapotranspiration_V2(modeltools.Method):
+    """Get the current potential evapotranspiration from the selected hydrological
+    response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.potentialevapotranspiration = 2.0, 4.0
+        >>> model.get_potentialevapotranspiration_v2(0)
+        2.0
+        >>> model.get_potentialevapotranspiration_v2(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.potentialevapotranspiration[s]
+
+
 class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
     """Get the averaged reference evapotranspiration.
 
@@ -878,9 +1125,29 @@ class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
         return flu.meanreferenceevapotranspiration
 
 
-class Model(
-    modeltools.AdHocModel,
-):
+class Get_MeanPotentialEvapotranspiration_V2(modeltools.Method):
+    """Get the averaged potential evapotranspiration.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.meanpotentialevapotranspiration = 3.0
+        >>> model.get_meanpotentialevapotranspiration_v2()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.MeanPotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.meanpotentialevapotranspiration
+
+
+class Model(modeltools.AdHocModel):
     """The HydPy-Evap base model."""
 
     INLET_METHODS = ()
@@ -901,24 +1168,65 @@ class Model(
         Calc_ReferenceEvapotranspiration_V1,
         Calc_ReferenceEvapotranspiration_V2,
         Calc_ReferenceEvapotranspiration_V3,
+        Calc_ReferenceEvapotranspiration_V4,
         Adjust_ReferenceEvapotranspiration_V1,
+        Calc_PotentialEvapotranspiration_V1,
+        Calc_PotentialEvapotranspiration_V2,
         Calc_MeanReferenceEvapotranspiration_V1,
+        Calc_MeanPotentialEvapotranspiration_V1,
     )
     INTERFACE_METHODS = (
         Determine_PotentialEvapotranspiration_V1,
         Get_PotentialEvapotranspiration_V1,
+        Get_PotentialEvapotranspiration_V2,
         Get_MeanPotentialEvapotranspiration_V1,
+        Get_MeanPotentialEvapotranspiration_V2,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (Calc_ReferenceEvapotranspiration_PETModel_V1,)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
 
+    retmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
-class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
+
+class Sub_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
     """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
     interface."""
+
+    @staticmethod
+    @contextlib.contextmanager
+    def transfer_constants(
+        constantgroups: ConstantGroups,
+    ) -> Generator[None, None, None]:
+        """Take the |ConstantGroups.landtype| constants to temporarily adjust the
+        parameters |evap_control.HRUType| and |evap_control.LandMonthFactor| to the
+        current main model.
+
+        >>> from hydpy.core.parametertools import Constants
+        >>> constants = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> from hydpy.models.evap.evap_model import Sub_PETModel_V1
+        >>> with Sub_PETModel_V1.transfer_constants({"landtype": constants}):
+        ...     from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
+        ...     HRUType.constants
+        ...     LandMonthFactor.rowmin, LandMonthFactor.rownames
+        {'GRASS': 1, 'TREES': 3, 'WATER': 2}
+        (1, ('grass', 'water', 'trees'))
+        >>> HRUType.constants
+        {'ANY': 1}
+        >>> LandMonthFactor.rowmin, LandMonthFactor.rownames
+        (0, ('any',))
+        """
+        if (landtype := constantgroups["landtype"]) is not None:
+            with evap_control.HRUType.modify_constants(
+                landtype
+            ), evap_control.LandMonthFactor.modify_rows(
+                landtype.sortednames, min(landtype.values())
+            ):
+                yield
+        else:
+            yield
 
     @importtools.define_targetparameter(evap_control.NmbHRU)
     def prepare_nmbzones(self, nmbzones: int) -> None:
@@ -931,6 +1239,25 @@ class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
         nmbhru(2)
         """
         self.parameters.control.nmbhru(nmbzones)
+
+    @importtools.define_targetparameter(evap_control.NmbHRU)
+    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+        """Set the hydrological response unit types.
+
+        >>> GRASS, TREES, WATER = 1, 3, 2
+        >>> from hydpy.core.parametertools import Constants
+        >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
+        >>> from hydpy.models.evap.evap_control import HRUType
+        >>> with HRUType.modify_constants(constants):
+        ...     from hydpy.models.evap_mlc import *
+        ...     parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_zonetypes([TREES, WATER])
+        >>> hrutype
+        hrutype(TREES, WATER)
+        """
+        if (hrutype := getattr(self.parameters.control, "hrutype", None)) is not None:
+            hrutype(zonetypes)
 
     @importtools.define_targetparameter(evap_control.HRUArea)
     def prepare_subareas(self, subareas: Sequence[float]) -> None:
@@ -957,3 +1284,36 @@ class Base_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
         altitude(1.0, 3.0)
         """
         self.parameters.control.altitude(elevations)
+
+
+class Main_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that use submodels that comply with the
+    |PETModel_V1| interface."""
+
+    retmodel: modeltools.SubmodelProperty
+
+    @importtools.prepare_submodel(
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_retmodel_v1(self, retmodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given `retmodel` that follows the |PETModel_V1| interface and
+        is responsible for calculating the reference evapotranspiration.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.evap_m import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> hruarea(2.0, 8.0)
+        >>> with model.add_retmodel_v1("evap_io"):
+        ...     nmbhru
+        nmbhru(2)
+        >>> model.retmodel.parameters.control.hruarea
+        hruarea(2.0, 8.0)
+        """
+        self.retmodel = retmodel
+        control = self.parameters.control
+        retmodel.prepare_nmbzones(control.nmbhru.value)
+        retmodel.prepare_subareas(control.hruarea.values)

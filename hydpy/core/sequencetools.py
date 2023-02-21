@@ -3105,22 +3105,21 @@ class ConditionSequence(ModelSequence):
 
         We use the |lland_v1| application model, which handles sequences derived from
         |StateSequence| (taking |lland_states.Inzp| as an example) and from
-        |LogSequence| (taking |lland_logs.WET0| as an example):
+        |LogSequence| (taking |lland_logs.WEvPo| as an example):
 
         >>> from hydpy import prepare_model, pub
         >>> model = prepare_model("lland_v1")
 
-        After defining their shapes, both sequences contain |numpy.nan|
-        values:
+        After defining their shapes, both sequences contain |numpy.nan| values:
 
         >>> inzp = model.sequences.states.inzp
         >>> inzp.shape = (2,)
         >>> inzp
         inzp(nan, nan)
-        >>> wet0 = model.sequences.logs.wet0
-        >>> wet0.shape = 2
-        >>> wet0
-        wet0(nan, nan)
+        >>> wevpo = model.sequences.logs.wevpo
+        >>> wevpo.shape = 2
+        >>> wevpo
+        wevpo(nan, nan)
 
         Before "calling" the sequences method |ConditionSequence.reset| does nothing:
 
@@ -3128,10 +3127,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.reset()
         >>> inzp
         inzp(0.0, 0.0)
-        >>> wet0.values = 0.0
-        >>> wet0.reset()
-        >>> wet0
-        wet0(0.0, 0.0)
+        >>> wevpo.values = 0.0
+        >>> wevpo.reset()
+        >>> wevpo
+        wevpo(0.0, 0.0)
 
         After "calling" the sequences method |ConditionSequence.reset| reuses the
         respective arguments:
@@ -3145,13 +3144,13 @@ class ConditionSequence(ModelSequence):
         ...     inzp.reset()
         >>> inzp
         inzp(0.0, 1.0)
-        >>> wet0(1.0, 2.0)
-        >>> wet0.values = 3.0
-        >>> wet0
-        wet0(3.0, 3.0)
-        >>> wet0.reset()
-        >>> wet0
-        wet0(1.0, 2.0)
+        >>> wevpo(1.0, 2.0)
+        >>> wevpo.values = 3.0
+        >>> wevpo
+        wevpo(3.0, 3.0)
+        >>> wevpo.reset()
+        >>> wevpo
+        wevpo(1.0, 2.0)
         """
         if self._oldargs:
             self(*self._oldargs)

@@ -314,16 +314,14 @@ respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: At least one value of parameter `var` of element `?` \
-is not valid.
+    ValueError: At least one value of parameter `var` of element `?` is not valid.
     >>> var
     var(0, 1, 2)
     >>> var.values = 2, 3, 4
     >>> var.trim()
     Traceback (most recent call last):
      ...
-    ValueError: At least one value of parameter `var` of element `?` \
-is not valid.
+    ValueError: At least one value of parameter `var` of element `?` is not valid.
     >>> var
     var(2, 3, 4)
 
@@ -340,8 +338,8 @@ is not valid.
     >>> Var.TYPE = bool
     >>> var.trim()
 
-    If function |trim| encounters an unmanageable type, it raises an
-    exception like the following:
+    If function |trim| encounters an unmanageable type, it raises an exception like the
+    following:
 
     >>> Var.TYPE = str
     >>> var.trim()
@@ -2368,8 +2366,8 @@ named `wrong`.
             return self._name2variable[item]
         except KeyError:
             raise AttributeError(
-                f"Collection object {objecttools.devicephrase(self)} "
-                f"does not handle a variable named `{item}`."
+                f"Collection object {objecttools.devicephrase(self)} does not handle "
+                f"a variable named `{item}`."
             ) from None
 
     def __getattr__(self, name) -> TypeVariable_co:
@@ -2377,9 +2375,8 @@ named `wrong`.
             return self._name2variable[name]
         except KeyError:
             raise AttributeError(
-                f"Collection object {objecttools.devicephrase(self)} "
-                f"does neither handle a variable nor another attribute "
-                f"named {name}."
+                f"Collection object {objecttools.devicephrase(self)} does neither "
+                f"handle a variable nor another attribute named {name}."
             ) from None
 
     def __setattr__(self, name, value):
@@ -2400,8 +2397,8 @@ named `wrong`.
         lines = []
         if hydpy.pub.options.reprcomments:
             lines.append(
-                f"# {type(self).__name__} object defined "
-                f"in module {objecttools.modulename(self)},\n"
+                f"# {type(self).__name__} object defined in module "
+                f"{objecttools.modulename(self)},\n"
                 f"# handling the following variables:"
             )
         for variable in self:

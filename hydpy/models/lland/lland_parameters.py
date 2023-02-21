@@ -175,7 +175,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""
 
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -189,7 +189,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = tuple(
+    rownames = tuple(
         key.lower()
         for (idx, key) in sorted((idx, key) for (key, idx) in CONSTANTS.items())
     )

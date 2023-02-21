@@ -31,12 +31,24 @@ class SoilHeatFlux(sequencetools.FluxSequence):
 
 
 class ReferenceEvapotranspiration(sequencetools.FluxSequence):
-    """Reference evapotranspiration [mm/T]."""
+    """Reference (grass) evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class PotentialEvapotranspiration(sequencetools.FluxSequence):
+    """Potential (land use-specific) evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 1, False
 
 
 class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):
     """Mean reference evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
+    """Mean potential evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False

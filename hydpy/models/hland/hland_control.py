@@ -194,12 +194,7 @@ class ZoneType(parametertools.NameParameter):
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(hland_constants.CONSTANTS.values()),
-        max(hland_constants.CONSTANTS.values()),
-    )
-    CONSTANTS = hland_constants.CONSTANTS
+    constants = hland_constants.CONSTANTS
 
 
 class ZoneArea(hland_parameters.ParameterComplete):

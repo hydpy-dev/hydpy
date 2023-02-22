@@ -4,6 +4,8 @@ sequence:           AktGrundwasserneubildung
                     NiederschlagRichter
                     InterzeptionsVerdunstung
 steps:              daily
+eval_start:         1990-01-01
+eval_end:           1990-02-01
 name_rch_file:      daily_rch
 name_mean_file:     daily_mean
 name_time_series:   daily_timeseries

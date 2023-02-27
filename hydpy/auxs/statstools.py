@@ -1310,10 +1310,7 @@ def hsepd_pdf(
     a_xi[~idxs] = numpy.absolute(1.0 / xi * (mu_xi + sigma_xi * a[~idxs]))
     ps = (
         (2.0 * sigma_xi / (xi + 1.0 / xi) * w_beta)
-        * cast(
-            Vector[float],
-            numpy.exp(-c_beta * a_xi ** (2.0 / (1.0 + beta))),
-        )
+        * cast(Vector[float], numpy.exp(-c_beta * a_xi ** (2.0 / (1.0 + beta))))
     ) / sigmas
     return ps
 
@@ -1518,9 +1515,8 @@ def hsepd(
     First, as a reference, we calculate the "true" value based on function
     |hsepd_manual| and the correct distribution parameters:
 
-    >>> from hydpy import Period, hsepd, hsepd_manual, pub, round_
-    >>> round_(hsepd_manual(
-    ...     sigma1=0.2, sigma2=0.0, xi=1.0, beta=0.0, sim=sim, obs=obs))
+    >>> from hydpy import hsepd, hsepd_manual, round_
+    >>> round_(hsepd_manual(sigma1=0.2, sigma2=0.0, xi=1.0, beta=0.0, sim=sim, obs=obs))
     -2.100093
 
     When using function |hsepd|, the returned value is even a little "better":
@@ -1581,11 +1577,12 @@ def hsepd(
         sigma1: float, sigma2: float, xi: float, beta: float
     ) -> Tuple[float, float, float, float]:
         """Apply constraints on the given parameter values."""
-        sigma1 = numpy.clip(sigma1, 0.0, None)
-        sigma2 = numpy.clip(sigma2, 0.0, None)
-        xi = numpy.clip(xi, 0.1, 10.0)
-        beta = numpy.clip(beta, -0.99, 5.0)
-        return sigma1, sigma2, xi, beta
+        return (
+            max(sigma1, 0.0),
+            max(sigma2, 0.0),
+            min(max(xi, 0.1), 10.0),
+            min(max(beta, -0.99), 5.0),
+        )
 
     sim_, obs_ = prepare_arrays(
         sim=sim,

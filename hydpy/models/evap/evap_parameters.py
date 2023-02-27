@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -45,4 +46,12 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    rownames: Tuple[str, ...] = ("any",)
+    rownames: Tuple[str, ...] = ("ANY",)
+
+
+class ZipParameter1D(parametertools.ZipParameter):
+    """Base class for 1-dimensional parameters that provide additional keyword-based
+    zipping functionalities."""
+
+    constants = {}
+    mask = masktools.SubmodelIndexMask()

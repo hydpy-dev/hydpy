@@ -13,7 +13,7 @@ from hydpy.models.hland import hland_masks
 class ParameterBase(parametertools.ZipParameter):
     """Base class for 1-dimensional parameters."""
 
-    MODEL_CONSTANTS = CONSTANTS
+    constants = CONSTANTS
 
     @property
     def refweights(self):

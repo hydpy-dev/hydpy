@@ -303,8 +303,11 @@ class _DoctestAdder:
 def prepare_submodel(
     submodelinterface: Type[TI],
     *methods: Callable[[NoReturn, NoReturn], None],
-    landtype: Optional[parametertools.Constants] = None,
-    soiltype: Optional[parametertools.Constants] = None,
+    landtype_constants: Optional[parametertools.Constants] = None,
+    soiltype_constants: Optional[parametertools.Constants] = None,
+    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    refweights: Optional[Type[parametertools.Parameter]] = None,
 ) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[TM, TI]]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
@@ -314,7 +317,11 @@ def prepare_submodel(
             wrapped=wrapped,
             submodelinterface=submodelinterface,
             methods=methods,
-            constantgroups={"landtype": landtype, "soiltype": soiltype},
+            landtype_constants=landtype_constants,
+            soiltype_constants=soiltype_constants,
+            landtype_refindices=landtype_refindices,
+            soiltype_refindices=soiltype_refindices,
+            refweights=refweights,
         )
 
     return _prepare_submodel
@@ -381,30 +388,6 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_nmbzones'
     'prepare_zonetypes'
     'prepare_subareas'
-
-    On top of that, |SubmodelAdder| instances provide groups of constants that
-    submodels (and sub-submodels) can use for adapting to the main model:
-
-    >>> model.add_petmodel_v1.constantgroups  # doctest: +ELLIPSIS
-    {'landtype': {'SIED_D': 1, ..., 'SEE': 18}, 'soiltype': None}
-
-
-    The submodel |evap_mlc|, for example, uses the |ConstantGroups.landtype| group to
-    adjust the land use-specific row (and attribute) names of parameter
-    |evap_control.LandMonthFactor|:
-
-    >>> from hydpy import pub
-    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-    >>> with model.add_petmodel_v1("evap_mlc"):
-    ...     landmonthfactor.acker = 1.0
-    ...     landmonthfactor.mischw = 2.0
-    ...     with model.add_retmodel_v1("evap_mlc"):
-    ...         landmonthfactor.acker = 2.0
-    ...         landmonthfactor.mischw = 3.0
-    >>> model.petmodel.parameters.control.landmonthfactor.acker
-    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
-    >>> model.petmodel.retmodel.parameters.control.landmonthfactor.mischw
-    array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
     """
 
     wrapped: Callable[[TM, TI], None]
@@ -414,8 +397,11 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     """The relevant submodel interface."""
     methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
-    constantgroups: ConstantGroups
-    """The constant groups the submodel can use for adapting to the main model."""
+    landtype_refindices: Optional[Type[parametertools.NameParameter]]
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]]
+    refweights: Optional[Type[parametertools.Parameter]]
+
+    _sharable_configuration: SharableConfiguration
 
     _model: Optional[TM]
 
@@ -424,12 +410,25 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         wrapped: Callable[[TM, TI], None],
         submodelinterface: Type[TI],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
-        constantgroups: ConstantGroups,
+        landtype_constants: Optional[parametertools.Constants],
+        soiltype_constants: Optional[parametertools.Constants],
+        landtype_refindices: Optional[Type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
+        refweights: Optional[Type[parametertools.Parameter]],
     ) -> None:
         self.wrapped = wrapped
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
-        self.constantgroups = constantgroups
+        self._sharable_configuration = {
+            "landtype_constants": landtype_constants,
+            "soiltype_constants": soiltype_constants,
+            "landtype_refindices": None,
+            "soiltype_refindices": None,
+            "refweights": None,
+        }
+        self._landtype_refindices = landtype_refindices
+        self._soiltype_refindices = soiltype_refindices
+        self._refweights = refweights
         self._model = None
         self.__doc__ = wrapped.__doc__
 
@@ -452,10 +451,18 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                     f"Submodel `{module.__name__.rpartition('.')[2]}` does not comply "
                     f"with the `{self.submodelinterface.__name__}` interface."
                 )
-            with submodeltype.transfer_constants(self.constantgroups):
+            shared = self._sharable_configuration
+            assert (model := self._model) is not None
+            control = model.parameters.control
+            if (ltr := self._landtype_refindices) is not None:
+                shared["landtype_refindices"] = getattr(control, ltr.name)
+            if (str_ := self._soiltype_refindices) is not None:
+                shared["landtype_refindices"] = getattr(control, str_.name)
+            if (rw := self._refweights) is not None:
+                shared["refweights"] = getattr(control, rw.name)
+            with submodeltype.share_configuration(shared):
                 submodel = prepare_model(module)
                 assert isinstance(submodel, self.submodelinterface)
-                assert (model := self._model) is not None
                 self.wrapped(model, submodel)
                 assert (
                     ((frame1 := inspect.currentframe()) is not None)

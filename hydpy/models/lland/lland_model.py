@@ -821,19 +821,19 @@ class Calc_EvPo_PETModel_V1(modeltools.Method):
 
         We use |evap_tw2002| as an example:
 
-        >>> from hydpy.models.lland import *
+        >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> from hydpy import prepare_model
-        >>> tw = prepare_model("evap_tw2002")
-        >>> tw.parameters.control.nmbhru(3)
-        >>> tw.parameters.control.altitude(200.0, 600.0, 1000.0)
-        >>> tw.parameters.control.airtemperatureaddend(1.0)
-        >>> tw.parameters.control.coastfactor(0.6)
-        >>> tw.parameters.control.evapotranspirationfactor(1.1)
-        >>> tw.sequences.inputs.globalradiation = 200.0
-        >>> tw.sequences.inputs.airtemperature = 14.0
-        >>> model.petmodel = tw
+        >>> ft(1.0)
+        >>> fhru(0.5, 0.3, 0.2)
+        >>> lnk(ACKER, MISCHW, ACKER)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     altitude(200.0, 600.0, 1000.0)
+        ...     airtemperatureaddend(1.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.globalradiation = 200.0
+        ...     inputs.airtemperature = 14.0
         >>> model.calc_evpo_v1()
         >>> fluxes.evpo
         evpo(3.07171, 2.86215, 2.86215)
@@ -9881,7 +9881,9 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_zonetypes,
         petinterfaces.PETModel_V1.prepare_subareas,
-        landtype=lland_constants.CONSTANTS,
+        landtype_constants=lland_constants.CONSTANTS,
+        landtype_refindices=lland_control.Lnk,
+        refweights=lland_control.FHRU,
     )
     def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
         """Initialise the given evapotranspiration model that follows the |PETModel_V1|
@@ -9896,8 +9898,19 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     nmbhru
         ...     hruarea
+        ...     evapotranspirationfactor(acker=1.0, mischw=2.0)
         nmbhru(2)
         hruarea(2.0, 8.0)
+
+        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
+        >>> etf
+        evapotranspirationfactor(acker=1.0, mischw=2.0)
+        >>> lnk(MISCHW, ACKER)
+        >>> etf
+        evapotranspirationfactor(acker=2.0, mischw=1.0)
+        >>> from hydpy import round_
+        >>> round_(etf.average_values())
+        1.8
         """
         self.petmodel = petmodel
         control = self.parameters.control

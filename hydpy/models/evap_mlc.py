@@ -19,8 +19,7 @@ types of grass, trees, and water to apply |evap_mlc| as a stand-alone model:
 >>> GRASS, TREES, WATER = 0, 1, 2
 >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
 >>> from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
->>> with HRUType.modify_constants(constants), LandMonthFactor.modify_rows(
-...         constants.sortednames, 0):
+>>> with HRUType.modify_constants(constants), LandMonthFactor.modify_rows(constants):
 ...     from hydpy.models.evap_mlc import *
 ...     parameterstep()
 

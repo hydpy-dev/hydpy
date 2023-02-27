@@ -183,7 +183,7 @@ class LanduseParameter(parametertools.ZipParameter):
         wine=2.0)
     """
 
-    MODEL_CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
     mask = wland_masks.Complete()
 
     @property

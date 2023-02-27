@@ -9,6 +9,7 @@ Features more specific to either parameters or sequences are implemented in modu
 # ...from standard library
 from __future__ import annotations
 import abc
+import contextlib
 import copy
 import inspect
 import textwrap
@@ -75,14 +76,13 @@ def trim(self: Variable, lower=None, upper=None) -> None:
     ...     initinfo = 2.0, False
     ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
-    First, we enable the printing of warning messages raised by function
-    |trim|:
+    First, we enable the printing of warning messages raised by function |trim|:
 
     >>> from hydpy import pub
     >>> pub.options.warntrim = True
 
-    When not passing boundary values, function |trim| extracts them from
-    class attribute `SPAN` of the given |Variable| instance, if available:
+    When not passing boundary values, function |trim| extracts them from class
+    attribute `SPAN` of the given |Variable| instance, if available:
 
     >>> var = Var(None)
     >>> var.value = 2.0
@@ -94,8 +94,8 @@ def trim(self: Variable, lower=None, upper=None) -> None:
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0` and `1.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var
     var(1.0)
 
@@ -103,16 +103,15 @@ The old and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `4.0` and `3.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    In the examples above, outlier values are set to the respective
-    boundary value, accompanied by suitable warning messages.  For
-    minimal deviations (defined by function |get_tolerance|), which
-    might be due to precision problems only, outliers are trimmed
-    but not reported:
+    In the examples above, outlier values are set to the respective boundary value,
+    accompanied by suitable warning messages.  For minimal deviations (defined by
+    function |get_tolerance|), which might be due to precision problems only, outliers
+    are trimmed but not reported:
 
     >>> var.value = 1.0 - 1e-15
     >>> var == 1.0
@@ -128,23 +127,23 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var == 3.0
     True
 
-    Use arguments `lower` and `upper` to override the (eventually)
-    available `SPAN` entries:
+    Use arguments `lower` and `upper` to override the (eventually) available `SPAN`
+    entries:
 
     >>> var.trim(lower=4.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `3.0` and `4.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `3.0` and `4.0`, respectively.
 
     >>> var.trim(upper=3.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `4.0` and `3.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `4.0` and `3.0`, respectively.
 
-    Function |trim| interprets both |None| and |numpy.nan| values as if
-    no boundary value exists:
+    Function |trim| interprets both |None| and |numpy.nan| values as if no boundary
+    value exists:
 
     >>> import numpy
     >>> var.value = 0.0
@@ -168,8 +167,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    If a |Variable| subclass does not have (fixed) boundaries, give it
-    either no `SPAN` attribute or a |tuple| containing |None| values:
+    If a |Variable| subclass does not have (fixed) boundaries, give it either no `SPAN`
+    attribute or a |tuple| containing |None| values:
 
     >>> del Var.SPAN
     >>> var.value = 5.0
@@ -182,9 +181,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(5.0)
 
-    The above examples deal with a 0-dimensional |Variable| subclass.
-    The following examples repeat the most relevant examples for a
-    2-dimensional subclass:
+    The above examples deal with a 0-dimensional |Variable| subclass.  The following
+    examples repeat the most relevant examples for a 2-dimensional subclass:
 
     >>> Var.SPAN = 1.0, 3.0
     >>> Var.NDIM = 2
@@ -196,9 +194,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, respectively.
     >>> var
     var(1.0, 1.0, 2.0)
 
@@ -206,9 +203,8 @@ respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var
     var(2.0, 3.0, 3.0)
 
@@ -227,25 +223,22 @@ respectively.
     >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, respectively.
 
     >>> var.values = 0.0, 2.0, 4.0
     >>> var.trim(upper=[numpy.nan, 1.0, numpy.nan])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
-    For |Variable| subclasses handling |float| values, setting outliers
-    to the respective boundary value might often be an acceptable approach.
-    However, this is often not the case for subclasses handling |int|
-    values, which often serve as option flags (e.g. to enable/disable
-    a certain hydrological process for different land-use types). Hence,
-    function |trim| raises an exception instead of a warning and does
-    not modify the wrong |int| value:
+    For |Variable| subclasses handling |float| values, setting outliers to the
+    respective boundary value might often be an acceptable approach.  However, this is
+    often not the case for subclasses handling |int| values, which often serve as
+    option flags (e.g. to enable/disable a certain hydrological process for different
+    land-use types). Hence, function |trim| raises an exception instead of a warning
+    and does not modify the wrong |int| value:
 
     >>> Var.TYPE = int
     >>> Var.NDIM = 0
@@ -451,12 +444,12 @@ def _trim_int_nd(self, lower, upper):
 
 
 def get_tolerance(values):
-    """Return some "numerical accuracy" to be expected for the
-    given floating-point value(s).
+    """Return some "numerical accuracy" to be expected for the given floating-point
+    value(s).
 
-    The documentation on function |trim| explains also function
-    |get_tolerance|.  However, note the special case of infinite
-    input values, for which function |get_tolerance| returns zero:
+    The documentation on function |trim| explains also function |get_tolerance|.
+    However, note the special case of infinite input values, for which function
+    |get_tolerance| returns zero:
 
     >>> from hydpy.core.variabletools import get_tolerance
     >>> import numpy
@@ -478,16 +471,16 @@ def get_tolerance(values):
 def _warn_trim(self, oldvalue, newvalue):
     if hydpy.pub.options.warntrim:
         warnings.warn(
-            f"For variable {objecttools.devicephrase(self)} at least one "
-            f"value needed to be trimmed.  The old and the new value(s) "
-            f"are `{objecttools.repr_numbers(oldvalue)}` and "
+            f"For variable {objecttools.devicephrase(self)} at least one value "
+            f"needed to be trimmed.  The old and the new value(s) are "
+            f"`{objecttools.repr_numbers(oldvalue)}` and "
             f"`{objecttools.repr_numbers(newvalue)}`, respectively."
         )
 
 
 class FastAccess:
-    """Used as a surrogate for typed Cython classes handling parameters or
-    sequences when working in pure Python mode."""
+    """Used as a surrogate for typed Cython classes handling parameters or sequences
+    when working in pure Python mode."""
 
     def _get_attribute(self, name, suffix, default=None):
         return getattr(self, f"_{name}_{suffix}", default)
@@ -1026,13 +1019,72 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables
     """The subgroup to which the variable belongs."""
 
+    _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
+
     mask = masktools.DefaultMask()
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_refweights(
+        cls, refweights: Optional[parametertools.Parameter]
+    ) -> Generator[None, None, None]:
+        """Eventually, set or modify the reference to a parameter defining the
+        weighting coefficients required for aggregating values.
+
+        The following example demonstrates that changes affect the relevant class only
+        temporarily, but its objects initialised within the "with" block persistently:
+
+        >>> from hydpy.core.variabletools import FastAccess, Variable
+        >>> class Var1(Variable):
+        ...     initinfo = 0.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> class Var2(Variable):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     initinfo = 0.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> var2 = Var2(None)
+        >>> var2.shape = 3
+        >>> with Var1.modify_refweights(var2):
+        ...     Var1._refweights
+        ...     var1 = Var1(None)
+        ...     var1.refweights
+        var2(0.0, 0.0, 0.0)
+        var2(0.0, 0.0, 0.0)
+        >>> Var1._refweights
+        >>> var1.refweights
+        var2(0.0, 0.0, 0.0)
+
+        Passing |None| does not overwrite previously set references:
+
+        >>> Var1._refweights = var2
+        >>> with Var1.modify_refweights(None):
+        ...     Var1._refweights
+        ...     var1 = Var1(None)
+        ...     var1.refweights
+        var2(0.0, 0.0, 0.0)
+        var2(0.0, 0.0, 0.0)
+        >>> Var1._refweights
+        var2(0.0, 0.0, 0.0)
+        >>> var1.refweights
+        var2(0.0, 0.0, 0.0)
+        """
+        if refweights is None:
+            yield
+        else:
+            old = cls._refweights
+            try:
+                cls._refweights = refweights
+                yield
+            finally:
+                cls._refweights = old
 
     def __init__(self, subvars: SubVariables) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self.__valueready = False
         self.__shapeready = False
+        self._refweights = type(self)._refweights
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -1553,10 +1605,14 @@ its values to a 1-dimensional vector.
     def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
-        |Variable.average_values|.  Must be overwritten by subclasses when required."""
+        |Variable.average_values|.
+
+        Must be overwritten by subclasses when required."""
+        if (refweights := self._refweights) is not None:
+            return refweights
         raise AttributeError(
-            f"Variable {objecttools.devicephrase(self)} does "
-            f"not define any weighting coefficients."
+            f"Variable {objecttools.devicephrase(self)} does not define any weighting "
+            f"coefficients."
         )
 
     def average_values(self, *args, **kwargs) -> float:
@@ -1774,9 +1830,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 mask = mask + self._prepare_mask(key, masks, **value)
             if mask not in self.mask:
                 raise ValueError(
-                    f"Based on the arguments `{args}` and `{kwargs}` "
-                    f"the mask `{repr(mask)}` has been determined, "
-                    f"which is not a submask of `{repr(self.mask)}`."
+                    f"Based on the arguments `{args}` and `{kwargs}` the mask "
+                    f"`{repr(mask)}` has been determined, which is not a submask of "
+                    f"`{repr(self.mask)}`."
                 )
             return mask
         return self.mask

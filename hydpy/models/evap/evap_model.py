@@ -9,8 +9,10 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
+from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_derived
+from hydpy.models.evap import evap_sequences
 from hydpy.models.evap import evap_inputs
 from hydpy.models.evap import evap_factors
 from hydpy.models.evap import evap_fluxes
@@ -887,8 +889,8 @@ class Calc_PotentialEvapotranspiration_V2(modeltools.Method):
         >>> GRASS, TREES, WATER = 1, 2, 3
         >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
         >>> from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
-        >>> with HRUType.modify_constants(constants), LandMonthFactor.modify_rows(
-        ...         constants.sortednames, 1):
+        >>> with HRUType.modify_constants(constants), \
+        ...         LandMonthFactor.modify_rows(constants):
         ...     from hydpy.models.evap import *
         ...     parameterstep()
         >>> nmbhru(2)
@@ -1197,35 +1199,69 @@ class Sub_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
 
     @staticmethod
     @contextlib.contextmanager
-    def transfer_constants(
-        constantgroups: ConstantGroups,
+    def share_configuration(
+        sharable_configuration: SharableConfiguration,
     ) -> Generator[None, None, None]:
-        """Take the |ConstantGroups.landtype| constants to temporarily adjust the
-        parameters |evap_control.HRUType| and |evap_control.LandMonthFactor| to the
-        current main model.
+        """Take the `landtype_constants` data to adjust the parameters
+        |evap_control.HRUType| and |evap_control.LandMonthFactor|, the
+        `landtype_refindices` parameter instance to adjust the index references of all
+        parameters inherited from |evap_parameters.ZipParameter1D| and the `refweights`
+        parameter instance to adjust the weight references of all sequences inherited
+        from |evap_sequences.FactorSequence1D| or |evap_sequences.FluxSequence1D|,
+        temporarily:
 
-        >>> from hydpy.core.parametertools import Constants
-        >>> constants = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> from hydpy.core.parametertools import Constants, NameParameter, Parameter
+        >>> consts = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = consts
+        >>> class Subarea(Parameter):
+        ...     ...
         >>> from hydpy.models.evap.evap_model import Sub_PETModel_V1
-        >>> with Sub_PETModel_V1.transfer_constants({"landtype": constants}):
+        >>> with Sub_PETModel_V1.share_configuration(
+        ...         {"landtype_constants": consts,
+        ...          "landtype_refindices": LandType,
+        ...          "refweights": Subarea}):
         ...     from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
         ...     HRUType.constants
         ...     LandMonthFactor.rowmin, LandMonthFactor.rownames
+        ...     from hydpy.models.evap.evap_parameters import ZipParameter1D
+        ...     ZipParameter1D.refindices.__name__
+        ...     ZipParameter1D._refweights.__name__
+        ...     from hydpy.models.evap.evap_sequences import FactorSequence1D, \
+FluxSequence1D
+        ...     FactorSequence1D._refweights.__name__
+        ...     FluxSequence1D._refweights.__name__
         {'GRASS': 1, 'TREES': 3, 'WATER': 2}
         (1, ('grass', 'water', 'trees'))
+        'LandType'
+        'Subarea'
+        'Subarea'
+        'Subarea'
         >>> HRUType.constants
         {'ANY': 1}
         >>> LandMonthFactor.rowmin, LandMonthFactor.rownames
-        (0, ('any',))
+        (0, ('ANY',))
+        >>> ZipParameter1D.refindices
+        >>> ZipParameter1D._refweights
+        >>> FactorSequence1D._refweights
+        >>> FluxSequence1D._refweights
         """
-        if (landtype := constantgroups["landtype"]) is not None:
-            with evap_control.HRUType.modify_constants(
-                landtype
-            ), evap_control.LandMonthFactor.modify_rows(
-                landtype.sortednames, min(landtype.values())
-            ):
-                yield
-        else:
+        with evap_control.HRUType.modify_constants(
+            sharable_configuration["landtype_constants"]
+        ), evap_control.LandMonthFactor.modify_rows(
+            sharable_configuration["landtype_constants"]
+        ), evap_parameters.ZipParameter1D.modify_refindices(
+            sharable_configuration["landtype_refindices"]
+        ), evap_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), evap_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), evap_sequences.FactorSequence1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), evap_sequences.FluxSequence1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ):
             yield
 
     @importtools.define_targetparameter(evap_control.NmbHRU)

@@ -10,7 +10,7 @@ from hydpy.models.wland import wland_constants
 class Complete(masktools.IndexMask):
     """Mask including all land use types."""
 
-    RELEVANT_VALUES = tuple(wland_constants.LANDUSE_CONSTANTS.values())
+    relevant = tuple(wland_constants.LANDUSE_CONSTANTS.values())
 
     @staticmethod
     def get_refindices(variable):

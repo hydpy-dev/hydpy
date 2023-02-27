@@ -4,6 +4,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.evap import evap_sequences
 
 
 class NetShortwaveRadiation(sequencetools.FluxSequence):
@@ -12,34 +13,34 @@ class NetShortwaveRadiation(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class NetLongwaveRadiation(sequencetools.FluxSequence):
+class NetLongwaveRadiation(evap_sequences.FluxSequence1D):
     """Net longwave radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class NetRadiation(sequencetools.FluxSequence):
+class NetRadiation(evap_sequences.FluxSequence1D):
     """Total net radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class SoilHeatFlux(sequencetools.FluxSequence):
+class SoilHeatFlux(evap_sequences.FluxSequence1D):
     """Soil heat flux [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class ReferenceEvapotranspiration(sequencetools.FluxSequence):
+class ReferenceEvapotranspiration(evap_sequences.FluxSequence1D):
     """Reference (grass) evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class PotentialEvapotranspiration(sequencetools.FluxSequence):
+class PotentialEvapotranspiration(evap_sequences.FluxSequence1D):
     """Potential (land use-specific) evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
 class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):

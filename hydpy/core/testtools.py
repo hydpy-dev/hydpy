@@ -1823,15 +1823,39 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
     <BLANKLINE>
 
-    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on the `len`
-    attribute of 1-dimensional sequences.  Function |check_selectedvariables| does not
-    report false alarms in such cases:
+    Some methods, such as |arma_model.Pick_Q_V1|, of base model |arma| rely on the
+    `len` attribute of 1-dimensional sequences.  Function |check_selectedvariables|
+    does not report false alarms in such cases:
 
     >>> from hydpy.models.arma.arma_model import Pick_Q_V1
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
 
-    Some methods such as |lland_model.Update_ESnow_V1| of base model |lland| update a
+    Some methods such as |evap_model.Calc_PotentialEvapotranspiration_V1| of base model
+    |evap| rely on the |KeywordParameter1D.entrymin| attribute of |KeywordParameter1D|
+    instances.  Function |check_selectedvariables| does not report false alarms in such
+    cases:
+
+    >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V1
+    >>> from hydpy.models.evap.evap_control import MonthFactor
+    >>> MonthFactor in Calc_PotentialEvapotranspiration_V1.CONTROLPARAMETERS
+    True
+    >>> print(check_selectedvariables(Calc_PotentialEvapotranspiration_V1))
+    <BLANKLINE>
+
+    Some methods, such as |evap_model.Calc_PotentialEvapotranspiration_V2| of base
+    model |evap|, rely on the |KeywordParameter2D.rowmin| or the
+    |KeywordParameter2D.columnmin| attribute of |KeywordParameter2D| instances.
+    Function |check_selectedvariables| does not report false alarms in such cases:
+
+    >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V2
+    >>> from hydpy.models.evap.evap_control import LandMonthFactor
+    >>> LandMonthFactor in Calc_PotentialEvapotranspiration_V2.CONTROLPARAMETERS
+    True
+    >>> print(check_selectedvariables(Calc_PotentialEvapotranspiration_V2))
+    <BLANKLINE>
+
+    Some methods, such as |lland_model.Update_ESnow_V1| of base model |lland|, update a
     sequence (meaning, they require its old value and calculate a new one), but their
     submethods (in this case |lland_model.Return_BackwardEulerError_V1|) just require
     them as input.  Function |check_selectedvariables| does not report false alarms in

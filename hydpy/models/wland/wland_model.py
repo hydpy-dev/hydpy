@@ -2774,7 +2774,9 @@ class Main_PETModel_V1(modeltools.ELSModel):
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
         petinterfaces.PETModel_V1.prepare_zonetypes,
-        landtype=wland_constants.LANDUSE_CONSTANTS,
+        landtype_constants=wland_constants.LANDUSE_CONSTANTS,
+        landtype_refindices=wland_control.LT,
+        refweights=wland_control.AUR,
     )
     def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
@@ -2786,12 +2788,23 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> nu(2)
         >>> al(10.0)
         >>> aur(0.2, 0.8)
-        >>> lt(FIELD)
+        >>> lt(FIELD, TREES)
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     nmbhru
+        ...     hruarea
+        ...     evapotranspirationfactor(field=1.0, trees=2.0)
         nmbhru(2)
-        >>> model.petmodel.parameters.control.hruarea
         hruarea(2.0, 8.0)
+
+        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
+        >>> etf
+        evapotranspirationfactor(field=1.0, trees=2.0)
+        >>> lt(TREES, FIELD)
+        >>> etf
+        evapotranspirationfactor(field=2.0, trees=1.0)
+        >>> from hydpy import round_
+        >>> round_(etf.average_values())
+        1.8
         """
         self.petmodel = petmodel
         control = self.parameters.control
@@ -2814,9 +2827,12 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> as_(5.0)
         >>> with model.add_pemodel_v1("evap_tw2002"):
         ...     nmbhru
+        ...     hruarea
+        ...     evapotranspirationfactor(2.0)
         nmbhru(1)
-        >>> model.pemodel.parameters.control.hruarea
         hruarea(5.0)
+        >>> model.pemodel.parameters.control.evapotranspirationfactor
+        evapotranspirationfactor(2.0)
         """
         self.pemodel = pemodel
         control = self.parameters.control

@@ -4,12 +4,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.evap import evap_sequences
 
 
-class AdjustedAirTemperature(sequencetools.FactorSequence):
+class AdjustedAirTemperature(evap_sequences.FactorSequence1D):
     """Adjusted air temperature [°C]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
 class AdjustedWindSpeed(sequencetools.FactorSequence):
@@ -18,22 +19,22 @@ class AdjustedWindSpeed(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
-class SaturationVapourPressure(sequencetools.FactorSequence):
+class SaturationVapourPressure(evap_sequences.FactorSequence1D):
     """Saturation vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class SaturationVapourPressureSlope(sequencetools.FactorSequence):
+class SaturationVapourPressureSlope(evap_sequences.FactorSequence1D):
     """The slope of the saturation vapour pressure curve [hPa/K]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class ActualVapourPressure(sequencetools.FactorSequence):
+class ActualVapourPressure(evap_sequences.FactorSequence1D):
     """Actual vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
 class PsychrometricConstant(sequencetools.FactorSequence):

@@ -44,10 +44,10 @@ class HRUArea(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class Altitude(parametertools.Parameter):
+class Altitude(evap_parameters.ZipParameter1D):
     """The altitude of each hydrological response unit [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE, TIME, SPAN = float, None, (None, None)
     INIT = 0.0
 
 
@@ -58,25 +58,25 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
     INIT = 10.0
 
 
-class AirTemperatureAddend(parametertools.Parameter):
+class AirTemperatureAddend(evap_parameters.ZipParameter1D):
     """Adjustment addend for air temperature [K]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE, TIME, SPAN = float, None, (None, None)
     INIT = 0.0
 
 
-class CoastFactor(parametertools.Parameter):
+class CoastFactor(evap_parameters.ZipParameter1D):
     """The "coast factor" of Turc-Wendling's reference evapotranspiration equation
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.6, 1.0)
+    TYPE, TIME, SPAN = float, None, (0.6, 1.0)
     INIT = 1.0
 
 
-class EvapotranspirationFactor(parametertools.Parameter):
+class EvapotranspirationFactor(evap_parameters.ZipParameter1D):
     """The adjustment factor for potential evapotranspiration [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
     INIT = 1.0
 
 

@@ -2666,12 +2666,13 @@ class SubmodelInterface(Model, abc.ABC):
 
     @staticmethod
     @contextlib.contextmanager
-    def transfer_constants(
-        constantgroups: ConstantGroups,  # pylint: disable=unused-argument
+    def share_configuration(  # pylint: disable=unused-argument
+        sharable_configuration: SharableConfiguration,
     ) -> Generator[None, None, None]:
-        """Transfer the main model constants to the submodel temporarily.
+        """Share class-level configurations between a main model and a submodel
+        temporarily.
 
-        The default implementation of method |SubmodelInterface.transfer_constants|
+        The default implementation of method |SubmodelInterface.share_configuration|
         does nothing.  Submodels can overwrite it to adjust their classes to the
         current main model during initialisation.
         """

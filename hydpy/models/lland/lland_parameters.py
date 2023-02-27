@@ -38,13 +38,13 @@ class ParameterComplete(parametertools.ZipParameter):
     2.0
     """
 
-    MODEL_CONSTANTS = CONSTANTS
+    constants = dict(CONSTANTS.items())
     mask = lland_masks.Complete()
 
     @property
     def refweights(self):
-        """Alias for the associated instance of |FHRU| for calculating
-        areal mean values."""
+        """Alias for the associated instance of |FHRU| for calculating areal mean
+        values."""
         return self.subpars.pars.derived.absfhru
 
 

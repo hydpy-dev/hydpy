@@ -86,7 +86,10 @@ Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
+NDArrayObject = NDArray[numpy.generic]
 NDArrayFloat = NDArray[numpy.float_]
+NDArrayInt = NDArray[numpy.int_]
+NDArrayBool = NDArray[numpy.bool_]
 
 Vector = NDArray[T]
 VectorObject = NDArray[numpy.generic]
@@ -133,13 +136,21 @@ ArrayFloat = TypeVar(
 )
 
 
-class ConstantGroups(TypedDict):
-    """Groups of constants of different types."""
+class SharableConfiguration(TypedDict):
+    """Specification of the configuration data that main models can share with their
+    submodels."""
 
-    landtype: Optional[parametertools.Constants]
-    """Land use type-related constants."""
-    soiltype: Optional[parametertools.Constants]
+    landtype_constants: Optional[parametertools.Constants]
+    """Land cover type-related constants."""
+    soiltype_constants: Optional[parametertools.Constants]
     """Soil type-related constants."""
+    landtype_refindices: Optional[parametertools.NameParameter]
+    """Reference to a land cover type-related index parameter."""
+    soiltype_refindices: Optional[parametertools.NameParameter]
+    """Reference to a soil type-related index parameter."""
+    refweights: Optional[parametertools.Parameter]
+    """Reference to a weighting parameter (probably handling the size of some 
+    computational subunits like the area of hydrological response units)."""
 
 
 DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
@@ -187,7 +198,6 @@ __all__ = [
     "Callable",
     "cast",
     "Concatenate",
-    "ConstantGroups",
     "ClassVar",
     "Collection",
     "ContextManager",
@@ -230,7 +240,10 @@ __all__ = [
     "Name",
     "NamedTuple",
     "NDArray",
+    "NDArrayBool",
     "NDArrayFloat",
+    "NDArrayInt",
+    "NDArrayObject",
     "Never",
     "NewType",
     "NoReturn",
@@ -247,6 +260,7 @@ __all__ = [
     "Sequence1",
     "Sequence2",
     "Sequence3",
+    "SharableConfiguration",
     "Sized",
     "StepSize",
     "T",

@@ -32,7 +32,6 @@ WITH_CAPPILARY_RISE	True
 DEGREE_DAY_FACTOR	4.5
 PRECIP_RICHTER_CORRECTION	False # noch nicht implementiert
 EVAPORATION_MODE	FAO # noch nicht implementiert
-CELLSIZE	100
 NODATA_VALUE	-9999.0
 
 Paths are given relative to the base directory, which has to be defined when starting
@@ -92,8 +91,7 @@ class Positionbounds(NamedTuple):
     colmax: int
 
     @classmethod
-    def from_elementnames(cls, elements: Iterable[Sequence[str]]) -> \
-            "Positionbounds":
+    def from_elementnames(cls, elements: hydpy.Elements) -> "Positionbounds":
         """
         Extract the grid cell position from the names of the |Element|
         objects handling the given sequences.
@@ -139,26 +137,25 @@ def _collect_hrus(
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data.csv")
     >>> landuse_dict = read_landuse(filepath_landuse=os.path.join(basedir,
     ... "nutzung.txt"))
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=11, landuse_dict=landuse_dict)
-    {'nested_dict_nr-0': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, 'x': 3455723.97, \
-'y': 5567507.03, 'area': 10000.0, 'f_area': 3500.0, 'nutz_nr': 'NADELWALD', \
-'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
-'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', 'init_boden': 50.0, \
-'init_gwn': 40.0}, 'nested_dict_nr-1': {'id': 11, 'f_id': 12, 'row': 4, 'col': 3, \
-'x': 3455723.97, 'y': 5567507.03, 'area': 10000.0, 'f_area': 3500.0, 'nutz_nr': \
-'LAUBWALD', 'bodentyp': 'TON', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, \
-'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2847355, 'verzoegerung': '10', \
-'init_boden': 50.0, 'init_gwn': 40.0}, 'nested_dict_nr-2': {'id': 11, 'f_id': 13, \
-'row': 4, 'col': 3, 'x': 3455723.97, 'y': 5567507.03, 'area': 10000.0, 'f_area': \
-3000.0, 'nutz_nr': 'ZUCKERRUEBEN', 'bodentyp': 'SAND', 'nfk100_mittel': 90.6, \
-'nfk_faktor': 1.0, 'nfk_offset': 0.0, 'flurab': 2.9, 'bfi': 0.2871167, \
-'verzoegerung': '10', 'init_boden': 50.0, 'init_gwn': 40.0}}
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse_dict)
+    {'nested_dict_nr-0': {'id': 2, 'f_id': 2, 'row': 1, 'col': 3, 'x': 3455723.97, \
+'y': 5567807.03, 'area': 10000.0, 'f_area': 10000.0, 'nutz_nr': 'NADELWALD', \
+'bodentyp': 'LEHM', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
+'flurab': 2.9, 'bfi': 0.2759066, 'verzoegerung': 'flurab_probst', 'init_boden': 30.0, \
+'init_gwn': 0.0}}
+
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
     >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse_dict)
     Traceback (most recent call last):
     ...
     KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
 id 4 angesetzt wird ist nicht definiert"
+    >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong2.csv")
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse_dict)
+    Traceback (most recent call last):
+    ...
+    ValueError: 'verzoegerung' muss den Datentyp float enthalten oder die Option \
+'flurab_probst'
     """
     result: Dict[str, Dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
@@ -178,6 +175,21 @@ id 4 angesetzt wird ist nicht definiert"
             extended_hrus.loc[n_hrus, "nutz_nr"] = luse.upper()
             extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
             n_hrus += 1
+
+    def convert_datatype_verzoegerung(x: str):
+        """Konvertiere verzögreung in float, wenn es eine Zahl ist."""
+        if x != "flurab_probst":
+            return float(x)
+        return x
+
+    try:
+        extended_hrus["verzoegerung"] = extended_hrus["verzoegerung"].apply(
+            convert_datatype_verzoegerung)
+    except ValueError:
+        raise ValueError(
+            "'verzoegerung' muss den Datentyp float enthalten "
+            "oder die Option 'flurab_probst'"
+        ) from None
 
     # hru in nutzungstabelle prüfen, wenn ja: aufteilen ansonsten Fehler
     for i in range(len(extended_hrus)):
@@ -367,8 +379,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
     ncols         3
     nrows         4
-    xllcorner     3455523.97
-    yllcorner     5567507.03
+    xllcorner     3455473.97
+    yllcorner     5567457.03
     cellsize      100.0
     nodata_value  -9999.0
     1.214336347305395997e-01 2.756969582493974946e-01 1.019920974452210999e-01
@@ -528,53 +540,72 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
      4.4418e-009 2.3116e-009 6.3612e-009
      6.7004e-009 6.4698e-009 5.2662e-009
     <BLANKLINE>
+
+    If we interpolate with NN instead of IDW:
+    >>> whmod_main = os.path.join(projectpath, "WHMod_Main.txt")
+    >>> inplace_change(filename=whmod_main, old_string="IDW", new_string="NN")
+    >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
+    Start WHMOD calculations (...).
+    Initialize WHMOD (...).
+    Apply the Richter correction (...).
+    Interpolate Temperature data to precipitation station (Richter correction) (...).
+    method simulate started at ...
+        |---------------------|
+        ***********************
+        seconds elapsed: ...
+    Start WHMOD simulation (...).
+    method simulate started at ...
+        |---------------------|
+        ***********************
+        seconds elapsed: ...
+    Write Output in ...Results (...).
+    Mean AktGrundwasserneubildung [mm/a]: 48.04494178550079
+    Mean VerzGrundwasserneubildung [mm/a]: 45.51430122069659
+    Mean NiederschlagRichter [mm/a]: 637.5548951407835
+    Mean InterzeptionsVerdunstung [mm/a]: 105.30922238660555
+
+    ...testsetup::
+
+        >>> del hydpy.pub.timegrids
+        >>> from hydpy.core.devicetools import Element, Node
+        >>> Element.clear_all()
+        >>> Node.clear_all()
     """
     write_output = objecttools.value2bool(argument="write_output", value=write_output)
     write_output_ = print_hydpy_progress(write_output=write_output)
 
     whmod_main = read_whmod_main(basedir)
 
-    person_in_charge = whmod_main["PERSON_IN_CHARGE"][1].strip()
-    hydpy_version = whmod_main["HYDPY_VERSION"][1].strip()
+    check_hydpy_version(hydpy_version=whmod_main["HYDPY_VERSION"])
 
-    check_hydpy_version(hydpy_version=hydpy_version)
-
-    outputdir = os.path.join(basedir, whmod_main["OUTPUTDIR"][1].strip())
-    filename_node_data = whmod_main["FILENAME_NODE_DATA"][1].strip()
-    filename_timeseries = whmod_main["FILENAME_TIMESERIES"][1].strip()
-    filename_station_data = whmod_main["FILENAME_STATION_DATA"][1].strip()
-    filename_landuse = whmod_main["FILENAME_LANDUSE"][1].strip()
-    with_capillary_rise = whmod_main["WITH_CAPPILARY_RISE"][1].strip()
-    day_degree_factor = whmod_main["DEGREE_DAY_FACTOR"][1].strip()
-    root_depth_option = whmod_main["ROOT_DEPTH_OPTION"][1].strip()
-    simulation_start = whmod_main["SIMULATION_START"][1].strip()
-    simulation_end = whmod_main["SIMULATION_END"][1].strip()
-    frequence = whmod_main["FREQUENCE"][1].strip()
-    richter = bool(
-        whmod_main["PRECIP_RICHTER_CORRECTION"][1].strip() in ("True", "true", 1)
-    )
-    cellsize = float(whmod_main["CELLSIZE"][1].strip())
-    nodata_value = whmod_main["NODATA_OUTPUT_VALUE"][1].strip()
-    outputconfig = [
-        stepsize.strip() for stepsize in whmod_main["OUTPUTCONFIG"][1].split(",")
-    ]
-
-    hydpy.pub.timegrids = simulation_start, simulation_end, frequence
-    hydpy.pub.options.parameterstep = frequence
+    hydpy.pub.timegrids = whmod_main["SIMULATION_START"], whmod_main[
+        "SIMULATION_END"], whmod_main["FREQUENCE"]
+    hydpy.pub.options.parameterstep = whmod_main["FREQUENCE"]
     hydpy.pub.options.checkseries = False
 
     df_knoteneigenschaften = read_nodeproperties(
-        basedir=basedir, filename_node_data=filename_node_data
+        basedir=basedir, filename_node_data=whmod_main["FILENAME_NODE_DATA"]
     )
-    filepath_landuse = os.path.join(basedir, filename_landuse)
+    # Define Loggers according to OUTPUTCONFIG
+    loggers = []
+    for file in whmod_main["OUTPUTCONFIG"]:
+        loggers.append(read_outputconfig(basedir=basedir, outputconfigfile=file))
+    write_ascii = any("name_mean_file" in logger for logger in loggers)
+    cellsize = check_raster(
+        df_knoteneigenschaften=df_knoteneigenschaften,
+        check_regular_grid=write_ascii,
+        area_precision=whmod_main["AREA_PRECISION"],
+    )
+    filepath_landuse = os.path.join(basedir, whmod_main["FILENAME_LANDUSE"])
 
     landuse_dict = read_landuse(filepath_landuse=filepath_landuse)
 
     df_stammdaten = read_stationdata(
-        os.path.join(basedir, filename_station_data), richter=richter
+        os.path.join(basedir, whmod_main["FILENAME_STATION_DATA"]),
+        richter=whmod_main["PRECIP_RICHTER_CORRECTION"]
     )
     root_depth_dict = read_root_depth(
-        root_depth_option=root_depth_option, basedir=basedir
+        root_depth_option=whmod_main["ROOT_DEPTH_OPTION"], basedir=basedir
     )
 
     # define Selections
@@ -601,8 +632,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         temp_selection_raster=temp_selection_raster,
         evap_selection_raster=evap_selection_raster,
         whmod_selection=whmod_selection,
-        with_capillary_rise=with_capillary_rise,
-        day_degree_factor=day_degree_factor,
+        with_capillary_rise=whmod_main["WITH_CAPPILARY_RISE"],
+        day_degree_factor=whmod_main["DEGREE_DAY_FACTOR"],
         root_depth=root_depth_dict,
         node2xy=node2xy,
         landuse_dict=landuse_dict,
@@ -610,17 +641,18 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
 
     _initialize_weather_stations(
         df_stammdaten=df_stammdaten,
-        richter=richter,
+        richter=whmod_main["PRECIP_RICHTER_CORRECTION"],
         cssr_selection_stat=cssr_selection_stat,
         gsr_selection_stat=gsr_selection_stat,
         meteo_selection_stat=meteo_selection_stat,
         evap_selection_stat=evap_selection_stat,
         temp_selection_stat=temp_selection_stat,
         prec_selection_stat=prec_selection_stat,
-        filename_timeseries=filename_timeseries,
+        filename_timeseries=whmod_main["FILENAME_TIMESERIES"],
         basedir=basedir,
         node2xy=node2xy,
         write_output=write_output_,
+        interpolation_method=whmod_main["INTERPOLATION_MODE"],
     )
 
     _initialize_conv_models(
@@ -631,6 +663,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         prec_selection_stat=prec_selection_stat,
         prec_selection_raster=prec_selection_raster,
         node2xy=node2xy,
+        interpolation_method=whmod_main["INTERPOLATION_MODE"],
     )
 
     # Merge Selections
@@ -660,10 +693,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     for element in hp.elements:
         element.model.parameters.update()
 
-    # Define Loggers according to OUTPUTCONFIG
-    loggers = []
-    for file in outputconfig:
-        loggers.append(read_outputconfig(basedir=basedir, outputconfigfile=file))
     hydpy.pub.selections += hydpy.Selection(
         name="complete", nodes=hp.nodes, elements=hp.elements
     )
@@ -671,7 +700,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         hydpy.pub.selections["complete"].search_modeltypes("whmod_pet").elements
     )
 
-    seriesdir = os.path.join(outputdir, "series")
+    seriesdir = os.path.join(whmod_main["OUTPUTDIR"], "series")
     if os.path.exists(seriesdir):
         shutil.rmtree(seriesdir)
     hydpy.pub.sequencemanager.currentdir = seriesdir
@@ -689,21 +718,21 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     hp.simulate()
 
     hydpy.pub.sequencemanager.overwrite = True
-    hydpy.pub.sequencemanager.currentdir = outputdir
+    hydpy.pub.sequencemanager.currentdir = whmod_main["OUTPUTDIR"]
 
     if write_output:
-        commandtools.print_textandtime(f"Write Output in {outputdir}")
+        commandtools.print_textandtime(f"Write Output in {whmod_main['OUTPUTDIR']}")
 
     aggregated_series = aggregate_whmod_series(loggers=loggers, seriesdir=seriesdir)
 
     save_results(
         aggregated_series=aggregated_series,
         loggers=loggers,
-        outputdir=outputdir,
+        outputdir=whmod_main["OUTPUTDIR"],
         cellsize=cellsize,
         df_knoteneigenschaften=df_knoteneigenschaften,
-        person_in_charge=person_in_charge,
-        nodata_value=nodata_value,
+        person_in_charge=whmod_main["PERSON_IN_CHARGE"],
+        nodata_value=whmod_main["NODATA_OUTPUT_VALUE"],
     )
 
 
@@ -893,7 +922,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
     return df_knoteneigenschaften
 
 
-def read_whmod_main(basedir: str) -> pandas.DataFrame:
+def read_whmod_main(basedir: str) -> Dict[str, Any]:
     """
     Read the whmod main file.
     >>> from hydpy import TestIO
@@ -902,9 +931,16 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
     >>> pandas.set_option('display.expand_frame_repr', False)
 
     # pylint: disable=line-too-long
-    >>> read_whmod_main(basedir=basedir)
-    0 PERSON_IN_CHARGE HYDPY_VERSION OUTPUTDIR FILENAME_NODE_DATA FILENAME_TIMESERIES FILENAME_STATION_DATA FILENAME_LANDUSE   ROOT_DEPTH_OPTION SIMULATION_START SIMULATION_END FREQUENCE WITH_CAPPILARY_RISE DEGREE_DAY_FACTOR PRECIP_RICHTER_CORRECTION EVAPORATION_MODE CELLSIZE NODATA_OUTPUT_VALUE                                       OUTPUTCONFIG
-    1   Max Mustermann         6.0a0   Results      Node_Data.csv          Timeseries      Station_Data.txt      nutzung.txt  max_root_depth.txt       1990-01-01     1992-01-01        1d                True               4.5                     True              FAO       100             -9999.0  Tageswerte.txt, Monatswerte.txt, Variablewerte...
+    >>> read_whmod_main(basedir=basedir) # doctest: +ELLIPSIS
+    {'PERSON_IN_CHARGE': 'Max Mustermann', 'HYDPY_VERSION': '6.0a0', 'OUTPUTDIR': \
+'...Results', 'FILENAME_NODE_DATA': 'Node_Data.csv', 'FILENAME_TIMESERIES': \
+'Timeseries', 'FILENAME_STATION_DATA': 'Station_Data.txt', 'FILENAME_LANDUSE': \
+'nutzung.txt', 'ROOT_DEPTH_OPTION': 'max_root_depth.txt', 'SIMULATION_START': \
+'1990-01-01', 'SIMULATION_END': '1992-01-01', 'FREQUENCE': '1d', \
+'WITH_CAPPILARY_RISE': True, 'DEGREE_DAY_FACTOR': 4.5, 'PRECIP_RICHTER_CORRECTION': \
+True, 'EVAPORATION_MODE': 'FAO # noch nicht implementiert', 'INTERPOLATION_MODE': \
+'IDW', 'NODATA_OUTPUT_VALUE': '-9999.0', 'OUTPUTCONFIG': ['Tageswerte.txt', \
+'Monatswerte.txt', 'Variablewerte.txt'], 'AREA_PRECISION': 1e-06}
 
     # pylint: enable=line-too-long
     """
@@ -915,6 +951,7 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
         "ROOT_DEPTH_OPTION": str,
         "FILENAME_NODE_DATA": str,
         "FILENAME_TIMESERIES": str,
+        "FILENAME_LANDUSE": str,
         "FILENAME_STATION_DATA": str,
         "SIMULATION_START": str,
         "SIMULATION_END": str,
@@ -923,18 +960,28 @@ def read_whmod_main(basedir: str) -> pandas.DataFrame:
         "DEGREE_DAY_FACTOR": float,
         "PRECIP_RICHTER_CORRECTION": bool,
         "EVAPORATION_MODE": str,
-        "CELLSIZE": int,
-        "NODATA_VALUE": float,
+        "NODATA_OUTPUT_VALUE": str,
         "OUTPUTCONFIG": str,
+        "AREA_PRECISION": float,
+        "INTERPOLATION_MODE": str,
     }
-    whmod_main = pandas.read_csv(
-        os.path.join(basedir, "WHMod_Main.txt"),
-        sep="\t",
-        comment="#",
-        header=None,
-        index_col=0,
-        dtype=dtype_whmod_main,
-    ).T
+    with open(
+        os.path.join(basedir, "WHMod_Main.txt"), encoding="utf-8", mode="r"
+    ) as infile:
+        reader = csv.reader(infile, delimiter="\t")
+        whmod_main = dict(
+            (rows[0], dtype_whmod_main[rows[0]](rows[1].strip()))
+            for rows in reader
+            if not rows[0].startswith("#")
+        )
+
+    if "AREA_PRECISION" not in whmod_main:
+        whmod_main["AREA_PRECISION"] = 1e-6
+    whmod_main["OUTPUTCONFIG"] = [
+        stepsize.strip() for stepsize in whmod_main["OUTPUTCONFIG"].split(",")
+    ]
+    whmod_main["OUTPUTDIR"] = os.path.join(basedir, whmod_main["OUTPUTDIR"])
+    assert whmod_main["INTERPOLATION_MODE"] in get_args(Literal["IDW", "NN"])
     return whmod_main
 
 
@@ -1081,8 +1128,8 @@ def read_outputconfig(
     >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
-'NiederschlagRichter', 'InterzeptionsVerdunstung'], 'steps': ['daily'], \
-'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], 'name_rch_file': \
+'NiederschlagRichter', 'InterzeptionsVerdunstung'], 'steps': \
+['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], 'name_rch_file': \
 ['daily_rch'], 'name_mean_file': ['daily_mean'], 'name_time_series': \
 ['daily_timeseries']}
 
@@ -1090,7 +1137,7 @@ def read_outputconfig(
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
 'NiederschlagRichter'], 'steps': [DatetimeIndex(['1990-01-01', '1990-02-01', \
 '1991-01-01', '1992-01-01'], dtype='datetime64[ns]', freq=None)], 'name_rch_file': \
-['user_rch'], 'name_mean_file': ['user_mean'], 'name_time_series': ['user_timeseries']}
+['user_rch'], 'name_time_series': ['user_timeseries']}
 
     >>> read_outputconfig(outputconfigfile="Variablewerte_wrong1.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -1312,20 +1359,13 @@ def _initialize_whmod_models(
         )
         con.bfi(_return_con_hru(hrus, "bfi")[0])
 
-        verzoegerung = str(_return_con_hru(hrus, "verzoegerung")[0])
+        verzoegerung = _return_con_hru(hrus, "verzoegerung")[0]
         if verzoegerung == "flurab_probst":
             flurab = _return_con_hru(hrus, "flurab")[0]
             assert isinstance(flurab, float)
             con.schwerpunktlaufzeit(flurab_probst=flurab)
         else:
-            try:
-                verzoegerung_flt = float(verzoegerung.replace(",", "."))
-            except ValueError:
-                raise ValueError(
-                    "'verzoegerung' muss den Datentyp float enthalten "
-                    "oder die Option 'flurab_probst"
-                ) from None
-            con.schwerpunktlaufzeit(verzoegerung_flt)
+            con.schwerpunktlaufzeit(verzoegerung)
 
         whmod.sequences.states.interzeptionsspeicher(0.0)
         whmod.sequences.states.schneespeicher(0.0)
@@ -1353,6 +1393,7 @@ def _initialize_weather_stations(
     basedir: str,
     node2xy: Dict[hydpy.Node, _XY],
     write_output: bool,
+    interpolation_method: Literal["IDW", "NN"],
 ) -> None:
     """In this function, the data from the weather stations is integrated in the
     temperature- and precipitation-nodes, as well as the meteo- and evap-elements.  The
@@ -1384,6 +1425,7 @@ def _initialize_weather_stations(
             stammdaten_in=df_stammdaten,
             timeseries_path=timeseries_path,
             write_output=write_output,
+            interpolation_method=interpolation_method,
         )
 
     # Iteration over Weather Stations
@@ -1622,65 +1664,6 @@ def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.chara
     return ns_art
 
 
-def _conv_models_temperature(
-    stammdaten_in: pandas.DataFrame, timeseries_path: str, write_output: bool
-) -> hydpy.Nodes:
-    """
-    Interpolate temperature data for Richter-correction.
-    """
-    if write_output:
-        commandtools.print_textandtime(
-            "Interpolate Temperature data to precipitation "
-            "station (for Richter correction)"
-        )
-    temperature_in = stammdaten_in[stammdaten_in["Messungsart"] == "Lufttemperatur"]
-    temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
-
-    hp_temperature = hydpy.HydPy("temperature")
-    in_coords_dict: Dict[str, Tuple[float, float]] = {}
-    out_coords_dict: Dict[str, Tuple[float, float]] = {}
-    e = hydpy.Element("conv_temperature_richter")
-
-    inlet_nodes = hydpy.Nodes()
-    outlet_nodes = hydpy.Nodes()
-    for _, input_station in temperature_in.iterrows():
-        name = "Tin_" + str(input_station["StationsNr"])
-        n = hydpy.Node(name)
-        n.deploymode = "obs"
-        n.sequences.obs.prepare_series()
-        n.sequences.obs.filepath = os.path.join(
-            timeseries_path, input_station["Dateiname"]
-        )
-        n.sequences.obs.load_series()
-        inlet_nodes.add_device(n)
-        # Coordinates
-        in_coords_dict[n.name] = _XY(rechts=input_station["X"], hoch=input_station["Y"])
-    for _, output_station in temperature_out.iterrows():
-        n = hydpy.Node("Tinterp_" + str(output_station["StationsNr"]))
-        n.deploymode = "newsim"
-        n.sequences.sim.prepare_series()
-        outlet_nodes.add_device(n)
-        # Coordinates
-        out_coords_dict[n.name] = _XY(
-            rechts=output_station["X"], hoch=output_station["Y"]
-        )
-
-    e.inlets = inlet_nodes
-    e.outlets = outlet_nodes
-    model_t = hydpy.prepare_model("conv_v002")
-    model_t.parameters.control.inputcoordinates(**in_coords_dict)
-    model_t.parameters.control.outputcoordinates(**out_coords_dict)
-    model_t.parameters.control.maxnmbinputs()
-    model_t.parameters.control.power(2.0)
-    e.model = model_t
-    e.model.parameters.update()
-
-    hp_temperature.update_devices(nodes=outlet_nodes + inlet_nodes, elements=e)
-    hp_temperature.simulate()
-
-    return outlet_nodes
-
-
 def _initialize_conv_models(
     evap_selection_stat: hydpy.Selection,
     evap_selection_raster: hydpy.Selection,
@@ -1689,6 +1672,7 @@ def _initialize_conv_models(
     prec_selection_stat: hydpy.Selection,
     prec_selection_raster: hydpy.Selection,
     node2xy: Dict[hydpy.Node, _XY],
+    interpolation_method: Literal["NN", "IDW"],
 ) -> None:
     """The conv models are based on the selections of the input data of the weather
     stations (evapselection_stat, tempselection_stat, precselection_stat) and their
@@ -1701,7 +1685,12 @@ def _initialize_conv_models(
         return {n.name: node2xy[n] for n in nodes}
 
     # Conv-Modell PET
-    conv_pet = hydpy.prepare_model("conv_v002")
+    if interpolation_method == "IDW":
+        conv_pet = hydpy.prepare_model("conv_v002")
+    elif interpolation_method == "NN":
+        conv_pet = hydpy.prepare_model("conv_v001")
+    else:
+        hydpy.core.objecttools.assert_never(interpolation_method)
     conv_pet.parameters.control.inputcoordinates(
         **_get_coordinatedict(evap_selection_stat.nodes)
     )
@@ -1709,7 +1698,8 @@ def _initialize_conv_models(
         **_get_coordinatedict(evap_selection_raster.nodes)
     )
     conv_pet.parameters.control.maxnmbinputs()
-    conv_pet.parameters.control.power(2.0)
+    if interpolation_method == "IDW":
+        conv_pet.parameters.control.power(2.0)
     element = hydpy.Element(
         "ConvPET", inlets=evap_selection_stat.nodes, outlets=evap_selection_raster.nodes
     )
@@ -1717,7 +1707,12 @@ def _initialize_conv_models(
     evap_selection_stat.elements.add_device(element)
 
     # Conv-Modell Temperature
-    conv_temp = hydpy.prepare_model("conv_v002")
+    if interpolation_method == "IDW":
+        conv_temp = hydpy.prepare_model("conv_v002")
+    elif interpolation_method == "NN":
+        conv_temp = hydpy.prepare_model("conv_v001")
+    else:
+        hydpy.core.objecttools.assert_never(interpolation_method)
     conv_temp.parameters.control.inputcoordinates(
         **_get_coordinatedict(temp_selection_stat.nodes)
     )
@@ -1725,7 +1720,8 @@ def _initialize_conv_models(
         **_get_coordinatedict(temp_selection_raster.nodes)
     )
     conv_temp.parameters.control.maxnmbinputs()
-    conv_temp.parameters.control.power(2.0)
+    if interpolation_method == "IDW":
+        conv_temp.parameters.control.power(2.0)
 
     element = hydpy.Element(
         "ConvTemp",
@@ -1735,7 +1731,13 @@ def _initialize_conv_models(
     element.model = conv_temp
     temp_selection_stat.elements.add_device(element)
 
-    conv_prec = hydpy.prepare_model("conv_v002")
+    # Conv-Modell Precipitation
+    if interpolation_method == "IDW":
+        conv_prec = hydpy.prepare_model("conv_v002")
+    elif interpolation_method == "NN":
+        conv_prec = hydpy.prepare_model("conv_v001")
+    else:
+        hydpy.core.objecttools.assert_never(interpolation_method)
     conv_prec.parameters.control.inputcoordinates(
         **_get_coordinatedict(prec_selection_stat.nodes)
     )
@@ -1743,7 +1745,8 @@ def _initialize_conv_models(
         **_get_coordinatedict(prec_selection_raster.nodes)
     )
     conv_prec.parameters.control.maxnmbinputs()
-    conv_prec.parameters.control.power(2.0)
+    if interpolation_method == "IDW":
+        conv_prec.parameters.control.power(2.0)
     element = hydpy.Element(
         "ConvPrec",
         inlets=prec_selection_stat.nodes,
@@ -1820,12 +1823,14 @@ def write_mean_file(
     """
     Writes file with means
     """
+    ncols = len(data.col)
+    nrows = len(data.row)
     with open(filepath, "w", encoding="utf-8") as gridfile:
         gridfile.write(
-            f"ncols         {len(data.col)}\n"
-            f"nrows         {len(data.row)}\n"
-            f"xllcorner     {df_knoteneigenschaften['x'].min()}\n"
-            f"yllcorner     {df_knoteneigenschaften['y'].min()}\n"
+            f"ncols         {ncols}\n"
+            f"nrows         {nrows}\n"
+            f"xllcorner     {df_knoteneigenschaften['x'].min()-cellsize/2}\n"
+            f"yllcorner     {df_knoteneigenschaften['y'].min()-cellsize/2}\n"
             f"cellsize      {cellsize}\n"
             f"nodata_value  {nodata_value}\n"
         )
@@ -1874,8 +1879,8 @@ def save_results(
     loggers: List[Dict[str, List[Union[str, pandas.DatetimeIndex]]]],
     outputdir: str,
     df_knoteneigenschaften: pandas.DataFrame,
-    cellsize: float,
     person_in_charge: str,
+    cellsize: float,
     nodata_value: str,
 ) -> None:
     """
@@ -1889,7 +1894,6 @@ def save_results(
             else:
                 name = str(i) + "_" + step + "_" + seq + "_" + unit
             grid = aggregated_series[name]
-            output = False
             if "name_rch_file" in logger.keys():
                 for filename in logger["name_rch_file"]:
                     filepath = os.path.join(outputdir, filename + "_" + seq + ".rch")
@@ -1903,7 +1907,6 @@ def save_results(
                     inplace_change(
                         filename=filepath, old_string="nan", new_string=nodata_value
                     )
-                    output = True
 
             if "name_time_series" in logger.keys():
                 for filename in logger["name_time_series"]:
@@ -1921,23 +1924,20 @@ def save_results(
                     inplace_change(
                         filename=filepath, old_string="nan", new_string=nodata_value
                     )
-                    output = True
             if "name_mean_file" in logger.keys():
                 for filename in logger["name_mean_file"]:
                     filepath = os.path.join(outputdir, filename + "_" + seq + ".txt")
                     write_mean_file(
                         filepath=filepath,
                         data=grid["mean"],
-                        cellsize=cellsize,
                         nodata_value=nodata_value,
                         df_knoteneigenschaften=df_knoteneigenschaften,
+                        cellsize=cellsize,
                     )
                     inplace_change(
                         filename=filepath, old_string="nan", new_string=nodata_value
                     )
-                    output = True
-            if not output:
-                raise ValueError("The outputfiles have to be ...")
+
 
 
 def prepare_rch(
@@ -2018,6 +2018,7 @@ def aggregate_whmod_series(
             name = log["name"]
             step = log["steps"]
             xarr_series.name = "_".join(name.split("_")[2:4])
+            unit = name.split("_")[-1]
 
             if "eval_period" in log:
                 freq = xarray.infer_freq(index=xarr_series.time)
@@ -2460,6 +2461,15 @@ def aggregate_flexible_series(
     ...
     ValueError: Aggregator `std` not defined
 
+    >>> agg_timegrid = pandas.DatetimeIndex(["2011-01-01 00:00:00",
+    ...                                      "2011-01-08 00:00:00",
+    ...                                      "2011-01-02 00:00:00"])
+    >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid,
+    ...     aggregator="mean")
+    Traceback (most recent call last):
+    ...
+    AssertionError: Output timesteps of user defined output have to be sorted
+
     >>> agg_timegrid = pandas.DatetimeIndex(["2001-01-01 00:00:00",
     ...                                      "2011-01-02 00:00:00",
     ...                                      "2011-01-08 00:00:00"])
@@ -2597,3 +2607,244 @@ def get_pandasindex() -> pandas.Index:
         (tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize + 1,
     )
     return index
+
+
+def check_raster(
+    df_knoteneigenschaften: pandas.DataFrame,
+    check_regular_grid: bool,
+    area_precision: float = 1e-6,
+) -> float:
+    """
+    Überprüfe, ob die eingegebenen Knoteneigenschaften den Ansprüchen entsprechen
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> df_knoteneigenschaften_orig = read_nodeproperties(basedir, "Node_Data.csv")
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften_orig,
+    ...     check_regular_grid=True)
+    100.0
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[12, "f_area"] = 7050
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Summe der HRU-Flächen entspricht nicht der Gesamtfläche (Zeile=4 \
+Spalte=3)
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[12, "y"] = 5567508.03
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: HRUS des Gebiets Zeile=4 Spalte=3 haben nicht alle die gleichen y-Werte
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[12, "x"] = 3455723.98
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: HRUS des Gebiets Zeile=4 Spalte=3 haben nicht alle die gleichen x-Werte
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["row"] == 2, "y"] = 5567707.3
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Abstände in y-Richtung sind nicht gleich, ASCII-Datei kann nicht \
+geschrieben werden
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=False)
+    nan
+
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["col"] == 2, "x"] = 3455623.7
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Abstände in x-Richtung sind nicht gleich, ASCII-Datei kann nicht \
+geschrieben weren
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[3, "y"] = 5567707.3
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Abstände in y-Richtung sind nicht gleich
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[3, "x"] = 3455523.9
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Abstände in x-Richtung sind nicht gleich
+    >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
+    >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["col"] == 2, "x"] += 10.
+    >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["col"] == 3, "x"] += 20.
+    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
+    ...     check_regular_grid=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: Zellgröße in x-Richtung ungleich Zellgröße in y-Richtung, ASCII-Datei \
+kann nicht geschrieben werden
+    """
+    ncols = len(df_knoteneigenschaften.groupby(["col"]))
+    nrows = len(df_knoteneigenschaften.groupby(["row"]))
+    x_values = numpy.full((ncols,), numpy.nan)
+    y_values = numpy.full((nrows,), numpy.nan)
+    for (row, col), cell in df_knoteneigenschaften.groupby(["row", "col"]):
+        if any(abs(cell["area"] - cell["f_area"].sum()) > area_precision):
+            raise ValueError(
+                f"Summe der HRU-Flächen entspricht nicht der "
+                f"Gesamtfläche (Zeile={row} Spalte={col})"
+            )
+        x_cell = cell["x"].unique()
+        if len(x_cell) > 1:
+            raise ValueError(
+                f"HRUS des Gebiets Zeile={row} Spalte={col} haben nicht "
+                f"alle die gleichen x-Werte"
+            )
+        if numpy.isnan(x_values[col - 1]):
+            x_values[col - 1] = x_cell[0]
+        else:
+            if x_values[col - 1] != x_cell[0] and check_regular_grid:
+                raise ValueError("Abstände in x-Richtung sind nicht gleich")
+        y_cell = cell["y"].unique()
+        if len(y_cell) > 1:
+            raise ValueError(
+                f"HRUS des Gebiets Zeile={row} Spalte={col} haben nicht "
+                f"alle die gleichen y-Werte"
+            )
+        if numpy.isnan(y_values[row - 1]):
+            y_values[row - 1] = y_cell[0]
+        else:
+            if y_values[row - 1] != y_cell[0] and check_regular_grid:
+                raise ValueError("Abstände in y-Richtung sind nicht gleich")
+    if check_regular_grid:
+        x_diff = numpy.unique(numpy.diff(x_values))
+        if len(x_diff) > 1:
+            raise ValueError(
+                "Abstände in x-Richtung sind nicht gleich, ASCII-Datei "
+                "kann nicht geschrieben weren"
+            )
+        delta_x: float = x_diff[0]
+        y_diff = numpy.unique(numpy.diff(y_values))
+        if len(y_diff) > 1:
+            raise ValueError(
+                "Abstände in y-Richtung sind nicht gleich, ASCII-Datei "
+                "kann nicht geschrieben werden"
+            )
+        delta_y = y_diff[0]
+        if abs(delta_x) != abs(delta_y):
+            raise ValueError(
+                "Zellgröße in x-Richtung ungleich Zellgröße in "
+                "y-Richtung, ASCII-Datei kann nicht geschrieben werden"
+            )
+        return delta_x
+    return numpy.nan
+
+
+def _conv_models_temperature(
+    stammdaten_in: pandas.DataFrame,
+    timeseries_path: str,
+    write_output: bool,
+    interpolation_method: Literal["IDW", "NN"],
+) -> hydpy.Nodes:
+    """
+    Interpolate temperature data for Richter-correction.
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> station_path = os.path.join(basedir, "Station_Data.txt")
+    >>> df_stammdaten = read_stationdata(path_station_data=station_path)
+    >>> timeseries_path = os.path.join(basedir, "Timeseries")
+    >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
+    >>> niederschlag_temperature_nodes = _conv_models_temperature(
+    ...     stammdaten_in=df_stammdaten,
+    ...     timeseries_path=timeseries_path,
+    ...     write_output=False,
+    ...     interpolation_method="NN",
+    ... )
+    >>> niederschlag_temperature_nodes["Tinterp_1"].sequences.sim.series
+    InfoArray([14.7, 13.3, 14.6, 17.9, 17.4, 15.7, 14.4, 12.7, 12. , 14.1])
+    >>> niederschlag_temperature_nodes = _conv_models_temperature(
+    ...     stammdaten_in=df_stammdaten,
+    ...     timeseries_path=timeseries_path,
+    ...     write_output=False,
+    ...     interpolation_method="IDW",
+    ... )
+    >>> niederschlag_temperature_nodes["Tinterp_1"].sequences.sim.series
+    InfoArray([13.02556522, 13.07967963, 13.71871854, 15.82898856,
+               16.12214188, 14.15775744, 12.46118078, 10.84930893,
+               10.32556522, 12.33743707])
+
+    ...testsetup::
+
+        >>> del hydpy.pub.timegrids
+        >>> from hydpy.core.devicetools import Element, Node
+        >>> Element.clear_all()
+        >>> Node.clear_all()
+    """
+    if write_output:
+        commandtools.print_textandtime(
+            "Interpolate Temperature data to precipitation "
+            "station (Richter correction)"
+        )
+        hydpy.pub.options.printprogress = True
+    else:
+        hydpy.pub.options.printprogress = False
+    temperature_in = stammdaten_in[stammdaten_in["Messungsart"] == "Lufttemperatur"]
+    temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
+
+    hp_temperature = hydpy.HydPy("temperature")
+    in_coords_dict: Dict[str, Tuple[float, float]] = {}
+    out_coords_dict: Dict[str, Tuple[float, float]] = {}
+    e = hydpy.Element("conv_temperature_richter")
+
+    inlet_nodes = hydpy.Nodes()
+    outlet_nodes = hydpy.Nodes()
+    for _, input_station in temperature_in.iterrows():
+        name = "Tin_" + str(input_station["StationsNr"])
+        n = hydpy.Node(name)
+        n.deploymode = "obs"
+        n.sequences.obs.prepare_series()
+        n.sequences.obs.filepath = os.path.join(
+            timeseries_path, input_station["Dateiname"]
+        )
+        with hydpy.pub.options.checkseries(False):
+            n.sequences.obs.load_series()
+        inlet_nodes.add_device(n)
+        # Coordinates
+        in_coords_dict[n.name] = _XY(rechts=input_station["X"], hoch=input_station["Y"])
+    for _, output_station in temperature_out.iterrows():
+        n = hydpy.Node("Tinterp_" + str(output_station["StationsNr"]))
+        n.deploymode = "newsim"
+        n.sequences.sim.prepare_series()
+        outlet_nodes.add_device(n)
+        # Coordinates
+        out_coords_dict[n.name] = _XY(
+            rechts=output_station["X"], hoch=output_station["Y"]
+        )
+
+    e.inlets = inlet_nodes
+    e.outlets = outlet_nodes
+    # Conv-Modell Temperature
+    if interpolation_method == "IDW":
+        model_t = hydpy.prepare_model("conv_v002")
+    elif interpolation_method == "NN":
+        model_t = hydpy.prepare_model("conv_v001")
+    else:
+        hydpy.core.objecttools.assert_never(interpolation_method)
+    model_t.parameters.control.inputcoordinates(**in_coords_dict)
+    model_t.parameters.control.outputcoordinates(**out_coords_dict)
+    model_t.parameters.control.maxnmbinputs()
+    if interpolation_method == "IDW":
+        model_t.parameters.control.power(2.0)
+    e.model = model_t
+    e.model.parameters.update()
+
+    hp_temperature.update_devices(nodes=outlet_nodes + inlet_nodes, elements=e)
+    hp_temperature.simulate()
+
+    return outlet_nodes

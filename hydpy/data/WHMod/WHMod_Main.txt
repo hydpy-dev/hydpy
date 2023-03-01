@@ -15,6 +15,7 @@ WITH_CAPPILARY_RISE	True
 DEGREE_DAY_FACTOR	4.5
 PRECIP_RICHTER_CORRECTION	True # noch nicht implementiert
 EVAPORATION_MODE	FAO # noch nicht implementiert
-CELLSIZE	100
+# Mögliche Werte: IDW (Inverse-Distance-Weighting), NN (Nearest-Neighbour)
+INTERPOLATION_MODE	IDW
 NODATA_OUTPUT_VALUE	-9999.0
 OUTPUTCONFIG	Tageswerte.txt, Monatswerte.txt, Variablewerte.txt

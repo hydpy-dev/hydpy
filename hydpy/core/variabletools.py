@@ -1021,7 +1021,9 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
 
-    mask = masktools.DefaultMask()
+    mask = masktools.DefaultMask(
+        doc="The standard mask used by all variables (if not overwritten)."
+    )
 
     @classmethod
     @contextlib.contextmanager

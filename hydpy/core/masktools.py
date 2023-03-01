@@ -26,8 +26,10 @@ class BaseMask(NDArrayBool):
 
     name: str
 
-    def __new__(cls, array=None, **kwargs) -> Self:
-        return cls.array2mask(array, **kwargs)
+    def __new__(cls, array=None, doc: Optional[str] = None, **kwargs) -> Self:
+        self = cls.array2mask(array, **kwargs)
+        self.__doc__ = doc
+        return self
 
     def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()
@@ -138,12 +140,16 @@ class DefaultMask(BaseMask):
     variable: Optional[variabletools.Variable]
 
     def __new__(
-        cls, variable: Optional[variabletools.Variable] = None, **kwargs
+        cls,
+        variable: Optional[variabletools.Variable] = None,
+        doc: Optional[str] = None,
+        **kwargs,
     ) -> Self:
         if variable is None:
             self = super().__new__(cls)
         else:
             self = cls.new(variable, **kwargs)
+        self.__doc__ = doc
         self.variable = variable
         return self
 

@@ -238,8 +238,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Start WHMOD calculations (...).
     Initialize WHMOD (...).
     Apply the Richter correction (...).
-    Interpolate Temperature data to precipitation station (for Richter correction) \
-(...).
+    Interpolate Temperature data to precipitation station (Richter correction) (...).
     method simulate started at ...
         |---------------------|
         ***********************

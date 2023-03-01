@@ -16,11 +16,12 @@ import hydpy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 
-# ...from hland
+# ...from whmod
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_derived
 from hydpy.models.whmod import whmod_inputs
+from hydpy.models.whmod import whmod_factors
 from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
 
@@ -603,7 +604,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     >>> derived.nfkwe(200.0)
     >>> states.aktbodenwassergehalt(100.0)
     >>> model.calc_relbodenfeuchte_v1()
-    >>> fluxes.relbodenfeuchte
+    >>> factors.relbodenfeuchte
     relbodenfeuchte(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0)
     """
 
@@ -613,19 +614,20 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
     REQUIREDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
-    RESULTSEQUENCES = (whmod_fluxes.RelBodenfeuchte,)
+    RESULTSEQUENCES = (whmod_factors.RelBodenfeuchte,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmb_cells):
             if (con.nutz_nr[k] in (WASSER, VERSIEGELT)) or (der.nfkwe[k] <= 0.0):
-                flu.relbodenfeuchte[k] = 0.0
+                fac.relbodenfeuchte[k] = 0.0
             else:
-                flu.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.nfkwe[k]
+                fac.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.nfkwe[k]
 
 
 class Calc_Sickerwasser_V1(modeltools.Method):
@@ -638,7 +640,7 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     ...         ZUCKERRUEBEN, VERSIEGELT, WASSER)
     >>> derived.beta(2.0)
     >>> fluxes.zuflussboden(10.0)
-    >>> fluxes.relbodenfeuchte(0.5)
+    >>> factors.relbodenfeuchte(0.5)
     >>> model.calc_sickerwasser_v1()
     >>> fluxes.sickerwasser
     sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
@@ -651,7 +653,7 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     DERIVEDPARAMETERS = (whmod_derived.Beta,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
-        whmod_fluxes.RelBodenfeuchte,
+        whmod_factors.RelBodenfeuchte,
     )
     RESULTSEQUENCES = (whmod_fluxes.Sickerwasser,)
 
@@ -659,13 +661,14 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
                 flu.sickerwasser[k] = 0.0
             else:
                 flu.sickerwasser[k] = (
-                    flu.zuflussboden[k] * flu.relbodenfeuchte[k] ** der.beta[k]
+                    flu.zuflussboden[k] * fac.relbodenfeuchte[k] ** der.beta[k]
                 )
 
 
@@ -680,7 +683,7 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
     ...     last_example=6,
     ...     parseqs=(inputs.temp14,
     ...              inputs.relluftfeuchte,
-    ...              fluxes.saettigungsdampfdruckdefizit))
+    ...              factors.saettigungsdampfdruckdefizit))
     >>> test.nexts.temp14 = 0.0, 0.0, 0.0, 10.0, 20.0, 30.0
     >>> test.nexts.relluftfeuchte = 1.0, 0.5, 0.0, 0.0, 0.0, 0.0
     >>> test()
@@ -698,13 +701,13 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
         whmod_inputs.RelLuftfeuchte,
         whmod_inputs.Temp14,
     )
-    RESULTSEQUENCES = (whmod_fluxes.Saettigungsdampfdruckdefizit,)
+    RESULTSEQUENCES = (whmod_factors.Saettigungsdampfdruckdefizit,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.saettigungsdampfdruckdefizit = (1.0 - inp.relluftfeuchte) * (
+        fac = model.sequences.factors.fastaccess
+        fac.saettigungsdampfdruckdefizit = (1.0 - inp.relluftfeuchte) * (
             6.107 * 10.0 ** ((7.5 * inp.temp14) / (238.0 + inp.temp14))
         )
 
@@ -751,7 +754,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     ...     model, model.calc_maxverdunstung_v1,
     ...     last_example=5,
     ...     parseqs=(inputs.temp14,
-    ...              fluxes.saettigungsdampfdruckdefizit,
+    ...              factors.saettigungsdampfdruckdefizit,
     ...              fluxes.maxverdunstung))
     >>> test.nexts.temp14 = 0.0, 1.0, 10.0, 30.0, 30.0
     >>> test.nexts.saettigungsdampfdruckdefizit = 3.0, 3.0, 12.0, 20.0, 20.0
@@ -786,7 +789,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
     REQUIREDSEQUENCES = (
         whmod_inputs.Temp14,
-        whmod_fluxes.Saettigungsdampfdruckdefizit,
+        whmod_factors.Saettigungsdampfdruckdefizit,
     )
     RESULTSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
 
@@ -795,6 +798,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if inp.temp14 <= 0.0:
             for k in range(con.nmb_cells):
@@ -809,7 +813,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
                     d_factor = con.faktorwald[1, month]
                 else:
                     d_factor = con.faktor[nutz - 1, month]
-                flu.maxverdunstung[k] = d_factor * flu.saettigungsdampfdruckdefizit
+                flu.maxverdunstung[k] = d_factor * fac.saettigungsdampfdruckdefizit
 
 
 class Calc_MaxVerdunstung_V2(modeltools.Method):
@@ -886,7 +890,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, VERSIEGELT, WASSER)
     >>> minhasr(3.0)
     >>> fluxes.maxverdunstung = 2.0
-    >>> fluxes.relbodenfeuchte = 0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.5
+    >>> factors.relbodenfeuchte = 0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.5
     >>> model.calc_bodenverdunstung_v1()
     >>> fluxes.bodenverdunstung
     bodenverdunstung(0.0, 0.768701, 1.382877, 1.77884, 2.0, 0.0, 0.0)
@@ -903,7 +907,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         whmod_control.MinhasR,
     )
     REQUIREDSEQUENCES = (
-        whmod_fluxes.RelBodenfeuchte,
+        whmod_factors.RelBodenfeuchte,
         whmod_fluxes.MaxVerdunstung,
     )
     RESULTSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
@@ -911,12 +915,13 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] in (VERSIEGELT, WASSER):
                 flu.bodenverdunstung[k] = 0.0
             else:
-                d_temp = modelutils.exp(-con.minhasr[k] * flu.relbodenfeuchte[k])
+                d_temp = modelutils.exp(-con.minhasr[k] * fac.relbodenfeuchte[k])
                 flu.bodenverdunstung[k] = (
                     flu.maxverdunstung[k]
                     * (1.0 - d_temp)
@@ -1199,7 +1204,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     >>> nmb_cells(7)
     >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, VERSIEGELT, WASSER)
     >>> mitfunktion_kapillareraufstieg(True)
-    >>> fluxes.relbodenfeuchte(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
+    >>> factors.relbodenfeuchte(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
     >>> fluxes.potkapilaufstieg(2.0)
     >>> model.calc_kapilaufstieg_v1()
     >>> fluxes.kapilaufstieg
@@ -1218,20 +1223,21 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         whmod_fluxes.PotKapilAufstieg,
-        whmod_fluxes.RelBodenfeuchte,
+        whmod_factors.RelBodenfeuchte,
     )
     RESULTSEQUENCES = (whmod_fluxes.KapilAufstieg,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.mitfunktion_kapillareraufstieg and (
                 con.nutz_nr[k] not in (VERSIEGELT, WASSER)
             ):
                 flu.kapilaufstieg[k] = (
-                    flu.potkapilaufstieg[k] * (1.0 - flu.relbodenfeuchte[k]) ** 3
+                    flu.potkapilaufstieg[k] * (1.0 - fac.relbodenfeuchte[k]) ** 3
                 )
             else:
                 flu.kapilaufstieg[k] = 0.0

@@ -191,7 +191,7 @@ class Constants(Dict[str, int]):
         assert ((frame1 := inspect.currentframe()) is not None) and (
             (frame := frame1.f_back) is not None
         )
-        assert isinstance(modulename := frame.f_locals.get("__name__"), str)
+        modulename = frame.f_locals.get("__name__")
         self.__module__ = modulename
         if not (args or kwargs):
             for key, value in frame.f_locals.items():

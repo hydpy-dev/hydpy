@@ -5,14 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
-
-
-class Sequence1D(sequencetools.FluxSequence):
-    NDIM, NUMERIC = 1, False
-
-    @property
-    def refweights(self):
-        return self.subseqs.seqs.model.parameters.derived.relarea
+from hydpy.models.whmod.whmod_sequences import Flux1DSequence
 
 
 class NiederschlagRichter(sequencetools.FluxSequence):
@@ -21,69 +14,59 @@ class NiederschlagRichter(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class InterzeptionsVerdunstung(Sequence1D):
+class InterzeptionsVerdunstung(Flux1DSequence):
     """[mm]"""
 
 
-class NiedNachInterz(Sequence1D):
+class NiedNachInterz(Flux1DSequence):
     """[mm]"""
 
 
-class Seeniederschlag(Sequence1D):
+class Seeniederschlag(Flux1DSequence):
     """[mm]"""
 
 
-class ZuflussBoden(Sequence1D):
+class ZuflussBoden(Flux1DSequence):
     """[mm]"""
 
 
-class Oberflaechenabfluss(Sequence1D):
+class Oberflaechenabfluss(Flux1DSequence):
     """[mm]"""
 
 
-class RelBodenfeuchte(Sequence1D):
-    """[-]"""
-
-
-class Sickerwasser(Sequence1D):
+class Sickerwasser(Flux1DSequence):
     """[mm]"""
 
 
-class Saettigungsdampfdruckdefizit(sequencetools.FluxSequence):
-    """[mbar]"""
-
-    NDIM, NUMERIC = 0, False
-
-
-class MaxVerdunstung(Sequence1D):
+class MaxVerdunstung(Flux1DSequence):
     """[mm]"""
 
 
-class Bodenverdunstung(Sequence1D):
+class Bodenverdunstung(Flux1DSequence):
     """[mm]"""
 
 
-class Seeverdunstung(Sequence1D):
+class Seeverdunstung(Flux1DSequence):
     """[mm]"""
 
 
-class AktVerdunstung(Sequence1D):
+class AktVerdunstung(Flux1DSequence):
     """[mm]"""
 
 
-class PotKapilAufstieg(Sequence1D):
+class PotKapilAufstieg(Flux1DSequence):
     """[mm]"""
 
 
-class KapilAufstieg(Sequence1D):
+class KapilAufstieg(Flux1DSequence):
     """[mm]"""
 
 
-class PotGrundwasserneubildung(Sequence1D):
+class PotGrundwasserneubildung(Flux1DSequence):
     """[mm]"""
 
 
-class Basisabfluss(Sequence1D):
+class Basisabfluss(Flux1DSequence):
     """[mm]"""
 
 

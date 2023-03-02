@@ -506,7 +506,7 @@ class FastAccess:
     del __setattr__
 
 
-class Variable(abc.ABC):
+class Variable:
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`

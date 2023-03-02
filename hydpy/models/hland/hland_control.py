@@ -267,24 +267,6 @@ class ZoneZ(hland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ZRelP(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for precipitation [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class ZRelT(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for temperature [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class ZRelE(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for evaporation [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
 class PCorr(hland_parameters.ParameterComplete):
     """General precipitation correction factor [-]."""
 
@@ -311,6 +293,13 @@ class SfCF(hland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 1.0
+
+
+class TCorr(hland_parameters.ParameterNoGlacier):
+    """General temperature correction addend [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.0
 
 
 class TCAlt(hland_parameters.ParameterComplete):

@@ -267,7 +267,7 @@
             <hland_v1>
                 <factors>
                     <selections>catchment_dill</selections>
-                    <tmean/>
+                    <contriarea/>
                 </factors>
                 <fluxes>
                     <selections>catchment_dill</selections>

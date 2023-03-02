@@ -2151,7 +2151,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
-        ('self', 'con', 'inp', 'fac', 'k')
+        ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
         return tuple(
             vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
@@ -2166,7 +2166,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
-        ['self', 'con', 'inp', 'fac', 'k']
+        ['self', 'con', 'der', 'inp', 'fac', 'k']
         """
         return [vn for vn in self.varnames if vn not in self.argnames]
 
@@ -2179,7 +2179,8 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
-        ['parameters.control', 'sequences.inputs', 'sequences.factors']
+        ['parameters.control', 'parameters.derived', 'sequences.inputs', \
+'sequences.factors']
         """
         names = []
         for groupname in ("parameters", "sequences"):
@@ -2201,7 +2202,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
-        ['con', 'inp', 'fac']
+        ['con', 'der', 'inp', 'fac']
         """
         return [name.split(".")[-1][:3] for name in self.subgroupnames]
 

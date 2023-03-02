@@ -1157,7 +1157,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
-        Calc_TMean_V1
+        Calc_FracRain_V1
         ...
         Calc_QT_V1
         Pass_Q_v1
@@ -1403,10 +1403,10 @@ class RunModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill.sequences.sim)
         ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.78038)
-        sim(8.901179)
-        sim(7.131072)
-        sim(6.017787)
+        sim(11.78144)
+        sim(8.902735)
+        sim(7.132279)
+        sim(6.018681)
         >>> hp.nodes.dill.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
@@ -1420,7 +1420,7 @@ class RunModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.78038, 8.901179, 7.131072, 6.017787
+        11.78144, 8.902735, 7.132279, 6.018681
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.

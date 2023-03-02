@@ -26,7 +26,7 @@ class Calc_TC_V1(modeltools.Method):
     r"""Adjust the measured air temperature to the altitude of the individual zones.
 
     Basic equation:
-      :math:`TC = T - TCAlt \cdot (ZoneZ - ZRelT)`
+      :math:`TC = T + TCorr - TCAlt \cdot (ZoneZ - Z)`
 
     Examples:
 
@@ -37,73 +37,38 @@ class Calc_TC_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nmbzones(2)
-        >>> zrelt(2.0)
         >>> zonez(2.0, 4.0)
+        >>> derived.z(2.0)
 
         Applying the usual temperature lapse rate of 0.6°C/100m does not affect the
         first zone but reduces the temperature of the second zone by 1.2°C:
 
+        >>> tcorr(1.0)
         >>> tcalt(0.6)
         >>> inputs.t = 5.0
         >>> model.calc_tc_v1()
         >>> factors.tc
-        tc(5.0, 3.8)
+        tc(6.0, 4.8)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
+        hland_control.TCorr,
         hland_control.TCAlt,
         hland_control.ZoneZ,
-        hland_control.ZRelT,
     )
+    DERIVEDPARAMETERS = (hland_derived.Z,)
     REQUIREDSEQUENCES = (hland_inputs.T,)
     RESULTSEQUENCES = (hland_factors.TC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbzones):
-            fac.tc[k] = inp.t - con.tcalt[k] * (con.zonez[k] - con.zrelt)
-
-
-class Calc_TMean_V1(modeltools.Method):
-    r"""Calculate the areal mean temperature of the subbasin.
-
-    Examples:
-
-        The following example deals with two zones, the first one being twice as large
-        as the second one:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(2)
-        >>> derived.relzoneareas(2.0/3.0, 1.0/3.0)
-
-        With temperature values of 5°C and 8°C for the respective zones, the mean
-        temperature is 6°C:
-
-        >>> factors.tc = 5.0, 8.0
-        >>> model.calc_tmean_v1()
-        >>> factors.tmean
-        tmean(6.0)
-    """
-
-    CONTROLPARAMETERS = (hland_control.NmbZones,)
-    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas,)
-    REQUIREDSEQUENCES = (hland_factors.TC,)
-    RESULTSEQUENCES = (hland_factors.TMean,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fac = model.sequences.factors.fastaccess
-        fac.tmean = 0.0
-        for k in range(con.nmbzones):
-            fac.tmean += der.relzoneareas[k] * fac.tc[k]
+            fac.tc[k] = inp.t + con.tcorr[k] - con.tcalt[k] * (con.zonez[k] - der.z)
 
 
 class Calc_FracRain_V1(modeltools.Method):
@@ -236,7 +201,7 @@ class Calc_PC_V1(modeltools.Method):
     altitude of the individual zones.
 
     Basic equation:
-      :math:`PC = P \cdot PCorr \cdot (1+PCAlt \cdot (ZoneZ-ZRelP)) \cdot (RfC + SfC)`
+      :math:`PC = P \cdot PCorr \cdot (1 + PCAlt \cdot (ZoneZ - Z)) \cdot (RfC + SfC)`
 
     Examples:
 
@@ -247,9 +212,9 @@ class Calc_PC_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nmbzones(5)
-        >>> zrelp(2.0)
         >>> zonez(3.0)
         >>> inputs.p = 5.0
+        >>> derived.z(2.0)
 
         The first four zones illustrate the individual precipitation corrections due to
         the general (|PCorr|, first zone), the altitude (|PCAlt|, second zone), the
@@ -280,9 +245,9 @@ class Calc_PC_V1(modeltools.Method):
         hland_control.NmbZones,
         hland_control.PCAlt,
         hland_control.ZoneZ,
-        hland_control.ZRelP,
         hland_control.PCorr,
     )
+    DERIVEDPARAMETERS = (hland_derived.Z,)
     REQUIREDSEQUENCES = (
         hland_inputs.P,
         hland_factors.RfC,
@@ -293,11 +258,12 @@ class Calc_PC_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.pc[k] = inp.p * (1.0 + con.pcalt[k] * (con.zonez[k] - con.zrelp))
+            flu.pc[k] = inp.p * (1.0 + con.pcalt[k] * (con.zonez[k] - der.z))
             if flu.pc[k] <= 0.0:
                 flu.pc[k] = 0.0
             else:
@@ -308,7 +274,7 @@ class Calc_EP_V1(modeltools.Method):
     r"""Adjust the potential norm evaporation to the actual temperature.
 
     Basic equation:
-      :math:`EP = EPN \cdot (1 + ETF \cdot (TMean - TN))`
+      :math:`EP = EPN \cdot (1 + ETF \cdot (T - TN))`
 
     Restriction:
       :math:`0 \leq EP \leq 2 \cdot EPN`
@@ -327,20 +293,20 @@ class Calc_EP_V1(modeltools.Method):
         >>> inputs.tn = 20.0
         >>> inputs.epn = 2.0
 
-        With mean temperature equal to norm temperature, actual (uncorrected)
+        With actual temperature equal to norm temperature, actual (uncorrected)
         evaporation equals norm evaporation:
 
-        >>> factors.tmean = 20.0
+        >>> inputs.t = 20.0
         >>> model.calc_ep_v1()
         >>> fluxes.ep
         ep(2.0, 2.0, 2.0, 2.0)
 
-        With a mean temperature 5°C higher than normal temperature, potential
+        For an actual temperature 5°C higher than normal temperature, potential
         evaporation is increased by 1 mm for the third zone.  For the first zone,
         potential evaporation is 0 mm (the smallest value allowed), and for the fourth
         zone, it is the double value of the norm evaporation (largest value allowed):
 
-        >>> factors.tmean  = 25.0
+        >>> inputs.t  = 25.0
         >>> model.calc_ep_v1()
         >>> fluxes.ep
         ep(0.0, 2.0, 3.0, 4.0)
@@ -353,7 +319,6 @@ class Calc_EP_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         hland_inputs.EPN,
         hland_inputs.TN,
-        hland_factors.TMean,
     )
     RESULTSEQUENCES = (hland_fluxes.EP,)
 
@@ -361,10 +326,9 @@ class Calc_EP_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
-        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.ep[k] = inp.epn * (1.0 + con.etf[k] * (fac.tmean - inp.tn))
+            flu.ep[k] = inp.epn * (1.0 + con.etf[k] * (inp.t - inp.tn))
             flu.ep[k] = min(max(flu.ep[k], 0.0), 2.0 * inp.epn)
 
 
@@ -374,7 +338,7 @@ class Calc_EPC_V1(modeltools.Method):
 
     Basic equation:
       :math:`EPC =
-      EP \cdot ECorr \cdot (1 + ECAlt \cdot (ZoneZ - ZRelE)) \cdot exp(-EPF \cdot PC)`
+      EP \cdot ECorr \cdot (1 + ECAlt \cdot (ZoneZ - Z)) \cdot exp(-EPF \cdot PC)`
 
 
     Examples:
@@ -387,10 +351,10 @@ class Calc_EPC_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nmbzones(4)
-        >>> zrele(2.0)
         >>> zonez(3.0)
         >>> fluxes.ep = 2.0
         >>> fluxes.pc = 5.0
+        >>> derived.z(2.0)
 
         The first three zones illustrate the individual evaporation corrections due to
         the general (|ECorr|, first zone), the altitude (|ECAlt|, second zone), and the
@@ -419,9 +383,9 @@ class Calc_EPC_V1(modeltools.Method):
         hland_control.ECorr,
         hland_control.ECAlt,
         hland_control.ZoneZ,
-        hland_control.ZRelE,
         hland_control.EPF,
     )
+    DERIVEDPARAMETERS = (hland_derived.Z,)
     REQUIREDSEQUENCES = (
         hland_fluxes.EP,
         hland_fluxes.PC,
@@ -431,12 +395,11 @@ class Calc_EPC_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             flu.epc[k] = (
-                flu.ep[k]
-                * con.ecorr[k]
-                * (1.0 - con.ecalt[k] * (con.zonez[k] - con.zrele))
+                flu.ep[k] * con.ecorr[k] * (1.0 - con.ecalt[k] * (con.zonez[k] - der.z))
             )
             if flu.epc[k] <= 0.0:
                 flu.epc[k] = 0.0
@@ -4654,7 +4617,6 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_TC_V1,
-        Calc_TMean_V1,
         Calc_FracRain_V1,
         Calc_RFC_SFC_V1,
         Calc_PC_V1,

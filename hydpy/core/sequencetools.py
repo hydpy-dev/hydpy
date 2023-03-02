@@ -1375,13 +1375,13 @@ class IOSequence(Sequence_):
     RAM or to read or write it on the fly.  We now activate the reading functionality
     of input sequence |hland_inputs.T| (while still keeping its time-series in RAM,
     which we set to zero beforehand) and the writing feature of the factor sequences
-    |hland_factors.TMean| and |hland_factors.TC| (without handling their data in RAM)
-    and the writing feature of the state sequences |hland_states.SM| and
+    |hland_factors.ContriArea| and |hland_factors.TC| (without handling their data in
+    RAM) and the writing feature of the state sequences |hland_states.SM| and
     |hland_states.SP| (while handling their data in RAM simultaneously):
 
     >>> inputs.t.series = 0.0
     >>> inputs.t.prepare_series(allocate_ram=True, read_jit=True)
-    >>> factors.tmean.prepare_series(allocate_ram=False, write_jit=True)
+    >>> factors.contriarea.prepare_series(allocate_ram=False, write_jit=True)
     >>> factors.tc.prepare_series(allocate_ram=False, write_jit=True)
     >>> states.sm.prepare_series(allocate_ram=True, write_jit=True)
     >>> states.sp.prepare_series(allocate_ram=True, write_jit=True)
@@ -1401,18 +1401,18 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     0.0, 0.0, 0.0, 0.0
 
-    >>> factors.tmean.ramflag
+    >>> factors.contriarea.ramflag
     False
-    >>> factors.tmean.diskflag_reading
+    >>> factors.contriarea.diskflag_reading
     False
-    >>> factors.tmean.diskflag_writing
+    >>> factors.contriarea.diskflag_writing
     True
-    >>> factors.tmean.diskflag
+    >>> factors.contriarea.diskflag
     True
-    >>> factors.tmean.series
+    >>> factors.contriarea.series
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Sequence `tmean` of element \
+    hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
 `land_lahn_1` is not requested to make any time-series data available.
 
     >>> states.sm.ramflag
@@ -1440,28 +1440,28 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.705395, -1.505553, -4.221268, -7.446349
     >>> round_(states.sm.series[:, 0])
-    99.134954, 98.919762, 98.76352, 98.574428
+    99.130873, 98.90942, 98.748643, 98.554071
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
-    To inspect the time series of |hland_factors.TMean| and |hland_factors.TC|, you
-    must first activate their |IOSequence.ramflag| and then load their data manually
-    with method |IOSequence.load_series|.  The latter requires some additional
+    To inspect the time series of |hland_factors.ContriArea| and |hland_factors.TC|,
+    you must first activate their |IOSequence.ramflag| and then load their data
+    manually with method |IOSequence.load_series|.  The latter requires some additional
     configuration effort (see the documentation on module |netcdftools| for further
     information):
 
-    >>> factors.tmean.prepare_series()
+    >>> factors.contriarea.prepare_series()
     >>> factors.tc.prepare_series()
     >>> pub.sequencemanager.filetype = "nc"
     >>> with TestIO():
     ...     pub.sequencemanager.open_netcdfreader()
-    ...     factors.tmean.load_series()
+    ...     factors.contriarea.load_series()
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
-    >>> round_(factors.tmean.series)
-    -0.988481, -1.788639, -4.504354, -7.729436
+    >>> round_(factors.contriarea.series)
+    0.431273, 0.429876, 0.428864, 0.427639
     >>> round_(factors.tc.series[:, 0])
-    0.164605, -0.635553, -3.351268, -6.576349
+    0.447691, -0.352466, -3.068181, -6.293263
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1473,7 +1473,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.134954, 98.919762, 98.76352, 98.574428
+    99.130873, 98.90942, 98.748643, 98.554071
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1510,7 +1510,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> inputs.p.series = 10.0
     >>> hp.simulate()
     >>> round_(fluxes.pc.series[:, 0])
-    10.22607, 11.288565, 11.288565, 11.288565
+    9.164043, 10.570894, 10.665633, 10.665633
 
     Another convenience property is |IOSequence.seriesshape|, which combines the length
     of the simulation period with the shape of the individual |IOSequence| object:
@@ -1529,7 +1529,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> factors.fastaccess._tc_length
     13
     >>> round_(factors.tc.series[:, 0], 1)
-    0.2, -0.6, -3.4, -6.6
+    0.4, -0.4, -3.1, -6.3
 
     >>> factors.tc.shape = 2,
     >>> factors.tc.seriesshape
@@ -2808,15 +2808,15 @@ class InputSequence(ModelIOSequence):
     >>> print_values(model.sequences.inputs.t.series)
     1.0, 2.0, 3.0, 4.0, 5.0
     >>> print_values(model.sequences.factors.tc.series[:, 0])
-    2.05, 3.05, 4.05, 5.05, 6.05
+    2.323207, 3.323207, 4.323207, 5.323207, 6.323207
     >>> print_values(model.sequences.inputs.p.series)
     0.0, 4.0, 0.0, 8.0, 0.0
     >>> print_values(model.sequences.fluxes.pc.series[:, 0])
-    0.0, 3.441339, 0.0, 6.882678, 0.0
+    0.0, 3.2514, 0.0, 6.5028, 0.0
     >>> print_values(model.sequences.inputs.epn.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
     >>> print_values(model.sequences.fluxes.epc.series[:, 0])
-    0.314763, 0.524569, 0.46086, 0.689852, 0.630047
+    0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
     .. testsetup::
 
@@ -2943,23 +2943,23 @@ class OutputSequence(ModelIOSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_values(model.sequences.fluxes.q1.series)
-    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
+    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
     >>> print_values(node_q1.sequences.sim.series)
-    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
+    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
     >>> print_values(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_values(model.sequences.fluxes.perc.series)
-    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
+    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
     >>> print_values(node_perc.sequences.sim.series)
-    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
+    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
     >>> print_values(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_values(model.sequences.states.uz.series)
-    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
+    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
     >>> print_values(node_uz.sequences.sim.series)
-    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
+    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
     >>> print_values(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
